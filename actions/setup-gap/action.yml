@@ -1,0 +1,125 @@
+name: setup-gap
+description: "setup github actions proxy"
+
+inputs:
+  # general inputs
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+  api-gateway-host:
+    description: "aws api gateway host"
+    required: false
+  proxy-version:
+    description: "sig proxy image version / tag"
+    required: false
+    default: "1.7"
+  proxy-port:
+    description: "sig proxy port"
+    required: false
+    default: "8080"
+  # aws inputs
+  aws-role-duration-seconds:
+    description: ""
+    required: false
+    default: "900"
+  aws-region:
+    description: ""
+    required: false
+  aws-role-arn:
+    description: ""
+    required: false
+  # argocd inputs
+  use-argocd:
+    description: ""
+    required: false
+    default: "false"
+  argocd-version:
+    description: ""
+    required: false
+    default: "2.8.2"
+  argocd-user:
+    description: ""
+    required: false
+  argocd-pass:
+    description: ""
+    required: false
+  # grafana cloud inputs
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+    default: setup-gap
+  gc-host:
+    description: "grafana cloud hostname"
+    required: false
+  gc-basic-auth:
+    description: "grafana cloud basic auth"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Assume role
+      uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Login to aws ecr
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@5a88a04c91d5c6f97aae0d9be790e64d9b1d47b7 # v1.7.1
+      env:
+        AWS_REGION: us-east-1
+      with:
+        registry-type: public
+
+    - name: Run aws sig4 proxy container
+      shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+      run: |
+        docker run --rm -d \
+          -e "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" \
+          -e "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" \
+          -e "AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}" \
+          -p "${{ inputs.proxy-port }}":"${{ inputs.proxy-port }}" \
+          public.ecr.aws/aws-observability/aws-sigv4-proxy:${{ inputs.proxy-version }} \
+          --name execute-api --region ${{ inputs.aws-region }} \
+          --host "${{ inputs.api-gateway-host }}" \
+          --log-failed-requests
+
+    - name: Setup argocd
+      if: inputs.use-argocd == 'true'
+      uses: clowdhaus/argo-cd-action@6468ae064525e6a8adade0703b880b50912ab685 # v2.0.0
+      with:
+        command: version
+        options: --client
+        version: ${{ inputs.argocd-version }}
+
+    - name: Argocd login
+      if: inputs.use-argocd == 'true'
+      shell: bash
+      run: argocd login localhost:${{ inputs.proxy-port }}/primary --skip-test-tls --plaintext --grpc-web --username ${{ inputs.argocd-user }} --password ${{ inputs.argocd-pass }}
+
+    - name: Collect metrics
+      if: always()
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@d2c2b7bdc9012651230b2608a1bcb0c48538b6ec
+      with:
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true

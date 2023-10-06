@@ -1,0 +1,46 @@
+name: Setup GitHub Token
+description: Setup a GitHub Token from GATI
+
+inputs:
+  aws-role-arn:
+    description: ARN of role capable of getting token from GATI
+    required: true
+  aws-lambda-url:
+    description: URL of GATI lambda function
+    required: true
+  aws-region:
+    description: AWS region
+    required: true
+  aws-role-duration-seconds:
+    description: Duration of role in seconds
+    required: false
+    default: "900"
+  set-git-config:
+    description: Set git config
+    required: false
+    default: "false"
+outputs:
+  access-token:
+    value: ${{ steps.get-gh-token.outputs.access-token }}
+    description: The github access token that has permissions reflecting the current AWS role value
+
+runs:
+  using: composite
+  steps:
+    - name: Assume role capable of getting token from gati
+      uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Get github token from gati
+      id: get-gh-token
+      uses: smartcontractkit/chainlink-github-actions/github-app-token-issuer@main
+      with:
+        url: ${{ inputs.aws-lambda-url }}
+
+    - name: Configure github token
+      if: inputs.set-git-config == 'true'
+      shell: bash
+      run: git config --global url."https://x-access-token:${{ steps.get-gh-token.outputs.access-token }}@github.com/".insteadOf "https://github.com/"

@@ -1,0 +1,26 @@
+name: schedule-renovate
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+      actions: read
+    steps:
+      - name: Checkout repo (needed to reference local action)
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        with:
+          fetch-depth: 0
+
+      - name: setup-renovate
+        uses: ./actions/setup-renovate
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-role-arn-gati: ${{ secrets.AWS_OIDC_IAM_ROLE_ARN_GATI }}
+          aws-lambda-url-gati: ${{ secrets.AWS_LAMBDA_URL_GATI }}

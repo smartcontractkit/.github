@@ -1,0 +1,31 @@
+{
+  "name": "update-action-versions",
+  "version": "0.1.0",
+  "private": true,
+  "description": "update-action-versions",
+  "main": "out/index.js",
+  "scripts": {
+    "v1": "ts-node ./src/v1.ts --local --tokenEnv=GITHUB_TOKEN --dir=../../.github/workflows",
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node16 --tsconfig=./tsconfig.json --outfile=out/index.js",
+    "local": "ts-node ./src/index.ts --local --tokenEnv=GITHUB_TOKEN --dir=../../.github/workflows",
+    "scratch": "ts-node ./src/index.ts --local --tokenEnv=GITHUB_TOKEN --dir=./test"
+  },
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^5.1.1",
+    "minimist": "^1.2.8",
+    "replace-in-file": "^7.0.1",
+    "semver": "^7.5.4",
+    "yaml": "^2.3.2"
+  },
+  "devDependencies": {
+    "@types/minimist": "^1.2.2",
+    "@types/node": "18.18.3",
+    "@types/semver": "^7.5.3",
+    "esbuild": "^0.19.3",
+    "ts-node": "10.9.1"
+  },
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "repository": "https://github.com/smartcontractkit/.github"
+}

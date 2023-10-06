@@ -1,0 +1,17 @@
+name: test-workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  ci-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ci-lint-versioned
+        uses: smartcontractkit/.github/actions/ci-lint-go@a2fd479898eb96a70da800f4c63ea40135748d38 # ci-lint-go@0.1.0
+      - name: ci-lint-trunk
+        uses: smartcontractkit/.github/actions/ci-lint-go@main
+      - name: ci-lint-local
+        uses: ./actions/ci-lint-go

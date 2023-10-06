@@ -1,0 +1,11 @@
+{
+  "name": "nops-upgrade-checker",
+  "version": "0.1.0",
+  "description": "Action to check consistency across environments",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}

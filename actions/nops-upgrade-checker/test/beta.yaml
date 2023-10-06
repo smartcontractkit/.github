@@ -1,0 +1,202 @@
+stage:
+  main:
+    boot:
+      enabled: true
+      rollout:
+        enabled: false # Temporarily disabled to implement the new ccip image versioning.
+      image:
+        repository: public.ecr.aws/chainlink/chainlink-ccip"
+        tag: "2.4.0-ccip1.0.2"
+      requiredLabels:
+        app.kubernetes.io/component: chainlink-ccip-boot-node
+        app.chain.link/team: ccip
+        app.chain.link/product: ccip
+        app.chain.link/blockchain: multichain
+        app.chain.link/network: testnet
+        app.chain.link/network-type: testnet
+      chainlink:
+        v2Config:
+          02-common.toml: |
+            [Feature]
+            FeedsManager = true
+            LogPoller = true
+            UICSAKeys = true
+
+            [OCR2]
+            Enabled = true
+
+            [P2P]
+            PeerID = '1111111111111111111111111111111111111111111111111111'
+            TraceLogging = true
+
+            [P2P.V1]
+            Enabled = false
+            ListenPort = 0
+
+            [P2P.V2]
+            Enabled = true
+            ListenAddresses = ['0.0.0.0:5001']
+    nodes:
+      size: 4
+      rollout:
+        enabled: false # Temporarily disabled to implement the new ccip image versioning.
+        analysisInitialDelay: 75s
+      networkPolicy:
+        enabled: false
+      common:
+        image:
+          repository: "public.ecr.aws/chainlink/chainlink-ccip"
+          tag: "2.4.0-ccip1.0.2"
+        requiredLabels:
+          app.kubernetes.io/component: chainlink-ccip-node
+          app.chain.link/team: ccip
+          app.chain.link/product: ccip
+          app.chain.link/blockchain: multichain
+          app.chain.link/network: testnet
+          app.chain.link/network-type: testnet
+        chainlink:
+          v2Config:
+            02-common.toml: |
+              [Feature]
+              FeedsManager = true
+              LogPoller = true
+              UICSAKeys = true
+
+              [OCR2]
+              Enabled = true
+              SimulateTransactions = false 
+              # The default is 1, meaning new OCR reports generated overwrite subsequent ones. 
+              # in CCIP, we do not want that behaviour we just want to queue reports.
+              DefaultTransactionQueueDepth = 150 
+
+              [P2P]
+              TraceLogging = true
+
+              [P2P.V1]
+              Enabled = false
+              ListenPort = 0
+
+              [P2P.V2]
+              Enabled = true
+              DefaultBootstrappers = ['1111111111111111111111111111111111111111111111111111@clc-ocr-multichain-ccip-beta-boot:5001']
+              ListenAddresses = ['0.0.0.0:5001']
+
+              [[EVM]]
+              ChainID = '420'
+
+              [EVM.GasEstimator]
+              BumpThreshold = 60
+              BumpPercent = 20
+              BumpMin = '100 wei'
+              PriceMax = '150 gwei'
+              LimitDefault = 6000000
+              FeeCapDefault = '150 gwei'
+
+              [EVM.GasEstimator.BlockHistory]
+              # Default is 24, which leads to bumpy gas prices. In CCIP
+              # we want to smooth out the gas prices, so we increase the sample size.
+              BlockHistorySize = 200 
+              # The formula for FeeCap is (current block base fee * (1.125 ^ EIP1559FeeCapBufferBlocks) + tipcap)
+              # where tipcap is managed by the block history estimators. In the context of CCIP,  
+              # the gas price is relayed to other changes for quotes so we want accurate/avg not pessimistic values.
+              # So we set this to zero so FeeCap = baseFee + tipcap.
+              EIP1559FeeCapBufferBlocks = 0
+
+              [[EVM]]
+              ChainID = '84531'
+
+              [EVM.GasEstimator]
+              BumpThreshold = 60
+              BumpPercent = 20
+              BumpMin = '100 wei'
+              PriceMax = '150 gwei'
+              LimitDefault = 6000000
+              FeeCapDefault = '150 gwei'
+
+              [EVM.GasEstimator.BlockHistory]
+              # Default is 24, which leads to bumpy gas prices. In CCIP
+              # we want to smooth out the gas prices, so we increase the sample size.
+              BlockHistorySize = 200 
+              # The formula for FeeCap is (current block base fee * (1.125 ^ EIP1559FeeCapBufferBlocks) + tipcap)
+              # where tipcap is managed by the block history estimators. In the context of CCIP,  
+              # the gas price is relayed to other changes for quotes so we want accurate/avg not pessimistic values.
+              # So we set this to zero so FeeCap = baseFee + tipcap.
+              EIP1559FeeCapBufferBlocks = 0
+
+              [[EVM]]
+              ChainID = '43113'
+
+              [EVM.GasEstimator]
+              BumpThreshold = 60
+              PriceMax = '200 gwei'
+              LimitDefault = 6000000
+              FeeCapDefault = '200 gwei'
+
+              [[EVM]]
+              ChainID = '11155111'
+
+              [EVM.GasEstimator]
+              PriceMax = '200 gwei'
+              LimitDefault = 6000000
+              FeeCapDefault = '200 gwei'
+
+              [EVM.GasEstimator.BlockHistory]
+              # Default is 4!?, which leads to bumpy gas prices. In CCIP
+              # we want to smooth out the gas prices, so we increase the sample size.
+              BlockHistorySize = 200
+              # The formula for FeeCap is (current block base fee * (1.125 ^ EIP1559FeeCapBufferBlocks) + tipcap)
+              # where tipcap is managed by the block history estimators. In the context of CCIP,  
+              # the gas price is relayed to other changes for quotes so we want accurate/avg not pessimistic values.
+              # So we set this to zero so FeeCap = baseFee + tipcap.
+              EIP1559FeeCapBufferBlocks = 0
+
+              [[EVM]]
+              ChainID = '421613'
+
+              [EVM.GasEstimator]
+              BumpThreshold = 60
+              BumpPercent = 20
+              BumpMin = '100 wei'
+              PriceMax = '400 gwei'
+              FeeCapDefault = '200 gwei'
+              LimitDefault = 100_000_000
+
+              [[EVM]]
+              ChainID = '97'
+
+              [EVM.GasEstimator]
+              PriceMax = '200 gwei'
+              LimitDefault = 6000000
+              FeeCapDefault = '200 gwei'
+      overrides:
+        - chainlink:
+            v2Config:
+              03-overrides.toml: |
+                [P2P]
+                PeerID = '1111111111111111111111111111111111111111111111111112'
+                [OCR2]
+                KeyBundleID = '1111111111111111111111111111111111111111111111111111111111111112'
+        - chainlink:
+            v2Config:
+              03-overrides.toml: |
+                [P2P]
+                PeerID = '1111111111111111111111111111111111111111111111111113'
+                [OCR2]
+                KeyBundleID = '1111111111111111111111111111111111111111111111111111111111111113'
+        - chainlink:
+            v2Config:
+              03-overrides.toml: |
+                [P2P]
+                PeerID = '1111111111111111111111111111111111111111111111111114'
+                [OCR2]
+                KeyBundleID = '1111111111111111111111111111111111111111111111111111111111111114'
+        - chainlink:
+            v2Config:
+              03-overrides.toml: |
+                [P2P]
+                PeerID = '1111111111111111111111111111111111111111111111111115'
+                [OCR2]
+                KeyBundleID = '1111111111111111111111111111111111111111111111111111111111111115'
+    ingressGroupNameSuffix: "ocr2"
+    defaults:
+      - test/defaults-chainlink-config-v2.yaml

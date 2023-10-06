@@ -1,0 +1,66 @@
+name: ci-test
+description: Test typescript code
+
+inputs:
+  # general inputs
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+  # grafana cloud inputs
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+    default: ci-test
+  gc-host:
+    description: "grafana cloud hostname"
+    required: false
+  gc-basic-auth:
+    description: "grafana cloud basic auth"
+    required: false
+  # nodejs inputs
+  node-version-file:
+    description: ""
+    required: false
+    default: ".tool-versions"
+  pnpm-version:
+    description: ""
+    required: false
+    default: "^8.0.0"
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Setup nodejs
+      uses: smartcontractkit/.github/actions/setup-nodejs@main
+      with:
+        node-version-file: ${{ inputs.node-version-file }}
+        pnpm-version: ${{ inputs.pnpm-version }}
+        use-cache: "true"
+        run-install: "true"
+      continue-on-error: true
+
+    # TODO: optimization - implement nx affected on pull request
+    - name: Run test
+      shell: bash
+      run: pnpm nx run-many --targets=test
+
+    - name: Collect metrics
+      if: always()
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@d2c2b7bdc9012651230b2608a1bcb0c48538b6ec
+      with:
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true

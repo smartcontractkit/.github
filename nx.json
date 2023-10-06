@@ -1,0 +1,48 @@
+{
+  "tasksRunnerOptions": {
+    "default": {
+      "options": {
+        "cacheableOperations": ["lint"],
+        "parallel": 10
+      }
+    }
+  },
+  "extends": "nx/presets/npm.json",
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "targetDefaults": {
+    "lint": {
+      "inputs": ["default", "{workspaceRoot}/.eslintrc.json"]
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run test",
+        "parallel": true,
+        "cwd": "{projectRoot}",
+        "color": true,
+        "forwardAllArgs": true
+      },
+      "inputs": ["default", "^default", "{workspaceRoot}/jest.preset.js"]
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run build",
+        "parallel": true,
+        "cwd": "{projectRoot}",
+        "color": true,
+        "forwardAllArgs": true
+      }
+    },
+    "package": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run package",
+        "parallel": true,
+        "cwd": "{projectRoot}",
+        "color": true,
+        "forwardAllArgs": true
+      }
+    }
+  }
+}

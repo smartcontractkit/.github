@@ -1,0 +1,7 @@
+{
+  "name": "get-latest-github-release",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "actions/get-latest-github-release",
+  "targets": {}
+}

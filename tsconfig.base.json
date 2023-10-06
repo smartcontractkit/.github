@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "importHelpers": true,
+    "incremental": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noEmit": false,
+    "noErrorTruncation": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "es2021",
+    "paths": {
+      "nx-chainlink": [
+        "libs/nx-chainlink/src/index.ts"
+      ]
+    }
+  }
+}

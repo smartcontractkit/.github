@@ -1,0 +1,131 @@
+name: cicd-changesets
+description: "changesets"
+
+inputs:
+  # general inputs
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+  git-user:
+    description: ""
+    required: false
+    default: app-token-issuer-infra-releng[bot]@users.noreply.github.com
+  git-email:
+    description: ""
+    required: false
+    default: app-token-issuer-infra-releng[bot]
+  # aws inputs
+  aws-role-duration-seconds:
+    description: ""
+    required: false
+    default: "900"
+  aws-region:
+    description: ""
+    required: false
+  aws-role-arn:
+    description: ""
+    required: false
+  aws-lambda-url:
+    description: ""
+    required: false
+  # nodejs inputs
+  node-version-file:
+    description: ""
+    required: false
+    default: ".tool-versions"
+  pnpm-version:
+    description: ""
+    required: false
+    default: "^8.0.0"
+  pnpm-use-cache:
+    description: "Use cache for pnpm"
+    required: false
+    default: "true"
+  # grafana cloud inputs
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+    default: cicd-changesets
+  gc-host:
+    description: "grafana cloud hostname"
+    required: false
+  gc-basic-auth:
+    description: "grafana cloud basic auth"
+    required: false
+  # changesets inputs
+  changesets-publish-cmd:
+    description: ""
+    required: false
+    default: pnpm run ci:changeset:publish
+  changesets-version-cmd:
+    description: ""
+    required: false
+    default: pnpm run ci:changeset:version
+  changesets-create-gh-release:
+    description: ""
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Assume aws gati role
+      uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Get github token from gati
+      id: get-gh-token
+      uses: smartcontractkit/chainlink-github-actions/github-app-token-issuer@main
+      with:
+        url: ${{ inputs.aws-lambda-url }}
+
+    - name: Checkout repo
+      uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+        token: ${{ steps.get-gh-token.outputs.access-token }}
+    
+    - name: Set git config
+      shell: bash
+      run: |
+        git config user.email "${{ inputs.git-email }}"
+        git config user.name "${{ inputs.git-user }}"
+
+    - name: Setup nodejs
+      uses: smartcontractkit/.github/actions/setup-nodejs@main
+      with:
+        node-version-file: ${{ inputs.node-version-file }}
+        pnpm-version: ${{ inputs.pnpm-version }}
+        use-cache: ${{ inputs.pnpm-use-cache }}
+        run-install: "true"
+
+    - name: Run changesets
+      id: changesets
+      uses: changesets/action@f13b1baaa620fde937751f5d2c3572b9da32af23 # v1.4.5
+      env:
+        GITHUB_TOKEN: ${{ steps.get-gh-token.outputs.access-token }}
+      with:
+        publish: ${{ inputs.changesets-publish-cmd }}
+        version: ${{ inputs.changesets-version-cmd }}
+        createGithubReleases: ${{ inputs.changesets-create-gh-release }}
+        setupGitUser: false
+
+    - name: Check changesets output
+      shell: bash
+      run: |
+        echo "published: ${{ steps.changesets.outputs.published }}"
+        echo "publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}"
+
+    - name: Collect metrics
+      if: always()
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@d2c2b7bdc9012651230b2608a1bcb0c48538b6ec
+      with:
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true

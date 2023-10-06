@@ -1,0 +1,39 @@
+# This file is necessary while we do the transition between Environment Variables / TOML for the node configuration.
+# Once we deprecate Env Vars for node configurations (after chainlink 2.0 release) we can include these values back again into the
+# cluster/node charts.
+node:
+  chainlink: &baseDefaultsChainlink
+    v2Config:
+      00-defaults-node-config.toml: |
+        RootDir = '/home/chainlink'
+        [Database]
+        MaxIdleConns = 20
+        MaxOpenConns = 40
+        MigrateOnStartup = true
+        [Log]
+        Level = 'info'
+        JSONConsole = true
+        [Log.File]
+        MaxSize = '0b'
+        [WebServer]
+        AllowOrigins = '*'
+        HTTPPort = 6688
+        SecureCookies = false
+        [WebServer.RateLimit]
+        Authenticated = 2000
+        Unauthenticated = 100
+        [WebServer.TLS]
+        HTTPSPort = 0
+  chainlinkNode: &enableV2configSecrets
+    metadata:
+      annotations:
+        chainlinknode.k8s.chain.link/create-v2: "true" # enable v2Config toml secret creation
+
+boot:
+  chainlink: *baseDefaultsChainlink
+  chainlinkNode: *enableV2configSecrets
+
+nodes:
+  common:
+    chainlink: *baseDefaultsChainlink
+    chainlinkNode: *enableV2configSecrets

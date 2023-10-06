@@ -1,0 +1,51 @@
+name: ci-lint-misc
+description: Lint actions and scripts
+
+inputs:
+  # general inputs
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+  # grafana cloud inputs
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+    default: ci-lint-misc
+  gc-host:
+    description: "grafana cloud hostname"
+    required: false
+  gc-basic-auth:
+    description: "grafana cloud basic auth"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Run actionlint
+      uses: reviewdog/action-actionlint@82693e9e3b239f213108d6e412506f8b54003586 # v1.39.1
+
+    - name: Run shellcheck
+      uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # v2.0.0
+      with:
+        scandir: "./tools/scripts"
+
+    - name: Collect metrics
+      if: always()
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@d2c2b7bdc9012651230b2608a1bcb0c48538b6ec
+      with:
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true

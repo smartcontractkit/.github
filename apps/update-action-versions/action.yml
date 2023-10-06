@@ -1,0 +1,24 @@
+name: update-action-versions
+description: update-action-versions
+
+inputs:
+  github-token:
+    description: ""
+    required: true
+    default: ${{ github.token }}
+  github-owner:
+    description: ""
+    required: false
+    default: smartcontractkit
+  github-repo:
+    description: ""
+    required: false
+    default: .github
+  workflow-dir:
+    description: ""
+    required: false
+    default: ./.github/workflows
+
+runs:
+  using: "node16"
+  main: "out/index.js"

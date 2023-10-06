@@ -1,0 +1,11 @@
+{
+  "name": "cicd-build-publish-artifacts-ts",
+  "version": "0.1.0",
+  "description": "",
+  "private": true,
+  "scripts": {},
+  "author": "@ajgrande924",
+  "license": "MIT",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}

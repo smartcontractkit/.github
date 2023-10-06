@@ -1,0 +1,28 @@
+name: check-git-tag-for-monorepo
+description: "checks if git tag is for a monorepo component <component>@<version>"
+
+inputs:
+  tag-ref:
+    description: ""
+    required: false
+    default: ${{ github.ref_name }}
+outputs:
+  name:
+    description: ""
+    value: ${{ steps.run-script.outputs.name }}
+  version:
+    description: ""
+    value: ${{ steps.run-script.outputs.version }}
+  release:
+    description: ""
+    value: ${{ steps.run-script.outputs.release }}
+
+runs:
+  using: composite
+  steps:
+    - name: Run script
+      id: run-script
+      env:
+        TAG_REF: ${{ inputs.tag-ref }}
+      shell: bash
+      run: ${{ github.action_path }}/scripts/check-git-tag-for-monorepo.sh

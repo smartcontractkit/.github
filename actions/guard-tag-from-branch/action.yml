@@ -1,0 +1,43 @@
+name: Fail if tag is not from allowed branch(es)
+description: |
+  Checks if the specified git tag is from a commit present on matching branches.
+
+  If the tag is not from one of these branches, then fail the build.
+
+inputs:
+  tag:
+    description: "The git tag to check"
+    required: true
+  branch-regex:
+    description: |
+      Regular expression of the branches to check
+
+      Example:
+        # This will match the main branch and any release branches
+        branch-regex: '^(main|release\/.*)'
+    required: true
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "false"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Fail if tag is not from allowed branch(es)
+      id: check
+      shell: bash
+      env:
+        TAG: ${{ inputs.tag }}
+        BRANCH_REGEX: ${{ inputs.branch-regex }}
+      run: ${{ github.action_path }}/scripts/tag-branch-check.sh
