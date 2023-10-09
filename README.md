@@ -3,23 +3,24 @@
 This repository contains reusable Github Actions to be used across our extensive
 network of repositories.
 
-## table of contents
+## Table of contents
 
-- [about](#about)
-  - [action package updates within .github repo](#action-package-updates-within-github-repo)
-  - [action package updates within application repos](#action-package-updates-within-application-repos)
-  - [golden path example repositories](#golden-path-example-repositories)
-- [development](#development)
-  - [creating a new action](#creating-a-new-action)
+- [Actions updates](#actions-updates)
+  - [Action package updates within .github monorepo](#action-package-updates-within-github-monorepo)
+  - [Action package updates within application repos](#action-package-updates-within-application-repos)
+- [Example usage](#example-usage)
+  - [Golden path example repositories](#golden-path-example-repositories)
+- [Development](#development)
+  - [Creating a new action](#creating-a-new-action)
 
-## about
+## Actions updates
 
-### action package updates within .github repo
+### Action package updates within .github monorepo
 
 ```mermaid
 sequenceDiagram
     participant Dev as Developer
-    participant R as Renovate
+    participant R as RenovateBot
     participant MonoRepo as Monorepo
     participant CS as Changeset
     participant RP as Release Plan
@@ -29,7 +30,7 @@ sequenceDiagram
     MonoRepo->>Dev: 2. Notify about PR
     Dev->>MonoRepo: 3. Review & merge PR
     Dev->>CS: 4. Add/Modify Changeset file based on changes
-    MonoRepo->>CS: 5. Identify affected packages
+    MonoRepo->>CS: 5. Identify impacted packages
     CS->>RP: 6. Generate Release Plan
     RP->>Dev: 7. Notify about generated plan
     Dev->>RP: 8. Review Plan
@@ -44,7 +45,7 @@ sequenceDiagram
 - **3:** The `Developer` reviews and merges the PR.
 - **4:** The `Developer` adds or modifies the changeset file based on the
   changes made.
-- **5:** The `Monorepo` identifies the affected packages.
+- **5:** The `Monorepo` identifies the impacted packages.
 - **6:** A `Changeset` is used to generate a `Release Plan`.
 - **7:** The `Release Plan` system notifies the `Developer` about the generated
   plan.
@@ -52,7 +53,7 @@ sequenceDiagram
 - **9:** If the plan is approved, the `Release Plan` instructs the Monorepo to
   publish the updated package(s).
 
-### action package updates within application repos
+### Action package updates within application repos
 
 Github actions updater uses a pull mechanism to update custom github actions.
 The schedule workflow lives in the application repo and requires the following
@@ -94,8 +95,9 @@ reference and the action updater will update at the next scheduled run.
 ```yaml
 uses: smartcontractkit/.github/actions/ci-lint-go@<any-valid-ref> # @0.0.0
 ```
+## Example Usage
 
-### golden path example repositories
+### Golden path example repositories
 
 Below are example "Golden Path" repositories that utilize these reuseable
 actions.
@@ -106,9 +108,9 @@ actions.
 - [`smartcontractkit/releng-sol-contracts`](https://github.com/smartcontractkit/releng-sol-contracts)
 - [`smartcontractkit/releng-py-app`](https://github.com/smartcontractkit/releng-py-app)
 
-## development
+## Development
 
-### creating a new action
+### Creating a new action
 
 To create a new action within this repository, use the nx plugin generator to
 bootstrap by running and following the prompts:
