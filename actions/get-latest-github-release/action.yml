@@ -1,0 +1,43 @@
+name: Get Latest GitHub Release
+description: |
+  This action get the most recent GitHub Release for a given repo. It is a
+  wrapper over the `gh release list` command.
+
+inputs:
+  github-repo:
+    description: |
+      Select a repository using the [HOST/]OWNER/REPO format
+
+      Example:
+        github-repo: orgName/repoName
+    required: true
+  github-token:
+    description: |
+      GitHub token (not the workflow default token if not running within its
+      own repo).'
+    required: true
+  results-limit:
+    description: Maximum number of items to fetch
+    default: "30"
+    required: false
+outputs:
+  tag-name:
+    description: Tag name of the latest release
+    value: ${{ steps.get-latest-release.outputs.tag-name }}
+  title:
+    description: Title of the latest release
+    value: ${{ steps.get-latest-release.outputs.title }}
+  published:
+    description: Published date of the latest release
+    value: ${{ steps.get-latest-release.outputs.published }}
+runs:
+  using: composite
+  steps:
+    - name: "Get latest GitHub Release"
+      id: get-latest-release
+      shell: bash
+      run: ${{ github.action_path }}/scripts/get-latest-release.sh
+      env:
+        GH_REPO: ${{ inputs.github-repo }}
+        GH_TOKEN: ${{ inputs.github-token }}
+        LIMIT: ${{ inputs.results-limit }}

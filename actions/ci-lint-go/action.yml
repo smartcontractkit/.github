@@ -1,0 +1,143 @@
+name: ci-lint
+description: Lint golang code
+
+inputs:
+  # general inputs
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+  # grafana cloud inputs
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+    default: ci-lint
+  gc-host:
+    description: "grafana cloud hostname"
+    required: false
+  gc-basic-auth:
+    description: "grafana cloud basic auth"
+    required: false
+  # aws inputs
+  aws-role-duration-seconds:
+    description: ""
+    required: false
+    default: "900"
+  aws-region:
+    description: ""
+    required: false
+  # gati inputs
+  use-gati:
+    description: ""
+    required: false
+    default: "false"
+  aws-role-arn-gati:
+    description: ""
+    required: false
+  aws-lambda-url-gati:
+    description: ""
+    required: false
+  # env inputs
+  use-env-files:
+    description: ""
+    required: false
+    default: "false"
+  env-files:
+    description: "<env-file-1>|<env-file-2>|..."
+    required: false
+    default: .env
+  # golang inputs
+  use-go-cache:
+    description: ""
+    required: false
+    default: "false"
+  go-cache-dep-path:
+    description: ""
+    required: false
+    default: go.sum
+  go-version-file:
+    description: ""
+    required: false
+    default: go.mod
+  golangci-lint-version:
+    description: ""
+    required: false
+    default: latest
+  golangci-lint-args:
+    description: ""
+    required: false
+    default: --out-format checkstyle:golangci-lint-report.xml
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Assume aws gati role
+      if: inputs.use-gati == 'true'
+      uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn-gati }}
+        role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Get github token from gati
+      if: inputs.use-gati == 'true'
+      id: get-gh-token
+      uses: smartcontractkit/chainlink-github-actions/github-app-token-issuer@main
+      with:
+        url: ${{ inputs.aws-lambda-url-gati }}
+
+    - name: Configure github token
+      if: inputs.use-gati == 'true'
+      shell: bash
+      run: git config --global url."https://x-access-token:${{ steps.get-gh-token.outputs.access-token }}@github.com/".insteadOf "https://github.com/"
+
+    - name: Set env from files
+      if: inputs.use-env-files == 'true'
+      uses: cardinalby/export-env-action@66657b34899a2d695434ed060d9f2215db9b4035 # v2.2.0
+      with:
+        envFile: ${{ inputs.env-files }}
+
+    - name: Setup go
+      uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+      with:
+        go-version-file: ${{ inputs.go-version-file }}
+        cache: ${{ inputs.use-go-cache }}
+        cache-dependency-path: ${{ inputs.go-cache-dep-path }}
+
+    - name: Setup golangci-lint
+      uses: golangci/golangci-lint-action@3a919529898de77ec3da873e3063ca4b10e7f5cc # v3.7.0
+      with:
+        version: ${{ inputs.golangci-lint-version }}
+        args: ${{ inputs.golangci-lint-args }}
+
+    - name: Print lint report artifact
+      if: always()
+      shell: bash
+      run: (test -f golangci-lint-report.xml && cat golangci-lint-report.xml) || true
+
+    - name: Store lint report artifact
+      if: always()
+      uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+      with:
+        name: golangci-lint-report
+        path: golangci-lint-report.xml
+
+    - name: Collect metrics
+      if: always()
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@d2c2b7bdc9012651230b2608a1bcb0c48538b6ec
+      with:
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true

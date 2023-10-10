@@ -1,0 +1,9 @@
+{
+  "generators": {
+    "create-gh-action": {
+      "factory": "./src/generators/create-gh-action/generator",
+      "schema": "./src/generators/create-gh-action/schema.json",
+      "description": "create-gh-action generator"
+    }
+  }
+}

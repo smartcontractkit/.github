@@ -1,0 +1,58 @@
+name: Setup golang
+description: Setup Golang with efficient caching 
+
+inputs:
+  only-modules:
+    description: Set to 'true' to only cache modules
+    default: 'false'
+  go-version-file:
+    description: Path to go.mod file
+    default: "go.mod"
+    required: false
+  cache-version: 
+    description: Set this to cache bust
+    default: "1"
+
+runs:
+  using: composite
+  steps:
+      - name: Set up Go
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+        with:
+          go-version-file: ${{ inputs.go-version-file }}
+          cache: false
+
+      - name: Get branch name
+        if: ${{ inputs.only-modules == 'false' }}
+        id: branch-name
+        uses: tj-actions/branch-names@033f2358d95522973eee35810e35a86fae4a71d8 # v7.0.5
+
+      - name: Set go cache keys
+        shell: bash
+        id: go-cache-dir
+        run: | 
+          echo "gomodcache=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT 
+          echo "gobuildcache=$(go env GOCACHE)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
+        name: Cache Go Modules
+        with:
+          path: |
+            ${{ steps.go-cache-dir.outputs.gomodcache }}
+          # The lifetime of go modules is much higher than the build outputs, so we increase cache efficiency
+          # here by not having the primary key contain the branch name
+          key: ${{ runner.os }}-gomod-${{ inputs.cache-version }}-${{ hashFiles('./go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-gomod-${{ inputs.cache-version }}-
+
+      - uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
+        if: ${{ inputs.only-modules == 'false' }}
+        name: Cache Go Build Outputs
+        with:
+          path: |
+            ${{ steps.go-cache-dir.outputs.gobuildcache }}
+          # The lifetime of go build outputs is pretty short, so we make our primary cache key be the branch name
+          key: ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{ hashFiles('./go.sum') }}-${{ steps.branch-name.outputs.current_branch }}
+          restore-keys: |
+            ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{ hashFiles('./go.sum') }}-
+            ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-

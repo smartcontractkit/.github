@@ -1,0 +1,72 @@
+name: Setup Renovate
+description: Setup Renovate
+
+inputs:
+  # general inputs
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+  # aws inputs
+  aws-role-arn-gati:
+    description: ARN of role capable of getting token from GATI
+    required: false
+  aws-lambda-url-gati:
+    description: URL of GATI lambda function
+    required: false
+  aws-region:
+    description: AWS region
+    required: false
+  aws-role-duration-seconds:
+    description: Duration of role in seconds
+    required: false
+    default: "1800"
+  # renovate inputs
+  renovate-version:
+    description: ""
+    required: false
+    default: latest
+  renovate-config-file:
+    description: ""
+    required: false
+    default: ./.github/renovate.json
+  renovate-log-level:
+    description: ""
+    required: false
+    default: debug
+  renovate-log-format:
+    description: ""
+    required: false
+    default: json
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Setup github token
+      id: get-access-token
+      uses: smartcontractkit/.github/actions/setup-github-token@main
+      with:
+        aws-role-arn: ${{ inputs.aws-role-arn-gati }}
+        aws-lambda-url: ${{ inputs.aws-lambda-url-gati }}
+        aws-region: ${{ inputs.aws-region }}
+        aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+
+    - name: Run renovate
+      uses: renovatebot/github-action@3cef36a9aba515d8726b491905b3bc766832e221 # v39.0.5
+      with:
+        renovate-version: ${{ inputs.renovate-version }}
+        token: ${{ steps.get-access-token.outputs.access-token }}
+        configurationFile: ${{ inputs.renovate-config-file }}
+      env:
+        LOG_LEVEL: ${{ inputs.renovate-log-level }}
+        LOG_FORMAT: ${{ inputs.renovate-log-format }}

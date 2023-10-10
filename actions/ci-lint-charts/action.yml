@@ -1,0 +1,64 @@
+name: ci-lint-charts
+description: Lint helm charts
+
+inputs:
+  # general inputs
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+  # chart-testing inputs
+  chart-testing-config-path:
+    description: "chart-testing config path"
+    required: false
+    default: .ct.yml
+  chart-testing-extra-args:
+    description: "chart-testing extra args"
+    required: false
+    default: ""
+  # grafana cloud inputs
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+    default: ci-lint-charts
+  gc-host:
+    description: "grafana cloud hostname"
+    required: false
+  gc-basic-auth:
+    description: "grafana cloud basic auth"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Set up chart-testing
+      uses: helm/chart-testing-action@e8788873172cb653a90ca2e819d79d65a66d4e76 # v2.4.0
+
+    - name: Run chart-testing (lint)
+      shell: bash
+      env:
+        CHART_TESTING_CONFIG_PATH: ${{ inputs.chart-testing-config-path }}
+        CHART_TESTING_EXTRA_ARGS: ${{ inputs.chart-testing-extra-args }}
+      run: |
+        ct lint --config "${CHART_TESTING_CONFIG_PATH}" "${CHART_TESTING_EXTRA_ARGS}"
+
+
+    - name: Collect metrics
+      if: always()
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@d2c2b7bdc9012651230b2608a1bcb0c48538b6ec
+      with:
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true

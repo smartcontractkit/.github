@@ -1,0 +1,118 @@
+name: cicd-build-publish-charts
+description: Build / publish helm charts
+
+inputs:
+  # general inputs
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+  # grafana cloud inputs
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+    default: cicd-build-publish-charts
+  gc-host:
+    description: "grafana cloud hostname"
+    required: false
+  gc-basic-auth:
+    description: "grafana cloud basic auth"
+    required: false
+  # general inputs
+  package-dir:
+    description: "output directory for helm package tarballs"
+    required: false
+    default: tmp
+  charts-dir:
+    description: "top level directory containing helm charts"
+    required: false
+    default: charts
+  publish:
+    description: "publish helm chart"
+    required: false
+    default: "false"
+  overwrite:
+    description: "overwrite helm chart if version exists in registry"
+    required: false
+    default: "false"
+  # aws inputs
+  aws-role-duration-seconds:
+    description: ""
+    required: false
+    default: "900"
+  aws-region:
+    description: ""
+    required: false
+  aws-account-number:
+    description: ""
+    required: false
+  aws-role-arn:
+    description: ""
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Setup helm
+      uses: azure/setup-helm@5119fcb9089d432beecbf79bb2c7915207344b78 # v3.5
+      with:
+        version: v3.12.0
+
+    - name: Process params
+      shell: bash
+      id: process-params
+      run: |
+        if [[ "${{ inputs.publish }}" == "true" ]]; then
+          echo "charts-repo=${{ inputs.aws-account-number }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/infra-charts" >> "$GITHUB_OUTPUT"
+        else
+          echo "charts-repo=not-used" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Configure aws creds
+      if: inputs.publish == 'true'
+      uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Login to aws ecr registry
+      if: inputs.publish == 'true'
+      shell: bash
+      run: |
+        aws ecr get-login-password \
+          --region "${{ inputs.aws-region }}" \
+        | helm registry login \
+          --username AWS \
+          --password-stdin \
+          "${{ steps.process-params.outputs.charts-repo }}"
+
+    - name: Run helm package / push to registry
+      shell: bash
+      run: |
+        ${{ github.action_path }}/scripts/run.sh \
+          --package_dir ${{ inputs.package-dir }} \
+          --charts_dir ${{ inputs.charts-dir }} \
+          --publish ${{ inputs.publish }} \
+          --overwrite ${{ inputs.overwrite }} \
+          --charts_repo ${{ steps.process-params.outputs.charts-repo }}
+
+    - name: Collect metrics
+      if: always()
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@d2c2b7bdc9012651230b2608a1bcb0c48538b6ec
+      with:
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true

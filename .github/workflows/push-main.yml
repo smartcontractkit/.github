@@ -1,0 +1,91 @@
+name: push-main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  ci-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo (needed to reference local action)
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+
+      - name: ci-lint
+        uses: ./actions/ci-lint-ts
+        with:
+          # general inputs
+          checkout-repo: "false"
+          # grafana inputs
+          metrics-job-name: ci-lint
+          gc-basic-auth: ${{ secrets.GRAFANA_CLOUD_BASIC_AUTH }}
+          gc-host: ${{ secrets.GRAFANA_CLOUD_HOST }}
+
+  ci-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo (needed to reference local action)
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+
+      - name: ci-test
+        uses: ./actions/ci-test-ts
+        with:
+          # general inputs
+          checkout-repo: "false"
+          # grafana inputs
+          metrics-job-name: ci-test
+          gc-basic-auth: ${{ secrets.GRAFANA_CLOUD_BASIC_AUTH }}
+          gc-host: ${{ secrets.GRAFANA_CLOUD_HOST }}
+
+  cicd-build-publish-artifacts-dev:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      packages: write
+      pull-requests: write
+      issues: read
+      actions: read
+    steps:
+      - name: Checkout repo (needed to reference local action)
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        with:
+          fetch-depth: 0
+
+      - name: cicd-build-publish-artifacts-dev
+        uses: ./actions/cicd-build-publish-artifacts-ts
+        with:
+          # general inputs
+          checkout-repo: "false"
+          # grafana inputs
+          metrics-job-name: cicd-build-publish-artifacts-dev
+          gc-basic-auth: ${{ secrets.GRAFANA_CLOUD_BASIC_AUTH }}
+          gc-host: ${{ secrets.GRAFANA_CLOUD_HOST }}
+
+  cd-release:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout repo (needed to reference local action)
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        with:
+          fetch-depth: 0
+
+      - name: cd-release
+        uses: ./actions/cicd-changesets
+        with:
+          # general inputs
+          git-user: app-token-issuer-releng-renovate[bot]
+          git-email: app-token-issuer-releng-renovate[bot]@users.noreply.github.com
+          # aws inputs
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-role-arn: ${{ secrets.AWS_OIDC_IAM_ROLE_ARN_GATI }}
+          aws-lambda-url: ${{ secrets.AWS_LAMBDA_URL_GATI }}
+          # grafana inputs
+          metrics-job-name: cd-release
+          gc-basic-auth: ${{ secrets.GRAFANA_CLOUD_BASIC_AUTH }}
+          gc-host: ${{ secrets.GRAFANA_CLOUD_HOST }}

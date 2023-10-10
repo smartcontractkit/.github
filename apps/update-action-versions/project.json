@@ -1,0 +1,20 @@
+{
+  "name": "update-action-versions",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/update-action-versions/src",
+  "projectType": "library",
+  "targets": {
+    "lint": {
+      "executor": "@nx/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": [
+          "apps/update-action-versions/**/*.ts",
+          "apps/update-action-versions/package.json"
+        ]
+      }
+    },
+    "build": {}
+  },
+  "tags": []
+}

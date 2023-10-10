@@ -1,0 +1,11 @@
+{
+  "name": "ci-test-sol",
+  "version": "0.1.0",
+  "description": "test solidity smart contracts",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}

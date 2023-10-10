@@ -1,0 +1,11 @@
+{
+  "name": "helm-version-bump-receiver",
+  "version": "0.1.0",
+  "description": "updates helm chart version in an argocd app",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}

@@ -1,0 +1,7 @@
+{
+  "name": "ci-sonarqube",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "actions/ci-sonarqube",
+  "targets": {}
+}
