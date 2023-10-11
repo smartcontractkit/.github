@@ -117,8 +117,14 @@ runs:
     - name: Setup golangci-lint
       uses: golangci/golangci-lint-action@3a919529898de77ec3da873e3063ca4b10e7f5cc # v3.7.0
       with:
+        # We already cache these directories in setup-go if we have
+        # use-go-cache set to true
+        skip-pkg-cache: ${{ inputs.use-go-cache }} 
+        skip-build-cache: ${{ inputs.use-go-cache }} 
+
         version: ${{ inputs.golangci-lint-version }}
         args: ${{ inputs.golangci-lint-args }}
+
 
     - name: Print lint report artifact
       if: always()
