@@ -23,6 +23,14 @@ inputs:
     description: ""
     required: false
     default: "bin/*"
+  extra-build-args:
+    description: ""
+    required: false
+    default: ""
+  extra-package-args:
+    description: ""
+    required: false
+    default: ""
   # monorepo inputs
   publish-monorepo-release:
     description: ""
@@ -98,11 +106,11 @@ runs:
 
     - name: Run build
       shell: bash
-      run: pnpm run build
+      run: pnpm run build ${{ inputs.extra-build-args }}
 
     - name: Run package
       shell: bash
-      run: pnpm run package
+      run: pnpm run package ${{ inputs.extra-package-args }}
 
     - name: Prep release cmd
       if: inputs.publish-release == 'true'
