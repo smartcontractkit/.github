@@ -86,11 +86,11 @@ runs:
 
     - name: Run build
       shell: bash
-      run: pnpm nx run-many --target=build
+      run: pnpm run build
 
     - name: Run package
       shell: bash
-      run: pnpm nx run-many --target=package
+      run: pnpm run package
 
     - name: Prep release cmd
       if: inputs.publish-release == 'true'
