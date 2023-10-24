@@ -14,7 +14,7 @@ jobs:
     if: always()
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref:
             ${{ github.event.pull_request.head.sha ||
