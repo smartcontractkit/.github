@@ -7,6 +7,10 @@ import { parse, parseDocument } from "yaml";
 import * as semver from "semver";
 import { replaceInFile } from "replace-in-file";
 
+interface Scalar {
+  comment?: string;
+}
+
 interface ActionMapItem {
   version: string;
   shasum: string;
@@ -96,20 +100,17 @@ async function buildWorkflowMap(
       for (let i = 0; i < parsed.jobs[job].steps.length; i++) {
         if (parsed.jobs[job].steps[i].uses) {
           const [name, ref] = parsed.jobs[job].steps[i].uses.split("@");
-          const usesScalar: any = parsedDoc.getIn(
+          const usesScalar = parsedDoc.getIn(
             ["jobs", job, "steps", i, "uses"],
             true,
-          );
+          ) as Scalar;
           const actionObj: ActionObj = {
             path: `jobs.${job}.steps[${i}]`,
             name,
             refBefore: ref,
           };
           if (usesScalar.comment) {
-            actionObj.commentBefore = (usesScalar.comment as string).replace(
-              " ",
-              "",
-            );
+            actionObj.commentBefore = usesScalar.comment.replace(" ", "");
           }
           workflowMap[file].push(actionObj);
         }
