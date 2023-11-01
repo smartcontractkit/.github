@@ -190,7 +190,7 @@ runs:
 
     - name: Update tag
       if: inputs.update-git-tag == 'true'
-      uses: richardsimko/update-tag@782c008c16efcff2a27f83238dc4b05ffd8f4b52 # v1.0.7
+      uses: richardsimko/update-tag@e173a8ef8f54ab526a91dad6139a25efed62424c # v1.0.11
       with:
         tag_name: v0.0.0-devel
       env:
