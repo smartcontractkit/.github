@@ -1,0 +1,777 @@
+{
+  "version": "6.0",
+  "nxVersion": "17.0.2",
+  "deps": {
+    "@changesets/changelog-github": "^0.4.8",
+    "@changesets/cli": "^2.26.2",
+    "@nx/devkit": "^17.0.0",
+    "@nx/jest": "^17.0.0",
+    "@nx/js": "^17.0.0",
+    "@nx/plugin": "^17.0.0",
+    "@nx/eslint": "^17.0.0",
+    "@nx/eslint-plugin": "^17.0.0",
+    "@swc-node/register": "~1.6.8",
+    "@swc/cli": "~0.1.62",
+    "@swc/core": "~1.3.89",
+    "@swc/helpers": "~0.5.2",
+    "@types/jest": "^29.4.0",
+    "@types/node": "20.8.10",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "eslint": "^8.50.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "nx": "^17.0.0",
+    "prettier": "^3.0.3",
+    "ts-jest": "^29.1.1",
+    "ts-node": "10.9.1",
+    "tslib": "^2.6.2",
+    "typescript": "^5.2.2",
+    "update-ts-references": "^2.6.1"
+  },
+  "pathMappings": {
+    "nx-chainlink": [
+      "libs/nx-chainlink/src/index.ts"
+    ]
+  },
+  "nxJsonPlugins": [],
+  "pluginsConfig": {
+    "@nx/js": {
+      "analyzeSourceFiles": false
+    }
+  },
+  "fileMap": {
+    "projectFileMap": {
+      "update-actions": [
+        {
+          "file": "actions/update-actions/README.md",
+          "hash": "8815353064540103200"
+        },
+        {
+          "file": "actions/update-actions/action.yml",
+          "hash": "10961191578511020834"
+        },
+        {
+          "file": "actions/update-actions/package.json",
+          "hash": "8679089498337377536"
+        },
+        {
+          "file": "actions/update-actions/project.json",
+          "hash": "14100804896916021750"
+        }
+      ],
+      "ci-lint-ts": [
+        {
+          "file": "actions/ci-lint-ts/README.md",
+          "hash": "1141878332595910501"
+        },
+        {
+          "file": "actions/ci-lint-ts/action.yml",
+          "hash": "504812363030910702"
+        },
+        {
+          "file": "actions/ci-lint-ts/package.json",
+          "hash": "16075925032141509182"
+        },
+        {
+          "file": "actions/ci-lint-ts/project.json",
+          "hash": "15246610485200077091"
+        }
+      ],
+      "setup-nodejs": [
+        {
+          "file": "actions/setup-nodejs/README.md",
+          "hash": "16193844164994415254"
+        },
+        {
+          "file": "actions/setup-nodejs/action.yml",
+          "hash": "7104781157967687038"
+        },
+        {
+          "file": "actions/setup-nodejs/package.json",
+          "hash": "12522639857012047961"
+        },
+        {
+          "file": "actions/setup-nodejs/project.json",
+          "hash": "8243672965477999514"
+        }
+      ],
+      "guard-tag-from-branch": [
+        {
+          "file": "actions/guard-tag-from-branch/README.md",
+          "hash": "10604559248420488838"
+        },
+        {
+          "file": "actions/guard-tag-from-branch/action.yml",
+          "hash": "5317903139095569876"
+        },
+        {
+          "file": "actions/guard-tag-from-branch/package.json",
+          "hash": "15674815101159047291"
+        },
+        {
+          "file": "actions/guard-tag-from-branch/project.json",
+          "hash": "1403621226151036381"
+        },
+        {
+          "file": "actions/guard-tag-from-branch/scripts/tag-branch-check.sh",
+          "hash": "16715085252835931024"
+        }
+      ],
+      "guard-from-missing-changesets": [
+        {
+          "file": "actions/guard-from-missing-changesets/README.md",
+          "hash": "7235907323843636634"
+        },
+        {
+          "file": "actions/guard-from-missing-changesets/action.yml",
+          "hash": "3688691925902823196"
+        },
+        {
+          "file": "actions/guard-from-missing-changesets/package.json",
+          "hash": "5527213077746465565"
+        },
+        {
+          "file": "actions/guard-from-missing-changesets/project.json",
+          "hash": "3420915646665696054"
+        },
+        {
+          "file": "actions/guard-from-missing-changesets/scripts/fail-if-changesets-missing.sh",
+          "hash": "9910558947819182510"
+        },
+        {
+          "file": "actions/guard-from-missing-changesets/scripts/install-changesets.sh",
+          "hash": "17178379335072102363"
+        }
+      ],
+      "helm-version-bump-sender": [
+        {
+          "file": "actions/helm-version-bump-sender/README.md",
+          "hash": "2346371525171039206"
+        },
+        {
+          "file": "actions/helm-version-bump-sender/action.yml",
+          "hash": "10000335612649722631"
+        },
+        {
+          "file": "actions/helm-version-bump-sender/package.json",
+          "hash": "1099923901634271617"
+        },
+        {
+          "file": "actions/helm-version-bump-sender/project.json",
+          "hash": "4313677343299594550"
+        }
+      ],
+      "cicd-changesets": [
+        {
+          "file": "actions/cicd-changesets/README.md",
+          "hash": "9060390142477210060"
+        },
+        {
+          "file": "actions/cicd-changesets/action.yml",
+          "hash": "10074834831783320401"
+        },
+        {
+          "file": "actions/cicd-changesets/package.json",
+          "hash": "15719807817242833595"
+        },
+        {
+          "file": "actions/cicd-changesets/project.json",
+          "hash": "4501913898042897669"
+        }
+      ],
+      "get-latest-github-release": [
+        {
+          "file": "actions/get-latest-github-release/README.md",
+          "hash": "2333130971102186772"
+        },
+        {
+          "file": "actions/get-latest-github-release/action.yml",
+          "hash": "17853600584484701558"
+        },
+        {
+          "file": "actions/get-latest-github-release/package.json",
+          "hash": "5206896872086090058"
+        },
+        {
+          "file": "actions/get-latest-github-release/project.json",
+          "hash": "6999107764076433816"
+        },
+        {
+          "file": "actions/get-latest-github-release/scripts/get-latest-release.sh",
+          "hash": "10512389154555682167"
+        }
+      ],
+      "ci-test-go": [
+        {
+          "file": "actions/ci-test-go/README.md",
+          "hash": "1368952554367108765"
+        },
+        {
+          "file": "actions/ci-test-go/action.yml",
+          "hash": "2981618073135855241"
+        },
+        {
+          "file": "actions/ci-test-go/package.json",
+          "hash": "3660431506277208507"
+        },
+        {
+          "file": "actions/ci-test-go/project.json",
+          "hash": "4707028561782482605"
+        }
+      ],
+      "ci-lint-misc": [
+        {
+          "file": "actions/ci-lint-misc/README.md",
+          "hash": "16374157597742681262"
+        },
+        {
+          "file": "actions/ci-lint-misc/action.yml",
+          "hash": "12358002897546261187"
+        },
+        {
+          "file": "actions/ci-lint-misc/package.json",
+          "hash": "11197349351264736451"
+        },
+        {
+          "file": "actions/ci-lint-misc/project.json",
+          "hash": "15065847831286807690"
+        }
+      ],
+      "ci-lint-charts": [
+        {
+          "file": "actions/ci-lint-charts/README.md",
+          "hash": "7790781938983711407"
+        },
+        {
+          "file": "actions/ci-lint-charts/action.yml",
+          "hash": "5551574854382879398"
+        },
+        {
+          "file": "actions/ci-lint-charts/package.json",
+          "hash": "17158823514759135627"
+        },
+        {
+          "file": "actions/ci-lint-charts/project.json",
+          "hash": "13280120512964139349"
+        }
+      ],
+      "helm-version-bump-receiver": [
+        {
+          "file": "actions/helm-version-bump-receiver/README.md",
+          "hash": "14077320762623568624"
+        },
+        {
+          "file": "actions/helm-version-bump-receiver/action.yml",
+          "hash": "8646952647711197533"
+        },
+        {
+          "file": "actions/helm-version-bump-receiver/package.json",
+          "hash": "10931951538663714145"
+        },
+        {
+          "file": "actions/helm-version-bump-receiver/project.json",
+          "hash": "5400202064255094919"
+        }
+      ],
+      "update-action-versions": [
+        {
+          "file": "apps/update-action-versions/.eslintrc.json",
+          "hash": "6070704093363881007"
+        },
+        {
+          "file": "apps/update-action-versions/README.md",
+          "hash": "1555407779219291967"
+        },
+        {
+          "file": "apps/update-action-versions/action.yml",
+          "hash": "10868901372455758391"
+        },
+        {
+          "file": "apps/update-action-versions/out/index.js",
+          "hash": "17636923776660416179"
+        },
+        {
+          "file": "apps/update-action-versions/package.json",
+          "hash": "1955478154744969996"
+        },
+        {
+          "file": "apps/update-action-versions/project.json",
+          "hash": "11707571923305913155"
+        },
+        {
+          "file": "apps/update-action-versions/src/index.ts",
+          "hash": "7357032517620168502"
+        },
+        {
+          "file": "apps/update-action-versions/src/v1.ts",
+          "hash": "13910014498620274745"
+        },
+        {
+          "file": "apps/update-action-versions/test/workflow.yml",
+          "hash": "12918162947376902342"
+        },
+        {
+          "file": "apps/update-action-versions/tsconfig.json",
+          "hash": "17886072299606918818"
+        }
+      ],
+      "cicd-build-publish-artifacts-ts": [
+        {
+          "file": "actions/cicd-build-publish-artifacts-ts/README.md",
+          "hash": "7921076998483534646"
+        },
+        {
+          "file": "actions/cicd-build-publish-artifacts-ts/action.yml",
+          "hash": "10482246716902210486"
+        },
+        {
+          "file": "actions/cicd-build-publish-artifacts-ts/package.json",
+          "hash": "12984893953934554652"
+        },
+        {
+          "file": "actions/cicd-build-publish-artifacts-ts/project.json",
+          "hash": "4679337083691382810"
+        }
+      ],
+      "check-git-tag-for-monorepo": [
+        {
+          "file": "actions/check-git-tag-for-monorepo/README.md",
+          "hash": "13298785968973646522"
+        },
+        {
+          "file": "actions/check-git-tag-for-monorepo/action.yml",
+          "hash": "2751032639147237052"
+        },
+        {
+          "file": "actions/check-git-tag-for-monorepo/package.json",
+          "hash": "13909435608581275610"
+        },
+        {
+          "file": "actions/check-git-tag-for-monorepo/project.json",
+          "hash": "14476468360711684541"
+        },
+        {
+          "file": "actions/check-git-tag-for-monorepo/scripts/check-git-tag-for-monorepo.sh",
+          "hash": "2212133021616741188"
+        }
+      ],
+      "wait-for-workflows": [
+        {
+          "file": "actions/wait-for-workflows/README.md",
+          "hash": "13172834835798688269"
+        },
+        {
+          "file": "actions/wait-for-workflows/action.yml",
+          "hash": "6343975112663328821"
+        },
+        {
+          "file": "actions/wait-for-workflows/package.json",
+          "hash": "6436311835397030697"
+        },
+        {
+          "file": "actions/wait-for-workflows/project.json",
+          "hash": "6079534689391265393"
+        }
+      ],
+      "ci-lint-go": [
+        {
+          "file": "actions/ci-lint-go/CHANGELOG.md",
+          "hash": "13578956276160408000"
+        },
+        {
+          "file": "actions/ci-lint-go/README.md",
+          "hash": "6136515971958197245"
+        },
+        {
+          "file": "actions/ci-lint-go/action.yml",
+          "hash": "9283402373627861464"
+        },
+        {
+          "file": "actions/ci-lint-go/package.json",
+          "hash": "14666986891168837995"
+        },
+        {
+          "file": "actions/ci-lint-go/project.json",
+          "hash": "15440737965093811021"
+        }
+      ],
+      "setup-renovate": [
+        {
+          "file": "actions/setup-renovate/README.md",
+          "hash": "10877146035900284562"
+        },
+        {
+          "file": "actions/setup-renovate/action.yml",
+          "hash": "476542682869340663"
+        },
+        {
+          "file": "actions/setup-renovate/package.json",
+          "hash": "2057603259229577962"
+        },
+        {
+          "file": "actions/setup-renovate/project.json",
+          "hash": "6094436829809198637"
+        }
+      ],
+      "ci-test-sol": [
+        {
+          "file": "actions/ci-test-sol/README.md",
+          "hash": "942353911692456641"
+        },
+        {
+          "file": "actions/ci-test-sol/action.yml",
+          "hash": "9814495086324230012"
+        },
+        {
+          "file": "actions/ci-test-sol/package.json",
+          "hash": "4931150331086320625"
+        },
+        {
+          "file": "actions/ci-test-sol/project.json",
+          "hash": "7814703827430265487"
+        }
+      ],
+      "nops-upgrade-checker": [
+        {
+          "file": "actions/nops-upgrade-checker/Dockerfile",
+          "hash": "3608236515084834090"
+        },
+        {
+          "file": "actions/nops-upgrade-checker/README.md",
+          "hash": "18371322464718153885"
+        },
+        {
+          "file": "actions/nops-upgrade-checker/action.yml",
+          "hash": "10514845906740100356"
+        },
+        {
+          "file": "actions/nops-upgrade-checker/main.py",
+          "hash": "14846611450752289920"
+        },
+        {
+          "file": "actions/nops-upgrade-checker/package.json",
+          "hash": "15641108183256414308"
+        },
+        {
+          "file": "actions/nops-upgrade-checker/project.json",
+          "hash": "105372382410550663"
+        },
+        {
+          "file": "actions/nops-upgrade-checker/requirements.txt",
+          "hash": "9700632987570563811"
+        },
+        {
+          "file": "actions/nops-upgrade-checker/test/beta.yaml",
+          "hash": "3237981713767317195"
+        },
+        {
+          "file": "actions/nops-upgrade-checker/test/defaults-chainlink-config-v2.yaml",
+          "hash": "1654381102603500099"
+        },
+        {
+          "file": "actions/nops-upgrade-checker/test/testnet.yaml",
+          "hash": "3627950258464680331"
+        },
+        {
+          "file": "actions/nops-upgrade-checker/yaml_utils.py",
+          "hash": "16759814924701190145"
+        }
+      ],
+      "setup-github-token": [
+        {
+          "file": "actions/setup-github-token/README.md",
+          "hash": "15240744528011618605"
+        },
+        {
+          "file": "actions/setup-github-token/action.yml",
+          "hash": "6230175970650500275"
+        },
+        {
+          "file": "actions/setup-github-token/package.json",
+          "hash": "10549176832876135314"
+        },
+        {
+          "file": "actions/setup-github-token/project.json",
+          "hash": "15501352361819690636"
+        }
+      ],
+      "nx-chainlink": [
+        {
+          "file": "libs/nx-chainlink/.eslintrc.json",
+          "hash": "17497330828483205729"
+        },
+        {
+          "file": "libs/nx-chainlink/README.md",
+          "hash": "4932754054045714230"
+        },
+        {
+          "file": "libs/nx-chainlink/generators.json",
+          "hash": "13078134809570469543"
+        },
+        {
+          "file": "libs/nx-chainlink/jest.config.ts",
+          "hash": "8906605053046537052"
+        },
+        {
+          "file": "libs/nx-chainlink/package.json",
+          "hash": "10396900721543612085"
+        },
+        {
+          "file": "libs/nx-chainlink/project.json",
+          "hash": "9789698803012128903"
+        },
+        {
+          "file": "libs/nx-chainlink/src/generators/create-gh-action/files/composite/README.md.template",
+          "hash": "44244745028404776"
+        },
+        {
+          "file": "libs/nx-chainlink/src/generators/create-gh-action/files/composite/action.yml.template",
+          "hash": "4577324896208555026"
+        },
+        {
+          "file": "libs/nx-chainlink/src/generators/create-gh-action/files/composite/debug.sh.template",
+          "hash": "3073539223804787480"
+        },
+        {
+          "file": "libs/nx-chainlink/src/generators/create-gh-action/files/composite/package.json.template",
+          "hash": "16362545905168405334"
+        },
+        {
+          "file": "libs/nx-chainlink/src/generators/create-gh-action/generator.spec.ts",
+          "hash": "8523283037191004947"
+        },
+        {
+          "file": "libs/nx-chainlink/src/generators/create-gh-action/generator.ts",
+          "hash": "6662737750316730300"
+        },
+        {
+          "file": "libs/nx-chainlink/src/generators/create-gh-action/schema.d.ts",
+          "hash": "15804195901541919540"
+        },
+        {
+          "file": "libs/nx-chainlink/src/generators/create-gh-action/schema.json",
+          "hash": "8979138402859943389"
+        },
+        {
+          "file": "libs/nx-chainlink/src/index.ts",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "libs/nx-chainlink/tsconfig.json",
+          "hash": "17886072299606918818"
+        },
+        {
+          "file": "libs/nx-chainlink/tsconfig.lib.json",
+          "hash": "15104224003721982200"
+        },
+        {
+          "file": "libs/nx-chainlink/tsconfig.spec.json",
+          "hash": "8618708464948574088"
+        }
+      ],
+      "setup-gap": [
+        {
+          "file": "actions/setup-gap/README.md",
+          "hash": "13786850975945128228"
+        },
+        {
+          "file": "actions/setup-gap/action.yml",
+          "hash": "17917133578003747659"
+        },
+        {
+          "file": "actions/setup-gap/package.json",
+          "hash": "3153979767897710190"
+        },
+        {
+          "file": "actions/setup-gap/project.json",
+          "hash": "8405389899448374158"
+        }
+      ],
+      "ci-test-ts": [
+        {
+          "file": "actions/ci-test-ts/README.md",
+          "hash": "17335552307025101575"
+        },
+        {
+          "file": "actions/ci-test-ts/action.yml",
+          "hash": "10701005775072959415"
+        },
+        {
+          "file": "actions/ci-test-ts/package.json",
+          "hash": "8866475918995700563"
+        },
+        {
+          "file": "actions/ci-test-ts/project.json",
+          "hash": "16756566799048515880"
+        }
+      ],
+      "setup-golang": [
+        {
+          "file": "actions/setup-golang/README.md",
+          "hash": "10757226136211290854"
+        },
+        {
+          "file": "actions/setup-golang/action.yml",
+          "hash": "13678662417339604924"
+        },
+        {
+          "file": "actions/setup-golang/package.json",
+          "hash": "15273580651435542490"
+        },
+        {
+          "file": "actions/setup-golang/project.json",
+          "hash": "9144706269005295783"
+        }
+      ],
+      "cicd-build-publish-artifacts-go": [
+        {
+          "file": "actions/cicd-build-publish-artifacts-go/README.md",
+          "hash": "4048190502958614540"
+        },
+        {
+          "file": "actions/cicd-build-publish-artifacts-go/action.yml",
+          "hash": "3218755049828303569"
+        },
+        {
+          "file": "actions/cicd-build-publish-artifacts-go/package.json",
+          "hash": "17801415971772438681"
+        },
+        {
+          "file": "actions/cicd-build-publish-artifacts-go/project.json",
+          "hash": "15176924792491181671"
+        }
+      ],
+      "ci-sonarqube": [
+        {
+          "file": "actions/ci-sonarqube/README.md",
+          "hash": "13292198648763409350"
+        },
+        {
+          "file": "actions/ci-sonarqube/action.yml",
+          "hash": "1226846053142172546"
+        },
+        {
+          "file": "actions/ci-sonarqube/package.json",
+          "hash": "16687323696672711221"
+        },
+        {
+          "file": "actions/ci-sonarqube/project.json",
+          "hash": "9769411931711979961"
+        }
+      ],
+      "cicd-build-publish-charts": [
+        {
+          "file": "actions/cicd-build-publish-charts/README.md",
+          "hash": "969724572316508546"
+        },
+        {
+          "file": "actions/cicd-build-publish-charts/action.yml",
+          "hash": "2596798736479515543"
+        },
+        {
+          "file": "actions/cicd-build-publish-charts/package.json",
+          "hash": "4459423507739796377"
+        },
+        {
+          "file": "actions/cicd-build-publish-charts/project.json",
+          "hash": "13699675921643972318"
+        },
+        {
+          "file": "actions/cicd-build-publish-charts/scripts/run.sh",
+          "hash": "4593116223698009707"
+        }
+      ]
+    },
+    "nonProjectFiles": [
+      {
+        "file": ".changeset/README.md",
+        "hash": "11380719120665482784"
+      },
+      {
+        "file": ".changeset/config.json",
+        "hash": "15404616943689432065"
+      },
+      {
+        "file": ".eslintrc.json",
+        "hash": "14684881880625454047"
+      },
+      {
+        "file": ".github/renovate.json",
+        "hash": "11684784740259871355"
+      },
+      {
+        "file": ".github/workflows/pull-request-main.yml",
+        "hash": "14485613109009272235"
+      },
+      {
+        "file": ".github/workflows/push-main.yml",
+        "hash": "596674162298395827"
+      },
+      {
+        "file": ".github/workflows/schedule-renovate.yml",
+        "hash": "15540942334455698766"
+      },
+      {
+        "file": ".gitignore",
+        "hash": "8352908848774687007"
+      },
+      {
+        "file": ".prettierignore",
+        "hash": "11898966176158572341"
+      },
+      {
+        "file": ".prettierrc",
+        "hash": "8141406165442880151"
+      },
+      {
+        "file": ".tool-versions",
+        "hash": "8126960484773227806"
+      },
+      {
+        "file": "CODEOWNERS",
+        "hash": "9925933746491024884"
+      },
+      {
+        "file": "LICENSE",
+        "hash": "6792279616704775651"
+      },
+      {
+        "file": "README.md",
+        "hash": "16993820599354606443"
+      },
+      {
+        "file": "jest.config.ts",
+        "hash": "12333515226966617182"
+      },
+      {
+        "file": "jest.preset.js",
+        "hash": "11903952743531300567"
+      },
+      {
+        "file": "nx.json",
+        "hash": "1361752537675217062"
+      },
+      {
+        "file": "package.json",
+        "hash": "2082898733408328902"
+      },
+      {
+        "file": "pnpm-workspace.yaml",
+        "hash": "5386561540168319026"
+      },
+      {
+        "file": "tools/scripts/.gitkeep",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "tsconfig.base.json",
+        "hash": "15445596554980722634"
+      },
+      {
+        "file": "tsconfig.json",
+        "hash": "8424836512307164460"
+      }
+    ]
+  }
+}
