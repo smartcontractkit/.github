@@ -27,7 +27,7 @@ inputs:
     description: "sonarqube token"
     required: false
   sonar-host-url:
-    description:: "sonarqube host url"
+    description: "sonarqube host url"
     required: false
 
 runs:
@@ -50,8 +50,11 @@ runs:
       uses: sonarsource/sonarqube-scan-action@69c1a75940dec6249b86dace6b630d3a2ae9d2a7 # v2.0.1
       with:
         args: >
-          -Dsonar.go.tests.reportPaths=${{ steps.sonarqube_report_paths.outputs.sonarqube_tests_report_paths }}
-          -Dsonar.go.coverage.reportPaths=${{ steps.sonarqube_report_paths.outputs.sonarqube_coverage_report_paths }}
+          -Dsonar.go.tests.reportPaths=${{
+          steps.sonarqube_report_paths.outputs.sonarqube_tests_report_paths }}
+          -Dsonar.go.coverage.reportPaths=${{
+          steps.sonarqube_report_paths.outputs.sonarqube_coverage_report_paths
+          }}
       env:
         SONAR_TOKEN: ${{ inputs.sonar-token }}
         SONAR_HOST_URL: ${{ inputs.sonar-host-url }}
@@ -59,7 +62,7 @@ runs:
     - name: Collect metrics
       if: always()
       id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d1618b772a97fd87e6505de97b872ee0b1f1729a
+      uses: smartcontractkit/push-gha-metrics-action@d1618b772a97fd87e6505de97b872ee0b1f1729a # v2.0.2
       with:
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}

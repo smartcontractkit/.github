@@ -90,12 +90,14 @@ runs:
         title: "chore(deps): bump github actions"
         commit-message: "chore(deps): bump github actions"
         branch: cl-action-updater
-        author: "App Token Issuer Releng Renovate Bot <376532+app-token-issuer-releng-renovate[bot]@users.noreply.github.com>"
+        author:
+          "App Token Issuer Releng Renovate Bot
+          <376532+app-token-issuer-releng-renovate[bot]@users.noreply.github.com>"
 
     - name: Collect metrics
       if: always()
       id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d1618b772a97fd87e6505de97b872ee0b1f1729a
+      uses: smartcontractkit/push-gha-metrics-action@d1618b772a97fd87e6505de97b872ee0b1f1729a # v2.0.2
       with:
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}
