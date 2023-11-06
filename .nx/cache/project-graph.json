@@ -1,0 +1,803 @@
+{
+  "nodes": {
+    "cicd-build-publish-artifacts-ts": {
+      "name": "cicd-build-publish-artifacts-ts",
+      "type": "app",
+      "data": {
+        "root": "actions/cicd-build-publish-artifacts-ts",
+        "sourceRoot": "actions/cicd-build-publish-artifacts-ts",
+        "name": "cicd-build-publish-artifacts-ts",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "cicd-build-publish-artifacts-go": {
+      "name": "cicd-build-publish-artifacts-go",
+      "type": "app",
+      "data": {
+        "root": "actions/cicd-build-publish-artifacts-go",
+        "sourceRoot": "actions/cicd-build-publish-artifacts-go",
+        "name": "cicd-build-publish-artifacts-go",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "guard-from-missing-changesets": {
+      "name": "guard-from-missing-changesets",
+      "type": "app",
+      "data": {
+        "root": "actions/guard-from-missing-changesets",
+        "sourceRoot": "actions/guard-from-missing-changesets",
+        "name": "guard-from-missing-changesets",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "check-git-tag-for-monorepo": {
+      "name": "check-git-tag-for-monorepo",
+      "type": "app",
+      "data": {
+        "root": "actions/check-git-tag-for-monorepo",
+        "sourceRoot": "actions/check-git-tag-for-monorepo",
+        "name": "check-git-tag-for-monorepo",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "helm-version-bump-receiver": {
+      "name": "helm-version-bump-receiver",
+      "type": "app",
+      "data": {
+        "root": "actions/helm-version-bump-receiver",
+        "sourceRoot": "actions/helm-version-bump-receiver",
+        "name": "helm-version-bump-receiver",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "get-latest-github-release": {
+      "name": "get-latest-github-release",
+      "type": "app",
+      "data": {
+        "root": "actions/get-latest-github-release",
+        "sourceRoot": "actions/get-latest-github-release",
+        "name": "get-latest-github-release",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "cicd-build-publish-charts": {
+      "name": "cicd-build-publish-charts",
+      "type": "app",
+      "data": {
+        "root": "actions/cicd-build-publish-charts",
+        "sourceRoot": "actions/cicd-build-publish-charts",
+        "name": "cicd-build-publish-charts",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "helm-version-bump-sender": {
+      "name": "helm-version-bump-sender",
+      "type": "app",
+      "data": {
+        "root": "actions/helm-version-bump-sender",
+        "sourceRoot": "actions/helm-version-bump-sender",
+        "name": "helm-version-bump-sender",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "guard-tag-from-branch": {
+      "name": "guard-tag-from-branch",
+      "type": "app",
+      "data": {
+        "root": "actions/guard-tag-from-branch",
+        "sourceRoot": "actions/guard-tag-from-branch",
+        "name": "guard-tag-from-branch",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "nops-upgrade-checker": {
+      "name": "nops-upgrade-checker",
+      "type": "app",
+      "data": {
+        "root": "actions/nops-upgrade-checker",
+        "sourceRoot": "actions/nops-upgrade-checker",
+        "name": "nops-upgrade-checker",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "update-action-versions": {
+      "name": "update-action-versions",
+      "type": "lib",
+      "data": {
+        "root": "apps/update-action-versions",
+        "sourceRoot": "apps/update-action-versions/src",
+        "name": "update-action-versions",
+        "projectType": "library",
+        "targets": {
+          "v1": {
+            "executor": "nx:run-script",
+            "options": {
+              "script": "v1"
+            },
+            "configurations": {}
+          },
+          "build": {
+            "executor": "nx:run-commands",
+            "options": {
+              "command": "pnpm run build",
+              "parallel": true,
+              "cwd": "apps/update-action-versions",
+              "color": true,
+              "forwardAllArgs": true
+            },
+            "configurations": {}
+          },
+          "local": {
+            "executor": "nx:run-script",
+            "options": {
+              "script": "local"
+            },
+            "configurations": {}
+          },
+          "scratch": {
+            "executor": "nx:run-script",
+            "options": {
+              "script": "scratch"
+            },
+            "configurations": {}
+          },
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          },
+          "lint": {
+            "inputs": [
+              "default",
+              "{workspaceRoot}/.eslintrc.json"
+            ],
+            "executor": "@nx/linter:eslint",
+            "outputs": [
+              "{options.outputFile}"
+            ],
+            "options": {
+              "lintFilePatterns": [
+                "apps/update-action-versions/**/*.ts",
+                "apps/update-action-versions/package.json"
+              ]
+            },
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "tags": [],
+        "implicitDependencies": []
+      }
+    },
+    "setup-github-token": {
+      "name": "setup-github-token",
+      "type": "app",
+      "data": {
+        "root": "actions/setup-github-token",
+        "sourceRoot": "actions/setup-github-token",
+        "name": "setup-github-token",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "wait-for-workflows": {
+      "name": "wait-for-workflows",
+      "type": "app",
+      "data": {
+        "root": "actions/wait-for-workflows",
+        "sourceRoot": "actions/wait-for-workflows",
+        "name": "wait-for-workflows",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "cicd-changesets": {
+      "name": "cicd-changesets",
+      "type": "app",
+      "data": {
+        "root": "actions/cicd-changesets",
+        "sourceRoot": "actions/cicd-changesets",
+        "name": "cicd-changesets",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "setup-renovate": {
+      "name": "setup-renovate",
+      "type": "app",
+      "data": {
+        "root": "actions/setup-renovate",
+        "sourceRoot": "actions/setup-renovate",
+        "name": "setup-renovate",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "ci-lint-charts": {
+      "name": "ci-lint-charts",
+      "type": "app",
+      "data": {
+        "root": "actions/ci-lint-charts",
+        "sourceRoot": "actions/ci-lint-charts",
+        "name": "ci-lint-charts",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "update-actions": {
+      "name": "update-actions",
+      "type": "app",
+      "data": {
+        "root": "actions/update-actions",
+        "sourceRoot": "actions/update-actions",
+        "name": "update-actions",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "ci-lint-misc": {
+      "name": "ci-lint-misc",
+      "type": "app",
+      "data": {
+        "root": "actions/ci-lint-misc",
+        "sourceRoot": "actions/ci-lint-misc",
+        "name": "ci-lint-misc",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "setup-golang": {
+      "name": "setup-golang",
+      "type": "app",
+      "data": {
+        "root": "actions/setup-golang",
+        "sourceRoot": "actions/setup-golang",
+        "name": "setup-golang",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "setup-nodejs": {
+      "name": "setup-nodejs",
+      "type": "app",
+      "data": {
+        "root": "actions/setup-nodejs",
+        "sourceRoot": "actions/setup-nodejs",
+        "name": "setup-nodejs",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "ci-sonarqube": {
+      "name": "ci-sonarqube",
+      "type": "app",
+      "data": {
+        "root": "actions/ci-sonarqube",
+        "sourceRoot": "actions/ci-sonarqube",
+        "name": "ci-sonarqube",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "ci-test-sol": {
+      "name": "ci-test-sol",
+      "type": "app",
+      "data": {
+        "root": "actions/ci-test-sol",
+        "sourceRoot": "actions/ci-test-sol",
+        "name": "ci-test-sol",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "ci-test-ts": {
+      "name": "ci-test-ts",
+      "type": "app",
+      "data": {
+        "root": "actions/ci-test-ts",
+        "sourceRoot": "actions/ci-test-ts",
+        "name": "ci-test-ts",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "ci-lint-go": {
+      "name": "ci-lint-go",
+      "type": "app",
+      "data": {
+        "root": "actions/ci-lint-go",
+        "sourceRoot": "actions/ci-lint-go",
+        "name": "ci-lint-go",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "ci-test-go": {
+      "name": "ci-test-go",
+      "type": "app",
+      "data": {
+        "root": "actions/ci-test-go",
+        "sourceRoot": "actions/ci-test-go",
+        "name": "ci-test-go",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "ci-lint-ts": {
+      "name": "ci-lint-ts",
+      "type": "app",
+      "data": {
+        "root": "actions/ci-lint-ts",
+        "sourceRoot": "actions/ci-lint-ts",
+        "name": "ci-lint-ts",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "nx-chainlink": {
+      "name": "nx-chainlink",
+      "type": "lib",
+      "data": {
+        "root": "libs/nx-chainlink",
+        "sourceRoot": "libs/nx-chainlink/src",
+        "name": "nx-chainlink",
+        "projectType": "library",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          },
+          "build": {
+            "executor": "@nx/js:tsc",
+            "outputs": [
+              "{options.outputPath}"
+            ],
+            "options": {
+              "outputPath": "dist/libs/nx-chainlink",
+              "main": "libs/nx-chainlink/src/index.ts",
+              "tsConfig": "libs/nx-chainlink/tsconfig.lib.json",
+              "assets": [
+                "libs/nx-chainlink/*.md",
+                {
+                  "input": "./libs/nx-chainlink/src",
+                  "glob": "**/!(*.ts)",
+                  "output": "./src"
+                },
+                {
+                  "input": "./libs/nx-chainlink/src",
+                  "glob": "**/*.d.ts",
+                  "output": "./src"
+                },
+                {
+                  "input": "./libs/nx-chainlink",
+                  "glob": "generators.json",
+                  "output": "."
+                },
+                {
+                  "input": "./libs/nx-chainlink",
+                  "glob": "executors.json",
+                  "output": "."
+                }
+              ]
+            },
+            "configurations": {}
+          },
+          "lint": {
+            "inputs": [
+              "default",
+              "{workspaceRoot}/.eslintrc.json"
+            ],
+            "executor": "@nx/linter:eslint",
+            "outputs": [
+              "{options.outputFile}"
+            ],
+            "options": {
+              "lintFilePatterns": [
+                "libs/nx-chainlink/**/*.ts",
+                "libs/nx-chainlink/package.json",
+                "libs/nx-chainlink/generators.json"
+              ]
+            },
+            "configurations": {}
+          },
+          "test": {
+            "executor": "@nx/jest:jest",
+            "inputs": [
+              "default",
+              "^default",
+              "{workspaceRoot}/jest.preset.js"
+            ],
+            "outputs": [
+              "{workspaceRoot}/coverage/{projectRoot}"
+            ],
+            "options": {
+              "jestConfig": "libs/nx-chainlink/jest.config.ts",
+              "passWithNoTests": true
+            },
+            "configurations": {
+              "ci": {
+                "ci": true,
+                "codeCoverage": true
+              }
+            }
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "tags": [],
+        "implicitDependencies": []
+      }
+    },
+    "setup-gap": {
+      "name": "setup-gap",
+      "type": "app",
+      "data": {
+        "root": "actions/setup-gap",
+        "sourceRoot": "actions/setup-gap",
+        "name": "setup-gap",
+        "projectType": "application",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    }
+  },
+  "externalNodes": {},
+  "dependencies": {
+    "cicd-build-publish-artifacts-ts": [],
+    "cicd-build-publish-artifacts-go": [],
+    "guard-from-missing-changesets": [],
+    "check-git-tag-for-monorepo": [],
+    "helm-version-bump-receiver": [],
+    "get-latest-github-release": [],
+    "cicd-build-publish-charts": [],
+    "helm-version-bump-sender": [],
+    "guard-tag-from-branch": [],
+    "nops-upgrade-checker": [],
+    "update-action-versions": [],
+    "setup-github-token": [],
+    "wait-for-workflows": [],
+    "cicd-changesets": [],
+    "setup-renovate": [],
+    "ci-lint-charts": [],
+    "update-actions": [],
+    "ci-lint-misc": [],
+    "setup-golang": [],
+    "setup-nodejs": [],
+    "ci-sonarqube": [],
+    "ci-test-sol": [],
+    "ci-test-ts": [],
+    "ci-lint-go": [],
+    "ci-test-go": [],
+    "ci-lint-ts": [],
+    "nx-chainlink": [],
+    "setup-gap": []
+  },
+  "version": "6.0"
+}
