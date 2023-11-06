@@ -132,15 +132,19 @@ runs:
       uses: svenstaro/upload-release-action@1beeb572c19a9242f4361f4cee78f8e0d9aec5df # v2.7.0
       with:
         repo_token: ${{ github.token }}
-        file: ${{ inputs.monorepo-release-dir }}/${{ inputs.monorepo-release-name }}/${{ inputs.release-assets }}
-        tag: ${{ inputs.monorepo-release-name }}@${{ inputs.monorepo-release-version }}
+        file:
+          ${{ inputs.monorepo-release-dir }}/${{ inputs.monorepo-release-name
+          }}/${{ inputs.release-assets }}
+        tag:
+          ${{ inputs.monorepo-release-name }}@${{
+          inputs.monorepo-release-version }}
         overwrite: true
         file_glob: true
 
     - name: Collect metrics
       if: always()
       id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d1618b772a97fd87e6505de97b872ee0b1f1729a
+      uses: smartcontractkit/push-gha-metrics-action@d1618b772a97fd87e6505de97b872ee0b1f1729a # v2.0.2
       with:
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}

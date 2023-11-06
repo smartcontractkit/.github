@@ -99,7 +99,10 @@ runs:
     - name: Configure github token
       if: inputs.use-gati == 'true'
       shell: bash
-      run: git config --global url."https://x-access-token:${{ steps.get-gh-token.outputs.access-token }}@github.com/".insteadOf "https://github.com/"
+      run:
+        git config --global url."https://x-access-token:${{
+        steps.get-gh-token.outputs.access-token }}@github.com/".insteadOf
+        "https://github.com/"
 
     - name: Set env from files
       if: inputs.use-env-files == 'true'
@@ -119,17 +122,18 @@ runs:
       with:
         # We already cache these directories in setup-go if we have
         # use-go-cache set to true
-        skip-pkg-cache: ${{ inputs.use-go-cache }} 
-        skip-build-cache: ${{ inputs.use-go-cache }} 
+        skip-pkg-cache: ${{ inputs.use-go-cache }}
+        skip-build-cache: ${{ inputs.use-go-cache }}
 
         version: ${{ inputs.golangci-lint-version }}
         args: ${{ inputs.golangci-lint-args }}
 
-
     - name: Print lint report artifact
       if: always()
       shell: bash
-      run: (test -f golangci-lint-report.xml && cat golangci-lint-report.xml) || true
+      run:
+        (test -f golangci-lint-report.xml && cat golangci-lint-report.xml) ||
+        true
 
     - name: Store lint report artifact
       if: always()
@@ -141,7 +145,7 @@ runs:
     - name: Collect metrics
       if: always()
       id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d1618b772a97fd87e6505de97b872ee0b1f1729a
+      uses: smartcontractkit/push-gha-metrics-action@d1618b772a97fd87e6505de97b872ee0b1f1729a # v2.0.2
       with:
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}

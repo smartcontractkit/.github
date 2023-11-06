@@ -23,9 +23,9 @@ inputs:
         app-release-name: 'mercury-server'
     required: true
   github-token:
-      description: The GITHUB_TOKEN for the workflow
-      required: false
-      default: ${{ github.token }}
+    description: The GITHUB_TOKEN for the workflow
+    required: false
+    default: ${{ github.token }}
   helm-chart-repo:
     description: |
       Helm chart repo URL to use, either `sdlc` or `prod`. 
@@ -39,9 +39,9 @@ inputs:
         helm-chart-repo: $AWS_ACCOUNT_ID_SDLC.dkr.ecr.$AWS_REGION.amazonaws.com/infra-charts
     required: true
   helm-chart-repo-update:
-    description: 'Whether or not to update the helm chart repo.'
+    description: "Whether or not to update the helm chart repo."
     required: true
-    default: 'false'
+    default: "false"
   helm-chart-version:
     description: |
       Helm chart version to use for the helm chart bump.
@@ -50,24 +50,24 @@ inputs:
         helm-chart-version: '0.0.1'
     required: true
   pr-base-branch:
-    description: 'Base branch to create PR against.'
+    description: "Base branch to create PR against."
     required: true
-    default: 'main'
+    default: "main"
   pr-labels:
-      description: |
-        Comma separated list of labels to add to the PR.
+    description: |
+      Comma separated list of labels to add to the PR.
 
-        Example:
-          pr-labels: 'preview-sand,do-not-merge'
-      required: true
+      Example:
+        pr-labels: 'preview-sand,do-not-merge'
+    required: true
   pr-draft:
-    description: 'Whether or not to create the PR as a draft.'
+    description: "Whether or not to create the PR as a draft."
     required: true
-    default: 'true'
+    default: "true"
   release-type:
-    description: 'Used to append to the branch name and the PR title.'
+    description: "Used to append to the branch name and the PR title."
     required: true
-    default: 'sandbox'
+    default: "sandbox"
 
 outputs:
   pr-number:
@@ -77,7 +77,7 @@ outputs:
     description: PR URL
     value: ${{ steps.create-pr.outputs.pull-request-url }}
   pr-operation:
-    description: 'PR Operation, for ex: created, updated, closed'
+    description: "PR Operation, for ex: created, updated, closed"
     value: ${{ steps.create-pr.outputs.pull-request-operation }}
   pr-head-sha:
     description: Commit SHA of the PR branch
@@ -102,7 +102,10 @@ runs:
         AWS_ACCESS_KEY_ID: ""
         AWS_SESSION_TOKEN: ""
       with:
-        cmd: yq eval -i '.releases[] |= select(.name == "${{ inputs.app-release-name }}").version = "${{ inputs.helm-chart-version }}"' ${{ inputs.app-file-path-pattern }}
+        cmd:
+          yq eval -i '.releases[] |= select(.name == "${{
+          inputs.app-release-name }}").version = "${{ inputs.helm-chart-version
+          }}"' ${{ inputs.app-file-path-pattern }}
 
     - name: Update helm chart repo
       if: inputs.helm-chart-repo-update == 'true'
@@ -113,23 +116,29 @@ runs:
         AWS_ACCESS_KEY_ID: ""
         AWS_SESSION_TOKEN: ""
       with:
-        cmd: yq eval -i '.repositories[] |= select(.name == "infra-charts").url = "${{ inputs.helm-chart-repo }}"' ${{ inputs.app-file-path-pattern }}
+        cmd:
+          yq eval -i '.repositories[] |= select(.name == "infra-charts").url =
+          "${{ inputs.helm-chart-repo }}"' ${{ inputs.app-file-path-pattern }}
 
     - name: Create PR to deploy
       id: create-pr
       uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # v5.0.2
       with:
         base: ${{ inputs.pr-base-branch }}
-        branch: auto/${{ inputs.app-release-name}}/helm-${{ inputs.helm-chart-version }}-${{ inputs.release-type }}
+        branch:
+          auto/${{ inputs.app-release-name}}/helm-${{ inputs.helm-chart-version
+          }}-${{ inputs.release-type }}
         draft: ${{ inputs.pr-draft }}
         labels: ${{ inputs.pr-labels }}
-        title: Bump Helm Chart to ${{ inputs.helm-chart-version }} for ${{ steps.get-filename-from-path.outputs.filename-path }}
+        title:
+          Bump Helm Chart to ${{ inputs.helm-chart-version }} for ${{
+          steps.get-filename-from-path.outputs.filename-path }}
         token: ${{ inputs.github-token }}
 
     - name: Collect metrics
       if: always()
       id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d1618b772a97fd87e6505de97b872ee0b1f1729a
+      uses: smartcontractkit/push-gha-metrics-action@d1618b772a97fd87e6505de97b872ee0b1f1729a # v2.0.2
       with:
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}

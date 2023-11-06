@@ -95,7 +95,9 @@ runs:
     - name: Run build affected
       if: inputs.check-only-affected == 'true'
       shell: bash
-      run: pnpm run build:affected --base=${{ inputs.base-ref }} ${{ inputs.forge-build-args }}
+      run:
+        pnpm run build:affected --base=${{ inputs.base-ref }} ${{
+        inputs.forge-build-args }}
 
     - name: Run test
       if: inputs.check-only-affected != 'true'
@@ -105,7 +107,9 @@ runs:
     - name: Run test affected
       if: inputs.check-only-affected == 'true'
       shell: bash
-      run: pnpm run test:affected --base=${{ inputs.base-ref }} ${{ inputs.forge-test-args }}
+      run:
+        pnpm run test:affected --base=${{ inputs.base-ref }} ${{
+        inputs.forge-test-args }}
 
     - name: Run snapshot
       if: inputs.check-only-affected != 'true'
@@ -115,7 +119,9 @@ runs:
     - name: Run snapshot affected
       if: inputs.check-only-affected == 'true'
       shell: bash
-      run: pnpm run snapshot:affected --base=${{ inputs.base-ref }} ${{ inputs.forge-snapshot-args }}
+      run:
+        pnpm run snapshot:affected --base=${{ inputs.base-ref }} ${{
+        inputs.forge-snapshot-args }}
 
     - name: Run coverage
       if: inputs.check-only-affected != 'true'
@@ -125,12 +131,14 @@ runs:
     - name: Run coverage affected
       if: inputs.check-only-affected == 'true'
       shell: bash
-      run: pnpm run coverage:affected --base=${{ inputs.base-ref }} ${{ inputs.forge-coverage-args }}
+      run:
+        pnpm run coverage:affected --base=${{ inputs.base-ref }} ${{
+        inputs.forge-coverage-args }}
 
     - name: Collect metrics
       if: always()
       id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d1618b772a97fd87e6505de97b872ee0b1f1729a
+      uses: smartcontractkit/push-gha-metrics-action@d1618b772a97fd87e6505de97b872ee0b1f1729a # v2.0.2
       with:
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}

@@ -104,7 +104,10 @@ runs:
     - name: Configure github token
       if: inputs.use-gati == 'true'
       shell: bash
-      run: git config --global url."https://x-access-token:${{ steps.get-gh-token.outputs.access-token }}@github.com/".insteadOf "https://github.com/"
+      run:
+        git config --global url."https://x-access-token:${{
+        steps.get-gh-token.outputs.access-token }}@github.com/".insteadOf
+        "https://github.com/"
 
     - name: Set env from files
       if: inputs.use-env-files == 'true'
@@ -141,7 +144,7 @@ runs:
     - name: Collect metrics
       if: always()
       id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d1618b772a97fd87e6505de97b872ee0b1f1729a
+      uses: smartcontractkit/push-gha-metrics-action@d1618b772a97fd87e6505de97b872ee0b1f1729a # v2.0.2
       with:
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}

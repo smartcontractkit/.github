@@ -112,12 +112,15 @@ runs:
     - name: Argocd login
       if: inputs.use-argocd == 'true'
       shell: bash
-      run: argocd login localhost:${{ inputs.proxy-port }}/primary --skip-test-tls --plaintext --grpc-web --username ${{ inputs.argocd-user }} --password ${{ inputs.argocd-pass }}
+      run:
+        argocd login localhost:${{ inputs.proxy-port }}/primary --skip-test-tls
+        --plaintext --grpc-web --username ${{ inputs.argocd-user }} --password
+        ${{ inputs.argocd-pass }}
 
     - name: Collect metrics
       if: always()
       id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d1618b772a97fd87e6505de97b872ee0b1f1729a
+      uses: smartcontractkit/push-gha-metrics-action@d1618b772a97fd87e6505de97b872ee0b1f1729a # v2.0.2
       with:
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}
