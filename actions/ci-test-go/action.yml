@@ -104,10 +104,10 @@ runs:
     - name: Configure github token
       if: inputs.use-gati == 'true'
       shell: bash
-      run:
-        git config --global url."https://x-access-token:${{
-        steps.get-gh-token.outputs.access-token }}@github.com/".insteadOf
-        "https://github.com/"
+      run: |
+        git config --global \
+          url."https://x-access-token:${{ steps.get-gh-token.outputs.access-token }}@github.com/".insteadOf \
+          "https://github.com/"
 
     - name: Set env from files
       if: inputs.use-env-files == 'true'
