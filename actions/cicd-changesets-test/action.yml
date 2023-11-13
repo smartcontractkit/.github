@@ -113,6 +113,7 @@ runs:
       run: |
         tag=producer@7.7.7
         git tag -a $tag -m "$tag"
+        git push origin $tag
 
     - name: Run changesets
       if: ${{ inputs.debug == 'false'}}
