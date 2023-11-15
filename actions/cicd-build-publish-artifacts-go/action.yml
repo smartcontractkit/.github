@@ -11,6 +11,10 @@ inputs:
     description: "number of commits to fetch"
     required: false
     default: "0"
+  checkout-ref:
+    description: "git ref to checkout"
+    required: false
+    default: ""
   app-name:
     description: ""
     required: false
@@ -116,6 +120,7 @@ runs:
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+        ref: ${{ inputs.checkout-ref }}
 
     - name: Assume aws gati role
       if: inputs.use-gati == 'true'
