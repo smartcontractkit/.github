@@ -1,6 +1,6 @@
 {
   "name": "ci-sonarqube",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Add SonarQube to CI",
   "private": true,
   "scripts": {},
