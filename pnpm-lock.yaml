@@ -84,8 +84,8 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2
       update-ts-references:
-        specifier: ^2.6.1
-        version: 2.6.1(ts-jest@29.1.1)
+        specifier: ^3.0.0
+        version: 3.0.0(ts-jest@29.1.1)
 
   actions/check-git-tag-for-monorepo: {}
 
@@ -8208,8 +8208,8 @@ packages:
       picocolors: 1.0.0
     dev: true
 
-  /update-ts-references@2.6.1(ts-jest@29.1.1):
-    resolution: {integrity: sha512-rv4rOfIWAdf3KWUYAaxPxNdvKwcVI+orAXb2WIHStVTvpC38SKGNtaoVZnmWzP/hk+5Jk/TTVIsK1FtvisDjdw==}
+  /update-ts-references@3.0.0(ts-jest@29.1.1):
+    resolution: {integrity: sha512-1Ucw9dQ5Pq8P2NTWY1YOIEf2jwa8FTGrOXq6KL/6N/ep0xa/agyqhO990fylMyWSxbTBXwPYHe1QQGVpPAOk7g==}
     engines: {node: '>=14.0.0'}
     hasBin: true
     dependencies:
