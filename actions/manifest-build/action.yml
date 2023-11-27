@@ -1,0 +1,74 @@
+name: manifest-build
+description: "Builds all manifest models and uploads them to a cache"
+
+inputs:
+  # general inputs
+  github-token:
+    description: "GitHub auth token for private repos (if needed)"
+    required: false
+    default: ""
+  cache-name:
+    description: "Cachix private cache name"
+    required: false
+    default: "manifest"
+  cache-token:
+    description: "Cachix auth token for private cache"
+    required: false
+    default: ""
+  # grafana cloud inputs
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+    default: manifest-build
+  gc-host:
+    description: "grafana cloud hostname"
+    required: false
+  gc-basic-auth:
+    description: "grafana cloud basic auth"
+    required: false
+
+runs:
+  using: composite
+  strategy:
+        fail-fast: false
+        matrix:
+          os: ["macos-latest", "ubuntu-latest"]
+    runs-on: ${{ matrix.os }}
+  steps:
+    - name: Checkout repo
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+    - uses: cachix/install-nix-action@v22
+        with:
+          install_url: https://releases.nixos.org/nix/nix-2.18.1/install
+          nix_path: nixpkgs=channel:nixos-unstable
+          # Enables sandbox for all drv except those with `__noChroot = true;`
+          extra_nix_config: "sandbox = relaxed"
+
+    - uses: cachix/cachix-action@v12
+      with:
+        name: ${{ inputs.cache-name }}
+        # If you chose API tokens for write access OR if you have a private cache
+        authToken: '${{ inputs.cache-token }}'
+
+    - uses: MrSquaare/ssh-setup-action@v3
+      with:
+        host: github.com
+        private-key: ${{ inputs.github-token }}
+    - name: Run all builds
+      run: |
+        KEYS=$(nix flake show --json --allow-import-from-derivation | jq -r '.packages | .[] | keys[]' | grep "__" | sort -u)
+        for key in $KEYS; do
+          echo "nix build '.#\"$key\"'"
+          eval "nix build '.#\"$key\"'"
+        done
+
+    - name: Collect metrics
+      if: always()
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@031fd89b33b3e7722b0c4d2593ece1861d9f503f
+      with:
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true
