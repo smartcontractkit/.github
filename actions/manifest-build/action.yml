@@ -3,18 +3,10 @@ description: "Builds all manifest models and uploads them to a cache"
 
 inputs:
   # general inputs
-  github-token:
-    description: "GitHub auth token for private repos (if needed)"
-    required: false
-    default: ""
   cache-name:
     description: "Cachix private cache name"
     required: false
     default: "manifest"
-  cache-token:
-    description: "Cachix auth token for private cache"
-    required: false
-    default: ""
   # grafana cloud inputs
   metrics-job-name:
     description: "grafana metrics job name"
@@ -26,6 +18,15 @@ inputs:
   gc-basic-auth:
     description: "grafana cloud basic auth"
     required: false
+secrets:
+  github-token:
+    description: "GitHub auth token for private repos (if needed)"
+    required: false
+    default: ""
+  cache-token:
+      description: "Cachix auth token for private cache"
+      required: false
+      default: ""
 
 runs:
   using: composite
@@ -49,12 +50,12 @@ runs:
       with:
         name: ${{ inputs.cache-name }}
         # If you chose API tokens for write access OR if you have a private cache
-        authToken: '${{ inputs.cache-token }}'
+        authToken: '${{ secrets.cache-token }}'
 
     - uses: MrSquaare/ssh-setup-action@v3
       with:
         host: github.com
-        private-key: ${{ inputs.github-token }}
+        private-key: ${{ secrets.github-token }}
     - name: Run all builds
       run: |
         KEYS=$(nix flake show --json --allow-import-from-derivation | jq -r '.packages | .[] | keys[]' | grep "__" | sort -u)
