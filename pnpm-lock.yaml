@@ -123,6 +123,8 @@ importers:
 
   actions/helm-version-bump-sender: {}
 
+  actions/manifest-build: {}
+
   actions/nops-upgrade-checker: {}
 
   actions/setup-gap: {}
