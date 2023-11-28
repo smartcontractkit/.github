@@ -34,11 +34,11 @@ runs:
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
     - uses: cachix/install-nix-action@v22
-        with:
-          install_url: https://releases.nixos.org/nix/nix-2.18.1/install
-          nix_path: nixpkgs=channel:nixos-unstable
-          # Enables sandbox for all drv except those with `__noChroot = true;`
-          extra_nix_config: "sandbox = relaxed"
+      with:
+        install_url: https://releases.nixos.org/nix/nix-2.18.1/install
+        nix_path: nixpkgs=channel:nixos-unstable
+        # Enables sandbox for all drv except those with `__noChroot = true;`
+        extra_nix_config: "sandbox = relaxed"
 
     - uses: cachix/cachix-action@v12
       with:
