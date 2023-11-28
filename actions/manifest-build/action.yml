@@ -7,6 +7,14 @@ inputs:
     description: "Cachix private cache name"
     required: false
     default: "manifest"
+  github-token:
+    description: "GitHub auth token for private repos (if needed)"
+    required: false
+    default: ""
+  cache-token:
+      description: "Cachix auth token for private cache"
+      required: false
+      default: ""
   # grafana cloud inputs
   metrics-job-name:
     description: "grafana metrics job name"
@@ -18,23 +26,9 @@ inputs:
   gc-basic-auth:
     description: "grafana cloud basic auth"
     required: false
-secrets:
-  github-token:
-    description: "GitHub auth token for private repos (if needed)"
-    required: false
-    default: ""
-  cache-token:
-      description: "Cachix auth token for private cache"
-      required: false
-      default: ""
 
 runs:
   using: composite
-  strategy:
-        fail-fast: false
-        matrix:
-          os: ["macos-latest", "ubuntu-latest"]
-    runs-on: ${{ matrix.os }}
   steps:
     - name: Checkout repo
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
