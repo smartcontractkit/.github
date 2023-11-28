@@ -51,6 +51,7 @@ runs:
         host: github.com
         private-key: ${{ inputs.github-token }}
     - name: Run all builds
+      shell: bash
       run: |
         KEYS=$(nix flake show --json --allow-import-from-derivation | jq -r '.packages | .[] | keys[]' | grep "__" | sort -u)
         for key in $KEYS; do
