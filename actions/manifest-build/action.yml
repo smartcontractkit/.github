@@ -44,12 +44,12 @@ runs:
       with:
         name: ${{ inputs.cache-name }}
         # If you chose API tokens for write access OR if you have a private cache
-        authToken: '${{ secrets.cache-token }}'
+        authToken: '${{ inputs.cache-token }}'
 
     - uses: MrSquaare/ssh-setup-action@v3
       with:
         host: github.com
-        private-key: ${{ secrets.github-token }}
+        private-key: ${{ inputs.github-token }}
     - name: Run all builds
       run: |
         KEYS=$(nix flake show --json --allow-import-from-derivation | jq -r '.packages | .[] | keys[]' | grep "__" | sort -u)
