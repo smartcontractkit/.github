@@ -1,0 +1,11 @@
+{
+  "name": "manifest-build",
+  "version": "0.1.0",
+  "description": "Builds all manifest models and uploads them to a cache",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}
