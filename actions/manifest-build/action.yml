@@ -33,20 +33,20 @@ runs:
     - name: Checkout repo
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
-    - uses: cachix/install-nix-action@v22
+    - uses: cachix/install-nix-action@6ed004b9ccb68dbc28e7c85bee15fa93dbd214ac # v22
       with:
         install_url: https://releases.nixos.org/nix/nix-2.18.1/install
         nix_path: nixpkgs=channel:nixos-unstable
         # Enables sandbox for all drv except those with `__noChroot = true;`
         extra_nix_config: "sandbox = relaxed"
 
-    - uses: cachix/cachix-action@v12
+    - uses: cachix/cachix-action@6a9a34cdd93d0ae4b4b59fd678660efb08109f2f # v12
       with:
         name: ${{ inputs.cache-name }}
         # If you chose API tokens for write access OR if you have a private cache
         authToken: '${{ inputs.cache-token }}'
 
-    - uses: MrSquaare/ssh-setup-action@v3
+    - uses: MrSquaare/ssh-setup-action@7bfdda6ef6839504e3a5b2625ad971b17461a0db # v3
       with:
         host: github.com
         private-key: ${{ inputs.github-token }}
