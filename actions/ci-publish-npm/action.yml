@@ -1,0 +1,50 @@
+name: ci-publish-npm
+description: Publishes to NPM
+
+inputs:
+  package-json-directory:
+    description: "The sub directory of the package.json if not at the root of the repository."
+    required: false
+    default: '.'
+  publish-command:
+    description: "The package.json defined script used to publish. Will run as `pnpm <publish-command>`"
+    required: true
+  npm-token:
+    description: The NPM token with publish access
+    required: true
+  github-token:
+    description: The GITHUB_TOKEN for the workflow
+    required: false
+    default: ${{ github.token }}
+  create-github-release:
+    description: "Whether or not to create a GitHub release"
+    required: false
+    default: false
+  github-release-tag-name:
+    description: "The name of the GitHub release. Defaults to the current branch name"
+    required: false
+    default: ${{ github.ref_name }}
+
+runs:
+  using: composite
+  steps:
+    - name: Create GitHub Release
+      if: inputs.create-github-release == 'true'
+      # TODO: Use something that can sign the release
+      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
+      with:
+        tag_name: ${{ inputs.github-release-tag-name }}
+        token: ${{ inputs.github-token }}
+
+    - name: Configure npmrc
+      shell: bash
+      env:
+        NODE_AUTH_TOKEN: ${{ inputs.npm-token }}
+      run: |
+        echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" >> ~/.npmrc
+        echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
+
+    - name: Publish to NPM
+      shell: bash
+      working-directory: ${{ inputs.package-json-directory }}
+      run: pnpm ${{ inputs.publish-command }}
