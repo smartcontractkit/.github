@@ -40,7 +40,7 @@ runs:
         # Enables sandbox for all drv except those with `__noChroot = true;`
         extra_nix_config: "sandbox = relaxed"
 
-    - uses: cachix/cachix-action@6a9a34cdd93d0ae4b4b59fd678660efb08109f2f # v12
+    - uses: cachix/cachix-action@6a2e08b5ebf7a9f285ff57b1870a4262b06e0bee # v13
       with:
         name: ${{ inputs.cache-name }}
         # If you chose API tokens for write access OR if you have a private cache
