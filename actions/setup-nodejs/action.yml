@@ -18,6 +18,10 @@ inputs:
     description: Run npm/yarn/pnpm install
     required: true
     default: 'true'
+  package-json-directory:
+    description: The sub-directory of the package.json, if not at the root of the repository
+    required: false
+    default: '.'
 
 runs:
   using: composite
@@ -52,4 +56,5 @@ runs:
     - name: Run package manager install
       if: inputs.run-install == 'true'
       shell: bash
+      working-directory: ${{ inputs.package-json-directory }}
       run: pnpm install
