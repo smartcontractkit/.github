@@ -22,9 +22,7 @@
     "strict": true,
     "target": "es2021",
     "paths": {
-      "nx-chainlink": [
-        "libs/nx-chainlink/src/index.ts"
-      ]
+      "nx-chainlink": ["libs/nx-chainlink/src/index.ts"]
     }
   }
 }

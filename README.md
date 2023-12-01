@@ -95,6 +95,7 @@ reference and the action updater will update at the next scheduled run.
 ```yaml
 uses: smartcontractkit/.github/actions/ci-lint-go@<any-valid-ref> # @0.0.0
 ```
+
 ## Example Usage
 
 ### Golden path example repositories
@@ -102,10 +103,14 @@ uses: smartcontractkit/.github/actions/ci-lint-go@<any-valid-ref> # @0.0.0
 Below are example "Golden Path" repositories that utilize these reuseable
 actions.
 
-- Go application: [`smartcontractkit/releng-go-app`](https://github.com/smartcontractkit/releng-go-app)
-- Go library: [`smartcontractkit/releng-go-lib`](https://github.com/smartcontractkit/releng-go-lib)
-- TypeScript application: [`smartcontractkit/releng-ts-app`](https://github.com/smartcontractkit/releng-ts-app)
-- Solidity contracts: [`smartcontractkit/releng-sol-contracts`](https://github.com/smartcontractkit/releng-sol-contracts)
+- Go application:
+  [`smartcontractkit/releng-go-app`](https://github.com/smartcontractkit/releng-go-app)
+- Go library:
+  [`smartcontractkit/releng-go-lib`](https://github.com/smartcontractkit/releng-go-lib)
+- TypeScript application:
+  [`smartcontractkit/releng-ts-app`](https://github.com/smartcontractkit/releng-ts-app)
+- Solidity contracts:
+  [`smartcontractkit/releng-sol-contracts`](https://github.com/smartcontractkit/releng-sol-contracts)
 
 ## Development
 

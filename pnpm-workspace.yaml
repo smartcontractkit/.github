@@ -1,4 +1,5 @@
 packages:
   - actions/**
+  - "!actions/signed-commits/__fixtures__/**"
   - libs/**
   - apps/**

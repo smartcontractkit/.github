@@ -1,4 +1,7 @@
 {
+  "cli": {
+    "packageManager": "pnpm"
+  },
   "tasksRunnerOptions": {
     "default": {
       "options": {
@@ -43,6 +46,19 @@
         "color": true,
         "forwardAllArgs": true
       }
+    },
+    "@nx/jest:jest": {
+      "inputs": ["default", "^default", "{workspaceRoot}/jest.preset.js"],
+      "options": {
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "codeCoverage": true
+        }
+      },
+      "cache": true
     }
   }
 }

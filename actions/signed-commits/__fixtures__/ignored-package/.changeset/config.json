@@ -1,0 +1,5 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@1.3.0/schema.json",
+  "ignore": ["ignored-package-pkg-a"],
+  "changelog": ["./changelog-generator.js", null]
+}
