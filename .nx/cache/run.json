@@ -1,29 +1,18 @@
 {
   "run": {
-    "command": "nx run-many --target=build --verbose",
-    "startTime": "2023-11-17T00:44:48.044Z",
-    "endTime": "2023-11-17T00:44:48.934Z",
+    "command": "nx run signed-commits:build",
+    "startTime": "2023-12-02T01:32:02.653Z",
+    "endTime": "2023-12-02T01:32:08.232Z",
     "inner": false
   },
   "tasks": [
     {
-      "taskId": "update-action-versions:build",
+      "taskId": "signed-commits:build",
       "target": "build",
-      "projectName": "update-action-versions",
-      "hash": "13594664282314340603",
-      "startTime": "2023-11-17T00:44:48.053Z",
-      "endTime": "2023-11-17T00:44:48.894Z",
-      "params": "",
-      "cacheStatus": "cache-miss",
-      "status": 0
-    },
-    {
-      "taskId": "nx-chainlink:build",
-      "target": "build",
-      "projectName": "nx-chainlink",
-      "hash": "3910699246086027070",
-      "startTime": "2023-11-17T00:44:48.053Z",
-      "endTime": "2023-11-17T00:44:48.934Z",
+      "projectName": "signed-commits",
+      "hash": "13488242224741913917",
+      "startTime": "2023-12-02T01:32:02.661Z",
+      "endTime": "2023-12-02T01:32:08.232Z",
       "params": "",
       "cacheStatus": "cache-miss",
       "status": 0

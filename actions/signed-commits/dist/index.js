@@ -81608,7 +81608,7 @@ Object.defineProperty(exports, "pushTags", ({ enumerable: true, get: function ()
  * locally, the HEAD will still contain the old commit, and the non-committed changes.
  *
  */
-async function commitAll(client, branch, owner, repo, message, body = "") {
+async function commitAll(client, branch, owner, repo, message, cwd) {
     const input = {
         branch: {
             branchName: branch,
@@ -81616,14 +81616,14 @@ async function commitAll(client, branch, owner, repo, message, body = "") {
         },
         message: {
             headline: message,
-            body,
+            body: "",
         },
         expectedHeadOid: await getRemoteHeadOid(client, {
             branch,
             owner,
             repo,
         }),
-        fileChanges: await repoStatus.getFileChanges(),
+        fileChanges: await repoStatus.getFileChanges(cwd),
     };
     await createCommitOnBranch(client, input);
 }
@@ -81666,12 +81666,13 @@ exports.getRemoteHeadOid = getRemoteHeadOid;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.calculateFileChanges = exports.listChanges = exports.calculateAdditionsAndDeletions = exports.getGitStatusPorcelainV1 = exports.getFileChanges = void 0;
 const utils_1 = __nccwpck_require__(42115);
+const path_1 = __nccwpck_require__(71017);
 const fs_1 = __nccwpck_require__(57147);
-async function getFileChanges() {
-    const output = await getGitStatusPorcelainV1();
+async function getFileChanges(cwd) {
+    const output = await getGitStatusPorcelainV1(cwd);
     const changes = listChanges(output);
     const additionsAndDeletions = calculateAdditionsAndDeletions(changes);
-    const fileChanges = await calculateFileChanges(additionsAndDeletions);
+    const fileChanges = await calculateFileChanges(additionsAndDeletions, cwd);
     return fileChanges;
 }
 exports.getFileChanges = getFileChanges;
@@ -81739,9 +81740,10 @@ function listChanges(output) {
     return parseGitStatusPorcelainOutput(output);
 }
 exports.listChanges = listChanges;
-async function calculateFileChanges(changes) {
+async function calculateFileChanges(changes, cwd = "") {
     const additions = changes.additions.map((path) => {
-        const contents = (0, fs_1.readFileSync)(path).toString("base64");
+        const fullPath = (0, path_1.join)(cwd, path);
+        const contents = (0, fs_1.readFileSync)(fullPath).toString("base64");
         return {
             path,
             contents,
@@ -82356,7 +82358,7 @@ async function runVersion({ script, githubToken, cwd = process.cwd(), prTitle = 
         // instead, we should probably checkout the versionBranch
         // and update it via https://docs.github.com/en/free-pro-team@latest/rest/pulls/pulls?apiVersion=2022-11-28#update-a-pull-request-branch
         // _then_ run "changesets version", then commitAll.
-        await githubGitUtils.commitAll(octokit, versionBranch, owner, repo, finalCommitMessage);
+        await githubGitUtils.commitAll(octokit, versionBranch, owner, repo, finalCommitMessage, cwd);
         // hard reset back to default branch
         // clearing all the changesets we generated
         // so we can pull the remote commit we just made
