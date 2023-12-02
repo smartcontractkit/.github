@@ -49,7 +49,7 @@ jobs:
         uses: ./actions/setup-nodejs
 
       - name: Build signed-commits
-        run: pnpm run signed-commits:build
+        run: pnpm nx run signed-commits:build
 
       - name: Commit back any changes
         uses: planetscale/ghcommit-action@v0.1.6
@@ -70,7 +70,7 @@ jobs:
         uses: ./actions/setup-nodejs
 
       - name: Run tests for signed-commits
-        run: pnpm run signed-commits:test
+        run: pnpm nx run signed-commits:test
 
   ci-test:
     runs-on: ubuntu-latest
