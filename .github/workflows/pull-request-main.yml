@@ -44,6 +44,10 @@ jobs:
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          # Commit back any changes based on the commit that triggered this action
+          # rather than merge commit of main into the PR branch
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
