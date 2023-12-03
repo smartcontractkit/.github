@@ -12,7 +12,7 @@
     },
     "build": {
       "dependsOn": ["build:internal"],
-      "command": "rimraf {projectRoot}/dist/package.json"
+      "command": "rimraf dist/package.json"
     },
     "build:internal": {
       "executor": "@nx/esbuild:esbuild",

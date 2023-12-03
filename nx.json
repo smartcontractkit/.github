@@ -2,19 +2,12 @@
   "cli": {
     "packageManager": "pnpm"
   },
-  "tasksRunnerOptions": {
-    "default": {
-      "options": {
-        "cacheableOperations": ["lint"],
-        "parallel": 10
-      }
-    }
-  },
   "extends": "nx/presets/npm.json",
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "targetDefaults": {
     "lint": {
-      "inputs": ["default", "{workspaceRoot}/.eslintrc.json"]
+      "inputs": ["default", "{workspaceRoot}/.eslintrc.json"],
+      "cache": true
     },
     "test": {
       "executor": "nx:run-commands",
@@ -60,5 +53,6 @@
       },
       "cache": true
     }
-  }
+  },
+  "parallel": 10
 }
