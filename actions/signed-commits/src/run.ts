@@ -136,7 +136,10 @@ export async function runPublish({
   let { packages, tool } = await getPackages(cwd);
   let releasedPackages: Package[] = [];
 
-  if (tool !== "root") {
+  // if we are in a monorepo, then publish multiple packages
+  // a "root" tool is a single package repo
+  // https://github.com/Thinkmill/manypkg/blob/main/packages/tools/src/RootTool.ts#L17C4-L17C64
+  if (tool.type !== "root") {
     let newTagRegex = /New tag:\s+(@[^/]+\/[^@]+|[^/]+)@([^\s]+)/;
     let packagesByName = new Map(packages.map((x) => [x.packageJson.name, x]));
 

@@ -1,4 +1,5 @@
 import unified from "unified";
+import type { Node, Parent } from "unist";
 import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
 // @ts-ignore
@@ -20,7 +21,7 @@ export async function getVersionsByDirectory(cwd: string) {
 
 export async function getChangedPackages(
   cwd: string,
-  previousVersions: Map<string, string>
+  previousVersions: Map<string, string>,
 ) {
   let { packages } = await getPackages(cwd);
   let changedPackages = new Set<Package>();
@@ -39,8 +40,11 @@ export function getChangelogEntry(changelog: string, version: string) {
   let ast = unified().use(remarkParse).parse(changelog);
 
   let highestLevel: number = BumpLevels.dep;
+  if (!isParentNode(ast)) {
+    throw new Error("ast is not a parent node");
+  }
 
-  let nodes = ast.children as Array<any>;
+  let nodes = ast.children;
   let headingStartInfo:
     | {
         index: number;
@@ -51,7 +55,11 @@ export function getChangelogEntry(changelog: string, version: string) {
 
   for (let i = 0; i < nodes.length; i++) {
     let node = nodes[i];
+
     if (node.type === "heading") {
+      if (!nodeHasDepthProperty(node)) {
+        throw new Error("node is missing depth property");
+      }
       let stringified: string = mdastToString(node);
       let match = stringified.toLowerCase().match(/(major|minor|patch)/);
       if (match !== null) {
@@ -78,7 +86,7 @@ export function getChangelogEntry(changelog: string, version: string) {
   if (headingStartInfo) {
     ast.children = (ast.children as any).slice(
       headingStartInfo.index + 1,
-      endIndex
+      endIndex,
     );
   }
   return {
@@ -89,7 +97,7 @@ export function getChangelogEntry(changelog: string, version: string) {
 
 export function sortTheThings(
   a: { private: boolean; highestLevel: number },
-  b: { private: boolean; highestLevel: number }
+  b: { private: boolean; highestLevel: number },
 ) {
   if (a.private === b.private) {
     return b.highestLevel - a.highestLevel;
@@ -103,7 +111,7 @@ export function sortTheThings(
 export async function execWithOutput(
   cmd: Parameters<typeof exec>[0],
   args: Parameters<typeof exec>[1],
-  opts?: { notrim?: boolean; cwd?: string }
+  opts?: { notrim?: boolean; cwd?: string },
 ) {
   let { exitCode, stdout, stderr } = await getExecOutput(cmd, args, opts);
 
@@ -117,4 +125,14 @@ export async function execWithOutput(
   }
 
   return stdout;
+}
+
+function isParentNode(node: Node<any>): node is Parent {
+  return "children" in node;
+}
+
+function nodeHasDepthProperty(
+  node: Node<any>,
+): node is Node & { depth: number } {
+  return "depth" in node;
 }
