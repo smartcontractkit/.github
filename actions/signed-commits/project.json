@@ -11,15 +11,18 @@
       }
     },
     "build": {
+      "dependsOn": ["build:internal"],
+      "command": "rimraf {projectRoot}/dist/package.json"
+    },
+    "build:internal": {
       "executor": "@nx/esbuild:esbuild",
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
         "format": ["cjs"],
-        "bundle": true,
         "thirdParty": true,
-        "outputPath": "dist/",
-        "main": "src/index.ts",
+        "outputPath": "actions/signed-commits/dist/",
+        "main": "actions/signed-commits/src/index.ts",
         "assets": [],
         "outputFileName": "index.js",
         "esbuildOptions": {

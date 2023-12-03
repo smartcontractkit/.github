@@ -48,8 +48,8 @@
     "ts-node": "10.9.1",
     "tslib": "^2.6.2",
     "typescript": "^5.2.2",
-    "update-ts-references": "^3.0.0"
+    "update-ts-references": "^3.0.0",
+    "rimraf": "^5.0.5"
   },
-  "repository": "https://github.com/smartcontractkit/.github",
-  "dependencies": {}
+  "repository": "https://github.com/smartcontractkit/.github"
 }
