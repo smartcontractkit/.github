@@ -1,4 +1,5 @@
 // src/__tests__/createCommitOnBranch.test.js
+import fetch from "node-fetch";
 import { getOctokit } from "@actions/github";
 import nock from "nock";
 import path from "path";
@@ -23,7 +24,11 @@ it("creates a commit on a branch", async () => {
   if (!token) {
     throw new Error("GITHUB_TOKEN must be set when recording fixtures");
   }
-  const octokit = getOctokit(token);
+  const octokit = getOctokit(token, {
+    request: {
+      fetch,
+    },
+  });
 
   const fileContents = "hello world";
   const base64FileContents = Buffer.from(fileContents).toString("base64");
@@ -57,7 +62,7 @@ it("creates a commit on a branch", async () => {
     createCommitOnBranch: {
       commit: {
         url: expect.stringContaining(
-          "https://github.com/smartcontractkit-test/changesets-test/commit/"
+          "https://github.com/smartcontractkit-test/changesets-test/commit/",
         ),
       },
     },
