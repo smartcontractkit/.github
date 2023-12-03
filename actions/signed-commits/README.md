@@ -1,5 +1,4 @@
 # Changesets Release Action
-TODO: add tsconfig.spec.json back
 This action for [Changesets](https://github.com/atlassian/changesets) creates a
 pull request with all of the package versions updated and changelogs updated and
 when there are new changesets on
