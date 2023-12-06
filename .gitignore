@@ -44,7 +44,4 @@ bin/
 .npmrc
 
 # nx cache
-.nx/cache/*.log
-.nx/cache/*.log
-.nx/cache/d/**/*
-.nx/cache/terminalOutputs/**/*
+.nx/cache/
