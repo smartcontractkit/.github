@@ -15,7 +15,7 @@ import {
 } from "./utils";
 import * as localGitUtils from "./git/local-git";
 import * as githubGitUtils from "./git/github-git";
-import readChangesetState from "./readChangesetState";
+import readChangesetState from "./read-changeset-state";
 import resolveFrom from "resolve-from";
 import { throttling } from "@octokit/plugin-throttling";
 

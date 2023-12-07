@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import fs from "fs-extra";
 import * as gitUtils from "./git/local-git";
 import { runPublish, runVersion } from "./run";
-import readChangesetState from "./readChangesetState";
+import readChangesetState from "./read-changeset-state";
 
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 

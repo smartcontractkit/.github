@@ -61664,7 +61664,7 @@ async function getRemoteHeadOid(client, opts) {
   return res.data.commit.sha;
 }
 
-// actions/signed-commits/src/readChangesetState.ts
+// actions/signed-commits/src/read-changeset-state.ts
 var import_pre = __toESM(require_pre_cjs());
 var import_read = __toESM(require_read_cjs());
 async function readChangesetState(cwd = process.cwd()) {
