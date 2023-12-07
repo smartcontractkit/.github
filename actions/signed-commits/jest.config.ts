@@ -8,5 +8,5 @@ export default {
   },
   moduleFileExtensions: ["ts", "js", "html"],
   coverageDirectory: "../../coverage/actions/signed-commits",
-  
+  collectCoverage: true,
 } satisfies Config;
