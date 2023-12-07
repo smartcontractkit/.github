@@ -13,11 +13,11 @@ inputs:
     description: The NPM token with publish access
     required: true
   github-token:
-    description: The GITHUB_TOKEN for the workflow
+    description: "The `GITHUB_TOKEN` issued for the workflow. Only required when creating Github releases. Requires `contents: write` permissions"
     required: false
     default: ${{ github.token }}
   create-github-release:
-    description: "Whether or not to create a GitHub release"
+    description: "Whether or not to create a GitHub release."
     required: false
     default: false
   github-release-tag-name:

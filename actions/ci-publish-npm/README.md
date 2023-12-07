@@ -20,4 +20,4 @@ Ensure all testing is complete, and `pnpm` is setup prior to calling this action
 3. `npm-token` - The NPM access token with permissions to publish to the repository.
 4. `create-github-release` - Whether to create a Github release.
 5. `github-release-tag-name` - The release's tag name
-6. `github-token` - The `GITHUB_TOKEN` issued for the workflow. Used when creating Github releases.
+6. `github-token` - The `GITHUB_TOKEN` issued for the workflow. Only required when creating Github releases. Requires `contents: write` permissions.
