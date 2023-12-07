@@ -1,4 +1,4 @@
-# Changesets Release Action
+# Changesets Release with Signed Commits
 This action for [Changesets](https://github.com/atlassian/changesets) creates a
 pull request with all of the package versions updated and changelogs updated and
 when there are new changesets on
@@ -7,29 +7,35 @@ the PR will be updated. When you're ready, you can merge the pull request and
 you can either publish the packages to npm manually or setup the action to do it
 for you.
 
+Note: this action was forked from [changesets/action](https://github.com/changesets/action/)
+but was modified to include commit signing.
+
 ## Usage
 
 ### Inputs
 
-- publish - The command to use to build and publish packages
-- version - The command to update version, edit CHANGELOG, read and delete
+- `publish` - The command to use to build and publish packages
+- `version` - The command to update version, edit CHANGELOG, read and delete
   changesets. Default to `changeset version` if not provided
-- commit - The commit message to use. Default to `Version Packages`
-- title - The pull request title. Default to `Version Packages`
-- setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`.
-  Default to `true`
-- createGithubReleases - A boolean value to indicate whether to create Github
+- `commit` - The commit message to use. Default to `Version Packages`
+- `title` - The pull request title. Default to `Version Packages`
+- `setupGitUser` - Sets up the git user for commits as `"github-actions[bot]"`.
+  Defaults to `true`
+- `createGithubReleases` - A boolean value to indicate whether to create Github
   releases after `publish` or not. Default to `true`
-- cwd - Changes node's `process.cwd()` if the project is not located on the
+- `cwd` - Changes node's `process.cwd()` if the project is not located on the
   root. Default to `process.cwd()`
 
 ### Outputs
 
-- published - A boolean value to indicate whether a publishing is happened or
+- `published` - A boolean value to indicate whether a publishing is happened or
   not
-- publishedPackages - A JSON array to present the published packages. The format
+- `publishedPackages` - A JSON array to present the published packages. The format
   is
   `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+- `hasChangesets` - A boolean about whether there were changesets. Useful if you want to create your
+  own publishing functionality.
+- `pullRequestNumber` - The pull request number that was created or updated
 
 ### Example workflow:
 
@@ -53,18 +59,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js 16
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 20
+        uses: smartcontractkit/.github/actions/setup-nodejs@main
         with:
-          node-version: 16
-
-      - name: Install Dependencies
-        run: yarn
+          pnpm-version: ^8.0.0
+          node-version-file: .tool-versions
+          run-install: true
+          use-cache: true
 
       - name: Create Release Pull Request
-        uses: changesets/action@v1
+        uses: smartcontractkit/.github/actions/signed-commits@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -97,32 +103,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js 16.x
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 20
+        uses: smartcontractkit/.github/actions/setup-nodejs@main
         with:
-          node-version: 16.x
-
-      - name: Install Dependencies
-        run: yarn
+          pnpm-version: ^8.0.0
+          node-version-file: .tool-versions
+          run-install: true
+          use-cache: true
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
-        uses: changesets/action@v1
+        uses: smartcontractkit/.github/actions/signed-commits@main
         with:
           # This expects you to have a script called release which does a build for your packages and calls changeset publish
-          publish: yarn release
+          publish: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Send a Slack notification if a publish happens
-        if: steps.changesets.outputs.published == 'true'
-        # You can do something when a publish happens.
-        run:
-          my-slack-bot send-notification --message "A new version of
-          ${GITHUB_REPOSITORY} was published!"
 ```
 
 By default the GitHub Action creates a `.npmrc` file with the following content:
@@ -171,26 +170,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js 16.x
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 20
+        uses: smartcontractkit/.github/actions/setup-nodejs@main
         with:
-          node-version: 16.x
-
-      - name: Install Dependencies
-        run: yarn
+          pnpm-version: ^8.0.0
+          node-version-file: .tool-versions
+          run-install: true
+          use-cache: true
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
-        uses: changesets/action@v1
+        uses: smartcontractkit/.github/actions/signed-commits@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish
         if: steps.changesets.outputs.hasChangesets == 'false'
         # You can do something when a publish should happen.
-        run: yarn publish
+        run: pnpm publish
 ```
 
 #### With version script
@@ -219,34 +218,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js 16.x
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 20
+        uses: smartcontractkit/.github/actions/setup-nodejs@main
         with:
-          node-version: 16.x
-
-      - name: Install Dependencies
-        run: yarn
+          pnpm-version: ^8.0.0
+          node-version-file: .tool-versions
+          run-install: true
+          use-cache: true
 
       - name: Create Release Pull Request
-        uses: changesets/action@v1
+        uses: smartcontractkit/.github/actions/signed-commits@main
         with:
           # this expects you to have a npm script called version that runs some logic and then calls `changeset version`.
-          version: yarn version
+          version: pnpm version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-```
-
-#### With Yarn 2 / Plug'n'Play
-
-If you are using [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp), you
-should use a custom `version` command so that the action can resolve the
-`changeset` CLI:
-
-```yaml
-- uses: changesets/action@v1
-  with:
-    version: yarn changeset version
-    ...
 ```
