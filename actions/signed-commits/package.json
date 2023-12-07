@@ -1,6 +1,6 @@
 {
   "name": "@smartcontractkit/changesets-action-signed-commits",
-  "version": "1.4.5",
+  "version": "0.1.0",
   "main": "dist/index.js",
   "license": "MIT",
   "devDependencies": {
