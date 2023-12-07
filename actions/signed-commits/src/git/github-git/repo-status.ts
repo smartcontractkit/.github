@@ -85,10 +85,8 @@ export function listChanges(output: string): GitFileStatus[] {
   }
 
   /**
-   *  Expects the output of `git status --porcelain=v1` as input
-   *
-   * @param output
-   * @returns
+   * Parses the output of `git status --porcelain=v1` into a list of git file statuses.
+   * @param output The stdout of `git status --porcelain=v1`
    */
   function parseGitStatusPorcelainOutput(output: string): GitFileStatus[] {
     const lines = output.split("\n");
