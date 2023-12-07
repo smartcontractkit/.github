@@ -1,4 +1,4 @@
-name: changesets-signed-commits
+name: changesets-action-signed-commits
 description: A GitHub action to automate releases with Changesets
 runs:
   using: "node20"
