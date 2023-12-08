@@ -97,6 +97,8 @@ importers:
 
   actions/ci-lint-ts: {}
 
+  actions/ci-publish-npm: {}
+
   actions/ci-sonarqube: {}
 
   actions/ci-test-go: {}
