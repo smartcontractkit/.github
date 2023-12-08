@@ -2,18 +2,18 @@ name: ci-publish-npm
 description: Publishes to NPM
 
 inputs:
+  publish-command:
+    description: "The command which will be run to publish."
+    required: true
   package-json-directory:
-    description: "The sub directory of the package.json if not at the root of the repository."
+    description: "The sub directory of the `package.json`. Supply if the publish command executes a script declared within the `package.json`, is not located at the root of the repository."
     required: false
     default: '.'
-  publish-command:
-    description: "The package.json defined script used to publish. Will run as `pnpm <publish-command>`"
-    required: true
   npm-token:
     description: The NPM token with publish access
     required: true
   github-token:
-    description: "The `GITHUB_TOKEN` issued for the workflow. Only required when creating Github releases. Requires `contents: write` permissions"
+    description: "The `GITHUB_TOKEN` issued for the workflow. Supply when creating Github releases. Requires `contents: write` permissions"
     required: false
     default: ${{ github.token }}
   create-github-release:
@@ -47,4 +47,4 @@ runs:
     - name: Publish to NPM
       shell: bash
       working-directory: ${{ inputs.package-json-directory }}
-      run: pnpm ${{ inputs.publish-command }}
+      run: ${{ inputs.publish-command }}
