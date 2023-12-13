@@ -6,13 +6,14 @@ import {
   createLightweightTags,
   GitTag,
   pushTags,
+  getRemoteTagNames,
 } from "./repo-tags";
 import { createRepo } from "./utilts.testutils";
 
 describe("repo-tags", () => {
   describe(getLocalRemoteTagDiff.name, () => {
     it("should return the correct tags", async () => {
-      const testTags = await createAnnotationTestRepo("repo-tags");
+      const testTags = await createTestRepoWithRemote("repo-tags", true);
 
       const tags = await getLocalRemoteTagDiff(testTags.localRepoPath);
       expect(tags.map((t) => t.name)).toEqual(
@@ -23,7 +24,7 @@ describe("repo-tags", () => {
 
   describe("deleteTags", () => {
     it("should delete the given tags", async () => {
-      const testTags = await createAnnotationTestRepo("repo-tags");
+      const testTags = await createTestRepoWithRemote("repo-tags", true);
 
       const tags = await getLocalRemoteTagDiff(testTags.localRepoPath);
       await deleteTags(tags, testTags.localRepoPath);
@@ -65,7 +66,7 @@ describe("repo-tags", () => {
 
   describe("pushTags", () => {
     it("should push lightweight versions of tags", async () => {
-      const testTags = await createAnnotationTestRepo("repo-tags");
+      const testTags = await createTestRepoWithRemote("repo-tags", true);
       const beforeTagTypes = await listTagTypes(
         testTags.localOnlyTags,
         testTags.localRepoPath
@@ -83,9 +84,21 @@ describe("repo-tags", () => {
       );
     });
   });
+
+  describe("getRemoteTagNames", () => {
+    it("should return empty array if no remote tags exist", async () => {
+      const testRepoConfig = await createTestRepoWithRemote("repo-tags");
+
+      expect(testRepoConfig.localOnlyTags).toEqual([]);
+      expect(testRepoConfig.sharedTags).toEqual([]);
+
+      const remoteTags = await getRemoteTagNames('origin', testRepoConfig.localRepoPath);
+      expect(remoteTags).toEqual([]);
+    });
+  });
 });
 
-async function createAnnotationTestRepo(name: string) {
+async function createTestRepoWithRemote(name: string, createTags?: boolean) {
   // create a "local" repo to create tags in
   const localRepoPath = await createRepo(`${name}-local`);
 
@@ -94,6 +107,10 @@ async function createAnnotationTestRepo(name: string) {
 
   // add the remote to the local repo
   execSync(`cd ${localRepoPath} && git remote add origin ${remoteRepoPath}`);
+
+  if (!createTags) {
+    return { remoteRepoPath, localRepoPath, sharedTags: [], localOnlyTags: [] };
+  }
 
   // create a couple of tags in the local repo
   const sharedTags = await createAnnotatedTestTags(localRepoPath, "shared", 3);

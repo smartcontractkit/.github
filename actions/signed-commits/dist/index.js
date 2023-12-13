@@ -61613,7 +61613,7 @@ async function getRemoteTagNames(remote, cwd) {
     ["ls-remote", "--refs", "--tags", remote],
     { cwd }
   );
-  const tags = stdout.split("\n").map((line) => {
+  const tags = stdout.split("\n").filter((line) => !!line).map((line) => {
     const [_ref, tag] = line.split("	");
     return tag.replace("refs/tags/", "");
   });

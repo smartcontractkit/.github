@@ -49,7 +49,7 @@ export async function getLocalTags(cwd?: string): Promise<GitTag[]> {
 
 export async function createLightweightTags(
   tags: GitTag[],
-  cwd?: string
+  cwd?: string,
 ): Promise<GitTag[]> {
   const createdTags = tags.map(async (tag) => {
     await execWithOutput("git", ["tag", tag.name, tag.ref], { cwd });
@@ -62,7 +62,7 @@ export async function createLightweightTags(
 
 export async function deleteTags(
   tags: GitTag[],
-  cwd?: string
+  cwd?: string,
 ): Promise<GitTag[]> {
   const deleteCommands = tags.map(async (tag) => {
     await execWithOutput("git", ["tag", "-d", tag.name], { cwd });
@@ -77,7 +77,7 @@ export async function deleteTags(
  */
 export function computeTagDiff(
   localTags: GitTag[],
-  remoteTags: string[]
+  remoteTags: string[],
 ): GitTag[] {
   const remoteSet = new Set(remoteTags);
   const diff = localTags.filter((tag) => !remoteSet.has(tag.name));
@@ -87,7 +87,7 @@ export function computeTagDiff(
 
 export async function getRemoteTagNames(
   remote: string,
-  cwd?: string
+  cwd?: string,
 ): Promise<string[]> {
   const stdout = await execWithOutput(
     "git",
@@ -98,14 +98,16 @@ export async function getRemoteTagNames(
     // On the other hand, lightweight tags will have their ref to the commit
     // that they point to.
     ["ls-remote", "--refs", "--tags", remote],
-    { cwd }
+    { cwd },
   );
 
-  const tags = stdout.split("\n").map((line) => {
-    const [_ref, tag] = line.split("\t");
-
-    return tag.replace("refs/tags/", "");
-  });
+  const tags = stdout
+    .split("\n")
+    .filter((line) => !!line)
+    .map((line) => {
+      const [_ref, tag] = line.split("\t");
+      return tag.replace("refs/tags/", "");
+    });
 
   return tags;
 }
