@@ -40,6 +40,10 @@ jobs:
           gc-host: ${{ secrets.GRAFANA_CLOUD_HOST }}
 
   cd-signed-commits:
+    # Disable this job until it's updated to be:
+    #  1. More generalizable for all workspaces requiring build artifacts
+    #  2. Have better attribution for the commits generated from this workflow
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
