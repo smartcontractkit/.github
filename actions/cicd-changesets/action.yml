@@ -79,7 +79,7 @@ outputs:
     value: ${{ steps.changesets.outputs.hasChangesets }}
   pullRequestNumber:
     description: The pull request number that was created or updated
-    value: ${{ steps.changesets.outputs.pullRequestNumber }}  
+    value: ${{ steps.changesets.outputs.pullRequestNumber }}
 
 runs:
   using: composite
@@ -119,7 +119,7 @@ runs:
 
     - name: Run changesets
       id: changesets
-      uses: changesets/action@f13b1baaa620fde937751f5d2c3572b9da32af23 # v1.4.5
+      uses: smartcontractkit/.github/actions/signed-commits@95b6030f4d23d5d87f53eb0f018f51806afa4da3 # changesets-signed-commits@1.0.1
       env:
         GITHUB_TOKEN: ${{ steps.get-gh-token.outputs.access-token }}
       with:
