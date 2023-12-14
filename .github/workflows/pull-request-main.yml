@@ -39,6 +39,47 @@ jobs:
           gc-basic-auth: ${{ secrets.GRAFANA_CLOUD_BASIC_AUTH }}
           gc-host: ${{ secrets.GRAFANA_CLOUD_HOST }}
 
+  cd-signed-commits:
+    # Disable this job until it's updated to be:
+    #  1. More generalizable for all workspaces requiring build artifacts
+    #  2. Have better attribution for the commits generated from this workflow
+    if: false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo (needed to reference local action)
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          # Commit back any changes based on the commit that triggered this action
+          # rather than merge commit of main into the PR branch
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup pnpm
+        uses: ./actions/setup-nodejs
+
+      - name: Build signed-commits
+        run: pnpm nx run signed-commits:build
+
+      - name: Commit back any changes
+        uses: planetscale/ghcommit-action@v0.1.6
+        with:
+          commit_message: "🤖 Update build"
+          repo: ${{ github.repository }}
+          branch: ${{ github.head_ref || github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  ci-signed-commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo (needed to reference local action)
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Setup pnpm
+        uses: ./actions/setup-nodejs
+
+      - name: Run tests for signed-commits
+        run: pnpm nx run signed-commits:test
+
   ci-test:
     runs-on: ubuntu-latest
     steps:
