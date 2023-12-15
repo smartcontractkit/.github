@@ -2,6 +2,7 @@
   "name": "@smartcontractkit/changesets-action-signed-commits",
   "version": "1.0.0",
   "main": "dist/index.js",
+  "private": true,
   "license": "MIT",
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
