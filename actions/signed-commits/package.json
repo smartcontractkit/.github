@@ -30,7 +30,7 @@
     "@actions/exec": "^1.1.1",
     "@actions/github": "^6.0.0",
     "@changesets/pre": "^1.0.0",
-    "@changesets/read": "^0.5.0",
+    "@changesets/read": "^0.6.0",
     "@manypkg/get-packages": "^2.2.0",
     "@octokit/graphql": "^7.0.2",
     "@octokit/plugin-throttling": "^8.1.3",
