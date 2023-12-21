@@ -54,6 +54,11 @@ runs:
       shell: bash
       run: |
         nix flake check
+        KEYS=$(nix flake show --json --allow-import-from-derivation | jq -r '.packages | .[] | keys[]' | grep "__" | sort -u)
+        for key in $KEYS; do
+          echo "nix build '.#\"$key\"'"
+          eval "nix build '.#\"$key\"'"
+        done
     - name: Collect metrics
       if: always()
       id: collect-gha-metrics
