@@ -53,7 +53,7 @@ runs:
     - name: Run all builds
       shell: bash
       run: |
-        nix flake show --json --allow-import-from-derivation | jq -r '.packages | .[] | keys[]' | grep "__" | xargs -P 0 -I {} nix build '.#"{}"'
+        nix flake check
     - name: Collect metrics
       if: always()
       id: collect-gha-metrics
