@@ -37,8 +37,8 @@
     "fs-extra": "^11.2.0",
     "graphql": "^16.8.1",
     "mdast-util-to-string": "^1.0.6",
-    "remark-parse": "^7.0.1",
-    "remark-stringify": "^7.0.3",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
     "resolve-from": "^5.0.0",
     "semver": "^7.5.3",
     "unified": "^8.3.2"
