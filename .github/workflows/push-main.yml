@@ -70,16 +70,13 @@ jobs:
       contents: read
       actions: read
     steps:
-      # Partial roll-out of cicd-changesets-signed-commits
-
-      # - name: Checkout repo (needed to reference local action)
-      #   uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-      #   with:
-      #     fetch-depth: 0
+      - name: Checkout repo (needed to reference local action)
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
 
       - name: cd-release
-        # uses: ./actions/cicd-changesets
-        uses: smartcontractkit/.github/actions/cicd-changesets@feat/cicd-changesets-signed-commits
+        uses: ./actions/cicd-changesets
         with:
           # general inputs
           git-user: app-token-issuer-releng-renovate[bot]
