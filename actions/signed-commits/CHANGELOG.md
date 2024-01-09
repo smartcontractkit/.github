@@ -1,4 +1,4 @@
-# @smartcontractkit/changesets-action-signed-commits
+# changesets-signed-commits
 
 ## 1.0.0
 

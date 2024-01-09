@@ -1,5 +1,5 @@
 {
-  "name": "@smartcontractkit/changesets-action-signed-commits",
+  "name": "changesets-signed-commits",
   "version": "1.0.0",
   "main": "dist/index.js",
   "private": true,
