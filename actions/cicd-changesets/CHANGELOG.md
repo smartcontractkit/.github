@@ -1,5 +1,14 @@
 # cicd-changesets
 
+## 0.2.0
+
+### Minor Changes
+
+- [#120](https://github.com/smartcontractkit/.github/pull/120)
+  [`81bdb31`](https://github.com/smartcontractkit/.github/commit/81bdb319a25aef74b20d7a787fd9946ed53e164b)
+  Thanks [@erikburt](https://github.com/erikburt)! - Use signed-commits action,
+  drop-in replacement for changesets/action
+
 ## 0.1.1
 
 ### Patch Changes
