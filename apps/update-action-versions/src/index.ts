@@ -188,13 +188,14 @@ async function run() {
     : core.getInput("workflow-dir");
   const octokit = github.getOctokit(githubToken);
 
-  // get list of monorepo tags from .github
-  const { data: tags } = await octokit.rest.repos.listTags({
+  // get list of monorepo tags from .github. Have to paginate if greater than 30 entries.
+  const tags = await octokit.paginate(octokit.rest.repos.listTags, {
     owner: githubOwner,
     repo: githubRepo,
   });
 
-  console.log(tags);
+  console.log(`Number of tags found: ${tags.length}.`)
+  console.log(tags.map((x) => x.name));
 
   // build action map
   const actionMap = await buildMonorepoActionMap(tags);
