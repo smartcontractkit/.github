@@ -29,6 +29,10 @@ inputs:
   sonar-host-url:
     description: "sonarqube host url"
     required: false
+  include-lint:
+    description: "enable linting"
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -38,15 +42,22 @@ runs:
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
     - name: Download all workflow run artifacts
-      uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+      uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+
     - name: Set SonarQube Report Paths
       id: sonarqube_report_paths
       shell: bash
       run: |
         echo "sonarqube_tests_report_paths=$(find go-test-results -name output.txt | paste -sd "," -)" >> $GITHUB_OUTPUT
         echo "sonarqube_coverage_report_paths=$(find go-test-results -name coverage.txt | paste -sd "," -)" >> $GITHUB_OUTPUT
+        if [ "${{ inputs.include-lint }}" == "true" ]; then
+          echo "sonarqube_golangci_lint_report_paths=$(find golangci-lint-report -name golangci-lint-report.xml | paste -sd "," -)" >> $GITHUB_OUTPUT
+        fi
+
     - name: SonarQube scan without lint
+      if: inputs.include-lint == 'false'
       uses: sonarsource/sonarqube-scan-action@69c1a75940dec6249b86dace6b630d3a2ae9d2a7 # v2.0.1
       with:
         args: >
@@ -55,6 +66,18 @@ runs:
           -Dsonar.go.coverage.reportPaths=${{
           steps.sonarqube_report_paths.outputs.sonarqube_coverage_report_paths
           }}
+      env:
+        SONAR_TOKEN: ${{ inputs.sonar-token }}
+        SONAR_HOST_URL: ${{ inputs.sonar-host-url }}
+
+    - name: SonarQube scan with lint
+      if: inputs.include-lint == 'true'
+      uses: sonarsource/sonarqube-scan-action@69c1a75940dec6249b86dace6b630d3a2ae9d2a7 # v2.0.1
+      with:
+        args: >
+          -Dsonar.go.tests.reportPaths=${{ steps.sonarqube_report_paths.outputs.sonarqube_tests_report_paths }}
+          -Dsonar.go.coverage.reportPaths=${{ steps.sonarqube_report_paths.outputs.sonarqube_coverage_report_paths }}
+          -Dsonar.go.golangci-lint.reportPaths=${{ steps.sonarqube_report_paths.outputs.sonarqube_golangci_lint_report_paths }}
       env:
         SONAR_TOKEN: ${{ inputs.sonar-token }}
         SONAR_HOST_URL: ${{ inputs.sonar-host-url }}
