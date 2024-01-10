@@ -1,6 +1,6 @@
 {
   "name": "manifest-build",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Builds all manifest models and uploads them to a cache",
   "private": true,
   "scripts": {},
