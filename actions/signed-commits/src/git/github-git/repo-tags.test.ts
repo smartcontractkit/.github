@@ -7,6 +7,7 @@ import {
   GitTag,
   pushTags,
   getRemoteTagNames,
+  getLocalTags,
 } from "./repo-tags";
 import { createRepo } from "./utilts.testutils";
 
@@ -85,7 +86,19 @@ describe("repo-tags", () => {
     });
   });
 
-  describe("getRemoteTagNames", () => {
+  describe(getLocalTags.name, () => {
+    it("should return empty array if no local tags exist", async () => {
+      const testRepoConfig = await createTestRepoWithRemote("repo-tags");
+
+      expect(testRepoConfig.localOnlyTags).toEqual([]);
+      expect(testRepoConfig.sharedTags).toEqual([]);
+
+      const remoteTags = await getLocalTags(testRepoConfig.localRepoPath);
+      expect(remoteTags).toEqual([]);
+    });
+  });
+
+  describe(getRemoteTagNames.name, () => {
     it("should return empty array if no remote tags exist", async () => {
       const testRepoConfig = await createTestRepoWithRemote("repo-tags");
 

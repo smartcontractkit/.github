@@ -61575,8 +61575,7 @@ async function getLocalRemoteTagDiff(cwd) {
 }
 async function getLocalTags(cwd) {
   const stdout = await execWithOutput("git", ["tag", "--list"], { cwd });
-  const tagNames = stdout.split("\n");
-  const tags = tagNames.map(async (name) => {
+  const tags = stdout.split("\n").filter((line) => !!line).map(async (name) => {
     const ref = await execWithOutput("git", ["rev-list", "-1", name], { cwd });
     return { name, ref };
   });
