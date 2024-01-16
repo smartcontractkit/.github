@@ -1,5 +1,14 @@
 # changesets-signed-commits
 
+## 1.0.2
+
+### Patch Changes
+
+- [#134](https://github.com/smartcontractkit/.github/pull/134)
+  [`f70154e`](https://github.com/smartcontractkit/.github/commit/f70154ec1f176cc6df08878c0064501882a455f5)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: crash when no local
+  tags exist
+
 ## 1.0.1
 
 ### Patch Changes
