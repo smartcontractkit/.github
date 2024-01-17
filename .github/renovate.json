@@ -19,5 +19,11 @@
       "(^|/)action\\.ya?ml$"
     ]
   },
-  "packageRules": []
+  "packageRules": [
+    {
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch"],
+      "enabled": false
+    }
+  ]
 }
