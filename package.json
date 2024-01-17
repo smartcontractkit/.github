@@ -33,7 +33,7 @@
     "@swc/helpers": "~0.5.3",
     "@swc/jest": "0.2.29",
     "@types/jest": "^29.4.0",
-    "@types/node": "20.11.3",
+    "@types/node": "20.11.4",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "esbuild": "^0.19.2",
