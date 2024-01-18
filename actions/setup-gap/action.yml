@@ -41,17 +41,14 @@ inputs:
     required: false
     default: "900"
   aws-region:
-    description: ""
-    required: false
-  aws-account-id:
-    description: "The AWS account id"
+    description: "The region for the AWS EKS and ECR resources"
     required: false
   aws-role-arn:
     description: "The AWS role with API Gateway invoke permissions, ECR pull permissions for aws-sigv4-proxy, and if for k8s then EKS describe permissions"
     required: false
   # argocd inputs
   use-argocd:
-    description: "Whether to setup the gap for communicating with argocd"
+    description: "Whether to setup GAP for communicating with argocd"
     required: false
     default: "false"
   argocd-version:
@@ -59,14 +56,14 @@ inputs:
     required: false
     default: "2.8.2"
   argocd-user:
-    description: ""
+    description: "The username for argocd login"
     required: false
   argocd-pass:
-    description: ""
+    description: "The password for argocd login"
     required: false
   # k8s inputs
   use-k8s:
-    description: "Whether to setup the gap for communicating with k8s"
+    description: "Whether to setup GAP for communicating with k8s"
     required: false
     default: "false"
   k8s-cluster-name:
