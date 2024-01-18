@@ -11,18 +11,31 @@ inputs:
     description: "number of commits to fetch"
     required: false
     default: "0"
+  # aws sig4 proxy inputs
   api-gateway-host:
     description: "aws api gateway host"
-    required: false
+    required: true
   proxy-version:
-    description: "sig proxy image version / tag"
+    description: "sig proxy version if using the public ecr"
     required: false
     default: "1.7"
   proxy-port:
     description: "sig proxy port"
     required: false
     default: "8080"
-  # aws inputs
+  # ecr inputs
+  use-private-ecr-registry:
+    description: "Whether to use a private ECR registry for the aws-sigv4-proxy image"
+    required: false
+    default: "false"
+  ecr-private-registry:
+    description: "The ECR registry (account id) for the aws-sigv4-proxy. Required if use-private-ecr-registry is true."
+    required: false
+  ecr-private-image-tag:
+    description: "aws-sigv4-proxy image tag for the private ECR registry"
+    required: false
+    default: "6cc1e6d2bce23c04aace47d26511ad65205975b8"
+  # aws role inputs
   aws-role-duration-seconds:
     description: ""
     required: false
@@ -30,12 +43,15 @@ inputs:
   aws-region:
     description: ""
     required: false
+  aws-account-id:
+    description: "The AWS account id"
+    required: false
   aws-role-arn:
-    description: ""
+    description: "The AWS role with API Gateway invoke permissions, ECR pull permissions for aws-sigv4-proxy, and if for k8s then EKS describe permissions"
     required: false
   # argocd inputs
   use-argocd:
-    description: ""
+    description: "Whether to setup the gap for communicating with argocd"
     required: false
     default: "false"
   argocd-version:
@@ -47,6 +63,21 @@ inputs:
     required: false
   argocd-pass:
     description: ""
+    required: false
+  # k8s inputs
+  use-k8s:
+    description: "Whether to setup the gap for communicating with k8s"
+    required: false
+    default: "false"
+  k8s-cluster-name:
+    description: "The EKS cluster name to generate a kubeconfig for"
+    required: false
+  # tls inputs
+  tls-ca-private-key:
+    description: "The private key for the tls certificate"
+    required: false
+  tls-ca-cert:
+    description: "The ca certificate for the tls certificate"
     required: false
   # grafana cloud inputs
   metrics-job-name:
@@ -76,15 +107,69 @@ runs:
         role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
         aws-region: ${{ inputs.aws-region }}
 
-    - name: Login to aws ecr
+    - name: Setup Certificate Authority (K8s only)
+      if: inputs.use-k8s == 'true'
+      run: |
+        mkdir -p /tmp/tls/ca
+
+        if [ -n "${{ inputs.tls-ca-private-key }}" ] && [ -n "${{ inputs.tls-ca-cert }}" ]; then
+          # Use provided CA key+cert
+          echo "${{ inputs.tls-ca-private-key }}" > /tmp/tls/ca/ca.key
+          echo "${{ inputs.tls-ca-cert }}" > /tmp/tls/ca/ca.crt
+        else
+          # Generate CA key+cert
+          openssl genrsa -out /tmp/tls/ca/ca.key 4096
+          openssl req -x509 -new -nodes -key /tmp/tls/ca/ca.key -sha256 -days 1 -out /tmp/tls/ca/ca.crt -subj "/CN=My CA"
+        fi
+
+    - name: Generate and Sign Server Certificate (K8s only)
+      if: inputs.use-k8s == 'true'
+      run: |
+        mkdir -p /tmp/tls/server
+
+        # Generate server key and certificate signing request (CSR)
+        openssl genrsa -out /tmp/tls/server/server.key 2048
+        openssl req -new -key /tmp/tls/server/server.key -out /tmp/tls/server/server.csr -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+
+        # Generate SAN extension file
+        echo -e "subjectAltName=DNS:localhost,IP:127.0.0.1" > /tmp/tls/server/san.ext
+
+        # Sign the CSR
+        openssl x509 -req -in /tmp/tls/server/server.csr -CA /tmp/tls/ca/ca.crt -CAkey /tmp/tls/ca/ca.key -CAcreateserial -out /tmp/tls/server/server.crt -days 1 -sha256 -extfile /tmp/tls/server/san.ext
+
+        # Delete intermediate files
+        rm /tmp/tls/server/server.csr /tmp/tls/server/san.ext
+
+    - name: Setup Kubeconfig (K8s only)
+      if: inputs.use-k8s == 'true'
+      run: |
+        # Generate kubeconfig through aws cli
+        aws eks update-kubeconfig --name ${{ inputs.k8s-cluster-name }} --region ${{ inputs.aws-region }}
+
+        # Get cluster arn for modifying kubeconfig
+        # TODO - may be able to use `kk config get-contexts --no-headers --output=name` instead (if there's only one context in the kubeconfig file)
+        CLUSTER_ARN=$(aws eks describe-cluster --name ${{ inputs.k8s-cluster-name }} --region ${{ inputs.aws-region }} --query "cluster.arn" --output text)
+        echo "::add-mask::${CLUSTER_ARN}"
+
+        # Set the certificate-authority to the certificate authority configured above
+        kubectl config set clusters.$CLUSTER_ARN.certificate-authority /tmp/tls/ca/ca.crt
+
+        # Remove certificate-authority-data populated from `aws eks update-kubeconfig`
+        kubectl config unset clusters.$CLUSTER_ARN.certificate-authority-data
+
+        # Update the server to use the proxy
+        kubectl config set clusters.$CLUSTER_ARN.server https://localhost:${{ inputs.proxy-port }}/primary
+
+    - name: Login to AWS ECR (public ecr only)
+      if: inputs.use-private-ecr-registry != 'true'
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
       env:
-        AWS_REGION: us-east-1
+        AWS_REGION: us-west-2
       with:
         registry-type: public
 
-    - name: Run aws sig4 proxy container
+    - name: Run aws sig4 proxy container (public ecr only)
       shell: bash
       env:
         AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
@@ -92,14 +177,45 @@ runs:
         AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
       run: |
         docker run --rm -d \
-          -e "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" \
-          -e "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" \
-          -e "AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}" \
+          -e AWS_ACCESS_KEY_ID \
+          -e AWS_SECRET_ACCESS_KEY \
+          -e AWS_SESSION_TOKEN \
           -p "${{ inputs.proxy-port }}":"${{ inputs.proxy-port }}" \
           public.ecr.aws/aws-observability/aws-sigv4-proxy:${{ inputs.proxy-version }} \
           --name execute-api --region ${{ inputs.aws-region }} \
           --host "${{ inputs.api-gateway-host }}" \
           --log-failed-requests
+
+    - name: Login to AWS ECR (private ecr only)
+      if: inputs.use-private-ecr-registry == 'true'
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
+      with:
+        registry: ${{ inputs.ecr-private-registry }}
+
+    - name: Run aws sig4 proxy container (private ecr only)
+      shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+      run: |
+        docker run --rm -d \
+          -e AWS_ACCESS_KEY_ID \
+          -e AWS_SECRET_ACCESS_KEY \
+          -e AWS_SESSION_TOKEN \
+          -p ${{ inputs.proxy-port }}:${{ inputs.proxy-port }} \
+          -v /tmp/tls/server:/tls \
+          ${{ inputs.private-ecr-registry }}.dkr.ecr.${{ inputs.aws-region }}/aws-sigv4-proxy:${{ inputs.private-ecr-image-tag }} -v \
+            --name execute-api \
+            --region ${{ inputs.aws-region }} \
+            --host "${{ inputs.api-gateway-host }}" \
+            --log-failed-requests --log-signing-process \
+            --port :${{ inputs.proxy-port }} \
+            --enable-tls --tls-key-file /tls/server.key --tls-cert-file /tls/server.crt \
+            --duplicate-headers Authorization
 
     - name: Setup argocd
       if: inputs.use-argocd == 'true'
