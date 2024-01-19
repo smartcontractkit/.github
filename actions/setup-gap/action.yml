@@ -106,6 +106,7 @@ runs:
 
     - name: Setup Certificate Authority (K8s only)
       if: inputs.use-k8s == 'true'
+      shell: bash
       run: |
         mkdir -p /tmp/tls/ca
 
@@ -121,6 +122,7 @@ runs:
 
     - name: Generate and Sign Server Certificate (K8s only)
       if: inputs.use-k8s == 'true'
+      shell: bash
       run: |
         mkdir -p /tmp/tls/server
 
@@ -139,6 +141,7 @@ runs:
 
     - name: Setup Kubeconfig (K8s only)
       if: inputs.use-k8s == 'true'
+      shell: bash
       run: |
         # Generate kubeconfig through aws cli
         aws eks update-kubeconfig --name ${{ inputs.k8s-cluster-name }} --region ${{ inputs.aws-region }}
