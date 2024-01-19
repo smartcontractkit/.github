@@ -162,7 +162,6 @@ runs:
 
     - name: Login to AWS ECR (public ecr only)
       if: inputs.use-private-ecr-registry != 'true'
-      id: login-ecr
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
       env:
         AWS_REGION: us-west-2
@@ -188,7 +187,6 @@ runs:
 
     - name: Login to AWS ECR (private ecr only)
       if: inputs.use-private-ecr-registry == 'true'
-      id: login-ecr
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
       env:
         AWS_REGION: ${{ inputs.aws-region }}
