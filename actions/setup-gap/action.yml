@@ -4,43 +4,43 @@ description: "setup github actions proxy"
 inputs:
   # general inputs
   checkout-repo:
-    description: "enable git checkout repo"
+    description: "Enable git checkout repo. Defaults to true."
     required: false
     default: "true"
   checkout-repo-fetch-depth:
-    description: "number of commits to fetch"
+    description: "The number of commits to fetch. Defaults to 0 (all commits/history)."
     required: false
     default: "0"
   # aws sig4 proxy inputs
   api-gateway-host:
-    description: "aws api gateway host"
+    description: "The AWS API Gateway host for the target service. Usually of the form <gateway id>.execute-api.<region>.amazonaws.com."
     required: true
   proxy-version:
-    description: "sig proxy version if using the public ecr"
+    description: "The aws-sigv4-proxy image version / tag, if using the public ecr."
     required: false
     default: "1.7"
   proxy-port:
-    description: "sig proxy port"
+    description: "The port the proxy will listen on. Defaults to 8080."
     required: false
     default: "8080"
   # ecr inputs
   use-private-ecr-registry:
-    description: "Whether to use a private ECR registry for the aws-sigv4-proxy image"
+    description: "Whether to use a private ECR registry to pull the aws-sigv4-proxy image. Defaults to false."
     required: false
     default: "false"
   ecr-private-registry:
-    description: "The ECR registry (account id) for the aws-sigv4-proxy. Required if use-private-ecr-registry is true"
-    required: true
+    description: "The ECR registry (account id) for the aws-sigv4-proxy. Required if use-private-ecr-registry is true."
+    required: false
   ecr-private-image-tag:
-    description: "aws-sigv4-proxy image tag for the private ECR registry"
+    description: "The aws-sigv4-proxy image tag for the private ECR registry. Defaults to a known tag."
     required: false
     default: "6cc1e6d2bce23c04aace47d26511ad65205975b8"
   ecr-private-aws-region:
-    description: "The region for the private ECR registry, if different from aws-region input"
+    description: "The region for the private ECR registry, if different from aws-region input."
     required: false
   # aws role inputs
   aws-role-duration-seconds:
-    description: ""
+    description: "The duration in seconds for the assumed role. Defaults to 900 (15 minutes)."
     required: false
     default: "900"
   aws-region:
@@ -51,36 +51,36 @@ inputs:
     required: false
   # argocd inputs
   use-argocd:
-    description: "Whether to setup GAP for communicating with argocd"
+    description: "Whether to setup GAP for communicating with argocd. Cannot be used with use-k8s. Defaults to false."
     required: false
     default: "false"
   argocd-version:
-    description: ""
+    description: "The version of argocd to install. Defaults to 2.8.2."
     required: false
     default: "2.8.2"
   argocd-user:
-    description: "The username for argocd login"
+    description: "The username for argocd login. Required if use-argocd is true."
     required: false
   argocd-pass:
-    description: "The password for argocd login"
+    description: "The password for argocd login. Required if use-argocd is true."
     required: false
   # k8s inputs
   use-k8s:
-    description: "Whether to setup GAP for communicating with k8s"
+    description: "Whether to setup GAP for communicating with K8s. Cannot be used with use-argocd. Defaults to false."
     required: false
     default: "false"
   k8s-cluster-name:
-    description: "The EKS cluster name to generate a kubeconfig for"
+    description: "The EKS cluster name to target."
     required: false
   k8s-cluster-aws-region:
-    description: "The region for the EKS cluster, if different from aws-region input"
+    description: "The region for the EKS cluster, if different from aws-region input."
     required: false
   # tls inputs
   tls-ca-private-key:
-    description: "The private key for the tls certificate"
+    description: "The private key for the tls certificate used to sign the local proxy's certificate. If not provided, a new key will be generated if needed."
     required: false
   tls-ca-cert:
-    description: "The ca certificate for the tls certificate"
+    description: "The root CA cert, used to validate the generated and signed local proxy's certificate. If not provided, a new certificate will be generated if needed."
     required: false
   # grafana cloud inputs
   metrics-job-name:
