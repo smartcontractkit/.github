@@ -114,51 +114,52 @@ runs:
       if: inputs.use-k8s == 'true'
       shell: bash
       run: |
-        mkdir -p /tmp/tls/ca
+        mkdir -p /tmp/setup-gap
 
         if [ -n "${{ inputs.tls-ca-private-key }}" ] && [ -n "${{ inputs.tls-ca-cert }}" ]; then
-          # Use provided CA key+cert
-          echo "${{ inputs.tls-ca-private-key }}" > /tmp/tls/ca/ca.key
-          echo "${{ inputs.tls-ca-cert }}" > /tmp/tls/ca/ca.crt
+          echo "::debug::Using provided CA key+cert. Writing them to /tmp/setup-gap/ca.key and /tmp/setup-gap/ca.crt"
+          echo "${{ inputs.tls-ca-private-key }}" > /tmp/setup-gap/ca.key
+          echo "${{ inputs.tls-ca-cert }}" > /tmp/setup-gap/ca.crt
         else
-          # Generate CA key+cert
-          openssl genrsa -out /tmp/tls/ca/ca.key 4096
-          openssl req -x509 -new -nodes -key /tmp/tls/ca/ca.key -sha256 -days 1 -out /tmp/tls/ca/ca.crt -subj "/CN=My CA"
+          echo "::debug::Generating new CA key+cert. Writing them to /tmp/setup-gap/ca.key and /tmp/setup-gap/ca.crt"
+          openssl genrsa -out /tmp/setup-gap/ca.key 4096
+          openssl req -x509 -new -nodes -key /tmp/setup-gap/ca.key -sha256 -days 1 -out /tmp/setup-gap/ca.crt -subj "/CN=My CA"
         fi
 
     - name: Generate and Sign Server Certificate (K8s only)
       if: inputs.use-k8s == 'true'
       shell: bash
       run: |
-        mkdir -p /tmp/tls/server
+        mkdir -p /tmp/setup-gap
 
-        # Generate server key and certificate signing request (CSR)
-        openssl genrsa -out /tmp/tls/server/server.key 2048
-        openssl req -new -key /tmp/tls/server/server.key -out /tmp/tls/server/server.csr -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+        echo "::debug::Generating server key and certificate signing request (CSR)"
+        openssl genrsa -out /tmp/setup-gap/server.key 2048
+        openssl req -new -key /tmp/setup-gap/server.key -out /tmp/setup-gap/server.csr -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
 
-        # Generate SAN extension file
-        echo -e "subjectAltName=DNS:localhost,IP:127.0.0.1" > /tmp/tls/server/san.ext
+        echo "::debug:: Generating SAN extension file"
+        echo -e "subjectAltName=DNS:localhost,IP:127.0.0.1" > /tmp/setup-gap/san.ext
 
-        # Sign the CSR
-        openssl x509 -req -in /tmp/tls/server/server.csr -CA /tmp/tls/ca/ca.crt -CAkey /tmp/tls/ca/ca.key -CAcreateserial -out /tmp/tls/server/server.crt -days 1 -sha256 -extfile /tmp/tls/server/san.ext
+        echo "::debug::Signing server certificate with CA"
+        openssl x509 -req -in /tmp/setup-gap/server.csr -CA /tmp/setup-gap/ca.crt -CAkey /tmp/setup-gap/ca.key -CAcreateserial -out /tmp/setup-gap/server.crt -days 1 -sha256 -extfile /tmp/setup-gap/san.ext
 
-        # Delete intermediate files
-        rm /tmp/tls/server/server.csr /tmp/tls/server/san.ext
+        echo "::debug::Removing CSR and SAN extension files"
+        rm /tmp/setup-gap/server.csr /tmp/setup-gap/san.ext
 
     - name: Setup Kubeconfig (K8s only)
       if: inputs.use-k8s == 'true'
       shell: bash
       run: |
-        # Generate kubeconfig through aws cli
+        echo "::debug::Getting kubeconfig"
         aws eks update-kubeconfig --name ${{ inputs.k8s-cluster-name }} --region ${{ inputs.k8s-cluster-aws-region || inputs.aws-region }}
 
         # Get cluster arn for modifying kubeconfig
-        # TODO - may be able to use `kk config get-contexts --no-headers --output=name` instead (if there's only one context in the kubeconfig file)
         CLUSTER_ARN=$(aws eks describe-cluster --name ${{ inputs.k8s-cluster-name }} --region ${{ inputs.k8s-cluster-aws-region || inputs.aws-region }} --query "cluster.arn" --output text)
         echo "::add-mask::${CLUSTER_ARN}"
 
+        echo "::debug::Setting up kubeconfig for localhost proxy"
+
         # Set the certificate-authority to the certificate authority configured above
-        kubectl config set clusters.$CLUSTER_ARN.certificate-authority /tmp/tls/ca/ca.crt
+        kubectl config set clusters.$CLUSTER_ARN.certificate-authority /tmp/setup-gap/ca.crt
 
         # Remove certificate-authority-data populated from `aws eks update-kubeconfig`
         kubectl config unset clusters.$CLUSTER_ARN.certificate-authority-data
@@ -200,7 +201,7 @@ runs:
       with:
         registries: ${{ inputs.ecr-private-registry }}
 
-    - name: Pull from private ecr
+    - name: Pull from custom proxy image (private ecr only)
       if: inputs.use-private-ecr-registry == 'true'
       shell: bash
       run: |
@@ -219,7 +220,7 @@ runs:
           -e AWS_SECRET_ACCESS_KEY \
           -e AWS_SESSION_TOKEN \
           -p ${{ inputs.proxy-port }}:${{ inputs.proxy-port }} \
-          -v /tmp/tls/server:/tls \
+          -v /tmp/setup-gap:/tls \
           ${{ inputs.ecr-private-registry }}.dkr.ecr.${{ inputs.ecr-private-aws-region || inputs.aws-region }}.amazonaws.com/aws-sigv4-proxy:${{ inputs.ecr-private-image-tag }} -v \
             --name execute-api \
             --region ${{ inputs.aws-region }} \
