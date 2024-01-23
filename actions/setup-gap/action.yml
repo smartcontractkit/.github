@@ -29,19 +29,22 @@ inputs:
     required: false
     default: "false"
   ecr-private-registry:
-    description: "The ECR registry (account id) for the aws-sigv4-proxy. Required if use-private-ecr-registry is true."
-    required: false
+    description: "The ECR registry (account id) for the aws-sigv4-proxy. Required if use-private-ecr-registry is true"
+    required: true
   ecr-private-image-tag:
     description: "aws-sigv4-proxy image tag for the private ECR registry"
     required: false
     default: "6cc1e6d2bce23c04aace47d26511ad65205975b8"
+  ecr-private-aws-region:
+    description: "The region for the private ECR registry, if different from aws-region input"
+    required: false
   # aws role inputs
   aws-role-duration-seconds:
     description: ""
     required: false
     default: "900"
   aws-region:
-    description: "The region for the AWS EKS and ECR resources"
+    description: "The AWS region for the api gateway and other resources unless specified in other inputs"
     required: false
   aws-role-arn:
     description: "The AWS role with API Gateway invoke permissions, ECR pull permissions for aws-sigv4-proxy, and if for k8s then EKS describe permissions"
@@ -68,6 +71,9 @@ inputs:
     default: "false"
   k8s-cluster-name:
     description: "The EKS cluster name to generate a kubeconfig for"
+    required: false
+  k8s-cluster-aws-region:
+    description: "The region for the EKS cluster, if different from aws-region input"
     required: false
   # tls inputs
   tls-ca-private-key:
@@ -144,11 +150,11 @@ runs:
       shell: bash
       run: |
         # Generate kubeconfig through aws cli
-        aws eks update-kubeconfig --name ${{ inputs.k8s-cluster-name }} --region ${{ inputs.aws-region }}
+        aws eks update-kubeconfig --name ${{ inputs.k8s-cluster-name }} --region ${{ inputs.k8s-cluster-aws-region || inputs.aws-region }}
 
         # Get cluster arn for modifying kubeconfig
         # TODO - may be able to use `kk config get-contexts --no-headers --output=name` instead (if there's only one context in the kubeconfig file)
-        CLUSTER_ARN=$(aws eks describe-cluster --name ${{ inputs.k8s-cluster-name }} --region ${{ inputs.aws-region }} --query "cluster.arn" --output text)
+        CLUSTER_ARN=$(aws eks describe-cluster --name ${{ inputs.k8s-cluster-name }} --region ${{ inputs.k8s-cluster-aws-region || inputs.aws-region }} --query "cluster.arn" --output text)
         echo "::add-mask::${CLUSTER_ARN}"
 
         # Set the certificate-authority to the certificate authority configured above
@@ -164,7 +170,7 @@ runs:
       if: inputs.use-private-ecr-registry != 'true'
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
       env:
-        AWS_REGION: us-west-2
+        AWS_REGION: us-east-1
       with:
         registry-type: public
 
@@ -190,7 +196,7 @@ runs:
       if: inputs.use-private-ecr-registry == 'true'
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
       env:
-        AWS_REGION: ${{ inputs.aws-region }}
+        AWS_REGION: ${{ inputs.ecr-private-aws-region || inputs.aws-region }}
       with:
         registries: ${{ inputs.ecr-private-registry }}
 
@@ -198,7 +204,7 @@ runs:
       if: inputs.use-private-ecr-registry == 'true'
       shell: bash
       run: |
-        docker pull ${{ inputs.ecr-private-registry }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/aws-sigv4-proxy:${{ inputs.ecr-private-image-tag }}
+        docker pull ${{ inputs.ecr-private-registry }}.dkr.ecr.${{ inputs.ecr-private-aws-region || inputs.aws-region }}.amazonaws.com/aws-sigv4-proxy:${{ inputs.ecr-private-image-tag }}
 
     - name: Run aws sig4 proxy container (private ecr only)
       if: inputs.use-private-ecr-registry == 'true'
@@ -214,7 +220,7 @@ runs:
           -e AWS_SESSION_TOKEN \
           -p ${{ inputs.proxy-port }}:${{ inputs.proxy-port }} \
           -v /tmp/tls/server:/tls \
-          ${{ inputs.ecr-private-registry }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/aws-sigv4-proxy:${{ inputs.ecr-private-image-tag }} -v \
+          ${{ inputs.ecr-private-registry }}.dkr.ecr.${{ inputs.ecr-private-aws-region || inputs.aws-region }}.amazonaws.com/aws-sigv4-proxy:${{ inputs.ecr-private-image-tag }} -v \
             --name execute-api \
             --region ${{ inputs.aws-region }} \
             --host "${{ inputs.api-gateway-host }}" \
