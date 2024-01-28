@@ -22,7 +22,7 @@
     "@types/minimist": "^1.2.2",
     "@types/node": "20.11.4",
     "@types/semver": "^7.5.3",
-    "esbuild": "^0.19.8",
+    "esbuild": "^0.20.0",
     "ts-node": "10.9.2"
   },
   "author": "@smartcontractkit",
