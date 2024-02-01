@@ -78,8 +78,21 @@ runs:
         aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
         aws configure set aws_session_token $AWS_SESSION_TOKEN
         aws configure set region ${{ inputs.aws-region }}
+
+        # determine root path
+        ROOT_PATH=""
+        if [[ "${{ runner.os }}" == "Linux" ]]; then
+          ROOT_PATH="/root"
+        elif [[ "${{ runner.os }}" == "macOS" ]]; then
+          ROOT_PATH="/var/root"
+        else
+          echo "${{ runner.os }} not supported"
+          exit 1
+        fi
+
         # symlink credential folders for nix build access
-        sudo ln -s ~/.aws /var/root # TODO: make path dynamic based on OS (hard-coded for Mac)
+        echo $ROOT_PATH
+        sudo ln -s ~/.aws $ROOT_PATH # TODO: make path dynamic based on OS (hard-coded for Mac)
 
     - uses: cachix/install-nix-action@6004951b182f8860210c8d6f0d808ec5b1a33d28 # v25
       with:
