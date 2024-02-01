@@ -91,8 +91,7 @@ runs:
         fi
 
         # symlink credential folders for nix build access
-        echo $ROOT_PATH
-        sudo ln -s ~/.aws $ROOT_PATH # TODO: make path dynamic based on OS (hard-coded for Mac)
+        sudo ln -s ~/.aws $ROOT_PATH
 
     - uses: cachix/install-nix-action@6004951b182f8860210c8d6f0d808ec5b1a33d28 # v25
       with:
@@ -121,8 +120,9 @@ runs:
       shell: bash
       id: getModels
       run: |
+        # parse models from the flake check
         PKGS=$(nix flake show --json --allow-import-from-derivation | jq -r '.checks | .[] | keys[]' | sort -u | tr '\n' ' ')
-        PKGS+=" ${{ inputs.add-packages }}"
+        PKGS+=" ${{ inputs.add-packages }}" # append packages specified by inputs
         echo "pkgs=$PKGS" >> $GITHUB_OUTPUT
     - name: Calculate output + derivation paths
       if: inputs.setup-only == 'false' # skip for setup only
@@ -131,7 +131,7 @@ runs:
       run: |
         PATHS=""
         for key in ${{ steps.getModels.outputs.pkgs }}; do
-            pkg="'.#\"$key\"'"
+            pkg="'.#\"$key\"'" # build model name with path - example: .#mf
 
             # get runtime output   
             echo "nix build $pkg"
@@ -141,7 +141,7 @@ runs:
 
             # experimental
             # get build time derivation - does not copy additional build-time dependencies
-            # small assumption that other build-time dependencies are available through other nix caches
+            # assumption that other build-time dependencies are available through other nix caches
             echo "nix path-info --derivation $pkg"
             drv=$(eval "nix path-info --derivation $pkg")
             echo $drv
