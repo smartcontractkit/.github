@@ -40,16 +40,19 @@ inputs:
     description: ""
     required: false
     default: "--report lcov"
-  # grafana cloud inputs
+  # grafana inputs
   metrics-job-name:
     description: "grafana metrics job name"
     required: false
     default: ci-test-sol
   gc-host:
-    description: "grafana cloud hostname"
+    description: "grafana hostname"
     required: false
   gc-basic-auth:
-    description: "grafana cloud basic auth"
+    description: "grafana basic auth"
+    required: false
+  gc-org-id:
+    description: "grafana org/tenant id"
     required: false
   # nodejs inputs
   node-version-file:
@@ -142,5 +145,6 @@ runs:
       with:
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}
+        org-id: ${{ inputs.gc-org-id}}
         this-job-name: ${{ inputs.metrics-job-name }}
       continue-on-error: true
