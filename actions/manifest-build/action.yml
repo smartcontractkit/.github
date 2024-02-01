@@ -98,13 +98,13 @@ runs:
         private-key: ${{ inputs.github-token }}
 
     - name: Run all builds
-      if: ${{ !inputs.setup-only }} # skip for setup only
+      if: inputs.setup-only == 'false' # skip for setup only
       shell: bash
       run: |
         nix flake check
 
     - name: Get models from flake check
-      if: ${{ !inputs.setup-only }} # skip for setup only
+      if: inputs.setup-only == 'false' # skip for setup only
       shell: bash
       id: getModels
       run: |
@@ -112,7 +112,7 @@ runs:
         PKGS+=" ${{ inputs.add-packages }}"
         echo "pkgs=$PKGS" >> $GITHUB_OUTPUT
     - name: Calculate output + derivation paths
-      if: ${{ !inputs.setup-only }} # skip for setup only
+      if: inputs.setup-only == 'false' # skip for setup only
       shell: bash
       id: buildPaths
       run: |
@@ -139,13 +139,13 @@ runs:
         echo "paths=$PATHS" >> $GITHUB_OUTPUT
     - name: Sign all paths locally
       shell: bash
-      if: ${{ !inputs.setup-only }} # skip for setup only
+      if: inputs.setup-only == 'false' # skip for setup only
       run: |
         echo "${{ inputs.cache-privkey }}" >> priv.pem
         nix store sign -k priv.pem --verbose ${{ steps.buildPaths.outputs.paths }}
     - name: Copy all paths to bucket
       shell: bash
-      if: ${{ !inputs.setup-only }} # skip for setup only
+      if: inputs.setup-only == 'false' # skip for setup only
       run: |
         nix copy --verbose --narinfo-cache-positive-ttl 0 --to ${{ inputs.cache-url }} ${{ steps.buildPaths.outputs.paths }}
 
