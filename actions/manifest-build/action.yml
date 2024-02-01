@@ -57,7 +57,7 @@ runs:
     - name: Collect metrics
       if: always()
       id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@031fd89b33b3e7722b0c4d2593ece1861d9f503f
+      uses: smartcontractkit/push-gha-metrics-action@0281b09807758be1dcc41651e44e62b353808c47
       with:
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}
