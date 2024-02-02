@@ -10,12 +10,15 @@ inputs:
       step with `fetch-depth: 0`.
     required: false
     default: "false"
-  # grafana cloud inputs
+  # grafana inputs
   gc-basic-auth:
-    description: "grafana cloud basic auth"
+    description: "grafana basic auth"
+    required: false
+  gc-org-id:
+    description: "grafana org/tenant id"
     required: false
   gc-host:
-    description: "grafana cloud hostname"
+    description: "grafana hostname"
     required: false
   metrics-job-name:
     description: "grafana metrics job name"
@@ -43,9 +46,10 @@ runs:
     - name: Collect metrics
       if: always()
       id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d1618b772a97fd87e6505de97b872ee0b1f1729a # v2.0.2
+      uses: smartcontractkit/push-gha-metrics-action@0281b09807758be1dcc41651e44e62b353808c47 # v2.1.0
       with:
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}
+        org-id: ${{ inputs.gc-org-id}}
         this-job-name: ${{ inputs.metrics-job-name }}
       continue-on-error: true
