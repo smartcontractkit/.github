@@ -82,7 +82,7 @@ runs:
         run-install: "true"
 
     - name: Setup foundry
-      uses: foundry-rs/foundry-toolchain@cb603ca0abb544f301eaed59ac0baf579aa6aecf # v1.0.10
+      uses: foundry-rs/foundry-toolchain@eef83bf8f46f7ccaae8377bb99cfa3a5aa40c348 # v1.1.0
       with:
         version: ${{ inputs.foundry-version }}
 
