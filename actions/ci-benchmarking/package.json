@@ -1,0 +1,11 @@
+{
+  "name": "ci-benchmarking",
+  "version": "0.1.0",
+  "description": "Reusable action for storing historical performance data from go benchmark tests in CI with notifications for regressions",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}

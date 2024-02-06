@@ -1,0 +1,126 @@
+name: 'Go Benchmark Action'
+description: 'Run Go benchmarks and optionally publish results to GitHub Pages'
+inputs:
+  benchmarks-pr:
+    description: 'Comma-separated list of benchmarks to run on PRs (e.g., BenchmarkOne, BenchmarkTwo). Set to "from-pr" to extract from PR description.'
+    required: false
+    default: 'from-pr'
+
+  benchmarks-merge:
+    description: 'Comma-separated list of benchmarks to run on merges (e.g., BenchmarkOne, BenchmarkTwo).'
+    required: false
+    default: ''
+
+  trigger-branches:
+    # if this input did not exist, every commit to every branch (including PRs) will trigger the action for merges,
+    # this is because both PRs and pushes to branches trigger the 'push' event
+    description: 'Comma-separated list of branches for which merges will trigger this action.'
+    required: true
+
+  use-gh-pages:
+    description: 'Flag to enable publishing results to GitHub Pages (true or false)'
+    required: false
+    default: false
+
+  github-token:
+    description: 'GitHub token for authentication (GITHUB_TOKEN or a personal access token). Required if use-gh-pages is true.'
+    required: false
+
+  gh-pages-branch:
+    description: 'The GitHub Pages branch to push results to (defaults to gh-pages). Required if use-gh-pages is true.'
+    required: false
+    default: 'gh-pages'
+
+  alert-comment-cc-users:
+    description: 'Comma-separated list of users to cc on alert comments (e.g., @user1, @user2).'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout Code
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+    - name: Setup Go Environment
+      uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+      with:
+        go-version: 'stable'
+
+    - name: Analyze GitHub Event
+      id: analyze-event
+      run: |
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          echo "IS_MERGE=false" >> $GITHUB_ENV
+          echo "IS_PR=true" >> $GITHUB_ENV
+        elif [[ "${{ github.event_name }}" == "push" ]]; then
+          TRIGGER_BRANCHES="${{ inputs.trigger-branches }}"
+          if [[ "$TRIGGER_BRANCHES" == *"${{ github.ref_name }}"* ]]; then
+            echo "IS_MERGE=true" >> $GITHUB_ENV
+            echo "IS_PR=false" >> $GITHUB_ENV
+          else
+            echo "IS_MERGE=false" >> $GITHUB_ENV
+            echo "IS_PR=false" >> $GITHUB_ENV
+          fi
+        else
+          echo "IS_MERGE=false" >> $GITHUB_ENV
+          echo "IS_PR=false" >> $GITHUB_ENV
+        fi
+      shell: bash
+
+    - name: Determine Benchmarks to Run
+      id: set-benchmarks
+      run: |
+        if [[ "${{ inputs.benchmarks-pr }}" == "from-pr" && ${{ env.IS_PR }} == "true" ]]; then
+          BENCHMARKS=$(echo '${{ github.event.pull_request.body }}' | sed -n -e 's/^.*BENCHMARKS: //p')
+        else
+          BENCHMARKS=${{ inputs.benchmarks-merge }}
+        fi
+        echo "BENCHMARKS=$BENCHMARKS" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Run Specified Go Benchmarks
+      # must use a context in an if conditional statement to access the value of an variable
+      if: ${{ env.IS_PR == 'true' || env.IS_MERGE == 'true' }}
+      run: go test -bench "$BENCHMARKS" -run=^$ | tee output.txt
+      shell: bash
+
+    - name: Download Previous Benchmark Data
+      if: ${{ env.IS_PR == 'true' || env.IS_MERGE == 'true' }}
+      uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+      with:
+        path: ./cache
+        key: ${{ runner.os }}-benchmark
+
+    - name: Run github-action-benchmark for PRs
+      if: ${{ env.IS_PR == 'true' }}
+      uses: benchmark-action/github-action-benchmark@cc9ac13ce81036c9b67fcfe2cb95ca366684b9ea # v1.19.3
+      with:
+        tool: 'go'
+        output-file-path: output.txt
+        external-data-json-path: './cache/benchmark-data.json'
+        fail-on-alert: true
+        auto-push: false
+        comment-on-alert: true
+        summary-always: true
+        github-token: ${{ inputs.github-token }}
+
+    - name: Run github-action-benchmark for Merges
+      if: ${{ env.IS_MERGE == 'true' }}
+      uses: benchmark-action/github-action-benchmark@cc9ac13ce81036c9b67fcfe2cb95ca366684b9ea # v1.19.3
+      with:
+        tool: 'go'
+        output-file-path: output.txt
+        fail-on-alert: false
+        comment-on-alert: true
+        auto-push: ${{ inputs.use-gh-pages == 'true' }}
+        github-token: ${{ inputs.github-token }}
+        alert-comment-cc-users: ${{ inputs.alert-comment-cc-users }}
+
+    - name: Upload Updated Benchmark Data
+      if: ${{ env.IS_MERGE == 'true' }}
+      uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+      with:
+        path: ./cache
+        key: ${{ runner.os }}-benchmark
+        restore-keys: ${{ runner.os }}-benchmark
