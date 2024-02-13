@@ -70,17 +70,10 @@ inputs:
     required: false
     default: "false"
   k8s-cluster-name:
-    description: "The EKS cluster name to target."
+    description: "The EKS cluster name to target. Required if use-k8s is true."
     required: false
   k8s-cluster-aws-region:
     description: "The region for the EKS cluster, if different from aws-region input."
-    required: false
-  # tls inputs
-  tls-ca-private-key:
-    description: "The private key for the tls certificate used to sign the local proxy's certificate. If not provided, a new key will be generated if needed."
-    required: false
-  tls-ca-cert:
-    description: "The root CA cert, used to validate the generated and signed local proxy's certificate. If not provided, a new certificate will be generated if needed."
     required: false
   # grafana inputs
   metrics-job-name:
@@ -114,20 +107,22 @@ runs:
         aws-region: ${{ inputs.aws-region }}
 
     - name: Setup Certificate Authority (K8s only)
+      # Generate a local ephemeral CA key and cert to sign the local proxy's certificate.
+      # ---
+      # Kubectl requires a TLS connection to it's configured endpoint, and performs certificate
+      # validation through the CA configured in the kubeconfig.
+      # The local aws-sigv4-proxy container will act as the k8s endpoint for kubectl, and therefore requires a
+      # certificate signed by a trusted CA. Because this is for local TLS we can generate a CA, generate a server
+      # certificate, sign the server certificate with the CA, and update the CA in the kubeconfig to trust it.
       if: inputs.use-k8s == 'true'
       shell: bash
       run: |
         mkdir -p /tmp/setup-gap
 
-        if [ -n "${{ inputs.tls-ca-private-key }}" ] && [ -n "${{ inputs.tls-ca-cert }}" ]; then
-          echo "::debug::Using provided CA key+cert. Writing them to /tmp/setup-gap/ca.key and /tmp/setup-gap/ca.crt"
-          echo "${{ inputs.tls-ca-private-key }}" > /tmp/setup-gap/ca.key
-          echo "${{ inputs.tls-ca-cert }}" > /tmp/setup-gap/ca.crt
-        else
-          echo "::debug::Generating new CA key+cert. Writing them to /tmp/setup-gap/ca.key and /tmp/setup-gap/ca.crt"
-          openssl genrsa -out /tmp/setup-gap/ca.key 4096
-          openssl req -x509 -new -nodes -key /tmp/setup-gap/ca.key -sha256 -days 1 -out /tmp/setup-gap/ca.crt -subj "/CN=My CA"
-        fi
+        echo "::debug::Generating new CA key+cert. Writing them to /tmp/setup-gap/ca.key and /tmp/setup-gap/ca.crt"
+        openssl ecparam -genkey -name prime256v1 -out /tmp/setup-gap/ca.key
+        openssl req -x509 -new -nodes -key /tmp/setup-gap/ca.key -sha256 -days 1 -out /tmp/setup-gap/ca.crt -subj "/CN=My CA"
+
 
     - name: Generate and Sign Server Certificate (K8s only)
       if: inputs.use-k8s == 'true'
@@ -136,7 +131,7 @@ runs:
         mkdir -p /tmp/setup-gap
 
         echo "::debug::Generating server key and certificate signing request (CSR)"
-        openssl genrsa -out /tmp/setup-gap/server.key 2048
+        openssl ecparam -genkey -name prime256v1 -out /tmp/setup-gap/server.key
         openssl req -new -key /tmp/setup-gap/server.key -out /tmp/setup-gap/server.csr -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
 
         echo "::debug:: Generating SAN extension file"
@@ -161,14 +156,14 @@ runs:
 
         echo "::debug::Setting up kubeconfig for localhost proxy"
 
-        # Set the certificate-authority to the certificate authority configured above
+        # Update the server to use the localhost proxy
+        kubectl config set clusters.$CLUSTER_ARN.server https://localhost:${{ inputs.proxy-port }}/primary
+
+        # Set the certificate-authority to the ephemeral certificate authority configured above
         kubectl config set clusters.$CLUSTER_ARN.certificate-authority /tmp/setup-gap/ca.crt
 
-        # Remove certificate-authority-data populated from `aws eks update-kubeconfig`
+        # Remove certificate-authority-data populated from `aws eks update-kubeconfig` which is for the endpoint which is not publicly accessible
         kubectl config unset clusters.$CLUSTER_ARN.certificate-authority-data
-
-        # Update the server to use the proxy
-        kubectl config set clusters.$CLUSTER_ARN.server https://localhost:${{ inputs.proxy-port }}/primary
 
     - name: Login to AWS ECR (public ecr only)
       if: inputs.use-private-ecr-registry != 'true'
