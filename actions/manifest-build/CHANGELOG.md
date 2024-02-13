@@ -1,5 +1,14 @@
 # manifest-build
 
+## 0.3.1
+
+### Patch Changes
+
+- [#153](https://github.com/smartcontractkit/.github/pull/153)
+  [`df8e6ca`](https://github.com/smartcontractkit/.github/commit/df8e6cab6b0aa2f152575d5f7aade5e712a53b86)
+  Thanks [@erikburt](https://github.com/erikburt)! - Support grafana org/tenant
+  id input for push-gha-metrics-action v2.1.0
+
 ## 0.3.0
 
 ### Minor Changes
