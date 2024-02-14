@@ -4,49 +4,76 @@ description: "setup github actions proxy"
 inputs:
   # general inputs
   checkout-repo:
-    description: "enable git checkout repo"
+    description: "Enable git checkout repo. Defaults to true."
     required: false
     default: "true"
   checkout-repo-fetch-depth:
-    description: "number of commits to fetch"
+    description: "The number of commits to fetch. Defaults to 0 (all commits/history)."
     required: false
     default: "0"
+  # aws sig4 proxy inputs
   api-gateway-host:
-    description: "aws api gateway host"
-    required: false
+    description: "The AWS API Gateway host for the target service. Usually of the form <gateway id>.execute-api.<region>.amazonaws.com."
+    required: true
   proxy-version:
-    description: "sig proxy image version / tag"
+    description: "The aws-sigv4-proxy image version / tag, if using the public ecr."
     required: false
     default: "1.7"
   proxy-port:
-    description: "sig proxy port"
+    description: "The port the proxy will listen on. Defaults to 8080."
     required: false
     default: "8080"
-  # aws inputs
+  # ecr inputs
+  use-private-ecr-registry:
+    description: "Whether to use a private ECR registry to pull the aws-sigv4-proxy image. Defaults to false."
+    required: false
+    default: "false"
+  ecr-private-registry:
+    description: "The ECR registry (account id) for the aws-sigv4-proxy. Required if use-private-ecr-registry is true."
+    required: false
+  ecr-private-image-tag:
+    description: "The aws-sigv4-proxy image tag for the private ECR registry. Defaults to a known tag."
+    required: false
+    default: "6cc1e6d2bce23c04aace47d26511ad65205975b8"
+  ecr-private-aws-region:
+    description: "The region for the private ECR registry, if different from aws-region input."
+    required: false
+  # aws role inputs
   aws-role-duration-seconds:
-    description: ""
+    description: "The duration in seconds for the assumed role. Defaults to 900 (15 minutes)."
     required: false
     default: "900"
   aws-region:
-    description: ""
+    description: "The AWS region for the api gateway and other resources unless specified in other inputs"
     required: false
   aws-role-arn:
-    description: ""
+    description: "The AWS role with API Gateway invoke permissions, ECR pull permissions for aws-sigv4-proxy, and if for k8s then EKS describe permissions"
     required: false
   # argocd inputs
   use-argocd:
-    description: ""
+    description: "Whether to setup GAP for communicating with argocd. Cannot be used with use-k8s. Defaults to false."
     required: false
     default: "false"
   argocd-version:
-    description: ""
+    description: "The version of argocd to install. Defaults to 2.8.2."
     required: false
     default: "2.8.2"
   argocd-user:
-    description: ""
+    description: "The username for argocd login. Required if use-argocd is true."
     required: false
   argocd-pass:
-    description: ""
+    description: "The password for argocd login. Required if use-argocd is true."
+    required: false
+  # k8s inputs
+  use-k8s:
+    description: "Whether to setup GAP for communicating with K8s. Cannot be used with use-argocd. Defaults to false."
+    required: false
+    default: "false"
+  k8s-cluster-name:
+    description: "The EKS cluster name to target. Required if use-k8s is true."
+    required: false
+  k8s-cluster-aws-region:
+    description: "The region for the EKS cluster, if different from aws-region input."
     required: false
   # grafana inputs
   metrics-job-name:
@@ -79,15 +106,75 @@ runs:
         role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
         aws-region: ${{ inputs.aws-region }}
 
-    - name: Login to aws ecr
-      id: login-ecr
+    - name: Setup Certificate Authority (K8s only)
+      # Generate a local ephemeral CA key and cert to sign the local proxy's certificate.
+      # ---
+      # Kubectl requires a TLS connection to it's configured endpoint, and performs certificate
+      # validation through the CA configured in the kubeconfig.
+      # The local aws-sigv4-proxy container will act as the k8s endpoint for kubectl, and therefore requires a
+      # certificate signed by a trusted CA. Because this is for local TLS we can generate a CA, generate a server
+      # certificate, sign the server certificate with the CA, and update the CA in the kubeconfig to trust it.
+      if: inputs.use-k8s == 'true'
+      shell: bash
+      run: |
+        mkdir -p /tmp/setup-gap
+
+        echo "::debug::Generating new CA key+cert. Writing them to /tmp/setup-gap/ca.key and /tmp/setup-gap/ca.crt"
+        openssl ecparam -genkey -name prime256v1 -out /tmp/setup-gap/ca.key
+        openssl req -x509 -new -nodes -key /tmp/setup-gap/ca.key -sha256 -days 1 -out /tmp/setup-gap/ca.crt -subj "/CN=My CA"
+
+
+    - name: Generate and Sign Server Certificate (K8s only)
+      if: inputs.use-k8s == 'true'
+      shell: bash
+      run: |
+        mkdir -p /tmp/setup-gap
+
+        echo "::debug::Generating server key and certificate signing request (CSR)"
+        openssl ecparam -genkey -name prime256v1 -out /tmp/setup-gap/server.key
+        openssl req -new -key /tmp/setup-gap/server.key -out /tmp/setup-gap/server.csr -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+
+        echo "::debug:: Generating SAN extension file"
+        echo -e "subjectAltName=DNS:localhost,IP:127.0.0.1" > /tmp/setup-gap/san.ext
+
+        echo "::debug::Signing server certificate with CA"
+        openssl x509 -req -in /tmp/setup-gap/server.csr -CA /tmp/setup-gap/ca.crt -CAkey /tmp/setup-gap/ca.key -CAcreateserial -out /tmp/setup-gap/server.crt -days 1 -sha256 -extfile /tmp/setup-gap/san.ext
+
+        echo "::debug::Removing CSR and SAN extension files"
+        rm /tmp/setup-gap/server.csr /tmp/setup-gap/san.ext
+
+    - name: Setup Kubeconfig (K8s only)
+      if: inputs.use-k8s == 'true'
+      shell: bash
+      run: |
+        echo "::debug::Getting kubeconfig"
+        aws eks update-kubeconfig --name ${{ inputs.k8s-cluster-name }} --region ${{ inputs.k8s-cluster-aws-region || inputs.aws-region }}
+
+        # Get cluster arn for modifying kubeconfig
+        CLUSTER_ARN=$(aws eks describe-cluster --name ${{ inputs.k8s-cluster-name }} --region ${{ inputs.k8s-cluster-aws-region || inputs.aws-region }} --query "cluster.arn" --output text)
+        echo "::add-mask::${CLUSTER_ARN}"
+
+        echo "::debug::Setting up kubeconfig for localhost proxy"
+
+        # Update the server to use the localhost proxy
+        kubectl config set clusters.$CLUSTER_ARN.server https://localhost:${{ inputs.proxy-port }}/primary
+
+        # Set the certificate-authority to the ephemeral certificate authority configured above
+        kubectl config set clusters.$CLUSTER_ARN.certificate-authority /tmp/setup-gap/ca.crt
+
+        # Remove certificate-authority-data populated from `aws eks update-kubeconfig` which is for the endpoint which is not publicly accessible
+        kubectl config unset clusters.$CLUSTER_ARN.certificate-authority-data
+
+    - name: Login to AWS ECR (public ecr only)
+      if: inputs.use-private-ecr-registry != 'true'
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
       env:
         AWS_REGION: us-east-1
       with:
         registry-type: public
 
-    - name: Run aws sig4 proxy container
+    - name: Run aws sig4 proxy container (public ecr only)
+      if: inputs.use-private-ecr-registry != 'true'
       shell: bash
       env:
         AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
@@ -95,14 +182,51 @@ runs:
         AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
       run: |
         docker run --rm -d \
-          -e "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" \
-          -e "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" \
-          -e "AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}" \
+          -e AWS_ACCESS_KEY_ID \
+          -e AWS_SECRET_ACCESS_KEY \
+          -e AWS_SESSION_TOKEN \
           -p "${{ inputs.proxy-port }}":"${{ inputs.proxy-port }}" \
           public.ecr.aws/aws-observability/aws-sigv4-proxy:${{ inputs.proxy-version }} \
           --name execute-api --region ${{ inputs.aws-region }} \
           --host "${{ inputs.api-gateway-host }}" \
           --log-failed-requests
+
+    - name: Login to AWS ECR (private ecr only)
+      if: inputs.use-private-ecr-registry == 'true'
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      env:
+        AWS_REGION: ${{ inputs.ecr-private-aws-region || inputs.aws-region }}
+      with:
+        registries: ${{ inputs.ecr-private-registry }}
+
+    - name: Pull from custom proxy image (private ecr only)
+      if: inputs.use-private-ecr-registry == 'true'
+      shell: bash
+      run: |
+        docker pull ${{ inputs.ecr-private-registry }}.dkr.ecr.${{ inputs.ecr-private-aws-region || inputs.aws-region }}.amazonaws.com/aws-sigv4-proxy:${{ inputs.ecr-private-image-tag }}
+
+    - name: Run aws sig4 proxy container (private ecr only)
+      if: inputs.use-private-ecr-registry == 'true'
+      shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+      run: |
+        docker run --rm -d \
+          -e AWS_ACCESS_KEY_ID \
+          -e AWS_SECRET_ACCESS_KEY \
+          -e AWS_SESSION_TOKEN \
+          -p ${{ inputs.proxy-port }}:${{ inputs.proxy-port }} \
+          -v /tmp/setup-gap:/tls \
+          ${{ inputs.ecr-private-registry }}.dkr.ecr.${{ inputs.ecr-private-aws-region || inputs.aws-region }}.amazonaws.com/aws-sigv4-proxy:${{ inputs.ecr-private-image-tag }} \
+            --name execute-api \
+            --region ${{ inputs.aws-region }} \
+            --host "${{ inputs.api-gateway-host }}" \
+            --log-failed-requests \
+            --port :${{ inputs.proxy-port }} \
+            --enable-tls --tls-key-file /tls/server.key --tls-cert-file /tls/server.crt \
+            --duplicate-headers Authorization
 
     - name: Setup argocd
       if: inputs.use-argocd == 'true'
