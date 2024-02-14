@@ -114,7 +114,7 @@ runs:
 
     - name: Set env from files
       if: inputs.use-env-files == 'true'
-      uses: cardinalby/export-env-action@04460b5708ae685cda6419c29deb8903ca2db74a # 2.2.1
+      uses: cardinalby/export-env-action@b16a08b396d047e3f9e1446e3946440e2be02a73 # 2.2.2
       with:
         envFile: ${{ inputs.env-files }}
 
