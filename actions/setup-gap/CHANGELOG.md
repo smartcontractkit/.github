@@ -1,5 +1,14 @@
 # setup-gap
 
+## 0.2.0
+
+### Minor Changes
+
+- [#139](https://github.com/smartcontractkit/.github/pull/139)
+  [`f86c6af`](https://github.com/smartcontractkit/.github/commit/f86c6afb4b652c26a993bb5d5af914fa235c80fb)
+  Thanks [@erikburt](https://github.com/erikburt)! - Add support for private
+  ECR, proxy server TLS cert, kubeconfig setup
+
 ## 0.1.1
 
 ### Patch Changes
