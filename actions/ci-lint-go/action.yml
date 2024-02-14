@@ -138,15 +138,15 @@ runs:
       if: always()
       shell: bash
       run:
-        (test -f golangci-lint-report.xml && cat golangci-lint-report.xml) ||
-        true
+        (test -f ${{ inputs.go-directory }}/golangci-lint-report.xml && cat ${{
+        inputs.go-directory }}/golangci-lint-report.xml) || true
 
     - name: Store lint report artifact
       if: always()
       uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
       with:
         name: golangci-lint-report
-        path: golangci-lint-report.xml
+        path: ${{ inputs.go-directory }}/golangci-lint-report.xml
 
     - name: Collect metrics
       if: always()
