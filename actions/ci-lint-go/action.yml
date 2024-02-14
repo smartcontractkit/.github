@@ -74,6 +74,9 @@ inputs:
     description: ""
     required: false
     default: --out-format checkstyle:golangci-lint-report.xml
+  go-directory:
+    description: ""
+    default: .
 
 runs:
   using: composite
@@ -127,23 +130,23 @@ runs:
         # use-go-cache set to true
         skip-pkg-cache: ${{ inputs.use-go-cache }}
         skip-build-cache: ${{ inputs.use-go-cache }}
-
         version: ${{ inputs.golangci-lint-version }}
         args: ${{ inputs.golangci-lint-args }}
+        working-directory: ${{ inputs.go-directory }}
 
     - name: Print lint report artifact
       if: always()
       shell: bash
       run:
-        (test -f golangci-lint-report.xml && cat golangci-lint-report.xml) ||
-        true
+        (test -f ${{ inputs.go-directory }}/golangci-lint-report.xml && cat ${{
+        inputs.go-directory }}/golangci-lint-report.xml) || true
 
     - name: Store lint report artifact
       if: always()
       uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
       with:
         name: golangci-lint-report
-        path: golangci-lint-report.xml
+        path: ${{ inputs.go-directory }}/golangci-lint-report.xml
 
     - name: Collect metrics
       if: always()
