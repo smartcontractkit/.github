@@ -1,5 +1,14 @@
 # ci-lint-go
 
+## 0.2.0
+
+### Minor Changes
+
+- [#169](https://github.com/smartcontractkit/.github/pull/169)
+  [`f94f14f`](https://github.com/smartcontractkit/.github/commit/f94f14f46f7b3c51c49bffbea420edd2f01134dc)
+  Thanks [@momentmaker](https://github.com/momentmaker)! - Add working-directory
+  flag for golangci-lint
+
 ## 0.1.1
 
 ### Patch Changes
