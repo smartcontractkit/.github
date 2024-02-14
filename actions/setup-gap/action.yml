@@ -219,11 +219,11 @@ runs:
           -e AWS_SESSION_TOKEN \
           -p ${{ inputs.proxy-port }}:${{ inputs.proxy-port }} \
           -v /tmp/setup-gap:/tls \
-          ${{ inputs.ecr-private-registry }}.dkr.ecr.${{ inputs.ecr-private-aws-region || inputs.aws-region }}.amazonaws.com/aws-sigv4-proxy:${{ inputs.ecr-private-image-tag }} -v \
+          ${{ inputs.ecr-private-registry }}.dkr.ecr.${{ inputs.ecr-private-aws-region || inputs.aws-region }}.amazonaws.com/aws-sigv4-proxy:${{ inputs.ecr-private-image-tag }} \
             --name execute-api \
             --region ${{ inputs.aws-region }} \
             --host "${{ inputs.api-gateway-host }}" \
-            --log-failed-requests --log-signing-process \
+            --log-failed-requests \
             --port :${{ inputs.proxy-port }} \
             --enable-tls --tls-key-file /tls/server.key --tls-cert-file /tls/server.crt \
             --duplicate-headers Authorization
