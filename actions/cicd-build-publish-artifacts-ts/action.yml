@@ -103,7 +103,7 @@ runs:
 
     - name: Setup foundry
       if: inputs.setup-foundry == 'true'
-      uses: foundry-rs/foundry-toolchain@eef83bf8f46f7ccaae8377bb99cfa3a5aa40c348 # v1.1.0
+      uses: foundry-rs/foundry-toolchain@362aa1be8f31305295acb1032271acd5e9b99312 # v1.1.1
       with:
         version: ${{ inputs.foundry-version }}
 
