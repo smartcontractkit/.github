@@ -248,7 +248,7 @@ importers:
         version: 1.1.0
       nock:
         specifier: ^13.3.8
-        version: 13.4.0
+        version: 13.5.3
       node-fetch:
         specifier: ^2.0.0
         version: 2.6.13
@@ -9188,8 +9188,8 @@ packages:
       tslib: 2.6.2
     dev: true
 
-  /nock@13.4.0:
-    resolution: {integrity: sha512-W8NVHjO/LCTNA64yxAPHV/K47LpGYcVzgKd3Q0n6owhwvD0Dgoterc25R4rnZbckJEb6Loxz1f5QMuJpJnbSyQ==}
+  /nock@13.5.3:
+    resolution: {integrity: sha512-2NlGmHIK2rTeyy7UaY1ZNg0YZfEJMxghXgZi0b4DBsUyoDNTTxZeCSG1nmirAWF44RkkoV8NnegLVQijgVapNQ==}
     engines: {node: '>= 10.13'}
     dependencies:
       debug: 4.3.4
