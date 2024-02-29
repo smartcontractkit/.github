@@ -20,8 +20,9 @@ jobs:
           checkout-repo: "false"
           # grafana inputs
           metrics-job-name: ci-lint
-          gc-basic-auth: ${{ secrets.GRAFANA_CLOUD_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_CLOUD_HOST }}
+          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
+          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
+          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
 
   ci-lint-misc:
     runs-on: ubuntu-latest
@@ -36,8 +37,9 @@ jobs:
           checkout-repo: "false"
           # grafana inputs
           metrics-job-name: ci-lint-misc
-          gc-basic-auth: ${{ secrets.GRAFANA_CLOUD_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_CLOUD_HOST }}
+          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
+          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
+          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
 
   cd-signed-commits:
     # Disable this job until it's updated to be:
@@ -93,8 +95,9 @@ jobs:
           checkout-repo: "false"
           # grafana inputs
           metrics-job-name: ci-test
-          gc-basic-auth: ${{ secrets.GRAFANA_CLOUD_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_CLOUD_HOST }}
+          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
+          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
+          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
 
   ci-build-artifacts:
     runs-on: ubuntu-latest
@@ -109,5 +112,6 @@ jobs:
           checkout-repo: "false"
           # grafana inputs
           metrics-job-name: ci-build-artifacts
-          gc-basic-auth: ${{ secrets.GRAFANA_CLOUD_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_CLOUD_HOST }}
+          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
+          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
+          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}

@@ -19,8 +19,9 @@ jobs:
           checkout-repo: "false"
           # grafana inputs
           metrics-job-name: ci-lint
-          gc-basic-auth: ${{ secrets.GRAFANA_CLOUD_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_CLOUD_HOST }}
+          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
+          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
+          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
 
   ci-test:
     runs-on: ubuntu-latest
@@ -35,8 +36,9 @@ jobs:
           checkout-repo: "false"
           # grafana inputs
           metrics-job-name: ci-test
-          gc-basic-auth: ${{ secrets.GRAFANA_CLOUD_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_CLOUD_HOST }}
+          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
+          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
+          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
 
   cicd-build-publish-artifacts-dev:
     runs-on: ubuntu-latest
@@ -60,8 +62,9 @@ jobs:
           checkout-repo: "false"
           # grafana inputs
           metrics-job-name: cicd-build-publish-artifacts-dev
-          gc-basic-auth: ${{ secrets.GRAFANA_CLOUD_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_CLOUD_HOST }}
+          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
+          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
+          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
 
   cd-release:
     runs-on: ubuntu-latest
@@ -87,5 +90,6 @@ jobs:
           aws-lambda-url: ${{ secrets.AWS_LAMBDA_URL_GATI }}
           # grafana inputs
           metrics-job-name: cd-release
-          gc-basic-auth: ${{ secrets.GRAFANA_CLOUD_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_CLOUD_HOST }}
+          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
+          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
+          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
