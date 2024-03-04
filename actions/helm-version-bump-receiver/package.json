@@ -1,6 +1,6 @@
 {
   "name": "helm-version-bump-receiver",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "updates helm chart version in an argocd app",
   "private": true,
   "scripts": {},
