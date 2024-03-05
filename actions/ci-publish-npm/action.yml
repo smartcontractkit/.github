@@ -24,18 +24,14 @@ inputs:
     description: "The name of the GitHub release. Defaults to the current branch name"
     required: false
     default: ${{ github.ref_name }}
+  github-release-changelog-path:
+    description: "The changelog path relative to the root of the repository. Defaults to `CHANGELOG.md`"
+    required: false
+    default: CHANGELOG.md
 
 runs:
   using: composite
   steps:
-    - name: Create GitHub Release
-      if: inputs.create-github-release == 'true'
-      # TODO: Use something that can sign the release
-      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
-      with:
-        tag_name: ${{ inputs.github-release-tag-name }}
-        token: ${{ inputs.github-token }}
-
     - name: Configure npmrc
       shell: bash
       env:
@@ -48,3 +44,11 @@ runs:
       shell: bash
       working-directory: ${{ inputs.package-json-directory }}
       run: ${{ inputs.publish-command }}
+
+    - name: Create GitHub Release
+      if: inputs.create-github-release == 'true'
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: |
+        gh release create ${{ inputs.github-release-tag-name }} --notes "View the changelog at [${{ inputs.github-release-changelog-path }}](${{ inputs.github-release-changelog-path }})"
