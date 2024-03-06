@@ -1,0 +1,138 @@
+name: llm-pr-writer
+description:
+  "This GitHub workflow harnesses the capabilities of Large Language Models
+  (LLMs) to automate the creation and enhancement of pull request (PR)
+  descriptions. Designed to streamline the development process, it significantly
+  reduces the time and effort traditionally required to draft comprehensive PR
+  descriptions, particularly for extensive changes. By meticulously analyzing
+  the modifications within a PR, the workflow generates precise, context-rich
+  summaries that facilitate improved collaboration and review efficiency."
+
+inputs:
+  # general inputs
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+  gh-token:
+    description: "github token to make a comment with"
+    required: true
+  exclude_paths:
+    description: "paths to exclude from the analysis"
+    required: false
+    default: ""
+  openai-api-key:
+    description: "openai api key"
+    required: true
+  # grafana inputs
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+    default: llm-pr-writer
+  gc-host:
+    description: "grafana hostname"
+    required: false
+  gc-basic-auth:
+    description: "grafana basic auth"
+    required: false
+  gc-org-id:
+    description: "grafana org/tenant id"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Create filter string
+      id: filter
+      shell: bash
+      run: |
+        IFS=';' read -ra exclude_paths_arr <<< "${{ inputs.exclude_paths }}"
+        for i in "${!exclude_paths_arr[@]}"; do
+          exclude_paths_arr[$i]="':!${exclude_paths_arr[$i]}'"
+        done
+        echo "exclude_filter="${exclude_paths_arr[@]}"" >> "$GITHUB_OUTPUT"
+
+    - name: Genereate PR Description from Diff
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh-token }}
+      run: |
+        diff_command="git diff origin/\$(gh pr view --json baseRefName | jq -r '.baseRefName')...HEAD -- ${{ steps.filter.outputs.exclude_filter }}"
+        echo "$diff_command"
+        diff_output=$(eval $diff_command)
+
+        # escape all special characters and prepare for json with jq
+        escaped_diff_output=$(echo "$diff_output" | jq -Rs . | sed 's/^"//;s/"$//')
+
+        echo "$escaped_diff_output"
+
+        pr_message=$(echo '{
+          "model": "gpt-4-0125-preview",
+          "temperature": 0.7,
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are a helpful expert data engineer with expertise in Blockchain and Decentralized Oracle Networks. Given the patch output of `git diff` command in the triple backticks at the bottom of the reply, your task is to help create a pull request message in order to facilitate and encourage reviews from your peers by focusing on the 2 primary topic: Why and What\n\n**What**\nA bullet point summary what has been changed. Objective and straight to the point. Organize and list the changes made to a specific file, focusing on the specifics of the changes, ie: what file, what change, and a brief sentence on the effect of the change (if any). For each file, group related changes as subitems under the same list item, indented with double spacebar characters and no linebreaks between list items.\n\n**Why**\nBased on the changes summarized in **What**, go through item by item of the list you wrote to understand the changes, then write a short paragraph (within 500 characters) summarizing the changes and their purposes without implying any assumptions about the broader context.\n\nAfter having done all that, output your response starting from **Why** and then **What** in escaped, raw markdown text that can be sent as http body to API (do not wrap in code block).\n\nPreamble your answer with a bold \"Below is a summarization created by an LLM\".\n Format \"why\" and \"what\" as Heading 2 using double sharp characters (##).\nOtherwise, do not include any another preamble and postamble to your answer. If there is no code within the triple backticks, kindly reply that there is no code to generate the pull-request message. \n  ```'$escaped_diff_output'```\n"
+            }
+          ]
+        }' | envsubst | curl https://api.openai.com/v1/chat/completions \
+                      -H "Content-Type: application/json" \
+                      -H "Authorization: Bearer ${{ inputs.openai-api-key }}" \
+                      -d @-
+        )
+
+        {
+          echo 'pr_message<<EOF'
+          echo $pr_message | jq -r '.choices[0].message.content'
+          echo EOF
+        } >> $GITHUB_OUTPUT
+
+        # get the current body of the PR
+        pr_current_body="$(gh pr view --json body | jq -r '.body')"
+
+        # delete every lines from <!-- DON'T DELETE. add your comments above llm generated contents -->
+        # if not found, default behavior is to do nothing and rely on the user to delete the old message
+        pr_current_body=$(echo "$pr_current_body" | sed -e '/<!-- DON'\''T DELETE. add your comments above llm generated contents -->/,$d')
+        echo "$pr_current_body"
+
+        pr_message="$(echo $pr_message | jq -r '.choices[0].message.content')"
+
+        # replace lines starting with ' -' (1space) with '  -' (2spaces)
+        pr_message=$(echo "$pr_message" | sed -e 's/^ -/  -/g')
+
+        # if .github/pull_request_append.md exists, append to pr_message after a linebreak
+        if [ -f .github/pull_request_append.md ]; then
+          pr_message="$pr_message
+
+        $(cat .github/pull_request_append.md)
+        "
+        fi
+
+        echo "$pr_message"
+
+        gh pr edit ${{ github.event.issue.number || github.event.pull_request.number || '' }} -b "$pr_current_body
+        <!-- DON'T DELETE. add your comments above llm generated contents -->
+        ---
+        $pr_message
+        "
+
+    - name: Collect metrics
+      if: always()
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@0281b09807758be1dcc41651e44e62b353808c47 # v2.1.0
+      with:
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        org-id: ${{ inputs.gc-org-id}}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true
