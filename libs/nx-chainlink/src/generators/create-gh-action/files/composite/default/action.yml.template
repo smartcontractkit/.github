@@ -35,10 +35,6 @@ runs:
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
-    - name: Run debug script
-      shell: bash
-      run: ${{ github.action_path }}/debug.sh
-
     - name: Collect metrics
       if: always()
       id: collect-gha-metrics
