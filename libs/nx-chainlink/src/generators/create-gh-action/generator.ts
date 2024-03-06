@@ -3,9 +3,9 @@ import {
   formatFiles,
   generateFiles,
   Tree,
-} from '@nx/devkit';
-import * as path from 'path';
-import { CreateGhActionGeneratorSchema } from './schema';
+} from "@nx/devkit";
+import * as path from "path";
+import { CreateGhActionGeneratorSchema } from "./schema";
 
 export async function createGhActionGenerator(
   tree: Tree,
@@ -15,14 +15,16 @@ export async function createGhActionGenerator(
   // create project.json
   addProjectConfiguration(tree, options.name, {
     root: projectRoot,
-    projectType: 'application',
+    projectType: "application",
     sourceRoot: `${projectRoot}`,
     targets: {},
   });
   // generate files from templates
   generateFiles(
     tree,
-    path.join(__dirname, 'files', 'composite'),
+    options.debug
+      ? path.join(__dirname, "files", "composite", "debug")
+      : path.join(__dirname, "files", "composite", "default"),
     projectRoot,
     options,
   );

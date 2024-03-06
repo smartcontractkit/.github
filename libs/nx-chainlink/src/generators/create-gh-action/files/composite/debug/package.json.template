@@ -1,7 +1,7 @@
 {
   "name": "<%= name %>",
-  "version": "0.1.0",
-  "description": "<%= description %>",
+  "version": "0.0.0",
+  "description": "",
   "private": true,
   "scripts": {},
   "author": "@smartcontractkit",
