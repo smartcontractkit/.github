@@ -10,10 +10,6 @@ description:
 
 inputs:
   # general inputs
-  checkout-repo:
-    description: "enable git checkout repo"
-    required: false
-    default: "true"
   checkout-repo-fetch-depth:
     description: "number of commits to fetch"
     required: false
@@ -21,10 +17,14 @@ inputs:
   gh-token:
     description: "github token to make a comment with"
     required: true
+    # will require either pull_request: write or issues: write permission
+    # https://docs.github.com/en/rest/issues/comments?apiVersion=2022-11-28#create-an-issue-comment
   exclude_paths:
     description: "paths to exclude from the analysis"
     required: false
     default: ""
+    # Use semicolons (;) to separate multiple paths.
+    # Example: 'poetry.lock;artifacts/*'
   openai-api-key:
     description: "openai api key"
     required: true
@@ -47,7 +47,6 @@ runs:
   using: composite
   steps:
     - name: Checkout repo
-      if: inputs.checkout-repo == 'true'
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
