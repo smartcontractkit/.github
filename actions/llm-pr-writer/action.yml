@@ -59,7 +59,7 @@ runs:
       run: |
         diff_output=$(gh pr diff "$BRANCH")
         # escape all special characters and prepare for json with jq
-        escaped_diff_output=$(echo "$diff_output" | jq -Rs . | sed 's/^"//;s/"$//' >> $GITHUB_OUTPUT)
+        diff_output=$(echo "$diff_output" | jq -Rs . | sed 's/^"//;s/"$//' >> $GITHUB_OUTPUT)
 
     - name: Call ChatGPT
       id: chatgpt
