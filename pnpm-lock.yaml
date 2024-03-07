@@ -184,7 +184,7 @@ importers:
         version: 7.0.2
       '@octokit/plugin-throttling':
         specifier: ^8.1.3
-        version: 8.1.3(@octokit/core@5.1.0)
+        version: 8.2.0(@octokit/core@5.1.0)
       fs-extra:
         specifier: ^11.2.0
         version: 11.2.0
@@ -227,7 +227,7 @@ importers:
         version: 4.2.0(graphql@16.8.1)
       '@octokit/graphql-schema':
         specifier: ^14.40.1
-        version: 14.45.1
+        version: 14.58.0
       '@types/fs-extra':
         specifier: ^11.0.4
         version: 11.0.4
@@ -4458,8 +4458,8 @@ packages:
       universal-user-agent: 6.0.1
     dev: false
 
-  /@octokit/graphql-schema@14.45.1:
-    resolution: {integrity: sha512-4rrzuEOz6Df3Xm6z9UUEr+7G7Q/vlcnHAJW8SMz57Fr3fp8yPnXK9amJr4QISHZptF7d91WMrWK5UUbjPhBYMw==}
+  /@octokit/graphql-schema@14.58.0:
+    resolution: {integrity: sha512-89QSUV1Dgxzq90wqkv0Nmw7jHfFCAQ4K/fjp5ezvDEHqFFzMCn25TBQlm38WB8ams+hGxInRDbITCP0n7GTGlg==}
     dependencies:
       graphql: 16.8.1
       graphql-tag: 2.12.6(graphql@16.8.1)
@@ -4476,10 +4476,6 @@ packages:
 
   /@octokit/openapi-types@19.0.2:
     resolution: {integrity: sha512-8li32fUDUeml/ACRp/njCWTsk5t17cfTM1jp9n08pBrqs5cDFJubtjsSnuz56r5Tad6jdEPJld7LxNp9dNcyjQ==}
-    dev: false
-
-  /@octokit/openapi-types@19.1.0:
-    resolution: {integrity: sha512-6G+ywGClliGQwRsjvqVYpklIfa7oRPA0vyhPQG/1Feh+B+wU0vGH1JiJ5T25d3g1JZYBHzR2qefLi9x8Gt+cpw==}
     dev: false
 
   /@octokit/openapi-types@20.0.0:
@@ -4506,14 +4502,14 @@ packages:
       '@octokit/types': 12.1.1
     dev: false
 
-  /@octokit/plugin-throttling@8.1.3(@octokit/core@5.1.0):
-    resolution: {integrity: sha512-pfyqaqpc0EXh5Cn4HX9lWYsZ4gGbjnSmUILeu4u2gnuM50K/wIk9s1Pxt3lVeVwekmITgN/nJdoh43Ka+vye8A==}
+  /@octokit/plugin-throttling@8.2.0(@octokit/core@5.1.0):
+    resolution: {integrity: sha512-nOpWtLayKFpgqmgD0y3GqXafMFuKcA4tRPZIfu7BArd2lEZeb1988nhWhwx4aZWmjDmUfdgVf7W+Tt4AmvRmMQ==}
     engines: {node: '>= 18'}
     peerDependencies:
       '@octokit/core': ^5.0.0
     dependencies:
       '@octokit/core': 5.1.0
-      '@octokit/types': 12.4.0
+      '@octokit/types': 12.6.0
       bottleneck: 2.19.5
     dev: false
 
@@ -4551,12 +4547,6 @@ packages:
     resolution: {integrity: sha512-qnJTldJ1NyGT5MTsCg/Zi+y2IFHZ1Jo5+njNCjJ9FcainV7LjuHgmB697kA0g4MjZeDAJsM3B45iqCVsCLVFZg==}
     dependencies:
       '@octokit/openapi-types': 19.0.2
-    dev: false
-
-  /@octokit/types@12.4.0:
-    resolution: {integrity: sha512-FLWs/AvZllw/AGVs+nJ+ELCDZZJk+kY0zMen118xhL2zD0s1etIUHm1odgjP7epxYU1ln7SZxEUWYop5bhsdgQ==}
-    dependencies:
-      '@octokit/openapi-types': 19.1.0
     dev: false
 
   /@octokit/types@12.6.0:
