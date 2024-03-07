@@ -68,8 +68,9 @@ runs:
       shell: bash
       run: |
         diff_output=$(cat diff_output.txt)
+        openai_model=${{ inputs.openai-model }}
         prompt_response=$(echo '{
-          "model": ${{ inputs.openai-model }},
+          "model": "'$openai_model'",
           "temperature": 0.7,
           "messages": [
             {
