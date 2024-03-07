@@ -86,7 +86,7 @@ runs:
         )
 
         # replace lines starting with ' -' (1space) with '  -' (2spaces)
-        response_content="$(echo $prompt_response | jq -r '.choices[0].message.content')"
+        response_content=$(echo $prompt_response | jq -r '.choices[0].message.content')
         response_content=$(echo "$response_content" | sed -e 's/^ -/  -/g')
 
         {
@@ -104,7 +104,6 @@ runs:
           ${{ github.event.issue.number || github.event.pull_request.number ||
           '' }}
       run: |
-
         # get the current body of the PR
         pr_current_body="$(gh pr view $PR_NUMBER --json body | jq -r '.body')"
 
