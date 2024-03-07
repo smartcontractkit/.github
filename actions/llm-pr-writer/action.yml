@@ -78,8 +78,6 @@ runs:
         response_content=$(echo "$prompt_response" | jq -r '.choices[0].message.content')
         response_content=$(echo "$response_content" | sed -e 's/^ -/  -/g')
 
-        echo $response_content
-
         {
           echo 'response<<EOF'
           echo $response_content
@@ -103,7 +101,7 @@ runs:
         pr_current_body=$(echo "$pr_current_body" | sed -e '/<!-- DON'\''T DELETE. add your comments above llm generated contents -->/,$d')
         echo "$pr_current_body"
 
-        pr_message="${{ steps.chatgpt.outputs.response }}"
+        pr_message=$(cat $GITHUB_OUTPUT | sed -n '/response<<EOF/,/EOF/p' | sed -e '1d;$d')
 
         # if .github/pull_request_append.md exists, append to pr_message after a linebreak
         if [ -f .github/pull_request_append.md ]; then
