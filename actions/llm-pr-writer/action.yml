@@ -49,23 +49,28 @@ runs:
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
+    - name: Get diff output
+      # TODO: create a script to include exclusion of paths and/or files
+      shell: bash
+      run: |
+        diff_output=$(gh pr diff "$BRANCH")
+        # escape all special characters and prepare for json with jq
+        echo "$diff_output" | jq -Rs . | sed 's/^"//;s/"$//' > diff_output.txt
+
     - name: Call ChatGPT
-      id: chatgpt
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
         BRANCH: ${{ inputs.checkout-repo-fetch-depth }}
       run: |
-        diff_output=$(gh pr diff "$BRANCH")
-        # escape all special characters and prepare for json with jq
-        escaped_diff_output=$(echo "$diff_output" | jq -Rs . | sed 's/^"//;s/"$//')
+        diff_output=$(cat diff_output.txt)
         prompt_response=$(echo '{
           "model": "gpt-4-0125-preview",
           "temperature": 0.7,
           "messages": [
             {
               "role": "system",
-              "content": "You are a helpful expert data engineer with expertise in Blockchain and Decentralized Oracle Networks. Given the patch output of `git diff` command in the triple backticks at the bottom of the reply, your task is to help create a pull request message in order to facilitate and encourage reviews from your peers by focusing on the 2 primary topic: Why and What\n\n**What**\nA bullet point summary what has been changed. Objective and straight to the point. Organize and list the changes made to a specific file, focusing on the specifics of the changes, ie: what file, what change, and a brief sentence on the effect of the change (if any). For each file, group related changes as subitems under the same list item, indented with double spacebar characters and no linebreaks between list items.\n\n**Why**\nBased on the changes summarized in **What**, go through item by item of the list you wrote to understand the changes, then write a short paragraph (within 500 characters) summarizing the changes and their purposes without implying any assumptions about the broader context.\n\nAfter having done all that, output your response starting from **Why** and then **What** in escaped, raw markdown text that can be sent as http body to API (do not wrap in code block).\n\nPreamble your answer with a bold \"Below is a summarization created by an LLM\".\n Format \"why\" and \"what\" as Heading 2 using double sharp characters (##).\nOtherwise, do not include any another preamble and postamble to your answer. If there is no code within the triple backticks, kindly reply that there is no code to generate the pull-request message. \n  ```'$escaped_diff_output'``` \n"
+              "content": "You are a helpful expert data engineer with expertise in Blockchain and Decentralized Oracle Networks. Given the patch output of `git diff` command in the triple backticks at the bottom of the reply, your task is to help create a pull request message in order to facilitate and encourage reviews from your peers by focusing on the 2 primary topic: Why and What\n\n**What**\nA bullet point summary what has been changed. Objective and straight to the point. Organize and list the changes made to a specific file, focusing on the specifics of the changes, ie: what file, what change, and a brief sentence on the effect of the change (if any). For each file, group related changes as subitems under the same list item, indented with double spacebar characters and no linebreaks between list items.\n\n**Why**\nBased on the changes summarized in **What**, go through item by item of the list you wrote to understand the changes, then write a short paragraph (within 500 characters) summarizing the changes and their purposes without implying any assumptions about the broader context.\n\nAfter having done all that, output your response starting from **Why** and then **What** in escaped, raw markdown text that can be sent as http body to API (do not wrap in code block).\n\nPreamble your answer with a bold \"Below is a summarization created by an LLM\".\n Format \"why\" and \"what\" as Heading 2 using double sharp characters (##).\nOtherwise, do not include any another preamble and postamble to your answer. If there is no code within the triple backticks, kindly reply that there is no code to generate the pull-request message. \n  ```'$diff_output'``` \n"
             }
           ]
         }' | envsubst | curl https://api.openai.com/v1/chat/completions \
