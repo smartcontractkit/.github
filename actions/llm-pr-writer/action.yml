@@ -66,6 +66,9 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
         BRANCH: ${{ inputs.checkout-repo-fetch-depth }}
+        PR_NUMBER:
+          ${{ github.event.issue.number || github.event.pull_request.number ||
+          '' }}
       run: |
         # base_ref=$(gh pr view --json baseRefName | jq -r '.baseRefName')
         # exclude_filter=$(cat $GITHUB_OUTPUT | grep exclude_filter | cut -d'=' -f2)
@@ -103,7 +106,7 @@ runs:
         } >> $GITHUB_OUTPUT
 
         # get the current body of the PR
-        pr_current_body="$(gh pr view --json body | jq -r '.body')"
+        pr_current_body="$(gh pr view $PR_NUMBER --json body | jq -r '.body')"
 
         # delete every lines from <!-- DON'T DELETE. add your comments above llm generated contents -->
         # if not found, default behavior is to do nothing and rely on the user to delete the old message
