@@ -17,14 +17,12 @@ inputs:
   gh-token:
     description: "github token to make a comment with"
     required: true
-    # will require either pull_request: write or issues: write permission
+    # will require at least three permissions:
+    # contents: read
+    # pull-requests: write or issues: write
+    # repository-projects: read
     # https://docs.github.com/en/rest/issues/comments?apiVersion=2022-11-28#create-an-issue-comment
-  exclude-paths:
-    description: "paths to exclude from the analysis"
-    required: false
-    default: ""
-    # Use semicolons (;) to separate multiple paths.
-    # Example: 'poetry.lock;artifacts/*'
+    # https://github.com/cli/cli/discussions/5307 - reason why we need the repository-projects permission
   openai-api-key:
     description: "openai api key"
     required: true
@@ -51,44 +49,28 @@ runs:
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
-    - name: Create filter string
-      id: filter
+    - name: Get diff content
+      id: diff
       shell: bash
       run: |
-        IFS=';' read -ra exclude_paths_arr <<< "${{ inputs.exclude_paths }}"
-        for i in "${!exclude_paths_arr[@]}"; do
-          exclude_paths_arr[$i]="':!${exclude_paths_arr[$i]}'"
-        done
-        echo "exclude_filter="${exclude_paths_arr[@]}"" >> "$GITHUB_OUTPUT"
-
-    - name: Genereate PR Description from Diff
-      shell: bash
-      env:
-        GH_TOKEN: ${{ inputs.gh-token }}
-        BRANCH: ${{ inputs.checkout-repo-fetch-depth }}
-        PR_NUMBER:
-          ${{ github.event.issue.number || github.event.pull_request.number ||
-          '' }}
-      run: |
-        # base_ref=$(gh pr view --json baseRefName | jq -r '.baseRefName')
-        # exclude_filter=$(cat $GITHUB_OUTPUT | grep exclude_filter | cut -d'=' -f2)
-        # diff_command="git diff origin/$base_ref...HEAD -- $exclude_filter"
-        # echo "$diff_command"
-        # diff_output=$(eval $diff_command)
+        # TODO convert this into a script that takes in excluded paths and/or file extensions
         diff_output=$(gh pr diff "$BRANCH")
-
         # escape all special characters and prepare for json with jq
-        escaped_diff_output=$(echo "$diff_output" | jq -Rs . | sed 's/^"//;s/"$//')
-
+        escaped_diff_output=$(echo "$diff_output" | jq -Rs . | sed 's/^"//;s/"$//' >> $GITHUB_OUTPUT)
         echo "$escaped_diff_output"
 
-        pr_message=$(echo '{
+    - name: Call ChatGPT
+      id: chatgpt
+      shell: bash
+      run: |
+        diff_output="${{ steps.diff.outputs.diff_output }}"
+        prompt_response=$(echo '{
           "model": "gpt-4-0125-preview",
           "temperature": 0.7,
           "messages": [
             {
               "role": "system",
-              "content": "You are a helpful expert data engineer with expertise in Blockchain and Decentralized Oracle Networks. Given the patch output of `git diff` command in the triple backticks at the bottom of the reply, your task is to help create a pull request message in order to facilitate and encourage reviews from your peers by focusing on the 2 primary topic: Why and What\n\n**What**\nA bullet point summary what has been changed. Objective and straight to the point. Organize and list the changes made to a specific file, focusing on the specifics of the changes, ie: what file, what change, and a brief sentence on the effect of the change (if any). For each file, group related changes as subitems under the same list item, indented with double spacebar characters and no linebreaks between list items.\n\n**Why**\nBased on the changes summarized in **What**, go through item by item of the list you wrote to understand the changes, then write a short paragraph (within 500 characters) summarizing the changes and their purposes without implying any assumptions about the broader context.\n\nAfter having done all that, output your response starting from **Why** and then **What** in escaped, raw markdown text that can be sent as http body to API (do not wrap in code block).\n\nPreamble your answer with a bold \"Below is a summarization created by an LLM\".\n Format \"why\" and \"what\" as Heading 2 using double sharp characters (##).\nOtherwise, do not include any another preamble and postamble to your answer. If there is no code within the triple backticks, kindly reply that there is no code to generate the pull-request message. \n  ```'$escaped_diff_output'```\n"
+              "content": "You are a helpful expert data engineer with expertise in Blockchain and Decentralized Oracle Networks. Given the patch output of `git diff` command in the triple backticks at the bottom of the reply, your task is to help create a pull request message in order to facilitate and encourage reviews from your peers by focusing on the 2 primary topic: Why and What\n\n**What**\nA bullet point summary what has been changed. Objective and straight to the point. Organize and list the changes made to a specific file, focusing on the specifics of the changes, ie: what file, what change, and a brief sentence on the effect of the change (if any). For each file, group related changes as subitems under the same list item, indented with double spacebar characters and no linebreaks between list items.\n\n**Why**\nBased on the changes summarized in **What**, go through item by item of the list you wrote to understand the changes, then write a short paragraph (within 500 characters) summarizing the changes and their purposes without implying any assumptions about the broader context.\n\nAfter having done all that, output your response starting from **Why** and then **What** in escaped, raw markdown text that can be sent as http body to API (do not wrap in code block).\n\nPreamble your answer with a bold \"Below is a summarization created by an LLM\".\n Format \"why\" and \"what\" as Heading 2 using double sharp characters (##).\nOtherwise, do not include any another preamble and postamble to your answer. If there is no code within the triple backticks, kindly reply that there is no code to generate the pull-request message. \n  ```'$diff_output'```\n"
             }
           ]
         }' | envsubst | curl https://api.openai.com/v1/chat/completions \
@@ -97,13 +79,25 @@ runs:
                       -d @-
         )
 
-        echo $pr_message
+        # replace lines starting with ' -' (1space) with '  -' (2spaces)
+        response_content="$(echo $prompt_response | jq -r '.choices[0].message.content')"
+        response_content=$(echo "$response_content" | sed -e 's/^ -/  -/g')
 
         {
-          echo 'pr_message<<EOF'
-          echo $pr_message | jq -r '.choices[0].message.content'
+          echo 'response<<EOF'
+          echo $response_content
           echo EOF
         } >> $GITHUB_OUTPUT
+
+    - name: Generate PR summary
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh-token }}
+        BRANCH: ${{ inputs.checkout-repo-fetch-depth }}
+        PR_NUMBER:
+          ${{ github.event.issue.number || github.event.pull_request.number ||
+          '' }}
+      run: |
 
         # get the current body of the PR
         pr_current_body="$(gh pr view $PR_NUMBER --json body | jq -r '.body')"
@@ -113,10 +107,7 @@ runs:
         pr_current_body=$(echo "$pr_current_body" | sed -e '/<!-- DON'\''T DELETE. add your comments above llm generated contents -->/,$d')
         echo "$pr_current_body"
 
-        pr_message="$(echo $pr_message | jq -r '.choices[0].message.content')"
-
-        # replace lines starting with ' -' (1space) with '  -' (2spaces)
-        pr_message=$(echo "$pr_message" | sed -e 's/^ -/  -/g')
+        pr_message="${{ steps.chatgpt.outputs.response }}"
 
         # if .github/pull_request_append.md exists, append to pr_message after a linebreak
         if [ -f .github/pull_request_append.md ]; then
@@ -126,9 +117,7 @@ runs:
         "
         fi
 
-        echo "$pr_message"
-
-        gh pr edit ${{ github.event.issue.number || github.event.pull_request.number || '' }} -b "$pr_current_body
+        gh pr edit $BRANCH -b "$pr_current_body
         <!-- DON'T DELETE. add your comments above llm generated contents -->
         ---
         $pr_message
