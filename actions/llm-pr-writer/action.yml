@@ -26,6 +26,10 @@ inputs:
   openai-api-key:
     description: "openai api key"
     required: true
+  openai-model:
+    description: "openai model"
+    required: false
+    default: "gpt-4-0125-preview"
   # grafana inputs
   metrics-job-name:
     description: "grafana metrics job name"
@@ -65,7 +69,7 @@ runs:
       run: |
         diff_output=$(cat diff_output.txt)
         prompt_response=$(echo '{
-          "model": "gpt-4-0125-preview",
+          "model": ${{ inputs.openai-model }},
           "temperature": 0.7,
           "messages": [
             {
