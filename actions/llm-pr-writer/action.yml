@@ -50,17 +50,16 @@ runs:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
     - name: Get diff content
+      # TODO convert this into a script that takes in excluded paths and/or file extensions
       id: diff
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
         BRANCH: ${{ inputs.checkout-repo-fetch-depth }}
       run: |
-        # TODO convert this into a script that takes in excluded paths and/or file extensions
         diff_output=$(gh pr diff "$BRANCH")
         # escape all special characters and prepare for json with jq
         escaped_diff_output=$(echo "$diff_output" | jq -Rs . | sed 's/^"//;s/"$//' >> $GITHUB_OUTPUT)
-        echo "$escaped_diff_output"
 
     - name: Call ChatGPT
       id: chatgpt
