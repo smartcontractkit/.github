@@ -52,6 +52,9 @@ runs:
     - name: Get diff content
       id: diff
       shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh-token }}
+        BRANCH: ${{ inputs.checkout-repo-fetch-depth }}
       run: |
         # TODO convert this into a script that takes in excluded paths and/or file extensions
         diff_output=$(gh pr diff "$BRANCH")
