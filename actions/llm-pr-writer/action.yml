@@ -75,8 +75,10 @@ runs:
         )
 
         # replace lines starting with ' -' (1space) with '  -' (2spaces)
-        response_content=$(echo $prompt_response | jq -r '.choices[0].message.content')
+        response_content=$(echo "$prompt_response" | jq -r '.choices[0].message.content')
         response_content=$(echo "$response_content" | sed -e 's/^ -/  -/g')
+
+        echo $response_content
 
         {
           echo 'response<<EOF'
