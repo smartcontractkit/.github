@@ -19,7 +19,7 @@ inputs:
     required: true
     # will require either pull_request: write or issues: write permission
     # https://docs.github.com/en/rest/issues/comments?apiVersion=2022-11-28#create-an-issue-comment
-  exclude_paths:
+  exclude-paths:
     description: "paths to exclude from the analysis"
     required: false
     default: ""
