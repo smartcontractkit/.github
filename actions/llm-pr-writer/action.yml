@@ -52,6 +52,9 @@ runs:
     - name: Get diff output
       # TODO: create a script to include exclusion of paths and/or files
       shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh-token }}
+        BRANCH: ${{ inputs.checkout-repo-fetch-depth }}
       run: |
         diff_output=$(gh pr diff "$BRANCH")
         # escape all special characters and prepare for json with jq
@@ -59,9 +62,6 @@ runs:
 
     - name: Call ChatGPT
       shell: bash
-      env:
-        GH_TOKEN: ${{ inputs.gh-token }}
-        BRANCH: ${{ inputs.checkout-repo-fetch-depth }}
       run: |
         diff_output=$(cat diff_output.txt)
         prompt_response=$(echo '{
