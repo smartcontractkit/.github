@@ -65,12 +65,14 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
+        BRANCH: ${{ inputs.checkout-repo-fetch-depth }}
       run: |
-        base_ref=$(gh pr view --json baseRefName | jq -r '.baseRefName')
-        exclude_filter=$(cat $GITHUB_OUTPUT | grep exclude_filter | cut -d'=' -f2)
-        diff_command="git diff origin/$base_ref...HEAD -- $exclude_filter"
-        echo "$diff_command"
-        diff_output=$(eval $diff_command)
+        # base_ref=$(gh pr view --json baseRefName | jq -r '.baseRefName')
+        # exclude_filter=$(cat $GITHUB_OUTPUT | grep exclude_filter | cut -d'=' -f2)
+        # diff_command="git diff origin/$base_ref...HEAD -- $exclude_filter"
+        # echo "$diff_command"
+        # diff_output=$(eval $diff_command)
+        diff_output=$(gh pr diff "$BRANCH")
 
         # escape all special characters and prepare for json with jq
         escaped_diff_output=$(echo "$diff_output" | jq -Rs . | sed 's/^"//;s/"$//')
