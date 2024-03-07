@@ -70,6 +70,8 @@ runs:
       shell: bash
       run: |
         diff_output="${{ steps.diff.outputs.diff_output }}"
+
+        echo "STOPP HERE"
         prompt_response=$(echo '{
           "model": "gpt-4-0125-preview",
           "temperature": 0.7,
