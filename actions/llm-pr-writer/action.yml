@@ -76,13 +76,7 @@ runs:
 
         # replace lines starting with ' -' (1space) with '  -' (2spaces)
         response_content=$(echo "$prompt_response" | jq -r '.choices[0].message.content')
-        response_content=$(echo "$response_content" | sed -e 's/^ -/  -/g')
-
-        {
-          echo 'response<<EOF'
-          echo $response_content
-          echo EOF
-        } >> $GITHUB_OUTPUT
+        echo "$response_content" | sed -e 's/^ -/  -/g' > chatgpt_output.txt
 
     - name: Generate PR summary
       shell: bash
@@ -101,7 +95,7 @@ runs:
         pr_current_body=$(echo "$pr_current_body" | sed -e '/<!-- DON'\''T DELETE. add your comments above llm generated contents -->/,$d')
         echo "$pr_current_body"
 
-        pr_message=$(cat $GITHUB_OUTPUT | sed -n '/response<<EOF/,/EOF/p' | sed -e '1d;$d')
+        pr_message=$(cat chatgpt_output.txt)
 
         # if .github/pull_request_append.md exists, append to pr_message after a linebreak
         if [ -f .github/pull_request_append.md ]; then
