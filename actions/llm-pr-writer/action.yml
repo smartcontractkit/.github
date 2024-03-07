@@ -94,6 +94,8 @@ runs:
                       -d @-
         )
 
+        echo $pr_message
+
         {
           echo 'pr_message<<EOF'
           echo $pr_message | jq -r '.choices[0].message.content'
