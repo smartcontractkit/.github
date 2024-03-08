@@ -1,5 +1,14 @@
 # manifest-build
 
+## 0.4.0
+
+### Minor Changes
+
+- [#149](https://github.com/smartcontractkit/.github/pull/149)
+  [`40321c0`](https://github.com/smartcontractkit/.github/commit/40321c0a57fa602597f91c495cb0318d0fc3d01a)
+  Thanks [@aalu1418](https://github.com/aalu1418)! - Custom nix cache support +
+  environment setup
+
 ## 0.3.1
 
 ### Patch Changes
