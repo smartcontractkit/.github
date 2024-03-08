@@ -127,7 +127,7 @@ runs:
 
     - name: Assume aws gati role
       if: inputs.use-gati == 'true'
-      uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
+      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
       with:
         role-to-assume: ${{ inputs.aws-role-arn-gati }}
         role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
@@ -162,7 +162,7 @@ runs:
         version: ${{ inputs.zig-version }}
 
     - name: Setup docker buildx
-      uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+      uses: docker/setup-buildx-action@0d103c3126aa41d772a8362f6aa67afac040f80c # v3.1.0
 
     - name: Set up qemu
       uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
@@ -186,7 +186,7 @@ runs:
         fi
 
     - name: Configure aws creds
-      uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
+      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
       if: inputs.publish == 'true' && inputs.docker-registry == 'aws'
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
