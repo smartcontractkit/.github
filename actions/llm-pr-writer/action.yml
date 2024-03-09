@@ -27,9 +27,16 @@ inputs:
     description: "openai api key"
     required: true
   openai-model:
-    description: "openai model"
+    description: "openai model. defaults to 'gpt-3.5-turbo-0125'. use 'gpt-4-0125-preview' if you need a more powerful model."
     required: false
-    default: "gpt-4-0125-preview"
+    default: "gpt-3.5-turbo-0125"
+  exclude_paths:
+    description: "semi-colon(;) separated paths to exclude from diff"
+    required: false
+    type: string
+  append_markdown:
+    description: "markdown filename with extension to append to the PR message (checklist, etc.)"
+    required: false
   # grafana inputs
   metrics-job-name:
     description: "grafana metrics job name"
@@ -53,14 +60,27 @@ runs:
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
+    - name: Format diff exclude filter
+      id: filter
+      run: |
+        IFS=';' read -ra exclude_paths_arr <<< "${{ inputs.exclude_paths }}"
+        for i in "${!exclude_paths_arr[@]}"; do
+          exclude_paths_arr[$i]="':!${exclude_paths_arr[$i]}'"
+        done
+
+        echo "exclude_filter="${exclude_paths_arr[@]}"" >> "$GITHUB_OUTPUT"
+
     - name: Get diff output
       # TODO: create a script to include exclusion of paths and/or files
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
-        BRANCH: ${{ inputs.checkout-repo-fetch-depth }}
+        PR_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number || '' }}
       run: |
-        diff_output=$(gh pr diff "$BRANCH")
+        gh pr checkout $PR_NUMBER
+        diff_command="git diff origin/\$(gh pr view --json baseRefName | jq -r '.baseRefName')...HEAD -- ${{ steps.filter.outputs.exclude_filter }}"
+        diff_output=$(eval $diff_command)
+        
         # escape all special characters and prepare for json with jq
         echo "$diff_output" | jq -Rs . | sed 's/^"//;s/"$//' > diff_output.txt
 
@@ -75,7 +95,7 @@ runs:
           "messages": [
             {
               "role": "system",
-              "content": "You are a helpful expert data engineer with expertise in Blockchain and Decentralized Oracle Networks. Given the patch output of `git diff` command in the triple backticks at the bottom of the reply, your task is to help create a pull request message in order to facilitate and encourage reviews from your peers by focusing on the 2 primary topic: Why and What\n\n**What**\nA bullet point summary what has been changed. Objective and straight to the point. Organize and list the changes made to a specific file, focusing on the specifics of the changes, ie: what file, what change, and a brief sentence on the effect of the change (if any). For each file, group related changes as subitems under the same list item, indented with double spacebar characters and no linebreaks between list items.\n\n**Why**\nBased on the changes summarized in **What**, go through item by item of the list you wrote to understand the changes, then write a short paragraph (within 500 characters) summarizing the changes and their purposes without implying any assumptions about the broader context.\n\nAfter having done all that, output your response starting from **Why** and then **What** in escaped, raw markdown text that can be sent as http body to API (do not wrap in code block).\n\nPreamble your answer with a bold \"Below is a summarization created by an LLM\".\n Format \"why\" and \"what\" as Heading 2 using double sharp characters (##).\nOtherwise, do not include any another preamble and postamble to your answer. If there is no code within the triple backticks, kindly reply that there is no code to generate the pull-request message. \n  ```'$diff_output'``` \n"
+              "content": "You are a helpful expert data engineer with expertise in Blockchain and Decentralized Oracle Networks. Given the patch output of `git diff` command in the triple backticks at the bottom of the reply, your task is to help create a pull request message in order to facilitate and encourage reviews from your peers by focusing on the 2 primary topic: Why and What\n\n**What**\nA bullet point summary what has been changed. Objective and straight to the point. Organize and list the changes made to a specific file, focusing on the specifics of the changes, ie: what file, what change, and a brief sentence on the effect of the change (if any). For each file, group related changes as subitems under the same list item, indented with double spacebar characters and no linebreaks between list items.\n\n**Why**\nBased on the changes summarized in **What**, go through item by item of the list you wrote to understand the changes, then write a short paragraph (within 500 characters) summarizing the changes and their purposes without implying any assumptions about the broader context.\n\nAfter having done all that, output your response starting from **Why** and then **What** in escaped, raw markdown text that can be sent as http body to API (do not wrap in code block).\n\n Format \"why\" and \"what\" as Heading 2 using double sharp characters (##).\nOtherwise, do not include any another preamble and postamble to your answer. If there is no code within the triple backticks, kindly reply that there is no code to generate the pull-request message. \n  ```'$diff_output'``` \n"
             }
           ]
         }' | envsubst | curl https://api.openai.com/v1/chat/completions \
@@ -83,6 +103,11 @@ runs:
                       -H "Authorization: Bearer ${{ inputs.openai-api-key }}" \
                       -d @-
         )
+        # # throw error if response is empty or 'null'
+        # if [ -z "$prompt_response" ] || [ "$prompt_response" == "null" ]; then
+        #   echo "ChatGPT response is empty or null"
+        #   exit 1
+        # fi
 
         # replace lines starting with ' -' (1space) with '  -' (2spaces)
         response_content=$(echo "$prompt_response" | jq -r '.choices[0].message.content')
@@ -105,13 +130,15 @@ runs:
         pr_current_body=$(echo "$pr_current_body" | sed -e '/<!-- DON'\''T DELETE. add your comments above llm generated contents -->/,$d')
         echo "$pr_current_body"
 
-        pr_message=$(cat chatgpt_output.txt)
+        pr_message="**Below is a summarization created by an LLM ($inputs.openai-model). Model hallucinations could result in mistakes.**
+        
+        $(cat chatgpt_output.txt)"
 
-        # if .github/pull_request_append.md exists, append to pr_message after a linebreak
-        if [ -f .github/pull_request_append.md ]; then
+        # if append_markdown input exists, append to pr_message after a linebreak
+        if [ -f .github/${{ inputs.append_markdown }} ]; then
           pr_message="$pr_message
 
-        $(cat .github/pull_request_append.md)
+        $(cat .github/${{ inputs.append_markdown }})
         "
         fi
 
