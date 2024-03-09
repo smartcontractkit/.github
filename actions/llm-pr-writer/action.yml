@@ -61,6 +61,7 @@ runs:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
     - name: Format diff exclude filter
+      shell: bash
       id: filter
       run: |
         IFS=';' read -ra exclude_paths_arr <<< "${{ inputs.exclude_paths }}"
@@ -71,7 +72,6 @@ runs:
         echo "exclude_filter="${exclude_paths_arr[@]}"" >> "$GITHUB_OUTPUT"
 
     - name: Get diff output
-      # TODO: create a script to include exclusion of paths and/or files
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
@@ -117,10 +117,7 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
-        BRANCH: ${{ inputs.checkout-repo-fetch-depth }}
-        PR_NUMBER:
-          ${{ github.event.issue.number || github.event.pull_request.number ||
-          '' }}
+        PR_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number || '' }}
       run: |
         # get the current body of the PR
         pr_current_body="$(gh pr view $PR_NUMBER --json body | jq -r '.body')"
@@ -142,7 +139,7 @@ runs:
         "
         fi
 
-        gh pr edit $BRANCH -b "$pr_current_body
+        gh pr edit $PR_NUMBER -b "$pr_current_body
         <!-- DON'T DELETE. add your comments above llm generated contents -->
         ---
         $pr_message
