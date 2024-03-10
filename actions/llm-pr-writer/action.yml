@@ -105,7 +105,7 @@ runs:
       id: check_pr-append-file
       run: |
         if [ ! -f ${{ inputs.pr-append-file }} ]; then
-          echo "pr-append-file was set but does not exist"
+          echo "::error::pr-append-file was set but does not exist"
           exit 1
         else
           echo "result=exists" >> "$GITHUB_OUTPUT"
@@ -132,7 +132,7 @@ runs:
         diff_output=$(cat diff_output.txt)
         openai_prompt=$(cat pr_writer_actions/actions/llm-pr-writer/pr-writer-prompt.md)
         openai_model=${{ inputs.openai-model }}
-        prompt_response=$(echo '{
+        openai_result=$(echo '{
           "model": "'$openai_model'",
           "temperature": 0.7,
           "messages": [
@@ -142,20 +142,21 @@ runs:
             }
           ]
         }' | envsubst | curl https://api.openai.com/v1/chat/completions \
+                      -w "%{http_code}" \
+                      -o prompt_response.json \
                       -H "Content-Type: application/json" \
                       -H "Authorization: Bearer ${{ inputs.openai-api-key }}" \
                       -d @-
         )
-        echo $prompt_response
 
-        # throw error if response is empty or 'null'
-        if [ -z "$prompt_response" ] || [ "$prompt_response" == "null" ]; then
-          echo "ChatGPT response is empty or null"
+        # throw error openai_result when is not 200
+        if [ "$openai_result" != '200' ]; then
+          echo "::error::OpenAI API call failed with status $openai_result: $(cat prompt_response.json)"
           exit 1
         fi
 
         # replace lines starting with ' -' (1space) with '  -' (2spaces)
-        response_content=$(echo "$prompt_response" | jq -r '.choices[0].message.content')
+        response_content=$(cat prompt_response.json | jq -r '.choices[0].message.content')
         echo "$response_content" | sed -e 's/^ -/  -/g' > chatgpt_output.txt
 
     - name: Append additional content to output
