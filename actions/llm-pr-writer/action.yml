@@ -59,12 +59,22 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Check if the event is a pull request or comment body starts with `/gpt-create-pr`
+      shell: bash
+      if: >
+       github.event_name == 'pull_request' ||
+       (github.event.issue.pull_request && startsWith(github.event.comment.body, '/gpt-create-pr'))
+      run: |
+        echo "SKIP_ACTION=false" >> $GITHUB_ENV
+
     - name: Checkout calling repo
+      if: env.SKIP_ACTION == 'false'
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
     - name: Checkout action repo
+      if: env.SKIP_ACTION == 'false'
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: smartcontractkit/.github
@@ -77,6 +87,7 @@ runs:
         fetch-depth: 1
 
     - name: Format diff exclude filter
+      if: env.SKIP_ACTION == 'false'
       shell: bash
       id: filter
       run: |
@@ -89,17 +100,19 @@ runs:
 
     # Fail early to avoid unnecessary API calls
     - name: If pr-append-file is set, check if it exists
+      if: env.SKIP_ACTION == 'false' && inputs.pr-append-file
       shell: bash
       id: check_pr-append-file
-      if: ${{ inputs.pr-append-file }}
       run: |
         if [ ! -f ${{ inputs.pr-append-file }} ]; then
           echo "pr-append-file was set but does not exist"
           exit 1
+        else
+          echo "result=exists" >> "$GITHUB_OUTPUT"
         fi
-        echo "result=exists" >> "$GITHUB_OUTPUT"
 
     - name: Get diff output
+      if: env.SKIP_ACTION == 'false'
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
@@ -113,6 +126,7 @@ runs:
         echo "$diff_output" | jq -Rs . | sed 's/^"//;s/"$//' > diff_output.txt
 
     - name: Call ChatGPT
+      if: env.SKIP_ACTION == 'false'
       shell: bash
       run: |
         diff_output=$(cat diff_output.txt)
@@ -145,13 +159,14 @@ runs:
         echo "$response_content" | sed -e 's/^ -/  -/g' > chatgpt_output.txt
 
     - name: Append additional content to output
-      if: ${{ steps.check_pr-append-file.outputs.result == 'exists' }}
+      if: env.SKIP_ACTION == 'false' && steps.check_pr-append-file.outputs.result == 'exists'
       shell: bash
       run: |
         echo "Appending content to PR"
         cat ${{ inputs.pr-append-file }} >> chatgpt_output.txt
 
     - name: Generate PR summary
+      if: env.SKIP_ACTION == 'false'
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
