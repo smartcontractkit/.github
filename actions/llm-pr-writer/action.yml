@@ -30,13 +30,17 @@ inputs:
     description: "openai model. defaults to 'gpt-3.5-turbo-0125'. use 'gpt-4-0125-preview' if you need a more powerful model."
     required: false
     default: "gpt-3.5-turbo-0125"
-  exclude_paths:
+  exclude-paths:
     description: "semi-colon(;) separated paths to exclude from diff"
     required: false
     type: string
-  pr_append_file:
+  pr-append-file:
     description: "path to a markdown or text file to append to the PR message (checklist, etc.)"
     required: false
+  workflow-ref:
+    description: "ref of the workflow to checkout"
+    required: false
+    default: "main"
   # grafana inputs
   metrics-job-name:
     description: "grafana metrics job name"
@@ -55,16 +59,28 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout repo
+    - name: Checkout calling repo
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Checkout action repo
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        repository: smartcontractkit/.github
+        ref: ${{ inputs.workflow-ref }}
+        path: 'pr_writer_actions'
+        # prevents access to any other action and workflow files
+        sparse-checkout: |
+          actions/llm-pr-writer/pr-writer-prompt.md
+        sparse-checkout-cone-mode: false
+        fetch-depth: 1
 
     - name: Format diff exclude filter
       shell: bash
       id: filter
       run: |
-        IFS=';' read -ra exclude_paths_arr <<< "${{ inputs.exclude_paths }}"
+        IFS=';' read -ra exclude_paths_arr <<< "${{ inputs.exclude-paths }}"
         for i in "${!exclude_paths_arr[@]}"; do
           exclude_paths_arr[$i]="':!${exclude_paths_arr[$i]}'"
         done
@@ -72,13 +88,13 @@ runs:
         echo "exclude_filter="${exclude_paths_arr[@]}"" >> "$GITHUB_OUTPUT"
 
     # Fail early to avoid unnecessary API calls
-    - name: If pr_append_file is set, check if it exists
+    - name: If pr-append-file is set, check if it exists
       shell: bash
-      id: check_pr_append_file
-      if: ${{ inputs.pr_append_file }}
+      id: check_pr-append-file
+      if: ${{ inputs.pr-append-file }}
       run: |
-        if [ ! -f ${{ inputs.pr_append_file }} ]; then
-          echo "pr_append_file was set but does not exist"
+        if [ ! -f ${{ inputs.pr-append-file }} ]; then
+          echo "pr-append-file was set but does not exist"
           exit 1
         fi
         echo "result=exists" >> "$GITHUB_OUTPUT"
@@ -100,6 +116,7 @@ runs:
       shell: bash
       run: |
         diff_output=$(cat diff_output.txt)
+        openai_prompt=$(cat pr_writer_actions/actions/llm-pr-writer/pr-writer-prompt.md)
         openai_model=${{ inputs.openai-model }}
         prompt_response=$(echo '{
           "model": "'$openai_model'",
@@ -107,7 +124,7 @@ runs:
           "messages": [
             {
               "role": "system",
-              "content": "You are a helpful expert data engineer with expertise in Blockchain and Decentralized Oracle Networks. Given the patch output of `git diff` command in the triple backticks at the bottom of the reply, your task is to help create a pull request message in order to facilitate and encourage reviews from your peers by focusing on the 2 primary topic: Why and What\n\n**What**\nA bullet point summary what has been changed. Objective and straight to the point. Organize and list the changes made to a specific file, focusing on the specifics of the changes, ie: what file, what change, and a brief sentence on the effect of the change (if any). For each file, group related changes as subitems under the same list item, indented with double spacebar characters and no linebreaks between list items.\n\n**Why**\nBased on the changes summarized in **What**, go through item by item of the list you wrote to understand the changes, then write a short paragraph (within 500 characters) summarizing the changes and their purposes without implying any assumptions about the broader context.\n\nAfter having done all that, output your response starting from **Why** and then **What** in escaped, raw markdown text that can be sent as http body to API (do not wrap in code block).\n\n Format \"why\" and \"what\" as Heading 2 using double sharp characters (##).\nOtherwise, do not include any another preamble and postamble to your answer. If there is no code within the triple backticks, kindly reply that there is no code to generate the pull-request message. \n  ```'$diff_output'``` \n"
+              "content": "'$openai_prompt' \n\n```'$diff_output'```\n"
             }
           ]
         }' | envsubst | curl https://api.openai.com/v1/chat/completions \
@@ -115,6 +132,7 @@ runs:
                       -H "Authorization: Bearer ${{ inputs.openai-api-key }}" \
                       -d @-
         )
+        echo $prompt_response
 
         # throw error if response is empty or 'null'
         if [ -z "$prompt_response" ] || [ "$prompt_response" == "null" ]; then
@@ -127,11 +145,11 @@ runs:
         echo "$response_content" | sed -e 's/^ -/  -/g' > chatgpt_output.txt
 
     - name: Append additional content to output
-      if: ${{ steps.check_pr_append_file.outputs.result == 'exists' }}
+      if: ${{ steps.check_pr-append-file.outputs.result == 'exists' }}
       shell: bash
       run: |
         echo "Appending content to PR"
-        cat ${{ inputs.pr_append_file }} >> chatgpt_output.txt
+        cat ${{ inputs.pr-append-file }} >> chatgpt_output.txt
 
     - name: Generate PR summary
       shell: bash
@@ -147,7 +165,7 @@ runs:
         pr_current_body=$(echo "$pr_current_body" | sed -e '/<!-- DON'\''T DELETE. add your comments above llm generated contents -->/,$d')
         echo "$pr_current_body"
 
-        pr_message="**Below is a summarization created by an LLM ({{ $inputs.openai-model }}). Be mindful of hallucinations and verify accuracy.**
+        pr_message="**Below is a summarization created by an LLM (${{ inputs.openai-model }}). Be mindful of hallucinations and verify accuracy.**
         
         $(cat chatgpt_output.txt)"
 
