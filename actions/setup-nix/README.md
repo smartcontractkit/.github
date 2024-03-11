@@ -25,4 +25,7 @@ inputs:
   enable-cachix: bool, true/false
   cachix-name: cache name
   cachix-token: token for cachix account
+
+  # github inputs ---------------------------------
+  github-token: token to enable reading private repositories
 ```
