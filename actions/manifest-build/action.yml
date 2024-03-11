@@ -153,26 +153,20 @@ runs:
       shell: bash
       id: buildPaths
       run: |
-        PATHS=""
+        PKGS=()
         for key in ${{ steps.getModels.outputs.pkgs }}; do
-            pkg="'.#\"$key\"'" # build model name with path - example: .#mf
-
-            # get runtime output   
-            echo "nix build $pkg"
-            outPath=$(eval "nix build --no-link --print-out-paths --verbose --narinfo-cache-negative-ttl 0 $pkg")
-            echo $outPath
-            PATHS+="$outPath "
-
-            # experimental
-            # get build time derivation - does not copy additional build-time dependencies
-            # assumption that other build-time dependencies are available through other nix caches
-            echo "nix path-info --derivation $pkg"
-            drv=$(eval "nix path-info --derivation $pkg")
-            echo $drv
-            # PATHS+="$drv " # TODO: disabled buildtime deps for now
-
-            echo "-------------------------"
+            PKGS+=(".#\"$key\"") # build model name with path - example: .#mf
         done
+
+
+        # get runtime output
+        PATHS=$(nix derivation show $PKGS | jq -r '.[] | .outputs | .[] | .path' | tr '\n' ' ')
+
+        # # experimental get build time derivation
+        # # get build time derivation - does not copy additional build-time dependencies
+        # # assumption that other build-time dependencies are available through other nix caches
+        # PATHS+=" $(nix derivation show $PKGS | jq -r 'keys[]' | tr '\n' ' ')"
+        
         echo "paths=$PATHS" >> $GITHUB_OUTPUT
     - name: Sign all paths locally
       shell: bash
