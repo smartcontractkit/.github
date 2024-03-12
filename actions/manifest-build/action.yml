@@ -110,7 +110,7 @@ runs:
         # symlink credential folders for nix build access
         sudo ln -s ~/.aws $ROOT_PATH
 
-    - uses: cachix/install-nix-action@6004951b182f8860210c8d6f0d808ec5b1a33d28 # v25
+    - uses: cachix/install-nix-action@8887e596b4ee1134dae06b98d573bd674693f47c # v26
       with:
         install_url: https://releases.nixos.org/nix/nix-2.18.1/install
         nix_path: nixpkgs=channel:nixos-unstable
