@@ -130,13 +130,16 @@ bootstrap by running and following the prompts:
 
 ✔ What name would you like to use? · name-of-your-action
 ✔ What description would you like to use? · some description of your action
+✔ Would you like to include a debug bash script? (y/N) · false
 CREATE actions/name-of-your-action/project.json
 CREATE actions/name-of-your-action/README.md
 CREATE actions/name-of-your-action/action.yml
-CREATE actions/name-of-your-action/debug.sh
 CREATE actions/name-of-your-action/package.json
 UPDATE tsconfig.base.json
 ```
 
-Note: This will bootstrap a new composite action within the `actions/` with the
+**Note**: This will bootstrap a new composite action within the `actions/` with the
 minimum required files.
+
+Once ready to release this new action,
+run `pnpm changeset` to create the initial changeset file and bump the minor version.
