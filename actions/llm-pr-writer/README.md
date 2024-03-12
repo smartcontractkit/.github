@@ -6,6 +6,12 @@ The implementation of this workflow promotes uniformity and depth in PR descript
 
 # Prerequisite
 - An OpenAI API key with access to GPT chat completion endpoints.
+- SHA of the tag you want to use. You can find the SHA of a tag by running
+```bash
+git rev-list -n 1 [TAG_NAME]
+# search for available tags at https://github.com/smartcontractkit/.github 
+# from branch dropdown -> tags tab -> type in llm-pr-writer
+```
 
 # Usage
 ```yaml
@@ -24,7 +30,7 @@ jobs:
       contents: read
       pull-requests: write
       repository-projects: read
-    uses: smartcontractkit/.github/actions/llm-pr-writer@llm-pr-writer-020@v0.2.0
+    uses: smartcontractkit/.github/actions/llm-pr-writer@[SHA] # points to a specific tag (ie. llm-pr-writer@0.2.0)
     with:
       # GitHub token used to fetch the PR diff and create a new PR comment.
       # ${{ secrets.GITHUB_TOKEN }} will be sufficient.
