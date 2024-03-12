@@ -1,5 +1,5 @@
-name: ci-lint-misc
-description: Lint actions and scripts
+name: <%= name %>
+description: "<%= description %>"
 
 inputs:
   # general inputs
@@ -15,7 +15,7 @@ inputs:
   metrics-job-name:
     description: "grafana metrics job name"
     required: false
-    default: ci-lint-misc
+    default: <%= name %>
   gc-host:
     description: "grafana hostname"
     required: false
@@ -34,14 +34,6 @@ runs:
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
-
-    - name: Run actionlint
-      uses: reviewdog/action-actionlint@c6ee1eb0a5d47b2af53a203652b5dac0b6c4016e # v1.43.0
-
-    - name: Run shellcheck
-      uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # v2.0.0
-      with:
-        scandir: "./tools/scripts"
 
     - name: Collect metrics
       if: always()
