@@ -40,7 +40,15 @@ runs:
       shell: bash
       run: |
         nix flake check
-
+    - name: Build additional packages to cache # builds packages specified in `add-packages` since they may not exist in checks
+      if: inputs.add-packages != '' # only run if there are packages specified
+      shell: bash
+      run: |
+        PKGS=()
+        for key in ${{ inputs.add-packages }}; do
+            PKGS+=(".#\"$key\"") # build model name with path - example: .#mf
+        done
+        nix build --no-link --print-out-paths --verbose --narinfo-cache-negative-ttl 0 ${PKGS[*]}
     - name: Get models from flake check
       shell: bash
       id: getModels
@@ -59,13 +67,13 @@ runs:
         done
 
         # get runtime output
-        PATHS=$(nix derivation show $PKGS | jq -r '.[] | .outputs | .[] | .path' | tr '\n' ' ')
+        PATHS="$(nix derivation show ${PKGS[*]} | jq -r '.[] | .outputs | .[] | .path' | tr '\n' ' ')"
 
         # # experimental get build time derivation
         # # get build time derivation - does not copy additional build-time dependencies
         # # assumption that other build-time dependencies are available through other nix caches
-        # PATHS+=" $(nix derivation show $PKGS | jq -r 'keys[]' | tr '\n' ' ')"
-        
+        # PATHS+=" $(nix derivation show ${PKGS[*]} | jq -r 'keys[]' | tr '\n' ' ')"
+
         echo "paths=$PATHS" >> $GITHUB_OUTPUT
     - name: Sign all paths locally
       shell: bash
