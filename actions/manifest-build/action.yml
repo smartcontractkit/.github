@@ -36,14 +36,16 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Run all builds
+    - name: Run check builds
       shell: bash
       run: |
+        # run check package builds
         nix flake check
-    - name: Build additional packages to cache # builds packages specified in `add-packages` since they may not exist in checks
+    - name: Build additional packages to cache 
       if: inputs.add-packages != '' # only run if there are packages specified
       shell: bash
       run: |
+        # builds packages specified in `add-packages` since they may not exist in checks
         PKGS=()
         for key in ${{ inputs.add-packages }}; do
             PKGS+=(".#\"$key\"") # build model name with path - example: .#mf
@@ -61,6 +63,7 @@ runs:
       shell: bash
       id: buildPaths
       run: |
+        # calculate output + derivation paths
         PKGS=()
         for key in ${{ steps.getModels.outputs.pkgs }}; do
             PKGS+=(".#\"$key\"") # build model name with path - example: .#mf
@@ -78,11 +81,13 @@ runs:
     - name: Sign all paths locally
       shell: bash
       run: |
+        # sign paths
         echo "${{ inputs.cache-privkey }}" >> priv.pem
         nix store sign -k priv.pem --verbose ${{ steps.buildPaths.outputs.paths }}
     - name: Copy all paths to bucket
       shell: bash
       run: |
+        # push to bucket
         nix copy --verbose --narinfo-cache-positive-ttl 0 --to ${{ inputs.cache-url }} ${{ steps.buildPaths.outputs.paths }}
 
     - name: Collect metrics
