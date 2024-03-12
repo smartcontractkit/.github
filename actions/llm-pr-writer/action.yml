@@ -1,12 +1,4 @@
 name: llm-pr-writer
-description:
-  "This GitHub workflow harnesses the capabilities of Large Language Models
-  (LLMs) to automate the creation and enhancement of pull request (PR)
-  descriptions. Designed to streamline the development process, it significantly
-  reduces the time and effort traditionally required to draft comprehensive PR
-  descriptions, particularly for extensive changes. By meticulously analyzing
-  the modifications within a PR, the workflow generates precise, context-rich
-  summaries that facilitate improved collaboration and review efficiency."
 
 inputs:
   # general inputs
@@ -27,7 +19,7 @@ inputs:
     description: "openai api key"
     required: true
   openai-model:
-    description: "openai model. defaults to 'gpt-3.5-turbo-0125'. use 'gpt-4-0125-preview' if you need a more powerful model."
+    description: "openai model. defaults to 'gpt-3.5-turbo-0125'. use 'gpt-4-0125-preview' if your codebase is complex or large."
     required: false
     default: "gpt-3.5-turbo-0125"
   exclude-paths:
@@ -68,13 +60,13 @@ runs:
         echo "SKIP_ACTION=false" >> $GITHUB_ENV
 
     - name: Checkout calling repo
-      if: env.SKIP_ACTION == 'false'
+      if: ${{ env.SKIP_ACTION == 'false' }}
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
     - name: Checkout action repo
-      if: env.SKIP_ACTION == 'false'
+      if: ${{ env.SKIP_ACTION == 'false' }}
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: smartcontractkit/.github
@@ -87,7 +79,7 @@ runs:
         fetch-depth: 1
 
     - name: Format diff exclude filter
-      if: env.SKIP_ACTION == 'false'
+      if: ${{ env.SKIP_ACTION == 'false' }}
       shell: bash
       id: filter
       run: |
@@ -100,7 +92,7 @@ runs:
 
     # Fail early to avoid unnecessary API calls
     - name: If pr-append-file is set, check if it exists
-      if: env.SKIP_ACTION == 'false' && inputs.pr-append-file
+      if: ${{ env.SKIP_ACTION == 'false' && inputs.pr-append-file }}
       shell: bash
       id: check_pr-append-file
       run: |
@@ -112,7 +104,7 @@ runs:
         fi
 
     - name: Get diff output
-      if: env.SKIP_ACTION == 'false'
+      if: ${{ env.SKIP_ACTION == 'false' }}
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
@@ -126,7 +118,7 @@ runs:
         echo "$diff_output" | jq -Rs . | sed 's/^"//;s/"$//' > diff_output.txt
 
     - name: Call ChatGPT
-      if: env.SKIP_ACTION == 'false'
+      if: ${{ env.SKIP_ACTION == 'false' }}
       shell: bash
       run: |
         diff_output=$(cat diff_output.txt)
@@ -160,14 +152,14 @@ runs:
         echo "$response_content" | sed -e 's/^ -/  -/g' > chatgpt_output.txt
 
     - name: Append additional content to output
-      if: env.SKIP_ACTION == 'false' && steps.check_pr-append-file.outputs.result == 'exists'
+      if: ${{ env.SKIP_ACTION == 'false' && steps.check_pr-append-file.outputs.result == 'exists' }}
       shell: bash
       run: |
         echo "Appending content to PR"
         cat ${{ inputs.pr-append-file }} >> chatgpt_output.txt
 
     - name: Generate PR summary
-      if: env.SKIP_ACTION == 'false'
+      if: ${{ env.SKIP_ACTION == 'false' }}
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
