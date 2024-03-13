@@ -80,6 +80,7 @@ runs:
       shell: bash
       run: |
         # set up folder with AWS configs
+        # nix reads AWS access from folder config - does not work with env vars
         aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
         aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
         aws configure set aws_session_token $AWS_SESSION_TOKEN
@@ -97,6 +98,7 @@ runs:
         fi
 
         # symlink credential folders for nix build access
+        # nix build is run via daemon on root, credentials linked for daemon access
         sudo ln -s ~/.aws $ROOT_PATH
 
     - uses: cachix/install-nix-action@8887e596b4ee1134dae06b98d573bd674693f47c # v26
