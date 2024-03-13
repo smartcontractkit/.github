@@ -1,62 +1,20 @@
 name: manifest-build
-description: "Builds all manifest models and uploads them to a cache"
+description: "Builds all manifest models and uploads them to a specified cache"
 
 inputs:
   # general inputs --------------------------------
-  setup-only:
-    description: "Only setup environment with AWS, github, nix without building + pushing"
-    required: false
-    default: false
   add-packages:
     description: "Additional packages to build on top of the declared check packages (space separated) - not used if setup-only=true"
     required: false
     default: ""
   
-  # AWS inputs ------------------------------------
-  aws-region:
-    description: ""
-    required: false
-    default: "us-west-1"
-  role-to-assume: 
-    description: ""
-    required: false
-    default: ""
-  role-duration-seconds:
-    description: ""
-    required: false
-    default: 3600
-    
-  # cache inputs ----------------------------------
+ # cache inputs ----------------------------------
   cache-url:
     description: "Nix cache URL"
     required: false
     default: ""
-  cache-pubkey:
-    description: "Nix cache binary public key"
-    required: false
-    default: ""
   cache-privkey:
     description: "Nix cache binary private signing key - not used if setup-only=true"
-    required: false
-    default: ""
-
-  # cachix inputs --------------------------------
-  enable-cachix:
-    description: "Run cachix in parallel with S3 cache"
-    required: false
-    default: false
-  cachix-name:
-    description: "Cachix private cache name"
-    required: false
-    default: "manifest"
-  cachix-token:
-      description: "Cachix auth token for private cache"
-      required: false
-      default: ""
-
-  # github inputs ---------------------------------
-  github-token:
-    description: "GitHub auth token for private repos (if needed)"
     required: false
     default: ""
 
@@ -78,69 +36,22 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout repo
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-
-    - name: configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
-      with:
-        role-to-assume: ${{ inputs.role-to-assume }}
-        role-duration-seconds: ${{ inputs.role-duration-seconds }}
-        aws-region: ${{ inputs.aws-region }}
-    - name: setup AWS credentials for nix
+    - name: Run check builds
       shell: bash
       run: |
-        # set up folder with AWS configs
-        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-        aws configure set aws_session_token $AWS_SESSION_TOKEN
-        aws configure set region ${{ inputs.aws-region }}
-
-        # determine root path
-        ROOT_PATH=""
-        if [[ "${{ runner.os }}" == "Linux" ]]; then
-          ROOT_PATH="/root"
-        elif [[ "${{ runner.os }}" == "macOS" ]]; then
-          ROOT_PATH="/var/root"
-        else
-          echo "${{ runner.os }} not supported"
-          exit 1
-        fi
-
-        # symlink credential folders for nix build access
-        sudo ln -s ~/.aws $ROOT_PATH
-
-    - uses: cachix/install-nix-action@8887e596b4ee1134dae06b98d573bd674693f47c # v26
-      with:
-        install_url: https://releases.nixos.org/nix/nix-2.18.1/install
-        nix_path: nixpkgs=channel:nixos-unstable
-        # Enables sandbox for all drv except those with `__noChroot = true;`
-        # Add caches for public nixos cache + public community cache + specified private cache
-        extra_nix_config: |
-          sandbox = relaxed
-          substituters = https://cache.nixos.org https://nix-community.cachix.org ${{ inputs.cache-url }}
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= ${{ inputs.cache-pubkey }}
-
-    - uses: cachix/cachix-action@18cf96c7c98e048e10a83abd92116114cd8504be # v14
-      if: inputs.enable-cachix == 'true'
-      with:
-        name: ${{ inputs.cachix-name }}
-        # If you chose API tokens for write access OR if you have a private cache
-        authToken: '${{ inputs.cachix-token }}'
-
-    - uses: MrSquaare/ssh-setup-action@7bfdda6ef6839504e3a5b2625ad971b17461a0db # v3
-      with:
-        host: github.com
-        private-key: ${{ inputs.github-token }}
-
-    - name: Run all builds
-      if: inputs.setup-only == 'false' # skip for setup only
-      shell: bash
-      run: |
+        # run check package builds
         nix flake check
-
+    - name: Build additional packages to cache 
+      if: inputs.add-packages != '' # only run if there are packages specified
+      shell: bash
+      run: |
+        # builds packages specified in `add-packages` since they may not exist in checks
+        PKGS=()
+        for key in ${{ inputs.add-packages }}; do
+            PKGS+=(".#\"$key\"") # build model name with path - example: .#mf
+        done
+        nix build --no-link --print-out-paths --verbose --narinfo-cache-negative-ttl 0 ${PKGS[*]}
     - name: Get models from flake check
-      if: inputs.setup-only == 'false' # skip for setup only
       shell: bash
       id: getModels
       run: |
@@ -149,41 +60,34 @@ runs:
         PKGS+=" ${{ inputs.add-packages }}" # append packages specified by inputs
         echo "pkgs=$PKGS" >> $GITHUB_OUTPUT
     - name: Calculate output + derivation paths
-      if: inputs.setup-only == 'false' # skip for setup only
       shell: bash
       id: buildPaths
       run: |
-        PATHS=""
+        # calculate output + derivation paths
+        PKGS=()
         for key in ${{ steps.getModels.outputs.pkgs }}; do
-            pkg="'.#\"$key\"'" # build model name with path - example: .#mf
-
-            # get runtime output   
-            echo "nix build $pkg"
-            outPath=$(eval "nix build --no-link --print-out-paths --verbose --narinfo-cache-negative-ttl 0 $pkg")
-            echo $outPath
-            PATHS+="$outPath "
-
-            # experimental
-            # get build time derivation - does not copy additional build-time dependencies
-            # assumption that other build-time dependencies are available through other nix caches
-            echo "nix path-info --derivation $pkg"
-            drv=$(eval "nix path-info --derivation $pkg")
-            echo $drv
-            # PATHS+="$drv " # TODO: disabled buildtime deps for now
-
-            echo "-------------------------"
+            PKGS+=(".#\"$key\"") # build model name with path - example: .#mf
         done
+
+        # get runtime output
+        PATHS="$(nix derivation show ${PKGS[*]} | jq -r '.[] | .outputs | .[] | .path' | tr '\n' ' ')"
+
+        # # experimental get build time derivation
+        # # get build time derivation - does not copy additional build-time dependencies
+        # # assumption that other build-time dependencies are available through other nix caches
+        # PATHS+=" $(nix derivation show ${PKGS[*]} | jq -r 'keys[]' | tr '\n' ' ')"
+
         echo "paths=$PATHS" >> $GITHUB_OUTPUT
     - name: Sign all paths locally
       shell: bash
-      if: inputs.setup-only == 'false' # skip for setup only
       run: |
+        # sign paths
         echo "${{ inputs.cache-privkey }}" >> priv.pem
         nix store sign -k priv.pem --verbose ${{ steps.buildPaths.outputs.paths }}
     - name: Copy all paths to bucket
       shell: bash
-      if: inputs.setup-only == 'false' # skip for setup only
       run: |
+        # push to bucket
         nix copy --verbose --narinfo-cache-positive-ttl 0 --to ${{ inputs.cache-url }} ${{ steps.buildPaths.outputs.paths }}
 
     - name: Collect metrics

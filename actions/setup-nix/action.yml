@@ -1,0 +1,136 @@
+name: setup-nix
+description: "Setup nix with caches"
+
+inputs:
+  # custom cache inputs ----------------------------------
+  cache-url:
+    description: "Custom nix cache URL"
+    required: false
+    default: ""
+  cache-pubkey:
+    description: "Custom nix cache binary public key"
+    required: false
+    default: ""
+
+  # AWS inputs ------------------------------------
+  enable-aws:
+    description: "Enable AWS credentials for nix cache"
+    required: false
+    default: false
+  aws-region:
+    description: ""
+    required: false
+    default: "us-west-1"
+  role-to-assume: 
+    description: ""
+    required: false
+    default: ""
+  role-duration-seconds:
+    description: ""
+    required: false
+    default: 3600
+    
+  # cachix inputs --------------------------------
+  enable-cachix:
+    description: "Run cachix for nix caching"
+    required: false
+    default: false
+  cachix-name:
+    description: "Cachix private cache name"
+    required: false
+    default: "manifest"
+  cachix-token:
+      description: "[optional] Cachix auth token for private cache"
+      required: false
+      default: ""
+
+  # github inputs ---------------------------------
+  github-token:
+    description: "GitHub auth token for private repos (if needed)"
+    required: false
+    default: ""
+
+  # grafana inputs --------------------------
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+    default: manifest-build
+  gc-host:
+    description: "grafana hostname"
+    required: false
+  gc-basic-auth:
+    description: "grafana basic auth"
+    required: false
+  gc-org-id:
+    description: "grafana org/tenant id"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: configure AWS credentials
+      if: inputs.enable-aws == 'true'
+      uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
+      with:
+        role-to-assume: ${{ inputs.role-to-assume }}
+        role-duration-seconds: ${{ inputs.role-duration-seconds }}
+        aws-region: ${{ inputs.aws-region }}
+    - name: setup AWS credentials for nix
+      if: inputs.enable-aws == 'true'
+      shell: bash
+      run: |
+        # set up folder with AWS configs
+        # nix reads AWS access from folder config - does not work with env vars
+        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+        aws configure set aws_session_token $AWS_SESSION_TOKEN
+        aws configure set region ${{ inputs.aws-region }}
+
+        # determine root path
+        ROOT_PATH=""
+        if [[ "${{ runner.os }}" == "Linux" ]]; then
+          ROOT_PATH="/root"
+        elif [[ "${{ runner.os }}" == "macOS" ]]; then
+          ROOT_PATH="/var/root"
+        else
+          echo "${{ runner.os }} not supported"
+          exit 1
+        fi
+
+        # symlink credential folders for nix build access
+        # nix build is run via daemon on root, credentials linked for daemon access
+        sudo ln -s ~/.aws $ROOT_PATH
+
+    - uses: cachix/install-nix-action@8887e596b4ee1134dae06b98d573bd674693f47c # v26
+      with:
+        install_url: https://releases.nixos.org/nix/nix-2.18.1/install
+        nix_path: nixpkgs=channel:nixos-unstable
+        # Enables sandbox for all drv except those with `__noChroot = true;`
+        # Add caches for public nixos cache + public community cache + specified private cache
+        extra_nix_config: |
+          sandbox = relaxed
+          substituters = https://cache.nixos.org https://nix-community.cachix.org ${{ inputs.cache-url }}
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= ${{ inputs.cache-pubkey }}
+
+    - uses: cachix/cachix-action@18cf96c7c98e048e10a83abd92116114cd8504be # v14
+      if: inputs.enable-cachix == 'true'
+      with:
+        name: ${{ inputs.cachix-name }}
+        # If you chose API tokens for write access OR if you have a private cache
+        authToken: '${{ inputs.cachix-token }}'
+
+    - uses: MrSquaare/ssh-setup-action@7bfdda6ef6839504e3a5b2625ad971b17461a0db # v3
+      with:
+        host: github.com
+        private-key: ${{ inputs.github-token }}
+
+    - name: Collect metrics
+      if: always()
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@0281b09807758be1dcc41651e44e62b353808c47 # v2.1.0
+      with:
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        org-id: ${{ inputs.gc-org-id }}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true
