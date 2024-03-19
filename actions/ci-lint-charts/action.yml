@@ -55,8 +55,23 @@ runs:
       run: |
         ct lint --config "${CHART_TESTING_CONFIG_PATH}" "${CHART_TESTING_EXTRA_ARGS}"
 
-    - name: Collect metrics
+    - name: Check grafana credentials
+      id: grafana
       if: always()
+      shell: bash
+      env:
+        GC_BASIC_AUTH: ${{ inputs.gc-basic-auth }}
+        GC_HOST: ${{ inputs.gc-host }}
+        GC_ORG_ID: ${{ inputs.gc-org-id }}
+      run: |
+        if [[ -z "${GC_BASIC_AUTH}" || -z "${GC_HOST}" || -z "${GC_ORG_ID}" ]]; then
+          echo "skip_metrics=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "skip_metrics=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Collect metrics
+      if: always() && steps.grafana.outputs.skip_metrics != 'true'
       id: collect-gha-metrics
       uses: smartcontractkit/push-gha-metrics-action@0281b09807758be1dcc41651e44e62b353808c47 # v2.1.0
       with:
