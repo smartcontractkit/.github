@@ -119,7 +119,7 @@ runs:
         # If you chose API tokens for write access OR if you have a private cache
         authToken: '${{ inputs.cachix-token }}'
 
-    - uses: MrSquaare/ssh-setup-action@7bfdda6ef6839504e3a5b2625ad971b17461a0db # v3
+    - uses: MrSquaare/ssh-setup-action@2d028b70b5e397cf8314c6eaea229a6c3e34977a # v3
       with:
         host: github.com
         private-key: ${{ inputs.github-token }}
