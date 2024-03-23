@@ -1,7 +1,7 @@
 {
-  "name": "manifest-build",
-  "version": "0.5.0",
-  "description": "Builds all manifest models and uploads them to a cache",
+  "name": "setup-nix",
+  "version": "0.2.0",
+  "description": "setup nix environment with caches",
   "private": true,
   "scripts": {},
   "author": "@smartcontractkit",
