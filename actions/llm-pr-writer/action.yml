@@ -111,7 +111,7 @@ runs:
         PR_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number || '' }}
       run: |
         gh pr checkout $PR_NUMBER
-        diff_command="git diff origin/\$(gh pr view --json baseRefName | jq -r '.baseRefName')...HEAD -- ${{ steps.filter.outputs.exclude_filter }}"
+        diff_command="git diff -W origin/\$(gh pr view --json baseRefName | jq -r '.baseRefName')...HEAD -- ${{ steps.filter.outputs.exclude_filter }}"
         diff_output=$(eval $diff_command)
         
         # escape all special characters and prepare for json with jq
