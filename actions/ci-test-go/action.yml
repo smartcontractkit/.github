@@ -96,6 +96,7 @@ runs:
         role-to-assume: ${{ inputs.aws-role-arn-gati }}
         role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
         aws-region: ${{ inputs.aws-region }}
+        mask-aws-account-id: true
 
     - name: Get github token from gati
       if: inputs.use-gati == 'true'

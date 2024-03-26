@@ -21,7 +21,7 @@ inputs:
     description: ""
     required: false
     default: "us-west-1"
-  role-to-assume: 
+  role-to-assume:
     description: ""
     required: false
     default: ""
@@ -29,7 +29,7 @@ inputs:
     description: ""
     required: false
     default: 3600
-    
+
   # cachix inputs --------------------------------
   enable-cachix:
     description: "Run cachix for nix caching"
@@ -75,6 +75,8 @@ runs:
         role-to-assume: ${{ inputs.role-to-assume }}
         role-duration-seconds: ${{ inputs.role-duration-seconds }}
         aws-region: ${{ inputs.aws-region }}
+        mask-aws-account-id: true
+
     - name: setup AWS credentials for nix
       if: inputs.enable-aws == 'true'
       shell: bash
