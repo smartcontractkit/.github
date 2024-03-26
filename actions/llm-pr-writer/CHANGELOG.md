@@ -1,5 +1,15 @@
 # llm-pr-writer
 
+## 0.3.0
+
+### Minor Changes
+
+- [#243](https://github.com/smartcontractkit/.github/pull/243)
+  [`dab8bd2`](https://github.com/smartcontractkit/.github/commit/dab8bd20bf33e6758c1b49b079646d22feb44d58)
+  Thanks [@kalanyuz](https://github.com/kalanyuz)! - Expanding the scope of
+  github diff output to scope level to address misinterpretations occurred in PR
+  with minimal modifications
+
 ## 0.2.0
 
 ### Minor Changes
