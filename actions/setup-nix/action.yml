@@ -122,6 +122,7 @@ runs:
         authToken: '${{ inputs.cachix-token }}'
 
     - uses: MrSquaare/ssh-setup-action@7bfdda6ef6839504e3a5b2625ad971b17461a0db # v3
+      if: inputs.github-token != ""
       with:
         host: github.com
         private-key: ${{ inputs.github-token }}
