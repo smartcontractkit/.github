@@ -1,5 +1,6 @@
 ---
 "setup-nix": minor
+"manifest-build": minor
 ---
 
-makes github token optional
+make build steps optional
