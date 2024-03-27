@@ -79,12 +79,14 @@ runs:
 
         echo "paths=$PATHS" >> $GITHUB_OUTPUT
     - name: Sign all paths locally
+      if: inputs.cache-privkey != ''
       shell: bash
       run: |
         # sign paths
         echo "${{ inputs.cache-privkey }}" >> priv.pem
         nix store sign -k priv.pem --verbose ${{ steps.buildPaths.outputs.paths }}
     - name: Copy all paths to bucket
+      if: inputs.cache-url != ''
       shell: bash
       run: |
         # push to bucket
