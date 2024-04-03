@@ -37,7 +37,7 @@ runs:
 
     - name: Get github token from gati
       id: get-gh-token
-      uses: smartcontractkit/chainlink-github-actions/github-app-token-issuer@main
+      uses: smartcontractkit/chainlink-github-actions/github-app-token-issuer@test/update-gati-action-3a48950
       with:
         url: ${{ inputs.aws-lambda-url }}
 
