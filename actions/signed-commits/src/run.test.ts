@@ -40,6 +40,9 @@ let mockedGithubMethods = {
   pulls: {
     create: jest.fn(),
   },
+  issues: {
+    addLabels: jest.fn(),
+  },
   repos: {
     createRelease: jest.fn(),
     getBranch: jest.fn().mockReturnValue({ data: { commit: { sha: "abc" } } }),
@@ -116,6 +119,47 @@ describe("version", () => {
     await runVersion({
       githubToken: "@@GITHUB_TOKEN",
       cwd,
+    });
+
+    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
+  });
+
+  it("creates simple PR in draft mode with do-not-merge label", async () => {
+    const cwd = f.copy("simple-project");
+    setupRepo(cwd);
+
+    mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
+      () => ({ data: { items: [] } }),
+    );
+
+    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+      data: { number: 123 },
+    }));
+
+    await writeChangesets(
+      [
+        {
+          releases: [
+            {
+              name: "simple-project-pkg-a",
+              type: "minor",
+            },
+            {
+              name: "simple-project-pkg-b",
+              type: "minor",
+            },
+          ],
+          summary: "Awesome feature",
+        },
+      ],
+      cwd,
+    );
+
+    await runVersion({
+      githubToken: "@@GITHUB_TOKEN",
+      cwd,
+      prDraft: true,
+      labels: "do-not-merge",
     });
 
     expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
