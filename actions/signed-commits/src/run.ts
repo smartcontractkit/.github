@@ -317,7 +317,7 @@ export async function runVersion({
   cwd = process.cwd(),
   prTitle = "Version Packages",
   commitMessage = "Version Packages",
-  prDraft,
+  prDraft = false,
   labels = "",
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
