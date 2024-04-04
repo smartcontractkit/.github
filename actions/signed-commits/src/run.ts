@@ -301,6 +301,8 @@ type VersionOptions = {
   cwd?: string;
   prTitle?: string;
   commitMessage?: string;
+  prDraft?: boolean;
+  labels?: string;
   hasPublishScript?: boolean;
   prBodyMaxCharacters?: number;
 };
@@ -315,6 +317,8 @@ export async function runVersion({
   cwd = process.cwd(),
   prTitle = "Version Packages",
   commitMessage = "Version Packages",
+  prDraft,
+  labels = "",
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
 }: VersionOptions): Promise<RunVersionResult> {
@@ -440,9 +444,19 @@ export async function runVersion({
       base: branch,
       head: versionBranch,
       title: finalPrTitle,
+      draft: prDraft,
       body: prBody,
       ...github.context.repo,
     });
+
+    if (labels) {
+      const labelsArray = labels.split(",");
+      await octokit.rest.issues.addLabels({
+        issue_number: newPullRequest.number,
+        labels: labelsArray,
+        ...github.context.repo,
+      });
+    }
 
     return {
       pullRequestNumber: newPullRequest.number,
