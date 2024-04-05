@@ -121,7 +121,7 @@ describe("version", () => {
     expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
   });
 
-  it("creates simple PR in draft mode with do-not-merge label", async () => {
+  it("creates simple PR in draft mode", async () => {
     const cwd = f.copy("simple-project");
     setupRepo(cwd);
 

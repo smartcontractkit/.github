@@ -34,7 +34,7 @@ exports[`version creates simple PR 1`] = `
 ]
 `;
 
-exports[`version creates simple PR in draft mode with do-not-merge label 1`] = `
+exports[`version creates simple PR in draft mode 1`] = `
 [
   {
     "base": "some-branch",
