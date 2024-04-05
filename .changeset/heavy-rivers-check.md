@@ -2,4 +2,4 @@
 "cicd-changesets": minor
 ---
 
-Add pr-draft and pr-labels inputs
+Add optional pr-draft and pr-title inputs
