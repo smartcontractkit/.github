@@ -69,6 +69,9 @@ inputs:
     description: ""
     required: false
     default: "false"
+  pr-title:
+    description: "title of the PR"
+    required: false
   pr-draft:
     description: "whether to put the PR in draft mode or not"
     required: false
@@ -134,7 +137,7 @@ runs:
 
     - name: Run changesets
       id: changesets
-      uses: smartcontractkit/.github/actions/signed-commits@re-2428/changeset-signed-commits-action
+      uses: smartcontractkit/.github/actions/signed-commits@re-2428/changeset-signed-commits-action # TODO update sha commit once new signed-commits package has been published
       env:
         GITHUB_TOKEN: ${{ steps.get-gh-token.outputs.access-token }}
       with:
@@ -142,6 +145,7 @@ runs:
         version: ${{ inputs.changesets-version-cmd }}
         createGithubReleases: ${{ inputs.changesets-create-gh-release }}
         setupGitUser: false
+        title: ${{ inputs.pr-title }}
         prDraft: ${{ inputs.pr-draft }}
         prLabels: ${{ inputs.pr-labels }}
 
