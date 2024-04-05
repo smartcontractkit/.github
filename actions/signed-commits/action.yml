@@ -28,9 +28,6 @@ inputs:
       not. Default to `false`
     required: false
     default: "false"
-  prLabels:
-    description: A comma separated list of labels to add to the pull request
-    required: false
   setupGitUser:
     description:
       Sets up the git user for commits as `"github-actions[bot]"`. Default to

@@ -40,9 +40,6 @@ let mockedGithubMethods = {
   pulls: {
     create: jest.fn(),
   },
-  issues: {
-    addLabels: jest.fn(),
-  },
   repos: {
     createRelease: jest.fn(),
     getBranch: jest.fn().mockReturnValue({ data: { commit: { sha: "abc" } } }),
@@ -159,7 +156,6 @@ describe("version", () => {
       githubToken: "@@GITHUB_TOKEN",
       cwd,
       prDraft: true,
-      prLabels: "do-not-merge",
     });
 
     expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
