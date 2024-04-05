@@ -159,7 +159,7 @@ describe("version", () => {
       githubToken: "@@GITHUB_TOKEN",
       cwd,
       prDraft: true,
-      labels: "do-not-merge",
+      prLabels: "do-not-merge",
     });
 
     expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();

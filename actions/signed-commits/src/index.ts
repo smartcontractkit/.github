@@ -109,7 +109,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
         prDraft: core.getBooleanInput("prDraft"),
-        labels: getOptionalInput("labels"),
+        prLabels: getOptionalInput("prLabels"),
         hasPublishScript,
       });
 

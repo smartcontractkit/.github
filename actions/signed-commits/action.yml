@@ -28,7 +28,7 @@ inputs:
       not. Default to `false`
     required: false
     default: "false"
-  labels:
+  prLabels:
     description: A comma separated list of labels to add to the pull request
     required: false
   setupGitUser:
