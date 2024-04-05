@@ -25,6 +25,41 @@ exports[`version creates simple PR 1`] = `
 
 -   Awesome feature
 ",
+    "draft": false,
+    "head": "changeset-release/some-branch",
+    "owner": "changesets",
+    "repo": "action",
+    "title": "Version Packages",
+  },
+]
+`;
+
+exports[`version creates simple PR in draft mode 1`] = `
+[
+  {
+    "base": "some-branch",
+    "body": "This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing). If you're not ready to do a release yet, that's fine, whenever you add more changesets to some-branch, this PR will be updated.
+
+
+# Releases
+## simple-project-pkg-a@1.1.0
+
+### Minor Changes
+
+-   Awesome feature
+
+### Patch Changes
+
+-   Updated dependencies
+    -   simple-project-pkg-b@1.1.0
+
+## simple-project-pkg-b@1.1.0
+
+### Minor Changes
+
+-   Awesome feature
+",
+    "draft": true,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
     "repo": "action",
@@ -43,6 +78,7 @@ exports[`version does not include any release information if a message with simp
 # Releases
 
 > All release information have been omitted from this message, as the content exceeds the size limit.",
+    "draft": false,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
     "repo": "action",
@@ -65,6 +101,7 @@ exports[`version does not include changelog entries if full message exceeds size
 ## simple-project-pkg-a@1.1.0
 
 ",
+    "draft": false,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
     "repo": "action",
@@ -87,6 +124,7 @@ exports[`version doesn't include ignored package that got a dependency update in
 
 -   Awesome feature
 ",
+    "draft": false,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
     "repo": "action",
@@ -109,6 +147,7 @@ exports[`version only includes bumped packages in the PR body 1`] = `
 
 -   Awesome feature
 ",
+    "draft": false,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
     "repo": "action",

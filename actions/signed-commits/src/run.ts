@@ -301,6 +301,7 @@ type VersionOptions = {
   cwd?: string;
   prTitle?: string;
   commitMessage?: string;
+  prDraft?: boolean;
   hasPublishScript?: boolean;
   prBodyMaxCharacters?: number;
 };
@@ -315,6 +316,7 @@ export async function runVersion({
   cwd = process.cwd(),
   prTitle = "Version Packages",
   commitMessage = "Version Packages",
+  prDraft = false,
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
 }: VersionOptions): Promise<RunVersionResult> {
@@ -440,6 +442,7 @@ export async function runVersion({
       base: branch,
       head: versionBranch,
       title: finalPrTitle,
+      draft: prDraft,
       body: prBody,
       ...github.context.repo,
     });
