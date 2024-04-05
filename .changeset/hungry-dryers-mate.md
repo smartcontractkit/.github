@@ -2,4 +2,4 @@
 "changesets-signed-commits": minor
 ---
 
-Add prDraft and labels inputs
+Add optional prDraft input
