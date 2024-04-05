@@ -1,5 +1,14 @@
 # changesets-signed-commits
 
+## 1.1.0
+
+### Minor Changes
+
+- [#269](https://github.com/smartcontractkit/.github/pull/269)
+  [`7748941`](https://github.com/smartcontractkit/.github/commit/7748941d7635c260065b19b29b5ef819adb6c85c)
+  Thanks [@momentmaker](https://github.com/momentmaker)! - Add optional prDraft
+  input
+
 ## 1.0.2
 
 ### Patch Changes

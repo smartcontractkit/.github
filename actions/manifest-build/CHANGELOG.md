@@ -1,5 +1,14 @@
 # manifest-build
 
+## 0.6.0
+
+### Minor Changes
+
+- [#255](https://github.com/smartcontractkit/.github/pull/255)
+  [`f389df7`](https://github.com/smartcontractkit/.github/commit/f389df7add8c63f0183917689bc391a81c5c7115)
+  Thanks [@tt-cll](https://github.com/tt-cll)! - make build steps optional for
+  nix manifest build
+
 ## 0.5.0
 
 ### Minor Changes
