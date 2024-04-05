@@ -69,16 +69,27 @@ inputs:
     description: ""
     required: false
     default: "false"
+  pr-draft:
+    description: "whether to put the PR in draft mode or not"
+    required: false
+    default: "false"
+  pr-labels:
+    description: "comma-separated labels to add to the PR"
+    required: false
 outputs:
   published:
-    description: A boolean value to indicate whether a publishing is happened or not
+    description:
+      A boolean value to indicate whether a publishing is happened or not
     value: ${{ steps.changesets.outputs.published }}
   publishedPackages:
     description: >
-      A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+      A JSON array to present the published packages. The format is `[{"name":
+      "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
     value: ${{ steps.changesets.outputs.publishedPackages }}
   hasChangesets:
-    description: A boolean about whether there were changesets. Useful if you want to create your own publishing functionality.
+    description:
+      A boolean about whether there were changesets. Useful if you want to
+      create your own publishing functionality.
     value: ${{ steps.changesets.outputs.hasChangesets }}
   pullRequestNumber:
     description: The pull request number that was created or updated
@@ -123,7 +134,7 @@ runs:
 
     - name: Run changesets
       id: changesets
-      uses: smartcontractkit/.github/actions/signed-commits@95b6030f4d23d5d87f53eb0f018f51806afa4da3 # changesets-signed-commits@1.0.1
+      uses: smartcontractkit/.github/actions/signed-commits@re-2428/changeset-signed-commits-action
       env:
         GITHUB_TOKEN: ${{ steps.get-gh-token.outputs.access-token }}
       with:
@@ -131,6 +142,8 @@ runs:
         version: ${{ inputs.changesets-version-cmd }}
         createGithubReleases: ${{ inputs.changesets-create-gh-release }}
         setupGitUser: false
+        prDraft: ${{ inputs.pr-draft }}
+        prLabels: ${{ inputs.pr-labels }}
 
     - name: Check changesets output
       shell: bash
