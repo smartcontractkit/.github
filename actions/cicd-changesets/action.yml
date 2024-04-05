@@ -76,9 +76,6 @@ inputs:
     description: "whether to put the PR in draft mode or not"
     required: false
     default: "false"
-  pr-labels:
-    description: "comma-separated labels to add to the PR"
-    required: false
 outputs:
   published:
     description:
@@ -147,7 +144,6 @@ runs:
         setupGitUser: false
         title: ${{ inputs.pr-title }}
         prDraft: ${{ inputs.pr-draft }}
-        prLabels: ${{ inputs.pr-labels }}
 
     - name: Check changesets output
       shell: bash
