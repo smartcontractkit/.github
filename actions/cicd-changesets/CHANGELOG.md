@@ -1,5 +1,14 @@
 # cicd-changesets
 
+## 0.3.0
+
+### Minor Changes
+
+- [#272](https://github.com/smartcontractkit/.github/pull/272)
+  [`7b3eb71`](https://github.com/smartcontractkit/.github/commit/7b3eb715da6598c9bcd2b8da4e59c584ed2dce6a)
+  Thanks [@momentmaker](https://github.com/momentmaker)! - Add optional pr-draft
+  and pr-title inputs
+
 ## 0.2.3
 
 ### Patch Changes
