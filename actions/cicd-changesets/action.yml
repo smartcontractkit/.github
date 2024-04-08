@@ -134,7 +134,7 @@ runs:
 
     - name: Run changesets
       id: changesets
-      uses: smartcontractkit/.github/actions/signed-commits@0cd5c6fa8a1af642a74a11d0ba26eb92f17b5865 # changesets-signed-commits@1.1.0
+      uses: smartcontractkit/.github/actions/signed-commits@858399f63df463de5b65891545e61b3e43eb72bd # changesets-signed-commits@1.1.1
       env:
         GITHUB_TOKEN: ${{ steps.get-gh-token.outputs.access-token }}
       with:
@@ -150,6 +150,8 @@ runs:
       run: |
         echo "published: ${{ steps.changesets.outputs.published }}"
         echo "publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}"
+        echo "hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}"
+        echo "pullRequestNumber: ${{ steps.changesets.outputs.pullRequestNumber }}"
 
     - name: Collect metrics
       if: always()
