@@ -1,5 +1,14 @@
 # changesets-signed-commits
 
+## 1.1.1
+
+### Patch Changes
+
+- [#281](https://github.com/smartcontractkit/.github/pull/281)
+  [`14de643`](https://github.com/smartcontractkit/.github/commit/14de643bc28679980af4ba00d11d2b1ba200fe9f)
+  Thanks [@momentmaker](https://github.com/momentmaker)! - Fixes upsert existing
+  PR with draft mode option
+
 ## 1.1.0
 
 ### Minor Changes
