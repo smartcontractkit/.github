@@ -457,7 +457,7 @@ export async function runVersion({
       pull_number: pullRequest.number,
       title: finalPrTitle,
       body: prBody,
-      state: "open",
+      ...(prDraft ? {} : { state: "open" }),
       ...github.context.repo,
     });
 
