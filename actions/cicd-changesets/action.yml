@@ -158,6 +158,8 @@ runs:
       if:
         ${{ inputs.pr-draft == 'true' &&
         steps.changesets.outputs.pullRequestNumber != '' }}
+      env:
+        GH_TOKEN: ${{ steps.get-gh-token.outputs.access-token }}
       run: |
         gh pr ready ${{ steps.changesets.outputs.pullRequestNumber }} --undo
 
