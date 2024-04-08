@@ -150,6 +150,16 @@ runs:
       run: |
         echo "published: ${{ steps.changesets.outputs.published }}"
         echo "publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}"
+        echo "hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}"
+        echo "pullRequestNumber: ${{ steps.changesets.outputs.pullRequestNumber }}"
+
+    - name: Set PR to draft
+      shell: bash
+      if:
+        ${{ inputs.pr-draft == 'true' &&
+        steps.changesets.outputs.pullRequestNumber != '' }}
+      run: |
+        gh pr ready ${{ steps.changesets.outputs.pullRequestNumber }} --undo
 
     - name: Collect metrics
       if: always()
