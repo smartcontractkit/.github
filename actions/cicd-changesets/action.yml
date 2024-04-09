@@ -134,7 +134,7 @@ runs:
 
     - name: Run changesets
       id: changesets
-      uses: smartcontractkit/.github/actions/signed-commits@55e789f67ab30a6f279fb54c6df5a5545bb63393 # changesets-signed-commits@1.2.1
+      uses: smartcontractkit/.github/actions/signed-commits@8397ce91f5ad14a6c69231d2c8129533d66c0da3 # changesets-signed-commits@1.2.2
       env:
         GITHUB_TOKEN: ${{ steps.get-gh-token.outputs.access-token }}
       with:
