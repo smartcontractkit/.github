@@ -1,5 +1,14 @@
 # cicd-changesets
 
+## 0.3.1
+
+### Patch Changes
+
+- [#283](https://github.com/smartcontractkit/.github/pull/283)
+  [`310e8e8`](https://github.com/smartcontractkit/.github/commit/310e8e861a63a19675e21c617e772f0cece1172c)
+  Thanks [@momentmaker](https://github.com/momentmaker)! - Bump signed-commits
+  to version 1.1.1 and echo two new outputs in logs
+
 ## 0.3.0
 
 ### Minor Changes
