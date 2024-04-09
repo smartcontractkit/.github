@@ -1,5 +1,14 @@
 # changesets-signed-commits
 
+## 1.2.1
+
+### Patch Changes
+
+- [#289](https://github.com/smartcontractkit/.github/pull/289)
+  [`f7e71fd`](https://github.com/smartcontractkit/.github/commit/f7e71fd0fbd1fbaa52587fb9f5bc0da49e31a80e)
+  Thanks [@momentmaker](https://github.com/momentmaker)! - Update index.js in
+  dist
+
 ## 1.2.0
 
 ### Minor Changes
