@@ -1,5 +1,14 @@
 # changesets-signed-commits
 
+## 1.2.0
+
+### Minor Changes
+
+- [#286](https://github.com/smartcontractkit/.github/pull/286)
+  [`665411f`](https://github.com/smartcontractkit/.github/commit/665411f1dfa9c8632ea4f23c95204220ed4c1734)
+  Thanks [@momentmaker](https://github.com/momentmaker)! - Add changelog file
+  url link if PR body text exceeds max characters
+
 ## 1.1.1
 
 ### Patch Changes
