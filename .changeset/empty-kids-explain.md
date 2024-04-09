@@ -2,4 +2,4 @@
 "cicd-changesets": patch
 ---
 
-Bump signed-commits to 1.2.1
+Bump signed-commits to 1.2.2
