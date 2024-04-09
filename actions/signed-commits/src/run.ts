@@ -228,6 +228,7 @@ const requireChangesetsCliPkgJson = (cwd: string) => {
 
 type GetMessageOptions = {
   hasPublishScript: boolean;
+  fullRepo: string;
   branch: string;
   changedPackagesInfo: {
     highestLevel: number;
@@ -244,6 +245,7 @@ export async function getVersionPrBody({
   preState,
   changedPackagesInfo,
   prBodyMaxCharacters,
+  fullRepo,
   branch,
 }: GetMessageOptions) {
   let messageHeader = `This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and ${
@@ -276,7 +278,8 @@ export async function getVersionPrBody({
       messageHeader,
       messagePrestate,
       messageReleasesHeading,
-      `\n> The changelog information of each package has been omitted from this message, as the content exceeds the size limit.\n`,
+      `\n> The changelog information of each package has been omitted from this message, as the content exceeds the size limit.\n
+      To view the full changelog, please [check the CHANGELOG file](https://https://github.com/${fullRepo}/blob/${branch}/CHANGELOG.md)\n.`,
       ...changedPackagesInfo.map((info) => `${info.header}\n\n`),
     ].join("\n");
   }
@@ -431,6 +434,7 @@ export async function runVersion({
   let prBody = await getVersionPrBody({
     hasPublishScript,
     preState,
+    fullRepo,
     branch,
     changedPackagesInfo,
     prBodyMaxCharacters,
