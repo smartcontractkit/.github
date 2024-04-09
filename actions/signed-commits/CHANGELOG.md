@@ -1,5 +1,14 @@
 # changesets-signed-commits
 
+## 1.2.2
+
+### Patch Changes
+
+- [#291](https://github.com/smartcontractkit/.github/pull/291)
+  [`6baa543`](https://github.com/smartcontractkit/.github/commit/6baa54368455b3c057cd3b2324732446b1599400)
+  Thanks [@momentmaker](https://github.com/momentmaker)! - Fix changelog url
+  link format
+
 ## 1.2.1
 
 ### Patch Changes
