@@ -127,12 +127,10 @@ export async function execWithOutput(
   return stdout;
 }
 
-function isParentNode(node: Node<any>): node is Parent {
+function isParentNode(node: Node): node is Parent {
   return "children" in node;
 }
 
-function nodeHasDepthProperty(
-  node: Node<any>,
-): node is Node & { depth: number } {
+function nodeHasDepthProperty(node: Node): node is Node & { depth: number } {
   return "depth" in node;
 }
