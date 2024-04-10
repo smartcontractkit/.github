@@ -61454,7 +61454,7 @@ ${info3.content}`)
       `
 > The changelog information of each package has been omitted from this message, as the content exceeds the size limit.
 
-To view the full changelog, please check the [CHANGELOG file](https://github.com/${fullRepo}/blob/${branch}/CHANGELOG.md).
+To view the full changelog, please check the [CHANGELOG file](https://github.com/${fullRepo}/blob/changeset-release/${branch}/CHANGELOG.md).
 `,
       ...changedPackagesInfo.map((info3) => `${info3.header}
 

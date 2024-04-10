@@ -278,7 +278,7 @@ export async function getVersionPrBody({
       messagePrestate,
       messageReleasesHeading,
       `\n> The changelog information of each package has been omitted from this message, as the content exceeds the size limit.\n
-To view the full changelog, please check the [CHANGELOG file](https://github.com/${fullRepo}/blob/${branch}/CHANGELOG.md).\n`,
+To view the full changelog, please check the [CHANGELOG file](https://github.com/${fullRepo}/blob/changeset-release/${branch}/CHANGELOG.md).\n`,
       ...changedPackagesInfo.map((info) => `${info.header}\n\n`),
     ].join("\n");
   }
