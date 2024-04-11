@@ -2,6 +2,10 @@ name: llm-pr-writer
 
 inputs:
   # general inputs
+  include-messages:
+    description: "include git messages"
+    required: false
+    default: "true"
   checkout-repo-fetch-depth:
     description: "number of commits to fetch"
     required: false
@@ -19,7 +23,9 @@ inputs:
     description: "openai api key"
     required: true
   openai-model:
-    description: "openai model. defaults to 'gpt-3.5-turbo-0125'. use 'gpt-4-0125-preview' if your codebase is complex or large."
+    description:
+      "openai model. defaults to 'gpt-3.5-turbo-0125'. use 'gpt-4-0125-preview'
+      if your codebase is complex or large."
     required: false
     default: "gpt-3.5-turbo-0125"
   exclude-paths:
@@ -27,7 +33,9 @@ inputs:
     required: false
     type: string
   pr-append-file:
-    description: "path to a markdown or text file to append to the PR message (checklist, etc.)"
+    description:
+      "path to a markdown or text file to append to the PR message (checklist,
+      etc.)"
     required: false
   workflow-ref:
     description: "ref of the workflow to checkout"
@@ -51,11 +59,13 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Check if the event is a pull request or comment body starts with `/gpt-create-pr`
+    - name:
+        Check if the event is a pull request or comment body starts with
+        `/gpt-create-pr`
       shell: bash
       if: >
-       github.event_name == 'pull_request' ||
-       (github.event.issue.pull_request && startsWith(github.event.comment.body, '/gpt-create-pr'))
+        github.event_name == 'pull_request' || (github.event.issue.pull_request
+        && startsWith(github.event.comment.body, '/gpt-create-pr'))
       run: |
         echo "SKIP_ACTION=false" >> $GITHUB_ENV
 
@@ -71,7 +81,7 @@ runs:
       with:
         repository: smartcontractkit/.github
         ref: ${{ inputs.workflow-ref }}
-        path: 'pr_writer_actions'
+        path: "pr_writer_actions"
         # prevents access to any other action and workflow files
         sparse-checkout: |
           actions/llm-pr-writer/pr-writer-prompt.md
@@ -108,20 +118,34 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
-        PR_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number || '' }}
+        PR_NUMBER:
+          ${{ github.event.issue.number || github.event.pull_request.number ||
+          '' }}
       run: |
         gh pr checkout $PR_NUMBER
         diff_command="git diff -W origin/\$(gh pr view --json baseRefName | jq -r '.baseRefName')...HEAD -- ${{ steps.filter.outputs.exclude_filter }}"
         diff_output=$(eval $diff_command)
-        
+
         # escape all special characters and prepare for json with jq
         echo "$diff_output" | jq -Rs . | sed 's/^"//;s/"$//' > diff_output.txt
+
+    - name: Get git messages
+      if: ${{ env.SKIP_ACTION == 'false' && inputs.include-messages == 'true' }}
+      shell: bash
+      run: |
+        gh pr checkout $PR_NUMBER
+        get_messages_command="git log origin/$(gh pr view --json baseRefName | jq -r '.baseRefName')..HEAD --pretty=format:"%s"
+        git_messages=$(eval $get_messages_command)"
+
+        # escape all special characters and prepare for json with jq
+        echo "$git_messages" | jq -Rs . | sed 's/^"//;s/"$//' > git_messages.txt
 
     - name: Call ChatGPT
       if: ${{ env.SKIP_ACTION == 'false' }}
       shell: bash
       run: |
         diff_output=$(cat diff_output.txt)
+        [ -f "git_messages.txt" ] && git_messages=$(cat git_messages.txt) || git_messages=""
         openai_prompt=$(cat pr_writer_actions/actions/llm-pr-writer/pr-writer-prompt.md)
         openai_model=${{ inputs.openai-model }}
         openai_result=$(echo '{
@@ -130,7 +154,7 @@ runs:
           "messages": [
             {
               "role": "system",
-              "content": "'$openai_prompt' \n\n```'$diff_output'```\n"
+              "content": "'$openai_prompt' \n\n### Diff Output\n```'$diff_output'```\n\n### Git Messages\n```'$git_messages'```\n"
             }
           ]
         }' | envsubst | curl https://api.openai.com/v1/chat/completions \
@@ -152,7 +176,9 @@ runs:
         echo "$response_content" | sed -e 's/^ -/  -/g' > chatgpt_output.txt
 
     - name: Append additional content to output
-      if: ${{ env.SKIP_ACTION == 'false' && steps.check_pr-append-file.outputs.result == 'exists' }}
+      if:
+        ${{ env.SKIP_ACTION == 'false' &&
+        steps.check_pr-append-file.outputs.result == 'exists' }}
       shell: bash
       run: |
         echo "Appending content to PR"
@@ -163,7 +189,9 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
-        PR_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number || '' }}
+        PR_NUMBER:
+          ${{ github.event.issue.number || github.event.pull_request.number ||
+          '' }}
       run: |
         # get the current body of the PR
         pr_current_body="$(gh pr view $PR_NUMBER --json body | jq -r '.body')"
@@ -174,7 +202,7 @@ runs:
         echo "$pr_current_body"
 
         pr_message="**Below is a summarization created by an LLM (${{ inputs.openai-model }}). Be mindful of hallucinations and verify accuracy.**
-        
+
         $(cat chatgpt_output.txt)"
 
         gh pr edit $PR_NUMBER -b "$pr_current_body
