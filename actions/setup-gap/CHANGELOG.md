@@ -1,5 +1,14 @@
 # setup-gap
 
+## 0.2.2
+
+### Patch Changes
+
+- [#304](https://github.com/smartcontractkit/.github/pull/304)
+  [`aaf4360`](https://github.com/smartcontractkit/.github/commit/aaf4360a39694e25c0a540afcbbdbaa9b439a4f4)
+  Thanks [@erikburt](https://github.com/erikburt)! - Update default
+  proxy-version to v1.8 to support duplicate-headers parameter
+
 ## 0.2.1
 
 ### Patch Changes
