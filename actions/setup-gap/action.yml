@@ -18,11 +18,18 @@ inputs:
   proxy-version:
     description: "The aws-sigv4-proxy image version / tag, if using the public ecr."
     required: false
-    default: "1.7"
+    default: "1.8"
   proxy-port:
     description: "The port the proxy will listen on. Defaults to 8080."
     required: false
     default: "8080"
+  duplicate-authorization-header:
+    description:
+      "Whether to duplicate the Authorization header to
+      X-Original-Authorization. Note this is only used by the public image, it
+      is on by default for the private image. Defaults to false."
+    required: false
+    default: "false"
   # ecr inputs
   use-private-ecr-registry:
     description: "Whether to use a private ECR registry to pull the aws-sigv4-proxy image. Defaults to false."
@@ -182,6 +189,11 @@ runs:
         AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
         AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
       run: |
+        DUPLICATE_AUTH_HEADER_FLAG=""
+        if [ "${{ inputs.duplicate-authorization-header }}" == "true" ]; then
+          DUPLICATE_AUTH_HEADER_FLAG="--duplicate-headers Authorization"
+        fi
+
         docker run --rm -d \
           -e AWS_ACCESS_KEY_ID \
           -e AWS_SECRET_ACCESS_KEY \
@@ -190,7 +202,7 @@ runs:
           public.ecr.aws/aws-observability/aws-sigv4-proxy:${{ inputs.proxy-version }} \
           --name execute-api --region ${{ inputs.aws-region }} \
           --host "${{ inputs.api-gateway-host }}" \
-          --log-failed-requests
+          --log-failed-requests $DUPLICATE_AUTH_HEADER_FLAG
 
     - name: Login to AWS ECR (private ecr only)
       if: inputs.use-private-ecr-registry == 'true'
