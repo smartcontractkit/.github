@@ -5,11 +5,12 @@ This GitHub workflow harnesses the capabilities of Large Language Models (LLMs) 
 The implementation of this workflow promotes uniformity and depth in PR descriptions across all contributions. This not only accelerates the review process but also ensures that maintainers and collaborators can quickly grasp the essence and intent of changes, fostering a more cohesive and efficient project development environment.
 
 # Prerequisite
-- An OpenAI API key with access to GPT chat completion endpoints.
-- SHA of the tag you want to use. You can find the SHA of a tag by running
+- An OpenAI API key with access to GPT chat completion endpoints. Ask in `#ds_ai` if you need an API key.
+- SHA of the tag you want to use.
 ```bash
+# if you have cloned the repository, you can find the SHA of the tag by running
 git rev-list -n 1 [TAG_NAME]
-# search for available tags at https://github.com/smartcontractkit/.github 
+# otherwise, search for available tags at https://github.com/smartcontractkit/.github 
 # from branch dropdown -> tags tab -> type in llm-pr-writer
 ```
 
@@ -30,29 +31,31 @@ jobs:
       contents: read
       pull-requests: write
       repository-projects: read
-    uses: smartcontractkit/.github/actions/llm-pr-writer@[SHA] # points to a specific tag (ie. llm-pr-writer@0.2.0)
-    with:
-      # GitHub token used to fetch the PR diff and create a new PR comment.
-      # ${{ secrets.GITHUB_TOKEN }} will be sufficient.
-      gh-token: ''
-      # OpenAI API Key, used to generate PR descriptions using the GPT model.
-      # Needs to have access to the chat-completion endpoints
-      # Example: ${{ secrets.OPENAI_API_KEY }}
-      openai-api-key: ''
-      # OpenAI model to use for PR description generation. Defaults to 'gpt-3.5-turbo-0125'.
-      # If your repository contains complex logic or expects large diffs, use 'gpt-4-0125-preview' or newer.
-      # Learn more at: https://platform.openai.com/docs/models/overview
-      openai-model: ''
-      # File paths or patterns to exclude from the diff analysis. Use semicolons (;) to separate multiple paths.
-      # Example: 'poetry.lock;artifacts/*'
-      # WARNING: Not excluding build artifacts may result in a large diff that may exceed the GPT model's token limit.
-      exclude-paths: ''
-      # Absolute file path to a markdown or text file to append to the PR message (checklist, etc.)
-      # Example: '.github/pull_request_append.md'
-      pr-append-file: ''
-      # ref to smartcontractkit/.github repository to load the prompt from. Defaults to main.
-      # Usually used during development.
-      workflow-ref: ''
+    steps:
+      - name: Generate PR Description
+        uses: smartcontractkit/.github/actions/llm-pr-writer@[SHA] # points to a specific tag (ie. llm-pr-writer@0.3.0)
+        with:
+          # GitHub token used to fetch the PR diff and create a new PR comment.
+          # ${{ secrets.GITHUB_TOKEN }} will be sufficient.
+          gh-token: ''
+          # OpenAI API Key, used to generate PR descriptions using the GPT model.
+          # Needs to have access to the chat-completion endpoints
+          # Example: ${{ secrets.OPENAI_API_KEY }}
+          openai-api-key: ''
+          # OpenAI model to use for PR description generation. Defaults to 'gpt-3.5-turbo-0125'.
+          # If your repository contains complex logic or expects large diffs, use 'gpt-4-turbo-2024-04-09' or newer.
+          # Learn more at: https://platform.openai.com/docs/models/overview
+          openai-model: ''
+          # File paths or patterns to exclude from the diff analysis. Use semicolons (;) to separate multiple paths.
+          # Example: 'poetry.lock;artifacts/*'
+          # WARNING: Not excluding build artifacts may result in a large diff that may exceed the GPT model's token limit.
+          exclude-paths: ''
+          # Absolute file path to a markdown or text file to append to the PR message (checklist, etc.)
+          # Example: '.github/pull_request_append.md'
+          pr-append-file: ''
+          # ref to smartcontractkit/.github repository to load the prompt from. Defaults to main.
+          # Usually used during development.
+          workflow-ref: ''
 ```
 
 # Usage Scenarios
@@ -88,9 +91,17 @@ on:
 jobs:
   example_job:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      repository-projects: read
     steps:
       - name: Generate PR Description if PR is not from a bot
-        if: "!endsWith(github.actor, '[bot]')"
-        uses: smartcontractkit/.github/actions/llm-pr-writer@[ref/branch/tag]
-        ....
+        if: ${{ !endsWith(github.actor, '[bot]') }}
+        uses: smartcontractkit/.github/actions/llm-pr-writer@[SHA] # llm-pr-writer@0.3.0
+        with:
+          gh-token: ${{ secrets.GITHUB_TOKEN }}
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          openai-model: 'gpt-4-turbo-2024-04-09'
+          exclude-paths: 'dbt-home/*;artifacts/*;target/*;poetry.lock'
 ```
