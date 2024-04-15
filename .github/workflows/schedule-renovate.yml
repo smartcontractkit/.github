@@ -2,8 +2,6 @@ name: schedule-renovate
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 0 * * *"
 
 jobs:
   renovate:
@@ -26,8 +24,8 @@ jobs:
           aws-role-arn: ${{ secrets.AWS_OIDC_IAM_ROLE_ARN_GATI }}
           aws-lambda-url: ${{ secrets.AWS_LAMBDA_URL_GATI }}
           aws-region: ${{ secrets.AWS_REGION }}
-          aws-role-duration-seconds: 60
+          aws-role-duration-seconds: 900
 
       - name: test token
         shell: bash
-        run: aws stst get-caller-identity
+        run: aws sts get-caller-identity
