@@ -19,9 +19,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: setup-renovate
-        uses: ./actions/setup-renovate
+      - name: Setup github token
+        id: get-access-token
+        uses: smartcontractkit/.github/actions/setup-github-token@main
         with:
+          aws-role-arn: ${{ secrets.AWS_OIDC_IAM_ROLE_ARN_GATI }}
+          aws-lambda-url: ${{ secrets.AWS_LAMBDA_URL_GATI }}
           aws-region: ${{ secrets.AWS_REGION }}
-          aws-role-arn-gati: ${{ secrets.AWS_OIDC_IAM_ROLE_ARN_GATI }}
-          aws-lambda-url-gati: ${{ secrets.AWS_LAMBDA_URL_GATI }}
+          aws-role-duration-seconds: 60
+
+      - name: test token
+        shell: bash
+        run: aws stst get-caller-identity
