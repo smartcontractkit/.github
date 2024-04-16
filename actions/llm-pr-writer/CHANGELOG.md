@@ -1,5 +1,13 @@
 # llm-pr-writer
 
+## 0.3.1
+
+### Patch Changes
+
+- [#309](https://github.com/smartcontractkit/.github/pull/309)
+  [`67db135`](https://github.com/smartcontractkit/.github/commit/67db13538982dd9882a838b4c3c780ce06927719)
+  Thanks [@kalanyuz](https://github.com/kalanyuz)! - update documentation
+
 ## 0.3.0
 
 ### Minor Changes
