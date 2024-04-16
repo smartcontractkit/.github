@@ -117,7 +117,9 @@ runs:
         AWS_SESSION_TOKEN: ""
       with:
         cmd:
-          yq eval -i '.releases[] |= select(.name == "${{ inputs.app-release-name }}").version = "${{ inputs.helm-chart-version }}"' ${{ inputs.app-file-path-pattern }}
+          yq eval -i '.releases[] |= select(.name == "${{
+          inputs.app-release-name }}").version = "${{ inputs.helm-chart-version
+          }}"' ${{ inputs.app-file-path-pattern }}
 
     - name: Update helm chart repo
       if: inputs.helm-chart-repo-update == 'true'
@@ -129,15 +131,29 @@ runs:
         AWS_SESSION_TOKEN: ""
       with:
         cmd:
-          yq eval -i '.repositories[] |= select(.name == "infra-charts").url = "${{ inputs.helm-chart-repo }}"' ${{ inputs.app-file-path-pattern }}
+          yq eval -i '.repositories[] |= select(.name == "infra-charts").url =
+          "${{ inputs.helm-chart-repo }}"' ${{ inputs.app-file-path-pattern }}
+
+    - name: Check for changes
+      id: check-changes
+      shell: bash
+      run: |
+        if ! git diff --quiet; then
+          echo "Changes detected, proceeding with PR creation."
+        else
+          echo "No changes detected after updates. Failing the action."
+          exit 1
+        fi
 
     - name: Create PR to deploy
       id: create-pr
+      if: success()
       uses: peter-evans/create-pull-request@70a41aba780001da0a30141984ae2a0c95d8704e # v6.0.2
       with:
         base: ${{ inputs.pr-base-branch }}
         branch:
-          auto/${{ inputs.app-release-name}}/helm-${{ inputs.helm-chart-version }}-${{ inputs.release-type }}
+          auto/${{ inputs.app-release-name}}/helm-${{ inputs.helm-chart-version
+          }}-${{ inputs.release-type }}
         draft: ${{ inputs.pr-draft }}
         labels: ${{ inputs.pr-labels }}
         title:
