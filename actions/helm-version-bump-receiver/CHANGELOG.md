@@ -1,5 +1,14 @@
 # helm-version-bump-receiver
 
+## 0.1.3
+
+### Patch Changes
+
+- [#313](https://github.com/smartcontractkit/.github/pull/313)
+  [`b5ae0cf`](https://github.com/smartcontractkit/.github/commit/b5ae0cf12dc61388cbcac7a3744c64a7eb24da02)
+  Thanks [@momentmaker](https://github.com/momentmaker)! - Add check for chart
+  version change with action fail and not create PR
+
 ## 0.1.2
 
 ### Patch Changes
