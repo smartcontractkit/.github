@@ -19,7 +19,7 @@ jobs:
 
       - name: Setup github token
         id: get-access-token
-        uses: smartcontractkit/.github/actions/setup-github-token@test/update-gati-action
+        uses: smartcontractkit/.github/actions/setup-github-token@main
         with:
           aws-role-arn: ${{ secrets.AWS_OIDC_IAM_ROLE_ARN_GATI }}
           aws-lambda-url: ${{ secrets.AWS_LAMBDA_URL_GATI }}
