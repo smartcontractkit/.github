@@ -72,7 +72,7 @@ inputs:
   metrics-job-name:
     description: "grafana metrics job name"
     required: false
-    default: ci-lint
+    default: helm-version-bump-pr
   gc-host:
     description: "grafana hostname"
     required: false
