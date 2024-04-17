@@ -18,7 +18,7 @@ inputs:
   kubeconform-version:
     description: "kubeconform version"
     required: false
-    default: "0.6.4"
+    default: "v0.6.4"
   kubernetes-version:
     description: "kubernetes version"
     required: false
