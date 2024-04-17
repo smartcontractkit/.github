@@ -1,0 +1,84 @@
+name: ci-kubeconform
+description: "Kubernetes manifest validation CI check"
+
+inputs:
+  # general inputs
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+  go-version-file:
+    description: "go version file"
+    required: false
+    default: "go.mod"
+  kubeconform-version:
+    description: "kubeconform version"
+    required: false
+    default: "0.6.4"
+  kubernetes-version:
+    description: "kubernetes version"
+    required: false
+    default: "master"
+  strict-mode:
+    description: "enable strict mode"
+    required: false
+    default: "false"
+  charts-dir:
+    description: "charts directory"
+    required: true
+    default: "charts"
+  # grafana inputs
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+    default: ci-kubeconform
+  gc-host:
+    description: "grafana hostname"
+    required: false
+  gc-basic-auth:
+    description: "grafana basic auth"
+    required: false
+  gc-org-id:
+    description: "grafana org/tenant id"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Install Go
+      uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+      with:
+        go-version-file: ${{ inputs.go-version-file }}
+
+    - name: Install kubeconform
+      shell: bash
+      run: |
+        go install github.com/yannh/kubeconform/cmd/kubeconform@${{ inputs.kubeconform-version }}
+
+    - name: Validate Kubernetes manifests
+      shell: bash
+      env:
+        STRICT: "${{ inputs.strict-mode == 'true' && '-strict' || '' }}"
+      run: |
+        kubeconform ${{ inputs.charts-dir }} -kubernetes-version ${{ inputs.kubernetes-version }} ${{ env.STRICT }}
+
+    - name: Collect metrics
+      if: always()
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@e34ae8a4df60f4d9fdef1e32a69747bab130840e # v2.2.0
+      with:
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        org-id: ${{ inputs.gc-org-id}}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true
