@@ -78,6 +78,7 @@ runs:
           '-ignore-missing-schemas' || '' }}"
       working-directory: ${{ inputs.charts-dir }}
       run: |
+        helm repo add
         helm dependency build
         helm template . | kubeconform -kubernetes-version ${{ inputs.kubernetes-version }} ${{ env.STRICT }} ${{ env.IGNORE_MISSING_SCHEMAS }}
 
