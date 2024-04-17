@@ -27,6 +27,10 @@ inputs:
     description: "enable strict mode"
     required: false
     default: "false"
+  ignore-missing-schemas:
+    description: "ignore missing schemas"
+    required: false
+    default: "true"
   charts-dir:
     description: "charts directory"
     required: true
@@ -69,8 +73,12 @@ runs:
       shell: bash
       env:
         STRICT: "${{ inputs.strict-mode == 'true' && '-strict' || '' }}"
+        IGNORE_MISSING_SCHEMAS:
+          "${{ inputs.ignore-missing-schemas == 'true' &&
+          '-ignore-missing-schemas' || '' }}"
+      working-directory: ${{ inputs.charts-dir }}
       run: |
-        kubeconform ${{ inputs.charts-dir }} -kubernetes-version ${{ inputs.kubernetes-version }} ${{ env.STRICT }}
+        helm template . | kubeconform -kubernetes-version ${{ inputs.kubernetes-version }} ${{ env.STRICT }} ${{ env.IGNORE_MISSING_SCHEMAS }}
 
     - name: Collect metrics
       if: always()
