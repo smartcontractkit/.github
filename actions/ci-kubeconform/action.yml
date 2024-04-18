@@ -1,5 +1,5 @@
-name: ci-lint-charts
-description: Lint helm charts
+name: ci-kubeconform
+description: "Kubernetes manifest validation CI check"
 
 inputs:
   # general inputs
@@ -11,24 +11,35 @@ inputs:
     description: "number of commits to fetch"
     required: false
     default: "0"
-  # chart-testing inputs
-  chart-testing-config-path:
-    description: "chart-testing config path"
+  go-version-file:
+    description: "go version file"
     required: false
-    default: .ct.yml
-  chart-testing-extra-args:
-    description: "chart-testing extra args"
+    default: "go.mod"
+  kubeconform-version:
+    description: "kubeconform version"
     required: false
-    default: ""
+    default: "v0.6.4"
+  kubernetes-version:
+    description: "kubernetes version"
+    required: false
+    default: "master"
+  strict-mode:
+    description: "enable strict mode"
+    required: false
+    default: "true"
+  ignore-missing-schemas:
+    description: "ignore missing schemas"
+    required: false
+    default: "true"
   charts-dir:
     description: "charts directory"
-    required: false
+    required: true
     default: "charts"
   # grafana inputs
   metrics-job-name:
     description: "grafana metrics job name"
     required: false
-    default: ci-lint-charts
+    default: ci-kubeconform
   gc-host:
     description: "grafana hostname"
     required: false
@@ -48,6 +59,11 @@ runs:
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
+    - name: Install Go
+      uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+      with:
+        go-version-file: ${{ inputs.go-version-file }}
+
     - name: Setup yq
       uses: frenck/action-setup-yq@c4b5be8b4a215c536a41d436757d9feb92836d4f #v1.0.2
 
@@ -59,16 +75,22 @@ runs:
           yq --indent 0 '.dependencies | map(["helm", "repo", "add", .name, .repository] | join(" ")) | .[]' "./Chart.lock"  | sh --;
         fi
 
-    - name: Set up chart-testing
-      uses: helm/chart-testing-action@e6669bcd63d7cb57cb4380c33043eebe5d111992 # v2.6.1
+    - name: Install kubeconform
+      shell: bash
+      run: |
+        go install github.com/yannh/kubeconform/cmd/kubeconform@${{ inputs.kubeconform-version }}
 
-    - name: Run chart-testing (lint)
+    - name: Validate Kubernetes manifests
       shell: bash
       env:
-        CHART_TESTING_CONFIG_PATH: ${{ inputs.chart-testing-config-path }}
-        CHART_TESTING_EXTRA_ARGS: ${{ inputs.chart-testing-extra-args }}
+        STRICT: "${{ inputs.strict-mode == 'true' && '-strict' || '' }}"
+        IGNORE_MISSING_SCHEMAS:
+          "${{ inputs.ignore-missing-schemas == 'true' &&
+          '-ignore-missing-schemas' || '' }}"
+      working-directory: ${{ inputs.charts-dir }}
       run: |
-        ct lint --config "${CHART_TESTING_CONFIG_PATH}" "${CHART_TESTING_EXTRA_ARGS}"
+        helm dependency build
+        helm template . | kubeconform -kubernetes-version ${{ inputs.kubernetes-version }} ${{ env.STRICT }} ${{ env.IGNORE_MISSING_SCHEMAS }}
 
     - name: Collect metrics
       if: always()
