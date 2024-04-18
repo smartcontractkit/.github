@@ -20,6 +20,10 @@ inputs:
     description: "chart-testing extra args"
     required: false
     default: ""
+  charts-dir:
+    description: "charts directory"
+    required: false
+    default: "charts"
   # grafana inputs
   metrics-job-name:
     description: "grafana metrics job name"
@@ -43,6 +47,17 @@ runs:
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Setup yq
+      uses: frenck/action-setup-yq@c4b5be8b4a215c536a41d436757d9feb92836d4f #v1.0.2
+
+    - name: Add helm repos
+      shell: bash
+      working-directory: ${{ inputs.charts-dir }}
+      run: |
+        if [[ -f "./Chart.lock" ]]; then
+          yq --indent 0 '.dependencies | map(["helm", "repo", "add", .name, .repository] | join(" ")) | .[]' "./Chart.lock"  | sh --;
+        fi
 
     - name: Set up chart-testing
       uses: helm/chart-testing-action@e6669bcd63d7cb57cb4380c33043eebe5d111992 # v2.6.1

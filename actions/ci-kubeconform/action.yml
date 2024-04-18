@@ -64,6 +64,17 @@ runs:
       with:
         go-version-file: ${{ inputs.go-version-file }}
 
+    - name: Setup yq
+      uses: frenck/action-setup-yq@c4b5be8b4a215c536a41d436757d9feb92836d4f #v1.0.2
+
+    - name: Add helm repos
+      shell: bash
+      working-directory: ${{ inputs.charts-dir }}
+      run: |
+        if [[ -f "./Chart.lock" ]]; then
+          yq --indent 0 '.dependencies | map(["helm", "repo", "add", .name, .repository] | join(" ")) | .[]' "./Chart.lock"  | sh --;
+        fi
+
     - name: Install kubeconform
       shell: bash
       run: |
