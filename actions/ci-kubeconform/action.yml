@@ -31,6 +31,10 @@ inputs:
     description: "ignore missing schemas"
     required: false
     default: "true"
+  summary:
+    description: "enable summary"
+    required: false
+    default: "true"
   charts-dir:
     description: "charts directory"
     required: true
@@ -87,10 +91,11 @@ runs:
         IGNORE_MISSING_SCHEMAS:
           "${{ inputs.ignore-missing-schemas == 'true' &&
           '-ignore-missing-schemas' || '' }}"
+        SUMMARY: "${{ inputs.summary == 'true' && '-summary' || '' }}"
       working-directory: ${{ inputs.charts-dir }}
       run: |
         helm dependency build
-        helm template . | kubeconform -kubernetes-version ${{ inputs.kubernetes-version }} ${{ env.STRICT }} ${{ env.IGNORE_MISSING_SCHEMAS }}
+        helm template . | kubeconform -kubernetes-version ${{ inputs.kubernetes-version }} ${{ env.STRICT }} ${{ env.IGNORE_MISSING_SCHEMAS }} ${{ env.SUMMARY }}
 
     - name: Collect metrics
       if: always()
