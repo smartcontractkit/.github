@@ -1,5 +1,14 @@
 # ci-kubeconform
 
+## 0.2.0
+
+### Minor Changes
+
+- [#319](https://github.com/smartcontractkit/.github/pull/319)
+  [`b6c7e06`](https://github.com/smartcontractkit/.github/commit/b6c7e062d02d2fa320baa547cc5bf2daec442739)
+  Thanks [@momentmaker](https://github.com/momentmaker)! - Add summary input to
+  output summary
+
 ## 0.1.0
 
 ### Minor Changes
