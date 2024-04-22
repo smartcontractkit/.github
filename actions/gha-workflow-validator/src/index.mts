@@ -1,35 +1,38 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { commentOnPr, getComparison } from "./github.mjs";
+import { commentOnPrOrUpdateExisting, deleteCommentOnPRIfExists, getComparison } from "./github.mjs";
 import { ValidationResult, validateActionReferenceChanges } from "./action-reference-validations.mjs";
-import { ActionReference, parseAllAdditions } from "./utils.mjs";
+import { parseAllAdditions } from "./utils.mjs";
+import { COMMENT_HEADER, collapsibleContent, addFixingErrorsSuffix, markdownLink } from "./strings.mjs";
 
 (async () => {
   const token = process.env.GITHUB_TOKEN;
-
   if (!token) {
-    throw new Error('GitHub token is not set.');
+    core.setFailed('GitHub token is not set.');
+    process.exit(1);
   }
 
   const octokit = github.getOctokit(token);
 
   const { owner, repo } = github.context.repo;
-
-
   const pr = github.context.payload.pull_request;
   let base: string | undefined = undefined;
   let head: string = 'HEAD';
 
+  core.debug(`Event name: ${github.context.eventName}`);
+
   if (github.context.eventName === 'pull_request') {
     base = pr?.base?.sha;
     head = pr?.head?.sha;
+    core.debug(`PR: ${pr?.number} to compare: ${base}...${head} `);
   } else if (github.context.eventName === 'push') {
     head = github.context.payload.after;
     base = github.context.payload.before;
   }
 
   if (!base) {
-    throw new Error('Base commit SHA is not determined.');
+    core.setFailed('Base commit SHA is not determined.');
+    process.exit(1);
   }
 
   const files = await getComparison(octokit, owner, repo, base, head);
@@ -40,45 +43,46 @@ import { ActionReference, parseAllAdditions } from "./utils.mjs";
 
   const patchAdditions = parseAllAdditions(filteredFiles);
 
-  const actionReferenceValidations = await validateActionReferenceChanges(octokit, patchAdditions)
+  const containsWorkflowModifications = patchAdditions.some(file => {
+    return (file.filename.startsWith('.github/workflows') || file.filename.startsWith('.github/actions')) && (file.filename.endsWith('.yml') || file.filename.endsWith('.yaml'))
+  });
 
-  const errorMessage = createErrorOutput(actionReferenceValidations);
-  if (errorMessage) {
-    core.setFailed("Errors found in workflow files. See error output for details.");
+  if (containsWorkflowModifications) {
+    const actionReferenceValidations = await validateActionReferenceChanges(octokit, patchAdditions)
+    const validationFailed = actionReferenceValidations.some(validation => validation.lineValidations.length > 0);
 
-    if (pr) {
-      commentOnPr(octokit, owner, repo, pr.number, errorMessage);
+    if (validationFailed && pr) {
+      const errorMessage = formatGithubComment(actionReferenceValidations, owner, repo, head);
+      commentOnPrOrUpdateExisting(octokit, owner, repo, pr.number, errorMessage);
+      core.setFailed("Errors found in workflow files. See comment on for details.");
+    } else if (validationFailed) {
+      core.setFailed("Errors found in workflow files. See logs for details.");
+      // TODO handle general workflow case
+    } else if (pr) {
+      deleteCommentOnPRIfExists(octokit, owner, repo, pr.number);
     }
   }
-
 })().catch((err) => {
   core.error(err);
   core.setFailed(err.message);
 });
 
 
-function createErrorOutput(validationResults: ValidationResult[]): string {
-  if  (validationResults.length === 0) {
-    return "";
-  }
-
-  let errorOutput = "";
+function formatGithubComment(validationResults: ValidationResult[], owner: string, repo: string, ref: string): string {
+  let githubComment = COMMENT_HEADER + "\n\n";
 
   for (const result of validationResults) {
-    let currentFileErrorMessage = `${result.filename}`
+    const fileLinesErrorMessages = result.lineValidations.map(lineErrors => {
+      const fileLink = markdownLink(`Line ${lineErrors.line.lineNumber}`, `https://github.com/${owner}/${repo}/blob/${ref}/${result.filename}#L${lineErrors.line.lineNumber}`);
+      const lineErrorsMsg = lineErrors.validationErrors.reduce((acc, curr) => {
+        return acc + `    - ${curr.message}` + "\n";
+      }, "");
 
-    const lineErrors = result.lineValidations.map(lineErrors => {
-      let lineMsg = `\n  - Line ${lineErrors.line.lineNumber} (${lineErrors.line.content.trim()}): `;
-      lineMsg += lineErrors.validationErrors.reduce((acc, curr) => {
-        return acc + "    - " + curr.message + "\n";
-      }, "\n");
-
-      return lineMsg;
+      return fileLink + "\n" + lineErrorsMsg;
     });
 
-    currentFileErrorMessage += lineErrors.join(", ");
-    errorOutput += currentFileErrorMessage + "\n";
-  }
+    githubComment += collapsibleContent(result.filename, fileLinesErrorMessages.join("\n\n")) + "\n";
+  };
 
-  return errorOutput;
+  return addFixingErrorsSuffix(githubComment);
 }

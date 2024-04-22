@@ -1,5 +1,6 @@
 import { ActionReference, FileAddition, ParsedFile } from './utils.mjs';
 import { Octokit, getActionFileFromGithub } from './github.mjs';
+import * as core from "@actions/core";
 
 export interface ValidationResult {
   filename: string;
@@ -15,6 +16,8 @@ interface LineValidationResult {
 type ValidationError = { message: string; };
 
 export async function validateActionReferenceChanges(octokit: Octokit, changes: ParsedFile[]): Promise<ValidationResult[]> {
+  core.debug(`Validating action reference changes, on ${changes.length} changes`)
+
   const resultsPromise = changes.map(async (change) => {
     const lineValidationPromises  = change.addedLines.filter(addedLine => addedLine.actionReference).map(async (line) => {
       const validationErrors = (line.actionReference) ? await validateLine(octokit, line.actionReference) : [];
@@ -30,7 +33,9 @@ export async function validateActionReferenceChanges(octokit: Octokit, changes: 
     };
   });
 
-  return (await Promise.all(resultsPromise)).filter((result) => result.lineValidations.length > 0);
+  const filteredResults = (await Promise.all(resultsPromise)).filter((result) => result.lineValidations.length > 0);
+  core.debug(`Found ${filteredResults.length} files with validation errors`);
+  return filteredResults
 }
 
 async function validateLine(octokit: Octokit, line: ActionReference): Promise<ValidationError[]> {
@@ -76,9 +81,11 @@ async function isNode20Action(ghClient: Octokit, change: ActionReference) {
   );
 
   if (!actionFile) {
-    // todo: log warning
+    core.warning(`No action file found for ${change.owner}/${change.repo}${change.repoPath}@${change.ref}`);
     return;
   }
+
+  core.debug(actionFile);
 
   const nodeVersionRegex = /^\s+using\:\s*"?node(\d{2})"?/gm;
   const matches = nodeVersionRegex.exec(actionFile);

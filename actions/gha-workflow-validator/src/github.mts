@@ -1,13 +1,14 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import {
-  GetResponseTypeFromEndpointMethod,
-} from "@octokit/types";
+import { GetResponseTypeFromEndpointMethod } from "@octokit/types";
 import { join } from "node:path";
 import { RequestError } from "@octokit/request-error";
+import { COMMENT_HEADER } from "./strings.mjs";
 
 export type Octokit = ReturnType<typeof github.getOctokit>;
-type CompareResponse = GetResponseTypeFromEndpointMethod<Octokit["rest"]["repos"]["compareCommitsWithBasehead"]>;
+type CompareResponse = GetResponseTypeFromEndpointMethod<
+  Octokit["rest"]["repos"]["compareCommitsWithBasehead"]
+>;
 export type GithubFiles = CompareResponse["data"]["files"];
 
 export async function getComparison(
@@ -17,11 +18,12 @@ export async function getComparison(
   base: string,
   head: string,
 ): Promise<GithubFiles> {
+  core.debug(`Comparing ${owner}/${repo} commits ${base}...${head}`);
 
   const diff = await octokit.rest.repos.compareCommitsWithBasehead({
     owner,
     repo,
-    basehead: `${base}...${head}`
+    basehead: `${base}...${head}`,
     // <before>...<after> or <earlier>...<later>
   });
 
@@ -38,15 +40,112 @@ export async function getComparison(
  * @returns The action definition as a string or undefined if it failed
  */
 export async function getActionFileFromGithub(
-  ghClient: Octokit,
+  octokit: Octokit,
   owner: string,
   repo: string,
   repoPath: string,
   ref: string,
 ) {
-  const actionFileGetter = async (path: string) => {
+  const ymlPath = join(repoPath, "action.yml");
+  const yamlPath = join(repoPath, "action.yaml");
+
+  let actionFile = await getFileFromGithub(octokit, owner, repo, ymlPath, ref);
+  if (!actionFile) {
+    actionFile =  await getFileFromGithub(octokit, owner, repo, yamlPath, ref);
+  }
+  return actionFile;
+}
+
+export async function commentOnPrOrUpdateExisting(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  prNumber: number,
+  body: string,
+) {
+  const comments = await getAllCommentsOnPr(octokit, owner, repo, prNumber);
+  const existingComment = comments.find(
+    (comment) => comment.body?.startsWith(COMMENT_HEADER),
+  );
+
+  if (existingComment) {
+    await updateComment(octokit, owner, repo, existingComment.id, body);
+  } else {
+    await createComment(octokit, owner, repo, prNumber, body);
+  }
+}
+
+export async function deleteCommentOnPRIfExists(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  prNumber: number,
+) {
+  const comments = await getAllCommentsOnPr(octokit, owner, repo, prNumber);
+  const existingComment = comments.find(
+    (comment) => comment.body?.startsWith(COMMENT_HEADER),
+  );
+
+  if (existingComment) {
+    await octokit.rest.issues.deleteComment({
+      owner,
+      repo,
+      comment_id: existingComment.id,
+    });
+  }
+}
+
+async function getAllCommentsOnPr(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  prNumber: number,
+) {
+  core.debug(`Getting comments on PR ${prNumber}`);
+  return await octokit.paginate(octokit.rest.issues.listComments, {
+    owner: owner,
+    repo: repo,
+    issue_number: prNumber,
+  });
+}
+
+async function createComment(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  prNumber: number,
+  body: string,
+) {
+  core.debug(`Commenting on PR ${prNumber}`);
+  return octokit.rest.issues.createComment({
+    owner,
+    repo,
+    issue_number: prNumber,
+    body,
+  });
+}
+
+async function updateComment(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  commentId: number,
+  body: string,
+) {
+  core.debug(`Updating comment ${commentId}`);
+  await octokit.rest.issues.updateComment({
+    owner,
+    repo,
+    comment_id: commentId,
+    body,
+  });
+}
+
+async function getFileFromGithub(octokit: Octokit, owner: string, repo: string, path: string, ref: string) {
     try {
-      const response = await ghClient.rest.repos.getContent({
+      core.debug(`Getting file through Github - ${owner}/${repo}/${path}@${ref}`);
+
+      const response = await octokit.rest.repos.getContent({
         owner,
         repo,
         path,
@@ -61,36 +160,10 @@ export async function getActionFileFromGithub(
       const requestPath = `${owner}/${repo}/${path}@${ref}`;
       if (error instanceof RequestError) {
         core.warning(
-          `Encountered Github Request Error for ${requestPath}. (${error.status} - ${error.message})`
+          `Encountered Github Request Error while getting file - ${requestPath}. (${error.status} - ${error.message})`,
         );
       } else {
-        core.warning(`Encountered Unknown Error for ${requestPath} - ${error}`);
+        core.warning(`Encountered Unknown Error while getting file - ${requestPath} - ${error}`);
       }
     }
-  };
-
-
-  const ymlPath = join(repoPath, "action.yml");
-  const yamlPath = join(repoPath, "action.yaml");
-
-  let actionFile = await actionFileGetter(ymlPath);
-  if (!actionFile) {
-    actionFile = await actionFileGetter(yamlPath);
-  }
-  return actionFile;
-}
-
-export async function commentOnPr(
-  octokit: Octokit,
-  owner: string,
-  repo: string,
-  prNumber: number,
-  body: string,
-) {
-  await octokit.rest.issues.createComment({
-    owner,
-    repo,
-    issue_number: prNumber,
-    body,
-  });
 }

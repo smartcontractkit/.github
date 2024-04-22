@@ -738,7 +738,7 @@ var require_tunnel = __commonJS({
         connectOptions.headers = connectOptions.headers || {};
         connectOptions.headers["Proxy-Authorization"] = "Basic " + new Buffer(connectOptions.proxyAuth).toString("base64");
       }
-      debug("making CONNECT request");
+      debug4("making CONNECT request");
       var connectReq = self.request(connectOptions);
       connectReq.useChunkedEncodingByDefault = false;
       connectReq.once("response", onResponse);
@@ -758,7 +758,7 @@ var require_tunnel = __commonJS({
         connectReq.removeAllListeners();
         socket.removeAllListeners();
         if (res.statusCode !== 200) {
-          debug(
+          debug4(
             "tunneling socket could not be established, statusCode=%d",
             res.statusCode
           );
@@ -770,7 +770,7 @@ var require_tunnel = __commonJS({
           return;
         }
         if (head.length > 0) {
-          debug("got illegal response body from proxy");
+          debug4("got illegal response body from proxy");
           socket.destroy();
           var error2 = new Error("got illegal response body from proxy");
           error2.code = "ECONNRESET";
@@ -778,13 +778,13 @@ var require_tunnel = __commonJS({
           self.removeSocket(placeholder);
           return;
         }
-        debug("tunneling connection has established");
+        debug4("tunneling connection has established");
         self.sockets[self.sockets.indexOf(placeholder)] = socket;
         return cb(socket);
       }
       function onError(cause) {
         connectReq.removeAllListeners();
-        debug(
+        debug4(
           "tunneling socket could not be established, cause=%s\n",
           cause.message,
           cause.stack
@@ -846,9 +846,9 @@ var require_tunnel = __commonJS({
       }
       return target;
     }
-    var debug;
+    var debug4;
     if (process.env.NODE_DEBUG && /\btunnel\b/.test(process.env.NODE_DEBUG)) {
-      debug = function() {
+      debug4 = function() {
         var args = Array.prototype.slice.call(arguments);
         if (typeof args[0] === "string") {
           args[0] = "TUNNEL: " + args[0];
@@ -858,10 +858,10 @@ var require_tunnel = __commonJS({
         console.error.apply(console, args);
       };
     } else {
-      debug = function() {
+      debug4 = function() {
       };
     }
-    exports2.debug = debug;
+    exports2.debug = debug4;
   }
 });
 
@@ -17862,18 +17862,18 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       return process.env["RUNNER_DEBUG"] === "1";
     }
     exports2.isDebug = isDebug;
-    function debug(message) {
+    function debug4(message) {
       command_1.issueCommand("debug", {}, message);
     }
-    exports2.debug = debug;
+    exports2.debug = debug4;
     function error2(message, properties = {}) {
       command_1.issueCommand("error", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
     exports2.error = error2;
-    function warning2(message, properties = {}) {
+    function warning3(message, properties = {}) {
       command_1.issueCommand("warning", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
-    exports2.warning = warning2;
+    exports2.warning = warning3;
     function notice(message, properties = {}) {
       command_1.issueCommand("notice", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
@@ -22176,7 +22176,7 @@ var require_github = __commonJS({
 });
 
 // actions/gha-workflow-validator/src/index.mts
-var core2 = __toESM(require_core(), 1);
+var core3 = __toESM(require_core(), 1);
 var github = __toESM(require_github(), 1);
 
 // actions/gha-workflow-validator/src/github.mts
@@ -22222,8 +22222,64 @@ var RequestError = class extends Error {
   }
 };
 
+// actions/gha-workflow-validator/src/strings.mts
+var COMMENT_HEADER = `### GHA Workflow Validator Results`;
+var FIXING_ERRORS = `
+#### Fixing Errors
+
+<details>
+<summary>Instructions</summary>
+
+The proper format for referencing a Github Action external to the repository is as follows:
+
+\`<owner>/<repo>/<optional path>@<commit SHA1> # <tag relating to the SHA1>\`
+
+<details>
+<summary>Examples</summary>
+
+\`\`\`
+actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
+
+smartcontractkit/chainlink-github-actions/github-app-token-issuer@5874ff7211cf5a5a2670bb010fbff914eaaae138 # v2.3.12
+\`\`\`
+</details>
+
+##### <ref> is not a valid SHA1
+
+* Please reference a specific commit.
+* Do not use things like \`@main\`, \`@branch/feature\`, \`@v4\`, or \`@v4.0.0\`.
+
+##### No version comment found
+
+* Ensure you have left a comment indicating the git tag (or version) associated with the SHA1 reference.
+* \`@<commit> # v4.0.0\`
+
+##### Action is using node...
+
+* The action added is supposed to be run using a version that is not \`node20\`. This might create issues due to Github deprecating actions using \`node16\` and earlier.
+
+</details>
+`;
+function collapsibleContent(title, content) {
+  return `
+<details>
+<summary>${title}</summary>
+
+${content}
+
+</details>
+`;
+}
+function addFixingErrorsSuffix(comment) {
+  return comment + "\n---\n" + FIXING_ERRORS;
+}
+function markdownLink(text, url) {
+  return `[${text}](${url})`;
+}
+
 // actions/gha-workflow-validator/src/github.mts
 async function getComparison(octokit, owner, repo, base, head) {
+  core.debug(`Comparing ${owner}/${repo} commits ${base}...${head}`);
   const diff = await octokit.rest.repos.compareCommitsWithBasehead({
     owner,
     repo,
@@ -22232,49 +22288,94 @@ async function getComparison(octokit, owner, repo, base, head) {
   });
   return diff.data.files;
 }
-async function getActionFileFromGithub(ghClient, owner, repo, repoPath, ref) {
-  const actionFileGetter = async (path) => {
-    try {
-      const response = await ghClient.rest.repos.getContent({
-        owner,
-        repo,
-        path,
-        ref
-      });
-      if ("content" in response.data) {
-        return Buffer.from(response.data.content, "base64").toString();
-      }
-      throw Error("No content found in getContent response");
-    } catch (error2) {
-      const requestPath = `${owner}/${repo}/${path}@${ref}`;
-      if (error2 instanceof RequestError) {
-        core.warning(
-          `Encountered Github Request Error for ${requestPath}. (${error2.status} - ${error2.message})`
-        );
-      } else {
-        core.warning(`Encountered Unknown Error for ${requestPath} - ${error2}`);
-      }
-    }
-  };
+async function getActionFileFromGithub(octokit, owner, repo, repoPath, ref) {
   const ymlPath = (0, import_node_path.join)(repoPath, "action.yml");
   const yamlPath = (0, import_node_path.join)(repoPath, "action.yaml");
-  let actionFile = await actionFileGetter(ymlPath);
+  let actionFile = await getFileFromGithub(octokit, owner, repo, ymlPath, ref);
   if (!actionFile) {
-    actionFile = await actionFileGetter(yamlPath);
+    actionFile = await getFileFromGithub(octokit, owner, repo, yamlPath, ref);
   }
   return actionFile;
 }
-async function commentOnPr(octokit, owner, repo, prNumber, body) {
-  await octokit.rest.issues.createComment({
+async function commentOnPrOrUpdateExisting(octokit, owner, repo, prNumber, body) {
+  const comments = await getAllCommentsOnPr(octokit, owner, repo, prNumber);
+  const existingComment = comments.find(
+    (comment) => comment.body?.startsWith(COMMENT_HEADER)
+  );
+  if (existingComment) {
+    await updateComment(octokit, owner, repo, existingComment.id, body);
+  } else {
+    await createComment(octokit, owner, repo, prNumber, body);
+  }
+}
+async function deleteCommentOnPRIfExists(octokit, owner, repo, prNumber) {
+  const comments = await getAllCommentsOnPr(octokit, owner, repo, prNumber);
+  const existingComment = comments.find(
+    (comment) => comment.body?.startsWith(COMMENT_HEADER)
+  );
+  if (existingComment) {
+    await octokit.rest.issues.deleteComment({
+      owner,
+      repo,
+      comment_id: existingComment.id
+    });
+  }
+}
+async function getAllCommentsOnPr(octokit, owner, repo, prNumber) {
+  core.debug(`Getting comments on PR ${prNumber}`);
+  return await octokit.paginate(octokit.rest.issues.listComments, {
+    owner,
+    repo,
+    issue_number: prNumber
+  });
+}
+async function createComment(octokit, owner, repo, prNumber, body) {
+  core.debug(`Commenting on PR ${prNumber}`);
+  return octokit.rest.issues.createComment({
     owner,
     repo,
     issue_number: prNumber,
     body
   });
 }
+async function updateComment(octokit, owner, repo, commentId, body) {
+  core.debug(`Updating comment ${commentId}`);
+  await octokit.rest.issues.updateComment({
+    owner,
+    repo,
+    comment_id: commentId,
+    body
+  });
+}
+async function getFileFromGithub(octokit, owner, repo, path, ref) {
+  try {
+    core.debug(`Getting file through Github - ${owner}/${repo}/${path}@${ref}`);
+    const response = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path,
+      ref
+    });
+    if ("content" in response.data) {
+      return Buffer.from(response.data.content, "base64").toString();
+    }
+    throw Error("No content found in getContent response");
+  } catch (error2) {
+    const requestPath = `${owner}/${repo}/${path}@${ref}`;
+    if (error2 instanceof RequestError) {
+      core.warning(
+        `Encountered Github Request Error while getting file - ${requestPath}. (${error2.status} - ${error2.message})`
+      );
+    } else {
+      core.warning(`Encountered Unknown Error while getting file - ${requestPath} - ${error2}`);
+    }
+  }
+}
 
 // actions/gha-workflow-validator/src/action-reference-validations.mts
+var core2 = __toESM(require_core(), 1);
 async function validateActionReferenceChanges(octokit, changes) {
+  core2.debug(`Validating action reference changes, on ${changes.length} changes`);
   const resultsPromise = changes.map(async (change) => {
     const lineValidationPromises = change.addedLines.filter((addedLine) => addedLine.actionReference).map(async (line) => {
       const validationErrors = line.actionReference ? await validateLine(octokit, line.actionReference) : [];
@@ -22287,7 +22388,9 @@ async function validateActionReferenceChanges(octokit, changes) {
       lineValidations: nonEmptyLineValidations
     };
   });
-  return (await Promise.all(resultsPromise)).filter((result) => result.lineValidations.length > 0);
+  const filteredResults = (await Promise.all(resultsPromise)).filter((result) => result.lineValidations.length > 0);
+  core2.debug(`Found ${filteredResults.length} files with validation errors`);
+  return filteredResults;
 }
 async function validateLine(octokit, line) {
   let validationErrors = [];
@@ -22325,8 +22428,10 @@ async function isNode20Action(ghClient, change) {
     change.ref
   );
   if (!actionFile) {
+    core2.warning(`No action file found for ${change.owner}/${change.repo}${change.repoPath}@${change.ref}`);
     return;
   }
+  core2.debug(actionFile);
   const nodeVersionRegex = /^\s+using\:\s*"?node(\d{2})"?/gm;
   const matches = nodeVersionRegex.exec(actionFile);
   if (matches && matches[1] !== "20") {
@@ -22387,59 +22492,67 @@ function extractActionReference(line) {
 (async () => {
   const token = process.env.GITHUB_TOKEN;
   if (!token) {
-    throw new Error("GitHub token is not set.");
+    core3.setFailed("GitHub token is not set.");
+    process.exit(1);
   }
   const octokit = github.getOctokit(token);
   const { owner, repo } = github.context.repo;
   const pr = github.context.payload.pull_request;
   let base = void 0;
   let head = "HEAD";
+  core3.debug(`Event name: ${github.context.eventName}`);
   if (github.context.eventName === "pull_request") {
     base = pr?.base?.sha;
     head = pr?.head?.sha;
+    core3.debug(`PR: ${pr?.number} to compare: ${base}...${head} `);
   } else if (github.context.eventName === "push") {
     head = github.context.payload.after;
     base = github.context.payload.before;
   }
   if (!base) {
-    throw new Error("Base commit SHA is not determined.");
+    core3.setFailed("Base commit SHA is not determined.");
+    process.exit(1);
   }
   const files = await getComparison(octokit, owner, repo, base, head);
   const filteredFiles = files?.filter((entry) => {
     return (entry.filename.startsWith(".github/workflows") || entry.filename.startsWith(".github/actions")) && (entry.filename.endsWith(".yml") || entry.filename.endsWith(".yaml"));
   });
   const patchAdditions = parseAllAdditions(filteredFiles);
-  const actionReferenceValidations = await validateActionReferenceChanges(octokit, patchAdditions);
-  const errorMessage = createErrorOutput(actionReferenceValidations);
-  if (errorMessage) {
-    core2.setFailed("Errors found in workflow files. See error output for details.");
-    if (pr) {
-      commentOnPr(octokit, owner, repo, pr.number, errorMessage);
+  const containsWorkflowModifications = patchAdditions.some((file) => {
+    return (file.filename.startsWith(".github/workflows") || file.filename.startsWith(".github/actions")) && (file.filename.endsWith(".yml") || file.filename.endsWith(".yaml"));
+  });
+  if (containsWorkflowModifications) {
+    const actionReferenceValidations = await validateActionReferenceChanges(octokit, patchAdditions);
+    const validationFailed = actionReferenceValidations.some((validation) => validation.lineValidations.length > 0);
+    if (validationFailed && pr) {
+      const errorMessage = formatGithubComment(actionReferenceValidations, owner, repo, head);
+      commentOnPrOrUpdateExisting(octokit, owner, repo, pr.number, errorMessage);
+      core3.setFailed("Errors found in workflow files. See comment on for details.");
+    } else if (validationFailed) {
+      core3.setFailed("Errors found in workflow files. See logs for details.");
+    } else if (pr) {
+      deleteCommentOnPRIfExists(octokit, owner, repo, pr.number);
     }
   }
 })().catch((err) => {
-  core2.error(err);
-  core2.setFailed(err.message);
+  core3.error(err);
+  core3.setFailed(err.message);
 });
-function createErrorOutput(validationResults) {
-  if (validationResults.length === 0) {
-    return "";
-  }
-  let errorOutput = "";
+function formatGithubComment(validationResults, owner, repo, ref) {
+  let githubComment = COMMENT_HEADER + "\n\n";
   for (const result of validationResults) {
-    let currentFileErrorMessage = `${result.filename}`;
-    const lineErrors = result.lineValidations.map((lineErrors2) => {
-      let lineMsg = `
-  - Line ${lineErrors2.line.lineNumber} (${lineErrors2.line.content.trim()}): `;
-      lineMsg += lineErrors2.validationErrors.reduce((acc, curr) => {
-        return acc + "    - " + curr.message + "\n";
-      }, "\n");
-      return lineMsg;
+    const fileLinesErrorMessages = result.lineValidations.map((lineErrors) => {
+      const fileLink = markdownLink(`Line ${lineErrors.line.lineNumber}`, `https://github.com/${owner}/${repo}/blob/${ref}/${result.filename}#L${lineErrors.line.lineNumber}`);
+      const lineErrorsMsg = lineErrors.validationErrors.reduce((acc, curr) => {
+        return acc + `    - ${curr.message}
+`;
+      }, "");
+      return fileLink + "\n" + lineErrorsMsg;
     });
-    currentFileErrorMessage += lineErrors.join(", ");
-    errorOutput += currentFileErrorMessage + "\n";
+    githubComment += collapsibleContent(result.filename, fileLinesErrorMessages.join("\n\n")) + "\n";
   }
-  return errorOutput;
+  ;
+  return addFixingErrorsSuffix(githubComment);
 }
 /*! Bundled license information:
 
