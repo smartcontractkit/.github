@@ -1,5 +1,14 @@
 # ci-publish-npm
 
+## 0.4.0
+
+### Minor Changes
+
+- [#327](https://github.com/smartcontractkit/.github/pull/327)
+  [`18b53f9`](https://github.com/smartcontractkit/.github/commit/18b53f9c04ed744e6f30232abf889b849e1a4eef)
+  Thanks [@erikburt](https://github.com/erikburt)! - Populate Github release
+  with title instead of only relying on tag name.
+
 ## 0.3.0
 
 ### Minor Changes
