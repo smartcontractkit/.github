@@ -1,5 +1,5 @@
-import { ActionReference, FileAddition, ParsedFile } from './utils.mjs';
-import { Octokit, getActionFileFromGithub } from './github.mjs';
+import { ActionReference, FileAddition, ParsedFile } from './utils.js';
+import { Octokit, getActionFileFromGithub } from './github.js';
 import * as core from "@actions/core";
 
 export interface ValidationResult {

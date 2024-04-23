@@ -1,4 +1,4 @@
-import { GithubFiles } from "./github.mjs";
+import { GithubFiles } from "./github.js";
 
 export interface ParsedFile {
   filename: string;
@@ -68,7 +68,7 @@ function parsePatchAdditions(patch: string): FileAddition[]  {
   return additions;
 }
 
-export function extractActionReference(line: string): ActionReference | undefined {
+function extractActionReference(line: string): ActionReference | undefined {
   // example line:
   //       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
   const trimSubString = "uses:"

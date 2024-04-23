@@ -3,7 +3,7 @@ import * as github from "@actions/github";
 import { GetResponseTypeFromEndpointMethod } from "@octokit/types";
 import { join } from "node:path";
 import { RequestError } from "@octokit/request-error";
-import { COMMENT_HEADER } from "./strings.mjs";
+import { COMMENT_HEADER } from "./strings.js";
 
 export type Octokit = ReturnType<typeof github.getOctokit>;
 type CompareResponse = GetResponseTypeFromEndpointMethod<

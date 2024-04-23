@@ -1,9 +1,9 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { commentOnPrOrUpdateExisting, deleteCommentOnPRIfExists, getComparison } from "./github.mjs";
-import { ValidationResult, validateActionReferenceChanges } from "./action-reference-validations.mjs";
-import { parseAllAdditions } from "./utils.mjs";
-import { COMMENT_HEADER, collapsibleContent, addFixingErrorsSuffix, markdownLink } from "./strings.mjs";
+import { commentOnPrOrUpdateExisting, deleteCommentOnPRIfExists, getComparison } from "./github.js";
+import { ValidationResult, validateActionReferenceChanges } from "./action-reference-validations.js";
+import { parseAllAdditions } from "./utils.js";
+import { COMMENT_HEADER, collapsibleContent, addFixingErrorsSuffix, markdownLink } from "./strings.js";
 
 (async () => {
   const token = process.env.GITHUB_TOKEN;
