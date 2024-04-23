@@ -51,4 +51,4 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
-        gh release create ${{ inputs.github-release-tag-name }} --notes "View the changelog at [${{ inputs.github-release-changelog-path }}](${{ inputs.github-release-changelog-path }})"
+        gh release create ${{ inputs.github-release-tag-name }} --title ${{ inputs.github-release-tag-name }} --notes "View the changelog at [${{ inputs.github-release-changelog-path }}](${{ inputs.github-release-changelog-path }})"
