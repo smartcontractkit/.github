@@ -39,7 +39,7 @@ export async function validateActionReferenceChanges(octokit: Octokit, changes: 
 }
 
 async function validateLine(octokit: Octokit, line: ActionReference): Promise<ValidationError[]> {
-  let validationErrors: ValidationError[] = [];
+  const validationErrors: ValidationError[] = [];
 
   const shaRefValidation = usesShaRef(line);
   const versionCommentValidation = hasVersionComment(line);
@@ -87,7 +87,7 @@ async function isNode20Action(ghClient: Octokit, change: ActionReference) {
 
   core.debug(actionFile);
 
-  const nodeVersionRegex = /^\s+using\:\s*"?node(\d{2})"?/gm;
+  const nodeVersionRegex = /^\s+using:\s*"?node(\d{2})"?/gm;
   const matches = nodeVersionRegex.exec(actionFile);
   if (matches && matches[1] !== '20') {
     return `Action is using node${matches[1]}`;

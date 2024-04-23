@@ -22393,7 +22393,7 @@ async function validateActionReferenceChanges(octokit, changes) {
   return filteredResults;
 }
 async function validateLine(octokit, line) {
-  let validationErrors = [];
+  const validationErrors = [];
   const shaRefValidation = usesShaRef(line);
   const versionCommentValidation = hasVersionComment(line);
   const node20ActionValidation = await isNode20Action(octokit, line);
@@ -22432,7 +22432,7 @@ async function isNode20Action(ghClient, change) {
     return;
   }
   core2.debug(actionFile);
-  const nodeVersionRegex = /^\s+using\:\s*"?node(\d{2})"?/gm;
+  const nodeVersionRegex = /^\s+using:\s*"?node(\d{2})"?/gm;
   const matches = nodeVersionRegex.exec(actionFile);
   if (matches && matches[1] !== "20") {
     return `Action is using node${matches[1]}`;
@@ -22456,11 +22456,11 @@ function parsePatchAdditions(patch) {
   let currentLineInFile = 0;
   for (const line of lineChanges) {
     if (line.startsWith("@@")) {
-      const [_, source, dest, __] = line.split(" ");
+      const [, , dest] = line.split(" ");
       if (!dest.startsWith("+")) {
         throw new Error("Invalid git hunk format");
       }
-      const [destLine, ___] = dest.substring(1).split(",");
+      const [destLine] = dest.substring(1).split(",");
       currentLineInFile = parseInt(destLine, 10);
       continue;
     } else if (line.startsWith("+")) {
@@ -22551,7 +22551,6 @@ function formatGithubComment(validationResults, owner, repo, ref) {
     });
     githubComment += collapsibleContent(result.filename, fileLinesErrorMessages.join("\n\n")) + "\n";
   }
-  ;
   return addFixingErrorsSuffix(githubComment);
 }
 /*! Bundled license information:

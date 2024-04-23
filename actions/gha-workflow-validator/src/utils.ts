@@ -45,13 +45,13 @@ function parsePatchAdditions(patch: string): FileAddition[]  {
       // example line: @@ -16,10 +16,10 @@ jobs:
       //   - "-16,10": "-" denotes source file, "16,10" means the hunk starts at line 16 and output contains 10 lines
       //   - "+16,10": "+" denotes destination file, "16,10" means the same as above
-      const [ _, source, dest, __ ] = line.split(' ');
+      const [ , , dest, ] = line.split(' ');
 
       if (!dest.startsWith("+")) {
         throw new Error("Invalid git hunk format");
       }
 
-      const [ destLine, ___ ] = dest.substring(1).split(',');
+      const [ destLine, ] = dest.substring(1).split(',');
       currentLineInFile = parseInt(destLine, 10);
       continue;
     } else if (line.startsWith('+')) {

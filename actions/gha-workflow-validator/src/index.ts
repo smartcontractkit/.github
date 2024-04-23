@@ -82,7 +82,7 @@ function formatGithubComment(validationResults: ValidationResult[], owner: strin
     });
 
     githubComment += collapsibleContent(result.filename, fileLinesErrorMessages.join("\n\n")) + "\n";
-  };
+  }
 
   return addFixingErrorsSuffix(githubComment);
 }
