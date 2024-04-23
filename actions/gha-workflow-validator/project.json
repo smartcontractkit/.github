@@ -15,12 +15,12 @@
         "format": ["cjs"],
         "thirdParty": true,
         "outputPath": "actions/gha-workflow-validator/dist/",
-        "main": "actions/gha-workflow-validator/src/index.mts",
+        "main": "actions/gha-workflow-validator/src/index.ts",
         "assets": [],
-        "outputFileName": "index.cjs",
+        "outputFileName": "index.js",
         "esbuildOptions": {
           "outExtension": {
-            ".cjs": ".cjs"
+            ".js": ".js"
           }
         },
         "tsConfig": "tsconfig.json",

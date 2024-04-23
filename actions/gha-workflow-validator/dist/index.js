@@ -22175,12 +22175,12 @@ var require_github = __commonJS({
   }
 });
 
-// actions/gha-workflow-validator/src/index.mts
-var core3 = __toESM(require_core(), 1);
-var github = __toESM(require_github(), 1);
+// actions/gha-workflow-validator/src/index.ts
+var core3 = __toESM(require_core());
+var github = __toESM(require_github());
 
-// actions/gha-workflow-validator/src/github.mts
-var core = __toESM(require_core(), 1);
+// actions/gha-workflow-validator/src/github.ts
+var core = __toESM(require_core());
 var import_node_path = require("node:path");
 
 // node_modules/.pnpm/@octokit+request-error@6.1.1/node_modules/@octokit/request-error/dist-src/index.js
@@ -22222,7 +22222,7 @@ var RequestError = class extends Error {
   }
 };
 
-// actions/gha-workflow-validator/src/strings.mts
+// actions/gha-workflow-validator/src/strings.ts
 var COMMENT_HEADER = `### GHA Workflow Validator Results`;
 var FIXING_ERRORS = `
 #### Fixing Errors
@@ -22277,7 +22277,7 @@ function markdownLink(text, url) {
   return `[${text}](${url})`;
 }
 
-// actions/gha-workflow-validator/src/github.mts
+// actions/gha-workflow-validator/src/github.ts
 async function getComparison(octokit, owner, repo, base, head) {
   core.debug(`Comparing ${owner}/${repo} commits ${base}...${head}`);
   const diff = await octokit.rest.repos.compareCommitsWithBasehead({
@@ -22372,8 +22372,8 @@ async function getFileFromGithub(octokit, owner, repo, path, ref) {
   }
 }
 
-// actions/gha-workflow-validator/src/action-reference-validations.mts
-var core2 = __toESM(require_core(), 1);
+// actions/gha-workflow-validator/src/action-reference-validations.ts
+var core2 = __toESM(require_core());
 async function validateActionReferenceChanges(octokit, changes) {
   core2.debug(`Validating action reference changes, on ${changes.length} changes`);
   const resultsPromise = changes.map(async (change) => {
@@ -22440,7 +22440,7 @@ async function isNode20Action(ghClient, change) {
   return;
 }
 
-// actions/gha-workflow-validator/src/utils.mts
+// actions/gha-workflow-validator/src/utils.ts
 function parseAllAdditions(files) {
   if (!files)
     return [];
@@ -22488,7 +22488,7 @@ function extractActionReference(line) {
   return { owner, repo, repoPath, ref: gitRef, comment: comment.join().trim(), line };
 }
 
-// actions/gha-workflow-validator/src/index.mts
+// actions/gha-workflow-validator/src/index.ts
 (async () => {
   const token = process.env.GITHUB_TOKEN;
   if (!token) {
