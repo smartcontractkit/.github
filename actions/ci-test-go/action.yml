@@ -134,7 +134,9 @@ runs:
 
     - name: Run go test
       shell: bash
-      run: ${{ inputs.go-test-cmd }}
+      run: |
+        set -o pipefail
+        ${{ inputs.go-test-cmd }}
 
     - name: Store test report artifacts
       if: always()
