@@ -15,7 +15,7 @@ if [[ -z "${BRANCH_REGEX:-}" ]]; then
 fi
 
 # Get the sha of the tag's ancestor commit
-TAG_SHA=$(git rev-parse "${TAG}^{commit}")
+TAG_SHA=$(git rev-parse "origin/${TAG}^{commit}")
 echo "::debug::TAG_SHA: ${TAG_SHA}"
 SOURCE_BRANCHES=$(git branch -a --contains "${TAG_SHA}" | grep -v '(detached from' | sed 's/^\* //' | awk '{print $1}')
 echo "::debug::SOURCE_BRANCHES: ${SOURCE_BRANCHES}"
