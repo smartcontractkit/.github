@@ -22314,7 +22314,7 @@ async function updateComment(octokit, owner, repo, commentId, body) {
 }
 async function getFileFromGithub(octokit, owner, repo, path, ref) {
   try {
-    core.debug(`Getting file through Github - ${owner}/${repo}/${path}@${ref}`);
+    core.debug(`Getting file through Github - ${owner}/${repo}${path}@${ref}`);
     const response = await octokit.rest.repos.getContent({
       owner,
       repo,
@@ -22326,7 +22326,7 @@ async function getFileFromGithub(octokit, owner, repo, path, ref) {
     }
     throw Error("No content found in getContent response");
   } catch (error2) {
-    const requestPath = `${owner}/${repo}/${path}@${ref}`;
+    const requestPath = `${owner}/${repo}${path}@${ref}`;
     if (error2.status) {
       core.warning(
         `Encountered Github Request Error while getting file - ${requestPath}. (${error2.status} - ${error2.message})`
@@ -22450,6 +22450,9 @@ function extractActionReference(line) {
     return;
   }
   const trimmedLine = line.substring(line.indexOf(trimSubString) + trimSubString.length).trim();
+  if (trimmedLine.startsWith("./")) {
+    return;
+  }
   const [actionIdentifier, ...comment] = trimmedLine.split("#");
   const [identifier, gitRef] = actionIdentifier.trim().split("@");
   const [owner, repo, ...path] = identifier.split("/");
