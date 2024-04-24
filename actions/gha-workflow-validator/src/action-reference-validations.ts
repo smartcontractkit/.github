@@ -85,8 +85,6 @@ async function isNode20Action(ghClient: Octokit, change: ActionReference) {
     return;
   }
 
-  core.debug(actionFile);
-
   const nodeVersionRegex = /^\s+using:\s*"?node(\d{2})"?/gm;
   const matches = nodeVersionRegex.exec(actionFile);
   if (matches && matches[1] !== '20') {

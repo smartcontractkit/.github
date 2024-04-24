@@ -22396,7 +22396,6 @@ async function isNode20Action(ghClient, change) {
     core2.warning(`No action file found for ${change.owner}/${change.repo}${change.repoPath}@${change.ref}`);
     return;
   }
-  core2.debug(actionFile);
   const nodeVersionRegex = /^\s+using:\s*"?node(\d{2})"?/gm;
   const matches = nodeVersionRegex.exec(actionFile);
   if (matches && matches[1] !== "20") {
