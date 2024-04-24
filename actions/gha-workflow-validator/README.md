@@ -25,3 +25,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 ```
+
+## Development
+
+1. Update dist: `pnpm nx run gha-workflow-validator:build`
+2. Run tests: `pnpm nx run gha-workflow-validator:test`
