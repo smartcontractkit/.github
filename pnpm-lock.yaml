@@ -109,6 +109,8 @@ importers:
 
   actions/ci-benchmarking: {}
 
+  actions/ci-kubeconform: {}
+
   actions/ci-lint-charts: {}
 
   actions/ci-lint-go: {}

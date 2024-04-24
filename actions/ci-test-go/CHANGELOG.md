@@ -1,5 +1,12 @@
 # ci-test-go
 
+## 0.1.4
+
+### Patch Changes
+
+- [#331](https://github.com/smartcontractkit/.github/pull/331) [`2ae6d39`](https://github.com/smartcontractkit/.github/commit/2ae6d3925d362939350477e45821e4c4d9335101) Thanks [@tateexon](https://github.com/tateexon)! - Add pipefail to go test call so any pipes to tee or other programs will still
+  fail when go test fails
+
 ## 0.1.3
 
 ### Patch Changes

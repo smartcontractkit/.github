@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4.1.3
 
       - name: ci-lint
         uses: ./actions/ci-lint-ts
@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4.1.3
 
       - name: ci-lint-misc
         uses: ./actions/ci-lint-misc
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4.1.3
         with:
           # Commit back any changes based on the commit that triggered this action
           # rather than merge commit of main into the PR branch
@@ -62,7 +62,7 @@ jobs:
         run: pnpm nx run signed-commits:build
 
       - name: Commit back any changes
-        uses: planetscale/ghcommit-action@a11802c11862134d6ca565798246dd9845c69a5f # v0.1.34
+        uses: planetscale/ghcommit-action@7f0d84e01cfaaf8954f98a10ae96f9ebf58ada8e # v0.1.36
         with:
           commit_message: "🤖 Update build"
           repo: ${{ github.repository }}
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4.1.3
 
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4.1.3
 
       - name: ci-test
         uses: ./actions/ci-test-ts
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4.1.3
 
       - name: ci-build-artifacts
         uses: ./actions/cicd-build-publish-artifacts-ts
