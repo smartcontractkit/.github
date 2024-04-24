@@ -148,7 +148,7 @@ async function updateComment(
 
 async function getFileFromGithub(octokit: Octokit, owner: string, repo: string, path: string, ref: string) {
     try {
-      core.debug(`Getting file through Github - ${owner}/${repo}/${path}@${ref}`);
+      core.debug(`Getting file through Github - ${owner}/${repo}${path}@${ref}`);
 
       const response = await octokit.rest.repos.getContent({
         owner,
@@ -162,7 +162,7 @@ async function getFileFromGithub(octokit: Octokit, owner: string, repo: string, 
       }
       throw Error("No content found in getContent response");
     } catch (error: any) {
-      const requestPath = `${owner}/${repo}/${path}@${ref}`;
+      const requestPath = `${owner}/${repo}${path}@${ref}`;
       if (error.status) {
         core.warning(
           `Encountered Github Request Error while getting file - ${requestPath}. (${error.status} - ${error.message})`,

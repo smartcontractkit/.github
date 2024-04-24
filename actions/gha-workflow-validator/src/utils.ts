@@ -91,6 +91,11 @@ function extractActionReference(line: string): ActionReference | undefined {
   // trim past the "uses:" substring to get "<owner>/<repo><optional path>@<ref> # <optional comment>""
   const trimmedLine = line.substring(line.indexOf(trimSubString) + trimSubString.length).trim();
 
+  if (trimmedLine.startsWith("./")) {
+    // Local action reference - do not validate these yet (TODO)
+    return;
+  }
+
   const [ actionIdentifier, ...comment ] = trimmedLine.split("#");
   const [ identifier, gitRef ] = actionIdentifier.trim().split("@");
   const [ owner, repo, ...path] = identifier.split("/");

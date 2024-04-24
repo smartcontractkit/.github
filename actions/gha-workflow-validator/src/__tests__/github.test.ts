@@ -1,9 +1,8 @@
-import { getComparison, getActionFileFromGithub, commentOnPrOrUpdateExisting, deleteCommentOnPRIfExists, } from "./github";
-import { COMMENT_HEADER } from "./strings";
-import { getOctokit } from "@actions/github";
+import { getComparison, getActionFileFromGithub, commentOnPrOrUpdateExisting, deleteCommentOnPRIfExists, } from "../github";
+import { COMMENT_HEADER } from "../strings";
+import { getTestOctokit } from './__helpers__/test-utils.js'
 import nock from "nock";
 import path from "path";
-import fetch from "node-fetch";
 
 // nock-back provides the recording and playback functionality
 const nockBack = nock.back;
@@ -21,7 +20,7 @@ if (nockBack.currentMode === "lockdown") {
 describe("getActionFileFromGithub", () => {
   it("should return action.yml file", async () => {
     const { nockDone } = await nockBack("action-yml.json");
-    const octokit = getTestOctokit();
+    const octokit = getTestOctokit(nockBack.currentMode);
 
     const repoRequestOptions  = {
       owner: "smartcontractkit",
@@ -39,7 +38,7 @@ describe("getActionFileFromGithub", () => {
 
   it("should return action.yaml fallback file", async () => {
     const { nockDone } = await nockBack("action-yaml-fallback.json");
-    const octokit = getTestOctokit();
+    const octokit = getTestOctokit(nockBack.currentMode);
 
     // Action which uses action.yaml instead of action.yml
     const repoRequestOptions  = {
@@ -61,7 +60,7 @@ describe("getActionFileFromGithub", () => {
 describe("getComparison", () => {
   it("should return comparison", async () => {
     const { nockDone } = await nockBack("comparison.json");
-    const octokit = getTestOctokit();
+    const octokit = getTestOctokit(nockBack.currentMode);
 
     const repoRequestOptions  = {
       owner: "smartcontractkit",
@@ -83,7 +82,7 @@ describe("getComparison", () => {
 describe("commentOnPrOrUpdateExisting", () => {
   it("should create new comment", async () => {
     const { nockDone } = await nockBack("create-comment.json");
-    const octokit = getTestOctokit();
+    const octokit = getTestOctokit(nockBack.currentMode);
 
     const repoRequestOptions  = {
       owner: "smartcontractkit-test",
@@ -103,7 +102,7 @@ describe("commentOnPrOrUpdateExisting", () => {
 
   it("should update existing comment", async () => {
     const { nockDone } = await nockBack("update-comment.json");
-    const octokit = getTestOctokit();
+    const octokit = getTestOctokit(nockBack.currentMode);
 
     const repoRequestOptions  = {
       owner: "smartcontractkit-test",
@@ -124,7 +123,7 @@ describe("commentOnPrOrUpdateExisting", () => {
 describe("deleteCommentOnPRIfExists", () => {
   it("should delete existing comment", async () => {
     const { nockDone } = await nockBack("delete-comment.json");
-    const octokit = getTestOctokit();
+    const octokit = getTestOctokit(nockBack.currentMode);
 
     const repoRequestOptions  = {
       owner: "smartcontractkit-test",
@@ -139,17 +138,3 @@ describe("deleteCommentOnPRIfExists", () => {
     nockDone();
   });
 });
-
-function getTestOctokit() {
-  const token = nockBack.currentMode === "lockdown" ? "fake-token" : process.env.GITHUB_TOKEN;
-
-  if (!token) {
-    throw new Error("GITHUB_TOKEN must be set when recording fixtures");
-  }
-
-  return getOctokit(token, {
-    request: {
-      fetch,
-    },
-  });
-}

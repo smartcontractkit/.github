@@ -8,5 +8,6 @@ export default {
   },
   moduleFileExtensions: ["ts", "js", "html"],
   coverageDirectory: "../../coverage/actions/gha-workflow-validator",
+  testPathIgnorePatterns: ["src/__tests__/__fixtures__",  "src/__tests__/__snapshots__/", "src/__tests__/__helpers__"],
   collectCoverage: true,
 } satisfies Config;
