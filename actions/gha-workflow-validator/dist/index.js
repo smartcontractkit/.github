@@ -18741,14 +18741,14 @@ var require_dist_node4 = __commonJS({
     var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var dist_src_exports = {};
     __export2(dist_src_exports, {
-      RequestError: () => RequestError2
+      RequestError: () => RequestError
     });
     module2.exports = __toCommonJS2(dist_src_exports);
     var import_deprecation = require_dist_node3();
     var import_once = __toESM2(require_once());
     var logOnceCode = (0, import_once.default)((deprecation) => console.warn(deprecation));
     var logOnceHeaders = (0, import_once.default)((deprecation) => console.warn(deprecation));
-    var RequestError2 = class extends Error {
+    var RequestError = class extends Error {
       constructor(message, statusCode, options) {
         super(message);
         if (Error.captureStackTrace) {
@@ -18840,7 +18840,7 @@ var require_dist_node5 = __commonJS({
       const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
       return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
     }
-    var import_request_error2 = require_dist_node4();
+    var import_request_error = require_dist_node4();
     function getBufferResponse(response) {
       return response.arrayBuffer();
     }
@@ -18892,7 +18892,7 @@ var require_dist_node5 = __commonJS({
           if (status < 400) {
             return;
           }
-          throw new import_request_error2.RequestError(response.statusText, status, {
+          throw new import_request_error.RequestError(response.statusText, status, {
             response: {
               url,
               status,
@@ -18903,7 +18903,7 @@ var require_dist_node5 = __commonJS({
           });
         }
         if (status === 304) {
-          throw new import_request_error2.RequestError("Not modified", status, {
+          throw new import_request_error.RequestError("Not modified", status, {
             response: {
               url,
               status,
@@ -18915,7 +18915,7 @@ var require_dist_node5 = __commonJS({
         }
         if (status >= 400) {
           const data = await getResponseData(response);
-          const error2 = new import_request_error2.RequestError(toErrorMessage(data), status, {
+          const error2 = new import_request_error.RequestError(toErrorMessage(data), status, {
             response: {
               url,
               status,
@@ -18935,7 +18935,7 @@ var require_dist_node5 = __commonJS({
           data
         };
       }).catch((error2) => {
-        if (error2 instanceof import_request_error2.RequestError)
+        if (error2 instanceof import_request_error.RequestError)
           throw error2;
         else if (error2.name === "AbortError")
           throw error2;
@@ -18947,7 +18947,7 @@ var require_dist_node5 = __commonJS({
             message = error2.cause;
           }
         }
-        throw new import_request_error2.RequestError(message, 500, {
+        throw new import_request_error.RequestError(message, 500, {
           request: requestOptions
         });
       });
@@ -19050,7 +19050,7 @@ var require_dist_node6 = __commonJS({
       const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
       return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
     }
-    var import_request_error2 = require_dist_node4();
+    var import_request_error = require_dist_node4();
     function getBufferResponse(response) {
       return response.arrayBuffer();
     }
@@ -19101,7 +19101,7 @@ var require_dist_node6 = __commonJS({
           if (status < 400) {
             return;
           }
-          throw new import_request_error2.RequestError(response.statusText, status, {
+          throw new import_request_error.RequestError(response.statusText, status, {
             response: {
               url,
               status,
@@ -19112,7 +19112,7 @@ var require_dist_node6 = __commonJS({
           });
         }
         if (status === 304) {
-          throw new import_request_error2.RequestError("Not modified", status, {
+          throw new import_request_error.RequestError("Not modified", status, {
             response: {
               url,
               status,
@@ -19124,7 +19124,7 @@ var require_dist_node6 = __commonJS({
         }
         if (status >= 400) {
           const data = await getResponseData(response);
-          const error2 = new import_request_error2.RequestError(toErrorMessage(data), status, {
+          const error2 = new import_request_error.RequestError(toErrorMessage(data), status, {
             response: {
               url,
               status,
@@ -19144,7 +19144,7 @@ var require_dist_node6 = __commonJS({
           data
         };
       }).catch((error2) => {
-        if (error2 instanceof import_request_error2.RequestError)
+        if (error2 instanceof import_request_error.RequestError)
           throw error2;
         else if (error2.name === "AbortError")
           throw error2;
@@ -19156,7 +19156,7 @@ var require_dist_node6 = __commonJS({
             message = error2.cause;
           }
         }
-        throw new import_request_error2.RequestError(message, 500, {
+        throw new import_request_error.RequestError(message, 500, {
           request: requestOptions
         });
       });
@@ -22183,45 +22183,6 @@ var github = __toESM(require_github());
 var core = __toESM(require_core());
 var import_node_path = require("node:path");
 
-// node_modules/.pnpm/@octokit+request-error@6.1.1/node_modules/@octokit/request-error/dist-src/index.js
-var RequestError = class extends Error {
-  name;
-  /**
-   * http status code
-   */
-  status;
-  /**
-   * Request options that lead to the error.
-   */
-  request;
-  /**
-   * Response object if a response was received
-   */
-  response;
-  constructor(message, statusCode, options) {
-    super(message);
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
-    this.name = "HttpError";
-    this.status = statusCode;
-    if ("response" in options) {
-      this.response = options.response;
-    }
-    const requestCopy = Object.assign({}, options.request);
-    if (options.request.headers.authorization) {
-      requestCopy.headers = Object.assign({}, options.request.headers, {
-        authorization: options.request.headers.authorization.replace(
-          / .*$/,
-          " [REDACTED]"
-        )
-      });
-    }
-    requestCopy.url = requestCopy.url.replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]").replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
-    this.request = requestCopy;
-  }
-};
-
 // actions/gha-workflow-validator/src/strings.ts
 var COMMENT_HEADER = `### GHA Workflow Validator Results`;
 var FIXING_ERRORS = `
@@ -22303,9 +22264,11 @@ async function commentOnPrOrUpdateExisting(octokit, owner, repo, prNumber, body)
     (comment) => comment.body?.startsWith(COMMENT_HEADER)
   );
   if (existingComment) {
-    await updateComment(octokit, owner, repo, existingComment.id, body);
+    const response = await updateComment(octokit, owner, repo, existingComment.id, body);
+    return { commentId: response.data.id, updatedAt: response.data.updated_at };
   } else {
-    await createComment(octokit, owner, repo, prNumber, body);
+    const response = await createComment(octokit, owner, repo, prNumber, body);
+    return { commentId: response.data.id, createdAt: response.data.created_at };
   }
 }
 async function deleteCommentOnPRIfExists(octokit, owner, repo, prNumber) {
@@ -22319,7 +22282,9 @@ async function deleteCommentOnPRIfExists(octokit, owner, repo, prNumber) {
       repo,
       comment_id: existingComment.id
     });
+    return true;
   }
+  return false;
 }
 async function getAllCommentsOnPr(octokit, owner, repo, prNumber) {
   core.debug(`Getting comments on PR ${prNumber}`);
@@ -22340,7 +22305,7 @@ async function createComment(octokit, owner, repo, prNumber, body) {
 }
 async function updateComment(octokit, owner, repo, commentId, body) {
   core.debug(`Updating comment ${commentId}`);
-  await octokit.rest.issues.updateComment({
+  return await octokit.rest.issues.updateComment({
     owner,
     repo,
     comment_id: commentId,
@@ -22362,7 +22327,7 @@ async function getFileFromGithub(octokit, owner, repo, path, ref) {
     throw Error("No content found in getContent response");
   } catch (error2) {
     const requestPath = `${owner}/${repo}/${path}@${ref}`;
-    if (error2 instanceof RequestError) {
+    if (error2.status) {
       core.warning(
         `Encountered Github Request Error while getting file - ${requestPath}. (${error2.status} - ${error2.message})`
       );
@@ -22441,6 +22406,11 @@ async function isNode20Action(ghClient, change) {
 }
 
 // actions/gha-workflow-validator/src/utils.ts
+function filterForGithubWorkflowChanges(files) {
+  return files?.filter((entry) => {
+    return (entry.filename.startsWith(".github/workflows") || entry.filename.startsWith(".github/actions")) && (entry.filename.endsWith(".yml") || entry.filename.endsWith(".yaml"));
+  });
+}
 function parseAllAdditions(files) {
   if (!files)
     return [];
@@ -22487,15 +22457,56 @@ function extractActionReference(line) {
   const repoPath = (path.length > 0 ? "/" : "") + path.join("/");
   return { owner, repo, repoPath, ref: gitRef, comment: comment.join().trim(), line };
 }
+function formatGithubComment(validationResults, owner, repo, ref) {
+  let githubComment = COMMENT_HEADER + "\n\n";
+  for (const result of validationResults) {
+    const fileLinesErrorMessages = result.lineValidations.map((lineErrors) => {
+      const fileLink = markdownLink(`Line ${lineErrors.line.lineNumber}`, `https://github.com/${owner}/${repo}/blob/${ref}/${result.filename}#L${lineErrors.line.lineNumber}`);
+      const lineErrorsMsg = lineErrors.validationErrors.reduce((acc, curr) => {
+        return acc + `    - ${curr.message}
+`;
+      }, "");
+      return fileLink + "\n" + lineErrorsMsg;
+    });
+    githubComment += collapsibleContent(result.filename, fileLinesErrorMessages.join("\n\n")) + "\n";
+  }
+  return addFixingErrorsSuffix(githubComment);
+}
 
 // actions/gha-workflow-validator/src/index.ts
 (async () => {
+  const { token, owner, repo, base, head, prNumber } = getInvokeContext();
+  const octokit = github.getOctokit(token);
+  const allFiles = await getComparison(octokit, owner, repo, base, head);
+  const ghaWorkflowFiles = filterForGithubWorkflowChanges(allFiles);
+  const ghaWorkflowPatchAdditions = parseAllAdditions(ghaWorkflowFiles);
+  const containsWorkflowModifications = ghaWorkflowPatchAdditions.some((file) => {
+    return (file.filename.startsWith(".github/workflows") || file.filename.startsWith(".github/actions")) && (file.filename.endsWith(".yml") || file.filename.endsWith(".yaml"));
+  });
+  if (containsWorkflowModifications) {
+    const actionReferenceValidations = await validateActionReferenceChanges(octokit, ghaWorkflowPatchAdditions);
+    const validationFailed = actionReferenceValidations.some((validation) => validation.lineValidations.length > 0);
+    const invokedThroughPr = prNumber !== void 0;
+    if (validationFailed && invokedThroughPr) {
+      const errorMessage = formatGithubComment(actionReferenceValidations, owner, repo, head);
+      commentOnPrOrUpdateExisting(octokit, owner, repo, prNumber, errorMessage);
+      return core3.setFailed("Errors found in workflow files. See comment on for details.");
+    } else if (validationFailed) {
+      return core3.setFailed("Errors found in workflow files.");
+    } else if (!validationFailed && invokedThroughPr) {
+      deleteCommentOnPRIfExists(octokit, owner, repo, prNumber);
+    }
+  }
+})().catch((err) => {
+  core3.error("Uncaught Error - " + err);
+  core3.setFailed(err.message);
+});
+function getInvokeContext() {
   const token = process.env.GITHUB_TOKEN;
   if (!token) {
     core3.setFailed("GitHub token is not set.");
     process.exit(1);
   }
-  const octokit = github.getOctokit(token);
   const { owner, repo } = github.context.repo;
   const pr = github.context.payload.pull_request;
   let base = void 0;
@@ -22513,45 +22524,8 @@ function extractActionReference(line) {
     core3.setFailed("Base commit SHA is not determined.");
     process.exit(1);
   }
-  const files = await getComparison(octokit, owner, repo, base, head);
-  const filteredFiles = files?.filter((entry) => {
-    return (entry.filename.startsWith(".github/workflows") || entry.filename.startsWith(".github/actions")) && (entry.filename.endsWith(".yml") || entry.filename.endsWith(".yaml"));
-  });
-  const patchAdditions = parseAllAdditions(filteredFiles);
-  const containsWorkflowModifications = patchAdditions.some((file) => {
-    return (file.filename.startsWith(".github/workflows") || file.filename.startsWith(".github/actions")) && (file.filename.endsWith(".yml") || file.filename.endsWith(".yaml"));
-  });
-  if (containsWorkflowModifications) {
-    const actionReferenceValidations = await validateActionReferenceChanges(octokit, patchAdditions);
-    const validationFailed = actionReferenceValidations.some((validation) => validation.lineValidations.length > 0);
-    if (validationFailed && pr) {
-      const errorMessage = formatGithubComment(actionReferenceValidations, owner, repo, head);
-      commentOnPrOrUpdateExisting(octokit, owner, repo, pr.number, errorMessage);
-      core3.setFailed("Errors found in workflow files. See comment on for details.");
-    } else if (validationFailed) {
-      core3.setFailed("Errors found in workflow files. See logs for details.");
-    } else if (pr) {
-      deleteCommentOnPRIfExists(octokit, owner, repo, pr.number);
-    }
-  }
-})().catch((err) => {
-  core3.error(err);
-  core3.setFailed(err.message);
-});
-function formatGithubComment(validationResults, owner, repo, ref) {
-  let githubComment = COMMENT_HEADER + "\n\n";
-  for (const result of validationResults) {
-    const fileLinesErrorMessages = result.lineValidations.map((lineErrors) => {
-      const fileLink = markdownLink(`Line ${lineErrors.line.lineNumber}`, `https://github.com/${owner}/${repo}/blob/${ref}/${result.filename}#L${lineErrors.line.lineNumber}`);
-      const lineErrorsMsg = lineErrors.validationErrors.reduce((acc, curr) => {
-        return acc + `    - ${curr.message}
-`;
-      }, "");
-      return fileLink + "\n" + lineErrorsMsg;
-    });
-    githubComment += collapsibleContent(result.filename, fileLinesErrorMessages.join("\n\n")) + "\n";
-  }
-  return addFixingErrorsSuffix(githubComment);
+  core3.debug(`Owner: ${owner}, Repo: ${repo}, Base: ${base}, Head: ${head}`);
+  return { token, owner, repo, base, head, prNumber: pr?.number };
 }
 /*! Bundled license information:
 

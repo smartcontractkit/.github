@@ -2,7 +2,6 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { GetResponseTypeFromEndpointMethod } from "@octokit/types";
 import { join } from "node:path";
-import { RequestError } from "@octokit/request-error";
 import { COMMENT_HEADER } from "./strings.js";
 
 export type Octokit = ReturnType<typeof github.getOctokit>;
@@ -69,9 +68,11 @@ export async function commentOnPrOrUpdateExisting(
   );
 
   if (existingComment) {
-    await updateComment(octokit, owner, repo, existingComment.id, body);
+    const response = await updateComment(octokit, owner, repo, existingComment.id, body);
+    return { commentId: response.data.id, updatedAt: response.data.updated_at }
   } else {
-    await createComment(octokit, owner, repo, prNumber, body);
+    const response = await createComment(octokit, owner, repo, prNumber, body);
+    return { commentId: response.data.id, createdAt: response.data.created_at };
   }
 }
 
@@ -92,7 +93,11 @@ export async function deleteCommentOnPRIfExists(
       repo,
       comment_id: existingComment.id,
     });
+
+    return true;
   }
+
+  return false;
 }
 
 async function getAllCommentsOnPr(
@@ -133,7 +138,7 @@ async function updateComment(
   body: string,
 ) {
   core.debug(`Updating comment ${commentId}`);
-  await octokit.rest.issues.updateComment({
+  return await octokit.rest.issues.updateComment({
     owner,
     repo,
     comment_id: commentId,
@@ -156,9 +161,9 @@ async function getFileFromGithub(octokit: Octokit, owner: string, repo: string, 
         return Buffer.from(response.data.content, "base64").toString();
       }
       throw Error("No content found in getContent response");
-    } catch (error) {
+    } catch (error: any) {
       const requestPath = `${owner}/${repo}/${path}@${ref}`;
-      if (error instanceof RequestError) {
+      if (error.status) {
         core.warning(
           `Encountered Github Request Error while getting file - ${requestPath}. (${error.status} - ${error.message})`,
         );

@@ -1,18 +1,49 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { commentOnPrOrUpdateExisting, deleteCommentOnPRIfExists, getComparison } from "./github.js";
-import { ValidationResult, validateActionReferenceChanges } from "./action-reference-validations.js";
-import { parseAllAdditions } from "./utils.js";
-import { COMMENT_HEADER, collapsibleContent, addFixingErrorsSuffix, markdownLink } from "./strings.js";
+import { validateActionReferenceChanges } from "./action-reference-validations.js";
+import { filterForGithubWorkflowChanges, formatGithubComment, parseAllAdditions } from "./utils.js";
+import { COMMENT_HEADER } from "./strings.js";
 
 (async () => {
+  const { token, owner, repo, base, head, prNumber } = getInvokeContext();
+  const octokit = github.getOctokit(token);
+
+  const allFiles = await getComparison(octokit, owner, repo, base, head);
+  const ghaWorkflowFiles = filterForGithubWorkflowChanges(allFiles);
+  const ghaWorkflowPatchAdditions = parseAllAdditions(ghaWorkflowFiles);
+
+  const containsWorkflowModifications = ghaWorkflowPatchAdditions.some(file => {
+    return (file.filename.startsWith('.github/workflows') || file.filename.startsWith('.github/actions')) && (file.filename.endsWith('.yml') || file.filename.endsWith('.yaml'))
+  });
+
+  if (containsWorkflowModifications) {
+    const actionReferenceValidations = await validateActionReferenceChanges(octokit, ghaWorkflowPatchAdditions)
+    const validationFailed = actionReferenceValidations.some(validation => validation.lineValidations.length > 0);
+    const invokedThroughPr = prNumber !== undefined;
+
+    if (validationFailed && invokedThroughPr) {
+      const errorMessage = formatGithubComment(actionReferenceValidations, owner, repo, head);
+      commentOnPrOrUpdateExisting(octokit, owner, repo, prNumber, errorMessage);
+      return core.setFailed("Errors found in workflow files. See comment on for details.");
+    } else if (validationFailed) {
+      // If the action is not invoked through a PR, we can't comment on the PR
+      return core.setFailed("Errors found in workflow files.");
+    } else if (!validationFailed && invokedThroughPr) {
+      deleteCommentOnPRIfExists(octokit, owner, repo, prNumber);
+    }
+  }
+})().catch((err) => {
+  core.error("Uncaught Error - " + err);
+  core.setFailed(err.message);
+});
+
+function getInvokeContext() {
   const token = process.env.GITHUB_TOKEN;
   if (!token) {
     core.setFailed('GitHub token is not set.');
     process.exit(1);
   }
-
-  const octokit = github.getOctokit(token);
 
   const { owner, repo } = github.context.repo;
   const pr = github.context.payload.pull_request;
@@ -35,54 +66,7 @@ import { COMMENT_HEADER, collapsibleContent, addFixingErrorsSuffix, markdownLink
     process.exit(1);
   }
 
-  const files = await getComparison(octokit, owner, repo, base, head);
-  const filteredFiles =  files?.filter(entry => {
-    return (entry.filename.startsWith('.github/workflows') || entry.filename.startsWith('.github/actions'))
-    && (entry.filename.endsWith('.yml') || entry.filename.endsWith('.yaml'))
-  });
+  core.debug(`Owner: ${owner}, Repo: ${repo}, Base: ${base}, Head: ${head}`);
 
-  const patchAdditions = parseAllAdditions(filteredFiles);
-
-  const containsWorkflowModifications = patchAdditions.some(file => {
-    return (file.filename.startsWith('.github/workflows') || file.filename.startsWith('.github/actions')) && (file.filename.endsWith('.yml') || file.filename.endsWith('.yaml'))
-  });
-
-  if (containsWorkflowModifications) {
-    const actionReferenceValidations = await validateActionReferenceChanges(octokit, patchAdditions)
-    const validationFailed = actionReferenceValidations.some(validation => validation.lineValidations.length > 0);
-
-    if (validationFailed && pr) {
-      const errorMessage = formatGithubComment(actionReferenceValidations, owner, repo, head);
-      commentOnPrOrUpdateExisting(octokit, owner, repo, pr.number, errorMessage);
-      core.setFailed("Errors found in workflow files. See comment on for details.");
-    } else if (validationFailed) {
-      core.setFailed("Errors found in workflow files. See logs for details.");
-      // TODO handle general workflow case
-    } else if (pr) {
-      deleteCommentOnPRIfExists(octokit, owner, repo, pr.number);
-    }
-  }
-})().catch((err) => {
-  core.error(err);
-  core.setFailed(err.message);
-});
-
-
-function formatGithubComment(validationResults: ValidationResult[], owner: string, repo: string, ref: string): string {
-  let githubComment = COMMENT_HEADER + "\n\n";
-
-  for (const result of validationResults) {
-    const fileLinesErrorMessages = result.lineValidations.map(lineErrors => {
-      const fileLink = markdownLink(`Line ${lineErrors.line.lineNumber}`, `https://github.com/${owner}/${repo}/blob/${ref}/${result.filename}#L${lineErrors.line.lineNumber}`);
-      const lineErrorsMsg = lineErrors.validationErrors.reduce((acc, curr) => {
-        return acc + `    - ${curr.message}` + "\n";
-      }, "");
-
-      return fileLink + "\n" + lineErrorsMsg;
-    });
-
-    githubComment += collapsibleContent(result.filename, fileLinesErrorMessages.join("\n\n")) + "\n";
-  }
-
-  return addFixingErrorsSuffix(githubComment);
+  return { token, owner, repo, base, head, prNumber: pr?.number };
 }

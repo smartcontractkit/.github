@@ -1,4 +1,6 @@
 import { GithubFiles } from "./github.js";
+import { ValidationResult } from "./action-reference-validations.js";
+import { COMMENT_HEADER, collapsibleContent, addFixingErrorsSuffix, markdownLink } from "./strings.js";
 
 export interface ParsedFile {
   filename: string;
@@ -19,6 +21,13 @@ export interface ActionReference {
   ref: string;
   comment?: string;
   line: string;
+}
+
+export function filterForGithubWorkflowChanges(files: GithubFiles): GithubFiles {
+  return files?.filter(entry => {
+    return (entry.filename.startsWith('.github/workflows') || entry.filename.startsWith('.github/actions'))
+    && (entry.filename.endsWith('.yml') || entry.filename.endsWith('.yaml'))
+  })
 }
 
 export function parseAllAdditions(files: GithubFiles): ParsedFile[] {
@@ -88,4 +97,23 @@ function extractActionReference(line: string): ActionReference | undefined {
   const repoPath = ((path.length) > 0 ? "/" : "") + path.join("/");
 
   return { owner, repo, repoPath, ref: gitRef, comment: comment.join().trim(), line, };
+}
+
+export function formatGithubComment(validationResults: ValidationResult[], owner: string, repo: string, ref: string): string {
+  let githubComment = COMMENT_HEADER + "\n\n";
+
+  for (const result of validationResults) {
+    const fileLinesErrorMessages = result.lineValidations.map(lineErrors => {
+      const fileLink = markdownLink(`Line ${lineErrors.line.lineNumber}`, `https://github.com/${owner}/${repo}/blob/${ref}/${result.filename}#L${lineErrors.line.lineNumber}`);
+      const lineErrorsMsg = lineErrors.validationErrors.reduce((acc, curr) => {
+        return acc + `    - ${curr.message}` + "\n";
+      }, "");
+
+      return fileLink + "\n" + lineErrorsMsg;
+    });
+
+    githubComment += collapsibleContent(result.filename, fileLinesErrorMessages.join("\n\n")) + "\n";
+  }
+
+  return addFixingErrorsSuffix(githubComment);
 }
