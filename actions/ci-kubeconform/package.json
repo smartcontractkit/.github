@@ -1,10 +1,10 @@
 {
-  "name": "ci-test-go",
-  "version": "0.1.4",
+  "name": "ci-kubeconform",
+  "version": "0.2.0",
   "description": "",
   "private": true,
   "scripts": {},
-  "author": "@ajgrande924",
+  "author": "@smartcontractkit",
   "license": "MIT",
   "dependencies": {},
   "repository": "https://github.com/smartcontractkit/.github"
