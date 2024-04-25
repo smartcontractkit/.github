@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import { GithubFiles } from "./github.js";
 import { ValidationResult } from "./action-reference-validations.js";
-import { COMMENT_HEADER, collapsibleContent, addFixingErrorsSuffix, markdownLink } from "./strings.js";
+import { COMMENT_HEADER, collapsibleContent, addFixingErrorsSuffix, markdownLink, htmlLink } from "./strings.js";
 
 export interface ParsedFile {
   filename: string;
@@ -134,4 +134,48 @@ export function annotatePR(validationResults: ValidationResult[]) {
       });
     }
   }
+}
+
+
+type TableRow = Parameters<typeof core.summary.addTable>[0][0]
+type TableCell = TableRow[0]
+
+export function setSummary(validationResults: ValidationResult[], fileUrlPrefix: string) {
+  const headerRows: TableRow[] = [
+    // Header Row
+    [
+      { data: "Filename", header: true },
+      { data: "Line Number", header: true },
+      { data: "Violations", header: true },
+    ],
+  ];
+
+  const errorRows = validationResults.reduce<TableRow[]>((acc, curr) => {
+    const filename = curr.filename;
+
+    const errorCellTuples: TableCell[][]  = curr.lineValidations.map(line => {
+      const lineNumberCell: TableCell = { data: htmlLink(`${line.line.lineNumber}`, `${fileUrlPrefix}/${filename}#L${line.line.lineNumber}`) }
+      const violationsCell: TableCell = { data: line.validationErrors.map(error => error.message).join(", ") }
+
+      return [ lineNumberCell, violationsCell ];
+    })
+
+    if (errorCellTuples.length === 0) {
+      return acc;
+    }
+
+    // The filename cell to span all the rows for this file
+    const filenameCell: TableCell = { data: filename, rowspan: `${errorCellTuples.length}` }
+    const firstErrorCellTuple =  errorCellTuples.shift() as TableCell[];
+    const firstRowForFile = [ filenameCell, ...firstErrorCellTuple ];
+
+    return [
+      ...acc,
+      firstRowForFile,
+      ...errorCellTuples
+    ];
+
+  }, [] as TableRow[]);
+
+  core.summary.addTable([...headerRows, ...errorRows]).write();
 }

@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { PullRequest, getComparison } from "./github.js";
 import { validateActionReferenceChanges } from "./action-reference-validations.js";
-import { annotatePR, filterForGithubWorkflowChanges, formatGithubComment, parseAllAdditions } from "./utils.js";
+import { annotatePR, filterForGithubWorkflowChanges, formatGithubComment, parseAllAdditions, setSummary } from "./utils.js";
 
 (async () => {
   const { token, owner, repo, base, head, prNumber } = getInvokeContext();
@@ -20,14 +20,17 @@ import { annotatePR, filterForGithubWorkflowChanges, formatGithubComment, parseA
     const actionReferenceValidations = await validateActionReferenceChanges(octokit, ghaWorkflowPatchAdditions)
     const validationFailed = actionReferenceValidations.some(validation => validation.lineValidations.length > 0);
     const invokedThroughPr = prNumber !== undefined;
+    const urlPrefix = `https://github.com/${owner}/${repo}/blob/${head}`;
 
     if (validationFailed && invokedThroughPr) {
       // const errorMessage = formatGithubComment(actionReferenceValidations, owner, repo, head);
       // await PullRequest.upsertComment(octokit, owner, repo, prNumber, errorMessage);
       annotatePR(actionReferenceValidations);
+      setSummary(actionReferenceValidations, urlPrefix);
       return core.setFailed("Errors found in workflow files. See comment on for details.");
     } else if (validationFailed) {
       // If the action is not invoked through a PR, we can't comment on the PR
+      setSummary(actionReferenceValidations, urlPrefix);
       return core.setFailed("Errors found in workflow files.");
     } else if (!validationFailed && invokedThroughPr) {
       await PullRequest.deleteCommentIfExists(octokit, owner, repo, prNumber);
