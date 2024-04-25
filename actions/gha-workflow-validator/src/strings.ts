@@ -55,3 +55,7 @@ export function addFixingErrorsSuffix(comment: string) {
 export function markdownLink(text: string, url: string) {
   return `[${text}](${url})`
 }
+
+export function htmlLink(text: string, url: string) {
+  return `<a href="${url}">${text}</a>`
+}

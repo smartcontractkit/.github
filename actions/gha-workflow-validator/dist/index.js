@@ -22185,6 +22185,9 @@ var import_node_path = require("node:path");
 
 // actions/gha-workflow-validator/src/strings.ts
 var COMMENT_HEADER = `### GHA Workflow Validator Results`;
+function htmlLink(text, url) {
+  return `<a href="${url}">${text}</a>`;
+}
 
 // actions/gha-workflow-validator/src/github.ts
 async function getComparison(octokit, owner, repo, base, head) {
@@ -22424,6 +22427,36 @@ function annotatePR(validationResults) {
     }
   }
 }
+function setSummary(validationResults, fileUrlPrefix) {
+  const headerRows = [
+    // Header Row
+    [
+      { data: "Filename", header: true },
+      { data: "Line Number", header: true },
+      { data: "Violations", header: true }
+    ]
+  ];
+  const errorRows = validationResults.reduce((acc, curr) => {
+    const filename = curr.filename;
+    const errorCellTuples = curr.lineValidations.map((line) => {
+      const lineNumberCell = { data: htmlLink(`${line.line.lineNumber}`, `${fileUrlPrefix}/${filename}#L${line.line.lineNumber}`) };
+      const violationsCell = { data: line.validationErrors.map((error3) => error3.message).join(", ") };
+      return [lineNumberCell, violationsCell];
+    });
+    if (errorCellTuples.length === 0) {
+      return acc;
+    }
+    const filenameCell = { data: filename, rowspan: `${errorCellTuples.length}` };
+    const firstErrorCellTuple = errorCellTuples.shift();
+    const firstRowForFile = [filenameCell, ...firstErrorCellTuple];
+    return [
+      ...acc,
+      firstRowForFile,
+      ...errorCellTuples
+    ];
+  }, []);
+  core3.summary.addTable([...headerRows, ...errorRows]).write();
+}
 
 // actions/gha-workflow-validator/src/index.ts
 (async () => {
@@ -22439,10 +22472,13 @@ function annotatePR(validationResults) {
     const actionReferenceValidations = await validateActionReferenceChanges(octokit, ghaWorkflowPatchAdditions);
     const validationFailed = actionReferenceValidations.some((validation) => validation.lineValidations.length > 0);
     const invokedThroughPr = prNumber !== void 0;
+    const urlPrefix = `https://github.com/${owner}/${repo}/blob/${head}`;
     if (validationFailed && invokedThroughPr) {
       annotatePR(actionReferenceValidations);
+      setSummary(actionReferenceValidations, urlPrefix);
       return core4.setFailed("Errors found in workflow files. See comment on for details.");
     } else if (validationFailed) {
+      setSummary(actionReferenceValidations, urlPrefix);
       return core4.setFailed("Errors found in workflow files.");
     } else if (!validationFailed && invokedThroughPr) {
       await PullRequest.deleteCommentIfExists(octokit, owner, repo, prNumber);
