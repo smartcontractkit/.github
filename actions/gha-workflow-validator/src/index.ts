@@ -1,9 +1,8 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { commentOnPrOrUpdateExisting, deleteCommentOnPRIfExists, getComparison } from "./github.js";
+import { PullRequest, getComparison } from "./github.js";
 import { validateActionReferenceChanges } from "./action-reference-validations.js";
 import { filterForGithubWorkflowChanges, formatGithubComment, parseAllAdditions } from "./utils.js";
-import { COMMENT_HEADER } from "./strings.js";
 
 (async () => {
   const { token, owner, repo, base, head, prNumber } = getInvokeContext();
@@ -24,13 +23,13 @@ import { COMMENT_HEADER } from "./strings.js";
 
     if (validationFailed && invokedThroughPr) {
       const errorMessage = formatGithubComment(actionReferenceValidations, owner, repo, head);
-      commentOnPrOrUpdateExisting(octokit, owner, repo, prNumber, errorMessage);
+      await PullRequest.upsertComment(octokit, owner, repo, prNumber, errorMessage);
       return core.setFailed("Errors found in workflow files. See comment on for details.");
     } else if (validationFailed) {
       // If the action is not invoked through a PR, we can't comment on the PR
       return core.setFailed("Errors found in workflow files.");
     } else if (!validationFailed && invokedThroughPr) {
-      deleteCommentOnPRIfExists(octokit, owner, repo, prNumber);
+      await PullRequest.deleteCommentIfExists(octokit, owner, repo, prNumber);
     }
   }
 })().catch((err) => {

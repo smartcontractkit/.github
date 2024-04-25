@@ -55,79 +55,79 @@ export async function getActionFileFromGithub(
   return actionFile;
 }
 
-export async function commentOnPrOrUpdateExisting(
-  octokit: Octokit,
-  owner: string,
-  repo: string,
-  prNumber: number,
-  body: string,
-) {
-  const comments = await getAllCommentsOnPr(octokit, owner, repo, prNumber);
-  const existingComment = comments.find(
-    (comment) => comment.body?.startsWith(COMMENT_HEADER),
-  );
+export namespace PullRequest {
 
-  if (existingComment) {
-    const response = await updateComment(octokit, owner, repo, existingComment.id, body);
-    return { commentId: response.data.id, updatedAt: response.data.updated_at }
-  } else {
-    const response = await createComment(octokit, owner, repo, prNumber, body);
-    return { commentId: response.data.id, createdAt: response.data.created_at };
+  export async function upsertComment(
+    octokit: Octokit,
+    owner: string,
+    repo: string,
+    prNumber: number,
+    body: string,
+  ) {
+    const comments = await getAllComments(octokit, owner, repo, prNumber);
+    const existingComment = comments.find(
+      (comment) => comment.body?.startsWith(COMMENT_HEADER),
+    );
+
+    if (existingComment) {
+      const response = await updateComment(octokit, owner, repo, existingComment.id, body);
+      return { commentId: response.data.id, updatedAt: response.data.updated_at }
+    } else {
+      const response = await createComment(octokit, owner, repo, prNumber, body);
+      return { commentId: response.data.id, createdAt: response.data.created_at };
+    }
   }
-}
 
-export async function deleteCommentOnPRIfExists(
-  octokit: Octokit,
-  owner: string,
-  repo: string,
-  prNumber: number,
-) {
-  const comments = await getAllCommentsOnPr(octokit, owner, repo, prNumber);
-  const existingComment = comments.find(
-    (comment) => comment.body?.startsWith(COMMENT_HEADER),
-  );
+  export async function deleteCommentIfExists(
+    octokit: Octokit,
+    owner: string,
+    repo: string,
+    prNumber: number,
+  ) {
+    const comments = await getAllComments(octokit, owner, repo, prNumber);
+    const existingComment = comments.find(
+      (comment) => comment.body?.startsWith(COMMENT_HEADER),
+    );
+    if (existingComment) {
+      await octokit.rest.issues.deleteComment({
+        owner,
+        repo,
+        comment_id: existingComment.id,
+      });
+      return true;
+    }
+    return false;
+  }
 
-  if (existingComment) {
-    await octokit.rest.issues.deleteComment({
+  async function getAllComments(
+    octokit: Octokit,
+    owner: string,
+    repo: string,
+    prNumber: number,
+  ) {
+    core.debug(`Getting comments on PR ${prNumber}`);
+    return await octokit.paginate(octokit.rest.issues.listComments, {
+      owner: owner,
+      repo: repo,
+      issue_number: prNumber,
+    });
+  }
+
+  async function createComment(
+    octokit: Octokit,
+    owner: string,
+    repo: string,
+    prNumber: number,
+    body: string,
+  ) {
+    core.debug(`Commenting on PR ${prNumber}`);
+    return octokit.rest.issues.createComment({
       owner,
       repo,
-      comment_id: existingComment.id,
+      issue_number: prNumber,
+      body,
     });
-
-    return true;
   }
-
-  return false;
-}
-
-async function getAllCommentsOnPr(
-  octokit: Octokit,
-  owner: string,
-  repo: string,
-  prNumber: number,
-) {
-  core.debug(`Getting comments on PR ${prNumber}`);
-  return await octokit.paginate(octokit.rest.issues.listComments, {
-    owner: owner,
-    repo: repo,
-    issue_number: prNumber,
-  });
-}
-
-async function createComment(
-  octokit: Octokit,
-  owner: string,
-  repo: string,
-  prNumber: number,
-  body: string,
-) {
-  core.debug(`Commenting on PR ${prNumber}`);
-  return octokit.rest.issues.createComment({
-    owner,
-    repo,
-    issue_number: prNumber,
-    body,
-  });
 }
 
 async function updateComment(
