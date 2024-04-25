@@ -1,3 +1,4 @@
+import * as core from "@actions/core";
 import { GithubFiles } from "./github.js";
 import { ValidationResult } from "./action-reference-validations.js";
 import { COMMENT_HEADER, collapsibleContent, addFixingErrorsSuffix, markdownLink } from "./strings.js";
@@ -121,4 +122,16 @@ export function formatGithubComment(validationResults: ValidationResult[], owner
   }
 
   return addFixingErrorsSuffix(githubComment);
+}
+
+export function annotatePR(validationResults: ValidationResult[]) {
+  for (const fileResults of validationResults) {
+    for (const lineResults of fileResults.lineValidations) {
+      const message = lineResults.validationErrors.map(error => error.message).join("\n");
+      core.error(message, {
+        file: fileResults.filename,
+        startLine: lineResults.line.lineNumber,
+      });
+    }
+  }
 }

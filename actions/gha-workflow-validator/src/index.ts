@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { PullRequest, getComparison } from "./github.js";
 import { validateActionReferenceChanges } from "./action-reference-validations.js";
-import { filterForGithubWorkflowChanges, formatGithubComment, parseAllAdditions } from "./utils.js";
+import { annotatePR, filterForGithubWorkflowChanges, formatGithubComment, parseAllAdditions } from "./utils.js";
 
 (async () => {
   const { token, owner, repo, base, head, prNumber } = getInvokeContext();
@@ -22,8 +22,9 @@ import { filterForGithubWorkflowChanges, formatGithubComment, parseAllAdditions 
     const invokedThroughPr = prNumber !== undefined;
 
     if (validationFailed && invokedThroughPr) {
-      const errorMessage = formatGithubComment(actionReferenceValidations, owner, repo, head);
-      await PullRequest.upsertComment(octokit, owner, repo, prNumber, errorMessage);
+      // const errorMessage = formatGithubComment(actionReferenceValidations, owner, repo, head);
+      // await PullRequest.upsertComment(octokit, owner, repo, prNumber, errorMessage);
+      annotatePR(actionReferenceValidations);
       return core.setFailed("Errors found in workflow files. See comment on for details.");
     } else if (validationFailed) {
       // If the action is not invoked through a PR, we can't comment on the PR
@@ -69,3 +70,4 @@ function getInvokeContext() {
 
   return { token, owner, repo, base, head, prNumber: pr?.number };
 }
+
