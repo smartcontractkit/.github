@@ -1,17 +1,8 @@
 import { parseAllAdditions, } from '../utils.js';
 import { GithubFiles, getComparison } from '../github.js';
-import { getTestOctokit } from './__helpers__/test-utils.js'
-import nock from "nock";
-import path from "path";
+import { getNock, getTestOctokit } from './__helpers__/test-utils.js'
 
-// nock-back provides the recording and playback functionality
-const nockBack = nock.back;
-// Set the fixture path and nockBack mode
-nockBack.fixtures = path.join(__dirname, "__fixtures__");
-
-// Change to 'lockdown' to use existing fixtures
-// Valid values = lockdown, record, wild, dryrun, update
-nockBack.setMode("lockdown");
+const nockBack = getNock();
 
 const simplePatchResponse: GithubFiles = [
   {

@@ -1,23 +1,10 @@
-import { getComparison, getActionFileFromGithub, commentOnPrOrUpdateExisting, deleteCommentOnPRIfExists, } from "../github";
+import { getComparison, getActionFileFromGithub, PullRequest } from "../github";
 import { COMMENT_HEADER } from "../strings";
-import { getTestOctokit } from './__helpers__/test-utils.js'
-import nock from "nock";
-import path from "path";
+import { getNock, getTestOctokit } from './__helpers__/test-utils.js'
 
-// nock-back provides the recording and playback functionality
-const nockBack = nock.back;
-// Set the fixture path and nockBack mode
-nockBack.fixtures = path.join(__dirname, "__fixtures__");
+const nockBack = getNock();
 
-// Change to 'lockdown' to use existing fixtures
-// Valid values = lockdown, record, wild, dryrun, update
-nockBack.setMode("lockdown");
-
-if (nockBack.currentMode === "lockdown") {
-  nock.disableNetConnect();
-}
-
-describe("getActionFileFromGithub", () => {
+describe(getActionFileFromGithub.name, () => {
   it("should return action.yml file", async () => {
     const { nockDone } = await nockBack("action-yml.json");
     const octokit = getTestOctokit(nockBack.currentMode);
@@ -57,7 +44,7 @@ describe("getActionFileFromGithub", () => {
   });
 });
 
-describe("getComparison", () => {
+describe(getComparison.name, () => {
   it("should return comparison", async () => {
     const { nockDone } = await nockBack("comparison.json");
     const octokit = getTestOctokit(nockBack.currentMode);
@@ -78,8 +65,7 @@ describe("getComparison", () => {
   });
 });
 
-// todo
-describe("commentOnPrOrUpdateExisting", () => {
+describe(PullRequest.upsertComment.name, () => {
   it("should create new comment", async () => {
     const { nockDone } = await nockBack("create-comment.json");
     const octokit = getTestOctokit(nockBack.currentMode);
@@ -90,7 +76,7 @@ describe("commentOnPrOrUpdateExisting", () => {
       prNumber: 1,
     }
     const { owner, repo,  } = repoRequestOptions;
-    const result = await commentOnPrOrUpdateExisting(octokit, owner, repo, 1, COMMENT_HEADER + "\n placeholder test comment");
+    const result = await PullRequest.upsertComment(octokit, owner, repo, 1, COMMENT_HEADER + "\n placeholder test comment");
 
     expect(result).toBeDefined();
     expect(result.createdAt).toBeDefined();
@@ -98,7 +84,6 @@ describe("commentOnPrOrUpdateExisting", () => {
 
     nockDone();
   });
-
 
   it("should update existing comment", async () => {
     const { nockDone } = await nockBack("update-comment.json");
@@ -110,7 +95,7 @@ describe("commentOnPrOrUpdateExisting", () => {
       prNumber: 1,
     }
     const { owner, repo,  } = repoRequestOptions;
-    const result = await commentOnPrOrUpdateExisting(octokit, owner, repo, 1, COMMENT_HEADER + "\n placeholder updated test comment");
+    const result = await PullRequest.upsertComment(octokit, owner, repo, 1, COMMENT_HEADER + "\n placeholder updated test comment");
 
     expect(result).toBeDefined();
     expect(result.updatedAt).toBeDefined();
@@ -120,7 +105,7 @@ describe("commentOnPrOrUpdateExisting", () => {
   });
 });
 
-describe("deleteCommentOnPRIfExists", () => {
+describe(PullRequest.deleteCommentIfExists.name, () => {
   it("should delete existing comment", async () => {
     const { nockDone } = await nockBack("delete-comment.json");
     const octokit = getTestOctokit(nockBack.currentMode);
@@ -131,7 +116,7 @@ describe("deleteCommentOnPRIfExists", () => {
       prNumber: 1,
     }
     const { owner, repo,  } = repoRequestOptions;
-    const result = await deleteCommentOnPRIfExists(octokit, owner, repo, 1);
+    const result = await PullRequest.deleteCommentIfExists(octokit, owner, repo, 1);
 
     expect(result).toBe(true);
 
