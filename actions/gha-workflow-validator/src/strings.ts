@@ -1,6 +1,4 @@
-export const COMMENT_HEADER = `### GHA Workflow Validator Results`
-
-const FIXING_ERRORS = `
+export const FIXING_ERRORS = `
 #### Fixing Errors
 
 <details>
@@ -46,14 +44,6 @@ ${content}
 
 </details>
 `
-}
-
-export function addFixingErrorsSuffix(comment: string) {
-  return comment + "\n---\n" + FIXING_ERRORS;
-}
-
-export function markdownLink(text: string, url: string) {
-  return `[${text}](${url})`
 }
 
 export function htmlLink(text: string, url: string) {

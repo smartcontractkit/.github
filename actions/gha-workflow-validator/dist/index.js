@@ -763,18 +763,18 @@ var require_tunnel = __commonJS({
             res.statusCode
           );
           socket.destroy();
-          var error3 = new Error("tunneling socket could not be established, statusCode=" + res.statusCode);
-          error3.code = "ECONNRESET";
-          options.request.emit("error", error3);
+          var error2 = new Error("tunneling socket could not be established, statusCode=" + res.statusCode);
+          error2.code = "ECONNRESET";
+          options.request.emit("error", error2);
           self.removeSocket(placeholder);
           return;
         }
         if (head.length > 0) {
           debug4("got illegal response body from proxy");
           socket.destroy();
-          var error3 = new Error("got illegal response body from proxy");
-          error3.code = "ECONNRESET";
-          options.request.emit("error", error3);
+          var error2 = new Error("got illegal response body from proxy");
+          error2.code = "ECONNRESET";
+          options.request.emit("error", error2);
           self.removeSocket(placeholder);
           return;
         }
@@ -789,9 +789,9 @@ var require_tunnel = __commonJS({
           cause.message,
           cause.stack
         );
-        var error3 = new Error("tunneling socket could not be established, cause=" + cause.message);
-        error3.code = "ECONNRESET";
-        options.request.emit("error", error3);
+        var error2 = new Error("tunneling socket could not be established, cause=" + cause.message);
+        error2.code = "ECONNRESET";
+        options.request.emit("error", error2);
         self.removeSocket(placeholder);
       }
     };
@@ -5139,7 +5139,7 @@ Content-Type: ${value.type || "application/octet-stream"}\r
         throw new TypeError("Body is unusable");
       }
       const promise = createDeferredPromise();
-      const errorSteps = (error3) => promise.reject(error3);
+      const errorSteps = (error2) => promise.reject(error2);
       const successSteps = (data) => {
         try {
           promise.resolve(convertBytesToJSValue(data));
@@ -5412,16 +5412,16 @@ var require_request = __commonJS({
         }
         return this[kHandler].onComplete(trailers);
       }
-      onError(error3) {
+      onError(error2) {
         this.onFinally();
         if (channels.error.hasSubscribers) {
-          channels.error.publish({ request: this, error: error3 });
+          channels.error.publish({ request: this, error: error2 });
         }
         if (this.aborted) {
           return;
         }
         this.aborted = true;
-        return this[kHandler].onError(error3);
+        return this[kHandler].onError(error2);
       }
       onFinally() {
         if (this.errorHandler) {
@@ -6293,8 +6293,8 @@ var require_RedirectHandler = __commonJS({
       onUpgrade(statusCode, headers, socket) {
         this.handler.onUpgrade(statusCode, headers, socket);
       }
-      onError(error3) {
-        this.handler.onError(error3);
+      onError(error2) {
+        this.handler.onError(error2);
       }
       onHeaders(statusCode, headers, resume, statusText) {
         this.location = this.history.length >= this.maxRedirections || util.isDisturbed(this.opts.body) ? null : parseLocation(statusCode, headers);
@@ -10034,13 +10034,13 @@ var require_mock_utils = __commonJS({
       if (mockDispatch2.data.callback) {
         mockDispatch2.data = { ...mockDispatch2.data, ...mockDispatch2.data.callback(opts) };
       }
-      const { data: { statusCode, data, headers, trailers, error: error3 }, delay, persist } = mockDispatch2;
+      const { data: { statusCode, data, headers, trailers, error: error2 }, delay, persist } = mockDispatch2;
       const { timesInvoked, times } = mockDispatch2;
       mockDispatch2.consumed = !persist && timesInvoked >= times;
       mockDispatch2.pending = timesInvoked < times;
-      if (error3 !== null) {
+      if (error2 !== null) {
         deleteMockDispatch(this[kDispatches], key);
-        handler.onError(error3);
+        handler.onError(error2);
         return true;
       }
       if (typeof delay === "number" && delay > 0) {
@@ -10078,19 +10078,19 @@ var require_mock_utils = __commonJS({
         if (agent.isMockActive) {
           try {
             mockDispatch.call(this, opts, handler);
-          } catch (error3) {
-            if (error3 instanceof MockNotMatchedError) {
+          } catch (error2) {
+            if (error2 instanceof MockNotMatchedError) {
               const netConnect = agent[kGetNetConnect]();
               if (netConnect === false) {
-                throw new MockNotMatchedError(`${error3.message}: subsequent request to origin ${origin} was not allowed (net.connect disabled)`);
+                throw new MockNotMatchedError(`${error2.message}: subsequent request to origin ${origin} was not allowed (net.connect disabled)`);
               }
               if (checkNetConnect(netConnect, origin)) {
                 originalDispatch.call(this, opts, handler);
               } else {
-                throw new MockNotMatchedError(`${error3.message}: subsequent request to origin ${origin} was not allowed (net.connect is not enabled for this origin)`);
+                throw new MockNotMatchedError(`${error2.message}: subsequent request to origin ${origin} was not allowed (net.connect is not enabled for this origin)`);
               }
             } else {
-              throw error3;
+              throw error2;
             }
           }
         } else {
@@ -10253,11 +10253,11 @@ var require_mock_interceptor = __commonJS({
       /**
        * Mock an undici request with a defined error.
        */
-      replyWithError(error3) {
-        if (typeof error3 === "undefined") {
+      replyWithError(error2) {
+        if (typeof error2 === "undefined") {
           throw new InvalidArgumentError("error must be defined");
         }
-        const newMockDispatch = addMockDispatch(this[kDispatches], this[kDispatchKey], { error: error3 });
+        const newMockDispatch = addMockDispatch(this[kDispatches], this[kDispatchKey], { error: error2 });
         return new MockScope(newMockDispatch);
       }
       /**
@@ -12276,17 +12276,17 @@ var require_fetch = __commonJS({
         this.emit("terminated", reason);
       }
       // https://fetch.spec.whatwg.org/#fetch-controller-abort
-      abort(error3) {
+      abort(error2) {
         if (this.state !== "ongoing") {
           return;
         }
         this.state = "aborted";
-        if (!error3) {
-          error3 = new DOMException2("The operation was aborted.", "AbortError");
+        if (!error2) {
+          error2 = new DOMException2("The operation was aborted.", "AbortError");
         }
-        this.serializedAbortReason = error3;
-        this.connection?.destroy(error3);
-        this.emit("terminated", error3);
+        this.serializedAbortReason = error2;
+        this.connection?.destroy(error2);
+        this.emit("terminated", error2);
       }
     };
     function fetch(input, init = {}) {
@@ -12390,13 +12390,13 @@ var require_fetch = __commonJS({
         performance.markResourceTiming(timingInfo, originalURL.href, initiatorType, globalThis2, cacheState);
       }
     }
-    function abortFetch(p, request, responseObject, error3) {
-      if (!error3) {
-        error3 = new DOMException2("The operation was aborted.", "AbortError");
+    function abortFetch(p, request, responseObject, error2) {
+      if (!error2) {
+        error2 = new DOMException2("The operation was aborted.", "AbortError");
       }
-      p.reject(error3);
+      p.reject(error2);
       if (request.body != null && isReadable(request.body?.stream)) {
-        request.body.stream.cancel(error3).catch((err) => {
+        request.body.stream.cancel(error2).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
           }
@@ -12408,7 +12408,7 @@ var require_fetch = __commonJS({
       }
       const response = responseObject[kState];
       if (response.body != null && isReadable(response.body?.stream)) {
-        response.body.stream.cancel(error3).catch((err) => {
+        response.body.stream.cancel(error2).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
           }
@@ -13187,13 +13187,13 @@ var require_fetch = __commonJS({
               fetchParams.controller.ended = true;
               this.body.push(null);
             },
-            onError(error3) {
+            onError(error2) {
               if (this.abort) {
                 fetchParams.controller.off("terminated", this.abort);
               }
-              this.body?.destroy(error3);
-              fetchParams.controller.terminate(error3);
-              reject(error3);
+              this.body?.destroy(error2);
+              fetchParams.controller.terminate(error2);
+              reject(error2);
             },
             onUpgrade(status, headersList, socket) {
               if (status !== 101) {
@@ -13659,8 +13659,8 @@ var require_util4 = __commonJS({
                   }
                   fr[kResult] = result;
                   fireAProgressEvent("load", fr);
-                } catch (error3) {
-                  fr[kError] = error3;
+                } catch (error2) {
+                  fr[kError] = error2;
                   fireAProgressEvent("error", fr);
                 }
                 if (fr[kState] !== "loading") {
@@ -13669,13 +13669,13 @@ var require_util4 = __commonJS({
               });
               break;
             }
-          } catch (error3) {
+          } catch (error2) {
             if (fr[kAborted]) {
               return;
             }
             queueMicrotask(() => {
               fr[kState] = "done";
-              fr[kError] = error3;
+              fr[kError] = error2;
               fireAProgressEvent("error", fr);
               if (fr[kState] !== "loading") {
                 fireAProgressEvent("loadend", fr);
@@ -15691,11 +15691,11 @@ var require_connection = __commonJS({
         });
       }
     }
-    function onSocketError(error3) {
+    function onSocketError(error2) {
       const { ws } = this;
       ws[kReadyState] = states.CLOSING;
       if (channels.socketError.hasSubscribers) {
-        channels.socketError.publish(error3);
+        channels.socketError.publish(error2);
       }
       this.destroy();
     }
@@ -16842,12 +16842,12 @@ var require_lib = __commonJS({
             throw new Error("Client has already been disposed.");
           }
           const parsedUrl = new URL(requestUrl);
-          let info = this._prepareRequest(verb, parsedUrl, headers);
+          let info2 = this._prepareRequest(verb, parsedUrl, headers);
           const maxTries = this._allowRetries && RetryableHttpVerbs.includes(verb) ? this._maxRetries + 1 : 1;
           let numTries = 0;
           let response;
           do {
-            response = yield this.requestRaw(info, data);
+            response = yield this.requestRaw(info2, data);
             if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
               let authenticationHandler;
               for (const handler of this.handlers) {
@@ -16857,7 +16857,7 @@ var require_lib = __commonJS({
                 }
               }
               if (authenticationHandler) {
-                return authenticationHandler.handleAuthentication(this, info, data);
+                return authenticationHandler.handleAuthentication(this, info2, data);
               } else {
                 return response;
               }
@@ -16880,8 +16880,8 @@ var require_lib = __commonJS({
                   }
                 }
               }
-              info = this._prepareRequest(verb, parsedRedirectUrl, headers);
-              response = yield this.requestRaw(info, data);
+              info2 = this._prepareRequest(verb, parsedRedirectUrl, headers);
+              response = yield this.requestRaw(info2, data);
               redirectsRemaining--;
             }
             if (!response.message.statusCode || !HttpResponseRetryCodes.includes(response.message.statusCode)) {
@@ -16910,7 +16910,7 @@ var require_lib = __commonJS({
        * @param info
        * @param data
        */
-      requestRaw(info, data) {
+      requestRaw(info2, data) {
         return __awaiter(this, void 0, void 0, function* () {
           return new Promise((resolve, reject) => {
             function callbackForResult(err, res) {
@@ -16922,7 +16922,7 @@ var require_lib = __commonJS({
                 resolve(res);
               }
             }
-            this.requestRawWithCallback(info, data, callbackForResult);
+            this.requestRawWithCallback(info2, data, callbackForResult);
           });
         });
       }
@@ -16932,12 +16932,12 @@ var require_lib = __commonJS({
        * @param data
        * @param onResult
        */
-      requestRawWithCallback(info, data, onResult) {
+      requestRawWithCallback(info2, data, onResult) {
         if (typeof data === "string") {
-          if (!info.options.headers) {
-            info.options.headers = {};
+          if (!info2.options.headers) {
+            info2.options.headers = {};
           }
-          info.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
+          info2.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
         }
         let callbackCalled = false;
         function handleResult(err, res) {
@@ -16946,7 +16946,7 @@ var require_lib = __commonJS({
             onResult(err, res);
           }
         }
-        const req = info.httpModule.request(info.options, (msg) => {
+        const req = info2.httpModule.request(info2.options, (msg) => {
           const res = new HttpClientResponse(msg);
           handleResult(void 0, res);
         });
@@ -16958,7 +16958,7 @@ var require_lib = __commonJS({
           if (socket) {
             socket.end();
           }
-          handleResult(new Error(`Request timeout: ${info.options.path}`));
+          handleResult(new Error(`Request timeout: ${info2.options.path}`));
         });
         req.on("error", function(err) {
           handleResult(err);
@@ -16994,27 +16994,27 @@ var require_lib = __commonJS({
         return this._getProxyAgentDispatcher(parsedUrl, proxyUrl);
       }
       _prepareRequest(method, requestUrl, headers) {
-        const info = {};
-        info.parsedUrl = requestUrl;
-        const usingSsl = info.parsedUrl.protocol === "https:";
-        info.httpModule = usingSsl ? https : http;
+        const info2 = {};
+        info2.parsedUrl = requestUrl;
+        const usingSsl = info2.parsedUrl.protocol === "https:";
+        info2.httpModule = usingSsl ? https : http;
         const defaultPort = usingSsl ? 443 : 80;
-        info.options = {};
-        info.options.host = info.parsedUrl.hostname;
-        info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
-        info.options.path = (info.parsedUrl.pathname || "") + (info.parsedUrl.search || "");
-        info.options.method = method;
-        info.options.headers = this._mergeHeaders(headers);
+        info2.options = {};
+        info2.options.host = info2.parsedUrl.hostname;
+        info2.options.port = info2.parsedUrl.port ? parseInt(info2.parsedUrl.port) : defaultPort;
+        info2.options.path = (info2.parsedUrl.pathname || "") + (info2.parsedUrl.search || "");
+        info2.options.method = method;
+        info2.options.headers = this._mergeHeaders(headers);
         if (this.userAgent != null) {
-          info.options.headers["user-agent"] = this.userAgent;
+          info2.options.headers["user-agent"] = this.userAgent;
         }
-        info.options.agent = this._getAgent(info.parsedUrl);
+        info2.options.agent = this._getAgent(info2.parsedUrl);
         if (this.handlers) {
           for (const handler of this.handlers) {
-            handler.prepareRequest(info.options);
+            handler.prepareRequest(info2.options);
           }
         }
-        return info;
+        return info2;
       }
       _mergeHeaders(headers) {
         if (this.requestOptions && this.requestOptions.headers) {
@@ -17333,12 +17333,12 @@ var require_oidc_utils = __commonJS({
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
           const httpclient = _OidcClient.createHttpClient();
-          const res = yield httpclient.getJson(id_token_url).catch((error3) => {
+          const res = yield httpclient.getJson(id_token_url).catch((error2) => {
             throw new Error(`Failed to get ID Token. 
  
-        Error Code : ${error3.statusCode}
+        Error Code : ${error2.statusCode}
  
-        Error Message: ${error3.message}`);
+        Error Message: ${error2.message}`);
           });
           const id_token = (_a = res.result) === null || _a === void 0 ? void 0 : _a.value;
           if (!id_token) {
@@ -17359,8 +17359,8 @@ var require_oidc_utils = __commonJS({
             const id_token = yield _OidcClient.getCall(id_token_url);
             core_1.setSecret(id_token);
             return id_token;
-          } catch (error3) {
-            throw new Error(`Error message: ${error3.message}`);
+          } catch (error2) {
+            throw new Error(`Error message: ${error2.message}`);
           }
         });
       }
@@ -17855,7 +17855,7 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
     exports2.setCommandEcho = setCommandEcho;
     function setFailed2(message) {
       process.exitCode = ExitCode.Failure;
-      error3(message);
+      error2(message);
     }
     exports2.setFailed = setFailed2;
     function isDebug() {
@@ -17866,10 +17866,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       command_1.issueCommand("debug", {}, message);
     }
     exports2.debug = debug4;
-    function error3(message, properties = {}) {
+    function error2(message, properties = {}) {
       command_1.issueCommand("error", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
-    exports2.error = error3;
+    exports2.error = error2;
     function warning3(message, properties = {}) {
       command_1.issueCommand("warning", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
@@ -17878,10 +17878,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       command_1.issueCommand("notice", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
     exports2.notice = notice;
-    function info(message) {
+    function info2(message) {
       process.stdout.write(message + os.EOL);
     }
-    exports2.info = info;
+    exports2.info = info2;
     function startGroup(name) {
       command_1.issue("group", name);
     }
@@ -18176,8 +18176,8 @@ var require_add = __commonJS({
       }
       if (kind === "error") {
         hook = function(method, options) {
-          return Promise.resolve().then(method.bind(null, options)).catch(function(error3) {
-            return orig(error3, options);
+          return Promise.resolve().then(method.bind(null, options)).catch(function(error2) {
+            return orig(error2, options);
           });
         };
       }
@@ -18915,7 +18915,7 @@ var require_dist_node5 = __commonJS({
         }
         if (status >= 400) {
           const data = await getResponseData(response);
-          const error3 = new import_request_error.RequestError(toErrorMessage(data), status, {
+          const error2 = new import_request_error.RequestError(toErrorMessage(data), status, {
             response: {
               url,
               status,
@@ -18924,7 +18924,7 @@ var require_dist_node5 = __commonJS({
             },
             request: requestOptions
           });
-          throw error3;
+          throw error2;
         }
         return parseSuccessResponseBody ? await getResponseData(response) : response.body;
       }).then((data) => {
@@ -18934,17 +18934,17 @@ var require_dist_node5 = __commonJS({
           headers,
           data
         };
-      }).catch((error3) => {
-        if (error3 instanceof import_request_error.RequestError)
-          throw error3;
-        else if (error3.name === "AbortError")
-          throw error3;
-        let message = error3.message;
-        if (error3.name === "TypeError" && "cause" in error3) {
-          if (error3.cause instanceof Error) {
-            message = error3.cause.message;
-          } else if (typeof error3.cause === "string") {
-            message = error3.cause;
+      }).catch((error2) => {
+        if (error2 instanceof import_request_error.RequestError)
+          throw error2;
+        else if (error2.name === "AbortError")
+          throw error2;
+        let message = error2.message;
+        if (error2.name === "TypeError" && "cause" in error2) {
+          if (error2.cause instanceof Error) {
+            message = error2.cause.message;
+          } else if (typeof error2.cause === "string") {
+            message = error2.cause;
           }
         }
         throw new import_request_error.RequestError(message, 500, {
@@ -19124,7 +19124,7 @@ var require_dist_node6 = __commonJS({
         }
         if (status >= 400) {
           const data = await getResponseData(response);
-          const error3 = new import_request_error.RequestError(toErrorMessage(data), status, {
+          const error2 = new import_request_error.RequestError(toErrorMessage(data), status, {
             response: {
               url,
               status,
@@ -19133,7 +19133,7 @@ var require_dist_node6 = __commonJS({
             },
             request: requestOptions
           });
-          throw error3;
+          throw error2;
         }
         return parseSuccessResponseBody ? await getResponseData(response) : response.body;
       }).then((data) => {
@@ -19143,17 +19143,17 @@ var require_dist_node6 = __commonJS({
           headers,
           data
         };
-      }).catch((error3) => {
-        if (error3 instanceof import_request_error.RequestError)
-          throw error3;
-        else if (error3.name === "AbortError")
-          throw error3;
-        let message = error3.message;
-        if (error3.name === "TypeError" && "cause" in error3) {
-          if (error3.cause instanceof Error) {
-            message = error3.cause.message;
-          } else if (typeof error3.cause === "string") {
-            message = error3.cause;
+      }).catch((error2) => {
+        if (error2 instanceof import_request_error.RequestError)
+          throw error2;
+        else if (error2.name === "AbortError")
+          throw error2;
+        let message = error2.message;
+        if (error2.name === "TypeError" && "cause" in error2) {
+          if (error2.cause instanceof Error) {
+            message = error2.cause.message;
+          } else if (typeof error2.cause === "string") {
+            message = error2.cause;
           }
         }
         throw new import_request_error.RequestError(message, 500, {
@@ -21760,9 +21760,9 @@ var require_dist_node11 = __commonJS({
                 /<([^>]+)>;\s*rel="next"/
               ) || [])[1];
               return { value: normalizedResponse };
-            } catch (error3) {
-              if (error3.status !== 409)
-                throw error3;
+            } catch (error2) {
+              if (error2.status !== 409)
+                throw error2;
               url = "";
               return {
                 value: {
@@ -22182,14 +22182,6 @@ var github = __toESM(require_github());
 // actions/gha-workflow-validator/src/github.ts
 var core = __toESM(require_core());
 var import_node_path = require("node:path");
-
-// actions/gha-workflow-validator/src/strings.ts
-var COMMENT_HEADER = `### GHA Workflow Validator Results`;
-function htmlLink(text, url) {
-  return `<a href="${url}">${text}</a>`;
-}
-
-// actions/gha-workflow-validator/src/github.ts
 async function getComparison(octokit, owner, repo, base, head) {
   core.debug(`Comparing ${owner}/${repo} commits ${base}...${head}`);
   const diff = await octokit.rest.repos.compareCommitsWithBasehead({
@@ -22209,65 +22201,6 @@ async function getActionFileFromGithub(octokit, owner, repo, repoPath, ref) {
   }
   return actionFile;
 }
-var PullRequest;
-((PullRequest2) => {
-  async function upsertComment(octokit, owner, repo, prNumber, body) {
-    const comments = await getAllComments(octokit, owner, repo, prNumber);
-    const existingComment = comments.find(
-      (comment) => comment.body?.startsWith(COMMENT_HEADER)
-    );
-    if (existingComment) {
-      const response = await updateComment(octokit, owner, repo, existingComment.id, body);
-      return { commentId: response.data.id, updatedAt: response.data.updated_at };
-    } else {
-      const response = await createComment(octokit, owner, repo, prNumber, body);
-      return { commentId: response.data.id, createdAt: response.data.created_at };
-    }
-  }
-  PullRequest2.upsertComment = upsertComment;
-  async function deleteCommentIfExists(octokit, owner, repo, prNumber) {
-    const comments = await getAllComments(octokit, owner, repo, prNumber);
-    const existingComment = comments.find(
-      (comment) => comment.body?.startsWith(COMMENT_HEADER)
-    );
-    if (existingComment) {
-      await octokit.rest.issues.deleteComment({
-        owner,
-        repo,
-        comment_id: existingComment.id
-      });
-      return true;
-    }
-    return false;
-  }
-  PullRequest2.deleteCommentIfExists = deleteCommentIfExists;
-  async function getAllComments(octokit, owner, repo, prNumber) {
-    core.debug(`Getting comments on PR ${prNumber}`);
-    return await octokit.paginate(octokit.rest.issues.listComments, {
-      owner,
-      repo,
-      issue_number: prNumber
-    });
-  }
-  async function createComment(octokit, owner, repo, prNumber, body) {
-    core.debug(`Commenting on PR ${prNumber}`);
-    return octokit.rest.issues.createComment({
-      owner,
-      repo,
-      issue_number: prNumber,
-      body
-    });
-  }
-})(PullRequest || (PullRequest = {}));
-async function updateComment(octokit, owner, repo, commentId, body) {
-  core.debug(`Updating comment ${commentId}`);
-  return await octokit.rest.issues.updateComment({
-    owner,
-    repo,
-    comment_id: commentId,
-    body
-  });
-}
 async function getFileFromGithub(octokit, owner, repo, path, ref) {
   try {
     core.debug(`Getting file through Github - ${owner}/${repo}${path}@${ref}`);
@@ -22281,14 +22214,14 @@ async function getFileFromGithub(octokit, owner, repo, path, ref) {
       return Buffer.from(response.data.content, "base64").toString();
     }
     throw Error("No content found in getContent response");
-  } catch (error3) {
+  } catch (error2) {
     const requestPath = `${owner}/${repo}${path}@${ref}`;
-    if (error3.status) {
+    if (error2.status) {
       core.warning(
-        `Encountered Github Request Error while getting file - ${requestPath}. (${error3.status} - ${error3.message})`
+        `Encountered Github Request Error while getting file - ${requestPath}. (${error2.status} - ${error2.message})`
       );
     } else {
-      core.warning(`Encountered Unknown Error while getting file - ${requestPath} - ${error3}`);
+      core.warning(`Encountered Unknown Error while getting file - ${requestPath} - ${error2}`);
     }
   }
 }
@@ -22302,7 +22235,7 @@ async function validateActionReferenceChanges(octokit, changes) {
       const validationErrors = line.actionReference ? await validateLine(octokit, line.actionReference) : [];
       return { line, validationErrors };
     });
-    const nonEmptyLineValidations = (await Promise.all(lineValidationPromises)).filter((error3) => error3.validationErrors.length > 0);
+    const nonEmptyLineValidations = (await Promise.all(lineValidationPromises)).filter((error2) => error2.validationErrors.length > 0);
     return {
       filename: change.filename,
       sha: change.sha,
@@ -22362,6 +22295,49 @@ async function isNode20Action(ghClient, change) {
 
 // actions/gha-workflow-validator/src/utils.ts
 var core3 = __toESM(require_core());
+
+// actions/gha-workflow-validator/src/strings.ts
+var FIXING_ERRORS = `
+#### Fixing Errors
+
+<details>
+<summary>Instructions</summary>
+
+The proper format for referencing a Github Action external to the repository is as follows:
+
+\`<owner>/<repo>/<optional path>@<commit SHA1> # <tag relating to the SHA1>\`
+
+<details>
+<summary>Examples</summary>
+
+\`\`\`
+actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
+
+smartcontractkit/chainlink-github-actions/github-app-token-issuer@5874ff7211cf5a5a2670bb010fbff914eaaae138 # v2.3.12
+\`\`\`
+</details>
+
+##### <ref> is not a valid SHA1
+
+* Please reference a specific commit.
+* Do not use things like \`@main\`, \`@branch/feature\`, \`@v4\`, or \`@v4.0.0\`.
+
+##### No version comment found
+
+* Ensure you have left a comment indicating the git tag (or version) associated with the SHA1 reference.
+* \`@<commit> # v4.0.0\`
+
+##### Action is using node...
+
+* The action added is supposed to be run using a version that is not \`node20\`. This might create issues due to Github deprecating actions using \`node16\` and earlier.
+
+</details>
+`;
+function htmlLink(text, url) {
+  return `<a href="${url}">${text}</a>`;
+}
+
+// actions/gha-workflow-validator/src/utils.ts
 function filterForGithubWorkflowChanges(files) {
   return files?.filter((entry) => {
     return (entry.filename.startsWith(".github/workflows") || entry.filename.startsWith(".github/actions")) && (entry.filename.endsWith(".yml") || entry.filename.endsWith(".yaml"));
@@ -22419,7 +22395,7 @@ function extractActionReference(line) {
 function annotatePR(validationResults) {
   for (const fileResults of validationResults) {
     for (const lineResults of fileResults.lineValidations) {
-      const message = lineResults.validationErrors.map((error3) => error3.message).join("\n");
+      const message = lineResults.validationErrors.map((error2) => error2.message).join("\n");
       core3.error(message, {
         file: fileResults.filename,
         startLine: lineResults.line.lineNumber
@@ -22427,7 +22403,7 @@ function annotatePR(validationResults) {
     }
   }
 }
-function setSummary(validationResults, fileUrlPrefix) {
+async function setSummary(validationResults, fileUrlPrefix) {
   const headerRows = [
     // Header Row
     [
@@ -22440,7 +22416,7 @@ function setSummary(validationResults, fileUrlPrefix) {
     const filename = curr.filename;
     const errorCellTuples = curr.lineValidations.map((line) => {
       const lineNumberCell = { data: htmlLink(`${line.line.lineNumber}`, `${fileUrlPrefix}/${filename}#L${line.line.lineNumber}`) };
-      const violationsCell = { data: line.validationErrors.map((error3) => error3.message).join(", ") };
+      const violationsCell = { data: line.validationErrors.map((error2) => error2.message).join(", ") };
       return [lineNumberCell, violationsCell];
     });
     if (errorCellTuples.length === 0) {
@@ -22455,7 +22431,7 @@ function setSummary(validationResults, fileUrlPrefix) {
       ...errorCellTuples
     ];
   }, []);
-  core3.summary.addTable([...headerRows, ...errorRows]).write();
+  await core3.summary.addTable([...headerRows, ...errorRows]).addSeparator().addRaw(FIXING_ERRORS).write();
 }
 
 // actions/gha-workflow-validator/src/index.ts
@@ -22468,26 +22444,22 @@ function setSummary(validationResults, fileUrlPrefix) {
   const containsWorkflowModifications = ghaWorkflowPatchAdditions.some((file) => {
     return (file.filename.startsWith(".github/workflows") || file.filename.startsWith(".github/actions")) && (file.filename.endsWith(".yml") || file.filename.endsWith(".yaml"));
   });
-  if (containsWorkflowModifications) {
-    const actionReferenceValidations = await validateActionReferenceChanges(octokit, ghaWorkflowPatchAdditions);
-    const validationFailed = actionReferenceValidations.some((validation) => validation.lineValidations.length > 0);
-    const invokedThroughPr = prNumber !== void 0;
-    const urlPrefix = `https://github.com/${owner}/${repo}/blob/${head}`;
-    if (validationFailed && invokedThroughPr) {
-      annotatePR(actionReferenceValidations);
-      setSummary(actionReferenceValidations, urlPrefix);
-      return core4.setFailed("Errors found in workflow files. See comment on for details.");
-    } else if (validationFailed) {
-      setSummary(actionReferenceValidations, urlPrefix);
-      return core4.setFailed("Errors found in workflow files.");
-    } else if (!validationFailed && invokedThroughPr) {
-      await PullRequest.deleteCommentIfExists(octokit, owner, repo, prNumber);
-    }
+  if (!containsWorkflowModifications) {
+    return core4.info("No workflow files found in the changeset.");
   }
-})().catch((err) => {
-  core4.error("Uncaught Error - " + err);
-  core4.setFailed(err.message);
-});
+  const actionReferenceValidations = await validateActionReferenceChanges(octokit, ghaWorkflowPatchAdditions);
+  const validationFailed = actionReferenceValidations.some((validation) => validation.lineValidations.length > 0);
+  const invokedThroughPr = prNumber !== void 0;
+  const urlPrefix = `https://github.com/${owner}/${repo}/blob/${head}`;
+  if (!validationFailed) {
+    return core4.info("No errors found in workflow files.");
+  }
+  if (invokedThroughPr) {
+    annotatePR(actionReferenceValidations);
+  }
+  await setSummary(actionReferenceValidations, urlPrefix);
+  return core4.setFailed("Errors found in workflow files. See annotations or summary for details.");
+})();
 function getInvokeContext() {
   const token = process.env.GITHUB_TOKEN;
   if (!token) {

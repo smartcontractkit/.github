@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import { GithubFiles } from "./github.js";
 import { ValidationResult } from "./action-reference-validations.js";
-import { COMMENT_HEADER, collapsibleContent, addFixingErrorsSuffix, markdownLink, htmlLink } from "./strings.js";
+import { FIXING_ERRORS, htmlLink } from "./strings.js";
 
 export interface ParsedFile {
   filename: string;
@@ -105,25 +105,6 @@ function extractActionReference(line: string): ActionReference | undefined {
   return { owner, repo, repoPath, ref: gitRef, comment: comment.join().trim(), line, };
 }
 
-export function formatGithubComment(validationResults: ValidationResult[], owner: string, repo: string, ref: string): string {
-  let githubComment = COMMENT_HEADER + "\n\n";
-
-  for (const result of validationResults) {
-    const fileLinesErrorMessages = result.lineValidations.map(lineErrors => {
-      const fileLink = markdownLink(`Line ${lineErrors.line.lineNumber}`, `https://github.com/${owner}/${repo}/blob/${ref}/${result.filename}#L${lineErrors.line.lineNumber}`);
-      const lineErrorsMsg = lineErrors.validationErrors.reduce((acc, curr) => {
-        return acc + `    - ${curr.message}` + "\n";
-      }, "");
-
-      return fileLink + "\n" + lineErrorsMsg;
-    });
-
-    githubComment += collapsibleContent(result.filename, fileLinesErrorMessages.join("\n\n")) + "\n";
-  }
-
-  return addFixingErrorsSuffix(githubComment);
-}
-
 export function annotatePR(validationResults: ValidationResult[]) {
   for (const fileResults of validationResults) {
     for (const lineResults of fileResults.lineValidations) {
@@ -136,11 +117,10 @@ export function annotatePR(validationResults: ValidationResult[]) {
   }
 }
 
-
 type TableRow = Parameters<typeof core.summary.addTable>[0][0]
 type TableCell = TableRow[0]
 
-export function setSummary(validationResults: ValidationResult[], fileUrlPrefix: string) {
+export async function setSummary(validationResults: ValidationResult[], fileUrlPrefix: string) {
   const headerRows: TableRow[] = [
     // Header Row
     [
@@ -177,5 +157,9 @@ export function setSummary(validationResults: ValidationResult[], fileUrlPrefix:
 
   }, [] as TableRow[]);
 
-  core.summary.addTable([...headerRows, ...errorRows]).write();
+  await core.summary
+    .addTable([...headerRows, ...errorRows])
+    .addSeparator()
+    .addRaw(FIXING_ERRORS)
+    .write();
 }

@@ -1,8 +1,8 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { PullRequest, getComparison } from "./github.js";
+import { getComparison } from "./github.js";
 import { validateActionReferenceChanges } from "./action-reference-validations.js";
-import { annotatePR, filterForGithubWorkflowChanges, formatGithubComment, parseAllAdditions, setSummary } from "./utils.js";
+import { annotatePR, filterForGithubWorkflowChanges, parseAllAdditions, setSummary } from "./utils.js";
 
 (async () => {
   const { token, owner, repo, base, head, prNumber } = getInvokeContext();
@@ -16,30 +16,25 @@ import { annotatePR, filterForGithubWorkflowChanges, formatGithubComment, parseA
     return (file.filename.startsWith('.github/workflows') || file.filename.startsWith('.github/actions')) && (file.filename.endsWith('.yml') || file.filename.endsWith('.yaml'))
   });
 
-  if (containsWorkflowModifications) {
-    const actionReferenceValidations = await validateActionReferenceChanges(octokit, ghaWorkflowPatchAdditions)
-    const validationFailed = actionReferenceValidations.some(validation => validation.lineValidations.length > 0);
-    const invokedThroughPr = prNumber !== undefined;
-    const urlPrefix = `https://github.com/${owner}/${repo}/blob/${head}`;
-
-    if (validationFailed && invokedThroughPr) {
-      // const errorMessage = formatGithubComment(actionReferenceValidations, owner, repo, head);
-      // await PullRequest.upsertComment(octokit, owner, repo, prNumber, errorMessage);
-      annotatePR(actionReferenceValidations);
-      setSummary(actionReferenceValidations, urlPrefix);
-      return core.setFailed("Errors found in workflow files. See comment on for details.");
-    } else if (validationFailed) {
-      // If the action is not invoked through a PR, we can't comment on the PR
-      setSummary(actionReferenceValidations, urlPrefix);
-      return core.setFailed("Errors found in workflow files.");
-    } else if (!validationFailed && invokedThroughPr) {
-      await PullRequest.deleteCommentIfExists(octokit, owner, repo, prNumber);
-    }
+  if (!containsWorkflowModifications) {
+    return core.info("No workflow files found in the changeset.");
   }
-})().catch((err) => {
-  core.error("Uncaught Error - " + err);
-  core.setFailed(err.message);
-});
+
+  const actionReferenceValidations = await validateActionReferenceChanges(octokit, ghaWorkflowPatchAdditions)
+  const validationFailed = actionReferenceValidations.some(validation => validation.lineValidations.length > 0);
+  const invokedThroughPr = prNumber !== undefined;
+  const urlPrefix = `https://github.com/${owner}/${repo}/blob/${head}`;
+
+  if (!validationFailed) {
+    return core.info("No errors found in workflow files.");
+  }
+
+  if (invokedThroughPr) {
+    annotatePR(actionReferenceValidations);
+  }
+  await setSummary(actionReferenceValidations, urlPrefix);
+  return core.setFailed("Errors found in workflow files. See annotations or summary for details.");
+})()
 
 function getInvokeContext() {
   const token = process.env.GITHUB_TOKEN;

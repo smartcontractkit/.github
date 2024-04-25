@@ -2,7 +2,6 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { GetResponseTypeFromEndpointMethod } from "@octokit/types";
 import { join } from "node:path";
-import { COMMENT_HEADER } from "./strings.js";
 
 export type Octokit = ReturnType<typeof github.getOctokit>;
 type CompareResponse = GetResponseTypeFromEndpointMethod<
@@ -53,97 +52,6 @@ export async function getActionFileFromGithub(
     actionFile =  await getFileFromGithub(octokit, owner, repo, yamlPath, ref);
   }
   return actionFile;
-}
-
-export namespace PullRequest {
-
-  export async function upsertComment(
-    octokit: Octokit,
-    owner: string,
-    repo: string,
-    prNumber: number,
-    body: string,
-  ) {
-    const comments = await getAllComments(octokit, owner, repo, prNumber);
-    const existingComment = comments.find(
-      (comment) => comment.body?.startsWith(COMMENT_HEADER),
-    );
-
-    if (existingComment) {
-      const response = await updateComment(octokit, owner, repo, existingComment.id, body);
-      return { commentId: response.data.id, updatedAt: response.data.updated_at }
-    } else {
-      const response = await createComment(octokit, owner, repo, prNumber, body);
-      return { commentId: response.data.id, createdAt: response.data.created_at };
-    }
-  }
-
-  export async function deleteCommentIfExists(
-    octokit: Octokit,
-    owner: string,
-    repo: string,
-    prNumber: number,
-  ) {
-    const comments = await getAllComments(octokit, owner, repo, prNumber);
-    const existingComment = comments.find(
-      (comment) => comment.body?.startsWith(COMMENT_HEADER),
-    );
-    if (existingComment) {
-      await octokit.rest.issues.deleteComment({
-        owner,
-        repo,
-        comment_id: existingComment.id,
-      });
-      return true;
-    }
-    return false;
-  }
-
-  async function getAllComments(
-    octokit: Octokit,
-    owner: string,
-    repo: string,
-    prNumber: number,
-  ) {
-    core.debug(`Getting comments on PR ${prNumber}`);
-    return await octokit.paginate(octokit.rest.issues.listComments, {
-      owner: owner,
-      repo: repo,
-      issue_number: prNumber,
-    });
-  }
-
-  async function createComment(
-    octokit: Octokit,
-    owner: string,
-    repo: string,
-    prNumber: number,
-    body: string,
-  ) {
-    core.debug(`Commenting on PR ${prNumber}`);
-    return octokit.rest.issues.createComment({
-      owner,
-      repo,
-      issue_number: prNumber,
-      body,
-    });
-  }
-}
-
-async function updateComment(
-  octokit: Octokit,
-  owner: string,
-  repo: string,
-  commentId: number,
-  body: string,
-) {
-  core.debug(`Updating comment ${commentId}`);
-  return await octokit.rest.issues.updateComment({
-    owner,
-    repo,
-    comment_id: commentId,
-    body,
-  });
 }
 
 async function getFileFromGithub(octokit: Octokit, owner: string, repo: string, path: string, ref: string) {

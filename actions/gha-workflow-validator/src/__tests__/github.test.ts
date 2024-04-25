@@ -1,5 +1,4 @@
-import { getComparison, getActionFileFromGithub, PullRequest } from "../github";
-import { COMMENT_HEADER } from "../strings";
+import { getComparison, getActionFileFromGithub } from "../github";
 import { getNock, getTestOctokit } from './__helpers__/test-utils.js'
 
 const nockBack = getNock();
@@ -60,65 +59,6 @@ describe(getComparison.name, () => {
 
     expect(result?.length).toBeDefined();
     expect(result?.length).toEqual(27);
-
-    nockDone();
-  });
-});
-
-describe(PullRequest.upsertComment.name, () => {
-  it("should create new comment", async () => {
-    const { nockDone } = await nockBack("create-comment.json");
-    const octokit = getTestOctokit(nockBack.currentMode);
-
-    const repoRequestOptions  = {
-      owner: "smartcontractkit-test",
-      repo: "gha-validator-test",
-      prNumber: 1,
-    }
-    const { owner, repo,  } = repoRequestOptions;
-    const result = await PullRequest.upsertComment(octokit, owner, repo, 1, COMMENT_HEADER + "\n placeholder test comment");
-
-    expect(result).toBeDefined();
-    expect(result.createdAt).toBeDefined();
-    expect(result.updatedAt).toBeUndefined();
-
-    nockDone();
-  });
-
-  it("should update existing comment", async () => {
-    const { nockDone } = await nockBack("update-comment.json");
-    const octokit = getTestOctokit(nockBack.currentMode);
-
-    const repoRequestOptions  = {
-      owner: "smartcontractkit-test",
-      repo: "gha-validator-test",
-      prNumber: 1,
-    }
-    const { owner, repo,  } = repoRequestOptions;
-    const result = await PullRequest.upsertComment(octokit, owner, repo, 1, COMMENT_HEADER + "\n placeholder updated test comment");
-
-    expect(result).toBeDefined();
-    expect(result.updatedAt).toBeDefined();
-    expect(result.createdAt).toBeUndefined();
-
-    nockDone();
-  });
-});
-
-describe(PullRequest.deleteCommentIfExists.name, () => {
-  it("should delete existing comment", async () => {
-    const { nockDone } = await nockBack("delete-comment.json");
-    const octokit = getTestOctokit(nockBack.currentMode);
-
-    const repoRequestOptions  = {
-      owner: "smartcontractkit-test",
-      repo: "gha-validator-test",
-      prNumber: 1,
-    }
-    const { owner, repo,  } = repoRequestOptions;
-    const result = await PullRequest.deleteCommentIfExists(octokit, owner, repo, 1);
-
-    expect(result).toBe(true);
 
     nockDone();
   });
