@@ -30,6 +30,8 @@ jobs:
 
 1. Update dist: `pnpm nx run gha-workflow-validator:build`
 2. Run tests: `pnpm nx run gha-workflow-validator:test`
+3. Record Fixtures (new only): `NOCK_BACK_MODE=record pnpm nx run gha-workflow-validator:test`
+4. Update Fixtures (existing only): `NOCK_BACK_MODE=update pnpm nx run gha-workflow-validator:test`z
 
 ### Potential Future Features
 
