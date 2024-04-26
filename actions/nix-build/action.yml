@@ -22,22 +22,12 @@ inputs:
   # see https://github.com/aws-actions/configure-aws-credentials/blob/main/action.yml
   aws-region:
     description: "AWS region"
-    required: false
-    default: us-west-2
+    required: true
   role-to-assume:
     description: The Amazon Resource Name (ARN) of the role to assume. Use the provided credentials to assume an IAM role and configure the Actions environment with the assumed role credentials rather than with the provided credentials.
     required: false
   role-duration-seconds:
     description: Role duration in seconds. Default is one hour.
-    required: false
-  aws-access-key-id:
-    description: AWS Access Key ID. Provide this key if you want to assume a role using access keys rather than a web identity token.
-    required: false
-  aws-secret-access-key:
-    description: AWS Secret Access Key. Required if aws-access-key-id is provided.
-    required: false
-  aws-session-token:
-    description: AWS Session Token.
     required: false
 
   # grafana inputs --------------------------
@@ -68,9 +58,6 @@ runs:
         aws-region: ${{ inputs.aws-region }}
         role-to-assume: ${{ inputs.role-to-assume }}
         role-duration-seconds: ${{ inputs.role-duration-seconds }}
-        aws-access-key-id: ${{ inputs.aws-access-key-id }}
-        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
-        aws-session-token: ${{ inputs.aws-session-token }}
     - name: Run check package builds
       shell: bash
       run: |
@@ -112,7 +99,7 @@ runs:
         # # assumption that other build-time dependencies are available through other nix caches
         # PATHS+=" $(nix derivation show --impure ${PKGS[*]} | jq -r 'keys[]' | tr '\n' ' ')"
 
-        # build all derivations, so we can sign their build artefacts
+        # build all derivations, so we can sign their build artifacts
         nix build --impure ${PKGS[*]}
 
         echo "paths=$PATHS" >> $GITHUB_OUTPUT

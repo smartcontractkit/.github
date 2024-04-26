@@ -1,7 +1,7 @@
 {
   "name": "nix-build",
-  "version": "0.0.1",
-  "description": "Builds a nix project and uploads its build artefacts to a cache",
+  "version": "0.0.0",
+  "description": "Builds a nix project and uploads its build artifacts to a cache",
   "private": true,
   "scripts": {},
   "author": "@smartcontractkit",
