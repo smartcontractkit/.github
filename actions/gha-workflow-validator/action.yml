@@ -1,0 +1,6 @@
+name: gha-workflow-validator
+description: "Will validate workflow changes in a repository"
+
+runs:
+  using: "node20"
+  main: "dist/index.js"

@@ -1,0 +1,46 @@
+{
+  "name": "gha-workflow-validator",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "targets": {
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "actions/gha-workflow-validator/jest.config.ts"
+      }
+    },
+    "build": {
+      "dependsOn": ["build:internal"],
+      "command": "rimraf dist/package.json"
+    },
+    "build:internal": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "format": ["cjs"],
+        "thirdParty": true,
+        "outputPath": "actions/gha-workflow-validator/dist/",
+        "main": "actions/gha-workflow-validator/src/index.ts",
+        "assets": [],
+        "outputFileName": "index.js",
+        "esbuildOptions": {
+          "outExtension": {
+            ".js": ".js"
+          }
+        },
+        "tsConfig": "tsconfig.json",
+        "platform": "node"
+      },
+      "configurations": {
+        "development": {
+          "minify": false
+        },
+        "production": {
+          "minify": false
+        }
+      }
+    }
+  }
+}
