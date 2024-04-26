@@ -22228,6 +22228,7 @@ async function getFileFromGithub(octokit, owner, repo, path, ref) {
 
 // actions/gha-workflow-validator/src/action-reference-validations.ts
 var core2 = __toESM(require_core());
+var CURRENT_NODE_VERSION = 20;
 async function validateActionReferenceChanges(octokit, changes) {
   core2.debug(`Validating action reference changes, on ${changes.length} changes`);
   const resultsPromise = changes.map(async (change) => {
@@ -22248,9 +22249,9 @@ async function validateActionReferenceChanges(octokit, changes) {
 }
 async function validateLine(octokit, line) {
   const validationErrors = [];
-  const shaRefValidation = usesShaRef(line);
-  const versionCommentValidation = hasVersionComment(line);
-  const node20ActionValidation = await isNode20Action(octokit, line);
+  const shaRefValidation = validateShaRef(line);
+  const versionCommentValidation = validateVersionCommentExists(line);
+  const node20ActionValidation = await validateNodeActionVersion(octokit, line);
   if (shaRefValidation) {
     validationErrors.push({ message: shaRefValidation });
   }
@@ -22262,18 +22263,21 @@ async function validateLine(octokit, line) {
   }
   return validationErrors;
 }
-function usesShaRef(change) {
+function validateShaRef(change) {
   const sha1Regex = /^[0-9a-f]{40}$/;
   if (sha1Regex.test(change.ref))
     return;
-  return `${change.ref} is not a valid SHA1`;
+  const sha256Regex = /^[0-9a-f]{256}$/;
+  if (sha256Regex.test(change.ref))
+    return;
+  return `${change.ref} is not a valid SHA reference`;
 }
-function hasVersionComment(change) {
+function validateVersionCommentExists(change) {
   if (change.comment)
     return;
   return `No version comment found`;
 }
-async function isNode20Action(ghClient, change) {
+async function validateNodeActionVersion(ghClient, change) {
   const actionFile = await getActionFileFromGithub(
     ghClient,
     change.owner,
@@ -22287,7 +22291,7 @@ async function isNode20Action(ghClient, change) {
   }
   const nodeVersionRegex = /^\s+using:\s*"?node(\d{2})"?/gm;
   const matches = nodeVersionRegex.exec(actionFile);
-  if (matches && matches[1] !== "20") {
+  if (matches && matches[1] !== `${CURRENT_NODE_VERSION}`) {
     return `Action is using node${matches[1]}`;
   }
   return;

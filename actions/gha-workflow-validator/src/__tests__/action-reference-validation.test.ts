@@ -132,7 +132,7 @@ describe(validateActionReferenceChanges.name, () => {
     const lineValidation = lineValidationsArray[0];
     expect(lineValidation.line.lineNumber).toEqual(simpleChanges[0].addedLines[1].lineNumber);
     expect(lineValidation.validationErrors.length).toEqual(1);
-    expect(lineValidation.validationErrors[0].message).toEqual(`${badRef} is not a valid SHA1`);
+    expect(lineValidation.validationErrors[0].message).toEqual(`${badRef} is not a valid SHA reference`);
 
     nockDone();
   });
@@ -213,7 +213,7 @@ describe(validateActionReferenceChanges.name, () => {
 
     expect(lineValidation.validationErrors.some(error => error.message === "No version comment found")).toEqual(true);
     expect(lineValidation.validationErrors.some(error => error.message === "Action is using node16")).toEqual(true);
-    expect(lineValidation.validationErrors.some(error => error.message === `${badRef} is not a valid SHA1`)).toEqual(true);
+    expect(lineValidation.validationErrors.some(error => error.message === `${badRef} is not a valid SHA reference`)).toEqual(true);
 
     nockDone();
   });

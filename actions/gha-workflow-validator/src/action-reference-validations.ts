@@ -2,6 +2,8 @@ import { ActionReference, FileAddition, ParsedFile } from './utils.js';
 import { Octokit, getActionFileFromGithub } from './github.js';
 import * as core from "@actions/core";
 
+const CURRENT_NODE_VERSION = 20;
+
 export interface ValidationResult {
   filename: string;
   sha: string;
@@ -41,9 +43,9 @@ export async function validateActionReferenceChanges(octokit: Octokit, changes: 
 async function validateLine(octokit: Octokit, line: ActionReference): Promise<ValidationError[]> {
   const validationErrors: ValidationError[] = [];
 
-  const shaRefValidation = usesShaRef(line);
-  const versionCommentValidation = hasVersionComment(line);
-  const node20ActionValidation = await isNode20Action(octokit, line);
+  const shaRefValidation = validateShaRef(line);
+  const versionCommentValidation = validateVersionCommentExists(line);
+  const node20ActionValidation = await validateNodeActionVersion(octokit, line);
 
   if (shaRefValidation) {
     validationErrors.push({ message: shaRefValidation });
@@ -58,20 +60,23 @@ async function validateLine(octokit: Octokit, line: ActionReference): Promise<Va
   return validationErrors;
 }
 
-function usesShaRef(change: ActionReference) {
+function validateShaRef(change: ActionReference) {
   const sha1Regex = /^[0-9a-f]{40}$/;
   if(sha1Regex.test(change.ref)) return;
 
-  return `${change.ref} is not a valid SHA1`;
+  const sha256Regex = /^[0-9a-f]{256}$/;
+  if(sha256Regex.test(change.ref)) return;
+
+  return `${change.ref} is not a valid SHA reference`;
 }
 
-function hasVersionComment(change: ActionReference) {
+function validateVersionCommentExists(change: ActionReference) {
   if (change.comment) return;
 
   return `No version comment found`
 }
 
-async function isNode20Action(ghClient: Octokit, change: ActionReference) {
+async function validateNodeActionVersion(ghClient: Octokit, change: ActionReference) {
   const actionFile = await getActionFileFromGithub(
     ghClient,
     change.owner,
@@ -87,7 +92,7 @@ async function isNode20Action(ghClient: Octokit, change: ActionReference) {
 
   const nodeVersionRegex = /^\s+using:\s*"?node(\d{2})"?/gm;
   const matches = nodeVersionRegex.exec(actionFile);
-  if (matches && matches[1] !== '20') {
+  if (matches && matches[1] !== `${CURRENT_NODE_VERSION}`) {
     return `Action is using node${matches[1]}`;
   }
 
