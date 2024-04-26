@@ -22343,8 +22343,8 @@ function htmlLink(text, url) {
 
 // actions/gha-workflow-validator/src/utils.ts
 function filterForGithubWorkflowChanges(files) {
-  return files?.filter((entry) => {
-    return (entry.filename.startsWith(".github/workflows") || entry.filename.startsWith(".github/actions")) && (entry.filename.endsWith(".yml") || entry.filename.endsWith(".yaml"));
+  return files?.filter(({ filename }) => {
+    return (filename.startsWith(".github/workflows") || filename.startsWith(".github/actions")) && (filename.endsWith(".yml") || filename.endsWith(".yaml"));
   });
 }
 function parseAllAdditions(files) {
@@ -22408,19 +22408,16 @@ function annotatePR(validationResults) {
   }
 }
 async function setSummary(validationResults, fileUrlPrefix) {
-  const headerRows = [
-    // Header Row
-    [
-      { data: "Filename", header: true },
-      { data: "Line Number", header: true },
-      { data: "Violations", header: true }
-    ]
+  const headerRow = [
+    { data: "Filename", header: true },
+    { data: "Line Number", header: true },
+    { data: "Violations", header: true }
   ];
   const errorRows = validationResults.reduce((acc, curr) => {
     const filename = curr.filename;
-    const errorCellTuples = curr.lineValidations.map((line) => {
-      const lineNumberCell = { data: htmlLink(`${line.line.lineNumber}`, `${fileUrlPrefix}/${filename}#L${line.line.lineNumber}`) };
-      const violationsCell = { data: line.validationErrors.map((error2) => error2.message).join(", ") };
+    const errorCellTuples = curr.lineValidations.map((validationResult) => {
+      const lineNumberCell = { data: htmlLink(`${validationResult.line.lineNumber}`, `${fileUrlPrefix}/${filename}#L${validationResult.line.lineNumber}`) };
+      const violationsCell = { data: validationResult.validationErrors.map((error2) => error2.message).join(", ") };
       return [lineNumberCell, violationsCell];
     });
     if (errorCellTuples.length === 0) {
@@ -22435,7 +22432,7 @@ async function setSummary(validationResults, fileUrlPrefix) {
       ...errorCellTuples
     ];
   }, []);
-  await core3.summary.addTable([...headerRows, ...errorRows]).addSeparator().addRaw(FIXING_ERRORS).write();
+  await core3.summary.addTable([headerRow, ...errorRows]).addSeparator().addRaw(FIXING_ERRORS).write();
 }
 
 // actions/gha-workflow-validator/src/run.ts
@@ -22445,15 +22442,15 @@ async function run() {
   const allFiles = await getComparison(octokit, owner, repo, base, head);
   const ghaWorkflowFiles = filterForGithubWorkflowChanges(allFiles);
   const ghaWorkflowPatchAdditions = parseAllAdditions(ghaWorkflowFiles);
-  const containsWorkflowModifications = ghaWorkflowPatchAdditions.some((file) => {
-    return (file.filename.startsWith(".github/workflows") || file.filename.startsWith(".github/actions")) && (file.filename.endsWith(".yml") || file.filename.endsWith(".yaml"));
+  const containsWorkflowModifications = ghaWorkflowPatchAdditions.some(({ filename }) => {
+    return (filename.startsWith(".github/workflows") || filename.startsWith(".github/actions")) && (filename.endsWith(".yml") || filename.endsWith(".yaml"));
   });
   if (!containsWorkflowModifications) {
     return core4.info("No workflow files found in the changeset.");
   }
   const actionReferenceValidations = await validateActionReferenceChanges(octokit, ghaWorkflowPatchAdditions);
   const validationFailed = actionReferenceValidations.some((validation) => validation.lineValidations.length > 0);
-  const invokedThroughPr = prNumber !== void 0;
+  const invokedThroughPr = !prNumber;
   const urlPrefix = `https://github.com/${owner}/${repo}/blob/${head}`;
   if (!validationFailed) {
     return core4.info("No errors found in workflow files.");

@@ -35,17 +35,6 @@ smartcontractkit/chainlink-github-actions/github-app-token-issuer@5874ff7211cf5a
 </details>
 `
 
-export function collapsibleContent(title: string, content: string) {
-  return `
-<details>
-<summary>${title}</summary>
-
-${content}
-
-</details>
-`
-}
-
 export function htmlLink(text: string, url: string) {
   return `<a href="${url}">${text}</a>`
 }

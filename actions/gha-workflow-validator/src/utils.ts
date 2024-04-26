@@ -25,9 +25,9 @@ export interface ActionReference {
 }
 
 export function filterForGithubWorkflowChanges(files: GithubFiles): GithubFiles {
-  return files?.filter(entry => {
-    return (entry.filename.startsWith('.github/workflows') || entry.filename.startsWith('.github/actions'))
-    && (entry.filename.endsWith('.yml') || entry.filename.endsWith('.yaml'))
+  return files?.filter(({ filename }) => {
+    return (filename.startsWith('.github/workflows') || filename.startsWith('.github/actions'))
+    && (filename.endsWith('.yml') || filename.endsWith('.yaml'))
   })
 }
 
@@ -93,7 +93,7 @@ function extractActionReference(line: string): ActionReference | undefined {
   const trimmedLine = line.substring(line.indexOf(trimSubString) + trimSubString.length).trim();
 
   if (trimmedLine.startsWith("./")) {
-    // Local action reference - do not validate these yet (TODO)
+    // Local action reference - do not extract or validate these.
     return;
   }
 
@@ -121,21 +121,18 @@ type TableRow = Parameters<typeof core.summary.addTable>[0][0]
 type TableCell = TableRow[0]
 
 export async function setSummary(validationResults: ValidationResult[], fileUrlPrefix: string) {
-  const headerRows: TableRow[] = [
-    // Header Row
-    [
+  const headerRow: TableRow = [
       { data: "Filename", header: true },
       { data: "Line Number", header: true },
       { data: "Violations", header: true },
-    ],
   ];
 
   const errorRows = validationResults.reduce<TableRow[]>((acc, curr) => {
     const filename = curr.filename;
 
-    const errorCellTuples: TableCell[][]  = curr.lineValidations.map(line => {
-      const lineNumberCell: TableCell = { data: htmlLink(`${line.line.lineNumber}`, `${fileUrlPrefix}/${filename}#L${line.line.lineNumber}`) }
-      const violationsCell: TableCell = { data: line.validationErrors.map(error => error.message).join(", ") }
+    const errorCellTuples: TableCell[][]  = curr.lineValidations.map(validationResult => {
+      const lineNumberCell: TableCell = { data: htmlLink(`${validationResult.line.lineNumber}`, `${fileUrlPrefix}/${filename}#L${validationResult.line.lineNumber}`) }
+      const violationsCell: TableCell = { data: validationResult.validationErrors.map(error => error.message).join(", ") }
 
       return [ lineNumberCell, violationsCell ];
     })
@@ -158,7 +155,7 @@ export async function setSummary(validationResults: ValidationResult[], fileUrlP
   }, [] as TableRow[]);
 
   await core.summary
-    .addTable([...headerRows, ...errorRows])
+    .addTable([headerRow, ...errorRows])
     .addSeparator()
     .addRaw(FIXING_ERRORS)
     .write();

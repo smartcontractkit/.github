@@ -12,8 +12,8 @@ export async function run() {
   const ghaWorkflowFiles = filterForGithubWorkflowChanges(allFiles);
   const ghaWorkflowPatchAdditions = parseAllAdditions(ghaWorkflowFiles);
 
-  const containsWorkflowModifications = ghaWorkflowPatchAdditions.some(file => {
-    return (file.filename.startsWith('.github/workflows') || file.filename.startsWith('.github/actions')) && (file.filename.endsWith('.yml') || file.filename.endsWith('.yaml'))
+  const containsWorkflowModifications = ghaWorkflowPatchAdditions.some(({ filename }) => {
+    return (filename.startsWith('.github/workflows') || filename.startsWith('.github/actions')) && (filename.endsWith('.yml') || filename.endsWith('.yaml'))
   });
 
   if (!containsWorkflowModifications) {
@@ -22,7 +22,7 @@ export async function run() {
 
   const actionReferenceValidations = await validateActionReferenceChanges(octokit, ghaWorkflowPatchAdditions)
   const validationFailed = actionReferenceValidations.some(validation => validation.lineValidations.length > 0);
-  const invokedThroughPr = prNumber !== undefined;
+  const invokedThroughPr = !prNumber;
   const urlPrefix = `https://github.com/${owner}/${repo}/blob/${head}`;
 
   if (!validationFailed) {
