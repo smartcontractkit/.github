@@ -6,7 +6,7 @@ export const FIXING_ERRORS = `
 
 The proper format for referencing a Github Action external to the repository is as follows:
 
-\`<owner>/<repo>/<optional path>@<commit SHA1> # <tag relating to the SHA1>\`
+\`<owner>/<repo>/<optional path>@<commit SHA> # <tag relating to the SHA>\`
 
 <details>
 <summary>Examples</summary>
@@ -18,14 +18,14 @@ smartcontractkit/chainlink-github-actions/github-app-token-issuer@5874ff7211cf5a
 \`\`\`
 </details>
 
-##### <ref> is not a valid SHA1
+##### <ref> is not a valid SHA
 
 * Please reference a specific commit.
 * Do not use things like \`@main\`, \`@branch/feature\`, \`@v4\`, or \`@v4.0.0\`.
 
 ##### No version comment found
 
-* Ensure you have left a comment indicating the git tag (or version) associated with the SHA1 reference.
+* Ensure you have left a comment indicating the git tag (or version) associated with the SHA reference.
 * \`@<commit> # v4.0.0\`
 
 ##### Action is using node...
