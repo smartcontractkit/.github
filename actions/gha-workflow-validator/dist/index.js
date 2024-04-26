@@ -22175,7 +22175,7 @@ var require_github = __commonJS({
   }
 });
 
-// actions/gha-workflow-validator/src/index.ts
+// actions/gha-workflow-validator/src/run.ts
 var core4 = __toESM(require_core());
 var github = __toESM(require_github());
 
@@ -22434,8 +22434,8 @@ async function setSummary(validationResults, fileUrlPrefix) {
   await core3.summary.addTable([...headerRows, ...errorRows]).addSeparator().addRaw(FIXING_ERRORS).write();
 }
 
-// actions/gha-workflow-validator/src/index.ts
-(async () => {
+// actions/gha-workflow-validator/src/run.ts
+async function run() {
   const { token, owner, repo, base, head, prNumber } = getInvokeContext();
   const octokit = github.getOctokit(token);
   const allFiles = await getComparison(octokit, owner, repo, base, head);
@@ -22459,33 +22459,37 @@ async function setSummary(validationResults, fileUrlPrefix) {
   }
   await setSummary(actionReferenceValidations, urlPrefix);
   return core4.setFailed("Errors found in workflow files. See annotations or summary for details.");
-})();
+}
 function getInvokeContext() {
   const token = process.env.GITHUB_TOKEN;
   if (!token) {
     core4.setFailed("GitHub token is not set.");
-    process.exit(1);
+    return process.exit(1);
   }
+  const { context: context2 } = github;
+  const { pull_request } = context2.payload;
   const { owner, repo } = github.context.repo;
-  const pr = github.context.payload.pull_request;
   let base = void 0;
-  let head = "HEAD";
-  core4.debug(`Event name: ${github.context.eventName}`);
-  if (github.context.eventName === "pull_request") {
-    base = pr?.base?.sha;
-    head = pr?.head?.sha;
-    core4.debug(`PR: ${pr?.number} to compare: ${base}...${head} `);
-  } else if (github.context.eventName === "push") {
-    head = github.context.payload.after;
-    base = github.context.payload.before;
+  let head = void 0;
+  core4.debug(`Event name: ${context2.eventName}`);
+  if (context2.eventName === "pull_request" && pull_request) {
+    base = pull_request.base.sha;
+    head = pull_request.head.sha;
+  } else if (context2.eventName === "push") {
+    head = context2.payload.after;
+    base = context2.payload.before;
   }
-  if (!base) {
-    core4.setFailed("Base commit SHA is not determined.");
-    process.exit(1);
+  if (!base || !head) {
+    core4.debug(`Base: ${base}, Head: ${head}`);
+    core4.setFailed("Either base or head commit SHA is not determined.");
+    return process.exit(1);
   }
-  core4.debug(`Owner: ${owner}, Repo: ${repo}, Base: ${base}, Head: ${head}`);
-  return { token, owner, repo, base, head, prNumber: pr?.number };
+  core4.debug(`Owner: ${owner}, Repo: ${repo}, Base: ${base}, Head: ${head}, PR: ${pull_request?.number ?? "N/A"}`);
+  return { token, owner, repo, base, head, prNumber: pull_request?.number };
 }
+
+// actions/gha-workflow-validator/src/index.ts
+run();
 /*! Bundled license information:
 
 undici/lib/fetch/body.js:
