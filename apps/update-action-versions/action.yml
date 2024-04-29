@@ -20,5 +20,5 @@ inputs:
     default: ./.github/workflows
 
 runs:
-  using: "node16"
+  using: "node20"
   main: "out/index.js"
