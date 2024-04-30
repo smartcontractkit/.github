@@ -1,5 +1,14 @@
 # cicd-build-publish-charts
 
+## 0.1.4
+
+### Patch Changes
+
+- [#350](https://github.com/smartcontractkit/.github/pull/350)
+  [`ff7c412`](https://github.com/smartcontractkit/.github/commit/ff7c412cdcc53aab74dd1c090d3995444962f3eb)
+  Thanks [@erikburt](https://github.com/erikburt)! - bump azure/setup-helm to
+  v4.2.0
+
 ## 0.1.3
 
 ### Patch Changes
