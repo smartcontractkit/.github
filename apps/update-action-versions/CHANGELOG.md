@@ -1,5 +1,13 @@
 # update-action-versions
 
+## 0.2.0
+
+### Minor Changes
+
+- [#339](https://github.com/smartcontractkit/.github/pull/339)
+  [`add95d9`](https://github.com/smartcontractkit/.github/commit/add95d93ba555003e706f798c6d9c0f323384e0b)
+  Thanks [@erikburt](https://github.com/erikburt)! - Update action to use node20
+
 ## 0.1.2
 
 ### Patch Changes
