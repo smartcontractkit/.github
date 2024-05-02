@@ -30,6 +30,8 @@ export async function compileUpdates(
   ctx: RunContext,
   workflowsByName: WorkflowByName,
 ) {
+  const allPromises: ReturnType<typeof processActionDependency>[] = [];
+
   // iterate over workflows
   for (const workflow of Object.values(workflowsByName)) {
     log.debug(`Workflow: ${workflow.name} - path: ${workflow.path}`);
@@ -38,17 +40,25 @@ export async function compileUpdates(
       log.debug(`Job: ${job.name}`);
 
       for (const dependency of job.directDependencies) {
-        await processActionDependency(ctx, dependency, workflow.path);
+        allPromises.push(
+          processActionDependency(ctx, dependency, workflow.path),
+        );
       }
     }
   }
+
+  return Promise.all(allPromises).then(() => {});
 }
 
 async function processActionDependency(
   ctx: RunContext,
-  action: Action,
+  action: Action | undefined,
   filePath: string,
-) {
+): Promise<void> {
+  if (!action) {
+    return;
+  }
+
   if (action.identifier.startsWith("./")) {
     log.debug(`Local Action: ${action.identifier}`);
     const actionPath = await getActionYamlPath(
@@ -59,16 +69,16 @@ async function processActionDependency(
       return;
     }
 
-    for (const identifier of action.dependencies) {
-      const actionDependency = ctx.actionsByIdentifier[identifier];
-      if (!actionDependency) {
+    const dependenciesPromises = action.dependencies.map((identifier) => {
+      const action = ctx.actionsByIdentifier[identifier];
+      if (!action) {
         log.warn(`Action dependency not found: ${identifier} - skipping.`);
-        continue;
+        return Promise.resolve();
       }
-      processActionDependency(ctx, actionDependency, actionPath);
-    }
+      return processActionDependency(ctx, action, actionPath);
+    });
 
-    return;
+    return Promise.all(dependenciesPromises).then(() => {});
   }
 
   const details = extractDetailsFromActionIdentifier(action.identifier);
@@ -137,9 +147,9 @@ function saveUpdateTransaction(
       },
     })
     .references.push({
-    file: filePath,
-    ref: existingRef,
-  });
+      file: filePath,
+      ref: existingRef,
+    });
 }
 
 export async function performUpdates(ctx: RunContext) {
