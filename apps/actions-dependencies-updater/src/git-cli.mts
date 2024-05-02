@@ -27,7 +27,7 @@ export async function prepareRepository(ctx: RunContext) {
     await $`git fetch --all`;
     await $`git checkout ${defaultBranch}`;
     await $`git pull origin ${defaultBranch}`;
-    await $`git checkout -b chore/update-github-actions-${ctx.now}`;
+    await $`git checkout -b chore/update-github-actions-${Date.now()}`;
   });
 }
 

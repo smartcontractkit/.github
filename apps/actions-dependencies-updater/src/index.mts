@@ -10,7 +10,6 @@ import minimist from "minimist";
 import 'dotenv/config';
 
 export interface RunContext {
-  now: string;
   repoDir: string;
   debug: boolean;
   skipUpdates: boolean;
@@ -69,12 +68,10 @@ function handleArgs() {
     log.debug("Verbose logging enabled");
   }
 
-  const now = Date.now();
   const accessToken = getEnvironmentVariableOrThrow("GH_ACCESS_TOKEN");
   const forceRefresh = (args["force-refresh"] as boolean) ?? false;
 
   return {
-    now: now.toString(),
     repoDir: args["repo-dir"] as string,
     skipUpdates: args["skip-updates"] as boolean,
     debug: args["debug"] as boolean,
