@@ -297,7 +297,7 @@ importers:
 
   actions/wait-for-workflows: {}
 
-  apps/actions-audit:
+  apps/actions-dependencies-updater:
     dependencies:
       minimist:
         specifier: ^1.2.8
