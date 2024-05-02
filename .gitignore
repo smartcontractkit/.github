@@ -48,3 +48,6 @@ bin/
 # env files
 **/.env
 **/.envrc
+
+# other caches
+**/.cache/**
