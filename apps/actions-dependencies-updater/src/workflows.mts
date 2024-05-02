@@ -104,20 +104,20 @@ export async function parseWorkflows(ctx: RunContext) {
 async function parseWorkflow(ctx: RunContext, path: string): Promise<Workflow> {
   const file = basename(path);
 
-  log.debug(`Processing Workflow: ${file}`);
+  log.debug(`Processing workflow: ${file}`);
 
   const fileStr = await readFile(path, "utf-8");
   const parsedFile = YAML.parse(fileStr) as WorkflowSchema;
 
   if (parsedFile == null) {
-    log.warn("Empty file: ", path);
+    log.warn(`Parsed as empty workflow file: ${file}`);
     return { file, path, jobs: [] };
   }
 
   const { name, jobs: jobDefinitions } = parsedFile;
 
   if (!jobDefinitions) {
-    log.warn("No jobs found in workflow file: ", path);
+    log.warn(`No jobs found in workflow file: ${file}`);
     return { name, file, path, jobs: [] };
   }
 
@@ -148,7 +148,7 @@ async function parseJob(
 
   if ("uses" in jobDefinition) {
     log.warn(
-      "Found Job which is uses a workflow call, to initiate another workflow. This is not directly supported, but if the workflow is in the same repository it will be parsed regularly.",
+      "Found Job which is uses a workflow_call, to initiate another workflow. Parsing this is not directly supported, but if the workflow is in the same repository it should be parsed regularly.",
     );
     return {
       name: jobKey,
@@ -158,7 +158,7 @@ async function parseJob(
   }
 
   if (!("steps" in jobDefinition)) {
-    log.error(
+    log.warn(
       "No steps found in job definition, bad job definition? Assuming no dependencies",
     );
     return {
@@ -258,7 +258,7 @@ async function parseActionFromIdentifier(
 
   const actionYamlContents = await getActionYamlFromIdentifier(ctx, identifier);
   if (actionYamlContents == null) {
-    log.error(`Empty action YAML contents found for ${identifier}. Skipping.`);
+    log.warn(`Empty action YAML contents found for ${identifier}. Skipping.`);
     return;
   }
 
@@ -323,7 +323,7 @@ async function getActionYamlFromIdentifier(
   );
 
   if (remoteActionYaml == null) {
-    log.error(
+    log.warn(
       `No action found for ${owner}/${repo}${innerRepoPath}@${gitRef}. Skipping.`,
     );
     return;

@@ -173,8 +173,9 @@ export async function performUpdates(ctx: RunContext) {
     );
 
     for (const { file, ref } of update.references) {
+      const trimmedFile = file.replace(join(ctx.repoDir,".github"), "");
       log.debug(
-        `Updating ${file} from ${action}@${ref} to ${action}@${update.newVersion.sha} # ${update.newVersion.version}`,
+        `Updating ${trimmedFile} from ${action}@${ref} to ${action}@${update.newVersion.sha} # ${update.newVersion.version}`,
       );
 
       const fileStr = await readFile(file, "utf-8");
