@@ -9,22 +9,23 @@ This tool has two main purposes:
 
 ## Setup
 
-Have [`pnpm`](https://pnpm.io/) and [`direnv`](https://direnv.net/) setup.
+1. Install and setup tooling
 
-1. Install Dependencies
+   - [`pnpm`](https://pnpm.io/)
+   - (optional) [`direnv`](https://direnv.net/)
 
-```bash
-pnpm install
-```
-
-2. Populate a `.envrc` file within this project's directory
-
-```bash
-# Requires "repo" access, and authorized to read the repo(s) you are testing.
-export GH_ACCESS_TOKEN="<Github PAT>"
-```
-
-3.  `direnv allow`
+2. Install Dependencies
+   ```bash
+    pnpm install
+   ```
+3. Generate a Github Personal Access Token with repo access
+   - This ideally has read access to all actions used in your workflow files
+4. If using `direnv`:
+   - Populate a `.envrc` file within this project's directory
+   ```bash
+   export GH_ACCESS_TOKEN="<Github PAT>"
+   ```
+   - `direnv allow`
 
 ## Usage
 
@@ -44,18 +45,21 @@ pnpm start --repo-dir=<path to repository>
   default) perform `git commit` for you.
   - If you have setup commit signing, you will be required to sign commits as
     you usually do.
+- If you're _not_ using `direnv` then you will need to export or inline the
+  `GH_ACCESS_TOKEN` environment variable.
+  - For example: `GH_ACCESS_TOKEN="<pat>" pnpm start ...`
 
 ### Examples
 
 - Update all actions, adn check for node12/node16 action dependencies before and
   after the update
 
-  - ` pnpm start --repo-dir=/Users/user/repos/chainlink`
+  - `pnpm start --repo-dir=/Users/user/repos/chainlink`
 
 - Update all actions, adn check for node12/node16 action dependencies before and
   after the update, but don't create a local branch, and don't commit anything
 
-  - ` pnpm start --repo-dir=/Users/user/repos/chainlink --no-branch --no-commit`
+  - `pnpm start --repo-dir=/Users/user/repos/chainlink --no-branch --no-commit`
 
 - Only check for deprecated action dependencies, and perform no updates
-  - ` pnpm start --repo-dir=/Users/user/repos/chainlink --check-deprecated`
+  - `pnpm start --repo-dir=/Users/user/repos/chainlink --check-deprecated`
