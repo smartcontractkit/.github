@@ -1,4 +1,4 @@
-import { getEnvironmentVariableOrThrow, checkDeprecated } from "./utils.mjs";
+import { getEnvironmentVariableOrThrow, compileDeprecatedPaths } from "./utils.mjs";
 import { ActionsByIdentifier, parseWorkflows } from "./workflows.mjs";
 import { compileUpdates, performUpdates } from "./updater.mjs";
 import * as caches from "./caches.mjs";
@@ -99,7 +99,7 @@ async function main() {
 
   log.section("Checking For Deprecated Dependencies");
   const workflowsByName = await parseWorkflows(ctx);
-  const deprecatedPaths = checkDeprecated(workflowsByName);
+  const deprecatedPaths = compileDeprecatedPaths(workflowsByName);
   outputDeprecatedPaths(ctx.skipUpdates, deprecatedPaths);
 
   log.section("Updating workflows");
@@ -119,7 +119,7 @@ async function main() {
 
   ctx.actionsByIdentifier = {};
   const postUpdateWorkflowsByName = await parseWorkflows(ctx);
-  const postUpdateDeprecatedPaths = checkDeprecated(postUpdateWorkflowsByName);
+  const postUpdateDeprecatedPaths = compileDeprecatedPaths(postUpdateWorkflowsByName);
 
   outputDeprecatedPaths(true, postUpdateDeprecatedPaths);
 }
@@ -128,9 +128,8 @@ main();
 
 function outputDeprecatedPaths(shouldExit: boolean, deprecatedPaths: string[]) {
   if (deprecatedPaths.length > 0) {
-    log.error(
-      "Deprecated dependencies found:\n    " + deprecatedPaths.join("\n    "),
-    );
+    log.error("Deprecated dependencies found!!")
+    log.output(deprecatedPaths.join("\n"));
   } else {
     log.info("No deprecated dependencies found.");
   }

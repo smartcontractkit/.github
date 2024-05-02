@@ -137,7 +137,7 @@ export async function getActionYamlPath(directory: string) {
   return yamlFiles[0];
 }
 
-export function checkDeprecated(workflowsByName: WorkflowByName) {
+export function compileDeprecatedPaths(workflowsByName: WorkflowByName) {
   const deprecatedPaths: string[] = [];
 
   for (const workflow of Object.values(workflowsByName)) {
@@ -156,7 +156,8 @@ export function checkDeprecated(workflowsByName: WorkflowByName) {
     }
   }
 
-  return deprecatedPaths;
+  const uniquePaths = Array.from(new Set(deprecatedPaths)).sort();
+  return uniquePaths;
 }
 
 function createPathStrings(action: Action): string[] {

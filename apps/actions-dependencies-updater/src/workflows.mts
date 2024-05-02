@@ -249,9 +249,10 @@ async function parseActionFromIdentifier(
 ): Promise<Action | undefined> {
   if (ctx.actionsByIdentifier[identifier]) {
     log.debug(
-      `Action already parsed, returning previous result: ${identifier}`,
-      referencePath,
+      `Cache hit for action ${identifier}`,
+      `(${referencePath.join(" -> ")})`,
     );
+    ctx.actionsByIdentifier[identifier].referencePaths.push(referencePath);
     return ctx.actionsByIdentifier[identifier];
   }
 
