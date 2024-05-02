@@ -51,12 +51,12 @@ pnpm start --repo-dir=<path to repository>
 
 ### Examples
 
-- Update all actions, adn check for node12/node16 action dependencies before and
+- Update all actions, and check for node12/node16 action dependencies before and
   after the update
 
   - `pnpm start --repo-dir=/Users/user/repos/chainlink`
 
-- Update all actions, adn check for node12/node16 action dependencies before and
+- Update all actions, and check for node12/node16 action dependencies before and
   after the update, but don't create a local branch, and don't commit anything
 
   - `pnpm start --repo-dir=/Users/user/repos/chainlink --no-branch --no-commit`
