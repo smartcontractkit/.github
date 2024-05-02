@@ -4,24 +4,25 @@ import { guessLatestVersion } from "./utils.mjs";
 
 import { join } from "node:path";
 import { Octokit } from "octokit";
-import {
-  GetResponseTypeFromEndpointMethod,
-} from "@octokit/types";
+import { GetResponseTypeFromEndpointMethod } from "@octokit/types";
 
 export interface GithubShaToVersionCache {
   [ownerRepo: string]: {
-      [ref: string]: string[];
+    [ref: string]: string[];
   };
 }
 
 interface GitVersionTag {
-    name: string,
-    sha: string
+  name: string;
+  sha: string;
 }
 
-type ListMatchingRefsResponse = GetResponseTypeFromEndpointMethod<Octokit["rest"]["git"]["listMatchingRefs"]>;
-type GetTagResponse = GetResponseTypeFromEndpointMethod<Octokit["rest"]["git"]["getTag"]>
-
+type ListMatchingRefsResponse = GetResponseTypeFromEndpointMethod<
+  Octokit["rest"]["git"]["listMatchingRefs"]
+>;
+type GetTagResponse = GetResponseTypeFromEndpointMethod<
+  Octokit["rest"]["git"]["getTag"]
+>;
 
 /**
  * Gets the version of a repository from a specific commit SHA, assuming there is a tag pointing to that commit.
@@ -30,7 +31,13 @@ type GetTagResponse = GetResponseTypeFromEndpointMethod<Octokit["rest"]["git"]["
  * @param ref The commit SHA
  * @returns The version/tag of the repository at the given commit SHA
  */
-export async function getVersionFromSHA(ctx: RunContext, owner: string, repo: string, repoPath: string, ref: string,) {
+export async function getVersionFromSHA(
+  ctx: RunContext,
+  owner: string,
+  repo: string,
+  repoPath: string,
+  ref: string,
+) {
   const ownerRepo = `${owner}/${repo}`;
   const GH_SHA_TO_VER_CACHE = ctx.caches.shaToVersion.get();
 
@@ -44,7 +51,9 @@ export async function getVersionFromSHA(ctx: RunContext, owner: string, repo: st
   if (repo === ".github" && repoPath) {
     const actionName = repoPath.split("/").pop();
     if (actionName) {
-      const monorepoVersions = GH_SHA_TO_VER_CACHE[ownerRepo][ref].filter(v => v.startsWith(actionName));
+      const monorepoVersions = GH_SHA_TO_VER_CACHE[ownerRepo][ref].filter((v) =>
+        v.startsWith(actionName),
+      );
       if (monorepoVersions.length > 0) {
         return guessLatestVersion(monorepoVersions).tag;
       }
@@ -54,13 +63,24 @@ export async function getVersionFromSHA(ctx: RunContext, owner: string, repo: st
   return GH_SHA_TO_VER_CACHE[ownerRepo][ref][0];
 }
 
-export function getLatestVersion(ctx: RunContext, owner: string, repo: string, repoPath: string): { sha: string, version: string } | undefined {
-  log.debug(`Getting latest version for ${owner}/${repo}${repoPath || ""}`)
+export function getLatestVersion(
+  ctx: RunContext,
+  owner: string,
+  repo: string,
+  repoPath: string,
+): { sha: string; version: string } | undefined {
+  log.debug(`Getting latest version for ${owner}/${repo}${repoPath || ""}`);
   // get latest version from cache
   const entry = ctx.caches.shaToVersion.getValue(`${owner}/${repo}`);
   if (entry) {
-    const latestVersion = guessLatestVersion(Object.values(entry).flat(), repo, repoPath);
-    const tuple = Object.entries(entry).find(([_, versions]) => versions.includes(latestVersion.tag));
+    const latestVersion = guessLatestVersion(
+      Object.values(entry).flat(),
+      repo,
+      repoPath,
+    );
+    const tuple = Object.entries(entry).find(([_, versions]) =>
+      versions.includes(latestVersion.tag),
+    );
 
     if (tuple) {
       return { sha: tuple[0], version: latestVersion.tag };
@@ -75,13 +95,20 @@ export function getLatestVersion(ctx: RunContext, owner: string, repo: string, r
  * @param ref
  * @returns
  */
-async function getVersionFromGithub(ctx: RunContext, owner: string, repo: string, ref: string): Promise<string> {
+async function getVersionFromGithub(
+  ctx: RunContext,
+  owner: string,
+  repo: string,
+  ref: string,
+): Promise<string> {
   const ownerRepo = `${owner}/${repo}`;
   log.debug(`Getting versions for ${ownerRepo}@${ref}`);
 
   const allTags = await getAllTags(ctx, owner, repo);
-  allTags.forEach(tag => addToCache(ctx, ownerRepo, tag.sha, tag.name));
-  const filteredTags = allTags.filter(versionTag => versionTag.sha === ref || versionTag.name === ref).map(tag => tag.name);
+  allTags.forEach((tag) => addToCache(ctx, ownerRepo, tag.sha, tag.name));
+  const filteredTags = allTags
+    .filter((versionTag) => versionTag.sha === ref || versionTag.name === ref)
+    .map((tag) => tag.name);
 
   if (filteredTags.length === 0) {
     log.warn(`No tag found for ${owner}/${repo}@${ref}`);
@@ -90,14 +117,16 @@ async function getVersionFromGithub(ctx: RunContext, owner: string, repo: string
   }
 
   if (filteredTags.length === 1) {
-    log.debug(`Found tag for ${owner}/${repo}@${ref}: ${filteredTags[0]}`)
+    log.debug(`Found tag for ${owner}/${repo}@${ref}: ${filteredTags[0]}`);
     return filteredTags[0];
   }
 
   const latestVersion = guessLatestVersion(filteredTags);
   const latestVersionString = `${latestVersion.prefix}${latestVersion.major}.${latestVersion.minor}.${latestVersion.patch}`;
-  log.warn(`Multiple tags found for ${owner}/${repo}@${ref}. Using latest version: ${latestVersionString}`);
-  return latestVersionString
+  log.warn(
+    `Multiple tags found for ${owner}/${repo}@${ref}. Using latest version: ${latestVersionString}`,
+  );
+  return latestVersionString;
 }
 
 /**
@@ -107,7 +136,12 @@ async function getVersionFromGithub(ctx: RunContext, owner: string, repo: string
  * @param ref The commit SHA/ref
  * @param version The version/tag of the repository at the given commit SHA
  */
-export function addToCache(ctx: RunContext, ownerRepo: string, ref: string, version: string) {
+export function addToCache(
+  ctx: RunContext,
+  ownerRepo: string,
+  ref: string,
+  version: string,
+) {
   if (!ctx.caches.shaToVersion.exists(ownerRepo)) {
     ctx.caches.shaToVersion.set(ownerRepo, {});
   }
@@ -119,45 +153,63 @@ export function addToCache(ctx: RunContext, ownerRepo: string, ref: string, vers
     return;
   }
 
-  log.debug(`Adding to cache: ${ownerRepo}@${ref} => ${version}`)
+  log.debug(`Adding to cache: ${ownerRepo}@${ref} => ${version}`);
   entry[ref].push(version);
 }
 
-async function getAllTags(ctx: RunContext, owner: string, repo: string): Promise<GitVersionTag[]> {
+async function getAllTags(
+  ctx: RunContext,
+  owner: string,
+  repo: string,
+): Promise<GitVersionTag[]> {
   try {
-    const response = await ctx.octokit.request('GET /repos/{owner}/{repo}/git/matching-refs/tags', { owner, repo }) as ListMatchingRefsResponse
+    const response = (await ctx.octokit.request(
+      "GET /repos/{owner}/{repo}/git/matching-refs/tags",
+      { owner, repo },
+    )) as ListMatchingRefsResponse;
 
-    const allTagsPromise = response.data.map<Promise<GitVersionTag>>(async (entry) => {
-      const version = entry.ref.trim().substring("refs/tags/".length);
+    const allTagsPromise = response.data.map<Promise<GitVersionTag>>(
+      async (entry) => {
+        const version = entry.ref.trim().substring("refs/tags/".length);
 
-      let responseSha: string = entry.object.sha.trim();
+        let responseSha: string = entry.object.sha.trim();
 
-      // If the tag is an annotated tag, we need to get the SHA of the commit it points to
-      if (entry.object.type !== "commit") {
-        log.debug(`Found annotated tag for ${owner}/${repo}@${entry.ref}. Requesting.`);
+        // If the tag is an annotated tag, we need to get the SHA of the commit it points to
+        if (entry.object.type !== "commit") {
+          log.debug(
+            `Found annotated tag for ${owner}/${repo}@${entry.ref}. Requesting.`,
+          );
 
-        const apiPath = entry.object.url.substring("https://api.github.com".length);
-        const shaOrUndefined = await getCommitForAnnotatedTag(ctx, apiPath);
+          const apiPath = entry.object.url.substring(
+            "https://api.github.com".length,
+          );
+          const shaOrUndefined = await getCommitForAnnotatedTag(ctx, apiPath);
 
-        responseSha = shaOrUndefined || responseSha;
-      }
+          responseSha = shaOrUndefined || responseSha;
+        }
 
-      return {
-        name: version,
-        sha: responseSha
-      }
-    });
+        return {
+          name: version,
+          sha: responseSha,
+        };
+      },
+    );
 
-    return Promise.all(allTagsPromise)
+    return Promise.all(allTagsPromise);
   } catch (e) {
     log.error(`Request failed: ${e}`);
     return [];
   }
 }
 
-async function getCommitForAnnotatedTag(ctx: RunContext, apiPath: string): Promise<string | undefined> {
+async function getCommitForAnnotatedTag(
+  ctx: RunContext,
+  apiPath: string,
+): Promise<string | undefined> {
   try {
-    const response = await ctx.octokit.request('GET ' + apiPath) as GetTagResponse;
+    const response = (await ctx.octokit.request(
+      "GET " + apiPath,
+    )) as GetTagResponse;
 
     if (!response.data.object?.sha) {
       // Sometimes the response is empty when using octokit (even though its a 200)
@@ -166,12 +218,10 @@ async function getCommitForAnnotatedTag(ctx: RunContext, apiPath: string): Promi
     }
 
     return response.data.object.sha.trim();
-
   } catch (e) {
     log.error(`Request failed (${apiPath}): ${e}`);
   }
 }
-
 
 /**
  * Gets the action definition file from Github and performs some error handling and retry logic.
@@ -192,16 +242,38 @@ export async function getActionFile(
   const ymlPath = join(repoPath, "action.yml");
   const yamlPath = join(repoPath, "action.yaml");
 
-  let actionFile = await getFileFromGithub(ctx.octokit, owner, repo, ymlPath, ref);
+  let actionFile = await getFileFromGithub(
+    ctx.octokit,
+    owner,
+    repo,
+    ymlPath,
+    ref,
+  );
   if (!actionFile) {
-    actionFile =  await getFileFromGithub(ctx.octokit, owner, repo, yamlPath, ref);
+    actionFile = await getFileFromGithub(
+      ctx.octokit,
+      owner,
+      repo,
+      yamlPath,
+      ref,
+    );
   }
   return actionFile;
 }
 
-async function getFileFromGithub(octokit: Octokit, owner: string, repo: string, path: string, ref: string) {
+async function getFileFromGithub(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  path: string,
+  ref: string,
+) {
   try {
-    log.debug(`Getting file through Github - ${owner}/${repo}${path !== "" ? "/" + path : ""}@${ref}`);
+    log.debug(
+      `Getting file through Github - ${owner}/${repo}${
+        path !== "" ? "/" + path : ""
+      }@${ref}`,
+    );
 
     const response = await octokit.rest.repos.getContent({
       owner,
@@ -221,7 +293,9 @@ async function getFileFromGithub(octokit: Octokit, owner: string, repo: string, 
         `Encountered Github Request Error while getting file - ${requestPath}. (${error.status} - ${error.message})`,
       );
     } else {
-      log.warn(`Encountered Unknown Error while getting file - ${requestPath} - ${error}`);
+      log.warn(
+        `Encountered Unknown Error while getting file - ${requestPath} - ${error}`,
+      );
     }
   }
 }

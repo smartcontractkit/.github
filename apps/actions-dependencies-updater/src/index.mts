@@ -13,7 +13,6 @@ export interface RunContext {
   repoDir: string;
   checkDeprecated: boolean;
   debug: boolean;
-  // skipDependency: Set<string>;
   git: {
     branch: boolean;
     commit: boolean;
@@ -24,20 +23,35 @@ export interface RunContext {
   caches: ReturnType<typeof caches.initialize>;
 }
 
-const DEFAULTS = { debug: false, checkDeprecated: false, changes: true, branch: true, commit: true, 'force-refresh': false, 'skip-dep': [] };
-
-function handleArgs(): RunContext {
-  const args = minimist(process.argv.slice(2), { default: DEFAULTS });
+function handleArgs() {
+  const defaults = {
+    debug: false,
+    checkDeprecated: false,
+    changes: true,
+    branch: true,
+    commit: true,
+    "force-refresh": false,
+    "skip-dep": [],
+  };
+  const args = minimist(process.argv.slice(2), { default: defaults });
 
   if (args["help"]) {
     console.log("Usage: actions-dependencies-updater");
-    console.log("Mandatory arguments:")
-    console.log("  --repo-dir <dir>: The directory of the repository to update");
-    console.log("Optional Flags:")
-    console.log("  --force-refresh: Force a refresh of the github actions version cache");
-    console.log("  --only-check-deprecated: Check for deprecated dependencies (node12/node16) but don't update them.");
+    console.log("Mandatory arguments:");
+    console.log(
+      "  --repo-dir <dir>: The directory of the repository to update",
+    );
+    console.log("Optional Flags:");
+    console.log(
+      "  --force-refresh: Force a refresh of the github actions version cache",
+    );
+    console.log(
+      "  --only-check-deprecated: Check for deprecated dependencies (node12/node16) but don't update them.",
+    );
     console.log("  --no-branch: Don't branch (local) the repository");
-    console.log("  --no-commit: Don't commit changes (local) to the repository");
+    console.log(
+      "  --no-commit: Don't commit changes (local) to the repository",
+    );
     console.log("  --reset-repo: Reset the repository before starting");
     console.log("  --debug: Enable verbose logging");
     console.log("  --help: Display this help message");
@@ -45,7 +59,7 @@ function handleArgs(): RunContext {
     process.exit(0);
   }
 
-  if(!args["repo-dir"]) {
+  if (!args["repo-dir"]) {
     log.error("No repository directory provided");
     process.exit(1);
   }
@@ -56,8 +70,8 @@ function handleArgs(): RunContext {
   }
 
   const now = Date.now().toString();
-  const accessToken = getEnvironmentVariableOrThrow("GH_ACCESS_TOKEN")
-  const forceRefresh = args["force-refresh"] as boolean ?? false;
+  const accessToken = getEnvironmentVariableOrThrow("GH_ACCESS_TOKEN");
+  const forceRefresh = (args["force-refresh"] as boolean) ?? false;
 
   return {
     now,
@@ -72,29 +86,29 @@ function handleArgs(): RunContext {
     octokit: new Octokit({ auth: accessToken }),
     actionsByIdentifier: {},
     caches: caches.initialize(forceRefresh, now),
-  }
+  };
 }
 
 async function main() {
   const ctx = handleArgs();
 
   const { octokit, ...logCtx } = ctx;
-  log.debug("Context: ", logCtx)
+  log.debug("Context: ", logCtx);
 
   const workflowsByName = await parseWorkflows(ctx);
   const deprecatedPaths = checkDeprecated(workflowsByName);
 
   outputDeprecatedPaths(ctx.checkDeprecated, deprecatedPaths);
 
-  log.info("Perparing to update workflows")
+  log.info("Perparing to update workflows");
 
-  await git.prepareRepository(ctx)
+  await git.prepareRepository(ctx);
   await compileUpdates(ctx, workflowsByName);
   await performUpdates(ctx);
 
-  Object.values(ctx.caches).forEach(cache => cache.save());
+  Object.values(ctx.caches).forEach((cache) => cache.save());
 
-  log.info("Checking if any dependencies are still deprecated.")
+  log.info("Checking if any dependencies are still deprecated.");
 
   ctx.actionsByIdentifier = {};
   const postUpdateWorkflowsByName = await parseWorkflows(ctx);
@@ -109,7 +123,9 @@ main();
 
 function outputDeprecatedPaths(shouldExit: boolean, deprecatedPaths: string[]) {
   if (deprecatedPaths.length > 0) {
-    log.error("Deprecated dependencies found:\n    "  + deprecatedPaths.join("\n    "));
+    log.error(
+      "Deprecated dependencies found:\n    " + deprecatedPaths.join("\n    "),
+    );
   } else {
     log.info("No deprecated dependencies found.");
   }
@@ -118,6 +134,3 @@ function outputDeprecatedPaths(shouldExit: boolean, deprecatedPaths: string[]) {
     process.exit(deprecatedPaths.length > 0 ? 1 : 0);
   }
 }
-
-
-

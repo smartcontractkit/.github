@@ -23,16 +23,23 @@ export function getEnvironmentVariableOrThrow(envVariableName: string): string {
  * @param tags A list of tags, without the prefixed with "refs/tags/"
  * @returns The latest version
  */
-export function guessLatestVersion(tags: string[], repo?: string, repoPath?: string) {
-  let versions = tags.map(tag => parseTagToVersion(tag));
+export function guessLatestVersion(
+  tags: string[],
+  repo?: string,
+  repoPath?: string,
+) {
+  let versions = tags.map((tag) => parseTagToVersion(tag));
 
   // support for the .github monorepo
   if (repo === ".github" && repoPath) {
     let actionName = repoPath.split("/").pop();
-    if (actionName === "signed-commits") actionName = "changesets-signed-commits"; // hacky fix
-    log.debug(`Guessing latest version for monorepo action: ${actionName} (${repo})`)
+    if (actionName === "signed-commits")
+      actionName = "changesets-signed-commits"; // hacky fix
+    log.debug(
+      `Guessing latest version for monorepo action: ${actionName} (${repo})`,
+    );
     if (actionName) {
-      versions = versions.filter(v => v.prefix === actionName);
+      versions = versions.filter((v) => v.prefix === actionName);
     }
   }
 
@@ -52,7 +59,13 @@ export function guessLatestVersion(tags: string[], repo?: string, repoPath?: str
  * @param tag The tag to parse
  * @returns The version object
  */
-function parseTagToVersion(tag: string): { major: number, minor: number, patch: number, prefix: string, tag: string} {
+function parseTagToVersion(tag: string): {
+  major: number;
+  minor: number;
+  patch: number;
+  prefix: string;
+  tag: string;
+} {
   const originalTag = tag;
 
   let prefix = "";
@@ -73,13 +86,19 @@ function parseTagToVersion(tag: string): { major: number, minor: number, patch: 
 
   if (match) {
     const major = match[1];
-    const minor = match[2] || '0'; // Default to '0' if not present
-    const patch = match[3] || '0'; // Default to '0' if not present
+    const minor = match[2] || "0"; // Default to '0' if not present
+    const patch = match[3] || "0"; // Default to '0' if not present
 
-    return { major: parseInt(major), minor: parseInt(minor), patch: parseInt(patch), prefix: prefix, tag: originalTag, };
+    return {
+      major: parseInt(major),
+      minor: parseInt(minor),
+      patch: parseInt(patch),
+      prefix: prefix,
+      tag: originalTag,
+    };
   }
 
-  return { major: 0, minor: 0, patch: 0, prefix: 'v', tag: 'error' };
+  return { major: 0, minor: 0, patch: 0, prefix: "v", tag: "error" };
 }
 
 /**
@@ -96,14 +115,16 @@ export async function listAllYamlFiles(directory: string) {
   const files = await readdir(directory).then((files) =>
     files
       .map((f) => join(directory, f))
-      .filter((f) => f.includes(".yml") || f.includes(".yaml"))
+      .filter((f) => f.includes(".yml") || f.includes(".yaml")),
   );
 
   return files;
 }
 
 export async function getActionYamlPath(directory: string) {
-  const yamlFiles = (await listAllYamlFiles(directory)).filter(file => file.endsWith("action.yml") || file.endsWith("action.yaml"));
+  const yamlFiles = (await listAllYamlFiles(directory)).filter(
+    (file) => file.endsWith("action.yml") || file.endsWith("action.yaml"),
+  );
 
   if (yamlFiles.length === 0) {
     log.warn(
@@ -121,7 +142,6 @@ export function checkDeprecated(workflowsByName: WorkflowByName) {
 
   for (const workflow of Object.values(workflowsByName)) {
     for (const job of workflow.jobs) {
-
       for (const dependency of job.directDependencies) {
         if (dependency.type === "node12" || dependency.type === "node16") {
           deprecatedPaths.push(...createPathStrings(dependency));
@@ -140,6 +160,7 @@ export function checkDeprecated(workflowsByName: WorkflowByName) {
 }
 
 function createPathStrings(action: Action): string[] {
-  return action.referencePaths.map((path) => [...path, action.identifier, action.type ].join(" -> "));
+  return action.referencePaths.map((path) =>
+    [...path, action.identifier, action.type].join(" -> "),
+  );
 }
-

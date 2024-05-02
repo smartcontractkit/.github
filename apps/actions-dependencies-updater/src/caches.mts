@@ -12,8 +12,13 @@ export function initialize(forceRefresh: boolean, optionalId?: string) {
   if (cacheExists && forceRefresh) {
     try {
       // rename .cache to .cache-<timestamp>
-      const newCachePath = path.join(CACHE_DIR, SHA_TO_VERSION_CACHE.replace(".json", `-${id}.json`));
-      log.warn(`Forcing cache refresh. Previous cache will be moved to ${newCachePath}`);
+      const newCachePath = path.join(
+        CACHE_DIR,
+        SHA_TO_VERSION_CACHE.replace(".json", `-${id}.json`),
+      );
+      log.warn(
+        `Forcing cache refresh. Previous cache will be moved to ${newCachePath}`,
+      );
       fs.renameSync(path.join(CACHE_DIR, SHA_TO_VERSION_CACHE), newCachePath);
     } catch (e) {
       log.error(`Failed to remove cache: ${e}`);
@@ -21,13 +26,19 @@ export function initialize(forceRefresh: boolean, optionalId?: string) {
   }
 
   return {
-    shaToVersion: new Cache<GithubShaToVersionCache>(true, SHA_TO_VERSION_CACHE),
-    updateTransactions: new Cache<UpdateTransaction>(false, `updates-${id}.json`, {}),
-  }
+    shaToVersion: new Cache<GithubShaToVersionCache>(
+      true,
+      SHA_TO_VERSION_CACHE,
+    ),
+    updateTransactions: new Cache<UpdateTransaction>(
+      false,
+      `updates-${id}.json`,
+      {},
+    ),
+  };
 }
 
 class Cache<T> {
-
   private filePath: string;
   private cache: T;
 
@@ -76,7 +87,7 @@ class Cache<T> {
   public save() {
     try {
       const cache = JSON.stringify(this.cache, null, 2);
-      fs.writeFileSync(this.filePath, cache, "utf-8")
+      fs.writeFileSync(this.filePath, cache, "utf-8");
     } catch (e) {
       log.error(`Failed to save cache: ${e}`);
     }

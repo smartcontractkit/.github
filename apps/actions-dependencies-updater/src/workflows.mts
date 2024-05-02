@@ -341,7 +341,7 @@ async function parseActionFile(
 ): Promise<Action> {
   const action = YAML.parse(actionYamlString) as ActionSchema;
 
-  log.debug(`${identifier} is a ${action.runs.using} action.`)
+  log.debug(`${identifier} is a ${action.runs.using} action.`);
   if (action.runs.using === "composite") {
     const stepUsages = extractActionIdentifiersFromSteps(action.runs.steps);
     return {

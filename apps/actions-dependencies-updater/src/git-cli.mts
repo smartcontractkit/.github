@@ -1,7 +1,7 @@
 import * as log from "./logger.mjs";
-import { RunContext } from './index.mjs';
+import { RunContext } from "./index.mjs";
 
-import 'zx/globals'
+import "zx/globals";
 $.verbose = false;
 
 export async function prepareRepository(ctx: RunContext) {
@@ -32,12 +32,16 @@ export async function prepareRepository(ctx: RunContext) {
 }
 
 async function getDefaultBranch(): Promise<string> {
-  const result = (await $`git symbolic-ref refs/remotes/origin/HEAD`).stdout.trim();
+  const result = (
+    await $`git symbolic-ref refs/remotes/origin/HEAD`
+  ).stdout.trim();
   return result.substring("refs/remotes/origin/".length);
 }
 
 async function isWorkingDirectoryClean(): Promise<boolean> {
-  const result = (await $`git status --untracked-files=no --porcelain`).stdout.trim();
+  const result = (
+    await $`git status --untracked-files=no --porcelain`
+  ).stdout.trim();
   return result.length === 0;
 }
 
@@ -49,7 +53,7 @@ export async function commit(ctx: RunContext, message: string) {
 
   await cdWrap(ctx.repoDir, async () => {
     log.info(`Committing changes with message: ${message}`);
-    log.info("Tap your YubiKey!")
+    log.info("Tap your YubiKey!");
     await $`git add --all`;
     await $`git commit -m ${message}`;
   });
@@ -60,9 +64,6 @@ async function cdWrap(repositoryDirectory: string, fxn: () => Promise<void>) {
   cd(repositoryDirectory);
 
   await fxn().finally(() => {
-    cd(prevDir)
+    cd(prevDir);
   });
 }
-
-
-
