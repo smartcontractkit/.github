@@ -179,7 +179,7 @@ export async function performUpdates(ctx: RunContext) {
       );
 
       const fileStr = await readFile(file, "utf-8");
-      const regex = new RegExp(`${action}@${ref}( #.*)?`, "g");
+      const regex = new RegExp(`["']?${action}@${ref}["']?( #.*)?`, "g");
       const newFileStr = fileStr.replaceAll(
         regex,
         `${action}@${update.newVersion.sha} # ${update.newVersion.version}`,
