@@ -1,4 +1,4 @@
-import { getEnvironmentVariableOrThrow, compileDeprecatedPaths } from "./utils.mjs";
+import { getEnvironmentVariableOrExit, compileDeprecatedPaths, validateRepositoryOrExit } from "./utils.mjs";
 import { ActionsByIdentifier, parseWorkflows } from "./workflows.mjs";
 import { compileUpdates, performUpdates } from "./updater.mjs";
 import * as caches from "./caches.mjs";
@@ -58,17 +58,14 @@ function handleArgs() {
     process.exit(0);
   }
 
-  if (!args["repo-dir"]) {
-    log.error("No repository directory provided");
-    process.exit(1);
-  }
-
   if (args["debug"]) {
     log.setDebug();
     log.debug("Verbose logging enabled");
   }
 
-  const accessToken = getEnvironmentVariableOrThrow("GH_ACCESS_TOKEN");
+  const repoDir = args["repo-dir"] as string;
+  validateRepositoryOrExit(repoDir);
+  const accessToken = getEnvironmentVariableOrExit("GH_ACCESS_TOKEN");
   const forceRefresh = (args["force-refresh"] as boolean) ?? false;
 
   return {
@@ -87,6 +84,7 @@ function handleArgs() {
 }
 
 async function main() {
+  log.section("Starting actions-dependencies-updater");
   const ctx = handleArgs();
 
   const { octokit, ...logCtx } = ctx;
@@ -138,3 +136,4 @@ function outputDeprecatedPaths(shouldExit: boolean, deprecatedPaths: string[]) {
     process.exit(deprecatedPaths.length > 0 ? 1 : 0);
   }
 }
+

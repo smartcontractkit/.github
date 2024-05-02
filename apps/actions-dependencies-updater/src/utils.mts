@@ -11,12 +11,37 @@ import { Action, WorkflowByName } from "./workflows.mjs";
  * @param envVariableName The name of the environment variable
  * @returns The value of the environment variable
  */
-export function getEnvironmentVariableOrThrow(envVariableName: string): string {
+export function getEnvironmentVariableOrExit(envVariableName: string): string {
   const variable = process.env[envVariableName];
   if (!variable) {
-    throw Error(`${envVariableName} not set`);
+    log.error(`Mandatory environment variable not set: ${envVariableName}`);
+    process.exit(1);
   }
   return variable;
+}
+
+export function validateRepositoryOrExit(repoDir: string) {
+  if (!repoDir) {
+    log.error("No repository directory provided.");
+    process.exit(1);
+  }
+
+  if (!existsSync(repoDir)) {
+    log.error(`Directory does not exist: ${repoDir}`);
+    process.exit(1);
+  }
+
+  const gitDir = join(repoDir, ".git");
+  if (!existsSync(gitDir)) {
+    log.error(`Directory is not a git repository: ${repoDir}`);
+    process.exit(1);
+  }
+
+  const workflowDir = join(repoDir, ".github", "workflows");
+  if(!existsSync(workflowDir)) {
+    log.info(`No workflows directory found: ${workflowDir} - nothing to check/update`);
+    process.exit(0);
+  }
 }
 
 /**
