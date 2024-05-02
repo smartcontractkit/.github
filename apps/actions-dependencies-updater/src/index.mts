@@ -11,8 +11,8 @@ import minimist from "minimist";
 export interface RunContext {
   now: string;
   repoDir: string;
-  checkDeprecated: boolean;
   debug: boolean;
+  skipUpdates: boolean;
   git: {
     branch: boolean;
     commit: boolean;
@@ -26,12 +26,11 @@ export interface RunContext {
 function handleArgs() {
   const defaults = {
     debug: false,
-    checkDeprecated: false,
     changes: true,
     branch: true,
     commit: true,
     "force-refresh": false,
-    "skip-dep": [],
+    "skip-updates": false,
   };
   const args = minimist(process.argv.slice(2), { default: defaults });
 
@@ -46,7 +45,7 @@ function handleArgs() {
       "  --force-refresh: Force a refresh of the github actions version cache",
     );
     console.log(
-      "  --only-check-deprecated: Check for deprecated dependencies (node12/node16) but don't update them.",
+      "  --skip-updates: Check for deprecated dependencies (node12/node16) but don't update them.",
     );
     console.log("  --no-branch: Don't branch (local) the repository");
     console.log(
@@ -76,7 +75,7 @@ function handleArgs() {
   return {
     now: now.toString(),
     repoDir: args["repo-dir"] as string,
-    checkDeprecated: args["only-check-deprecated"] as boolean,
+    skipUpdates: args["skip-updates"] as boolean,
     debug: args["debug"] as boolean,
     git: {
       branch: args["branch"] as boolean,
@@ -95,17 +94,26 @@ async function main() {
   const { octokit, ...logCtx } = ctx;
   log.debug("Context: ", logCtx);
 
+  if (!ctx.skipUpdates) {
+    log.section("Preparing repository");
+    await git.prepareRepository(ctx);
+  }
+
   log.section("Checking For Deprecated Dependencies");
   const workflowsByName = await parseWorkflows(ctx);
   const deprecatedPaths = checkDeprecated(workflowsByName);
-  outputDeprecatedPaths(ctx.checkDeprecated, deprecatedPaths);
+  outputDeprecatedPaths(ctx.skipUpdates, deprecatedPaths);
 
   log.section("Updating workflows");
 
-  await git.prepareRepository(ctx);
   await compileUpdates(ctx, workflowsByName);
-  await performUpdates(ctx);
 
+  if (Object.entries(ctx.caches.updateTransactions.get()).length === 0) {
+    log.info("No updates needed found.");
+    process.exit(deprecatedPaths.length > 0 ? 1 : 0);
+  }
+
+  await performUpdates(ctx);
   Object.values(ctx.caches).forEach((cache) => cache.save());
 
   log.info("All workflows updated successfully.");
