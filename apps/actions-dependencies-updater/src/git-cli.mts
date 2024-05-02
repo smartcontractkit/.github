@@ -5,7 +5,7 @@ import "zx/globals";
 $.verbose = false;
 
 export async function prepareRepository(ctx: RunContext) {
-  await cdWrap(ctx.repoDir, async () => {
+  await performInDir(ctx.repoDir, async () => {
     const defaultBranch = await getDefaultBranch();
     log.debug(`Default branch: ${defaultBranch}`);
 
@@ -51,7 +51,7 @@ export async function commit(ctx: RunContext, message: string) {
     return;
   }
 
-  await cdWrap(ctx.repoDir, async () => {
+  await performInDir(ctx.repoDir, async () => {
     log.info(`Committing changes with message: ${message}`);
     log.info("Tap your YubiKey!");
     await $`git add --all`;
@@ -59,11 +59,11 @@ export async function commit(ctx: RunContext, message: string) {
   });
 }
 
-async function cdWrap(repositoryDirectory: string, fxn: () => Promise<void>) {
+async function performInDir<T>(repositoryDirectory: string, fn: () => Promise<T>) {
   const prevDir = (await $`pwd`).stdout.trim();
   cd(repositoryDirectory);
 
-  await fxn().finally(() => {
+  return await fn().finally(() => {
     cd(prevDir);
   });
 }
