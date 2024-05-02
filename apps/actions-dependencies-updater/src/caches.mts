@@ -4,25 +4,20 @@ import { UpdateTransaction } from "./updater.mjs";
 
 import { join } from "node:path";
 
-const CACHE_DIR = ".cache";
 const SHA_TO_VERSION_CACHE = "sha-to-version.json";
 
 export function initialize(forceRefresh: boolean, id = Date.now()) {
-  const cacheExists = fs.existsSync(join(CACHE_DIR, SHA_TO_VERSION_CACHE));
+  const cachePath = join(Cache.cacheDir, SHA_TO_VERSION_CACHE)
+  const cacheExists = fs.existsSync(cachePath);
 
   if (cacheExists && forceRefresh) {
     try {
-      // rename .cache to .cache-<timestamp>
-      const newCachePath = join(
-        CACHE_DIR,
-        SHA_TO_VERSION_CACHE.replace(".json", `-${id}.json`),
-      );
       log.warn(
-        `Forcing cache refresh. Previous cache will be moved to ${newCachePath}`,
+        `Forcing cache refresh. Deleting ${cachePath} and creating a new cache file`,
       );
-      fs.renameSync(join(CACHE_DIR, SHA_TO_VERSION_CACHE), newCachePath);
+      fs.rmSync(cachePath);
     } catch (e) {
-      log.error(`Failed to remove cache: ${e}`);
+      log.error(`Failed to delete cache: ${e}`);
     }
   }
 
@@ -40,11 +35,15 @@ export function initialize(forceRefresh: boolean, id = Date.now()) {
 }
 
 class Cache<T extends Record<string, any>> {
+  static cacheDir = ".cache";
+
+  private initializeFromDisk: boolean;
   private filePath: string;
   private cache: T;
 
-  constructor(initializeFromDisk: boolean, filePath: string, initial?: T) {
-    this.filePath = join(CACHE_DIR, filePath);
+  constructor(initializeFromDisk: boolean, fileName: string, initial?: T) {
+    this.filePath = join(Cache.cacheDir, fileName);
+    this.initializeFromDisk = initializeFromDisk;
 
     if (initializeFromDisk) {
       this.cache = this.load();
@@ -86,6 +85,8 @@ class Cache<T extends Record<string, any>> {
   }
 
   public save() {
+    if (!this.initializeFromDisk) return;
+
     try {
       const cache = JSON.stringify(this.cache, null, 2);
       fs.writeFileSync(this.filePath, cache, "utf-8");
