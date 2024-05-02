@@ -2,24 +2,25 @@ import * as log from "./logger.mjs";
 import { GithubShaToVersionCache } from "./github.mjs";
 import { UpdateTransaction } from "./updater.mjs";
 
-const CACHE_DIR = ".cache/";
+import { join } from "node:path";
+
+const CACHE_DIR = ".cache";
 const SHA_TO_VERSION_CACHE = "sha-to-version.json";
 
-export function initialize(forceRefresh: boolean, optionalId?: string) {
-  const id = optionalId ? optionalId : Date.now();
-  const cacheExists = fs.existsSync(path.join(CACHE_DIR, SHA_TO_VERSION_CACHE));
+export function initialize(forceRefresh: boolean, id = Date.now()) {
+  const cacheExists = fs.existsSync(join(CACHE_DIR, SHA_TO_VERSION_CACHE));
 
   if (cacheExists && forceRefresh) {
     try {
       // rename .cache to .cache-<timestamp>
-      const newCachePath = path.join(
+      const newCachePath = join(
         CACHE_DIR,
         SHA_TO_VERSION_CACHE.replace(".json", `-${id}.json`),
       );
       log.warn(
         `Forcing cache refresh. Previous cache will be moved to ${newCachePath}`,
       );
-      fs.renameSync(path.join(CACHE_DIR, SHA_TO_VERSION_CACHE), newCachePath);
+      fs.renameSync(join(CACHE_DIR, SHA_TO_VERSION_CACHE), newCachePath);
     } catch (e) {
       log.error(`Failed to remove cache: ${e}`);
     }
@@ -38,12 +39,12 @@ export function initialize(forceRefresh: boolean, optionalId?: string) {
   };
 }
 
-class Cache<T> {
+class Cache<T extends Record<string, any>> {
   private filePath: string;
   private cache: T;
 
   constructor(initializeFromDisk: boolean, filePath: string, initial?: T) {
-    this.filePath = path.join(CACHE_DIR) + filePath;
+    this.filePath = join(CACHE_DIR, filePath);
 
     if (initializeFromDisk) {
       this.cache = this.load();
@@ -62,7 +63,7 @@ class Cache<T> {
     this.cache[key] = value;
   }
 
-  public getValue(key: keyof T, ...keys: (keyof T)[]): T[keyof T] {
+  public getValue(key: keyof T): T[keyof T] {
     return this.cache[key];
   }
 

@@ -69,12 +69,12 @@ function handleArgs() {
     log.debug("Verbose logging enabled");
   }
 
-  const now = Date.now().toString();
+  const now = Date.now();
   const accessToken = getEnvironmentVariableOrThrow("GH_ACCESS_TOKEN");
   const forceRefresh = (args["force-refresh"] as boolean) ?? false;
 
   return {
-    now,
+    now: now.toString(),
     repoDir: args["repo-dir"] as string,
     checkDeprecated: args["only-check-deprecated"] as boolean,
     debug: args["debug"] as boolean,
