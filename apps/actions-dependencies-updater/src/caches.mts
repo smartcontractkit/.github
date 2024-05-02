@@ -4,31 +4,17 @@ import { UpdateTransaction } from "./updater.mjs";
 
 import { join } from "node:path";
 
-const SHA_TO_VERSION_CACHE = "sha-to-version.json";
-
-export function initialize(forceRefresh: boolean, id = Date.now()) {
-  const cachePath = join(Cache.cacheDir, SHA_TO_VERSION_CACHE)
-  const cacheExists = fs.existsSync(cachePath);
-
-  if (cacheExists && forceRefresh) {
-    try {
-      log.warn(
-        `Forcing cache refresh. Deleting ${cachePath} and creating a new cache file`,
-      );
-      fs.rmSync(cachePath);
-    } catch (e) {
-      log.error(`Failed to delete cache: ${e}`);
-    }
-  }
-
+export function initialize(forceRefresh: boolean) {
   return {
     shaToVersion: new Cache<GithubShaToVersionCache>(
       true,
-      SHA_TO_VERSION_CACHE,
+      "sha-to-version.json",
+      forceRefresh,
     ),
     updateTransactions: new Cache<UpdateTransaction>(
       false,
-      `updates-${id}.json`,
+      `updates-transactions.json`,
+      true,
       {},
     ),
   };
@@ -41,11 +27,11 @@ class Cache<T extends Record<string, any>> {
   private filePath: string;
   private cache: T;
 
-  constructor(initializeFromDisk: boolean, fileName: string, initial?: T) {
+  constructor(initializeFromDisk: boolean, fileName: string, forceRefresh: boolean, initial?: T) {
     this.filePath = join(Cache.cacheDir, fileName);
     this.initializeFromDisk = initializeFromDisk;
 
-    if (initializeFromDisk) {
+    if (initializeFromDisk && !forceRefresh) {
       this.cache = this.load();
     } else if (initial) {
       this.cache = initial;

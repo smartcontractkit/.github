@@ -85,7 +85,7 @@ function handleArgs() {
     },
     octokit: new Octokit({ auth: accessToken }),
     actionsByIdentifier: {},
-    caches: caches.initialize(forceRefresh, now),
+    caches: caches.initialize(forceRefresh),
   };
 }
 
