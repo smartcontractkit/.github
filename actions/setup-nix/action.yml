@@ -104,6 +104,7 @@ runs:
         sudo ln -s ~/.aws $ROOT_PATH
 
     - uses: cachix/install-nix-action@8887e596b4ee1134dae06b98d573bd674693f47c # v26
+      if: inputs.enable-cachix == 'true'
       with:
         install_url: https://releases.nixos.org/nix/nix-2.18.1/install
         nix_path: nixpkgs=channel:nixos-unstable
