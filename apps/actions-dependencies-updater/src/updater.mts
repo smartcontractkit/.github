@@ -128,19 +128,15 @@ function saveUpdateTransaction(
   newVersion: string,
   innerRepoPath?: string,
 ) {
-  const cacheKey = `${owner}/${repo}${innerRepoPath || ""}`;
-
-  if (!ctx.caches.updateTransactions.exists(cacheKey)) {
-    ctx.caches.updateTransactions.set(cacheKey, {
+  ctx.caches.updateTransactions
+    .getValueOrDefault(`${owner}/${repo}${innerRepoPath || ""}`, {
       references: [],
       newVersion: {
         sha: newRef,
         version: newVersion,
       },
-    });
-  }
-
-  ctx.caches.updateTransactions.getValue(cacheKey).references.push({
+    })
+    .references.push({
     file: filePath,
     ref: existingRef,
   });

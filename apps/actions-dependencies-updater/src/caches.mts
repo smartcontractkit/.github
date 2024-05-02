@@ -52,6 +52,13 @@ class Cache<T extends Record<string, any>> {
     return this.cache[key];
   }
 
+  public getValueOrDefault(key: keyof T, defaultValue: T[keyof T]): T[keyof T] {
+    if (!this.exists(key)) {
+      this.set(key, defaultValue);
+    }
+    return this.cache[key];
+  }
+
   public exists(key: keyof T): boolean {
     return this.cache[key] !== undefined;
   }
