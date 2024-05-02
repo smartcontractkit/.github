@@ -148,8 +148,7 @@ async function parseJob(
 
   if ("uses" in jobDefinition) {
     log.warn(
-      "Found Job which is uses a workflow_call, to initiate another workflow. Parsing this is not directly supported, but if the workflow is in the same repository it should be parsed regularly.",
-    );
+      "Found Job that triggers another workflow via 'workflow_call'. Direct parsing of this workflow-to-workflow relationship isn't supported. However, if the called workflow resides in the repository's workflows directory, it will be parsed as normal.");
     return {
       name: jobKey,
       containingWorkflow: workflow,

@@ -12,6 +12,8 @@ This tool has two main purposes:
 1. Install and setup tooling
 
    - [`pnpm`](https://pnpm.io/)
+   - [`asdf`](https://asdf-vm.com/), then
+     [`nodejs`](https://github.com/asdf-vm/asdf-nodejs).
 
 2. Install Dependencies
    ```bash

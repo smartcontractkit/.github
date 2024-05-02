@@ -69,7 +69,7 @@ function handleArgs() {
   const forceRefresh = (args["force-refresh"] as boolean) ?? false;
 
   return {
-    repoDir: args["repo-dir"] as string,
+    repoDir,
     skipUpdates: args["skip-updates"] as boolean,
     debug: args["debug"] as boolean,
     git: {
