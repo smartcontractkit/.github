@@ -7,6 +7,7 @@ import * as git from "./git-cli.mjs";
 
 import { Octokit } from "octokit";
 import minimist from "minimist";
+import 'dotenv/config';
 
 export interface RunContext {
   now: string;

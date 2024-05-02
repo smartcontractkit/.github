@@ -14,6 +14,7 @@
   "license": "MIT",
   "repository": "https://github.com/smartcontractkit/.github",
   "dependencies": {
+    "dotenv": "^16.4.5",
     "minimist": "^1.2.8",
     "octokit": "^3.2.0",
     "yaml": "^2.3.2",

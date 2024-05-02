@@ -12,7 +12,6 @@ This tool has two main purposes:
 1. Install and setup tooling
 
    - [`pnpm`](https://pnpm.io/)
-   - (optional) [`direnv`](https://direnv.net/)
 
 2. Install Dependencies
    ```bash
@@ -20,12 +19,10 @@ This tool has two main purposes:
    ```
 3. Generate a Github Personal Access Token with repo access
    - This ideally has read access to all actions used in your workflow files
-4. If using `direnv`:
-   - Populate a `.envrc` file within this project's directory
+4. Populate a `.env` file within this project's directory
    ```bash
-   export GH_ACCESS_TOKEN="<Github PAT>"
+   GH_ACCESS_TOKEN="<Github PAT>"
    ```
-   - `direnv allow`
 
 ## Usage
 
