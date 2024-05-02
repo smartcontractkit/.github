@@ -17,6 +17,7 @@
     "dotenv": "^16.4.5",
     "minimist": "^1.2.8",
     "octokit": "^3.2.0",
+    "semver": "^7.6.0",
     "yaml": "^2.3.2",
     "zx": "^8.0.2"
   },
@@ -24,6 +25,7 @@
     "@octokit/types": "^13.4.1",
     "@types/minimist": "^1.2.2",
     "@types/node": "^20.12.7",
+    "@types/semver": "^7.5.8",
     "ts-node": "10.9.2"
   }
 }

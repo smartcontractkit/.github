@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
-import { readdir, readFile } from "node:fs/promises";
+import { readdir } from "node:fs/promises";
 import { join } from "node:path";
+import * as semver from "semver";
 
 import * as log from "./logger.mjs";
 import { Action, WorkflowByName } from "./workflows.mjs";
@@ -28,7 +29,9 @@ export function guessLatestVersion(
   repo?: string,
   repoPath?: string,
 ) {
-  let versions = tags.map((tag) => parseTagToVersion(tag));
+  let versions: VersionIdentifier[] = tags
+    .map((tag) => parseTagToVersion(tag))
+    .filter((v) => v) as VersionIdentifier[];
 
   // support for the .github monorepo
   if (repo === ".github" && repoPath) {
@@ -43,29 +46,19 @@ export function guessLatestVersion(
     }
   }
 
-  // Sort the versions by comparing major, minor, and patch numbers
-  versions.sort((a, b) => {
-    if (a.major !== b.major) return a.major - b.major;
-    if (a.minor !== b.minor) return a.minor - b.minor;
-    return a.patch - b.patch;
-  });
-
-  // Return the last element in the sorted array, which is the latest version
+  // Sort the versions ascending
+  versions.sort((a, b) => semver.compare(a.version, b.version));
   return versions[versions.length - 1];
 }
+
+type VersionIdentifier = NonNullable<ReturnType<typeof parseTagToVersion>>;
 
 /**
  * Parse a tag to a version object
  * @param tag The tag to parse
  * @returns The version object
  */
-function parseTagToVersion(tag: string): {
-  major: number;
-  minor: number;
-  patch: number;
-  prefix: string;
-  tag: string;
-} {
+function parseTagToVersion(tag: string) {
   const originalTag = tag;
 
   let prefix = "";
@@ -75,30 +68,21 @@ function parseTagToVersion(tag: string): {
     prefix = parts[0];
   }
 
-  const versionRegex = /^v?(\d+)(?:\.(\d+))?(?:\.(\d+))?/;
-  // ^ - start of line
-  // v? - optional 'v'
-  // (\d+) - major version
-  // (?:\.(\d+))? - optional minor version
-  // (?:\.(\d+))? - optional patch version
+  const coerced = semver.coerce(tag);
 
-  const match = tag.match(versionRegex);
-
-  if (match) {
-    const major = match[1];
-    const minor = match[2] || "0"; // Default to '0' if not present
-    const patch = match[3] || "0"; // Default to '0' if not present
-
-    return {
-      major: parseInt(major),
-      minor: parseInt(minor),
-      patch: parseInt(patch),
-      prefix: prefix,
-      tag: originalTag,
-    };
+  if (!coerced) {
+    log.error(`Failed to parse version from tag: ${tag}`);
+    return;
   }
 
-  return { major: 0, minor: 0, patch: 0, prefix: "v", tag: "error" };
+  return {
+    major: coerced.major,
+    minor: coerced.minor,
+    patch: coerced.patch,
+    version: coerced.version,
+    prefix: prefix,
+    tag: originalTag,
+  };
 }
 
 /**
