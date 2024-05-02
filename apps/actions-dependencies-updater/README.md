@@ -38,6 +38,8 @@ pnpm start --repo-dir=<path to repository>
 
 ### Notes
 
+- This makes no remote changes, all changes are local only. This means you are
+  required to push the branch and open a PR for these changes.
 - When updating action references, it will update them in batches and (by
   default) perform `git commit` for you.
   - If you have setup commit signing, you will be required to sign commits as

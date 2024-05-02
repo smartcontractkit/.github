@@ -30,3 +30,8 @@ export function error(...messages: Parameters<(typeof console)["error"]>) {
 export function output(...messages: Parameters<(typeof console)["log"]>) {
   console.log(...messages);
 }
+
+export function section(section: string) {
+  const repeats = Math.max(80 - section.length, 10);
+  console.log("\n", "=".repeat(repeats), section, "=".repeat(repeats), "\n\n");
+}

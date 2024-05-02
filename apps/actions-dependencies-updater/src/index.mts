@@ -95,12 +95,12 @@ async function main() {
   const { octokit, ...logCtx } = ctx;
   log.debug("Context: ", logCtx);
 
+  log.section("Checking For Deprecated Dependencies");
   const workflowsByName = await parseWorkflows(ctx);
   const deprecatedPaths = checkDeprecated(workflowsByName);
-
   outputDeprecatedPaths(ctx.checkDeprecated, deprecatedPaths);
 
-  log.info("Perparing to update workflows");
+  log.section("Updating workflows");
 
   await git.prepareRepository(ctx);
   await compileUpdates(ctx, workflowsByName);
@@ -108,15 +108,14 @@ async function main() {
 
   Object.values(ctx.caches).forEach((cache) => cache.save());
 
-  log.info("Checking if any dependencies are still deprecated.");
+  log.info("All workflows updated successfully.");
+  log.section("Double Checking For Deprecated Dependencies After Update");
 
   ctx.actionsByIdentifier = {};
   const postUpdateWorkflowsByName = await parseWorkflows(ctx);
   const postUpdateDeprecatedPaths = checkDeprecated(postUpdateWorkflowsByName);
 
   outputDeprecatedPaths(true, postUpdateDeprecatedPaths);
-
-  log.info("All workflows updated successfully.");
 }
 
 main();

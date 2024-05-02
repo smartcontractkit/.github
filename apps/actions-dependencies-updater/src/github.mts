@@ -43,7 +43,7 @@ export async function getVersionFromSHA(
 
   if (!GH_SHA_TO_VER_CACHE[ownerRepo] || !GH_SHA_TO_VER_CACHE[ownerRepo][ref]) {
     log.debug(`Cache miss for ${owner}/${repo}@${ref}`);
-    return await getVersionFromGithub(ctx, owner, repo, ref);
+    return await getVersion(ctx, owner, repo, ref);
   }
 
   log.debug(`Cache hit for ${owner}/${repo}@${ref}`);
@@ -95,7 +95,7 @@ export function getLatestVersion(
  * @param ref
  * @returns
  */
-async function getVersionFromGithub(
+async function getVersion(
   ctx: RunContext,
   owner: string,
   repo: string,
@@ -123,7 +123,7 @@ async function getVersionFromGithub(
 
   const latestVersion = guessLatestVersion(filteredTags);
   const latestVersionString = `${latestVersion.prefix}${latestVersion.major}.${latestVersion.minor}.${latestVersion.patch}`;
-  log.warn(
+  log.debug(
     `Multiple tags found for ${owner}/${repo}@${ref}. Using latest version: ${latestVersionString}`,
   );
   return latestVersionString;
@@ -136,7 +136,7 @@ async function getVersionFromGithub(
  * @param ref The commit SHA/ref
  * @param version The version/tag of the repository at the given commit SHA
  */
-export function addToCache(
+function addToCache(
   ctx: RunContext,
   ownerRepo: string,
   ref: string,
