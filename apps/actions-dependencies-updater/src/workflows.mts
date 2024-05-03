@@ -27,7 +27,7 @@ export interface Action {
   name: string;
   identifier: ActionIdentifier;
   referencePaths: ReferencePath[];
-  type: ActionSchema["runs"]["using"] | "unknown"
+  type: ActionSchema["runs"]["using"] | "unknown";
   dependencies?: ActionIdentifier[];
   isLocal: boolean;
 }
@@ -208,7 +208,12 @@ async function parseDependenciesRecursive(
   if (!identifiers) return [];
 
   const dependenciesPromise = identifiers.map((identifier) =>
-    parseActionFromIdentifier(ctx, referencePath, identifier, isDirectDependency),
+    parseActionFromIdentifier(
+      ctx,
+      referencePath,
+      identifier,
+      isDirectDependency,
+    ),
   );
 
   const dependencies = (await Promise.all(dependenciesPromise)).filter(
@@ -249,8 +254,12 @@ async function parseActionFromIdentifier(
     const action = ctx.caches.actionsByIdentifier.getValue(identifier);
     action.referencePaths.push(referencePath);
 
-    const cachedIsDirectDependency = ctx.caches.directActionsDependencies.getValueOrDefault(identifier, false);
-    ctx.caches.directActionsDependencies.set(identifier, isDirectDependency || cachedIsDirectDependency);
+    const cachedIsDirectDependency =
+      ctx.caches.directActionsDependencies.getValueOrDefault(identifier, false);
+    ctx.caches.directActionsDependencies.set(
+      identifier,
+      isDirectDependency || cachedIsDirectDependency,
+    );
     return action;
   }
 
@@ -268,12 +277,10 @@ async function parseActionFromIdentifier(
       isLocal: false,
     };
   } else {
-    const actionYamlContents = await getActionYamlFromIdentifier(ctx, identifier);
-    if (actionYamlContents == null) {
-      log.warn(`Empty action YAML contents found for ${identifier}. Skipping.`);
-      return;
-    }
-
+    const actionYamlContents = await getActionYamlFromIdentifier(
+      ctx,
+      identifier,
+    );
     action = await parseActionFile(
       ctx,
       identifier,
@@ -282,10 +289,13 @@ async function parseActionFromIdentifier(
     );
   }
 
+  if (!action) {
+    return;
+  }
+
   // Cache the parsed action
   ctx.caches.actionsByIdentifier.set(identifier, action);
   ctx.caches.directActionsDependencies.set(identifier, isDirectDependency);
-
   return action;
 }
 
@@ -296,14 +306,25 @@ async function parseActionFile(
   ctx: RunContext,
   identifier: string,
   referencePath: ReferencePath,
-  actionYamlString: string,
-): Promise<Action> {
+  actionYamlString: string | undefined,
+): Promise<Action | undefined> {
+  if (!actionYamlString) {
+    log.warn(`Empty action YAML contents found for ${identifier}. Skipping.`);
+    return;
+  }
+
   ctx.debug.actions++;
   const action = YAML.parse(actionYamlString) as ActionSchema;
-
-  log.debug(`${identifier} is a ${action?.runs?.using} action.`);
   const isLocal = identifier.startsWith("./");
-  const stepUsages = action?.runs?.using === "composite" ? extractActionIdentifiersFromSteps(action.runs.steps) : [];
+  const stepUsages =
+    action?.runs?.using === "composite"
+      ? extractActionIdentifiersFromSteps(action.runs.steps)
+      : [];
+
+  log.debug(
+    `${identifier} is a ${isLocal ? "local" : "remote"} ${action?.runs
+      ?.using} action, with ${stepUsages.length} direct dependencies.`,
+  );
 
   return {
     name: action.name,
@@ -314,7 +335,6 @@ async function parseActionFile(
     isLocal,
   };
 }
-
 
 /**
  * Given an action identifier, returns the action YAML string. This can be a local action (reads from disk) or an external action (fetches from github).

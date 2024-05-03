@@ -68,7 +68,7 @@ async function processActionDependency(
     return;
   }
 
-  if (currentAction.identifier.startsWith("./")) {
+  if (currentAction.isLocal) {
     log.debug(`Local Action: ${currentAction.identifier}`);
     const actionPath = await getActionYamlPath(
       join(ctx.repoDir, currentAction.identifier),
@@ -175,7 +175,7 @@ function saveUpdateTransaction(
   entry.identifiers.push(identifier);
 }
 
-export async function performUpdates(ctx: RunContext) {
+export async function executeUpdates(ctx: RunContext) {
   const updates = Object.entries(ctx.caches.updateTransactions.get());
   const numUpdates = updates.length;
   let updateCounter = 1;

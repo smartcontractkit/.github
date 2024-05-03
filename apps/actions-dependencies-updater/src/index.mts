@@ -1,6 +1,6 @@
 import { getEnvironmentVariableOrExit, compileDeprecatedPaths, validateRepositoryOrExit, isShaRefIdentifier } from "./utils.mjs";
-import { ActionsByIdentifier, parseWorkflows } from "./workflows.mjs";
-import { compileUpdates, performUpdates } from "./updater.mjs";
+import { parseWorkflows } from "./workflows.mjs";
+import { compileUpdates, executeUpdates } from "./updater.mjs";
 import * as caches from "./caches.mjs";
 import * as log from "./logger.mjs";
 import * as git from "./git-cli.mjs";
@@ -11,8 +11,8 @@ import 'dotenv/config';
 
 export interface RunContext {
   repoDir: string;
-  skipChecks: boolean;
-  skipUpdates: boolean;
+  performChecks: boolean;
+  performUpdates: boolean;
   git: {
     branch: boolean;
     commit: boolean;
@@ -77,8 +77,8 @@ function handleArgs(): RunContext {
 
   return {
     repoDir,
-    skipUpdates: args["skip-updates"] as boolean,
-    skipChecks: args["skip-checks"] as boolean,
+    performChecks: !args["skip-checks"] as boolean,
+    performUpdates: !args["skip-updates"] as boolean,
     debug: {
       workflows: 0,
       actions: 0,
@@ -101,45 +101,43 @@ async function main() {
   const { octokit, ...logCtx } = ctx;
   log.debug("Context: ", logCtx);
 
-  const { skipChecks, skipUpdates } = ctx;
-  if (skipChecks && skipUpdates) {
-    log.output("Checks and updates skipped - exiting.")
-    process.exit(0);
+  const { performChecks, performUpdates } = ctx;
+  if (!performChecks && !performUpdates) {
+    exit(ctx, 0);
   }
 
-  if (!skipUpdates) {
+  if (performUpdates) {
     log.section("Preparing repository");
     await git.prepareRepository(ctx);
   }
 
-  log.section("Checking For Deprecated Dependencies");
+  log.section("Parsing workflows");
   const workflowsByName = await parseWorkflows(ctx);
 
-  if (!skipChecks) {
+  if (performChecks) {
+    log.section("Checking For Deprecated Dependencies");
     const deprecatedPaths = compileDeprecatedPaths(workflowsByName);
-    outputDeprecatedPaths(ctx, skipUpdates, deprecatedPaths);
+    outputDeprecatedPaths(ctx, !performUpdates, deprecatedPaths);
   }
 
-  log.section("Updating workflows");
-  await compileUpdates(ctx, workflowsByName);
-  await performUpdates(ctx);
+  if (performUpdates) {
+    log.section("Updating workflows");
+    await compileUpdates(ctx, workflowsByName);
+    await executeUpdates(ctx);
+  }
 
-  log.info("All workflows updated successfully.");
-
-  if (!skipChecks) {
+  if (performChecks) {
     log.section("Double Checking For Deprecated Dependencies After Update");
+    caches.cleanup(ctx.caches);
     const postUpdateWorkflowsByName = await parseWorkflows(ctx);
     const postUpdateDeprecatedPaths = compileDeprecatedPaths(postUpdateWorkflowsByName);
     outputDeprecatedPaths(ctx, true, postUpdateDeprecatedPaths);
   }
 
-  log.debug(ctx.debug);
-  persistCache(ctx);
+  exit(ctx, 0);
 }
 
 function outputDeprecatedPaths(ctx: RunContext, shouldExit: boolean, deprecatedPaths: string[]) {
-  persistCache(ctx);
-
   if (deprecatedPaths.length > 0) {
     log.error(`Deprecated dependencies found (${deprecatedPaths.length})!!`)
     log.output(deprecatedPaths.join("\n"));
@@ -148,28 +146,14 @@ function outputDeprecatedPaths(ctx: RunContext, shouldExit: boolean, deprecatedP
   }
 
   if (shouldExit) {
-    log.debug(ctx.debug);
-    process.exit(deprecatedPaths.length > 0 ? 1 : 0);
+    exit(ctx, deprecatedPaths.length > 0 ? 1 : 0);
   }
 }
 
-function persistCache(ctx: RunContext) {
-  // Clear part of the actionsByIdentifier cache before persisting
-  // 1. Delete local actions as they could clash across repos with the same filenames (not unique)
-  // 2. Delete any actions that are not sha references as the contents could change (ref not immutable)
-  // 3. Delete actions with type unknown as they were not fully processed, and should no be cached.
-  // 4. Clear reference paths as they could clash between checks in same or other repos
-  const actionsByIdentifier = ctx.caches.actionsByIdentifier.get();
-  Object.keys(actionsByIdentifier).forEach((key) => {
-    const action = actionsByIdentifier[key];
-    if (action.isLocal || action.type === "unknown" || !isShaRefIdentifier(action.identifier)) {
-      log.debug(`Clearing ${key} from cache`);
-      return delete actionsByIdentifier[key];
-    }
-    actionsByIdentifier[key].referencePaths = [];
-  });
-
-  Object.values(ctx.caches).forEach((cache) => cache.save());
+function exit(ctx: RunContext, code: number) {
+  log.debug(ctx.debug);
+  caches.persistAll(ctx.caches);
+  process.exit(code);
 }
 
 main();
