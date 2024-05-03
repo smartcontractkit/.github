@@ -15,6 +15,7 @@ import { getActionYamlPath } from "./utils.mjs";
 
 export interface UpdateTransaction {
   [key: string]: {
+    identifiers: string[];
     references: {
       file: string;
       ref: string;
@@ -70,7 +71,7 @@ async function processActionDependency(
     }
 
     const dependenciesPromises = action.dependencies.map((identifier) => {
-      const action = ctx.actionsByIdentifier[identifier];
+      const action = ctx.caches.actionsByIdentifier.getValue(identifier);
       if (!action) {
         log.warn(`Action dependency not found: ${identifier} - skipping.`);
         return Promise.resolve();
@@ -122,6 +123,7 @@ async function processActionDependency(
         ref,
         latestVersion.sha,
         latestVersion.version,
+        action.identifier,
         repoPath,
       );
     }
@@ -136,20 +138,25 @@ function saveUpdateTransaction(
   existingRef: string,
   newRef: string,
   newVersion: string,
+  identifier: string,
   innerRepoPath?: string,
 ) {
-  ctx.caches.updateTransactions
+  const entry =   ctx.caches.updateTransactions
     .getValueOrDefault(`${owner}/${repo}${innerRepoPath || ""}`, {
+    identifiers: [],
       references: [],
       newVersion: {
         sha: newRef,
         version: newVersion,
       },
-    })
-    .references.push({
+  });
+
+  entry.references.push({
       file: filePath,
       ref: existingRef,
     });
+
+  entry.identifiers.push(identifier);
 }
 
 export async function performUpdates(ctx: RunContext) {

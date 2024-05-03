@@ -174,3 +174,16 @@ function createPathStrings(action: Action): string[] {
     [...path, action.identifier, action.type].join(" -> "),
   );
 }
+
+/**
+ * Given an action identifier, check if it uses a sha reference. This is to ensure that the parsed
+ * action was from an immutable reference.
+ * @param identifier the action identifier
+ * @returns true if the identifier is a sha reference
+ */
+export function isShaRefIdentifier(identifier: string) {
+  const sha1Regex = /^[0-9a-f]{40}$/;
+  const sha256Regex = /^[0-9a-f]{256}$/;
+  const ref = identifier.split("@")[1];
+  return (ref && sha1Regex.test(ref)) || sha256Regex.test(ref);
+}

@@ -1,4 +1,4 @@
-import { getEnvironmentVariableOrExit, compileDeprecatedPaths, validateRepositoryOrExit } from "./utils.mjs";
+import { getEnvironmentVariableOrExit, compileDeprecatedPaths, validateRepositoryOrExit, isShaRefIdentifier } from "./utils.mjs";
 import { ActionsByIdentifier, parseWorkflows } from "./workflows.mjs";
 import { compileUpdates, performUpdates } from "./updater.mjs";
 import * as caches from "./caches.mjs";
@@ -18,7 +18,6 @@ export interface RunContext {
     commit: boolean;
     reset: boolean;
   };
-  actionsByIdentifier: ActionsByIdentifier;
   octokit: Octokit;
   caches: ReturnType<typeof caches.initialize>;
 }
@@ -78,7 +77,6 @@ function handleArgs() {
       reset: args["reset-repo"] as boolean,
     },
     octokit: new Octokit({ auth: accessToken }),
-    actionsByIdentifier: {},
     caches: caches.initialize(forceRefresh),
   };
 }
@@ -98,7 +96,7 @@ async function main() {
   log.section("Checking For Deprecated Dependencies");
   const workflowsByName = await parseWorkflows(ctx);
   const deprecatedPaths = compileDeprecatedPaths(workflowsByName);
-  outputDeprecatedPaths(ctx.skipUpdates, deprecatedPaths);
+  outputDeprecatedPaths(ctx, ctx.skipUpdates, deprecatedPaths);
 
   log.section("Updating workflows");
 
@@ -110,23 +108,20 @@ async function main() {
   }
 
   await performUpdates(ctx);
-  Object.values(ctx.caches).forEach((cache) => cache.save());
 
   log.info("All workflows updated successfully.");
   log.section("Double Checking For Deprecated Dependencies After Update");
 
-  ctx.actionsByIdentifier = {};
   const postUpdateWorkflowsByName = await parseWorkflows(ctx);
   const postUpdateDeprecatedPaths = compileDeprecatedPaths(postUpdateWorkflowsByName);
-
-  outputDeprecatedPaths(true, postUpdateDeprecatedPaths);
+  outputDeprecatedPaths(ctx, true, postUpdateDeprecatedPaths);
 }
 
-main();
+function outputDeprecatedPaths(ctx: RunContext, shouldExit: boolean, deprecatedPaths: string[]) {
+  persistCache(ctx);
 
-function outputDeprecatedPaths(shouldExit: boolean, deprecatedPaths: string[]) {
   if (deprecatedPaths.length > 0) {
-    log.error("Deprecated dependencies found!!")
+    log.error(`Deprecated dependencies found (${deprecatedPaths.length})!!`)
     log.output(deprecatedPaths.join("\n"));
   } else {
     log.info("No deprecated dependencies found.");
@@ -137,3 +132,20 @@ function outputDeprecatedPaths(shouldExit: boolean, deprecatedPaths: string[]) {
   }
 }
 
+function persistCache(ctx: RunContext) {
+  // Clear part of the actionsByIdentifier cache before persisting
+  // 1. Delete local actions as they could clash across repos with the same filenames (not unique)
+  // 2. Delete any actions that are not sha references as the contents could change (ref not immutable)
+  // 3. Clear reference paths as they could clash between checks in same or other repos
+  const actionsByIdentifier = ctx.caches.actionsByIdentifier.get();
+  Object.keys(actionsByIdentifier).forEach((key) => {
+    if (key.startsWith("./") || !isShaRefIdentifier(key)) {
+      return delete actionsByIdentifier[key];
+    }
+    actionsByIdentifier[key].referencePaths = [];
+  });
+
+  Object.values(ctx.caches).forEach((cache) => cache.save());
+}
+
+main();
