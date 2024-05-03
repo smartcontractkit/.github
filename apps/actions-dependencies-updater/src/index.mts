@@ -161,6 +161,7 @@ function persistCache(ctx: RunContext) {
   const actionsByIdentifier = ctx.caches.actionsByIdentifier.get();
   Object.keys(actionsByIdentifier).forEach((key) => {
     if (key.startsWith("./") || !isShaRefIdentifier(key)) {
+      log.debug(`Clearing ${key} from cache`);
       return delete actionsByIdentifier[key];
     }
     actionsByIdentifier[key].referencePaths = [];

@@ -213,12 +213,13 @@ async function parseDependenciesRecursive(
     (action) => !!action,
   ) as Action[];
 
-  if (ctx.skipChecks) {
-    // Don't recurse if we're skipping checks
-    return dependencies;
-  }
+  // Only recurse into local actions only, if skipping checks, as local
+  // actions are the only ones that can be updated, and contain direct dependencies.
+  // Updating only requires direct dependencies to be processed.
+  // Remote actions do not need to be processed if only updating.
+  const dependenciesToProcess = !ctx.skipChecks ? dependencies : dependencies.filter((action) => action.isLocal);
 
-  const recursiveDependenciesPromise = dependencies.map(async (action) => {
+  const recursiveDependenciesPromise = dependenciesToProcess.map(async (action) => {
     const newReferencePath = [...referencePath, action.identifier];
     return parseDependenciesRecursive(
       ctx,
@@ -272,6 +273,7 @@ async function parseActionFromIdentifier(
 
   // Cache the parsed action
   ctx.caches.actionsByIdentifier.set(identifier, action);
+  ctx.caches.directActionsDependencies.set(identifier, isDirectDependency);
 
   return action;
 }

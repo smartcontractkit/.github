@@ -16,10 +16,7 @@ import { getActionYamlPath } from "./utils.mjs";
 export interface UpdateTransaction {
   [key: string]: {
     identifiers: string[];
-    references: {
-      file: string;
-      ref: string;
-    }[];
+    references: { [ file: string ]: string[] };
     newVersion: {
       sha: string;
       version: string;
@@ -42,7 +39,13 @@ export async function compileUpdates(
 
       for (const dependency of job.dependencies) {
         allPromises.push(
-          processActionDependency(ctx, dependency, workflow.path),
+          processActionDependency(
+            ctx,
+            `Job: ${job.name}`,
+            dependency.identifier,
+            dependency,
+            workflow.path,
+          ),
         );
       }
     }
@@ -53,43 +56,49 @@ export async function compileUpdates(
 
 async function processActionDependency(
   ctx: RunContext,
-  action: Action | undefined,
+  parentIdentifier: string,
+  currentIdentifier: string,
+  currentAction: Action | undefined,
   filePath: string,
 ): Promise<void> {
-  if (!action) {
+  if (!currentAction) {
+    log.warn(
+      `Action dependency not found: ${currentIdentifier} - skipping. Dependency of ${parentIdentifier}`,
+    );
     return;
   }
 
-  if (action.identifier.startsWith("./")) {
-    log.debug(`Local Action: ${action.identifier}`);
+  if (currentAction.identifier.startsWith("./")) {
+    log.debug(`Local Action: ${currentAction.identifier}`);
     const actionPath = await getActionYamlPath(
-      join(ctx.repoDir, action.identifier),
+      join(ctx.repoDir, currentAction.identifier),
     );
 
     if (!actionPath) {
       return;
     }
 
-    const dependenciesPromises = action.dependencies.map((identifier) => {
-      const action = ctx.caches.actionsByIdentifier.getValue(identifier);
-      if (!action) {
-        log.warn(`Action dependency not found: ${identifier} - skipping.`);
-        return Promise.resolve();
-      }
-      return processActionDependency(ctx, action, actionPath);
-    });
+    const dependenciesPromises = currentAction.dependencies.map((identifier) =>
+      processActionDependency(
+        ctx,
+        currentAction.identifier,
+        identifier,
+        ctx.caches.actionsByIdentifier.getValue(identifier),
+        actionPath,
+      ),
+    );
 
     return Promise.all(dependenciesPromises).then(() => {});
   }
 
-  if (!ctx.caches.directActionsDependencies.getValue(action.identifier)) {
-    log.debug(`Skipping indirect dependency: ${action.identifier}`);
+  if (!ctx.caches.directActionsDependencies.getValue(currentAction.identifier)) {
+    log.debug(`Skipping indirect dependency: ${currentAction.identifier}`);
     return;
   }
 
-  const details = extractDetailsFromActionIdentifier(action.identifier);
+  const details = extractDetailsFromActionIdentifier(currentAction.identifier);
   if (!details) {
-    log.warn(`Unexpected action identifier: ${action.identifier} - skipping.`);
+    log.warn(`Unexpected action identifier: ${currentAction.identifier} - skipping.`);
     return;
   }
 
@@ -128,7 +137,7 @@ async function processActionDependency(
         ref,
         latestVersion.sha,
         latestVersion.version,
-        action.identifier,
+        currentAction.identifier,
         repoPath,
       );
     }
@@ -146,21 +155,23 @@ function saveUpdateTransaction(
   identifier: string,
   innerRepoPath?: string,
 ) {
-  const entry =   ctx.caches.updateTransactions
-  .getValueOrDefault(`${owner}/${repo}${innerRepoPath || ""}`, {
-    identifiers: [],
-    references: [],
-    newVersion: {
-      sha: newRef,
-      version: newVersion,
+  const entry = ctx.caches.updateTransactions.getValueOrDefault(
+    `${owner}/${repo}${innerRepoPath || ""}`,
+    {
+      identifiers: [],
+      references: {},
+      newVersion: {
+        sha: newRef,
+        version: newVersion,
+      },
     },
-  });
+  );
 
-  entry.references.push({
-    file: filePath,
-    ref: existingRef,
-  });
+  if (!entry.references[filePath]) {
+    entry.references[filePath] = [];
+  }
 
+  entry.references[filePath].push(existingRef);
   entry.identifiers.push(identifier);
 }
 
@@ -173,7 +184,9 @@ export async function performUpdates(ctx: RunContext) {
   updates.sort(([a], [b]) => a.localeCompare(b));
 
   for (const [action, update] of updates) {
-    if (update.references.length === 0) {
+    const filesToUpdate = Object.keys(update.references);
+
+    if (filesToUpdate.length === 0) {
       log.info(`${updateCounter++}/${numUpdates} - No updates for ${action}`);
       continue;
     }
@@ -184,21 +197,22 @@ export async function performUpdates(ctx: RunContext) {
       } (${update.newVersion.version})`,
     );
 
-    for (const { file, ref } of update.references) {
-      const trimmedFile = file.replace(join(ctx.repoDir,".github"), "");
-      log.debug(
-        `Updating ${trimmedFile} from ${action}@${ref} to ${action}@${update.newVersion.sha} # ${update.newVersion.version}`,
-      );
-
-      const fileStr = await readFile(file, "utf-8");
-      const regex = new RegExp(`["']?${action}@${ref}["']?( #.*)?`, "g");
-      const newFileStr = fileStr.replaceAll(
-        regex,
-        `${action}@${update.newVersion.sha} # ${update.newVersion.version}`,
-      );
-      await writeFile(file, newFileStr, "utf-8");
+    for (const file of filesToUpdate) {
+      const refs = Array.from(new Set(update.references[file])); // dedupe references
+      for (const ref of refs) {
+        const trimmedFile = file.replace(join(ctx.repoDir, ".github"), "");
+        log.debug(
+          `Updating ${trimmedFile} from ${action}@${ref} to ${action}@${update.newVersion.sha} # ${update.newVersion.version}`,
+        );
+        const fileStr = await readFile(file, "utf-8");
+        const regex = new RegExp(`["']?${action}@${ref}["']?( #.*)?`, "g");
+        const newFileStr = fileStr.replaceAll(
+          regex,
+          `${action}@${update.newVersion.sha} # ${update.newVersion.version}`,
+        );
+        await writeFile(file, newFileStr, "utf-8");
+      }
     }
-
     const actionName = action
       .replace("smartcontractkit/.github/actions/", "")
       .replace("smartcontractkit/chainlink-github-actions/", "");
