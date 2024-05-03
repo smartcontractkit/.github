@@ -1,6 +1,7 @@
 import * as log from "./logger.mjs";
 import { GithubShaToVersionCache } from "./github.mjs";
 import { UpdateTransaction } from "./updater.mjs";
+import { ActionsByIdentifier } from "./workflows.mjs";
 
 import { join } from "node:path";
 
@@ -10,6 +11,17 @@ export function initialize(forceRefresh: boolean) {
       true,
       "sha-to-version.json",
       forceRefresh,
+    ),
+    actionsByIdentifier: new Cache<ActionsByIdentifier>(
+      true,
+      "actions-by-identifier.json",
+      forceRefresh,
+    ),
+    directActionsDependencies: new Cache<Record<string, boolean>>(
+      false,
+      "direct-actions-dependencies.json",
+      true,
+      {},
     ),
     updateTransactions: new Cache<UpdateTransaction>(
       false,

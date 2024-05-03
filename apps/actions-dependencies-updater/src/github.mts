@@ -42,11 +42,8 @@ export async function getVersionFromSHA(
   const GH_SHA_TO_VER_CACHE = ctx.caches.shaToVersion.get();
 
   if (!GH_SHA_TO_VER_CACHE[ownerRepo] || !GH_SHA_TO_VER_CACHE[ownerRepo][ref]) {
-    log.debug(`Cache miss for ${owner}/${repo}@${ref}`);
-    return await getVersion(ctx, owner, repo, ref);
+    addToCache(ctx, ownerRepo, ref, await getVersion(ctx, owner, repo, ref));
   }
-
-  log.debug(`Cache hit for ${owner}/${repo}@${ref}`);
 
   if (repo === ".github" && repoPath) {
     const actionName = repoPath.split("/").pop();
@@ -54,9 +51,7 @@ export async function getVersionFromSHA(
       const monorepoVersions = GH_SHA_TO_VER_CACHE[ownerRepo][ref].filter((v) =>
         v.startsWith(actionName),
       );
-      if (monorepoVersions.length > 0) {
-        return guessLatestVersion(monorepoVersions).tag;
-      }
+      return monorepoVersions[0];
     }
   }
 
@@ -163,6 +158,7 @@ async function getAllTags(
   repo: string,
 ): Promise<GitVersionTag[]> {
   try {
+    ctx.debug.tagRequests++;
     const response = (await ctx.octokit.request(
       "GET /repos/{owner}/{repo}/git/matching-refs/tags",
       { owner, repo },
@@ -207,6 +203,7 @@ async function getCommitForAnnotatedTag(
   apiPath: string,
 ): Promise<string | undefined> {
   try {
+    ctx.debug.tagRequests++;
     const response = (await ctx.octokit.request(
       "GET " + apiPath,
     )) as GetTagResponse;
@@ -242,16 +239,16 @@ export async function getActionFile(
   const ymlPath = join(repoPath, "action.yml");
   const yamlPath = join(repoPath, "action.yaml");
 
-  let actionFile = await getFileFromGithub(
-    ctx.octokit,
+  let actionFile = await getFile(
+    ctx,
     owner,
     repo,
     ymlPath,
     ref,
   );
   if (!actionFile) {
-    actionFile = await getFileFromGithub(
-      ctx.octokit,
+    actionFile = await getFile(
+      ctx,
       owner,
       repo,
       yamlPath,
@@ -261,21 +258,28 @@ export async function getActionFile(
   return actionFile;
 }
 
-async function getFileFromGithub(
-  octokit: Octokit,
+export async function getFile(
+  ctx: RunContext,
   owner: string,
   repo: string,
   path: string,
   ref: string,
 ) {
   try {
+    if (path.startsWith("/")) path = path.substring(1);
+    if (path.startsWith("./")) path = path.substring(2);
+
+    if (path === "") {
+      log.error("Empty path provided to github.getFile. Returning empty.");
+      return;
+    }
+
     log.debug(
-      `Getting file through Github - ${owner}/${repo}${
-        path !== "" ? "/" + path : ""
-      }@${ref}`,
+      `Getting file through Github - ${owner}/${repo}@${ref}, file: ${path}`,
     );
 
-    const response = await octokit.rest.repos.getContent({
+    ctx.debug.contentRequests++;
+    const response = await ctx.octokit.rest.repos.getContent({
       owner,
       repo,
       path,
@@ -287,7 +291,7 @@ async function getFileFromGithub(
     }
     throw Error("No content found in getContent response");
   } catch (error: any) {
-    const requestPath = `${owner}/${repo}${path}@${ref}`;
+    const requestPath = `${owner}/${repo}/${path}@${ref}`;
     if (error.status) {
       log.warn(
         `Encountered Github Request Error while getting file - ${requestPath}. (${error.status} - ${error.message})`,

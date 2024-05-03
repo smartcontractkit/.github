@@ -38,8 +38,10 @@ export function validateRepositoryOrExit(repoDir: string) {
   }
 
   const workflowDir = join(repoDir, ".github", "workflows");
-  if(!existsSync(workflowDir)) {
-    log.info(`No workflows directory found: ${workflowDir} - nothing to check/update`);
+  if (!existsSync(workflowDir)) {
+    log.info(
+      `No workflows directory found: ${workflowDir} - nothing to check/update`,
+    );
     process.exit(0);
   }
 }
@@ -56,7 +58,7 @@ export function guessLatestVersion(
 ) {
   let versions: VersionIdentifier[] = tags
     .map((tag) => parseTagToVersion(tag))
-    .filter((v) => v) as VersionIdentifier[];
+    .filter((v) => !!v) as VersionIdentifier[];
 
   // support for the .github monorepo
   if (repo === ".github" && repoPath) {
@@ -84,9 +86,13 @@ type VersionIdentifier = NonNullable<ReturnType<typeof parseTagToVersion>>;
  * @returns The version object
  */
 function parseTagToVersion(tag: string) {
-  const originalTag = tag;
+  if (tag.startsWith("untagged-")) {
+    return;
+  }
 
+  const originalTag = tag;
   let prefix = "";
+
   if (tag.includes("@")) {
     const parts = tag.split("@");
     tag = parts[1];
@@ -94,9 +100,8 @@ function parseTagToVersion(tag: string) {
   }
 
   const coerced = semver.coerce(tag);
-
   if (!coerced) {
-    log.error(`Failed to parse version from tag: ${tag}`);
+    log.debug(`Failed to parse version from tag: ${tag}`);
     return;
   }
 
@@ -147,25 +152,22 @@ export async function getActionYamlPath(directory: string) {
 }
 
 export function compileDeprecatedPaths(workflowsByName: WorkflowByName) {
-  const deprecatedPaths: string[] = [];
+  const allDeprecatedPaths: string[] = [];
 
   for (const workflow of Object.values(workflowsByName)) {
     for (const job of workflow.jobs) {
-      for (const dependency of job.directDependencies) {
-        if (dependency.type === "node12" || dependency.type === "node16") {
-          deprecatedPaths.push(...createPathStrings(dependency));
-        }
-      }
-
-      for (const dependency of job.indirectDependencies ?? []) {
-        if (dependency.type === "node12" || dependency.type === "node16") {
-          deprecatedPaths.push(...createPathStrings(dependency));
-        }
-      }
+      const deprecatedPaths = job.dependencies
+        .filter(
+          (dependency) =>
+            dependency.type === "node12" || dependency.type === "node16",
+        )
+        .map(createPathStrings)
+        .flat();
+      allDeprecatedPaths.push(...deprecatedPaths);
     }
   }
 
-  const uniquePaths = Array.from(new Set(deprecatedPaths)).sort();
+  const uniquePaths = Array.from(new Set(allDeprecatedPaths)).sort();
   return uniquePaths;
 }
 
@@ -173,4 +175,17 @@ function createPathStrings(action: Action): string[] {
   return action.referencePaths.map((path) =>
     [...path, action.identifier, action.type].join(" -> "),
   );
+}
+
+/**
+ * Given an action identifier, check if it uses a sha reference. This is to ensure that the parsed
+ * action was from an immutable reference.
+ * @param identifier the action identifier
+ * @returns true if the identifier is a sha reference
+ */
+export function isShaRefIdentifier(identifier: string) {
+  const sha1Regex = /^[0-9a-f]{40}$/;
+  const sha256Regex = /^[0-9a-f]{256}$/;
+  const ref = identifier.split("@")[1];
+  return (ref && sha1Regex.test(ref)) || sha256Regex.test(ref);
 }
