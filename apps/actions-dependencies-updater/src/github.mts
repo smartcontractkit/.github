@@ -163,6 +163,7 @@ async function getAllTags(
   repo: string,
 ): Promise<GitVersionTag[]> {
   try {
+    ctx.debug.tagRequests++;
     const response = (await ctx.octokit.request(
       "GET /repos/{owner}/{repo}/git/matching-refs/tags",
       { owner, repo },
@@ -207,6 +208,7 @@ async function getCommitForAnnotatedTag(
   apiPath: string,
 ): Promise<string | undefined> {
   try {
+    ctx.debug.tagRequests++;
     const response = (await ctx.octokit.request(
       "GET " + apiPath,
     )) as GetTagResponse;
@@ -243,7 +245,7 @@ export async function getActionFile(
   const yamlPath = join(repoPath, "action.yaml");
 
   let actionFile = await getFile(
-    ctx.octokit,
+    ctx,
     owner,
     repo,
     ymlPath,
@@ -251,7 +253,7 @@ export async function getActionFile(
   );
   if (!actionFile) {
     actionFile = await getFile(
-      ctx.octokit,
+      ctx,
       owner,
       repo,
       yamlPath,
@@ -262,7 +264,7 @@ export async function getActionFile(
 }
 
 export async function getFile(
-  octokit: Octokit,
+  ctx: RunContext,
   owner: string,
   repo: string,
   path: string,
@@ -281,7 +283,8 @@ export async function getFile(
       `Getting file through Github - ${owner}/${repo}@${ref}, file: ${path}`,
     );
 
-    const response = await octokit.rest.repos.getContent({
+    ctx.debug.contentRequests++;
+    const response = await ctx.octokit.rest.repos.getContent({
       owner,
       repo,
       path,

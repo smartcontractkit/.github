@@ -11,7 +11,6 @@ import 'dotenv/config';
 
 export interface RunContext {
   repoDir: string;
-  debug: boolean;
   skipChecks: boolean;
   skipUpdates: boolean;
   git: {
@@ -20,10 +19,16 @@ export interface RunContext {
     reset: boolean;
   };
   octokit: Octokit;
+  debug: {
+    workflows: number;
+    actions: number;
+    contentRequests: number;
+    tagRequests: number;
+  },
   caches: ReturnType<typeof caches.initialize>;
 }
 
-function handleArgs() {
+function handleArgs(): RunContext {
   const defaults = {
     debug: false,
     changes: true,
@@ -74,7 +79,12 @@ function handleArgs() {
     repoDir,
     skipUpdates: args["skip-updates"] as boolean,
     skipChecks: args["skip-checks"] as boolean,
-    debug: args["debug"] as boolean,
+    debug: {
+      workflows: 0,
+      actions: 0,
+      contentRequests: 0,
+      tagRequests: 0,
+    },
     git: {
       branch: args["branch"] as boolean,
       commit: args["commit"] as boolean,
@@ -123,6 +133,7 @@ async function main() {
     outputDeprecatedPaths(ctx, true, postUpdateDeprecatedPaths);
   }
 
+  log.debug(ctx.debug);
   persistCache(ctx);
 }
 
@@ -137,6 +148,7 @@ function outputDeprecatedPaths(ctx: RunContext, shouldExit: boolean, deprecatedP
   }
 
   if (shouldExit) {
+    log.debug(ctx.debug);
     process.exit(deprecatedPaths.length > 0 ? 1 : 0);
   }
 }

@@ -102,6 +102,7 @@ export async function parseWorkflows(ctx: RunContext) {
  */
 async function parseWorkflow(ctx: RunContext, path: string): Promise<Workflow> {
   const file = basename(path);
+  ctx.debug.workflows++;
 
   log.debug(`Processing workflow: ${file}`);
 
@@ -254,6 +255,7 @@ async function parseActionFromIdentifier(
     return;
   }
 
+  ctx.debug.actions++;
   const action = await parseActionFile(
     identifier,
     referencePath,
@@ -471,5 +473,5 @@ async function getWorkflowYamlFromIdentifier(
   const details = extractDetailsFromActionIdentifier(identifier);
   if (!details) return;
   const { owner, repo, repoPath, ref } = details;
-  return github.getFile(ctx.octokit, owner, repo, repoPath, ref);
+  return github.getFile(ctx, owner, repo, repoPath, ref);
 }
