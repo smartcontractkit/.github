@@ -7,6 +7,7 @@ import { RunContext } from "./index.mjs";
 import { basename, join } from "node:path";
 import { readFile } from "node:fs/promises";
 import YAML from "yaml";
+import { NormalJob } from "./generated/types/github-workflow.mjs";
 
 /**
  * The return value of the parse workflows method.
@@ -70,9 +71,7 @@ interface Job {
 
   containingWorkflow: string;
 
-  directDependencies: Action[];
-
-  indirectDependencies?: Action[];
+  dependencies: Action[];
 }
 
 /**
@@ -147,12 +146,13 @@ async function parseJob(
   log.debug(`Processing Job: ${workflow} - ${jobKey}`);
 
   if ("uses" in jobDefinition) {
-    log.warn(
-      "Found Job that triggers another workflow via 'workflow_call'. Direct parsing of this workflow-to-workflow relationship isn't supported. However, if the called workflow resides in the repository's workflows directory, it will be parsed as normal.");
+    log.debug("Found workflow call in job definition", jobDefinition.uses);
+
+    const dependencies = await parseWorkflowCall(ctx, workflow, jobKey, jobDefinition.uses);
     return {
       name: jobKey,
       containingWorkflow: workflow,
-      directDependencies: [],
+      dependencies: dependencies ?? [],
     };
   }
 
@@ -163,7 +163,7 @@ async function parseJob(
     return {
       name: jobKey,
       containingWorkflow: workflow,
-      directDependencies: [],
+      dependencies: [],
     };
   }
 
@@ -173,32 +173,16 @@ async function parseJob(
 
   const referencePath: ReferencePath = [workflow, jobKey];
 
-  const directDependenciesPromises = actionIdentifiers.map((identifier) =>
-    parseActionFromIdentifier(ctx, referencePath, identifier),
+  const directDependencies = await parseDependenciesRecursive(
+    ctx,
+    referencePath,
+    actionIdentifiers,
   );
-
-  const directDependencies = (
-    await Promise.all(directDependenciesPromises)
-  ).filter((action) => !!action) as Action[];
-
-  const transitiveDependenciesPromise = directDependencies.map((dependency) => {
-    const newReferencePath = [...referencePath, dependency.identifier];
-    return parseTransitiveDependenciesRecursive(
-      ctx,
-      newReferencePath,
-      dependency,
-    );
-  });
-
-  const indirectDependencies = (
-    await Promise.all(transitiveDependenciesPromise)
-  ).flat();
 
   return {
     name: jobKey,
     containingWorkflow: workflow,
-    directDependencies,
-    indirectDependencies,
+    dependencies: directDependencies,
   };
 }
 
@@ -209,33 +193,32 @@ async function parseJob(
  * @param action the action to parse the transitive dependencies of
  * @returns a list of actions that are dependencies of the action
  */
-async function parseTransitiveDependenciesRecursive(
+async function parseDependenciesRecursive(
   ctx: RunContext,
   referencePath: ReferencePath,
-  action: Action,
+  identifiers: string[],
 ): Promise<Action[]> {
-  const transitiveDependenciesPromise = action.dependencies.map((identifier) =>
+  const dependenciesPromise = identifiers.map((identifier) =>
     parseActionFromIdentifier(ctx, referencePath, identifier),
   );
-  const transitiveDependencies = (
-    await Promise.all(transitiveDependenciesPromise)
-  ).filter((action) => !!action) as Action[];
 
-  const recursiveDependenciesPromise = transitiveDependencies.map(
-    async (dependency) => {
-      const newReferencePath = [...referencePath, dependency.identifier];
-      return parseTransitiveDependenciesRecursive(
-        ctx,
-        newReferencePath,
-        dependency,
-      );
-    },
-  );
+  const dependencies = (await Promise.all(dependenciesPromise)).filter(
+    (action) => !!action,
+  ) as Action[];
+
+  const recursiveDependenciesPromise = dependencies.map(async (action) => {
+    const newReferencePath = [...referencePath, action.identifier];
+    return parseDependenciesRecursive(
+      ctx,
+      newReferencePath,
+      action.dependencies,
+    );
+  });
 
   const recursiveDependencies = (
     await Promise.all(recursiveDependenciesPromise)
   ).flat();
-  return [...transitiveDependencies, ...recursiveDependencies];
+  return [...dependencies, ...recursiveDependencies];
 }
 
 /**
@@ -246,13 +229,15 @@ async function parseActionFromIdentifier(
   referencePath: ReferencePath,
   identifier: string,
 ): Promise<Action | undefined> {
-  if (ctx.actionsByIdentifier[identifier]) {
+  if (ctx.caches.actionsByIdentifier.exists(identifier)) {
     log.debug(
       `Cache hit for action ${identifier}`,
       `(${referencePath.join(" -> ")})`,
     );
-    ctx.actionsByIdentifier[identifier].referencePaths.push(referencePath);
-    return ctx.actionsByIdentifier[identifier];
+
+    const action = ctx.caches.actionsByIdentifier.getValue(identifier);
+    action.referencePaths.push(referencePath);
+    return action;
   }
 
   const actionYamlContents = await getActionYamlFromIdentifier(ctx, identifier);
@@ -268,7 +253,7 @@ async function parseActionFromIdentifier(
   );
 
   // Cache the parsed action
-  ctx.actionsByIdentifier[action.identifier] = action;
+  ctx.caches.actionsByIdentifier.set(identifier, action);
 
   return action;
 }
@@ -397,4 +382,85 @@ function extractActionIdentifiersFromSteps(
   return steps
     .filter((s): s is { uses: string } => !!s.uses)
     .map(({ uses }: { uses: string }) => uses);
+}
+
+/**
+ * An edge-case for parsing jobs which invoke a workflow_call. Which essentially references another workflow file, local or remote.
+ */
+async function parseWorkflowCall(
+  ctx: RunContext,
+  containingWorkflow: string,
+  containingJob: string,
+  workflowIdentifier: string,
+) {
+  if (workflowIdentifier.startsWith("./.github/workflows")) {
+    log.debug(
+      "Found workflow_call to a file in the workflows directory. Skipping.",
+    );
+    return;
+  }
+
+  const isLocalWorkflow = workflowIdentifier.startsWith("./");
+  const workflowString = await getWorkflowYamlFromIdentifier(ctx, workflowIdentifier);
+  if (workflowString == null) {
+    log.warn(
+      `No contents found for workflow at ${workflowIdentifier}. Skipping.`,
+    );
+    return;
+  }
+
+  const parsedFile = YAML.parse(workflowString) as WorkflowSchema;
+  if (parsedFile?.jobs == null) {
+    log.warn(`No jobs found for workflow at ${workflowIdentifier}. Skipping.`);
+    return;
+  }
+
+  const { jobs: jobDefinitions } = parsedFile;
+
+  // only parse NormalJobs here, so we don't recurse further into other workflow_calls
+  const allNormalJobs = Object.entries(jobDefinitions)
+  .filter(([,jobDefinition]) => "steps" in jobDefinition) as [string, NormalJob][];
+
+  const dependenciesPromises = allNormalJobs.map(([jobKey, jobDefinition]) => {
+    // Find dependencies, but filter out actions that would be in a remote workflows
+    const uses = extractActionIdentifiersFromSteps(
+      jobDefinition.steps,
+    ).filter((identifier) => isLocalWorkflow || !identifier.startsWith("./"));
+
+    return parseDependenciesRecursive(
+      ctx,
+      [containingWorkflow, containingJob, workflowIdentifier, jobKey],
+      uses,
+    );
+  });
+
+  const recursiveDependencies = (
+    await Promise.all(dependenciesPromises)
+  ).flat();
+
+  return [...recursiveDependencies];
+}
+
+async function getWorkflowYamlFromIdentifier(ctx: RunContext, identifier: string) {
+  if (identifier.startsWith("./")) {
+    log.debug(
+      "Found workflow_call to file outside the workflows directory, but local to the repository.",
+    );
+    const workflowPath = join(ctx.repoDir, identifier);
+    return readFile(workflowPath, "utf-8");
+  }
+
+  log.debug(
+    "Found workflow_call to an external workflow. Will attempt to fetch and parse.",
+  );
+  const details = extractDetailsFromActionIdentifier(identifier);
+  if (!details) return;
+  const { owner, repo, repoPath, ref } = details;
+  return github.getFile(
+    ctx.octokit,
+    owner,
+    repo,
+    repoPath,
+    ref,
+  );
 }

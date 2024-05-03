@@ -40,7 +40,7 @@ export async function compileUpdates(
     for (const job of workflow.jobs) {
       log.debug(`Job: ${job.name}`);
 
-      for (const dependency of job.directDependencies) {
+      for (const dependency of job.dependencies) {
         allPromises.push(
           processActionDependency(ctx, dependency, workflow.path),
         );
@@ -142,19 +142,19 @@ function saveUpdateTransaction(
   innerRepoPath?: string,
 ) {
   const entry =   ctx.caches.updateTransactions
-    .getValueOrDefault(`${owner}/${repo}${innerRepoPath || ""}`, {
+  .getValueOrDefault(`${owner}/${repo}${innerRepoPath || ""}`, {
     identifiers: [],
-      references: [],
-      newVersion: {
-        sha: newRef,
-        version: newVersion,
-      },
+    references: [],
+    newVersion: {
+      sha: newRef,
+      version: newVersion,
+    },
   });
 
   entry.references.push({
-      file: filePath,
-      ref: existingRef,
-    });
+    file: filePath,
+    ref: existingRef,
+  });
 
   entry.identifiers.push(identifier);
 }

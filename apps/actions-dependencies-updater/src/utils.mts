@@ -38,8 +38,10 @@ export function validateRepositoryOrExit(repoDir: string) {
   }
 
   const workflowDir = join(repoDir, ".github", "workflows");
-  if(!existsSync(workflowDir)) {
-    log.info(`No workflows directory found: ${workflowDir} - nothing to check/update`);
+  if (!existsSync(workflowDir)) {
+    log.info(
+      `No workflows directory found: ${workflowDir} - nothing to check/update`,
+    );
     process.exit(0);
   }
 }
@@ -147,25 +149,22 @@ export async function getActionYamlPath(directory: string) {
 }
 
 export function compileDeprecatedPaths(workflowsByName: WorkflowByName) {
-  const deprecatedPaths: string[] = [];
+  const allDeprecatedPaths: string[] = [];
 
   for (const workflow of Object.values(workflowsByName)) {
     for (const job of workflow.jobs) {
-      for (const dependency of job.directDependencies) {
-        if (dependency.type === "node12" || dependency.type === "node16") {
-          deprecatedPaths.push(...createPathStrings(dependency));
-        }
-      }
-
-      for (const dependency of job.indirectDependencies ?? []) {
-        if (dependency.type === "node12" || dependency.type === "node16") {
-          deprecatedPaths.push(...createPathStrings(dependency));
-        }
-      }
+      const deprecatedPaths = job.dependencies
+        .filter(
+          (dependency) =>
+            dependency.type === "node12" || dependency.type === "node16",
+        )
+        .map(createPathStrings)
+        .flat();
+      allDeprecatedPaths.push(...deprecatedPaths);
     }
   }
 
-  const uniquePaths = Array.from(new Set(deprecatedPaths)).sort();
+  const uniquePaths = Array.from(new Set(allDeprecatedPaths)).sort();
   return uniquePaths;
 }
 

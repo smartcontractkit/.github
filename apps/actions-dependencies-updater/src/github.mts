@@ -242,7 +242,7 @@ export async function getActionFile(
   const ymlPath = join(repoPath, "action.yml");
   const yamlPath = join(repoPath, "action.yaml");
 
-  let actionFile = await getFileFromGithub(
+  let actionFile = await getFile(
     ctx.octokit,
     owner,
     repo,
@@ -250,7 +250,7 @@ export async function getActionFile(
     ref,
   );
   if (!actionFile) {
-    actionFile = await getFileFromGithub(
+    actionFile = await getFile(
       ctx.octokit,
       owner,
       repo,
@@ -261,7 +261,7 @@ export async function getActionFile(
   return actionFile;
 }
 
-async function getFileFromGithub(
+export async function getFile(
   octokit: Octokit,
   owner: string,
   repo: string,
@@ -269,10 +269,16 @@ async function getFileFromGithub(
   ref: string,
 ) {
   try {
+    if (path.startsWith("/")) path = path.substring(1);
+    if (path.startsWith("./")) path = path.substring(2);
+
+    if (path === "") {
+      log.warn("Empty path provided to github.getFile. Returning empty.");
+      return;
+    }
+
     log.debug(
-      `Getting file through Github - ${owner}/${repo}${
-        path !== "" ? "/" + path : ""
-      }@${ref}`,
+      `Getting file through Github - ${owner}/${repo}@${ref}, file: ${path}`,
     );
 
     const response = await octokit.rest.repos.getContent({
@@ -287,7 +293,7 @@ async function getFileFromGithub(
     }
     throw Error("No content found in getContent response");
   } catch (error: any) {
-    const requestPath = `${owner}/${repo}${path}@${ref}`;
+    const requestPath = `${owner}/${repo}/${path}@${ref}`;
     if (error.status) {
       log.warn(
         `Encountered Github Request Error while getting file - ${requestPath}. (${error.status} - ${error.message})`,
