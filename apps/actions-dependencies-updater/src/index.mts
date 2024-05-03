@@ -12,6 +12,7 @@ import 'dotenv/config';
 export interface RunContext {
   repoDir: string;
   debug: boolean;
+  skipChecks: boolean;
   skipUpdates: boolean;
   git: {
     branch: boolean;
@@ -30,6 +31,7 @@ function handleArgs() {
     commit: true,
     "force-refresh": false,
     "skip-updates": false,
+    "skip-checks": false,
   };
   const args = minimist(process.argv.slice(2), { default: defaults });
 
@@ -46,6 +48,7 @@ function handleArgs() {
     console.log(
       "  --skip-updates: Check for deprecated dependencies (node12/node16) but don't update them.",
     );
+    console.log("  --skip-checks: Skip checks for deprecated dependencies, only update dependencies to latest.")
     console.log("  --no-branch: Don't branch (local) the repository");
     console.log(
       "  --no-commit: Don't commit changes (local) to the repository",
@@ -70,6 +73,7 @@ function handleArgs() {
   return {
     repoDir,
     skipUpdates: args["skip-updates"] as boolean,
+    skipChecks: args["skip-checks"] as boolean,
     debug: args["debug"] as boolean,
     git: {
       branch: args["branch"] as boolean,
@@ -84,37 +88,42 @@ function handleArgs() {
 async function main() {
   log.section("Starting actions-dependencies-updater");
   const ctx = handleArgs();
-
   const { octokit, ...logCtx } = ctx;
   log.debug("Context: ", logCtx);
 
-  if (!ctx.skipUpdates) {
+  const { skipChecks, skipUpdates } = ctx;
+  if (skipChecks && skipUpdates) {
+    log.output("Checks and updates skipped - exiting.")
+    process.exit(0);
+  }
+
+  if (!skipUpdates) {
     log.section("Preparing repository");
     await git.prepareRepository(ctx);
   }
 
   log.section("Checking For Deprecated Dependencies");
   const workflowsByName = await parseWorkflows(ctx);
-  const deprecatedPaths = compileDeprecatedPaths(workflowsByName);
-  outputDeprecatedPaths(ctx, ctx.skipUpdates, deprecatedPaths);
 
-  log.section("Updating workflows");
-
-  await compileUpdates(ctx, workflowsByName);
-
-  if (Object.entries(ctx.caches.updateTransactions.get()).length === 0) {
-    log.info("No updates needed found.");
-    process.exit(deprecatedPaths.length > 0 ? 1 : 0);
+  if (!skipChecks) {
+    const deprecatedPaths = compileDeprecatedPaths(workflowsByName);
+    outputDeprecatedPaths(ctx, skipUpdates, deprecatedPaths);
   }
 
+  log.section("Updating workflows");
+  await compileUpdates(ctx, workflowsByName);
   await performUpdates(ctx);
 
   log.info("All workflows updated successfully.");
-  log.section("Double Checking For Deprecated Dependencies After Update");
 
-  const postUpdateWorkflowsByName = await parseWorkflows(ctx);
-  const postUpdateDeprecatedPaths = compileDeprecatedPaths(postUpdateWorkflowsByName);
-  outputDeprecatedPaths(ctx, true, postUpdateDeprecatedPaths);
+  if (!skipChecks) {
+    log.section("Double Checking For Deprecated Dependencies After Update");
+    const postUpdateWorkflowsByName = await parseWorkflows(ctx);
+    const postUpdateDeprecatedPaths = compileDeprecatedPaths(postUpdateWorkflowsByName);
+    outputDeprecatedPaths(ctx, true, postUpdateDeprecatedPaths);
+  }
+
+  persistCache(ctx);
 }
 
 function outputDeprecatedPaths(ctx: RunContext, shouldExit: boolean, deprecatedPaths: string[]) {

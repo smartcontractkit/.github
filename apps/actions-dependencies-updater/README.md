@@ -47,6 +47,7 @@ pnpm start --repo-dir=<path to repository>
 - If you're _not_ using `direnv` then you will need to export or inline the
   `GH_ACCESS_TOKEN` environment variable.
   - For example: `GH_ACCESS_TOKEN="<pat>" pnpm start ...`
+- If you start experiencing Github API rate-limits, try the `--skip-checks` flag
 
 ### Examples
 
@@ -62,3 +63,8 @@ pnpm start --repo-dir=<path to repository>
 
 - Only check for deprecated action dependencies, perform no updates
   - `pnpm start --repo-dir=/Users/user/repos/chainlink --skip-updates`
+
+- Only perform updates, don't check for deprecated dependencies
+  - `pnpm start --repo-dir=/Users/user/repos/chainlink --skip-checks`
+
+

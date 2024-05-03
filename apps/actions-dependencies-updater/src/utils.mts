@@ -58,7 +58,7 @@ export function guessLatestVersion(
 ) {
   let versions: VersionIdentifier[] = tags
     .map((tag) => parseTagToVersion(tag))
-    .filter((v) => v) as VersionIdentifier[];
+    .filter((v) => !!v) as VersionIdentifier[];
 
   // support for the .github monorepo
   if (repo === ".github" && repoPath) {
@@ -98,7 +98,7 @@ function parseTagToVersion(tag: string) {
   const coerced = semver.coerce(tag);
 
   if (!coerced) {
-    log.error(`Failed to parse version from tag: ${tag}`);
+    log.debug(`Failed to parse version from tag: ${tag}`);
     return;
   }
 

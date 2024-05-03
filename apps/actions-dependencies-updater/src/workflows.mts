@@ -148,7 +148,12 @@ async function parseJob(
   if ("uses" in jobDefinition) {
     log.debug("Found workflow call in job definition", jobDefinition.uses);
 
-    const dependencies = await parseWorkflowCall(ctx, workflow, jobKey, jobDefinition.uses);
+    const dependencies = await parseWorkflowCall(
+      ctx,
+      workflow,
+      jobKey,
+      jobDefinition.uses,
+    );
     return {
       name: jobKey,
       containingWorkflow: workflow,
@@ -170,10 +175,8 @@ async function parseJob(
   const actionIdentifiers = extractActionIdentifiersFromSteps(
     jobDefinition.steps,
   );
-
   const referencePath: ReferencePath = [workflow, jobKey];
-
-  const directDependencies = await parseDependenciesRecursive(
+  const dependencies = await parseDependenciesRecursive(
     ctx,
     referencePath,
     actionIdentifiers,
@@ -182,7 +185,7 @@ async function parseJob(
   return {
     name: jobKey,
     containingWorkflow: workflow,
-    dependencies: directDependencies,
+    dependencies: dependencies,
   };
 }
 
@@ -205,6 +208,11 @@ async function parseDependenciesRecursive(
   const dependencies = (await Promise.all(dependenciesPromise)).filter(
     (action) => !!action,
   ) as Action[];
+
+  if (ctx.skipChecks) {
+    // Don't recurse if we're skipping checks
+    return dependencies;
+  }
 
   const recursiveDependenciesPromise = dependencies.map(async (action) => {
     const newReferencePath = [...referencePath, action.identifier];
@@ -401,7 +409,10 @@ async function parseWorkflowCall(
   }
 
   const isLocalWorkflow = workflowIdentifier.startsWith("./");
-  const workflowString = await getWorkflowYamlFromIdentifier(ctx, workflowIdentifier);
+  const workflowString = await getWorkflowYamlFromIdentifier(
+    ctx,
+    workflowIdentifier,
+  );
   if (workflowString == null) {
     log.warn(
       `No contents found for workflow at ${workflowIdentifier}. Skipping.`,
@@ -418,14 +429,15 @@ async function parseWorkflowCall(
   const { jobs: jobDefinitions } = parsedFile;
 
   // only parse NormalJobs here, so we don't recurse further into other workflow_calls
-  const allNormalJobs = Object.entries(jobDefinitions)
-  .filter(([,jobDefinition]) => "steps" in jobDefinition) as [string, NormalJob][];
+  const allNormalJobs = Object.entries(jobDefinitions).filter(
+    ([, jobDefinition]) => "steps" in jobDefinition,
+  ) as [string, NormalJob][];
 
   const dependenciesPromises = allNormalJobs.map(([jobKey, jobDefinition]) => {
     // Find dependencies, but filter out actions that would be in a remote workflows
-    const uses = extractActionIdentifiersFromSteps(
-      jobDefinition.steps,
-    ).filter((identifier) => isLocalWorkflow || !identifier.startsWith("./"));
+    const uses = extractActionIdentifiersFromSteps(jobDefinition.steps).filter(
+      (identifier) => isLocalWorkflow || !identifier.startsWith("./"),
+    );
 
     return parseDependenciesRecursive(
       ctx,
@@ -441,7 +453,10 @@ async function parseWorkflowCall(
   return [...recursiveDependencies];
 }
 
-async function getWorkflowYamlFromIdentifier(ctx: RunContext, identifier: string) {
+async function getWorkflowYamlFromIdentifier(
+  ctx: RunContext,
+  identifier: string,
+) {
   if (identifier.startsWith("./")) {
     log.debug(
       "Found workflow_call to file outside the workflows directory, but local to the repository.",
@@ -456,11 +471,5 @@ async function getWorkflowYamlFromIdentifier(ctx: RunContext, identifier: string
   const details = extractDetailsFromActionIdentifier(identifier);
   if (!details) return;
   const { owner, repo, repoPath, ref } = details;
-  return github.getFile(
-    ctx.octokit,
-    owner,
-    repo,
-    repoPath,
-    ref,
-  );
+  return github.getFile(ctx.octokit, owner, repo, repoPath, ref);
 }
