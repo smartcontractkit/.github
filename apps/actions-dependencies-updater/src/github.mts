@@ -275,7 +275,7 @@ export async function getFile(
     if (path.startsWith("./")) path = path.substring(2);
 
     if (path === "") {
-      log.warn("Empty path provided to github.getFile. Returning empty.");
+      log.error("Empty path provided to github.getFile. Returning empty.");
       return;
     }
 
