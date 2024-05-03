@@ -86,9 +86,13 @@ type VersionIdentifier = NonNullable<ReturnType<typeof parseTagToVersion>>;
  * @returns The version object
  */
 function parseTagToVersion(tag: string) {
-  const originalTag = tag;
+  if (tag.startsWith("untagged-")) {
+    return;
+  }
 
+  const originalTag = tag;
   let prefix = "";
+
   if (tag.includes("@")) {
     const parts = tag.split("@");
     tag = parts[1];
@@ -96,7 +100,6 @@ function parseTagToVersion(tag: string) {
   }
 
   const coerced = semver.coerce(tag);
-
   if (!coerced) {
     log.debug(`Failed to parse version from tag: ${tag}`);
     return;
