@@ -42,11 +42,8 @@ export async function getVersionFromSHA(
   const GH_SHA_TO_VER_CACHE = ctx.caches.shaToVersion.get();
 
   if (!GH_SHA_TO_VER_CACHE[ownerRepo] || !GH_SHA_TO_VER_CACHE[ownerRepo][ref]) {
-    log.debug(`Cache miss for ${owner}/${repo}@${ref}`);
-    return await getVersion(ctx, owner, repo, ref);
+    addToCache(ctx, ownerRepo, ref, await getVersion(ctx, owner, repo, ref));
   }
-
-  log.debug(`Cache hit for ${owner}/${repo}@${ref}`);
 
   if (repo === ".github" && repoPath) {
     const actionName = repoPath.split("/").pop();
@@ -54,9 +51,7 @@ export async function getVersionFromSHA(
       const monorepoVersions = GH_SHA_TO_VER_CACHE[ownerRepo][ref].filter((v) =>
         v.startsWith(actionName),
       );
-      if (monorepoVersions.length > 0) {
-        return guessLatestVersion(monorepoVersions).tag;
-      }
+      return monorepoVersions[0];
     }
   }
 
