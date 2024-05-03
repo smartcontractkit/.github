@@ -27,8 +27,8 @@ export interface Action {
   name: string;
   identifier: ActionIdentifier;
   referencePaths: ReferencePath[];
-  type: ActionSchema["runs"]["using"];
-  dependencies: ActionIdentifier[];
+  type: ActionSchema["runs"]["using"] | "unknown"
+  dependencies?: ActionIdentifier[];
   isLocal: boolean;
 }
 
@@ -202,9 +202,11 @@ async function parseJob(
 async function parseDependenciesRecursive(
   ctx: RunContext,
   referencePath: ReferencePath,
-  identifiers: string[],
+  identifiers: string[] | undefined,
   isDirectDependency: boolean,
 ): Promise<Action[]> {
+  if (!identifiers) return [];
+
   const dependenciesPromise = identifiers.map((identifier) =>
     parseActionFromIdentifier(ctx, referencePath, identifier, isDirectDependency),
   );
@@ -213,13 +215,7 @@ async function parseDependenciesRecursive(
     (action) => !!action,
   ) as Action[];
 
-  // Only recurse into local actions only, if skipping checks, as local
-  // actions are the only ones that can be updated, and contain direct dependencies.
-  // Updating only requires direct dependencies to be processed.
-  // Remote actions do not need to be processed if only updating.
-  const dependenciesToProcess = !ctx.skipChecks ? dependencies : dependencies.filter((action) => action.isLocal);
-
-  const recursiveDependenciesPromise = dependenciesToProcess.map(async (action) => {
+  const recursiveDependenciesPromise = dependencies.map(async (action) => {
     const newReferencePath = [...referencePath, action.identifier];
     return parseDependenciesRecursive(
       ctx,
@@ -258,18 +254,33 @@ async function parseActionFromIdentifier(
     return action;
   }
 
-  const actionYamlContents = await getActionYamlFromIdentifier(ctx, identifier);
-  if (actionYamlContents == null) {
-    log.warn(`Empty action YAML contents found for ${identifier}. Skipping.`);
-    return;
-  }
+  const isLocalAction = identifier.startsWith("./");
+  let action: Action | undefined;
 
-  ctx.debug.actions++;
-  const action = await parseActionFile(
-    identifier,
-    referencePath,
-    actionYamlContents,
-  );
+  // If skipping checks, don't process remote actions, as they are not updated.
+  if (ctx.skipChecks && !isLocalAction) {
+    log.debug(`Skipping remote action ${identifier} due to skipChecks`);
+    action = {
+      name: identifier,
+      identifier,
+      referencePaths: [referencePath],
+      type: "unknown",
+      isLocal: false,
+    };
+  } else {
+    const actionYamlContents = await getActionYamlFromIdentifier(ctx, identifier);
+    if (actionYamlContents == null) {
+      log.warn(`Empty action YAML contents found for ${identifier}. Skipping.`);
+      return;
+    }
+
+    action = await parseActionFile(
+      ctx,
+      identifier,
+      referencePath,
+      actionYamlContents,
+    );
+  }
 
   // Cache the parsed action
   ctx.caches.actionsByIdentifier.set(identifier, action);
@@ -282,10 +293,12 @@ async function parseActionFromIdentifier(
  * Given a string of the action YAML, parses the action and returns the action object.
  */
 async function parseActionFile(
+  ctx: RunContext,
   identifier: string,
   referencePath: ReferencePath,
   actionYamlString: string,
 ): Promise<Action> {
+  ctx.debug.actions++;
   const action = YAML.parse(actionYamlString) as ActionSchema;
 
   log.debug(`${identifier} is a ${action?.runs?.using} action.`);

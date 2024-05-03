@@ -74,7 +74,7 @@ async function processActionDependency(
       join(ctx.repoDir, currentAction.identifier),
     );
 
-    if (!actionPath) {
+    if (!actionPath || !currentAction.dependencies) {
       return;
     }
 
