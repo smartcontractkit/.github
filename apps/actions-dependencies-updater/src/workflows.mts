@@ -29,6 +29,7 @@ export interface Action {
   referencePaths: ReferencePath[];
   type: ActionSchema["runs"]["using"];
   dependencies: ActionIdentifier[];
+  isLocal: boolean;
 }
 
 /**
@@ -181,6 +182,7 @@ async function parseJob(
     ctx,
     referencePath,
     actionIdentifiers,
+    true,
   );
 
   return {
@@ -201,9 +203,10 @@ async function parseDependenciesRecursive(
   ctx: RunContext,
   referencePath: ReferencePath,
   identifiers: string[],
+  isDirectDependency: boolean,
 ): Promise<Action[]> {
   const dependenciesPromise = identifiers.map((identifier) =>
-    parseActionFromIdentifier(ctx, referencePath, identifier),
+    parseActionFromIdentifier(ctx, referencePath, identifier, isDirectDependency),
   );
 
   const dependencies = (await Promise.all(dependenciesPromise)).filter(
@@ -221,6 +224,7 @@ async function parseDependenciesRecursive(
       ctx,
       newReferencePath,
       action.dependencies,
+      action.isLocal,
     );
   });
 
@@ -237,6 +241,7 @@ async function parseActionFromIdentifier(
   ctx: RunContext,
   referencePath: ReferencePath,
   identifier: string,
+  isDirectDependency: boolean,
 ): Promise<Action | undefined> {
   if (ctx.caches.actionsByIdentifier.exists(identifier)) {
     log.debug(
@@ -246,6 +251,9 @@ async function parseActionFromIdentifier(
 
     const action = ctx.caches.actionsByIdentifier.getValue(identifier);
     action.referencePaths.push(referencePath);
+
+    const cachedIsDirectDependency = ctx.caches.directActionsDependencies.getValueOrDefault(identifier, false);
+    ctx.caches.directActionsDependencies.set(identifier, isDirectDependency || cachedIsDirectDependency);
     return action;
   }
 
@@ -267,6 +275,31 @@ async function parseActionFromIdentifier(
 
   return action;
 }
+
+/**
+ * Given a string of the action YAML, parses the action and returns the action object.
+ */
+async function parseActionFile(
+  identifier: string,
+  referencePath: ReferencePath,
+  actionYamlString: string,
+): Promise<Action> {
+  const action = YAML.parse(actionYamlString) as ActionSchema;
+
+  log.debug(`${identifier} is a ${action?.runs?.using} action.`);
+  const isLocal = identifier.startsWith("./");
+  const stepUsages = action?.runs?.using === "composite" ? extractActionIdentifiersFromSteps(action.runs.steps) : [];
+
+  return {
+    name: action.name,
+    identifier: identifier,
+    type: "composite",
+    dependencies: stepUsages,
+    referencePaths: [referencePath],
+    isLocal,
+  };
+}
+
 
 /**
  * Given an action identifier, returns the action YAML string. This can be a local action (reads from disk) or an external action (fetches from github).
@@ -327,49 +360,11 @@ async function getActionYamlFromIdentifier(
 }
 
 /**
- * Given a string of the action YAML, parses the action and returns the action object.
- */
-async function parseActionFile(
-  identifier: string,
-  referencePath: ReferencePath,
-  actionYamlString: string,
-): Promise<Action> {
-  const action = YAML.parse(actionYamlString) as ActionSchema;
-
-  log.debug(`${identifier} is a ${action.runs.using} action.`);
-  if (action.runs.using === "composite") {
-    const stepUsages = extractActionIdentifiersFromSteps(action.runs.steps);
-    return {
-      name: action.name,
-      identifier: identifier,
-      type: "composite",
-      dependencies: stepUsages,
-      referencePaths: [referencePath],
-    };
-  } else if (action.runs.using.startsWith("node")) {
-    return {
-      name: action.name,
-      identifier: identifier,
-      type: action.runs.using,
-      dependencies: [],
-      referencePaths: [referencePath],
-    };
-  } else {
-    return {
-      name: action.name,
-      identifier: identifier,
-      type: "docker",
-      dependencies: [],
-      referencePaths: [referencePath],
-    };
-  }
-}
-
-/**
  * Extracts the owner, repo, repoPath and ref from an action identifier for an external action
  */
 export function extractDetailsFromActionIdentifier(identifier: string) {
   if (identifier.startsWith("docker:") || identifier.startsWith("./")) {
+    // not referencing an external reusable action
     return;
   }
 
@@ -445,6 +440,7 @@ async function parseWorkflowCall(
       ctx,
       [containingWorkflow, containingJob, workflowIdentifier, jobKey],
       uses,
+      isLocalWorkflow,
     );
   });
 

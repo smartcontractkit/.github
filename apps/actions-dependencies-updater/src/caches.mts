@@ -17,6 +17,12 @@ export function initialize(forceRefresh: boolean) {
       "actions-by-identifier.json",
       forceRefresh,
     ),
+    directActionsDependencies: new Cache<Record<string, boolean>>(
+      false,
+      "direct-actions-dependencies.json",
+      true,
+      {},
+    ),
     updateTransactions: new Cache<UpdateTransaction>(
       false,
       `updates-transactions.json`,

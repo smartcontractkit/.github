@@ -82,6 +82,11 @@ async function processActionDependency(
     return Promise.all(dependenciesPromises).then(() => {});
   }
 
+  if (!ctx.caches.directActionsDependencies.getValue(action.identifier)) {
+    log.debug(`Skipping indirect dependency: ${action.identifier}`);
+    return;
+  }
+
   const details = extractDetailsFromActionIdentifier(action.identifier);
   if (!details) {
     log.warn(`Unexpected action identifier: ${action.identifier} - skipping.`);
