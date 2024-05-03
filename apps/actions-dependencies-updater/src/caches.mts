@@ -2,6 +2,7 @@ import * as log from "./logger.mjs";
 import { GithubShaToVersionCache } from "./github.mjs";
 import { UpdateTransaction } from "./updater.mjs";
 import { ActionsByIdentifier } from "./workflows.mjs";
+import { isShaRefIdentifier } from "./utils.mjs";
 
 import { join } from "node:path";
 
@@ -30,6 +31,28 @@ export function initialize(forceRefresh: boolean) {
       {},
     ),
   };
+}
+
+export function cleanup(caches: ReturnType<typeof initialize>) {
+  // Clear part of the actionsByIdentifier cache before persisting
+  // 1. Delete local actions as they could clash across repos with the same filenames (not unique)
+  // 2. Delete any actions that are not sha references as the contents could change (ref not immutable)
+  // 3. Delete actions with type unknown as they were not fully processed, and should no be cached.
+  // 4. Clear reference paths as they could clash between checks in same or other repos
+  const actionsByIdentifier = caches.actionsByIdentifier.get();
+  Object.keys(actionsByIdentifier).forEach((key) => {
+    const action = actionsByIdentifier[key];
+    if (action.isLocal || action.type === "unknown" || !isShaRefIdentifier(action.identifier)) {
+      log.debug(`Clearing ${key} from cache`);
+      return delete actionsByIdentifier[key];
+    }
+    actionsByIdentifier[key].referencePaths = [];
+  });
+}
+
+export function persistAll(caches: ReturnType<typeof initialize>) {
+  cleanup(caches);
+  Object.values(caches).forEach((cache) => cache.save());
 }
 
 class Cache<T extends Record<string, any>> {
