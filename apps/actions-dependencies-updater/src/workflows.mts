@@ -267,7 +267,7 @@ async function parseActionFromIdentifier(
   let action: Action | undefined;
 
   // If skipping checks, don't process remote actions, as they are not updated.
-  if (ctx.skipChecks && !isLocalAction) {
+  if (!ctx.performChecks && !isLocalAction) {
     log.debug(`Skipping remote action ${identifier} due to skipChecks`);
     action = {
       name: identifier,
