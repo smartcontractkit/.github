@@ -6,8 +6,6 @@ $.verbose = false;
 
 export async function prepareRepository(ctx: RunContext) {
   await performInDir(ctx.repoDir, async () => {
-    const defaultBranch = await getDefaultBranch();
-    log.debug(`Default branch: ${defaultBranch}`);
 
     if (ctx.git.reset) {
       await $`git reset --hard HEAD`;
@@ -23,6 +21,9 @@ export async function prepareRepository(ctx: RunContext) {
       log.debug("Skipping branch (no-branch flag set)");
       return;
     }
+
+    const defaultBranch = await getDefaultBranch();
+    log.debug(`Default branch: ${defaultBranch}`);
 
     await $`git fetch --all`;
     await $`git checkout ${defaultBranch}`;

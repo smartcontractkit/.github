@@ -29,6 +29,7 @@
     "@types/minimist": "^1.2.2",
     "@types/node": "^20.12.7",
     "@types/semver": "^7.5.8",
-    "ts-node": "10.9.2"
+    "ts-node": "10.9.2",
+    "vitest": "^1.6.0"
   }
 }

@@ -138,6 +138,10 @@ jobs:
         shell: bash
         run: pnpm nx run actions-dependencies-updater:typecheck
 
+      - name: Run unit tests for actions-dependencies-updater
+        shell: bash
+        run: pnpm nx run actions-dependencies-updater:test
+
 
   validate-worfklow-changes:
     permissions:

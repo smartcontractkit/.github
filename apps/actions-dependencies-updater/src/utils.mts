@@ -89,7 +89,7 @@ type VersionIdentifier = NonNullable<ReturnType<typeof parseTagToVersion>>;
  * @param tag The tag to parse
  * @returns The version object
  */
-function parseTagToVersion(tag: string) {
+export function parseTagToVersion(tag: string) {
   const originalTag = tag;
 
   let prefix = "";
