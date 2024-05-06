@@ -116,6 +116,20 @@ jobs:
           gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
           gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
 
+  ci-actions-dependencies-updater:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo (needed to reference local action)
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+
+      - name: Setup pnpm
+        uses: ./actions/setup-nodejs
+
+      - name: Run typecheck for actions-dependencies-updater
+        shell: bash
+        run: pnpm nx run actions-dependencies-updater:typecheck
+
+
   validate-worfklow-changes:
     permissions:
       contents: read
