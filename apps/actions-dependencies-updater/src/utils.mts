@@ -1,7 +1,6 @@
 import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
-import * as semver from "semver";
 
 import * as log from "./logger.mjs";
 import { Action, WorkflowByName } from "./workflows.mjs";
@@ -73,9 +72,14 @@ export function guessLatestVersion(
     }
   }
 
-  // Sort the versions ascending
-  versions.sort((a, b) => semver.compare(a.version, b.version));
-  return versions[versions.length - 1];
+  // Sort the versions by comparing major, minor, and patch numbers
+  const filteredSortedVersions = versions.filter(v => (!v.prerelease)).sort((a, b) => {
+    if (a.major !== b.major) return a.major - b.major;
+    if (a.minor !== b.minor) return a.minor - b.minor;
+    return a.patch - b.patch;
+  });
+
+  return filteredSortedVersions[filteredSortedVersions.length - 1];
 }
 
 type VersionIdentifier = NonNullable<ReturnType<typeof parseTagToVersion>>;
@@ -86,33 +90,33 @@ type VersionIdentifier = NonNullable<ReturnType<typeof parseTagToVersion>>;
  * @returns The version object
  */
 function parseTagToVersion(tag: string) {
-  if (tag.startsWith("untagged-")) {
-    return;
-  }
-
   const originalTag = tag;
-  let prefix = "";
 
+  let prefix = "";
   if (tag.includes("@")) {
     const parts = tag.split("@");
     tag = parts[1];
     prefix = parts[0];
   }
 
-  const coerced = semver.coerce(tag);
-  if (!coerced) {
-    log.debug(`Failed to parse version from tag: ${tag}`);
-    return;
+  // ^ - start of line
+  // v? - optional 'v'
+  // (\d+) - major version
+  // (?:\.(\d+))? - optional minor version
+  // (?:\.(\d+))? - optional patch version
+  const versionRegex = /^v?(\d+)(?:\.(\d+))?(?:\.(\d+))?/;
+  const isPrerelease = tag.includes("beta") || tag.includes("alpha");
+
+  const match = tag.match(versionRegex);
+  if (match) {
+    const major = match[1];
+    const minor = match[2] || '0'; // Default to '0' if not present
+    const patch = match[3] || '0'; // Default to '0' if not present
+
+    return { major: parseInt(major), minor: parseInt(minor), patch: parseInt(patch), prefix: prefix, tag: originalTag, prerelease: isPrerelease};
   }
 
-  return {
-    major: coerced.major,
-    minor: coerced.minor,
-    patch: coerced.patch,
-    version: coerced.version,
-    prefix: prefix,
-    tag: originalTag,
-  };
+  return { major: 0, minor: 0, patch: 0, prefix: 'v', tag: 'error', prerelease: true };
 }
 
 /**
