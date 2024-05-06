@@ -329,7 +329,7 @@ async function parseActionFile(
   return {
     name: action.name,
     identifier: identifier,
-    type: "composite",
+    type: action.runs?.using ?? "unknown",
     dependencies: stepUsages,
     referencePaths: [referencePath],
     isLocal,
