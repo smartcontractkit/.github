@@ -10,16 +10,13 @@ set -euo pipefail
 # Run this in the root of your git repository.
 # This expects:
 # - a full clone of the repository.
-# - GH_TOKEN with permission to read/write to the repository.
+# - GH_TOKEN with these permission (can be set on the GHA workflow `permissions` field):
+#   - contents: write
+#   - pull-requests: write
 # 
 # Usage:
-#   export GH_TOKEN=$(cat ~/.github_token) # *
+#   export GITHUB_TOKEN=$(cat ~/.github_token) # or make it available from GitHub Actions secret.
 #   DRY_RUN=false BRANCHES_TO_KEEP=develop,main BRANCH_PREFIXES_TO_KEEP=release/,hotfix/ ./cleanup_branch.sh
-#
-# * GitHub Actions prevents the default secrets.GITHUB_TOKEN from being used to delete branches,
-#   even if with contents: write access. You must use a personal access token, fine-grained personal
-#   access token, or a GitHub App installation token with the necessary permissions. Set this token
-#   as the GH_TOKEN env var.
 ##
 
 # Define branches that should absolutely be kept (not deleted) here.
@@ -41,6 +38,8 @@ now=$(date +%s)
 section_delimiter="######################################"
 # Define a global array to hold open PR branches.
 declare -a OPEN_PR_BRANCHES=()
+# Define a global array to hold protected branches.
+declare -a PROTECTED_BRANCHES=()
 
 if [[ -z "${GH_TOKEN:-}" ]]; then
   echo "::error::GH_TOKEN environment variable is required. Exiting..."
@@ -76,6 +75,19 @@ echo "DRY_RUN: $DRY_RUN"
 echo "GIT_REMOTE: $GIT_REMOTE"
 echo "${section_delimiter}"
 echo
+
+function get_protected_branches() {
+  local response
+  # Clear global array before filling it.
+  PROTECTED_BRANCHES=()
+
+  response=$(gh api repos/:owner/:repo/branches \
+    --paginate -q '.[] | select(.protected == true) | .name')
+  echo "::debug::Protected branches: $response"
+
+  # Read the branch names into the array
+  readarray -t PROTECTED_BRANCHES <<< "$response"
+}
 
 # Check if the branch should be kept.
 # Returns: (zero for success, non-zero for failure)
@@ -115,6 +127,14 @@ function should_keep_branch() {
     fi
   done
 
+  # Loop through each protected branch to check if the branch is protected.
+  for protected_branch in "${PROTECTED_BRANCHES[@]}"; do
+    if [[ "$protected_branch" == "$branch" ]]; then
+      echo "$branch is a protected branch, preserving."
+      return 0
+    fi
+  done
+
   # If the branch is the default branch, keep it.
   if [[ "$branch" == "$default_branch" ]]; then
     echo "$branch is the default branch, preserving."
@@ -135,7 +155,7 @@ function fetch_open_pr_branches() {
   # Clear global array before filling it.
   OPEN_PR_BRANCHES=()
   # Initialize cursor for pagination.
-  end_cursor=""
+  local end_cursor=""
 
   # Loop to fetch all pages of pull requests.
   while :; do
@@ -187,6 +207,8 @@ function fetch_open_pr_branches() {
   done
 }
 
+# Populate the PROTECTED_BRANCHES array.
+get_protected_branches
 # Populates the OPEN_PR_BRANCHES array.
 fetch_open_pr_branches
 
