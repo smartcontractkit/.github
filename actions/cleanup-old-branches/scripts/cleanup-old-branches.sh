@@ -131,9 +131,6 @@ function should_keep_branch() {
 }
 
 # Get list of head/feature branches that are associated with open pull requests.
-# XXX: Would have preferred to use this:
-#   gh pr list --state open --json headRefName --jq '.[].headRefName'
-# But it had a hard maximum of PR's and does not currently support pagination.
 function fetch_open_pr_branches() {
   # Clear global array before filling it.
   OPEN_PR_BRANCHES=()
