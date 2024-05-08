@@ -103,6 +103,11 @@ function should_keep_branch() {
   IFS=',' read -r -a branches_to_keep <<< "$BRANCHES_TO_KEEP"
   IFS=',' read -r -a prefixes_to_keep <<< "$BRANCH_PREFIXES_TO_KEEP"
 
+  if [[ "$branch" == "HEAD" ]]; then
+    echo "$branch is HEAD, preserving."
+    return 0
+  fi
+
   # Loop through exact branches to keep.
   for kept_branch in "${branches_to_keep[@]}"; do
     if [[ "$branch" == "$kept_branch" ]]; then
