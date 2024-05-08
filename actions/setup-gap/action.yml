@@ -267,7 +267,7 @@ runs:
 
     - name: Setup argocd
       if: inputs.use-argocd == 'true'
-      uses: clowdhaus/argo-cd-action@6468ae064525e6a8adade0703b880b50912ab685 # v2.0.0
+      uses: clowdhaus/argo-cd-action@37930175539236e14b9fa92a88251f4f0ca2808b # v2.1.0
       with:
         command: version
         options: --client
