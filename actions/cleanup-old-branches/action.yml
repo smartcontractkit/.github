@@ -1,0 +1,58 @@
+name: Cleanup Old Branches
+description: Deletes old branches that match certain criteria.
+inputs:
+  branch-days-to-keep:
+    description: "Number of days to keep branches"
+    required: true
+    default: "90"
+  branch-prefixes-to-keep:
+    description: "Comma separated list of branch prefixes to keep"
+    required: false
+    # Example:
+    #   branch-prefixes-to-keep: 'release/,feature/'
+  # XXX: The default branch is already kept.
+  branches-to-keep:
+    description: "Comma separated list of branches to keep"
+    required: false
+    # Example:
+    #   branches-to-keep: 'main,develop'
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "false"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+  dry-run:
+    description: "Dry run mode. Set to `false` to delete branches."
+    required: false
+    default: "true"
+  gh-token:
+    description: |
+      GitHub token. Must be a personal access token (PAT), fine-grained personal access token (FPAT),
+      or GitHub App installation token.
+
+      Required permissions:
+        - `contents: write` to delete the branches.
+        - `pull-requests: read` to get the PR's for their open branches.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Cleanup Old Branches
+      shell: bash
+      env:
+        BRANCHES_TO_KEEP: ${{ inputs.branch-days-to-keep }}
+        BRANCH_PREFIXES_TO_KEEP: ${{ inputs.branch-prefixes-to-keep }}
+        DAYS_TO_KEEP: ${{ inputs.branch-days-to-keep }}
+        DRY_RUN: ${{ inputs.dry-run }}
+        GH_TOKEN: ${{ inputs.gh-token }}
+      run: ${{ github.action_path }}/scripts/cleanup-old-branches.sh

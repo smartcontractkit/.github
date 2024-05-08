@@ -1,0 +1,11 @@
+{
+  "name": "cleanup-old-branches",
+  "version": "0.0.0",
+  "description": "Cleans up old branches in a GitHub repository.",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}
