@@ -30,8 +30,7 @@ inputs:
     default: "true"
   gh-token:
     description: |
-      GitHub token. Must be a personal access token (PAT), fine-grained personal access token (FPAT),
-      or GitHub App installation token.
+      GitHub token.
 
       Required permissions:
         - `contents: write` to delete the branches.
