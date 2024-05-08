@@ -5,7 +5,9 @@ set -euo pipefail
 # Cleans up stale branches on a GitHub repository. Generally this should be
 # invoked from a CI/CD pipelines via GitHub Actions.
 #
-# This does not delete the default branch.
+# This does not delete the default branch or any protected branches.
+# It also keeps branches that are associated with open pull requests and
+# branches with commits newer than a certain threshold.
 #
 # Run this in the root of your git repository.
 # This expects:
@@ -15,7 +17,7 @@ set -euo pipefail
 #   - pull-requests: write
 # 
 # Usage:
-#   export GITHUB_TOKEN=$(cat ~/.github_token) # or make it available from GitHub Actions secret.
+#   export GH_TOKEN=$(cat ~/.github_token) # or make it available from a GitHub Actions secret.
 #   DRY_RUN=false BRANCHES_TO_KEEP=develop,main BRANCH_PREFIXES_TO_KEEP=release/,hotfix/ ./cleanup_branch.sh
 ##
 
@@ -45,16 +47,6 @@ if [[ -z "${GH_TOKEN:-}" ]]; then
   echo "::error::GH_TOKEN environment variable is required. Exiting..."
   exit 1
 fi
-
-if [[ -z "${GITHUB_REPOSITORY:-}" ]]; then
-  GITHUB_REPOSITORY=$(gh repo view --json 'nameWithOwner' --jq '.nameWithOwner')
-fi
-
-if [[ -z "${GITHUB_REPOSITORY_OWNER:-}" ]]; then
-  GITHUB_REPOSITORY_OWNER=$(echo "$GITHUB_REPOSITORY" | cut -d'/' -f1)
-fi
-
-GITHUB_REPOSITORY_NAME=$(echo "$GITHUB_REPOSITORY" | cut -d'/' -f2)
 
 # Fetch latest changes from origin.
 git fetch --prune "${GIT_REMOTE}"
@@ -156,66 +148,25 @@ function should_keep_branch() {
 }
 
 # Get list of head/feature branches that are associated with open pull requests.
-function fetch_open_pr_branches() {
+function get_open_pr_branches() {
   # Clear global array before filling it.
   OPEN_PR_BRANCHES=()
-  # Initialize cursor for pagination.
-  local end_cursor=""
+  local pr_branch_names
+  # 1,000 PRs is the hard limit.
+  pr_branch_names=$(gh pr list --state open \
+    --json headRefName --jq '.[].headRefName' --limit 1000)
+  readarray -t OPEN_PR_BRANCHES <<< "${pr_branch_names}"
 
-  # Loop to fetch all pages of pull requests.
-  while :; do
-    # Fetch current batch of PRs and update cursor.
-    response=$(gh api graphql -f query="
-      query(\$endCursor: String) {
-          repository(owner: \"$GITHUB_REPOSITORY_OWNER\", name:\"$GITHUB_REPOSITORY_NAME\") {
-              pullRequests(states: OPEN, first: 100, after: \$endCursor) {
-                  nodes {
-                      headRefName
-                  }
-                  pageInfo {
-                      hasNextPage
-                      endCursor
-                  }
-              }
-          }
-      }" -f endCursor="$end_cursor" --paginate)
-    
-    # Check if there are PR branches to process.
-    if ! echo "${response}" | jq -e '.data.repository.pullRequests.nodes | length > 0' >/dev/null; then
-        echo "::debug::No PR branches found in the current fetch."
-    else
-        # Append PR head branch names to the OPEN_PR_BRANCHES array.
-        while IFS= read -r line; do
-            OPEN_PR_BRANCHES+=("$line")
-        done < <(echo "$response" | jq -r '.data.repository.pullRequests.nodes[].headRefName')
-    fi
-
-    head_branch_names=$(echo "$response" | jq -r '.data.repository.pullRequests.nodes[].headRefName')
-    readarray -t OPEN_PR_BRANCHES <<< "$head_branch_names"
-
-    # Print the current batch of PR branches.
-    if [ "${#OPEN_PR_BRANCHES[@]}" -gt 0 ]; then
-      echo "::debug::Current batch of PR Branches: ${OPEN_PR_BRANCHES[*]}"
-    else
-      echo "::debug::No PR branches to display."
-    fi
-
-    # Check if there are more pages.
-    has_next_page=$(echo "$response" | jq -r '.data.repository.pullRequests.pageInfo.hasNextPage')
-    if [[ "${has_next_page}" == "false" ]]; then
-      echo "::debug::No more pages to fetch on fetch_open_pr_branches()."
-      break
-    fi
-
-    # Update cursor for next page
-    end_cursor=$(echo "$response" | jq -r '.data.repository.pullRequests.pageInfo.endCursor')
-  done
+  if [[ "${#OPEN_PR_BRANCHES[@]}" -eq 1000 ]]; then
+    echo "::error::Too many open PR Branches. Limit of 1,000 open PRs reached: ${OPEN_PR_BRANCHES[*]}"
+    exit 1
+  fi
 }
 
 # Populate the PROTECTED_BRANCHES array.
 get_protected_branches
 # Populates the OPEN_PR_BRANCHES array.
-fetch_open_pr_branches
+get_open_pr_branches
 
 # Loop through each remote branch.
 git for-each-ref --format='%(refname) %(committerdate:raw)' "refs/remotes/${GIT_REMOTE}/" | while read -r line; do
