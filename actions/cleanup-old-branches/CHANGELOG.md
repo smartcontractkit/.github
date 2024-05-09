@@ -1,5 +1,14 @@
 # cleanup-old-branches
 
+## 0.2.1
+
+### Patch Changes
+
+- [#379](https://github.com/smartcontractkit/.github/pull/379)
+  [`95fe029`](https://github.com/smartcontractkit/.github/commit/95fe029bdb1d9b3636c65dd59812ee1560ed59a3)
+  Thanks [@chainchad](https://github.com/chainchad)! - Fix bug using the wrong
+  input
+
 ## 0.2.0
 
 ### Minor Changes
