@@ -49,7 +49,7 @@ runs:
     - name: Cleanup Old Branches
       shell: bash
       env:
-        BRANCHES_TO_KEEP: ${{ inputs.branch-days-to-keep }}
+        BRANCHES_TO_KEEP: ${{ inputs.branches-to-keep }}
         BRANCH_PREFIXES_TO_KEEP: ${{ inputs.branch-prefixes-to-keep }}
         DAYS_TO_KEEP: ${{ inputs.branch-days-to-keep }}
         DRY_RUN: ${{ inputs.dry-run }}
