@@ -127,10 +127,6 @@ runs:
     - name: Setup golangci-lint
       uses: golangci/golangci-lint-action@a4f60bb28d35aeee14e6880718e0c85ff1882e64 # v6.0.1
       with:
-        # We already cache these directories in setup-go if we have
-        # use-go-cache set to true
-        skip-pkg-cache: ${{ inputs.use-go-cache }}
-        skip-build-cache: ${{ inputs.use-go-cache }}
         version: ${{ inputs.golangci-lint-version }}
         args: ${{ inputs.golangci-lint-args }}
         working-directory: ${{ inputs.go-directory }}
