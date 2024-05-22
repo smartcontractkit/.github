@@ -114,8 +114,11 @@ runs:
         diff_command="git diff -W origin/\$(gh pr view --json baseRefName | jq -r '.baseRefName')...HEAD -- ${{ steps.filter.outputs.exclude_filter }}"
         diff_output=$(eval $diff_command)
         
+        # get the PR title
+        pr_title=$(gh pr view --json title | jq -r '.title')
+        printf "PR TITLE: $pr_title\\\n\\\n\\\n" > diff_output.txt
         # escape all special characters and prepare for json with jq
-        echo "$diff_output" | jq -Rs . | sed 's/^"//;s/"$//' > diff_output.txt
+        echo "$diff_output" | jq -Rs . | sed 's/^"//;s/"$//' >> diff_output.txt
 
     - name: Call ChatGPT
       if: ${{ env.SKIP_ACTION == 'false' }}
