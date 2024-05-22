@@ -124,12 +124,12 @@ runs:
       if: ${{ env.SKIP_ACTION == 'false' }}
       shell: bash
       run: |
-        diff_output=$(cat diff_output.txt)
-        openai_prompt=$(cat pr_writer_actions/actions/llm-pr-writer/pr-writer-prompt.md)
+        diff_output=$(cat diff_output.txt | sed -e 's/\\ No newline at end of file//g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
+        openai_prompt=$(cat pr_writer_actions/actions/llm-pr-writer/pr-writer-prompt.md | sed 's/"/\\"/g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
         openai_model=${{ inputs.openai-model }}
         openai_result=$(echo '{
           "model": "'$openai_model'",
-          "temperature": 0.7,
+          "temperature": 0.1,
           "messages": [
             {
               "role": "system",
