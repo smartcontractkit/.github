@@ -1,5 +1,16 @@
 # ci-lint-go
 
+## 0.2.3
+
+### Patch Changes
+
+- [#390](https://github.com/smartcontractkit/.github/pull/390)
+  [`209275f`](https://github.com/smartcontractkit/.github/commit/209275fd2e35335a386254fae9a8a8f3ad413206)
+  Thanks
+  [@app-token-issuer-releng-renovate](https://github.com/apps/app-token-issuer-releng-renovate)! -
+  Bump golangci/golangci-lint-action to v6.0.1 and remove `skip-pkg-cache` and
+  `skip-build-cache` as inputs from the action.
+
 ## 0.2.2
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # llm-pr-writer
 
+## 0.4.0
+
+### Minor Changes
+
+- [#404](https://github.com/smartcontractkit/.github/pull/404)
+  [`b4e0a31`](https://github.com/smartcontractkit/.github/commit/b4e0a318c9d2c55b0be535af2c8871509d77caac)
+  Thanks [@kalanyuz](https://github.com/kalanyuz)! - new features: allows PR
+  title to affect content. QoL improvements: shorter, more concise summary.
+
 ## 0.3.1
 
 ### Patch Changes
