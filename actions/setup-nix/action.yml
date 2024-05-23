@@ -114,7 +114,7 @@ runs:
           substituters = https://cache.nixos.org https://nix-community.cachix.org ${{ inputs.cache-url }}
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= ${{ inputs.cache-pubkey }}
 
-    - uses: cachix/cachix-action@18cf96c7c98e048e10a83abd92116114cd8504be # v14
+    - uses: cachix/cachix-action@ad2ddac53f961de1989924296a1f236fcfbaa4fc # v15
       if: inputs.enable-cachix == 'true'
       with:
         name: ${{ inputs.cachix-name }}
