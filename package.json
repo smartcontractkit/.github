@@ -2,6 +2,9 @@
   "name": "dot-github",
   "version": "0.1.0",
   "license": "MIT",
+  "engines": {
+    "pnpm": "9"
+  },
   "scripts": {
     "prettier:check": "prettier --check **/*.{json,md} --ignore-path=.prettierignore",
     "prettier:write": "prettier --write **/*.{json,md} --ignore-path=.prettierignore",
