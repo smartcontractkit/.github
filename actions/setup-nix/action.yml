@@ -25,7 +25,7 @@ inputs:
     description: URL of GATI lambda function
     required: false
     default: ""
-  role-duration-seconds:
+  aws-role-duration-seconds:
     description: ""
     required: false
     default: 3600
@@ -55,7 +55,7 @@ runs:
         aws-role-arn: ${{ inputs.aws-role-arn }}
         aws-lambda-url: ${{ inputs.aws-lambda-url }}
         aws-region: ${{ inputs.aws-region }}
-        aws-role-duration-seconds: ${{ inputs.role-duration-seconds }}
+        aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
 
     - name: Configure GitHub token from GATI
       shell: bash
