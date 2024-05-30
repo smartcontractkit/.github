@@ -23,6 +23,7 @@ jobs:
           gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
           gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
           gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
+          pnpm-version: "^9.0.0"
 
   ci-lint-misc:
     runs-on: ubuntu-latest
@@ -40,6 +41,7 @@ jobs:
           gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
           gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
           gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
+          pnpm-version: "^9.0.0"
 
   cd-signed-commits:
     # Disable this job until it's updated to be:
@@ -57,6 +59,8 @@ jobs:
 
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
+        with:
+          pnpm-version: "^9.0.0"
 
       - name: Build signed-commits
         run: pnpm nx run signed-commits:build
@@ -98,6 +102,7 @@ jobs:
           gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
           gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
           gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
+          pnpm-version: "^9.0.0"
 
   ci-build-artifacts:
     runs-on: ubuntu-latest
@@ -115,6 +120,7 @@ jobs:
           gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
           gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
           gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
+          pnpm-version: "^9.0.0"
 
   ci-actions-dependencies-updater:
     runs-on: ubuntu-latest
@@ -124,6 +130,8 @@ jobs:
 
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
+        with:
+          pnpm-version: "^9.0.0"
 
       - name: Run typecheck for actions-dependencies-updater
         shell: bash
