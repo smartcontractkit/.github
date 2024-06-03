@@ -105,14 +105,17 @@ function extractActionReference(line: string): ActionReference | undefined {
   return { owner, repo, repoPath, ref: gitRef, comment: comment.join().trim(), line, };
 }
 
-export function annotatePR(validationResults: ValidationResult[]) {
+export function logErrors(validationResults: ValidationResult[], annotatePR: boolean = false) {
   for (const fileResults of validationResults) {
     for (const lineResults of fileResults.lineValidations) {
-      const message = lineResults.validationErrors.map(error => error.message).join("\n");
-      core.error(message, {
-        file: fileResults.filename,
-        startLine: lineResults.line.lineNumber,
-      });
+      const message = lineResults.validationErrors.map(error => error.message).join(",");
+      core.error(`file: ${fileResults.filename} @ line: ${lineResults.line.lineNumber} - ${message}`);
+      if (annotatePR) {
+        core.error(message, {
+          file: fileResults.filename,
+          startLine: lineResults.line.lineNumber,
+        });
+      }
     }
   }
 }
@@ -160,3 +163,4 @@ export async function setSummary(validationResults: ValidationResult[], fileUrlP
     .addRaw(FIXING_ERRORS)
     .write();
 }
+

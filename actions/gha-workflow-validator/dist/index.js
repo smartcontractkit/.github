@@ -22396,14 +22396,17 @@ function extractActionReference(line) {
   const repoPath = (path.length > 0 ? "/" : "") + path.join("/");
   return { owner, repo, repoPath, ref: gitRef, comment: comment.join().trim(), line };
 }
-function annotatePR(validationResults) {
+function logErrors(validationResults, annotatePR = false) {
   for (const fileResults of validationResults) {
     for (const lineResults of fileResults.lineValidations) {
-      const message = lineResults.validationErrors.map((error2) => error2.message).join("\n");
-      core3.error(message, {
-        file: fileResults.filename,
-        startLine: lineResults.line.lineNumber
-      });
+      const message = lineResults.validationErrors.map((error2) => error2.message).join(",");
+      core3.error(`file: ${fileResults.filename} @ line: ${lineResults.line.lineNumber} - ${message}`);
+      if (annotatePR) {
+        core3.error(message, {
+          file: fileResults.filename,
+          startLine: lineResults.line.lineNumber
+        });
+      }
     }
   }
 }
@@ -22455,9 +22458,7 @@ async function run() {
   if (!validationFailed) {
     return core4.info("No errors found in workflow files.");
   }
-  if (invokedThroughPr) {
-    annotatePR(actionReferenceValidations);
-  }
+  logErrors(actionReferenceValidations, invokedThroughPr);
   await setSummary(actionReferenceValidations, urlPrefix);
   return core4.setFailed("Errors found in workflow files. See annotations or summary for details.");
 }
