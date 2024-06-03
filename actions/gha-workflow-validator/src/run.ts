@@ -31,7 +31,8 @@ export async function run() {
 
   logErrors(actionReferenceValidations, invokedThroughPr);
   await setSummary(actionReferenceValidations, urlPrefix);
-  return core.setFailed("Errors found in workflow files. See annotations or summary for details.");
+  core.info(`Summary: https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/actions/runs/${github.context.runId}`)
+  return core.setFailed("Errors found in workflow files. See inlined annotations on PR changes, or workflow summary for details.");
 }
 
 export function getInvokeContext() {
