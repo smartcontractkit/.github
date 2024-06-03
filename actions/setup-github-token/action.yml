@@ -15,10 +15,15 @@ inputs:
     description: Duration of role in seconds
     required: false
     default: "900"
+  role-session-name:
+    description: Session name to use when assuming the role.
+    required: false
+    default: "${{ github.run_id }}-${{ github.run_number }}-${{ github.job }}"
   set-git-config:
     description: Set git config
     required: false
     default: "false"
+
 outputs:
   access-token:
     value: ${{ steps.get-gh-token.outputs.access-token }}
@@ -27,13 +32,24 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Check the role session name lengths and truncate if needed
+      shell: bash
+      id: role-session-name
+      env:
+        ROLE_SESSION_NAME: ${{ inputs.role-session-name }}
+      run: |
+        if [[ ${#ROLE_SESSION_NAME} -gt 64 ]]; then
+          echo "role-session-name=$(echo "$ROLE_SESSION_NAME" | cut -c1-64)" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Assume role capable of getting token from gati
       uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
       with:
-        role-to-assume: ${{ inputs.aws-role-arn }}
-        role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
         aws-region: ${{ inputs.aws-region }}
         mask-aws-account-id: true
+        role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+        role-session-name: ${{ inputs.role-session-name }}
+        role-to-assume: ${{ inputs.aws-role-arn }}
 
     - name: Get github token from gati
       id: get-gh-token
