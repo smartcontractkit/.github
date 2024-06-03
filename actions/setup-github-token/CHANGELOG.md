@@ -1,5 +1,14 @@
 # setup-github-token
 
+## 0.2.0
+
+### Minor Changes
+
+- [#418](https://github.com/smartcontractkit/.github/pull/418)
+  [`47ec5a6`](https://github.com/smartcontractkit/.github/commit/47ec5a61273889534ad8e5f45c5e0f5fea94e306)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Add optional role
+  session name input
+
 ## 0.1.2
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # actions-dependencies-updater
 
+## 0.1.1
+
+### Patch Changes
+
+- [#368](https://github.com/smartcontractkit/.github/pull/368)
+  [`fd73fb8`](https://github.com/smartcontractkit/.github/commit/fd73fb81ae47af883ffcaf47ea6859cc312860ad)
+  Thanks [@erikburt](https://github.com/erikburt)! - Minor reorder of git CLI
+  execution, unit tests
+
 ## 0.1.0
 
 ### Minor Changes
