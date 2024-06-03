@@ -1,5 +1,15 @@
 # setup-gap
 
+## 0.3.0
+
+### Minor Changes
+
+- [#421](https://github.com/smartcontractkit/.github/pull/421)
+  [`5ed00ff`](https://github.com/smartcontractkit/.github/commit/5ed00ff078bcdb84312e7066c600c030f1222f71)
+  Thanks [@tateexon](https://github.com/tateexon)! - Collect metrics optionally
+  since most use cases already have their own metrics collection outside of this
+  actions usage.
+
 ## 0.2.2
 
 ### Patch Changes
