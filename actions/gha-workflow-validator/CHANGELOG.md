@@ -1,5 +1,14 @@
 # gha-workflow-validator
 
+## 0.1.2
+
+### Patch Changes
+
+- [#424](https://github.com/smartcontractkit/.github/pull/424)
+  [`2979f58`](https://github.com/smartcontractkit/.github/commit/2979f58bad57a678d8cd9da331fa5ac2f2b5bd49)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: include summary link
+  in output messages
+
 ## 0.1.1
 
 ### Patch Changes
