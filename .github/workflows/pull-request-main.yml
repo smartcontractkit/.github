@@ -142,6 +142,24 @@ jobs:
         shell: bash
         run: pnpm nx run actions-dependencies-updater:test
 
+  ci-gha-workflow-validator:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo (needed to reference local action)
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+
+      - name: Setup pnpm
+        uses: ./actions/setup-nodejs
+        with:
+          pnpm-version: "^9.0.0"
+
+      - name: Run build for gha-workflow-validator
+        shell: bash
+        run: pnpm nx run gha-workflow-validator:build
+
+      - name: Run unit tests for gha-workflow-validator
+        shell: bash
+        run: pnpm nx run gha-workflow-validator:test
 
   validate-worfklow-changes:
     permissions:

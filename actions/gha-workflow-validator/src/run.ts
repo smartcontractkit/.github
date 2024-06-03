@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { getComparison } from "./github.js";
 import { validateActionReferenceChanges } from "./action-reference-validations.js";
-import { annotatePR, filterForGithubWorkflowChanges, parseAllAdditions, setSummary } from "./utils.js";
+import { filterForGithubWorkflowChanges, logErrors, parseAllAdditions, setSummary } from "./utils.js";
 
 export async function run() {
   const { token, owner, repo, base, head, prNumber } = getInvokeContext();
@@ -29,9 +29,7 @@ export async function run() {
     return core.info("No errors found in workflow files.");
   }
 
-  if (invokedThroughPr) {
-    annotatePR(actionReferenceValidations);
-  }
+  logErrors(actionReferenceValidations, invokedThroughPr);
   await setSummary(actionReferenceValidations, urlPrefix);
   return core.setFailed("Errors found in workflow files. See annotations or summary for details.");
 }

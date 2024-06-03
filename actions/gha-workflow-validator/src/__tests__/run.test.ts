@@ -1,6 +1,8 @@
 import { getInvokeContext } from "../run";
 
-jest.mock('@actions/github', () => ({ context:
+import { describe, it, expect, vi } from 'vitest';
+
+vi.mock('@actions/github', () => ({ context:
   { repo: { owner: 'owner', repo: 'repo' },
     eventName: 'push',
     payload: { before: 'before', after: 'after' }
@@ -10,7 +12,7 @@ jest.mock('@actions/github', () => ({ context:
 describe(getInvokeContext.name, () => {
   it("should exit without github token", async () => {
     delete process.env.GITHUB_TOKEN;
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => { return undefined as never });
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => { return undefined as never });
     getInvokeContext();
     expect(mockExit).toHaveBeenCalledWith(1);
   });

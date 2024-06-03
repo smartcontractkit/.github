@@ -2,6 +2,8 @@ import { parseAllAdditions, } from '../utils.js';
 import { GithubFiles, getComparison } from '../github.js';
 import { getNock, getTestOctokit } from './__helpers__/test-utils.js'
 
+import { describe, it, expect } from 'vitest';
+
 const nockBack = getNock();
 
 const simplePatchResponse: GithubFiles = [

@@ -17,13 +17,13 @@ export function getTestOctokit(nockbackMode: nock.BackMode) {
   });
 }
 
-export function getNock() {
+export function getNock(mode?: nock.BackMode) {
   const nockBack = nock.back;
   nockBack.fixtures = path.join(__dirname, "../__fixtures__");
 
   // Change to 'lockdown' to use existing fixtures
   // Valid values = lockdown, record, wild, dryrun, update
-  const envNockMode = (process.env.NOCK_BACK_MODE ?? "lockdown") as nock.BackMode;
+  const envNockMode = (process.env.NOCK_BACK_MODE ?? mode ?? "lockdown") as nock.BackMode;
   nockBack.setMode(envNockMode); // Library will throw if invalid mode supplied through env
 
   return nockBack;

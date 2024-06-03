@@ -2,6 +2,8 @@ import { validateActionReferenceChanges } from '../action-reference-validations.
 import { ParsedFile } from '../utils.js';
 import { getNock, getTestOctokit } from './__helpers__/test-utils.js'
 
+import { describe, it, expect } from 'vitest';
+
 const nockBack = getNock();
 
 const defaultActionsCheckoutFile = { lineNumber: 2,

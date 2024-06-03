@@ -1,6 +1,8 @@
 import { getComparison, getActionFileFromGithub } from "../github";
 import { getNock, getTestOctokit } from './__helpers__/test-utils.js'
 
+import { describe, it, expect } from 'vitest';
+
 const nockBack = getNock();
 
 describe(getActionFileFromGithub.name, () => {
