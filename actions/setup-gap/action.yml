@@ -111,7 +111,6 @@ inputs:
   metrics-job-name:
     description: "grafana metrics job name"
     required: false
-    default: setup-gap
   gc-host:
     description: "grafana hostname"
     required: false
@@ -282,7 +281,7 @@ runs:
         ${{ inputs.argocd-pass }}
 
     - name: Collect metrics
-      if: always()
+      if: always() && inputs.metrics-job-name != ''
       id: collect-gha-metrics
       uses: smartcontractkit/push-gha-metrics-action@e34ae8a4df60f4d9fdef1e32a69747bab130840e # v2.2.0
       with:
