@@ -168,6 +168,9 @@ importers:
       typescript:
         specifier: ^5.4.5
         version: 5.4.5
+      vitest:
+        specifier: ^1.6.0
+        version: 1.6.0(@types/node@20.12.7)(jsdom@24.0.0)
 
   actions/guard-from-missing-changesets: {}
 
@@ -10158,7 +10161,7 @@ snapshots:
   acorn-globals@7.0.1:
     dependencies:
       acorn: 8.10.0
-      acorn-walk: 8.2.0
+      acorn-walk: 8.3.2
 
   acorn-jsx@5.3.2(acorn@8.10.0):
     dependencies:

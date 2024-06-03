@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`parseAllAdditions parses all additions (complex) 1`] = `
+exports[`parseAllAdditions > parses all additions (complex) 1`] = `
 [
   {
     "addedLines": [
@@ -1859,7 +1859,7 @@ exports[`parseAllAdditions parses all additions (complex) 1`] = `
 ]
 `;
 
-exports[`parseAllAdditions parses all additions (simple) 1`] = `
+exports[`parseAllAdditions > parses all additions (simple) 1`] = `
 [
   {
     "addedLines": [

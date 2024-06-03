@@ -4,10 +4,10 @@
   "projectType": "application",
   "targets": {
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "executor": "nx:run-commands",
       "options": {
-        "jestConfig": "actions/gha-workflow-validator/jest.config.ts"
+        "command": "vitest run",
+        "cwd": "{projectRoot}"
       }
     },
     "build": {
