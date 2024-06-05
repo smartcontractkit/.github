@@ -1,0 +1,110 @@
+name: Dispatch Workflow
+description: Dispatch a github workflow and return the run id
+
+inputs:
+  repo:
+    description: Owner and repo in the form owner/repo
+    required: true
+  workflow:
+    description: The name of the workflow file
+    required: true
+  ref:
+    description: The ref or branch of the repo to use
+    required: true
+  workflow-dispatch-fields:
+    description: |
+      Fields to pass into the workflow dipatch, example:
+        --field distinct_run_name="${DISTINCT_RUN_NAME}" \
+        --field evm-ref="${EVM_REF}"
+    required: false
+  distinct_run_name:
+    description: The distinct run name added to the workflow, this is required to more accurately find the correct workflow that was started
+    required: true
+  actor:
+    description: The github actor used to dispatch the workflow, required to more accurately find the correct workflow that was started
+    required: true
+  github-token:
+    description: The github token to use
+    required: true
+  retry-delay:
+    description: The amount of time in seconds to sleep between calls to check for workflow to be created
+    required: false
+    default: "10"
+  retry-count:
+    description: The max number of times to wait for the workflow to be created
+    required: false
+    default: "6"
+outputs:
+  run-id:
+    description: The found run-id
+    value: ${{ steps.get-run-id.outputs.run-id }}
+
+runs:
+  using: composite
+  steps:
+    - name: Prepare Base64 TOML override
+      shell: bash
+      id: get-run-id
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        DISTINCT_RUN_NAME: ${{ inputs.distinct_run_name }}
+        REPO: ${{ inputs.repo }}
+        WORKFLOW: ${{ inputs.workflow }}
+        REF: ${{ inputs.ref }}
+        ACTOR: ${{ inputs.actor }}
+        EVM_REF: ${{ inputs.evm-ref }}
+        FIELDS: ${{ inputs.workflow-dispatch-fields }}
+        RETRY_DELAY: ${{ inputs.retry-delay }}
+        RETRY_COUNT: ${{ inputs.retry-count }}
+      run: |
+        current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+        # run the workflow
+        echo "Dispatching the workflow"
+        gh workflow run "${WORKFLOW}" \
+          --repo ${REPO} \
+          --ref ${REF} ${FIELDS}
+
+        # Maximum number of attempts to check for the workflow run
+        max_attempts=$(($RETRY_COUNT + 0))
+        # Time (in seconds) to wait between attempts
+        wait_time=$(($RETRY_DELAY + 0))
+
+        attempt=1
+
+        while [ $attempt -le $max_attempts ]; do
+          echo "Attempt $attempt: Checking for workflow runs..."
+
+          # Fetch workflow runs created after the script start time
+          workflow_runs=$(curl -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${REPO}/actions/runs?actor=$ACTOR&event=workflow_dispatch&exclude_pull_requests=true&created=>=$current_time")
+
+          # Check the total_count of workflow runs returned
+          total_count=$(echo "$workflow_runs" | jq .total_count)
+
+          if [ "$total_count" -gt 0 ]; then
+            echo "Found some workflows, checking for distinct run name"
+            workflow_id=$(echo "$workflow_runs" | jq --arg dp "${DISTINCT_RUN_NAME}" -r '.workflow_runs[] | select(.name | contains($dp)) | .id' | head -1)
+            if [ -z "$workflow_id" ]; then
+              echo "No matching workflow run found yet. Trying again in ${wait_time} seconds..."
+              sleep $wait_time
+            else
+              break
+            fi
+          else
+            echo "No workflow runs found yet. Waiting for $wait_time seconds..."
+            sleep $wait_time
+          fi
+
+          attempt=$((attempt + 1))
+        done
+
+        # Check if a workflow ID was found
+        if [ -z "$workflow_id" ]; then
+            echo "No matching workflow run found."
+            exit 1
+        else
+            echo "Matching workflow run ID: $workflow_id"
+            echo "run-id=$workflow_id" >> $GITHUB_OUTPUT
+        fi
