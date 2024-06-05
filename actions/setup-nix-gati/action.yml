@@ -16,10 +16,6 @@ inputs:
     description: Duration of role in seconds
     required: false
     default: "900"
-  set-git-config:
-    description: Set git config
-    required: false
-    default: "false"
   # grafana inputs
   metrics-job-name:
     description: "grafana metrics job name"
