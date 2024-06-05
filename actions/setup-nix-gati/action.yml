@@ -16,6 +16,10 @@ inputs:
     description: Duration of role in seconds
     required: false
     default: "900"
+  enable-magic-cache:
+    description: "Enable magic nix cache"
+    required: false
+    default: false
   # grafana inputs
   metrics-job-name:
     description: "grafana metrics job name"
@@ -57,7 +61,9 @@ runs:
         extra_nix_config: |
           sandbox = true # force sandbox for all OS (normally disabled for macOS)
 
-    - uses: DeterminateSystems/magic-nix-cache-action@87e8236f46702ab0ce5a058b605a173ec88d618e #v6
+    - name: use magic nix cache
+      if: inputs.enable-magic-cache == 'true'
+      uses: DeterminateSystems/magic-nix-cache-action@87e8236f46702ab0ce5a058b605a173ec88d618e #v6
 
     - name: Collect metrics
       if: always()
