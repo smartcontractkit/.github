@@ -40,7 +40,7 @@ runs:
   steps:
     - name: Setup GitHub token
       id: setup-github-token
-      uses: smartcontractkit/.github/actions/setup-github-token@main
+      uses: smartcontractkit/.github/actions/setup-github-token@ef78fa97bf3c77de6563db1175422703e9e6674f
       with:
         aws-role-arn: ${{ inputs.aws-role-arn }}
         aws-lambda-url: ${{ inputs.aws-lambda-url }}
@@ -55,7 +55,7 @@ runs:
           url."https://x-access-token:${{ steps.setup-github-token.outputs.access-token }}@github.com/smartcontractkit/".insteadOf \
           "ssh://git@github.com/smartcontractkit/"
 
-    - uses: cachix/install-nix-action@8887e596b4ee1134dae06b98d573bd674693f47c #v26
+    - uses: cachix/install-nix-action@ba0dd844c9180cbf77aa72a116d6fbc515d0e87b #v27
       with:
         nix_path: nixpkgs=channel:nixos-unstable
         extra_nix_config: |
@@ -63,12 +63,12 @@ runs:
 
     - name: use magic nix cache
       if: inputs.enable-magic-cache == 'true'
-      uses: DeterminateSystems/magic-nix-cache-action@87e8236f46702ab0ce5a058b605a173ec88d618e #v6
+      uses: DeterminateSystems/magic-nix-cache-action@b46e247b898aa56e6d2d2e728dc6df6c84fdb738 #v7
 
     - name: Collect metrics
-      if: always()
+      if: always() && inputs.metrics-job-name != ''
       id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@0281b09807758be1dcc41651e44e62b353808c47 # v2.1.0
+      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.1.0
       with:
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}
