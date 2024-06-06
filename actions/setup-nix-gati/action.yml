@@ -24,7 +24,7 @@ inputs:
   metrics-job-name:
     description: "grafana metrics job name"
     required: false
-    default: setup-nix-gati
+    default: ""
   gc-host:
     description: "grafana hostname"
     required: false
@@ -68,7 +68,7 @@ runs:
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''
       id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.1.0
+      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
       with:
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}
