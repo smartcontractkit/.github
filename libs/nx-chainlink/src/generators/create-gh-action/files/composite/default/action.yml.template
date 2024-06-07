@@ -11,19 +11,21 @@ inputs:
     description: "number of commits to fetch"
     required: false
     default: "0"
-  # grafana inputs
+  # grafana inputs (optional)
   metrics-job-name:
     description: "grafana metrics job name"
     required: false
-    default: <%= name %>
+  metrics-id:
+    description: "grafana metrics id, used for continuity of metrics during job name changes  - required if metrics-job-name is passed"
+    required: false
   gc-host:
-    description: "grafana hostname"
+    description: "grafana hostname - required if metrics-job-name is passed"
     required: false
   gc-basic-auth:
-    description: "grafana basic auth"
+    description: "grafana basic auth - required if metrics-job-name is passed"
     required: false
   gc-org-id:
-    description: "grafana org/tenant id"
+    description: "grafana org/tenant id - required if metrics-job-name is passed"
     required: false
 
 runs:
@@ -36,10 +38,11 @@ runs:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
     - name: Collect metrics
-      if: always()
+      if: always() && inputs.metrics-job-name != ''
       id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@0281b09807758be1dcc41651e44e62b353808c47 # v2.1.0
+      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
       with:
+        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}
         org-id: ${{ inputs.gc-org-id}}

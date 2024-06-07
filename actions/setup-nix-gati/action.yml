@@ -1,0 +1,80 @@
+name: setup-nix-gati
+description: "Setup the environment for Nix using GATI"
+
+inputs:
+  # general inputs
+  aws-role-arn:
+    description: ARN of role capable of getting token from GATI
+    required: true
+  aws-lambda-url:
+    description: URL of GATI lambda function
+    required: true
+  aws-region:
+    description: AWS region
+    required: true
+  aws-role-duration-seconds:
+    description: Duration of role in seconds
+    required: false
+    default: "900"
+  enable-magic-cache:
+    description: "Enable magic nix cache"
+    required: false
+    default: false
+  # grafana inputs (optional)
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+  metrics-id:
+    description: "grafana metrics id, used for continuity of metrics during job name changes - required if metrics-job-name is passed"
+    required: false
+  gc-host:
+    description: "grafana hostname"
+    required: false
+  gc-basic-auth:
+    description: "grafana basic auth"
+    required: false
+  gc-org-id:
+    description: "grafana org/tenant id"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Setup GitHub token
+      id: setup-github-token
+      uses: smartcontractkit/.github/actions/setup-github-token@ef78fa97bf3c77de6563db1175422703e9e6674f
+      with:
+        aws-role-arn: ${{ inputs.aws-role-arn }}
+        aws-lambda-url: ${{ inputs.aws-lambda-url }}
+        aws-region: ${{ inputs.aws-region }}
+        aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+
+    - name: Configure GitHub token from GATI
+      shell: bash
+      run: |
+        # redirects ssh url to https with the token
+        git config --global \
+          url."https://x-access-token:${{ steps.setup-github-token.outputs.access-token }}@github.com/smartcontractkit/".insteadOf \
+          "ssh://git@github.com/smartcontractkit/"
+
+    - uses: cachix/install-nix-action@ba0dd844c9180cbf77aa72a116d6fbc515d0e87b #v27
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+        extra_nix_config: |
+          sandbox = true # force sandbox for all OS (normally disabled for macOS)
+
+    - name: use magic nix cache
+      if: inputs.enable-magic-cache == 'true'
+      uses: DeterminateSystems/magic-nix-cache-action@b46e247b898aa56e6d2d2e728dc6df6c84fdb738 #v7
+
+    - name: Collect metrics
+      if: always() && inputs.metrics-job-name != ''
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
+      with:
+        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        org-id: ${{ inputs.gc-org-id}}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true

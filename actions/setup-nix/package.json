@@ -1,6 +1,6 @@
 {
   "name": "setup-nix",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "setup nix environment with caches",
   "private": true,
   "scripts": {},

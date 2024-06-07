@@ -1,10 +1,10 @@
 {
-  "name": "ci-lint-misc",
-  "version": "0.1.2",
+  "name": "setup-nix-gati",
+  "version": "1.0.1",
   "description": "",
   "private": true,
   "scripts": {},
-  "author": "@ajgrande924",
+  "author": "@smartcontractkit",
   "license": "MIT",
   "dependencies": {},
   "repository": "https://github.com/smartcontractkit/.github"
