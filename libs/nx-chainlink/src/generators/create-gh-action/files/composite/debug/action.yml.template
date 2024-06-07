@@ -11,7 +11,7 @@ inputs:
     description: "number of commits to fetch"
     required: false
     default: "0"
-  # grafana inputs
+  # grafana inputs (optional)
   metrics-job-name:
     description: "grafana metrics job name"
     required: false
@@ -46,7 +46,7 @@ runs:
       id: collect-gha-metrics
       uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
       with:
-        id: ${{ inputs.metrics-id }}
+        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}
         org-id: ${{ inputs.gc-org-id}}
