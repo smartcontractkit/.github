@@ -1,5 +1,15 @@
 # setup-gap
 
+## 0.3.2
+
+### Patch Changes
+
+- [#406](https://github.com/smartcontractkit/.github/pull/406)
+  [`30f7be2`](https://github.com/smartcontractkit/.github/commit/30f7be2f91647556242d22572c4d47198f17e367)
+  Thanks
+  [@app-token-issuer-releng-renovate](https://github.com/apps/app-token-issuer-releng-renovate)! -
+  Bump clowdhaus/argo-cd-action from v2.1.0 to v2.2.0
+
 ## 0.3.1
 
 ### Patch Changes
