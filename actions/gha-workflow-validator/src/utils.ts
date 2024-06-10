@@ -70,14 +70,14 @@ function parsePatchAdditions(patch: string): FileAddition[]  {
       // example line: @@ -16,10 +16,10 @@ jobs:
       //   - "-16,10": "-" denotes source file, "16,10" means the hunk starts at line 16 and output contains 10 lines
       //   - "+16,10": "+" denotes destination file, "16,10" means the same as above
-      const [ , , dest, ] = line.split(' ');
+      const [ , , destination, ] = line.split(' ');
 
-      if (!dest.startsWith("+")) {
+      if (!destination.startsWith("+")) {
         throw new Error("Invalid git hunk format");
       }
 
-      const [ destLine, ] = dest.substring(1).split(',');
-      currentLineInFile = parseInt(destLine, 10);
+      const [ destinationLine, ] = destination.substring(1).split(',');
+      currentLineInFile = parseInt(destinationLine, 10);
       continue;
     } else if (line.startsWith('+')) {
       const currentLine = line.substring(1);
@@ -93,11 +93,18 @@ function parsePatchAdditions(patch: string): FileAddition[]  {
   return additions;
 }
 
-function extractActionReference(line: string): ActionReference | undefined {
+export function extractActionReference(line: string): ActionReference | undefined {
+  const trimmedLine = line.trim();
+
+  if (trimmedLine.startsWith("#")) {
+    // commented line
+    return;
+  }
+
   // example line:
-  //       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
-  const trimSubString = "uses:"
-  const usesIndex = line.indexOf(trimSubString);
+  // - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+  const trimSubString = "uses:";
+  const usesIndex = trimmedLine.indexOf(trimSubString);
 
   if (usesIndex === -1) {
     // Not an action reference
@@ -105,19 +112,28 @@ function extractActionReference(line: string): ActionReference | undefined {
   }
 
   // trim past the "uses:" substring to get "<owner>/<repo><optional path>@<ref> # <optional comment>""
-  const trimmedLine = line.substring(line.indexOf(trimSubString) + trimSubString.length).trim();
+  const trimmedUses = line
+    .substring(line.indexOf(trimSubString) + trimSubString.length)
+    .trim();
 
-  if (trimmedLine.startsWith("./")) {
+  if (trimmedUses.startsWith("./")) {
     // Local action reference - do not extract or validate these.
     return;
   }
 
-  const [ actionIdentifier, ...comment ] = trimmedLine.split("#");
-  const [ identifier, gitRef ] = actionIdentifier.trim().split("@");
-  const [ owner, repo, ...path] = identifier.split("/");
-  const repoPath = ((path.length) > 0 ? "/" : "") + path.join("/");
+  const [actionIdentifier, ...comment] = trimmedUses.split("#");
+  const [identifier, gitRef] = actionIdentifier.trim().split("@");
+  const [owner, repo, ...path] = identifier.split("/");
+  const repoPath = (path.length > 0 ? "/" : "") + path.join("/");
 
-  return { owner, repo, repoPath, ref: gitRef, comment: comment.join().trim(), line, };
+  return {
+    owner,
+    repo,
+    repoPath,
+    ref: gitRef,
+    comment: comment.join().trim(),
+    line,
+  };
 }
 
 export function logErrors(validationResults: ValidationResult[], annotatePR: boolean = false) {
