@@ -4,3 +4,9 @@ description: "Will validate workflow changes in a repository"
 runs:
   using: "node20"
   main: "dist/index.js"
+
+inputs:
+  include-all-action-definitions:
+    description: "Include all action.yml files in the repository, not just the ones in .github/actions. Useful for action monorepos."
+    required: false
+    default: false

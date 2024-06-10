@@ -17828,7 +17828,7 @@ var require_core = __commonJS({
       return inputs.map((input) => input.trim());
     }
     exports2.getMultilineInput = getMultilineInput;
-    function getBooleanInput(name, options) {
+    function getBooleanInput2(name, options) {
       const trueValue = ["true", "True", "TRUE"];
       const falseValue = ["false", "False", "FALSE"];
       const val = getInput(name, options);
@@ -17839,7 +17839,7 @@ var require_core = __commonJS({
       throw new TypeError(`Input does not meet YAML 1.2 "Core Schema" specification: ${name}
 Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
     }
-    exports2.getBooleanInput = getBooleanInput;
+    exports2.getBooleanInput = getBooleanInput2;
     function setOutput(name, value) {
       const filePath = process.env["GITHUB_OUTPUT"] || "";
       if (filePath) {
@@ -22342,10 +22342,13 @@ function htmlLink(text, url) {
 }
 
 // actions/gha-workflow-validator/src/utils.ts
-function filterForGithubWorkflowChanges(files) {
+function filterForRelevantChanges(files, includeAllActionDefinitions) {
   return files?.filter(({ filename }) => {
-    return (filename.startsWith(".github/workflows") || filename.startsWith(".github/actions")) && (filename.endsWith(".yml") || filename.endsWith(".yaml"));
+    return includeAllActionDefinitions && (filename.endsWith("/action.yml") || filename.endsWith("/action.yaml")) || isGithubWorkflowOrActionFile(filename);
   });
+}
+function isGithubWorkflowOrActionFile(filename) {
+  return (filename.startsWith(".github/workflows") || filename.startsWith(".github/actions")) && (filename.endsWith(".yml") || filename.endsWith(".yaml"));
 }
 function parseAllAdditions(files) {
   if (!files)
@@ -22362,12 +22365,12 @@ function parsePatchAdditions(patch) {
   let currentLineInFile = 0;
   for (const line of lineChanges) {
     if (line.startsWith("@@")) {
-      const [, , dest] = line.split(" ");
-      if (!dest.startsWith("+")) {
+      const [, , destination] = line.split(" ");
+      if (!destination.startsWith("+")) {
         throw new Error("Invalid git hunk format");
       }
-      const [destLine] = dest.substring(1).split(",");
-      currentLineInFile = parseInt(destLine, 10);
+      const [destinationLine] = destination.substring(1).split(",");
+      currentLineInFile = parseInt(destinationLine, 10);
       continue;
     } else if (line.startsWith("+")) {
       const currentLine = line.substring(1);
@@ -22381,20 +22384,31 @@ function parsePatchAdditions(patch) {
   return additions;
 }
 function extractActionReference(line) {
+  const trimmedLine = line.trim();
+  if (trimmedLine.startsWith("#")) {
+    return;
+  }
   const trimSubString = "uses:";
-  const usesIndex = line.indexOf(trimSubString);
+  const usesIndex = trimmedLine.indexOf(trimSubString);
   if (usesIndex === -1) {
     return;
   }
-  const trimmedLine = line.substring(line.indexOf(trimSubString) + trimSubString.length).trim();
-  if (trimmedLine.startsWith("./")) {
+  const trimmedUses = line.substring(line.indexOf(trimSubString) + trimSubString.length).trim();
+  if (trimmedUses.startsWith("./")) {
     return;
   }
-  const [actionIdentifier, ...comment] = trimmedLine.split("#");
+  const [actionIdentifier, ...comment] = trimmedUses.split("#");
   const [identifier, gitRef] = actionIdentifier.trim().split("@");
   const [owner, repo, ...path] = identifier.split("/");
   const repoPath = (path.length > 0 ? "/" : "") + path.join("/");
-  return { owner, repo, repoPath, ref: gitRef, comment: comment.join().trim(), line };
+  return {
+    owner,
+    repo,
+    repoPath,
+    ref: gitRef,
+    comment: comment.join().trim(),
+    line
+  };
 }
 function logErrors(validationResults, annotatePR = false) {
   for (const fileResults of validationResults) {
@@ -22439,16 +22453,17 @@ async function setSummary(validationResults, fileUrlPrefix) {
 }
 
 // actions/gha-workflow-validator/src/run.ts
+var inputKeys = {
+  includeAllActionDefinitions: "include-all-action-definitions"
+};
 async function run() {
   const { token, owner, repo, base, head, prNumber } = getInvokeContext();
   const octokit = github.getOctokit(token);
+  const includeAllActionDefinitions = core4.getBooleanInput(inputKeys.includeAllActionDefinitions);
   const allFiles = await getComparison(octokit, owner, repo, base, head);
-  const ghaWorkflowFiles = filterForGithubWorkflowChanges(allFiles);
+  const ghaWorkflowFiles = filterForRelevantChanges(allFiles, includeAllActionDefinitions);
   const ghaWorkflowPatchAdditions = parseAllAdditions(ghaWorkflowFiles);
-  const containsWorkflowModifications = ghaWorkflowPatchAdditions.some(({ filename }) => {
-    return (filename.startsWith(".github/workflows") || filename.startsWith(".github/actions")) && (filename.endsWith(".yml") || filename.endsWith(".yaml"));
-  });
-  if (!containsWorkflowModifications) {
+  if (ghaWorkflowPatchAdditions.length === 0) {
     return core4.info("No workflow files found in the changeset.");
   }
   const actionReferenceValidations = await validateActionReferenceChanges(octokit, ghaWorkflowPatchAdditions);
