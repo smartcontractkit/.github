@@ -65,7 +65,7 @@ jobs:
         run: pnpm nx run signed-commits:build
 
       - name: Commit back any changes
-        uses: planetscale/ghcommit-action@b662a9d7235a07e80d976152ed5afe41651c4973 # v0.1.39
+        uses: planetscale/ghcommit-action@84c52a5164423e2cd66371ecae81d9049a2cf105 # v0.1.41
         with:
           commit_message: "🤖 Update build"
           repo: ${{ github.repository }}
