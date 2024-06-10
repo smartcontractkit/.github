@@ -2,21 +2,24 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { getComparison } from "./github.js";
 import { validateActionReferenceChanges } from "./action-reference-validations.js";
-import { filterForGithubWorkflowChanges, logErrors, parseAllAdditions, setSummary } from "./utils.js";
+import { filterForRelevantChanges, logErrors, parseAllAdditions, setSummary } from "./utils.js";
+
+const inputKeys = {
+  includeAllActionDefinitions: 'include-all-action-definitions',
+};
 
 export async function run() {
   const { token, owner, repo, base, head, prNumber } = getInvokeContext();
   const octokit = github.getOctokit(token);
 
+  const includeAllActionDefinitions = core.getBooleanInput(inputKeys.includeAllActionDefinitions);
+
   const allFiles = await getComparison(octokit, owner, repo, base, head);
-  const ghaWorkflowFiles = filterForGithubWorkflowChanges(allFiles);
+  const ghaWorkflowFiles = filterForRelevantChanges(allFiles, includeAllActionDefinitions);
   const ghaWorkflowPatchAdditions = parseAllAdditions(ghaWorkflowFiles);
 
-  const containsWorkflowModifications = ghaWorkflowPatchAdditions.some(({ filename }) => {
-    return (filename.startsWith('.github/workflows') || filename.startsWith('.github/actions')) && (filename.endsWith('.yml') || filename.endsWith('.yaml'))
-  });
 
-  if (!containsWorkflowModifications) {
+  if (ghaWorkflowPatchAdditions.length === 0) {
     return core.info("No workflow files found in the changeset.");
   }
 

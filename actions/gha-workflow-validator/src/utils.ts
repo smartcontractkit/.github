@@ -24,11 +24,26 @@ export interface ActionReference {
   line: string;
 }
 
-export function filterForGithubWorkflowChanges(files: GithubFiles): GithubFiles {
+export function filterForRelevantChanges(
+  files: GithubFiles,
+  includeAllActionDefinitions: boolean,
+): GithubFiles {
   return files?.filter(({ filename }) => {
-    return (filename.startsWith('.github/workflows') || filename.startsWith('.github/actions'))
-    && (filename.endsWith('.yml') || filename.endsWith('.yaml'))
-  })
+    return (
+      (includeAllActionDefinitions &&
+        (filename.endsWith("/action.yml") ||
+          filename.endsWith("/action.yaml"))) ||
+      isGithubWorkflowOrActionFile(filename)
+    );
+  });
+}
+
+function isGithubWorkflowOrActionFile(filename: string): boolean {
+  return (
+    (filename.startsWith(".github/workflows") ||
+      filename.startsWith(".github/actions")) &&
+    (filename.endsWith(".yml") || filename.endsWith(".yaml"))
+  );
 }
 
 export function parseAllAdditions(files: GithubFiles): ParsedFile[] {
