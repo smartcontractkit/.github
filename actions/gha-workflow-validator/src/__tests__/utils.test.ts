@@ -1,4 +1,4 @@
-import { parseAllAdditions, } from '../utils.js';
+import { extractActionReference, filterForRelevantChanges, parseAllAdditions, } from '../utils.js';
 import { GithubFiles, getComparison } from '../github.js';
 import { getNock, getTestOctokit } from './__helpers__/test-utils.js'
 
@@ -20,6 +20,98 @@ const simplePatchResponse: GithubFiles = [
     patch: "@@ -0,0 +1,23 @@\n+name: schedule-update-actions\n+\n+on:\n+  schedule:\n+    - cron: \"0 0 * * *\"\n+\n+jobs:\n+  update-actions:\n+    runs-on: ubuntu-latest\n+    permissions:\n+      id-token: write\n+      contents: write\n+      pull-requests: write\n+      actions: read\n+    steps:\n+      - name: Update custom actions\n+        uses: smartcontractkit/.github/actions/update-actions@7ac9af09dda8c553593d2153a975b43b6958fa9f # update-actions@0.1.3\n+        with:\n+          aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}\n+          aws-lambda-url: ${{ secrets.AWS_LAMBDA_URL }}\n+          aws-role-arn-updater: ${{ secrets.AWS_ROLE_ARN_UPDATER }}\n+          aws-lambda-url-updater: ${{ secrets.AWS_LAMBDA_URL_UPDATER }}\n+          aws-region: ${{ secrets.AWS_REGION }}\n\\ No newline at end of file"
   }
 ];
+
+describe(filterForRelevantChanges.name, () => {
+  it("filters for relevant changes (empty)", () => {
+    const filteredFiles = filterForRelevantChanges([], false);
+    expect(filteredFiles).toEqual([]);
+  });
+
+  it("filters for relevant changes (irrelevant)", () => {
+    const files = [{
+      filename: ".github/workflows/not-a-workflow.txt",
+    }, {
+      filename: "workflows/not-a-workflow.yml",
+    }
+  ];
+    const filteredFiles = filterForRelevantChanges(files as GithubFiles, false);
+    expect(filteredFiles).toEqual([]);
+  });
+
+  it("filters for relevant changes (simple)", () => {
+    const filteredFiles = filterForRelevantChanges(simplePatchResponse, false);
+    expect(filteredFiles).toEqual(simplePatchResponse);
+  });
+
+  it("filters for relevant changes (workflows)", () => {
+    const files = [{
+      filename: ".github/workflows/workflow-1.yml",
+    }, {
+      filename: ".github/workflows/workflow-2.yaml",
+    }, {
+      filename: ".github/workflows/not-a-workflow.txt",
+    }, {
+      filename: "workflows/not-a-workflow.yml",
+    }
+  ];
+
+    const filteredFiles = filterForRelevantChanges(files as GithubFiles, false);
+    expect(filteredFiles).toEqual(files.slice(0, 2));
+  });
+
+  it("filters for relevant changes (actions)", () => {
+    const files = [{
+      filename: ".github/actions/yml/action-1.yml",
+    }, {
+      filename: ".github/actions/yaml/action-2.yaml",
+    }, {
+      filename: ".github/actions/txt/not-a-workflow.txt",
+    }, {
+      filename: "actions/not-a-action.yml",
+    }
+  ];
+
+    const filteredFiles = filterForRelevantChanges(files as GithubFiles, false);
+    expect(filteredFiles).toEqual(files.slice(0, 2));
+  });
+
+  it("filters for relevant changes (all actions)", () => {
+    const files = [{
+      filename: ".github/actions/yml/action-1.yml",
+    }, {
+      filename: ".github/actions/yaml/action-2.yaml",
+    }, {
+      filename: "actions/foo/action.yml",
+    }, {
+      filename: "actions/bar/action.yaml",
+    }, {
+      filename: ".github/actions/txt/not-a-workflow.txt",
+    }, {
+      filename: "actions/not/an-action.yml",
+    }
+  ];
+
+    const filteredFiles = filterForRelevantChanges(files as GithubFiles, true);
+    expect(filteredFiles).toEqual(files.slice(0, 4));
+  });
+});
+
+describe(extractActionReference.name, () => {
+  it("extracts action reference", () => {
+    const line = "        - uses: smartcontractkit/.github/actions/foo@bar # foo@1.0.0";
+    const actionReference = extractActionReference(line);
+
+    expect(actionReference).toEqual({
+      owner: "smartcontractkit",
+      repo: ".github",
+      repoPath: "/actions/foo",
+      ref: "bar",
+      comment: "foo@1.0.0",
+      line,
+    });
+  });
+});
+
 
 describe(parseAllAdditions.name, () => {
   it("parses all additions (empty)", () => {
@@ -69,4 +161,3 @@ describe(parseAllAdditions.name, () => {
     expect(anyActionReferencesExist).toEqual(false);
   });
 });
-
