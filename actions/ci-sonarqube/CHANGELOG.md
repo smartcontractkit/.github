@@ -1,5 +1,15 @@
 # ci-sonarqube
 
+## 0.3.4
+
+### Patch Changes
+
+- [#407](https://github.com/smartcontractkit/.github/pull/407)
+  [`8441511`](https://github.com/smartcontractkit/.github/commit/8441511610dd727cc395dcc032a8402125a37c37)
+  Thanks
+  [@app-token-issuer-releng-renovate](https://github.com/apps/app-token-issuer-releng-renovate)! -
+  Bump sonarsource/sonarqube-scan-action from v2.0.2 to v2.1.0
+
 ## 0.3.3
 
 ### Patch Changes

@@ -1181,26 +1181,12 @@ exports[`parseAllAdditions > parses all additions (complex) 1`] = `
         "lineNumber": 939,
       },
       {
-        "actionReference": {
-          "comment": "v2.3.11",
-          "line": "#        uses: smartcontractkit/chainlink-github-actions/chainlink-testing-framework/setup-run-tests-environment@5dd916d08c03cb5f9a97304f4f174820421bb946 # v2.3.11",
-          "owner": "smartcontractkit",
-          "ref": "5dd916d08c03cb5f9a97304f4f174820421bb946",
-          "repo": "chainlink-github-actions",
-          "repoPath": "/chainlink-testing-framework/setup-run-tests-environment",
-        },
+        "actionReference": undefined,
         "content": "#        uses: smartcontractkit/chainlink-github-actions/chainlink-testing-framework/setup-run-tests-environment@5dd916d08c03cb5f9a97304f4f174820421bb946 # v2.3.11",
         "lineNumber": 1357,
       },
       {
-        "actionReference": {
-          "comment": "v2.3.11",
-          "line": "#        uses: smartcontractkit/chainlink-github-actions/chainlink-testing-framework/run-tests@5dd916d08c03cb5f9a97304f4f174820421bb946 # v2.3.11",
-          "owner": "smartcontractkit",
-          "ref": "5dd916d08c03cb5f9a97304f4f174820421bb946",
-          "repo": "chainlink-github-actions",
-          "repoPath": "/chainlink-testing-framework/run-tests",
-        },
+        "actionReference": undefined,
         "content": "#        uses: smartcontractkit/chainlink-github-actions/chainlink-testing-framework/run-tests@5dd916d08c03cb5f9a97304f4f174820421bb946 # v2.3.11",
         "lineNumber": 1401,
       },
