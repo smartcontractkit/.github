@@ -30,26 +30,6 @@ inputs:
     required: false
     default: 3600
 
-  # cachix inputs --------------------------------
-  enable-cachix:
-    description: "Run cachix for nix caching"
-    required: false
-    default: false
-  cachix-name:
-    description: "Cachix private cache name"
-    required: false
-    default: "manifest"
-  cachix-token:
-      description: "[optional] Cachix auth token for private cache"
-      required: false
-      default: ""
-
-  # github inputs ---------------------------------
-  github-token:
-    description: "GitHub auth token for private repos (if needed)"
-    required: false
-    default: ""
-
   # grafana inputs (optional) ----------------------
   metrics-job-name:
     description: "grafana metrics job name"
@@ -115,19 +95,6 @@ runs:
           sandbox = relaxed
           substituters = https://cache.nixos.org https://nix-community.cachix.org ${{ inputs.cache-url }}
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= ${{ inputs.cache-pubkey }}
-
-    - uses: cachix/cachix-action@ad2ddac53f961de1989924296a1f236fcfbaa4fc # v15
-      if: inputs.enable-cachix == 'true'
-      with:
-        name: ${{ inputs.cachix-name }}
-        # If you chose API tokens for write access OR if you have a private cache
-        authToken: '${{ inputs.cachix-token }}'
-
-    - uses: MrSquaare/ssh-setup-action@7bfdda6ef6839504e3a5b2625ad971b17461a0db # v3
-      if: inputs.github-token != ''
-      with:
-        host: github.com
-        private-key: ${{ inputs.github-token }}
 
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''
