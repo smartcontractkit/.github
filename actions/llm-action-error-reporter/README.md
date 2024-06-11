@@ -1,4 +1,4 @@
-# GitHub LLM Action Error Reporter
+# ActionErrorReporter
 
 This GitHub workflow harnesses the capabilities of Large Language Models (LLMs) to automate identification and triage of CI/CD processes intiated by Pull Request events and/or status check errors. These failures usually don't raise any notifications and reasons are buried in logs which requires manual investigation by browsing github action logs. 
 
@@ -37,45 +37,67 @@ on:
 
 jobs:
   analyze_logs:
+    runs-on: ubuntu-latest
     # permissions required to run this job
     permissions:
       contents: read
       pull-requests: write
       repository-projects: read
       actions: read
-    # uses the workflow with the ref or tag specified
-    uses: smartcontractkit/llm_action_error_reporter/.github/workflows/llm-action-error-reporter.yaml@[SHA/ref]
-    with:
-      # state of the workflow that evoked this workflow
-      parent-workflow-conclusion: ${{ github.event.workflow_run.conclusion }}
-      # replaces the last comment made by github-action bot if true, creates another comment otherwise
-      # **WARNING**: may overwrite bot comments if you have multiple workflows that comments on the PR
-      edit-comment: true
-      gh-token: ${{ github.token }}
-    secrets:
-      # requires 1) getting the key from DS&A team, and 2) setting up the secret in the repository settings
-      openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+    steps:
+      - name: Analyze logs
+        uses: smartcontractkit/.github/actions/llm-action-error-reporter@[SHA] # points to a specific tag like llm-action-error-reporter@0.1.0
+        with:
+          # GitHub token used to fetch the PR diff and create a new PR comment.
+          # ${{ secrets.GITHUB_TOKEN }} will be sufficient.
+          gh-token: ''
+          # "The conclusion status of the parent workflow: either 'success' or 'failure'"
+          # you would usually supply '${{ github.event.workflow_run.conclusion }}' here
+          parent_workflow_conclusion: ''
+          # replaces the last comment made by github-action bot if true, creates another comment otherwise
+          # **WARNING**: may overwrite bot comments if you have multiple workflows that comments on the PR
+          edit-comment: [true/false]
+          # OpenAI model to use for PR description generation. Defaults to 'gpt-3.5-turbo-0125'.
+          # If your repository contains complex logic or expects large diffs, use 'gpt-4-turbo-2024-04-09' or newer.
+          # Learn more at: https://platform.openai.com/docs/models/overview
+          openai-model: ''
+          # OpenAI API Key, used to generate PR descriptions using the GPT model.
+          # Needs to have access to the chat-completion endpoints
+          # Example: ${{ secrets.OPENAI_API_KEY }}
+          openai-api-key: ''
+          # ref to smartcontractkit/.github repository to load the prompt from. Defaults to main.
+          # Usually used during development.
+          workflow-ref: ''
+        with:
+          # state of the workflow that evoked this workflow
+          parent-workflow-conclusion: ${{ github.event.workflow_run.conclusion }}
+          # replaces the last comment made by github-action bot if true, creates another comment otherwise
+          # **WARNING**: may overwrite bot comments if you have multiple workflows that comments on the PR
+          edit-comment: true
+          gh-token: ${{ github.token }}
+          openai-model: 'gpt-4-turbo-2024-04-09'
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
 ```
 
-# Configurations
+# Configuration Example
 ```yaml
-    uses: smartcontractkit/llm_action_error_reporter/.github/workflows/llm-action-error-reporter.yaml@[SHA/ref]
-    with:
-      # GitHub token used to fetch the PR diff and create a new PR comment.
-      # ${{ secrets.GITHUB_TOKEN }} will be sufficient.
-      gh-token: ''
-      # "The conclusion status of the parent workflow: either 'success' or 'failure'"
-      parent_workflow_conclusion: ''
-      # replaces the last comment made by github-action bot if true, creates another comment otherwise
-      # **WARNING**: may overwrite bot comments if you have multiple workflows that comments on the PR
-      edit-comment: [true/false]
-      # OpenAI model to use for PR description generation. Defaults to 'gpt-3.5-turbo-0125'.
-      # If your repository contains complex logic or expects large diffs, use 'gpt-4-turbo-2024-04-09' or newer.
-      # Learn more at: https://platform.openai.com/docs/models/overview
-      openai-model: ''
-    secrets:
-      # OpenAI API Key, used to generate PR descriptions using the GPT model.
-      # Needs to have access to the chat-completion endpoints
-      # Example: ${{ secrets.OPENAI_API_KEY }}
-      openai-api-key: ''
+jobs:
+  analyze_logs:
+    runs-on: ubuntu-latest
+    # permissions required to run this job
+    permissions:
+      contents: read
+      pull-requests: write
+      repository-projects: read
+      actions: read
+    steps:
+      - name: Analyze logs    with:
+        # state of the workflow that evoked this workflow
+        parent-workflow-conclusion: ${{ github.event.workflow_run.conclusion }}
+        # replaces the last comment made by github-action bot if true, creates another comment otherwise
+        # **WARNING**: may overwrite bot comments if you have multiple workflows that comments on the PR
+        edit-comment: true
+        gh-token: ${{ github.token }}
+        openai-model: 'gpt-4-turbo-2024-04-09'
+        openai-api-key: ${{ secrets.OPENAI_API_KEY }}
 ```

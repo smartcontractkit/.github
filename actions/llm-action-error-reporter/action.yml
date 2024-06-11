@@ -26,28 +26,51 @@ inputs:
     description: "ref of the workflow to checkout"
     required: false
     default: "main"
+  # grafana inputs (optional)
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+  metrics-id:
+    description: "grafana metrics id, used for continuity of metrics during job name changes - required if metrics-job-name is passed"
+    required: false
+  gc-host:
+    description: "grafana hostname - required if metrics-job-name is passed"
+    required: false
+  gc-basic-auth:
+    description: "grafana basic auth - required if metrics-job-name is passed"
+    required: false
+  gc-org-id:
+    description: "grafana org/tenant id - required if metrics-job-name is passed"
+    required: false
 
 runs:
   using: 'composite'
   steps:
-    - name: Checkout
-      uses: actions/checkout@v4.1.6
+    - name: Checkout calling repo
+      uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+
+    - name: Check if this run is invoked from a pull request event
+      shell: bash
+      if: >
+        github.event.workflow_run.event == 'pull_request'
+      run: |
+        echo "SKIP_ACTION=false" >> $GITHUB_ENV
 
     - name: Get PR number
+      if: ${{ env.SKIP_ACTION == 'false' }}
       id: get_pr_number
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
       run: |
-        trigger_event='${{ github.event.workflow_run.event }}'
-        echo "workflow_run event: $trigger_event"
+        echo "workflow_run event: ${{ github.event.workflow_run.event }}"
 
         # Convert pull_requests array to JSON string and get pr_number from the first object
         pull_requests_json='${{ toJson(github.event.workflow_run.pull_requests) }}'
         echo "pr_number="$(echo "$pull_requests_json" | jq '.[0].number')"" >> "$GITHUB_OUTPUT"
 
     - name: Prepare logs
-      if: ${{ inputs.parent-workflow-conclusion == 'failure' }}
+      if: ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion == 'failure' }}
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
@@ -56,6 +79,7 @@ runs:
         gh run view ${{ github.event.workflow_run.id }} --log-failed | jq -Rs . | sed 's/^"//;s/"$//' > runlog.log
 
     - name: Checkout action repo
+      if: ${{ env.SKIP_ACTION == 'false' }}
       uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       with:
         repository: smartcontractkit/.github
@@ -68,7 +92,7 @@ runs:
         fetch-depth: 1
 
     - name: Call ChatGPT
-      if: ${{ inputs.parent-workflow-conclusion == 'failure' }}
+      if: ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion == 'failure' }}
       shell: bash
       run: |
         log_output=$(cat runlog.log | sed -e 's/\\ No newline at end of file//g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
@@ -102,7 +126,7 @@ runs:
         echo "$response_content" | sed -e 's/^ -/  -/g' > chatgpt_output.txt
 
     - name: Generate Error Report
-      if: ${{ inputs.parent-workflow-conclusion == 'failure' }}
+      if: ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion == 'failure' }}
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
@@ -131,7 +155,7 @@ runs:
         fi
 
     - name: Generate Success Report
-      if: ${{ inputs.parent-workflow-conclusion != 'failure' }}
+      if: ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion != 'failure' }}
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
@@ -156,3 +180,15 @@ runs:
         else
           gh pr comment $PR_NUMBER -b "$pr_message"
         fi
+
+    - name: Collect metrics
+      if: always()
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
+      with:
+        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        org-id: ${{ inputs.gc-org-id}}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true
