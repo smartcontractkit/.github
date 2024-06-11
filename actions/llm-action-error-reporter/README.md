@@ -1,6 +1,6 @@
 # ActionErrorReporter
 
-This GitHub workflow harnesses the capabilities of Large Language Models (LLMs) to automate identification and triage of CI/CD processes intiated by Pull Request events and/or status check errors. These failures usually don't raise any notifications and reasons are buried in logs which requires manual investigation by browsing github action logs. 
+This GitHub workflow harnesses the capabilities of Large Language Models (LLMs) to automate identification and triage of CI/CD processes initiated by Pull Request events and/or status check errors. These failures usually don't raise any notifications and reasons are buried in logs which requires manual investigation by browsing github action logs. 
 
 This Github workflow aims to help reduce / eliminate time to triage CI/CD failures by having LLM doing the triage for us: monitor CI/CD logs and notify by searching and summarizing the CI/CD failures and also tries to suggest the fix.
 
@@ -100,4 +100,13 @@ jobs:
         gh-token: ${{ github.token }}
         openai-model: 'gpt-4-turbo-2024-04-09'
         openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+```
+
+# CLI tool
+The AER also comes in CLI flavor, where you can pipe log files generated during your local development to receive similar analysis reports, simply with:
+
+```bash
+# requires export OPENAI_API_KEY=[apikey]
+# may hallucinate if log doesn't actually contains error
+cat logfile.log | aer.sh
 ```
