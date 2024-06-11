@@ -7,6 +7,8 @@ runs:
 
 inputs:
   include-all-action-definitions:
-    description: "Include all action.yml files in the repository, not just the ones in .github/actions. Useful for action monorepos."
+    description:
+      "Include all action.yml files in the repository, not just the ones in
+      .github/actions. Useful for action monorepos."
     required: false
     default: false

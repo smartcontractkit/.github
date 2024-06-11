@@ -1,43 +1,56 @@
-name: 'Go Benchmark Action'
-description: 'Run Go benchmarks and optionally publish results to GitHub Pages'
+name: "Go Benchmark Action"
+description: "Run Go benchmarks and optionally publish results to GitHub Pages"
 inputs:
   benchmarks-pr:
-    description: 'Comma-separated list of benchmarks to run on PRs (e.g., BenchmarkOne, BenchmarkTwo). Set to "from-pr" to extract from PR description.'
+    description:
+      'Comma-separated list of benchmarks to run on PRs (e.g., BenchmarkOne,
+      BenchmarkTwo). Set to "from-pr" to extract from PR description.'
     required: false
-    default: 'from-pr'
+    default: "from-pr"
 
   benchmarks-merge:
-    description: 'Comma-separated list of benchmarks to run on merges (e.g., BenchmarkOne, BenchmarkTwo).'
+    description:
+      "Comma-separated list of benchmarks to run on merges (e.g., BenchmarkOne,
+      BenchmarkTwo)."
     required: false
-    default: ''
+    default: ""
 
   trigger-branches:
     # if this input did not exist, every commit to every branch (including PRs) will trigger the action for merges,
     # this is because both PRs and pushes to branches trigger the 'push' event
-    description: 'Comma-separated list of branches for which merges will trigger this action.'
+    description:
+      "Comma-separated list of branches for which merges will trigger this
+      action."
     required: true
 
   use-gh-pages:
-    description: 'Flag to enable publishing results to GitHub Pages (true or false)'
+    description:
+      "Flag to enable publishing results to GitHub Pages (true or false)"
     required: false
     default: false
 
   github-token:
-    description: 'GitHub token for authentication (GITHUB_TOKEN or a personal access token). Required if use-gh-pages is true.'
+    description:
+      "GitHub token for authentication (GITHUB_TOKEN or a personal access
+      token). Required if use-gh-pages is true."
     required: false
 
   gh-pages-branch:
-    description: 'The GitHub Pages branch to push results to (defaults to gh-pages). Required if use-gh-pages is true.'
+    description:
+      "The GitHub Pages branch to push results to (defaults to gh-pages).
+      Required if use-gh-pages is true."
     required: false
-    default: 'gh-pages'
+    default: "gh-pages"
 
   alert-comment-cc-users:
-    description: 'Comma-separated list of users to cc on alert comments (e.g., @user1, @user2).'
+    description:
+      "Comma-separated list of users to cc on alert comments (e.g., @user1,
+      @user2)."
     required: false
-    default: ''
+    default: ""
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Checkout Code
       uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
@@ -45,7 +58,7 @@ runs:
     - name: Setup Go Environment
       uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
       with:
-        go-version: 'stable'
+        go-version: "stable"
 
     - name: Analyze GitHub Event
       id: analyze-event
@@ -96,9 +109,9 @@ runs:
       if: ${{ env.IS_PR == 'true' }}
       uses: benchmark-action/github-action-benchmark@4de1bed97a47495fc4c5404952da0499e31f5c29 # v1.20.3
       with:
-        tool: 'go'
+        tool: "go"
         output-file-path: output.txt
-        external-data-json-path: './cache/benchmark-data.json'
+        external-data-json-path: "./cache/benchmark-data.json"
         fail-on-alert: true
         auto-push: false
         comment-on-alert: true
@@ -109,7 +122,7 @@ runs:
       if: ${{ env.IS_MERGE == 'true' }}
       uses: benchmark-action/github-action-benchmark@4de1bed97a47495fc4c5404952da0499e31f5c29 # v1.20.3
       with:
-        tool: 'go'
+        tool: "go"
         output-file-path: output.txt
         fail-on-alert: false
         comment-on-alert: true

@@ -16,10 +16,10 @@ This repository contains Github actions (GHA) written in YAML and Typescript.
 
 We considered two different workflows for executing on pull requests (PRs):
 
-- **Workflow 1**: A workflow which generates build artifacts and commits them to the
-  PR that triggered the workflow. This approach ensures that the latest changes
-  are always included in the PR, and subsequently on the target branch after
-  merge.
+- **Workflow 1**: A workflow which generates build artifacts and commits them to
+  the PR that triggered the workflow. This approach ensures that the latest
+  changes are always included in the PR, and subsequently on the target branch
+  after merge.
 - **Workflow 2**: A workflow which generates build artifacts and compares these
   artifacts with those included in the PR. Only passing if build artifacts are
   the same. This method ensures consistency and integrity of the build artifacts

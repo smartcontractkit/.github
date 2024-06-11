@@ -38,10 +38,13 @@ export async function getLocalRemoteTagDiff(cwd?: string): Promise<GitTag[]> {
 export async function getLocalTags(cwd?: string): Promise<GitTag[]> {
   const stdout = await execWithOutput("git", ["tag", "--list"], { cwd });
 
-  const tags: Promise<GitTag>[] = stdout.split("\n")
+  const tags: Promise<GitTag>[] = stdout
+    .split("\n")
     .filter((line) => !!line)
     .map(async (name) => {
-      const ref = await execWithOutput("git", ["rev-list", "-1", name], { cwd });
+      const ref = await execWithOutput("git", ["rev-list", "-1", name], {
+        cwd,
+      });
       return { name, ref: ref };
     });
 

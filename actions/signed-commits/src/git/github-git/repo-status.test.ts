@@ -112,7 +112,7 @@ async function createCommitTestRepo(name: string): Promise<string> {
   // Rename a file
   fs.writeFileSync(`${repoPath}/file3.txt`, "New file");
   execSync(
-    `cd ${repoPath} && git add file3.txt && git commit -m "Add file3.txt"`
+    `cd ${repoPath} && git add file3.txt && git commit -m "Add file3.txt"`,
   );
   execSync(`cd ${repoPath} && git mv file3.txt file3renamed.txt`);
 

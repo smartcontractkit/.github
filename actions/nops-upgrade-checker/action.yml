@@ -1,20 +1,25 @@
-name: 'Nops env deployment consistency check'
-description: 'Action to check consistency across environments'
+name: "Nops env deployment consistency check"
+description: "Action to check consistency across environments"
 
 inputs:
   key_to_compare:
-    description: 'Which key will be compared across environments. Example: tag'
+    description: "Which key will be compared across environments. Example: tag"
     required: true
   comparison_node_left:
-    description: 'Path to config.yaml file that will be loaded for environment 1. Example: "./projects/chainlink/files/chainlink-clusters/clc-ocr-multichain-ccip-beta/config.yaml"'
+    description:
+      'Path to config.yaml file that will be loaded for environment 1. Example:
+      "./projects/chainlink/files/chainlink-clusters/clc-ocr-multichain-ccip-beta/config.yaml"'
     required: true
   comparison_node_right:
-    description: 'Path to config.yaml file that will be loaded for environment 2. Example: "./projects/chainlink/files/chainlink-clusters/clc-ocr-multichain-ccip-testnet/config.yaml"'
+    description:
+      'Path to config.yaml file that will be loaded for environment 2. Example:
+      "./projects/chainlink/files/chainlink-clusters/clc-ocr-multichain-ccip-testnet/config.yaml"'
     required: true
   comparison_method:
-    description: 'Comparison method. Available options: "equals", "less-or-equal"'
+    description:
+      'Comparison method. Available options: "equals", "less-or-equal"'
     required: true
 
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
+  using: "docker"
+  image: "Dockerfile"
