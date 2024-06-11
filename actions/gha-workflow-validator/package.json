@@ -10,11 +10,11 @@
   "license": "MIT",
   "repository": "https://github.com/smartcontractkit/.github",
   "devDependencies": {
-    "@octokit/types": "^13.4.1",
-    "@types/node": "^20.12.7",
-    "@types/node-fetch": "^2.0.0",
-    "nock": "^13.3.8",
-    "node-fetch": "^2.0.0",
+    "@octokit/types": "^13.5.0",
+    "@types/node": "^20.14.2",
+    "@types/node-fetch": "^2.6.11",
+    "nock": "^13.5.4",
+    "node-fetch": "^2.7.0",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0"
   },
