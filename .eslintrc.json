@@ -1,8 +1,8 @@
 {
   "root": true,
   "ignorePatterns": ["**/*"],
-  "plugins": ["@nrwl/nx", "prettier"],
-  "extends": ["plugin:prettier/recommended"],
+  "plugins": ["@nrwl/nx"],
+  "extends": ["prettier"],
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
@@ -24,24 +24,17 @@
               }
             ]
           }
-        ],
-        "prettier/prettier": "error"
+        ]
       }
     },
     {
       "files": ["*.json"],
       "parser": "jsonc-eslint-parser",
-      "extends": ["plugin:prettier/recommended"],
-      "rules": {
-        "prettier/prettier": "error"
-      }
+      "extends": ["prettier"]
     },
     {
       "files": ["*.yaml", "*.yml"],
-      "extends": ["plugin:prettier/recommended"],
-      "rules": {
-        "prettier/prettier": "error"
-      }
+      "extends": ["prettier"]
     },
     {
       "files": ["*.spec.ts", "*.spec.tsx", "*.spec.js", "*.spec.jsx"],
