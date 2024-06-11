@@ -1,10 +1,13 @@
 # benchmark-action
 
-Initially developed in https://github.com/patrickhuie19/benchmark-action/blob/main/README.md.
+Initially developed in
+https://github.com/patrickhuie19/benchmark-action/blob/main/README.md.
 
-A reusable and continuous benchmarking action for go code validating PRs and commit history. 
+A reusable and continuous benchmarking action for go code validating PRs and
+commit history.
 
-This action uses https://github.com/benchmark-action/github-action-benchmark/blob/master/README.md
+This action uses
+https://github.com/benchmark-action/github-action-benchmark/blob/master/README.md
 
 github-action-benchmark works as follows:
 
@@ -36,18 +39,28 @@ graph TD
     F -->|Store Historical Data| C
 ```
 
-This gives us almost everything we need, with one caveat. The standard usage of this action makes working with PRs untenable, since benchmarking data from feature work can pollute the historical data store that future feature work will be compared against. To work around this, we won't update the historical data store for PRs, only for merges. 
+This gives us almost everything we need, with one caveat. The standard usage of
+this action makes working with PRs untenable, since benchmarking data from
+feature work can pollute the historical data store that future feature work will
+be compared against. To work around this, we won't update the historical data
+store for PRs, only for merges.
 
 To reuse this action across repos, we offer consumers the following inputs:
-- A list of benchmarks to run, specified either in the PR description by developers with the format `\nBENCHMARKS: BenchmarkOne, BenchmarkTwo` or as a comma seperated list of Benchmark names
-- A flag to opt-in to using Github Pages, which requires a one-time setup burden from a contributor with write access
+
+- A list of benchmarks to run, specified either in the PR description by
+  developers with the format `\nBENCHMARKS: BenchmarkOne, BenchmarkTwo` or as a
+  comma seperated list of Benchmark names
+- A flag to opt-in to using Github Pages, which requires a one-time setup burden
+  from a contributor with write access
 - An input to set which branch github pages is setup for in the consumer repo
 - A list of branches that this action is valid for
 
-Benchmarking requires historical data. Historical data requires continuous benchmark analyses, which will may increase github spend per merge for the additional compute. PR developers may experience CI latency.
-
+Benchmarking requires historical data. Historical data requires continuous
+benchmark analyses, which will may increase github spend per merge for the
+additional compute. PR developers may experience CI latency.
 
 ## Example Usage
+
 ```
 name: Run Benchmarks
 
@@ -79,5 +92,6 @@ jobs:
 ```
 
 ## Open Questions
+
 - How to display analysis data for PRs?
 - How to get reproducible environments to ensure precision of results over time?

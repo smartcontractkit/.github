@@ -138,8 +138,8 @@ CREATE actions/name-of-your-action/package.json
 UPDATE tsconfig.base.json
 ```
 
-**Note**: This will bootstrap a new composite action within the `actions/` with the
-minimum required files.
+**Note**: This will bootstrap a new composite action within the `actions/` with
+the minimum required files.
 
-Once ready to release this new action,
-run `pnpm changeset` to create the initial changeset file and bump the minor version.
+Once ready to release this new action, run `pnpm changeset` to create the
+initial changeset file and bump the minor version.
