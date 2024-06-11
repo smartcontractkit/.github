@@ -1,0 +1,158 @@
+name: LLM Action Error Reporter
+# workaround while waiting for https://github.com/actions/runner/issues/886 (gh run view can't run in currently running workflow)
+inputs:
+  parent-workflow-conclusion:
+    description: "The conclusion status of the parent workflow: either 'success' or 'failure'"
+    type: string
+    required: true
+  edit-comment:
+    description: 'Whether to edit the last comment or create a new one'
+    required: false
+    type: boolean
+  gh-token:
+    description: 'github token to make a comment with'
+    type: string
+    required: true
+  openai-model:
+    description: "openai model. defaults to 'gpt-4-turbo-2024-04-09'"
+    required: false
+    default: 'gpt-4-turbo-2024-04-09'
+    type: string
+  openai-api-key:
+    description: 'openai api key'
+    type: string
+    required: true
+  workflow-ref:
+    description: "ref of the workflow to checkout"
+    required: false
+    default: "main"
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.6
+
+    - name: Get PR number
+      id: get_pr_number
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh-token }}
+      run: |
+        trigger_event='${{ github.event.workflow_run.event }}'
+        echo "workflow_run event: $trigger_event"
+
+        # Convert pull_requests array to JSON string and get pr_number from the first object
+        pull_requests_json='${{ toJson(github.event.workflow_run.pull_requests) }}'
+        echo "pr_number="$(echo "$pull_requests_json" | jq '.[0].number')"" >> "$GITHUB_OUTPUT"
+
+    - name: Prepare logs
+      if: ${{ inputs.parent-workflow-conclusion == 'failure' }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh-token }}
+      run: |
+        echo "Analyzing run ${{ github.event.workflow_run.id }}"
+        gh run view ${{ github.event.workflow_run.id }} --log-failed | jq -Rs . | sed 's/^"//;s/"$//' > runlog.log
+
+    - name: Checkout action repo
+      uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+      with:
+        repository: smartcontractkit/.github
+        ref: ${{ inputs.workflow-ref }}
+        path: 'error_reporter_actions'
+        # prevents access to any other action and workflow files
+        sparse-checkout: |
+          actions/llm-action-error-reporter/log-analyze-prompt.md
+        sparse-checkout-cone-mode: false
+        fetch-depth: 1
+
+    - name: Call ChatGPT
+      if: ${{ inputs.parent-workflow-conclusion == 'failure' }}
+      shell: bash
+      run: |
+        log_output=$(cat runlog.log | sed -e 's/\\ No newline at end of file//g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
+        openai_prompt=$(cat error_reporter_actions/actions/llm-action-error-reporter/log-analyze-prompt.md | sed 's/"/\\"/g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
+        openai_model=${{ inputs.openai-model }}
+        openai_result=$(echo '{
+          "model": "'$openai_model'",
+          "temperature": 0.1,
+          "messages": [
+            {
+              "role": "system",
+              "content": "'$openai_prompt' \n\n```'$log_output'```"
+            }
+          ]
+        }' | envsubst | curl https://api.openai.com/v1/chat/completions \
+                      -w "%{http_code}" \
+                      -o prompt_response.json \
+                      -H "Content-Type: application/json" \
+                      -H "Authorization: Bearer ${{ inputs.openai-api-key }}" \
+                      -d @-
+        )
+
+        # throw error openai_result when is not 200
+        if [ "$openai_result" != '200' ]; then
+          echo "::error::OpenAI API call failed with status $openai_result: $(cat prompt_response.json)"
+          exit 1
+        fi
+
+        # replace lines starting with ' -' (1space) with '  -' (2spaces)
+        response_content=$(cat prompt_response.json | jq -r '.choices[0].message.content')
+        echo "$response_content" | sed -e 's/^ -/  -/g' > chatgpt_output.txt
+
+    - name: Generate Error Report
+      if: ${{ inputs.parent-workflow-conclusion == 'failure' }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh-token }}
+        PR_NUMBER: ${{ env.pr_number }}
+        edit_comment: ${{ inputs.edit-comment }}
+      run: |
+        workflow_name=$(gh run view ${{ github.event.workflow_run.id }} --json workflowName --jq '.workflowName')
+        head_sha=$(gh run view ${{ github.event.workflow_run.id }} --json headSha --jq '.headSha')
+        short_sha=$(echo $head_sha | cut -c1-7)
+        repo_url=$(gh repo view --json url --jq '.url')
+
+        pr_message="**Below is an analysis created by an LLM. Be mindful of hallucinations and verify accuracy.**
+
+        ## WF: $workflow_name[#$short_sha]($repo_url/commit/$head_sha)
+
+        $(cat chatgpt_output.txt)"
+
+        # Fetch the comments on the pull request and filter for comments by github.actor
+        author_comments=$(gh pr view $PR_NUMBER --json comments --jq ".comments | map(select(.author.login == \"github-actions\")) | length")
+
+        # Check if edit-comment is true and there are prior comments from github.actor
+        if [ "$edit_comment" = "true" ] && [ "$author_comments" -gt 0 ]; then
+          gh pr comment $PR_NUMBER -b "$pr_message" --edit-last
+        else
+          gh pr comment $PR_NUMBER -b "$pr_message"
+        fi
+
+    - name: Generate Success Report
+      if: ${{ inputs.parent-workflow-conclusion != 'failure' }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh-token }}
+        PR_NUMBER: ${{ steps.get_pr_number.outputs.pr_number }}
+        edit_comment: ${{ inputs.edit-comment }}
+      run: |
+        workflow_name=$(gh run view ${{ github.event.workflow_run.id }} --json workflowName --jq '.workflowName')
+        head_sha=$(gh run view ${{ github.event.workflow_run.id }} --json headSha --jq '.headSha')
+        short_sha=$(echo $head_sha | cut -c1-7)
+        repo_url=$(gh repo view --json url --jq '.url')
+
+        pr_message="## WF: $workflow_name[#$short_sha]($repo_url/commit/$head_sha)
+
+        No errors found in this run. 🎉"
+
+        # Fetch the comments on the pull request and filter for comments by github.actor
+        author_comments=$(gh pr view $PR_NUMBER --json comments --jq ".comments | map(select(.author.login == \"github-actions\")) | length")
+
+        # Check if edit-comment is true and there are prior comments from github.actor
+        if [ "$edit_comment" = "true" ] && [ "$author_comments" -gt 0 ]; then
+          gh pr comment $PR_NUMBER -b "$pr_message" --edit-last
+        else
+          gh pr comment $PR_NUMBER -b "$pr_message"
+        fi
