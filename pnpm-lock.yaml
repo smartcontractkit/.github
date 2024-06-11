@@ -194,6 +194,8 @@ importers:
 
   actions/setup-nix: {}
 
+  actions/setup-nix-gati: {}
+
   actions/setup-nodejs: {}
 
   actions/setup-renovate: {}
