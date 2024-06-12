@@ -5,13 +5,16 @@ network of repositories.
 
 ## Table of contents
 
-- [Actions updates](#actions-updates)
-  - [Action package updates within .github monorepo](#action-package-updates-within-github-monorepo)
-  - [Action package updates within application repos](#action-package-updates-within-application-repos)
-- [Example usage](#example-usage)
-  - [Golden path example repositories](#golden-path-example-repositories)
-- [Development](#development)
-  - [Creating a new action](#creating-a-new-action)
+- [.github](#github)
+  - [Table of contents](#table-of-contents)
+  - [Actions updates](#actions-updates)
+    - [Action package updates within .github monorepo](#action-package-updates-within-github-monorepo)
+    - [Action package updates within application repos](#action-package-updates-within-application-repos)
+  - [Example Usage](#example-usage)
+    - [Golden path example repositories](#golden-path-example-repositories)
+  - [Development](#development)
+    - [Creating a new action](#creating-a-new-action)
+    - [Git Hooks](#git-hooks)
 
 ## Actions updates
 
@@ -143,3 +146,18 @@ the minimum required files.
 
 Once ready to release this new action, run `pnpm changeset` to create the
 initial changeset file and bump the minor version.
+
+### Git Hooks
+
+We use lefthook to manage git hooks. The hooks should be installed after running
+`pnpm install` from the root of this repo. To install the hooks manually, run:
+
+```sh
+pnpm lefthook install
+```
+
+To run the e.g. pre-commit hooks manually, run:
+
+```sh
+pnpm lefthook run pre-commit
+```
