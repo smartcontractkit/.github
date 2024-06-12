@@ -1,5 +1,13 @@
 # setup-nix
 
+## 0.4.0
+
+### Minor Changes
+
+- [#431](https://github.com/smartcontractkit/.github/pull/431)
+  [`2aabe8b`](https://github.com/smartcontractkit/.github/commit/2aabe8bb3b0e388f0885a6d3788851531bfd57bb)
+  Thanks [@tt-cll](https://github.com/tt-cll)! - removes cachix and ssh key
+
 ## 0.3.1
 
 ### Patch Changes

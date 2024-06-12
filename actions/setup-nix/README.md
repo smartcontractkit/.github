@@ -1,6 +1,7 @@
 # setup-nix
 
-`setup-nix` installs a nix environment and configures it with the specified caches
+`setup-nix` installs a nix environment and configures it with the specified
+caches
 
 ## Configuration
 
@@ -18,7 +19,7 @@ inputs:
   aws-region: credential location
   role-to-assume: credential
   role-duration-seconds: credential TTL
-    
+
   # cachix inputs --------------------------------
   # enable to use private caches hosted on cachix
   # enable to push to caches hosted on cachix

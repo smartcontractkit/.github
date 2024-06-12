@@ -1,4 +1,5 @@
 # Changesets Release with Signed Commits
+
 This action for [Changesets](https://github.com/atlassian/changesets) creates a
 pull request with all of the package versions updated and changelogs updated and
 when there are new changesets on
@@ -7,8 +8,9 @@ the PR will be updated. When you're ready, you can merge the pull request and
 you can either publish the packages to npm manually or setup the action to do it
 for you.
 
-Note: this action was forked from [changesets/action](https://github.com/changesets/action/)
-but was modified to include commit signing.
+Note: this action was forked from
+[changesets/action](https://github.com/changesets/action/) but was modified to
+include commit signing.
 
 ## Usage
 
@@ -30,11 +32,11 @@ but was modified to include commit signing.
 
 - `published` - A boolean value to indicate whether a publishing is happened or
   not
-- `publishedPackages` - A JSON array to present the published packages. The format
-  is
+- `publishedPackages` - A JSON array to present the published packages. The
+  format is
   `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
-- `hasChangesets` - A boolean about whether there were changesets. Useful if you want to create your
-  own publishing functionality.
+- `hasChangesets` - A boolean about whether there were changesets. Useful if you
+  want to create your own publishing functionality.
 - `pullRequestNumber` - The pull request number that was created or updated
 
 ### Example workflow:

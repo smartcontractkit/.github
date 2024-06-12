@@ -18,7 +18,7 @@ describe("repo-tags", () => {
 
       const tags = await getLocalRemoteTagDiff(testTags.localRepoPath);
       expect(tags.map((t) => t.name)).toEqual(
-        testTags.localOnlyTags.map((t) => t.name)
+        testTags.localOnlyTags.map((t) => t.name),
       );
     });
   });
@@ -32,7 +32,7 @@ describe("repo-tags", () => {
 
       const notags = await getLocalRemoteTagDiff(testTags.localRepoPath);
       expect(tags.map((t) => t.name)).toEqual(
-        testTags.localOnlyTags.map((t) => t.name)
+        testTags.localOnlyTags.map((t) => t.name),
       );
       expect(notags).toEqual([]);
     });
@@ -46,7 +46,7 @@ describe("repo-tags", () => {
           { name: "tag-1", ref: "HEAD" },
           { name: "tag-2", ref: "HEAD" },
         ],
-        repo
+        repo,
       );
 
       const stdout = await listTagTypes(tags, repo);
@@ -70,18 +70,18 @@ describe("repo-tags", () => {
       const testTags = await createTestRepoWithRemote("repo-tags", true);
       const beforeTagTypes = await listTagTypes(
         testTags.localOnlyTags,
-        testTags.localRepoPath
+        testTags.localRepoPath,
       );
       await pushTags(testTags.localRepoPath);
       const afterTagTypes = await listTagTypes(
         testTags.localOnlyTags,
-        testTags.localRepoPath
+        testTags.localRepoPath,
       );
 
       expect(beforeTagTypes.every((t) => t.type === "tag")).toBe(true);
       expect(afterTagTypes.every((t) => t.type === "commit")).toBe(true);
       expect(beforeTagTypes.map((t) => t.name).sort()).toEqual(
-        afterTagTypes.map((t) => t.name).sort()
+        afterTagTypes.map((t) => t.name).sort(),
       );
     });
   });
@@ -105,7 +105,10 @@ describe("repo-tags", () => {
       expect(testRepoConfig.localOnlyTags).toEqual([]);
       expect(testRepoConfig.sharedTags).toEqual([]);
 
-      const remoteTags = await getRemoteTagNames('origin', testRepoConfig.localRepoPath);
+      const remoteTags = await getRemoteTagNames(
+        "origin",
+        testRepoConfig.localRepoPath,
+      );
       expect(remoteTags).toEqual([]);
     });
   });
@@ -134,7 +137,7 @@ async function createTestRepoWithRemote(name: string, createTags?: boolean) {
   const localOnlyTags = await createAnnotatedTestTags(
     localRepoPath,
     "local-only",
-    3
+    3,
   );
 
   return { remoteRepoPath, localRepoPath, sharedTags, localOnlyTags };
@@ -143,7 +146,7 @@ async function createTestRepoWithRemote(name: string, createTags?: boolean) {
 async function createAnnotatedTestTags(
   repoPath: string,
   key: string,
-  count: number
+  count: number,
 ): Promise<GitTag[]> {
   const newTags = new Array(count).fill(null).map(async (_, i) => {
     const name = `tag-${key}-${i}`;

@@ -2,9 +2,15 @@
   "root": true,
   "ignorePatterns": ["**/*"],
   "plugins": ["@nrwl/nx"],
+  "extends": ["prettier"],
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
+      "extends": [
+        "plugin:@nrwl/nx/typescript",
+        "plugin:@nrwl/nx/javascript",
+        "prettier"
+      ],
       "rules": {
         "@nrwl/nx/enforce-module-boundaries": [
           "error",
@@ -22,25 +28,19 @@
       }
     },
     {
-      "files": ["*.ts", "*.tsx"],
-      "extends": ["plugin:@nrwl/nx/typescript"],
-      "rules": {}
+      "files": ["*.json"],
+      "parser": "jsonc-eslint-parser",
+      "extends": ["prettier"]
     },
     {
-      "files": ["*.js", "*.jsx"],
-      "extends": ["plugin:@nrwl/nx/javascript"],
-      "rules": {}
+      "files": ["*.yaml", "*.yml"],
+      "extends": ["prettier"]
     },
     {
       "files": ["*.spec.ts", "*.spec.tsx", "*.spec.js", "*.spec.jsx"],
       "env": {
         "jest": true
       },
-      "rules": {}
-    },
-    {
-      "files": "*.json",
-      "parser": "jsonc-eslint-parser",
       "rules": {}
     }
   ]
