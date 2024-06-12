@@ -2,24 +2,26 @@ name: LLM Action Error Reporter
 # workaround while waiting for https://github.com/actions/runner/issues/886 (gh run view can't run in currently running workflow)
 inputs:
   parent-workflow-conclusion:
-    description: "The conclusion status of the parent workflow: either 'success' or 'failure'"
+    description:
+      "The conclusion status of the parent workflow: either 'success' or
+      'failure'"
     type: string
     required: true
   edit-comment:
-    description: 'Whether to edit the last comment or create a new one'
+    description: "Whether to edit the last comment or create a new one"
     required: false
     type: boolean
   gh-token:
-    description: 'github token to make a comment with'
+    description: "github token to make a comment with"
     type: string
     required: true
   openai-model:
     description: "openai model. defaults to 'gpt-4-turbo-2024-04-09'"
     required: false
-    default: 'gpt-4-turbo-2024-04-09'
+    default: "gpt-4-turbo-2024-04-09"
     type: string
   openai-api-key:
-    description: 'openai api key'
+    description: "openai api key"
     type: string
     required: true
   workflow-ref:
@@ -31,7 +33,9 @@ inputs:
     description: "grafana metrics job name"
     required: false
   metrics-id:
-    description: "grafana metrics id, used for continuity of metrics during job name changes - required if metrics-job-name is passed"
+    description:
+      "grafana metrics id, used for continuity of metrics during job name
+      changes - required if metrics-job-name is passed"
     required: false
   gc-host:
     description: "grafana hostname - required if metrics-job-name is passed"
@@ -40,11 +44,12 @@ inputs:
     description: "grafana basic auth - required if metrics-job-name is passed"
     required: false
   gc-org-id:
-    description: "grafana org/tenant id - required if metrics-job-name is passed"
+    description:
+      "grafana org/tenant id - required if metrics-job-name is passed"
     required: false
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Checkout calling repo
       uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
@@ -70,7 +75,9 @@ runs:
         echo "pr_number="$(echo "$pull_requests_json" | jq '.[0].number')"" >> "$GITHUB_OUTPUT"
 
     - name: Prepare logs
-      if: ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion == 'failure' }}
+      if:
+        ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion ==
+        'failure' }}
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
@@ -84,7 +91,7 @@ runs:
       with:
         repository: smartcontractkit/.github
         ref: ${{ inputs.workflow-ref }}
-        path: 'error_reporter_actions'
+        path: "error_reporter_actions"
         # prevents access to any other action and workflow files
         sparse-checkout: |
           actions/llm-action-error-reporter/log-analyze-prompt.md
@@ -92,7 +99,9 @@ runs:
         fetch-depth: 1
 
     - name: Call ChatGPT
-      if: ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion == 'failure' }}
+      if:
+        ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion ==
+        'failure' }}
       shell: bash
       run: |
         log_output=$(cat runlog.log | sed -e 's/\\ No newline at end of file//g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
@@ -126,7 +135,9 @@ runs:
         echo "$response_content" | sed -e 's/^ -/  -/g' > chatgpt_output.txt
 
     - name: Generate Error Report
-      if: ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion == 'failure' }}
+      if:
+        ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion ==
+        'failure' }}
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
@@ -155,7 +166,9 @@ runs:
         fi
 
     - name: Generate Success Report
-      if: ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion != 'failure' }}
+      if:
+        ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion !=
+        'failure' }}
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}

@@ -17,3 +17,7 @@ pnpm-lock.yaml
 yarn.lock
 
 /.nx/cache
+
+# Don't LLM format prompt files
+/actions/llm-pr-writer/pr-writer-prompt.md
+/actions/llm-action-error-reporter/log-analyze-prompt.md
