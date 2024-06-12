@@ -188,6 +188,8 @@ importers:
 
   actions/helm-version-bump-sender: {}
 
+  actions/llm-action-error-reporter: {}
+
   actions/llm-pr-writer: {}
 
   actions/manifest-build: {}
