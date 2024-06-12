@@ -16,7 +16,9 @@ inputs:
     description: "grafana metrics job name"
     required: false
   metrics-id:
-    description: "grafana metrics id, used for continuity of metrics during job name changes - required if metrics-job-name is passed"
+    description:
+      "grafana metrics id, used for continuity of metrics during job name
+      changes - required if metrics-job-name is passed"
     required: false
   gc-host:
     description: "grafana hostname - required if metrics-job-name is passed"
@@ -25,7 +27,8 @@ inputs:
     description: "grafana basic auth - required if metrics-job-name is passed"
     required: false
   gc-org-id:
-    description: "grafana org/tenant id - required if metrics-job-name is passed"
+    description:
+      "grafana org/tenant id - required if metrics-job-name is passed"
     required: false
 
 runs:

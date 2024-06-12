@@ -62,9 +62,8 @@ pnpm start --repo-dir=<path to repository>
   - `pnpm start --repo-dir=/Users/user/repos/chainlink --no-branch --no-commit`
 
 - Only check for deprecated action dependencies, perform no updates
+
   - `pnpm start --repo-dir=/Users/user/repos/chainlink --skip-updates`
 
 - Only perform updates, don't check for deprecated dependencies
   - `pnpm start --repo-dir=/Users/user/repos/chainlink --skip-checks`
-
-

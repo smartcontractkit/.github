@@ -1,7 +1,12 @@
-name: ci-lint-charts
-description: Lint helm charts
+name: ci-prettier
+description: Prettier Code Formatter
 
 inputs:
+  # specific inputs
+  prettier-command:
+    description: "Command to run prettier"
+    required: false
+    default: "pnpm run prettier:check"
   # general inputs
   checkout-repo:
     description: "enable git checkout repo"
@@ -11,19 +16,15 @@ inputs:
     description: "number of commits to fetch"
     required: false
     default: "0"
-  # chart-testing inputs
-  chart-testing-config-path:
-    description: "chart-testing config path"
+  # nodejs inputs
+  node-version-file:
+    description: ""
     required: false
-    default: .ct.yml
-  chart-testing-extra-args:
-    description: "chart-testing extra args"
+    default: ".tool-versions"
+  pnpm-version:
+    description: ""
     required: false
-    default: ""
-  charts-dir:
-    description: "charts directory"
-    required: false
-    default: "charts"
+    default: "^9.0.0"
   # grafana inputs (optional)
   metrics-job-name:
     description: "grafana metrics job name"
@@ -53,27 +54,19 @@ runs:
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
-    - name: Setup yq
-      uses: frenck/action-setup-yq@c4b5be8b4a215c536a41d436757d9feb92836d4f #v1.0.2
+    - name: Setup nodejs
+      uses: smartcontractkit/.github/actions/setup-nodejs@5b1046c28343660ecb84844c6fa95a66d1cdb52e # setup-nodejs@0.2.1
+      with:
+        node-version-file: ${{ inputs.node-version-file }}
+        pnpm-version: ${{ inputs.pnpm-version }}
+        use-cache: "true"
+        run-install: "true"
+      continue-on-error: true
 
-    - name: Add helm repos
+    # Prettier must be available in the project's package.json as a dep.
+    - name: Run Prettier Check
       shell: bash
-      working-directory: ${{ inputs.charts-dir }}
-      run: |
-        if [[ -f "./Chart.lock" ]]; then
-          yq --indent 0 '.dependencies | map(["helm", "repo", "add", .name, .repository] | join(" ")) | .[]' "./Chart.lock"  | sh --;
-        fi
-
-    - name: Set up chart-testing
-      uses: helm/chart-testing-action@e6669bcd63d7cb57cb4380c33043eebe5d111992 # v2.6.1
-
-    - name: Run chart-testing (lint)
-      shell: bash
-      env:
-        CHART_TESTING_CONFIG_PATH: ${{ inputs.chart-testing-config-path }}
-        CHART_TESTING_EXTRA_ARGS: ${{ inputs.chart-testing-extra-args }}
-      run: |
-        ct lint --config "${CHART_TESTING_CONFIG_PATH}" "${CHART_TESTING_EXTRA_ARGS}"
+      run: ${{ inputs.prettier-command }}
 
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''

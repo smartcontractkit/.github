@@ -49,41 +49,44 @@ function isGithubWorkflowOrActionFile(filename: string): boolean {
 export function parseAllAdditions(files: GithubFiles): ParsedFile[] {
   if (!files) return [];
 
-  return files?.map(entry => {
+  return files?.map((entry) => {
     const { filename, sha, patch } = entry;
     const addedLines = patch ? parsePatchAdditions(patch) : [];
     return { filename, sha, addedLines };
   });
 }
 
-function parsePatchAdditions(patch: string): FileAddition[]  {
-  const lineChanges = patch?.split('\n') || [];
+function parsePatchAdditions(patch: string): FileAddition[] {
+  const lineChanges = patch?.split("\n") || [];
 
   const additions: FileAddition[] = [];
 
   let currentLineInFile = 0;
   for (const line of lineChanges) {
-
-    if (line.startsWith('@@')) {
+    if (line.startsWith("@@")) {
       // @@ denotes a git hunk header
       // https://mattscodecave.com/posts/howto-reading-git-diffs-and-staging-hunks.html
       // example line: @@ -16,10 +16,10 @@ jobs:
       //   - "-16,10": "-" denotes source file, "16,10" means the hunk starts at line 16 and output contains 10 lines
       //   - "+16,10": "+" denotes destination file, "16,10" means the same as above
-      const [ , , destination, ] = line.split(' ');
+      const [, , destination] = line.split(" ");
 
       if (!destination.startsWith("+")) {
         throw new Error("Invalid git hunk format");
       }
 
-      const [ destinationLine, ] = destination.substring(1).split(',');
+      const [destinationLine] = destination.substring(1).split(",");
       currentLineInFile = parseInt(destinationLine, 10);
       continue;
-    } else if (line.startsWith('+')) {
+    } else if (line.startsWith("+")) {
       const currentLine = line.substring(1);
       const actionReference = extractActionReference(currentLine);
-      additions.push({ content: currentLine, lineNumber: currentLineInFile, actionReference });
-    } else if (line.startsWith('-')) {
+      additions.push({
+        content: currentLine,
+        lineNumber: currentLineInFile,
+        actionReference,
+      });
+    } else if (line.startsWith("-")) {
       // ignore deletions
       continue;
     }
@@ -93,7 +96,9 @@ function parsePatchAdditions(patch: string): FileAddition[]  {
   return additions;
 }
 
-export function extractActionReference(line: string): ActionReference | undefined {
+export function extractActionReference(
+  line: string,
+): ActionReference | undefined {
   const trimmedLine = line.trim();
 
   if (trimmedLine.startsWith("#")) {
@@ -136,11 +141,18 @@ export function extractActionReference(line: string): ActionReference | undefine
   };
 }
 
-export function logErrors(validationResults: ValidationResult[], annotatePR: boolean = false) {
+export function logErrors(
+  validationResults: ValidationResult[],
+  annotatePR: boolean = false,
+) {
   for (const fileResults of validationResults) {
     for (const lineResults of fileResults.lineValidations) {
-      const message = lineResults.validationErrors.map(error => error.message).join(",");
-      core.error(`file: ${fileResults.filename} @ line: ${lineResults.line.lineNumber} - ${message}`);
+      const message = lineResults.validationErrors
+        .map((error) => error.message)
+        .join(",");
+      core.error(
+        `file: ${fileResults.filename} @ line: ${lineResults.line.lineNumber} - ${message}`,
+      );
       if (annotatePR) {
         core.error(message, {
           file: fileResults.filename,
@@ -151,41 +163,53 @@ export function logErrors(validationResults: ValidationResult[], annotatePR: boo
   }
 }
 
-type TableRow = Parameters<typeof core.summary.addTable>[0][0]
-type TableCell = TableRow[0]
+type TableRow = Parameters<typeof core.summary.addTable>[0][0];
+type TableCell = TableRow[0];
 
-export async function setSummary(validationResults: ValidationResult[], fileUrlPrefix: string) {
+export async function setSummary(
+  validationResults: ValidationResult[],
+  fileUrlPrefix: string,
+) {
   const headerRow: TableRow = [
-      { data: "Filename", header: true },
-      { data: "Line Number", header: true },
-      { data: "Violations", header: true },
+    { data: "Filename", header: true },
+    { data: "Line Number", header: true },
+    { data: "Violations", header: true },
   ];
 
   const errorRows = validationResults.reduce<TableRow[]>((acc, curr) => {
     const filename = curr.filename;
 
-    const errorCellTuples: TableCell[][]  = curr.lineValidations.map(validationResult => {
-      const lineNumberCell: TableCell = { data: htmlLink(`${validationResult.line.lineNumber}`, `${fileUrlPrefix}/${filename}#L${validationResult.line.lineNumber}`) }
-      const violationsCell: TableCell = { data: validationResult.validationErrors.map(error => error.message).join(", ") }
+    const errorCellTuples: TableCell[][] = curr.lineValidations.map(
+      (validationResult) => {
+        const lineNumberCell: TableCell = {
+          data: htmlLink(
+            `${validationResult.line.lineNumber}`,
+            `${fileUrlPrefix}/${filename}#L${validationResult.line.lineNumber}`,
+          ),
+        };
+        const violationsCell: TableCell = {
+          data: validationResult.validationErrors
+            .map((error) => error.message)
+            .join(", "),
+        };
 
-      return [ lineNumberCell, violationsCell ];
-    })
+        return [lineNumberCell, violationsCell];
+      },
+    );
 
     if (errorCellTuples.length === 0) {
       return acc;
     }
 
     // The filename cell to span all the rows for this file
-    const filenameCell: TableCell = { data: filename, rowspan: `${errorCellTuples.length}` }
-    const firstErrorCellTuple =  errorCellTuples.shift() as TableCell[];
-    const firstRowForFile = [ filenameCell, ...firstErrorCellTuple ];
+    const filenameCell: TableCell = {
+      data: filename,
+      rowspan: `${errorCellTuples.length}`,
+    };
+    const firstErrorCellTuple = errorCellTuples.shift() as TableCell[];
+    const firstRowForFile = [filenameCell, ...firstErrorCellTuple];
 
-    return [
-      ...acc,
-      firstRowForFile,
-      ...errorCellTuples
-    ];
-
+    return [...acc, firstRowForFile, ...errorCellTuples];
   }, [] as TableRow[]);
 
   await core.summary
@@ -194,4 +218,3 @@ export async function setSummary(validationResults: ValidationResult[], fileUrlP
     .addRaw(FIXING_ERRORS)
     .write();
 }
-

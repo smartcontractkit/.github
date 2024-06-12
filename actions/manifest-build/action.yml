@@ -4,7 +4,9 @@ description: "Builds all manifest models and uploads them to a specified cache"
 inputs:
   # general inputs --------------------------------
   add-packages:
-    description: "Additional packages to build on top of the declared check packages (space separated) - not used if setup-only=true"
+    description:
+      "Additional packages to build on top of the declared check packages (space
+      separated) - not used if setup-only=true"
     required: false
     default: ""
 
@@ -14,7 +16,8 @@ inputs:
     required: false
     default: ""
   cache-privkey:
-    description: "Nix cache binary private signing key - not used if setup-only=true"
+    description:
+      "Nix cache binary private signing key - not used if setup-only=true"
     required: false
     default: ""
 
@@ -23,7 +26,9 @@ inputs:
     description: "grafana metrics job name"
     required: false
   metrics-id:
-    description: "grafana metrics id, used for continuity of metrics during job name changes - required if metrics-job-name is passed"
+    description:
+      "grafana metrics id, used for continuity of metrics during job name
+      changes - required if metrics-job-name is passed"
     required: false
   gc-host:
     description: "grafana hostname - required if metrics-job-name is passed"
@@ -32,7 +37,8 @@ inputs:
     description: "grafana basic auth - required if metrics-job-name is passed"
     required: false
   gc-org-id:
-    description: "grafana org/tenant id - required if metrics-job-name is passed"
+    description:
+      "grafana org/tenant id - required if metrics-job-name is passed"
     required: false
 
 runs:

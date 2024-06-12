@@ -33,8 +33,8 @@ smartcontractkit/chainlink-github-actions/github-app-token-issuer@5874ff7211cf5a
 * The action added is supposed to be run using a version that is not \`node20\`. This might create issues due to Github deprecating actions using \`node16\` and earlier.
 
 </details>
-`
+`;
 
 export function htmlLink(text: string, url: string) {
-  return `<a href="${url}">${text}</a>`
+  return `<a href="${url}">${text}</a>`;
 }

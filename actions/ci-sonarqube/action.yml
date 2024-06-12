@@ -27,7 +27,9 @@ inputs:
     description: "grafana metrics job name"
     required: false
   metrics-id:
-    description: "grafana metrics id, used for continuity of metrics during job name changes - required if metrics-job-name is passed"
+    description:
+      "grafana metrics id, used for continuity of metrics during job name
+      changes - required if metrics-job-name is passed"
     required: false
   gc-host:
     description: "grafana hostname - required if metrics-job-name is passed"
@@ -36,7 +38,8 @@ inputs:
     description: "grafana basic auth - required if metrics-job-name is passed"
     required: false
   gc-org-id:
-    description: "grafana org/tenant id - required if metrics-job-name is passed"
+    description:
+      "grafana org/tenant id - required if metrics-job-name is passed"
     required: false
 
 runs:
@@ -80,9 +83,13 @@ runs:
       uses: sonarsource/sonarqube-scan-action@86fe81775628f1c6349c28baab87881a2170f495 # v2.1.0
       with:
         args: >
-          -Dsonar.go.tests.reportPaths=${{ steps.sonarqube_report_paths.outputs.sonarqube_tests_report_paths }}
-          -Dsonar.go.coverage.reportPaths=${{ steps.sonarqube_report_paths.outputs.sonarqube_coverage_report_paths }}
-          -Dsonar.go.golangci-lint.reportPaths=${{ steps.sonarqube_report_paths.outputs.sonarqube_golangci_lint_report_paths }}
+          -Dsonar.go.tests.reportPaths=${{
+          steps.sonarqube_report_paths.outputs.sonarqube_tests_report_paths }}
+          -Dsonar.go.coverage.reportPaths=${{
+          steps.sonarqube_report_paths.outputs.sonarqube_coverage_report_paths
+          }} -Dsonar.go.golangci-lint.reportPaths=${{
+          steps.sonarqube_report_paths.outputs.sonarqube_golangci_lint_report_paths
+          }}
       env:
         SONAR_TOKEN: ${{ inputs.sonar-token }}
         SONAR_HOST_URL: ${{ inputs.sonar-host-url }}

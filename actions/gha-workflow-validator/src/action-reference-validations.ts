@@ -1,5 +1,5 @@
-import { ActionReference, FileAddition, ParsedFile } from './utils.js';
-import { Octokit, getActionFileFromGithub } from './github.js';
+import { ActionReference, FileAddition, ParsedFile } from "./utils.js";
+import { Octokit, getActionFileFromGithub } from "./github.js";
 import * as core from "@actions/core";
 
 const CURRENT_NODE_VERSION = 20;
@@ -15,18 +15,29 @@ interface LineValidationResult {
   validationErrors: ValidationError[];
 }
 
-type ValidationError = { message: string; };
+type ValidationError = { message: string };
 
-export async function validateActionReferenceChanges(octokit: Octokit, changes: ParsedFile[]): Promise<ValidationResult[]> {
-  core.debug(`Validating action reference changes, on ${changes.length} changes`)
+export async function validateActionReferenceChanges(
+  octokit: Octokit,
+  changes: ParsedFile[],
+): Promise<ValidationResult[]> {
+  core.debug(
+    `Validating action reference changes, on ${changes.length} changes`,
+  );
 
   const resultsPromise = changes.map(async (change) => {
-    const lineValidationPromises  = change.addedLines.filter(addedLine => addedLine.actionReference).map(async (line) => {
-      const validationErrors = (line.actionReference) ? await validateLine(octokit, line.actionReference) : [];
-      return { line: line, validationErrors };
-    });
+    const lineValidationPromises = change.addedLines
+      .filter((addedLine) => addedLine.actionReference)
+      .map(async (line) => {
+        const validationErrors = line.actionReference
+          ? await validateLine(octokit, line.actionReference)
+          : [];
+        return { line: line, validationErrors };
+      });
 
-    const nonEmptyLineValidations = (await Promise.all(lineValidationPromises)).filter((error) => error.validationErrors.length > 0);
+    const nonEmptyLineValidations = (
+      await Promise.all(lineValidationPromises)
+    ).filter((error) => error.validationErrors.length > 0);
 
     return {
       filename: change.filename,
@@ -35,12 +46,17 @@ export async function validateActionReferenceChanges(octokit: Octokit, changes: 
     };
   });
 
-  const filteredResults = (await Promise.all(resultsPromise)).filter((result) => result.lineValidations.length > 0);
+  const filteredResults = (await Promise.all(resultsPromise)).filter(
+    (result) => result.lineValidations.length > 0,
+  );
   core.debug(`Found ${filteredResults.length} files with validation errors`);
-  return filteredResults
+  return filteredResults;
 }
 
-async function validateLine(octokit: Octokit, line: ActionReference): Promise<ValidationError[]> {
+async function validateLine(
+  octokit: Octokit,
+  line: ActionReference,
+): Promise<ValidationError[]> {
   const validationErrors: ValidationError[] = [];
 
   const shaRefValidation = validateShaRef(line);
@@ -62,10 +78,10 @@ async function validateLine(octokit: Octokit, line: ActionReference): Promise<Va
 
 function validateShaRef(change: ActionReference) {
   const sha1Regex = /^[0-9a-f]{40}$/;
-  if(sha1Regex.test(change.ref)) return;
+  if (sha1Regex.test(change.ref)) return;
 
   const sha256Regex = /^[0-9a-f]{256}$/;
-  if(sha256Regex.test(change.ref)) return;
+  if (sha256Regex.test(change.ref)) return;
 
   return `${change.ref} is not a valid SHA reference`;
 }
@@ -73,10 +89,13 @@ function validateShaRef(change: ActionReference) {
 function validateVersionCommentExists(change: ActionReference) {
   if (change.comment) return;
 
-  return `No version comment found`
+  return `No version comment found`;
 }
 
-async function validateNodeActionVersion(ghClient: Octokit, change: ActionReference) {
+async function validateNodeActionVersion(
+  ghClient: Octokit,
+  change: ActionReference,
+) {
   const actionFile = await getActionFileFromGithub(
     ghClient,
     change.owner,
@@ -86,7 +105,9 @@ async function validateNodeActionVersion(ghClient: Octokit, change: ActionRefere
   );
 
   if (!actionFile) {
-    core.warning(`No action file found for ${change.owner}/${change.repo}${change.repoPath}@${change.ref}`);
+    core.warning(
+      `No action file found for ${change.owner}/${change.repo}${change.repoPath}@${change.ref}`,
+    );
     return;
   }
 
