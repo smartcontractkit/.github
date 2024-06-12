@@ -2,8 +2,6 @@ pre-commit:
   parallel: true
   commands:
     prettier:
-      # run: pnpm run prettier:check
       description: "Check for prettier formatting"
-      run: npx prettier --check {staged_files} --ignore-path=.prettierignore
-      glob: "*.{js,ts,md,json,yml,yaml}"
+      run: pnpm run prettier:check {staged_files}
       exclude: "node_modules/**/*"
