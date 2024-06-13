@@ -1,3 +1,4 @@
 # check-git-tag-for-monorepo
 
-> checks if git tag is for a monorepo component <component>@<version>
+> Checks if git tag is for a monorepo component <component>@<version>.
+> Optionally (`allow-hotfix` input) allows <component>@<version>-hotfix-<increment, e.g. timestamp>.
