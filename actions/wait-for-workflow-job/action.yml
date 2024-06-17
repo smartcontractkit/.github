@@ -18,11 +18,14 @@ inputs:
     description: The github token to use
     required: true
   retry-delay:
-    description: The amount of time to sleep between calls to check for job complete
+    description:
+      The amount of time to sleep between calls to check for job complete
     required: false
     default: "60"
   timeout:
-    description: How long in seconds to check for the job to start and complete before timing out and giving up
+    description:
+      How long in seconds to check for the job to start and complete before
+      timing out and giving up
     required: false
     default: "1800" # 30 minutes
 
@@ -82,7 +85,7 @@ runs:
             echo "Sleeping for $sleep_time seconds before checking for the job again..."
             sleep $sleep_time
         done
-        
+
         # If the job ID is still not found, exit with an error
         if [ -z "$job_id" ]; then
             echo "Job '${JOB_NAME}' was never found."

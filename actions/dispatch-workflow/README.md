@@ -1,6 +1,7 @@
 # dispatch-workflow
 
-> Dispatch a workflow and output its workflow run id, requires workflow that is setup with a distinct run name
+> Dispatch a workflow and output its workflow run id, requires workflow that is
+> setup with a distinct run name
 
 ```yaml
 name: example
@@ -39,14 +40,16 @@ Example of a workflow with a distinct run name setup
 
 ```yaml
 name: Integration Tests
-run-name: Integration Tests ${{ inputs.distinct_run_name && inputs.distinct_run_name || '' }}
+run-name:
+  Integration Tests ${{ inputs.distinct_run_name && inputs.distinct_run_name ||
+  '' }}
 on:
   pull_request:
   workflow_dispatch:
     inputs:
       distinct_run_name:
-        description: 'A unique identifier for this run, only use from other repos'
+        description:
+          "A unique identifier for this run, only use from other repos"
         required: false
         type: string
-...
 ```

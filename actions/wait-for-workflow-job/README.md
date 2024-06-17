@@ -1,7 +1,8 @@
 # wait-for-workflow-job
 
-Waits for a job in a workflow to complete.
-This is useful when you need to wait for a specific (required) job to complete but do not need the result of the whole workflow itself.
+Waits for a job in a workflow to complete. This is useful when you need to wait
+for a specific (required) job to complete but do not need the result of the
+whole workflow itself.
 
 ```yaml
 name: example

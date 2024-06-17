@@ -18,16 +18,22 @@ inputs:
         --field evm-ref="${EVM_REF}"
     required: false
   distinct_run_name:
-    description: The distinct run name added to the workflow, this is required to more accurately find the correct workflow that was started
+    description:
+      The distinct run name added to the workflow, this is required to more
+      accurately find the correct workflow that was started
     required: true
   actor:
-    description: The github actor used to dispatch the workflow, required to more accurately find the correct workflow that was started
+    description:
+      The github actor used to dispatch the workflow, required to more
+      accurately find the correct workflow that was started
     required: true
   github-token:
     description: The github token to use
     required: true
   retry-delay:
-    description: The amount of time in seconds to sleep between calls to check for workflow to be created
+    description:
+      The amount of time in seconds to sleep between calls to check for workflow
+      to be created
     required: false
     default: "10"
   retry-count:
