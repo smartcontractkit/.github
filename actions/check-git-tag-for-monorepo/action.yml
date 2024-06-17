@@ -8,7 +8,8 @@ inputs:
     required: false
     default: ${{ github.ref_name }}
   allow-hotfix:
-    description: "optionally allow tags with -hotfix-<increment/timestamp> suffix"
+    description:
+      "optionally allow tags with -hotfix-<increment/timestamp> suffix"
     required: false
     default: "false"
 outputs:
