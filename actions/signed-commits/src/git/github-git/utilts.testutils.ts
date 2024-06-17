@@ -20,14 +20,14 @@ export async function createRepo(name: string) {
   await execWithOutput(
     "git",
     ["config", "--local", "user.email", `test-user@testuser.com`],
-    { cwd: repoPath }
+    { cwd: repoPath },
   );
 
   // disable signing
   await execWithOutput(
     "git",
     ["config", "--local", "commit.gpgsign", "false"],
-    { cwd: repoPath }
+    { cwd: repoPath },
   );
 
   // create readme and commit

@@ -1,5 +1,7 @@
 name: Wait for workflows
-description: "Action that checks and waits for workflows w/ the same reference (head_sha) to complete"
+description:
+  "Action that checks and waits for workflows w/ the same reference (head_sha)
+  to complete"
 
 inputs:
   max-timeout:
@@ -7,11 +9,14 @@ inputs:
     default: "900"
     required: true
   polling-interval:
-    description: "Polling interval in seconds to check whether the workflow(s) to wait for are still running"
+    description:
+      "Polling interval in seconds to check whether the workflow(s) to wait for
+      are still running"
     default: "30"
     required: true
   exclude-workflow-names:
-    description: "Optional - Command separated list of workflow names to exclude"
+    description:
+      "Optional - Command separated list of workflow names to exclude"
     default: ""
     required: false
   exclude-workflow-ids:

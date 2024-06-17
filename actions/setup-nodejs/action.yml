@@ -13,15 +13,17 @@ inputs:
   use-cache:
     description: Enable github actions cache
     required: true
-    default: 'true'
+    default: "true"
   run-install:
     description: Run npm/yarn/pnpm install
     required: true
-    default: 'true'
+    default: "true"
   package-json-directory:
-    description: The sub-directory of the package.json, if not at the root of the repository
+    description:
+      The sub-directory of the package.json, if not at the root of the
+      repository
     required: false
-    default: '.'
+    default: "."
 
 runs:
   using: composite

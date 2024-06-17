@@ -1,5 +1,24 @@
 # setup-gap
 
+## 0.3.2
+
+### Patch Changes
+
+- [#406](https://github.com/smartcontractkit/.github/pull/406)
+  [`30f7be2`](https://github.com/smartcontractkit/.github/commit/30f7be2f91647556242d22572c4d47198f17e367)
+  Thanks
+  [@app-token-issuer-releng-renovate](https://github.com/apps/app-token-issuer-releng-renovate)! -
+  Bump clowdhaus/argo-cd-action from v2.1.0 to v2.2.0
+
+## 0.3.1
+
+### Patch Changes
+
+- [#429](https://github.com/smartcontractkit/.github/pull/429)
+  [`fc3cf71`](https://github.com/smartcontractkit/.github/commit/fc3cf71f41e6bcdedf28f9d04058343bb66206d5)
+  Thanks [@erikburt](https://github.com/erikburt)! - Bump push-gha metrics
+  action to v3.0.1, make Grafana inputs optional
+
 ## 0.3.0
 
 ### Minor Changes

@@ -194,7 +194,7 @@ async function run() {
     repo: githubRepo,
   });
 
-  console.log(`Number of tags found: ${tags.length}.`)
+  console.log(`Number of tags found: ${tags.length}.`);
   console.log(tags.map((x) => x.name));
 
   // build action map

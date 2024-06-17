@@ -39,19 +39,24 @@ inputs:
     description: "charts directory"
     required: true
     default: "charts"
-  # grafana inputs
+  # grafana inputs (optional)
   metrics-job-name:
     description: "grafana metrics job name"
     required: false
-    default: ci-kubeconform
+  metrics-id:
+    description:
+      "grafana metrics id, used for continuity of metrics during job name
+      changes - required if metrics-job-name is passed"
+    required: false
   gc-host:
-    description: "grafana hostname"
+    description: "grafana hostname - required if metrics-job-name is passed"
     required: false
   gc-basic-auth:
-    description: "grafana basic auth"
+    description: "grafana basic auth - required if metrics-job-name is passed"
     required: false
   gc-org-id:
-    description: "grafana org/tenant id"
+    description:
+      "grafana org/tenant id - required if metrics-job-name is passed"
     required: false
 
 runs:
@@ -59,7 +64,7 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
@@ -98,10 +103,11 @@ runs:
         helm template . | kubeconform -kubernetes-version ${{ inputs.kubernetes-version }} ${{ env.STRICT }} ${{ env.IGNORE_MISSING_SCHEMAS }} ${{ env.SUMMARY }}
 
     - name: Collect metrics
-      if: always()
+      if: always() && inputs.metrics-job-name != ''
       id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@e34ae8a4df60f4d9fdef1e32a69747bab130840e # v2.2.0
+      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
       with:
+        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}
         org-id: ${{ inputs.gc-org-id}}

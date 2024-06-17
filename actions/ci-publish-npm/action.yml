@@ -6,14 +6,19 @@ inputs:
     description: "The command which will be run to publish."
     required: true
   package-json-directory:
-    description: "The sub directory of the `package.json`. Supply if the publish command executes a script declared within the `package.json`, is not located at the root of the repository."
+    description:
+      "The sub directory of the `package.json`. Supply if the publish command
+      executes a script declared within the `package.json`, is not located at
+      the root of the repository."
     required: false
-    default: '.'
+    default: "."
   npm-token:
     description: The NPM token with publish access
     required: true
   github-token:
-    description: "The `GITHUB_TOKEN` issued for the workflow. Supply when creating Github releases. Requires `contents: write` permissions"
+    description:
+      "The `GITHUB_TOKEN` issued for the workflow. Supply when creating Github
+      releases. Requires `contents: write` permissions"
     required: false
     default: ${{ github.token }}
   create-github-release:
@@ -21,11 +26,14 @@ inputs:
     required: false
     default: false
   github-release-tag-name:
-    description: "The name of the GitHub release. Defaults to the current branch name"
+    description:
+      "The name of the GitHub release. Defaults to the current branch name"
     required: false
     default: ${{ github.ref_name }}
   github-release-changelog-path:
-    description: "The changelog path relative to the root of the repository. Defaults to `CHANGELOG.md`"
+    description:
+      "The changelog path relative to the root of the repository. Defaults to
+      `CHANGELOG.md`"
     required: false
     default: CHANGELOG.md
 

@@ -1,11 +1,22 @@
 # ci-test-go
 
+## 0.1.5
+
+### Patch Changes
+
+- [#429](https://github.com/smartcontractkit/.github/pull/429)
+  [`fc3cf71`](https://github.com/smartcontractkit/.github/commit/fc3cf71f41e6bcdedf28f9d04058343bb66206d5)
+  Thanks [@erikburt](https://github.com/erikburt)! - Bump push-gha metrics
+  action to v3.0.1, make Grafana inputs optional
+
 ## 0.1.4
 
 ### Patch Changes
 
-- [#331](https://github.com/smartcontractkit/.github/pull/331) [`2ae6d39`](https://github.com/smartcontractkit/.github/commit/2ae6d3925d362939350477e45821e4c4d9335101) Thanks [@tateexon](https://github.com/tateexon)! - Add pipefail to go test call so any pipes to tee or other programs will still
-  fail when go test fails
+- [#331](https://github.com/smartcontractkit/.github/pull/331)
+  [`2ae6d39`](https://github.com/smartcontractkit/.github/commit/2ae6d3925d362939350477e45821e4c4d9335101)
+  Thanks [@tateexon](https://github.com/tateexon)! - Add pipefail to go test
+  call so any pipes to tee or other programs will still fail when go test fails
 
 ## 0.1.3
 

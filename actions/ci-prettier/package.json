@@ -1,0 +1,11 @@
+{
+  "name": "ci-prettier",
+  "version": "0.1.0",
+  "description": "",
+  "private": true,
+  "scripts": {},
+  "author": "@chainchad",
+  "license": "MIT",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}

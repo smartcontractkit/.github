@@ -1,5 +1,6 @@
 name: check-git-tag-for-monorepo
-description: "checks if git tag is for a monorepo component <component>@<version>"
+description:
+  "checks if git tag is for a monorepo component <component>@<version>"
 
 inputs:
   tag-ref:

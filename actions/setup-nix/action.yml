@@ -30,39 +30,24 @@ inputs:
     required: false
     default: 3600
 
-  # cachix inputs --------------------------------
-  enable-cachix:
-    description: "Run cachix for nix caching"
-    required: false
-    default: false
-  cachix-name:
-    description: "Cachix private cache name"
-    required: false
-    default: "manifest"
-  cachix-token:
-      description: "[optional] Cachix auth token for private cache"
-      required: false
-      default: ""
-
-  # github inputs ---------------------------------
-  github-token:
-    description: "GitHub auth token for private repos (if needed)"
-    required: false
-    default: ""
-
-  # grafana inputs --------------------------
+  # grafana inputs (optional) ----------------------
   metrics-job-name:
     description: "grafana metrics job name"
     required: false
-    default: manifest-build
+  metrics-id:
+    description:
+      "grafana metrics id, used for continuity of metrics during job name
+      changes - required if metrics-job-name is passed"
+    required: false
   gc-host:
-    description: "grafana hostname"
+    description: "grafana hostname - required if metrics-job-name is passed"
     required: false
   gc-basic-auth:
-    description: "grafana basic auth"
+    description: "grafana basic auth - required if metrics-job-name is passed"
     required: false
   gc-org-id:
-    description: "grafana org/tenant id"
+    description:
+      "grafana org/tenant id - required if metrics-job-name is passed"
     required: false
 
 runs:
@@ -114,24 +99,12 @@ runs:
           substituters = https://cache.nixos.org https://nix-community.cachix.org ${{ inputs.cache-url }}
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= ${{ inputs.cache-pubkey }}
 
-    - uses: cachix/cachix-action@ad2ddac53f961de1989924296a1f236fcfbaa4fc # v15
-      if: inputs.enable-cachix == 'true'
-      with:
-        name: ${{ inputs.cachix-name }}
-        # If you chose API tokens for write access OR if you have a private cache
-        authToken: '${{ inputs.cachix-token }}'
-
-    - uses: MrSquaare/ssh-setup-action@7bfdda6ef6839504e3a5b2625ad971b17461a0db # v3
-      if: inputs.github-token != ''
-      with:
-        host: github.com
-        private-key: ${{ inputs.github-token }}
-
     - name: Collect metrics
-      if: always()
+      if: always() && inputs.metrics-job-name != ''
       id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@e34ae8a4df60f4d9fdef1e32a69747bab130840e # v2.2.0
+      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
       with:
+        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}
         org-id: ${{ inputs.gc-org-id }}

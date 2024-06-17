@@ -1,5 +1,30 @@
 # gha-workflow-validator
 
+## 0.2.1
+
+### Patch Changes
+
+- [#440](https://github.com/smartcontractkit/.github/pull/440)
+  [`30085a1`](https://github.com/smartcontractkit/.github/commit/30085a1fa888c180e72d208b0436426f128fa394)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: update dependencies
+
+## 0.2.0
+
+### Minor Changes
+
+- [#435](https://github.com/smartcontractkit/.github/pull/435)
+  [`c23c2fd`](https://github.com/smartcontractkit/.github/commit/c23c2fdae45b62f6918ccee1d03171e7068dde8b)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: toggle to validate
+  all action defintions in the repository, not just those rooted in
+  .github/actions
+
+### Patch Changes
+
+- [#435](https://github.com/smartcontractkit/.github/pull/435)
+  [`c23c2fd`](https://github.com/smartcontractkit/.github/commit/c23c2fdae45b62f6918ccee1d03171e7068dde8b)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: do not validate
+  commented lines
+
 ## 0.1.2
 
 ### Patch Changes

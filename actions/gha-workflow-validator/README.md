@@ -30,13 +30,16 @@ jobs:
 
 1. Update dist: `pnpm nx run gha-workflow-validator:build`
 2. Run tests: `pnpm nx run gha-workflow-validator:test`
-3. Record Fixtures (new only): `NOCK_BACK_MODE=record pnpm nx run gha-workflow-validator:test`
-4. Update Fixtures (existing only): `NOCK_BACK_MODE=update pnpm nx run gha-workflow-validator:test`z
+3. Record Fixtures (new only):
+   `NOCK_BACK_MODE=record pnpm nx run gha-workflow-validator:test`
+4. Update Fixtures (existing only):
+   `NOCK_BACK_MODE=update pnpm nx run gha-workflow-validator:test`z
 
 ### Potential Future Features
 
 1. Support for references to actions local to the repository
-2. Support for ignoring lines or files through inlined comments (`# gha-validator ignore`)
+2. Support for ignoring lines or files through inlined comments
+   (`# gha-validator ignore`)
 3. Support for warnings and errors
 4. Validate that the SHA-1 used points to the tag in the comment
 5. Validate that the action is a part of some allowed set of actions

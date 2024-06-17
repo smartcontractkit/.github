@@ -1,5 +1,22 @@
 # setup-nix
 
+## 0.4.0
+
+### Minor Changes
+
+- [#431](https://github.com/smartcontractkit/.github/pull/431)
+  [`2aabe8b`](https://github.com/smartcontractkit/.github/commit/2aabe8bb3b0e388f0885a6d3788851531bfd57bb)
+  Thanks [@tt-cll](https://github.com/tt-cll)! - removes cachix and ssh key
+
+## 0.3.1
+
+### Patch Changes
+
+- [#429](https://github.com/smartcontractkit/.github/pull/429)
+  [`fc3cf71`](https://github.com/smartcontractkit/.github/commit/fc3cf71f41e6bcdedf28f9d04058343bb66206d5)
+  Thanks [@erikburt](https://github.com/erikburt)! - Bump push-gha metrics
+  action to v3.0.1, make Grafana inputs optional
+
 ## 0.3.0
 
 ### Minor Changes

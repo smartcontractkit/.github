@@ -1,0 +1,7 @@
+pre-commit:
+  parallel: true
+  commands:
+    prettier:
+      description: "Check for prettier formatting"
+      run: pnpm run prettier:check {staged_files}
+      exclude: "node_modules/**/*"

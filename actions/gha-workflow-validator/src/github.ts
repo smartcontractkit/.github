@@ -49,34 +49,42 @@ export async function getActionFileFromGithub(
 
   let actionFile = await getFileFromGithub(octokit, owner, repo, ymlPath, ref);
   if (!actionFile) {
-    actionFile =  await getFileFromGithub(octokit, owner, repo, yamlPath, ref);
+    actionFile = await getFileFromGithub(octokit, owner, repo, yamlPath, ref);
   }
   return actionFile;
 }
 
-async function getFileFromGithub(octokit: Octokit, owner: string, repo: string, path: string, ref: string) {
-    try {
-      core.debug(`Getting file through Github - ${owner}/${repo}${path}@${ref}`);
+async function getFileFromGithub(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  path: string,
+  ref: string,
+) {
+  try {
+    core.debug(`Getting file through Github - ${owner}/${repo}${path}@${ref}`);
 
-      const response = await octokit.rest.repos.getContent({
-        owner,
-        repo,
-        path,
-        ref,
-      });
+    const response = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path,
+      ref,
+    });
 
-      if ("content" in response.data) {
-        return Buffer.from(response.data.content, "base64").toString();
-      }
-      throw Error("No content found in getContent response");
-    } catch (error: any) {
-      const requestPath = `${owner}/${repo}${path}@${ref}`;
-      if (error.status) {
-        core.warning(
-          `Encountered Github Request Error while getting file - ${requestPath}. (${error.status} - ${error.message})`,
-        );
-      } else {
-        core.warning(`Encountered Unknown Error while getting file - ${requestPath} - ${error}`);
-      }
+    if ("content" in response.data) {
+      return Buffer.from(response.data.content, "base64").toString();
     }
+    throw Error("No content found in getContent response");
+  } catch (error: any) {
+    const requestPath = `${owner}/${repo}${path}@${ref}`;
+    if (error.status) {
+      core.warning(
+        `Encountered Github Request Error while getting file - ${requestPath}. (${error.status} - ${error.message})`,
+      );
+    } else {
+      core.warning(
+        `Encountered Unknown Error while getting file - ${requestPath} - ${error}`,
+      );
+    }
+  }
 }

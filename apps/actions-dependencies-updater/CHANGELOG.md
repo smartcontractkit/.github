@@ -1,5 +1,13 @@
 # actions-dependencies-updater
 
+## 0.1.2
+
+### Patch Changes
+
+- [#440](https://github.com/smartcontractkit/.github/pull/440)
+  [`30085a1`](https://github.com/smartcontractkit/.github/commit/30085a1fa888c180e72d208b0436426f128fa394)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: update dependencies
+
 ## 0.1.1
 
 ### Patch Changes

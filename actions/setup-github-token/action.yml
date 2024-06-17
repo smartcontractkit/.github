@@ -27,7 +27,9 @@ inputs:
 outputs:
   access-token:
     value: ${{ steps.get-gh-token.outputs.access-token }}
-    description: The github access token that has permissions reflecting the current AWS role value
+    description:
+      The github access token that has permissions reflecting the current AWS
+      role value
 
 runs:
   using: composite
@@ -50,7 +52,8 @@ runs:
         aws-region: ${{ inputs.aws-region }}
         mask-aws-account-id: true
         role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
-        role-session-name: ${{ steps.role-session-name.outputs.role-session-name }}
+        role-session-name:
+          ${{ steps.role-session-name.outputs.role-session-name }}
         role-to-assume: ${{ inputs.aws-role-arn }}
 
     - name: Get github token from gati

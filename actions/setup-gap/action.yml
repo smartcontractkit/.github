@@ -107,18 +107,24 @@ inputs:
     description:
       "The region for the EKS cluster, if different from aws-region input."
     required: false
-  # grafana inputs
+  # grafana inputs (optional)
   metrics-job-name:
     description: "grafana metrics job name"
     required: false
+  metrics-id:
+    description:
+      "grafana metrics id, used for continuity of metrics during job name
+      changes - required if metrics-job-name is passed"
+    required: false
   gc-host:
-    description: "grafana hostname"
+    description: "grafana hostname - required if metrics-job-name is passed"
     required: false
   gc-basic-auth:
-    description: "grafana basic auth"
+    description: "grafana basic auth - required if metrics-job-name is passed"
     required: false
   gc-org-id:
-    description: "grafana org/tenant id"
+    description:
+      "grafana org/tenant id - required if metrics-job-name is passed"
     required: false
 
 runs:
@@ -126,7 +132,7 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
@@ -266,7 +272,7 @@ runs:
 
     - name: Setup argocd
       if: inputs.use-argocd == 'true'
-      uses: clowdhaus/argo-cd-action@37930175539236e14b9fa92a88251f4f0ca2808b # v2.1.0
+      uses: clowdhaus/argo-cd-action@c38276b240079e18653fef3ea63e0a1ef3b00a1d # v2.2.0
       with:
         command: version
         options: --client
@@ -283,8 +289,9 @@ runs:
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''
       id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@e34ae8a4df60f4d9fdef1e32a69747bab130840e # v2.2.0
+      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
       with:
+        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}
         org-id: ${{ inputs.gc-org-id}}

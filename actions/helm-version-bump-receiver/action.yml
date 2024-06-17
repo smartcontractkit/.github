@@ -68,19 +68,24 @@ inputs:
     description: "Used to append to the branch name and the PR title."
     required: true
     default: "sandbox"
-  # grafana inputs
+  # grafana inputs (optional)
   metrics-job-name:
     description: "grafana metrics job name"
     required: false
-    default: helm-version-bump-pr
+  metrics-id:
+    description:
+      "grafana metrics id, used for continuity of metrics during job name
+      changes - required if metrics-job-name is passed"
+    required: false
   gc-host:
-    description: "grafana hostname"
+    description: "grafana hostname - required if metrics-job-name is passed"
     required: false
   gc-basic-auth:
-    description: "grafana basic auth"
+    description: "grafana basic auth - required if metrics-job-name is passed"
     required: false
   gc-org-id:
-    description: "grafana org/tenant id"
+    description:
+      "grafana org/tenant id - required if metrics-job-name is passed"
     required: false
 
 outputs:
@@ -162,10 +167,11 @@ runs:
         token: ${{ inputs.github-token }}
 
     - name: Collect metrics
-      if: always()
+      if: always() && inputs.metrics-job-name != ''
       id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@e34ae8a4df60f4d9fdef1e32a69747bab130840e # v2.2.0
+      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
       with:
+        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
         basic-auth: ${{ inputs.gc-basic-auth }}
         hostname: ${{ inputs.gc-host }}
         org-id: ${{ inputs.gc-org-id}}
