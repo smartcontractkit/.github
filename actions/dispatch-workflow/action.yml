@@ -48,7 +48,7 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Prepare Base64 TOML override
+    - name: Dispatch Workflow
       shell: bash
       id: get-run-id
       env:

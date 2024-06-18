@@ -32,7 +32,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Prepare Base64 TOML override
+    - name: Wait For Workflow Job
       shell: bash
       id: get-run-id
       env:
