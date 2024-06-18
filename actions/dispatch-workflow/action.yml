@@ -54,7 +54,7 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.github-token }}
         DISTINCT_RUN_NAME: ${{ inputs.distinct_run_name }}
-        REPO: ${{ inputs.repo }}
+        GH_REPO: ${{ inputs.repo }}
         WORKFLOW: ${{ inputs.workflow }}
         REF: ${{ inputs.ref }}
         ACTOR: ${{ inputs.actor }}
@@ -68,7 +68,7 @@ runs:
         # run the workflow
         echo "Dispatching the workflow"
         gh workflow run "${WORKFLOW}" \
-          --repo ${REPO} \
+          --repo ${GH_REPO} \
           --ref ${REF} ${FIELDS}
 
         # Maximum number of attempts to check for the workflow run
@@ -84,7 +84,7 @@ runs:
           # Fetch workflow runs created after the script start time
           workflow_runs=$(curl -H "Authorization: token $GH_TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${REPO}/actions/runs?actor=$ACTOR&event=workflow_dispatch&exclude_pull_requests=true&created=>=$current_time")
+            "https://api.github.com/repos/${GH_REPO}/actions/runs?actor=$ACTOR&event=workflow_dispatch&exclude_pull_requests=true&created=>=$current_time")
 
           # Check the total_count of workflow runs returned
           total_count=$(echo "$workflow_runs" | jq .total_count)
