@@ -9,8 +9,17 @@ inputs:
     description: Path to go.mod file
     default: "go.mod"
     required: false
+  use-go-cache:
+    description: Set this to false to disable caching
+    required: false
+    default: "false"
+  go-cache-dep-path:
+    description: Path to go dependencies
+    required: false
+    default: "go.sum"
   cache-version:
     description: Set this to cache bust
+    required: false
     default: "1"
 
 runs:
@@ -20,7 +29,8 @@ runs:
       uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
       with:
         go-version-file: ${{ inputs.go-version-file }}
-        cache: false
+        cache: ${{ inputs.use-go-cache }}
+        cache-dependency-path: ${{ inputs.go-cache-dep-path }}
 
     - name: Get branch name
       if: ${{ inputs.only-modules == 'false' }}
