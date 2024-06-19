@@ -131,11 +131,11 @@ runs:
       working-directory: ${{ inputs.docker-compose-workdir }}
 
     - name: Setup go
-      uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
+      uses: smartcontractkit/.github/actions/setup-golang@c5e1a1a754f459440b084c6661538b8635dcb33a # setup-golang@0.2.0
       with:
         go-version-file: ${{ inputs.go-version-file }}
-        cache: ${{ inputs.use-go-cache }}
-        cache-dependency-path: ${{ inputs.go-cache-dep-path }}
+        use-go-cache: ${{ inputs.use-go-cache }}
+        go-cache-dep-path: ${{ inputs.go-cache-dep-path }}
 
     - name: Run go test
       shell: bash
