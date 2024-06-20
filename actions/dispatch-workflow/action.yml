@@ -65,10 +65,9 @@ runs:
       run: |
         current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-        # run the workflow
+        # dispatch the workflow
         echo "Dispatching the workflow"
         gh workflow run "${WORKFLOW}" \
-          --repo ${GH_REPO} \
           --ref ${REF} ${FIELDS}
 
         # Maximum number of attempts to check for the workflow run
@@ -82,8 +81,7 @@ runs:
           echo "Attempt $attempt: Checking for workflow runs..."
 
           # Fetch workflow runs created after the script start time
-          workflow_runs=$(curl -H "Authorization: token $GH_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
+          workflow_runs=$(gh api -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/${GH_REPO}/actions/runs?actor=$ACTOR&event=workflow_dispatch&exclude_pull_requests=true&created=>=$current_time")
 
           # Check the total_count of workflow runs returned

@@ -61,8 +61,7 @@ runs:
             fi
 
             # Fetch the list of jobs from the GitHub API
-            jobs=$(curl -H "Authorization: token $GH_TOKEN" \
-              -H "Accept: application/vnd.github.v3+json" \
+            jobs=$(gh api -H "Accept: application/vnd.github.v3+json" \
               "https://api.github.com/repos/${REPO}/actions/runs/$WF_RUN_ID/jobs?per_page=100")
 
             # Extract the total count of jobs, defaulting to '0' if not present
@@ -108,8 +107,7 @@ runs:
             fi
 
             # Fetch the job details from the GitHub API
-            job_details=$(curl -H "Authorization: token $GH_TOKEN" \
-                -H "Accept: application/vnd.github.v3+json" \
+            job_details=$(gh api -H "Accept: application/vnd.github.v3+json" \
                 "https://api.github.com/repos/${REPO}/actions/jobs/$job_id")
             job_status=$(echo "$job_details" | jq -r '.status')
             job_conclusion=$(echo "$job_details" | jq -r '.conclusion')
@@ -125,8 +123,7 @@ runs:
         done
 
         # Fetch the final job conclusion from the GitHub API
-        job_conclusion=$(curl -H "Authorization: token $GH_TOKEN" \
-          -H "Accept: application/vnd.github.v3+json" \
+        job_conclusion=$(gh api -H "Accept: application/vnd.github.v3+json" \
           "https://api.github.com/repos/${REPO}/actions/jobs/$job_id" | jq -r '.conclusion')
 
         echo "Job conclusion: $job_conclusion"

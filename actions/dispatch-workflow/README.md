@@ -15,9 +15,6 @@ jobs:
     name: Dispatch Workflow
     runs-on:
       labels: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -39,10 +36,9 @@ jobs:
 Example of a workflow with a distinct run name setup
 
 ```yaml
-name: Integration Tests
+name: E2E Tests
 run-name:
-  Integration Tests ${{ inputs.distinct_run_name && inputs.distinct_run_name ||
-  '' }}
+  E2E Tests ${{ inputs.distinct_run_name && inputs.distinct_run_name || '' }}
 on:
   pull_request:
   workflow_dispatch:

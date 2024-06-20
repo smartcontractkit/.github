@@ -16,9 +16,6 @@ jobs:
     name: Wait For Job
     runs-on:
       labels: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@V4
