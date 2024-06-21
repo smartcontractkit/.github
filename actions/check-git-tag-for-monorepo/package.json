@@ -1,6 +1,6 @@
 {
   "name": "check-git-tag-for-monorepo",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "description": "checks if git tag is for a monorepo component <component>@<version>",
   "private": true,
   "scripts": {},
