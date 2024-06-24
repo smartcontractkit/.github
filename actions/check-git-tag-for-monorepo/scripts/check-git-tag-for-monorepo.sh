@@ -16,6 +16,13 @@ if [[ "$TAG_REF" =~ ^[a-zA-Z0-9_.-]*@[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "name=${NAME}" | tee -a "$GITHUB_OUTPUT"
     echo "version=${VERSION}" | tee -a "$GITHUB_OUTPUT"
     echo "release=true" | tee -a "$GITHUB_OUTPUT"
+elif [[ "$TAG_REF" =~ ^[a-zA-Z0-9_.-]*@[0-9]+\.[0-9]+\.[0-9]+-hotfix-[a-zA-Z0-9_.-]+$ ]] && [[ "$ALLOW_HOTFIX" == "true" ]]; then
+    NAME=${TAG_REF%%@*}
+    VERSION=${TAG_REF#*@}
+    echo "Tag Format is a monorepo tag with a hotfix suffix."
+    echo "name=${NAME}" | tee -a "$GITHUB_OUTPUT"
+    echo "version=${VERSION}" | tee -a "$GITHUB_OUTPUT"
+    echo "release=true" | tee -a "$GITHUB_OUTPUT"
 else
     echo "No monorepo tag found."
     echo "release=false" | tee -a "$GITHUB_OUTPUT"
