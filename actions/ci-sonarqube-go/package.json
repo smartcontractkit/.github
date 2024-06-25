@@ -1,0 +1,11 @@
+{
+  "name": "ci-sonarqube-go",
+  "version": "0.0.0",
+  "description": "Add SonarQube for Golang to CI",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}
