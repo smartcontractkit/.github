@@ -133,6 +133,8 @@ importers:
 
   actions/ci-sonarqube-go: {}
 
+  actions/ci-sonarqube-ts: {}
+
   actions/ci-test-go: {}
 
   actions/ci-test-sol: {}
