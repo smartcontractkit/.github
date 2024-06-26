@@ -123,6 +123,16 @@ jobs:
           gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
           pnpm-version: "^9.0.0"
 
+  ci-sonarqube:
+    needs: [ci-lint, ci-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: ci-sonarqube
+        uses: smartcontractkit/.github/actions/ci-sonarqube-ts@7878f06999495f9e736183f8805a4909379acf52
+        with:
+          sonar-token: ${{ secrets.SONAR_TOKEN }}
+          sonar-host-url: ${{ secrets.SONAR_HOST_URL }}
+
   ci-build-artifacts:
     runs-on: ubuntu-latest
     steps:
