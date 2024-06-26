@@ -15,10 +15,6 @@ inputs:
     description: ""
     required: false
     default: "false"
-  base-ref:
-    description: ""
-    required: false
-    default: main
   # nodejs inputs
   node-version-file:
     description: ""
@@ -66,15 +62,14 @@ runs:
         run-install: "true"
       continue-on-error: true
 
-    - name: Run lint
-      if: inputs.check-only-affected != 'true'
+    - name: Run test
       shell: bash
-      run: pnpm run lint
+      run: pnpm run test
 
     - name: Run lint affected
       if: inputs.check-only-affected == 'true'
       shell: bash
-      run: pnpm run lint:affected --base=${{ inputs.base-ref }}
+      run: pnpm run test:affected
 
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''

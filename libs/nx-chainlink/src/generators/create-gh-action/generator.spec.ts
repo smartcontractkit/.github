@@ -9,6 +9,7 @@ describe("create-gh-action generator", () => {
   const options: CreateGhActionGeneratorSchema = {
     name: "test",
     description: "this is a test",
+    debug: false,
   };
 
   beforeEach(() => {
