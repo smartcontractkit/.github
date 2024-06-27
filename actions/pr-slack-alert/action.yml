@@ -108,7 +108,7 @@ runs:
                     "elements": [
                       {
                         "type": "usergroup",
-                        "usergroup_id": ${{ inputs.slack-user-group-id }},
+                        "usergroup_id": "${{ inputs.slack-user-group-id }}"
                       },
                       {
                         "type": "text",
