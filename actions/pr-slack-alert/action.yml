@@ -1,0 +1,162 @@
+name: pr-slack-alert
+description:
+  "Send slack ping to a specific user group from Github PRs - Used mainly for
+  Guardian of the Week (GoW)"
+
+inputs:
+  # general inputs
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+  # slack inputs
+  slack-webhook-url:
+    # https://api.slack.com/apps/{appId}/incoming-webhooks
+    # to create a new webhook with target channel
+    description: "slack webhook url to send the alert"
+    required: true
+  slack-user-group-id:
+    description: "slack user group id to ping with the alert"
+    required: true
+  # github inputs
+  ignore-pr-creators:
+    description: "comma-separated list of github usernames to skip alerts for"
+    required: false
+    default: "github-actions[bot],dependabot[bot],renovate[bot]"
+  match-reviewer-team:
+    description:
+      "will only send alert if the team name is included in the reviewers list"
+    required: false
+    default: ""
+  pr-event-type:
+    description:
+      "filter to trigger on specific PR event type - if set to empty it will
+      trigger on every type"
+    required: false
+    default: "opened"
+  # grafana inputs (optional)
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+  metrics-id:
+    description:
+      "grafana metrics id, used for continuity of metrics during job name
+      changes  - required if metrics-job-name is passed"
+    required: false
+  gc-host:
+    description: "grafana hostname - required if metrics-job-name is passed"
+    required: false
+  gc-basic-auth:
+    description: "grafana basic auth - required if metrics-job-name is passed"
+    required: false
+  gc-org-id:
+    description:
+      "grafana org/tenant id - required if metrics-job-name is passed"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Filter
+      id: filter
+      shell: bash
+      run: |
+        SKIP_SLACK=false
+        if [[ "${{ inputs.ignore-pr-creators }}" == *"${{ github.event.pull_request.user.login }}"* ]]; then
+          SKIP_SLACK=true
+        elif [[ "${{ inputs.pr-event-type }}" != "" ]] && [[ "${{ inputs.pr-event-type }}" != "${{ github.event.action }}" ]]; then
+          SKIP_SLACK=true
+        elif [[ "${{ inputs.match-reviewer-team }}" != "" ]] && [[ "${{ inputs.match-reviewer-team }}" != "${{ github.event.requested_team.name }}" ]]; then
+          SKIP_SLACK=true
+        fi
+        echo "SKIP_SLACK=$SKIP_SLACK" >> $GITHUB_OUTPUT
+
+    - name: Send slack alert
+      if: steps.filter.outputs.SKIP_SLACK != 'true'
+      id: slack
+      uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e #v1.26.0
+      with:
+        # https://api.slack.com/surfaces/messages#payloads
+        # on how to structure a message payload
+        payload: |
+          {
+            "blocks": [
+              {
+                "type": "rich_text",
+                "elements": [
+                  {
+                    "type": "rich_text_section",
+                    "elements": [
+                      {
+                        "type": "text",
+                        "text": "Review needed for PR opened by ${{ github.event.pull_request.user.login }}"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "rich_text_section",
+                    "elements": [
+                      {
+                        "type": "usergroup",
+                        "usergroup_id": ${{ inputs.slack-user-group-id }},
+                      },
+                      {
+                        "type": "text",
+                        "text": " Please review this PR: "
+                      },
+                      {
+                        "type": "link",
+                        "text": "${{ github.event.pull_request.title }}",
+                        "url": "${{ github.event.pull_request.html_url }}"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*repo*"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*workflow*"
+                  },
+                  {
+                    "type": "plain_text",
+                    "text": "${{ github.event.repository.name }}"
+                  },
+                  {
+                    "type": "plain_text",
+                    "text": "${{ github.event.workflow.name }}"
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ inputs.slack-webhook-url }}
+
+    - name: Collect metrics
+      if: always() && inputs.metrics-job-name != ''
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
+      with:
+        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        org-id: ${{ inputs.gc-org-id}}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true
