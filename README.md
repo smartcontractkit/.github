@@ -1,7 +1,7 @@
 # .github
 
 This repository contains reusable Github Actions to be used across our extensive
-network of repositories.
+networks of repositories.
 
 ## Table of contents
 
