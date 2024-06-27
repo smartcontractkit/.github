@@ -18,17 +18,24 @@ inputs:
   sonar-host-url:
     description: "sonarqube host url"
     required: false
+  test-report-artifact:
+    description: "Name of artifact containing junit test and coverage results"
+    required: false
+    default: "ts-test-results"
   junit-xml-report-paths:
     description: "paths to junit test results in xml format"
     requried: false
     default: "junit.xml"
   typescript-lcov-report-paths:
-    description:
-      "paths to lcov test coverage report of junit tests in lcov format"
+    description: "paths to lcov test coverage report in lcov format"
     requried: false
     default: "lcov.info"
+  lint-report-artifact:
+    description: "Name of artifact containing eslint report"
+    requried: false
+    default: "ts-lint-results"
   eslint-json-report-paths:
-    description: "paths to eslint report of typescript in json format"
+    description: "paths to eslint report in json format"
     requried: false
     default: "eslint-report.json"
   include-lint:
@@ -71,10 +78,10 @@ runs:
       id: sonarqube_report_paths
       shell: bash
       run: |
-        echo "sonarqube_junit_xml_report_paths=$(find ts-test-results -name inputs.junit-xml-report-paths | paste -sd "," -)" >> $GITHUB_OUTPUT
-        echo "sonarqube_typescript_lcov_report_paths=$(find ts-test-results -name inputs.typescript-lcov-report-paths | paste -sd "," -)" >> $GITHUB_OUTPUT
+        echo "sonarqube_junit_xml_report_paths=$(find inputs.test-report-artifact -name inputs.junit-xml-report-paths | paste -sd "," -)" >> $GITHUB_OUTPUT
+        echo "sonarqube_typescript_lcov_report_paths=$(find inputs.test-report-artifact -name inputs.typescript-lcov-report-paths | paste -sd "," -)" >> $GITHUB_OUTPUT
         if [ "${{ inputs.include-lint }}" == "true" ]; then
-          echo "sonarqube_eslint_report_paths=$(find ts-lint-results -name inputs.eslint-json-report-paths | paste -sd "," -)" >> $GITHUB_OUTPUT
+          echo "sonarqube_eslint_report_paths=$(find inputs.lint-report-artifact -name inputs.eslint-json-report-paths | paste -sd "," -)" >> $GITHUB_OUTPUT
         fi
 
     - name: SonarQube scan without lint
