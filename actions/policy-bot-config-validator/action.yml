@@ -1,0 +1,118 @@
+name: policy-bot-config-validator
+description: ""
+
+inputs:
+  policy-yml-path:
+    description: "path to the .policy.yml file"
+    required: false
+    default: ".policy.yml"
+  policy-bot-host:
+    description:
+      "The host to send the /api/validate request to. Example:
+      https://policy-bot.example.com. Ignored if setup-gap is true."
+    required: false
+  # setup-gap inputs
+  setup-gap:
+    description: "setup-gap action"
+    required: false
+    default: false
+  api-gateway-host:
+    description: |
+      The AWS API Gateway host for the target service.
+      Usually of the form <gateway id>.execute-api.<region>.amazonaws.com.
+      Required if setup-gap is true.
+    required: false
+  aws-region:
+    description: |
+      The AWS region for the api gateway and other resources unless specified
+      in other inputs.
+      Required if setup-gap is true.
+    required: false
+  aws-role-arn:
+    description: |
+      The AWS role with API Gateway invoke permissions.
+      Required if setup-gap is true.
+    required: false
+  # grafana inputs (optional)
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+  metrics-id:
+    description:
+      "grafana metrics id, used for continuity of metrics during job name
+      changes  - required if metrics-job-name is passed"
+    required: false
+  gc-host:
+    description: "grafana hostname - required if metrics-job-name is passed"
+    required: false
+  gc-basic-auth:
+    description: "grafana basic auth - required if metrics-job-name is passed"
+    required: false
+  gc-org-id:
+    description:
+      "grafana org/tenant id - required if metrics-job-name is passed"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Validate inputs
+      shell: bash
+      run: |
+        if [ ${{ inputs.setup-gap }} == 'true' ]; then
+          if [ -z ${{ inputs.api-gateway-host }} ]; then
+            echo "::error::api-gateway-host is required if setup-gap is true"
+            exit 1
+          fi
+          if [ -z ${{ inputs.aws-region }} ]; then
+            echo "::error::aws-region is required if setup-gap is true"
+            exit 1
+          fi
+          if [ -z ${{ inputs.aws-role-arn }} ]; then
+            echo "::error::aws-role-arn is required if setup-gap is true"
+            exit 1
+          fi
+        else
+          if [ -z ${{ inputs.policy-bot-host }} ]; then
+            echo "::error::policy-bot-host is required if setup-gap is false"
+            exit 1
+          fi
+        fi
+
+    - name: Setup GAP
+      if: inputs.setup-gap == 'true'
+      uses: smartcontractkit/.github/actions/setup-gap@d316f66b2990ea4daa479daa3de6fc92b00f863e # setup-gap@0.3.2
+      with:
+        api-gateway-host: ${{ inputs.api-gateway-host }}
+        aws-region: ${{ inputs.aws-region }}
+        aws-role-arn: ${{ inputs.aws-role-arn }}
+
+    - name: Validate .policy.yml
+      shell: bash
+      run: |
+        endpoint="http://localhost:8080/primary"
+
+        if [ ${{ inputs.setup-gap }} == 'false' ]; then
+          endpoint=${{ inputs.policy-bot-host }}
+        fi
+
+        http_response=$(curl -s -o body.txt -w "%{response_code}" "$endpoint/api/validate" -XPUT -T ${{ inputs.policy-yml-path }})
+        message=$(jq --raw-output --join-output .message body.txt | tr -d '\n')
+        if [ $http_response != "200" ]; then
+          echo "::error file=${{ inputs.policy-yml-path }}::$message"
+          exit 1
+        else
+          echo "::info::$message"
+        fi
+
+    - name: Collect metrics
+      if: always() && inputs.metrics-job-name != ''
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
+      with:
+        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        org-id: ${{ inputs.gc-org-id}}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true
