@@ -129,8 +129,6 @@ importers:
 
   actions/ci-publish-npm: {}
 
-  actions/ci-sonarqube: {}
-
   actions/ci-sonarqube-go: {}
 
   actions/ci-test-go: {}
