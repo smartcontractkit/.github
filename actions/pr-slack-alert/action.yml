@@ -14,13 +14,14 @@ inputs:
     required: false
     default: "0"
   # slack inputs
-  slack-webhook-url:
-    # https://api.slack.com/apps/{appId}/incoming-webhooks
-    # to create a new webhook with target channel
-    description: "slack webhook url to send the alert"
+  slack-channel-id:
+    description: "slack channel id to send the alert to"
     required: true
   slack-user-group-id:
     description: "slack user group id to ping with the alert"
+    required: true
+  slack-bot-token:
+    description: "slack bot api token"
     required: true
   # github inputs
   ignore-pr-creators:
@@ -86,6 +87,7 @@ runs:
       id: slack
       uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e #v1.26.0
       with:
+        channel-id: ${{ inputs.slack-channel-id }}
         # https://api.slack.com/surfaces/messages#payloads
         # on how to structure a message payload
         payload: |
@@ -147,7 +149,7 @@ runs:
             ]
           }
       env:
-        SLACK_WEBHOOK_URL: ${{ inputs.slack-webhook-url }}
+        SLACK_BOT_TOKEN: ${{ inputs.slack-bot-token }}
 
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''
