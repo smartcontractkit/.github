@@ -72,6 +72,9 @@ runs:
       id: filter
       shell: bash
       run: |
+        echo "github user: ${{ github.event.pull_request.user.login }}"
+        echo "github event type: ${{ github.event.action }}"
+        echo "github reviewer team: ${{ github.event.requested_team.name }}"
         SKIP_SLACK=false
         if [[ "${{ inputs.ignore-pr-creators }}" == *"${{ github.event.pull_request.user.login }}"* ]]; then
           SKIP_SLACK=true
