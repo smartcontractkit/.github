@@ -93,7 +93,7 @@ runs:
         channel-id: ${{ inputs.slack-channel-id }}
         # https://api.slack.com/surfaces/messages#payloads
         # on how to structure a message payload
-        payload-file-path: ./payload.json
+        payload-file-path: ${GITHUB_ACTION_PATH}/payload.json
       env:
         SLACK_BOT_TOKEN: ${{ inputs.slack-bot-token }}
 
