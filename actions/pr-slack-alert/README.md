@@ -1,7 +1,6 @@
 # pr-slack-alert
 
-> Send slack ping to a specific user group from Github PRs - Used mainly for
-> notifying the GoW
+> Send Slack alert to a specific user group in a channel from Github PRs
 
 ## Usage
 
