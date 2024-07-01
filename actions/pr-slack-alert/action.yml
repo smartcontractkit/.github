@@ -128,6 +128,31 @@ runs:
                     ]
                   }
                 ]
+              },
+              {
+                "type": "section",
+                "text": {
+                  "text": "⬡ ⬡ ⬡ *⏣* ⬡ ⬡ ⬡",
+                  "type": "mrkdwn"
+                },
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*repo*"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*workflow*"
+                  },
+                  {
+                    "type": "plain_text",
+                    "text": "${{ github.event.repository.name }}"
+                  },
+                  {
+                    "type": "plain_text",
+                    "text": "${{ github.event.workflow.name }}"
+                  }
+                ]
               }
             ]
           }
