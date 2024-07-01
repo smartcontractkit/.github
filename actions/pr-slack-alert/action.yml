@@ -93,69 +93,7 @@ runs:
         channel-id: ${{ inputs.slack-channel-id }}
         # https://api.slack.com/surfaces/messages#payloads
         # on how to structure a message payload
-        payload: |
-          {
-            "text": "Review needed for PR opened by ${{ github.event.pull_request.user.login }}",
-            "blocks": [
-              {
-                "type": "rich_text",
-                "elements": [
-                  {
-                    "type": "rich_text_section",
-                    "elements": [
-                      {
-                        "type": "text",
-                        "text": "Review needed for PR opened by ${{ github.event.pull_request.user.login }}"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "rich_text_section",
-                    "elements": [
-                      {
-                        "type": "usergroup",
-                        "usergroup_id": "${{ inputs.slack-user-group-id }}"
-                      },
-                      {
-                        "type": "text",
-                        "text": " Please review this PR: "
-                      },
-                      {
-                        "type": "link",
-                        "text": "${{ github.event.pull_request.title }}",
-                        "url": "${{ github.event.pull_request.html_url }}"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "section",
-                "text": {
-                  "text": "⬡ ⬡ ⬡ *⏣* ⬡ ⬡ ⬡",
-                  "type": "mrkdwn"
-                },
-                "fields": [
-                  {
-                    "type": "mrkdwn",
-                    "text": "*repo*"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*workflow*"
-                  },
-                  {
-                    "type": "plain_text",
-                    "text": "${{ github.event.repository.name }}"
-                  },
-                  {
-                    "type": "plain_text",
-                    "text": "${{ github.event.workflow.name }}"
-                  }
-                ]
-              }
-            ]
-          }
+        payload-file-path: ./payload.json
       env:
         SLACK_BOT_TOKEN: ${{ inputs.slack-bot-token }}
 
