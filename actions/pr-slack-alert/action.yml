@@ -38,7 +38,7 @@ inputs:
       "filter to trigger on specific PR event type - if set to empty it will
       trigger on every type"
     required: false
-    default: "opened"
+    default: ""
   # grafana inputs (optional)
   metrics-job-name:
     description: "grafana metrics job name"
@@ -93,8 +93,12 @@ runs:
         channel-id: ${{ inputs.slack-channel-id }}
         # https://api.slack.com/surfaces/messages#payloads
         # on how to structure a message payload
+        # the reason for using payload file is because the regular payload way
+        # is too long so it gets cutoff
         payload-file-path: ${{ github.action_path }}/payload.json
       env:
+        # it doesn't seem like the slack action can parse out github context
+        # in a json file so hence why there is these env vars
         SLACK_BOT_TOKEN: ${{ inputs.slack-bot-token }}
         USER_GROUP_ID: ${{ inputs.slack-user-group-id }}
         GITHUB_USER: ${{ github.event.pull_request.user.login }}
