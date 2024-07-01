@@ -39,6 +39,13 @@ inputs:
     description: "grafana org/tenant id"
     required: false
 
+outputs:
+  access-token:
+    value: ${{ steps.setup-github-token.outputs.access-token }}
+    description:
+      The github access token that has permissions reflecting the current AWS
+      role value
+
 runs:
   using: composite
   steps:
