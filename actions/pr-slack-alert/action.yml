@@ -95,6 +95,7 @@ runs:
         # on how to structure a message payload
         payload: |
           {
+            "text": "Review needed for PR opened by ${{ github.event.pull_request.user.login }}",
             "blocks": [
               {
                 "type": "rich_text",
