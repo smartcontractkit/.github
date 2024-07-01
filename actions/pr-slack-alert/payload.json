@@ -1,5 +1,5 @@
 {
-  "text": "Review needed for PR opened by ${{ github.event.pull_request.user.login }}",
+  "text": "Review needed for PR opened by ${{ env.GITHUB_USER }}",
   "blocks": [
     {
       "type": "rich_text",
@@ -9,7 +9,7 @@
           "elements": [
             {
               "type": "text",
-              "text": "Review needed for PR opened by ${{ github.event.pull_request.user.login }}"
+              "text": "Review needed for PR opened by ${{ env.GITHUB_USER }}"
             }
           ]
         },
@@ -26,8 +26,8 @@
             },
             {
               "type": "link",
-              "text": "${{ github.event.pull_request.title }}",
-              "url": "${{ github.event.pull_request.html_url }}"
+              "text": "${{ env.GITHUB_PR_TITLE }}",
+              "url": "${{ env.GITHUB_PR_URL }}"
             }
           ]
         }
@@ -50,11 +50,11 @@
         },
         {
           "type": "plain_text",
-          "text": "${{ github.event.repository.name }}"
+          "text": "${{ env.GITHUB_REPO }}"
         },
         {
           "type": "plain_text",
-          "text": "${{ github.event.workflow.name }}"
+          "text": "${{ env.GITHUB_WORKFLOW }}"
         }
       ]
     }

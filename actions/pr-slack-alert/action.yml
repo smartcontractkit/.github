@@ -97,6 +97,11 @@ runs:
       env:
         SLACK_BOT_TOKEN: ${{ inputs.slack-bot-token }}
         USER_GROUP_ID: ${{ inputs.slack-user-group-id }}
+        GITHUB_USER: ${{ github.event.pull_request.user.login }}
+        GITHUB_PR_URL: ${{ github.event.pull_request.html_url }}
+        GITHUB_PR_TITLE: ${{ github.event.pull_request.title }}
+        GITHUB_REPO: ${{ github.event.repository.name }}
+        GITHUB_WORKFLOW: ${{ github.event.workflow.name }}
 
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''
