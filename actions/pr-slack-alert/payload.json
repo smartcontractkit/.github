@@ -18,7 +18,7 @@
           "elements": [
             {
               "type": "usergroup",
-              "usergroup_id": "${{ inputs.slack-user-group-id }}"
+              "usergroup_id": "${{ env.USER_GROUP_ID }}"
             },
             {
               "type": "text",

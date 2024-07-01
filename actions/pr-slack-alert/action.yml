@@ -96,6 +96,7 @@ runs:
         payload-file-path: ${{ github.action_path }}/payload.json
       env:
         SLACK_BOT_TOKEN: ${{ inputs.slack-bot-token }}
+        USER_GROUP_ID: ${{ inputs.slack-user-group-id }}
 
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''
