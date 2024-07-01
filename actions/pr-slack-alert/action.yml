@@ -93,10 +93,9 @@ runs:
         channel-id: ${{ inputs.slack-channel-id }}
         # https://api.slack.com/surfaces/messages#payloads
         # on how to structure a message payload
-        payload-file-path: ${PAYLOAD_FILE_PATH}
+        payload-file-path: ${{ github.action_path }}/payload.json
       env:
         SLACK_BOT_TOKEN: ${{ inputs.slack-bot-token }}
-        PAYLOAD_FILE_PATH: ${{ github.action_path }}/payload.json
 
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''
