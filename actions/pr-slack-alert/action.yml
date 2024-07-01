@@ -1,7 +1,6 @@
 name: pr-slack-alert
 description:
-  "Send slack ping to a specific user group from Github PRs - Used mainly for
-  Guardian of the Week (GoW)"
+  "Send Slack alert to a specific user group in a channel from Github PRs"
 
 inputs:
   # general inputs
