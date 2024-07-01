@@ -21,14 +21,9 @@
   },
   "packageRules": [
     {
-      "groupName": "major-minor dependencies grouped by manager",
+      "groupName": "minor-patch dependencies grouped by manager",
       "branchName": "{{manager}}-dependencies",
-      "matchUpdateTypes": ["major", "minor"]
-    },
-    {
-      "groupName": "all patch dependencies",
-      "branchName": "patch-dependencies",
-      "matchUpdateTypes": ["patch"]
+      "matchUpdateTypes": ["minor", "patch"]
     }
   ]
 }
