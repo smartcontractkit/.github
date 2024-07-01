@@ -21,7 +21,8 @@ inputs:
     description: "slack user group id to ping with the alert"
     required: true
   slack-bot-token:
-    description: "slack bot api token"
+    description:
+      "slack bot api token - the token requires `chat:write` permission"
     required: true
   # github inputs
   ignore-pr-creators:
