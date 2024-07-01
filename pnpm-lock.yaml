@@ -200,6 +200,8 @@ importers:
 
   actions/nops-upgrade-checker: {}
 
+  actions/pr-slack-alert: {}
+
   actions/setup-gap: {}
 
   actions/setup-github-token: {}
