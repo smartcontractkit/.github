@@ -78,10 +78,10 @@ runs:
       id: sonarqube_report_paths
       shell: bash
       run: |
-        echo "sonarqube_junit_xml_report_paths=$(find inputs.test-report-artifact -name inputs.junit-xml-report-paths | paste -sd "," -)" >> $GITHUB_OUTPUT
-        echo "sonarqube_typescript_lcov_report_paths=$(find inputs.test-report-artifact -name inputs.typescript-lcov-report-paths | paste -sd "," -)" >> $GITHUB_OUTPUT
+        echo "sonarqube_junit_xml_report_paths=$(find ${{ inputs.test-report-artifact }} -name ${{ inputs.junit-xml-report-paths }} | paste -sd "," -)" >> $GITHUB_OUTPUT
+        echo "sonarqube_typescript_lcov_report_paths=$(find ${{ inputs.test-report-artifact }} -name ${{ inputs.typescript-lcov-report-paths }} | paste -sd "," -)" >> $GITHUB_OUTPUT
         if [ "${{ inputs.include-lint }}" == "true" ]; then
-          echo "sonarqube_eslint_report_paths=$(find inputs.lint-report-artifact -name inputs.eslint-json-report-paths | paste -sd "," -)" >> $GITHUB_OUTPUT
+          echo "sonarqube_eslint_report_paths=$(find ${{ inputs.lint-report-artifact }} -name ${{ inputs.eslint-json-report-paths }} | paste -sd "," -)" >> $GITHUB_OUTPUT
         fi
 
     - name: SonarQube scan without lint
