@@ -1,0 +1,126 @@
+name: ci-sonarqube-ts
+description: Add SonarQube to CI for code coverage
+
+inputs:
+  # general inputs
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+  # sonarqube inputs
+  sonar-token:
+    description: "sonarqube token"
+    required: false
+  sonar-host-url:
+    description: "sonarqube host url"
+    required: false
+  test-report-artifact:
+    description: "Name of artifact containing junit test and coverage results"
+    required: false
+    default: "ts-test-results"
+  junit-xml-report-paths:
+    description: "paths to junit test results in xml format"
+    requried: false
+    default: "junit.xml"
+  typescript-lcov-report-paths:
+    description: "paths to lcov test coverage report in lcov format"
+    requried: false
+    default: "lcov.info"
+  lint-report-artifact:
+    description: "Name of artifact containing eslint report"
+    requried: false
+    default: "ts-lint-results"
+  eslint-json-report-paths:
+    description: "paths to eslint report in json format"
+    requried: false
+    default: "eslint-report.json"
+  include-lint:
+    description: "enable linting"
+    required: false
+    default: "false"
+  # grafana inputs (optional)
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+  metrics-id:
+    description:
+      "grafana metrics id, used for continuity of metrics during job name
+      changes - required if metrics-job-name is passed"
+    required: false
+  gc-host:
+    description: "grafana hostname - required if metrics-job-name is passed"
+    required: false
+  gc-basic-auth:
+    description: "grafana basic auth - required if metrics-job-name is passed"
+    required: false
+  gc-org-id:
+    description:
+      "grafana org/tenant id - required if metrics-job-name is passed"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Download all workflow run artifacts
+      uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+
+    - name: Set SonarQube Report Paths
+      id: sonarqube_report_paths
+      shell: bash
+      run: |
+        echo "sonarqube_junit_xml_report_paths=$(find inputs.test-report-artifact -name inputs.junit-xml-report-paths | paste -sd "," -)" >> $GITHUB_OUTPUT
+        echo "sonarqube_typescript_lcov_report_paths=$(find inputs.test-report-artifact -name inputs.typescript-lcov-report-paths | paste -sd "," -)" >> $GITHUB_OUTPUT
+        if [ "${{ inputs.include-lint }}" == "true" ]; then
+          echo "sonarqube_eslint_report_paths=$(find inputs.lint-report-artifact -name inputs.eslint-json-report-paths | paste -sd "," -)" >> $GITHUB_OUTPUT
+        fi
+
+    - name: SonarQube scan without lint
+      if: inputs.include-lint == 'false'
+      uses: sonarsource/sonarqube-scan-action@86fe81775628f1c6349c28baab87881a2170f495 # v2.1.0
+      with:
+        args: >
+          -Dsonar.junit.reportPaths=${{
+          steps.sonarqube_report_paths.outputs.sonarqube_junit_xml_report_paths
+          }} -Dsonar.typescript.lcov.reportPaths=${{
+          steps.sonarqube_report_paths.outputs.sonarqube_typescript_lcov_report_paths
+          }}
+      env:
+        SONAR_TOKEN: ${{ inputs.sonar-token }}
+        SONAR_HOST_URL: ${{ inputs.sonar-host-url }}
+
+    - name: SonarQube scan with lint
+      if: inputs.include-lint == 'true'
+      uses: sonarsource/sonarqube-scan-action@86fe81775628f1c6349c28baab87881a2170f495 # v2.1.0
+      with:
+        args: >
+          -Dsonar.junit.reportPaths=${{
+          steps.sonarqube_report_paths.outputs.sonarqube_junit_xml_report_paths
+          }} -Dsonar.typescript.lcov.reportPaths=${{
+          steps.sonarqube_report_paths.outputs.sonarqube_typescript_lcov_report_paths
+          }} -Dsonar.eslint.reportPaths=${{
+          steps.sonarqube_report_paths.outputs.sonarqube_eslint_report_paths }}
+      env:
+        SONAR_TOKEN: ${{ inputs.sonar-token }}
+        SONAR_HOST_URL: ${{ inputs.sonar-host-url }}
+
+    - name: Collect metrics
+      if: always() && inputs.metrics-job-name != ''
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
+      with:
+        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        org-id: ${{ inputs.gc-org-id}}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true
