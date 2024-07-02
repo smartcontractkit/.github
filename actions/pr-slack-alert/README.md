@@ -21,10 +21,14 @@ jobs:
       - name: Do stuff
       - ...
       - name: Slack Alert
-        uses: smartcontractkit/.github/actions/pr-slack-alert@{sha-tag} # 0.1.0
+        uses: smartcontractkit/.github/actions/pr-slack-alert@{sha-tag} # pr-slack-alert@0.1.0
         with:
           slack-channel-id: ${{ env.SLACK_CHANNEL_ID }}
           slack-user-group-id: ${{ env.SLACK_USER_GROUP_ID }}
           slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }} # requires `chat:write` permission
           pr-event-type: "opened"
 ```
+
+## Future Work
+
+We could update the `payload.json` to generate the message based on the event type.

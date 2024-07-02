@@ -3,15 +3,6 @@ description:
   "Send Slack alert to a specific user group in a channel from Github PRs"
 
 inputs:
-  # general inputs
-  checkout-repo:
-    description: "enable git checkout repo"
-    required: false
-    default: "true"
-  checkout-repo-fetch-depth:
-    description: "number of commits to fetch"
-    required: false
-    default: "0"
   # slack inputs
   slack-channel-id:
     description: "slack channel id to send the alert to"
@@ -38,6 +29,8 @@ inputs:
       "filter to trigger on specific PR event type - if set to empty it will
       trigger on every type"
     required: false
+    # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
+    # available event types
     default: ""
   # grafana inputs (optional)
   metrics-job-name:
@@ -62,12 +55,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout repo
-      if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-      with:
-        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
-
     - name: Filter
       id: filter
       shell: bash
