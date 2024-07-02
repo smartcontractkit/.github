@@ -71,6 +71,15 @@ runs:
       shell: bash
       run: pnpm run test:affected
 
+    - name: Store test result artifacts
+      if: always()
+      uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+      with:
+        name: ts-test-results
+        path: |
+          ./junit.xml
+          ./lcov.info
+
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''
       id: collect-gha-metrics

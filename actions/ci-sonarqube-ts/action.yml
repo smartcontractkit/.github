@@ -1,4 +1,4 @@
-name: ci-sonarqube
+name: ci-sonarqube-ts
 description: Add SonarQube to CI for code coverage
 
 inputs:
@@ -18,6 +18,26 @@ inputs:
   sonar-host-url:
     description: "sonarqube host url"
     required: false
+  test-report-artifact:
+    description: "Name of artifact containing junit test and coverage results"
+    required: false
+    default: "ts-test-results"
+  junit-xml-report-paths:
+    description: "paths to junit test results in xml format"
+    requried: false
+    default: "junit.xml"
+  typescript-lcov-report-paths:
+    description: "paths to lcov test coverage report in lcov format"
+    requried: false
+    default: "lcov.info"
+  lint-report-artifact:
+    description: "Name of artifact containing eslint report"
+    requried: false
+    default: "ts-lint-results"
+  eslint-json-report-paths:
+    description: "paths to eslint report in json format"
+    requried: false
+    default: "eslint-report.json"
   include-lint:
     description: "enable linting"
     required: false
@@ -58,10 +78,10 @@ runs:
       id: sonarqube_report_paths
       shell: bash
       run: |
-        echo "sonarqube_tests_report_paths=$(find go-test-results -name output.txt | paste -sd "," -)" >> $GITHUB_OUTPUT
-        echo "sonarqube_coverage_report_paths=$(find go-test-results -name coverage.txt | paste -sd "," -)" >> $GITHUB_OUTPUT
+        echo "sonarqube_junit_xml_report_paths=$(find inputs.test-report-artifact -name inputs.junit-xml-report-paths | paste -sd "," -)" >> $GITHUB_OUTPUT
+        echo "sonarqube_typescript_lcov_report_paths=$(find inputs.test-report-artifact -name inputs.typescript-lcov-report-paths | paste -sd "," -)" >> $GITHUB_OUTPUT
         if [ "${{ inputs.include-lint }}" == "true" ]; then
-          echo "sonarqube_golangci_lint_report_paths=$(find golangci-lint-report -name golangci-lint-report.xml | paste -sd "," -)" >> $GITHUB_OUTPUT
+          echo "sonarqube_eslint_report_paths=$(find inputs.lint-report-artifact -name inputs.eslint-json-report-paths | paste -sd "," -)" >> $GITHUB_OUTPUT
         fi
 
     - name: SonarQube scan without lint
@@ -69,10 +89,10 @@ runs:
       uses: sonarsource/sonarqube-scan-action@86fe81775628f1c6349c28baab87881a2170f495 # v2.1.0
       with:
         args: >
-          -Dsonar.go.tests.reportPaths=${{
-          steps.sonarqube_report_paths.outputs.sonarqube_tests_report_paths }}
-          -Dsonar.go.coverage.reportPaths=${{
-          steps.sonarqube_report_paths.outputs.sonarqube_coverage_report_paths
+          -Dsonar.junit.reportPaths=${{
+          steps.sonarqube_report_paths.outputs.sonarqube_junit_xml_report_paths
+          }} -Dsonar.typescript.lcov.reportPaths=${{
+          steps.sonarqube_report_paths.outputs.sonarqube_typescript_lcov_report_paths
           }}
       env:
         SONAR_TOKEN: ${{ inputs.sonar-token }}
@@ -83,13 +103,12 @@ runs:
       uses: sonarsource/sonarqube-scan-action@86fe81775628f1c6349c28baab87881a2170f495 # v2.1.0
       with:
         args: >
-          -Dsonar.go.tests.reportPaths=${{
-          steps.sonarqube_report_paths.outputs.sonarqube_tests_report_paths }}
-          -Dsonar.go.coverage.reportPaths=${{
-          steps.sonarqube_report_paths.outputs.sonarqube_coverage_report_paths
-          }} -Dsonar.go.golangci-lint.reportPaths=${{
-          steps.sonarqube_report_paths.outputs.sonarqube_golangci_lint_report_paths
-          }}
+          -Dsonar.junit.reportPaths=${{
+          steps.sonarqube_report_paths.outputs.sonarqube_junit_xml_report_paths
+          }} -Dsonar.typescript.lcov.reportPaths=${{
+          steps.sonarqube_report_paths.outputs.sonarqube_typescript_lcov_report_paths
+          }} -Dsonar.eslint.reportPaths=${{
+          steps.sonarqube_report_paths.outputs.sonarqube_eslint_report_paths }}
       env:
         SONAR_TOKEN: ${{ inputs.sonar-token }}
         SONAR_HOST_URL: ${{ inputs.sonar-host-url }}

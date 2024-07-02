@@ -1,10 +1,10 @@
 {
-  "name": "ci-test-ts",
-  "version": "0.3.0",
-  "description": "",
+  "name": "ci-sonarqube-ts",
+  "version": "0.1.0",
+  "description": "Add SonarQube for Typescript to CI",
   "private": true,
   "scripts": {},
-  "author": "@ajgrande924",
+  "author": "@smartcontractkit",
   "license": "MIT",
   "dependencies": {},
   "repository": "https://github.com/smartcontractkit/.github"
