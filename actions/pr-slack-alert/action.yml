@@ -1,0 +1,107 @@
+name: pr-slack-alert
+description:
+  "Send Slack alert to a specific user group in a channel from Github PRs"
+
+inputs:
+  # slack inputs
+  slack-channel-id:
+    description: "slack channel id to send the alert to"
+    required: true
+  slack-user-group-id:
+    description: "slack user group id to ping with the alert"
+    required: true
+  slack-bot-token:
+    description:
+      "slack bot api token - the token requires `chat:write` permission"
+    required: true
+  # github inputs
+  ignore-pr-creators:
+    description: "comma-separated list of github usernames to skip alerts for"
+    required: false
+    default: "github-actions[bot],dependabot[bot],renovate[bot]"
+  match-reviewer-team:
+    description:
+      "will only send alert if the team name is included in the reviewers list"
+    required: false
+    default: ""
+  pr-event-type:
+    description:
+      "filter to trigger on specific PR event type - if set to empty it will
+      trigger on every type"
+    required: false
+    # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
+    # available event types
+    default: ""
+  # grafana inputs (optional)
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+  metrics-id:
+    description:
+      "grafana metrics id, used for continuity of metrics during job name
+      changes  - required if metrics-job-name is passed"
+    required: false
+  gc-host:
+    description: "grafana hostname - required if metrics-job-name is passed"
+    required: false
+  gc-basic-auth:
+    description: "grafana basic auth - required if metrics-job-name is passed"
+    required: false
+  gc-org-id:
+    description:
+      "grafana org/tenant id - required if metrics-job-name is passed"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Filter
+      id: filter
+      shell: bash
+      run: |
+        echo "github user: ${{ github.event.pull_request.user.login }}"
+        echo "github event type: ${{ github.event.action }}"
+        echo "github reviewer team: ${{ github.event.requested_team.name }}"
+        SKIP_SLACK=false
+        if [[ "${{ inputs.ignore-pr-creators }}" == *"${{ github.event.pull_request.user.login }}"* ]]; then
+          SKIP_SLACK=true
+        elif [[ "${{ inputs.pr-event-type }}" != "" ]] && [[ "${{ inputs.pr-event-type }}" != "${{ github.event.action }}" ]]; then
+          SKIP_SLACK=true
+        elif [[ "${{ inputs.match-reviewer-team }}" != "" ]] && [[ "${{ inputs.match-reviewer-team }}" != "${{ github.event.requested_team.name }}" ]]; then
+          SKIP_SLACK=true
+        fi
+        echo "SKIP_SLACK=$SKIP_SLACK" >> $GITHUB_OUTPUT
+
+    - name: Send slack alert
+      if: steps.filter.outputs.SKIP_SLACK != 'true'
+      id: slack
+      uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e #v1.26.0
+      with:
+        channel-id: ${{ inputs.slack-channel-id }}
+        # https://api.slack.com/surfaces/messages#payloads
+        # on how to structure a message payload
+        # the reason for using payload file is because the regular payload way
+        # is too long so it gets cutoff
+        payload-file-path: ${{ github.action_path }}/payload.json
+      env:
+        # it doesn't seem like the slack action can parse out github context
+        # in a json file so hence why there is these env vars
+        SLACK_BOT_TOKEN: ${{ inputs.slack-bot-token }}
+        USER_GROUP_ID: ${{ inputs.slack-user-group-id }}
+        GITHUB_USER: ${{ github.event.pull_request.user.login }}
+        GITHUB_PR_URL: ${{ github.event.pull_request.html_url }}
+        GITHUB_PR_TITLE: ${{ github.event.pull_request.title }}
+        GITHUB_REPO: ${{ github.event.repository.name }}
+        GITHUB_WORKFLOW: ${{ github.event.workflow.name }}
+
+    - name: Collect metrics
+      if: always() && inputs.metrics-job-name != ''
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
+      with:
+        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        org-id: ${{ inputs.gc-org-id}}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true
