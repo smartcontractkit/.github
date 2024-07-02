@@ -18,6 +18,11 @@ inputs:
   sonar-host-url:
     description: "sonarqube host url"
     required: false
+  test-report-workflow:
+    description:
+      "workflow file name or run ID from where test report artifact was uploaded"
+    required: false
+    default: ${{ github.run_id }}
   test-report-artifact:
     description: "Name of artifact containing junit test and coverage results"
     required: false
@@ -30,6 +35,11 @@ inputs:
     description: "paths to lcov test coverage report in lcov format"
     requried: false
     default: "lcov.info"
+  lint-report-workflow:
+    description:
+      "workflow file name or run ID from where lint report artifact was uploaded"
+    required: false
+    default: ${{ github.run_id }}
   lint-report-artifact:
     description: "Name of artifact containing eslint report"
     requried: false
@@ -71,28 +81,27 @@ runs:
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
-    - name: Download all workflow run artifacts
-      uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+    - name: Download test-report artifact
+      uses: dawidd6/action-download-artifact@bf251b5aa9c2f7eeb574a96ee720e24f801b7c11 # v6
+      with:
+        workflow: ${{ inputs.test-report-workflow }}
+        name: ${{ inputs.test-report-artifact }}
 
-    - name: Set SonarQube Report Paths
-      id: sonarqube_report_paths
-      shell: bash
-      run: |
-        echo "sonarqube_junit_xml_report_paths=$(find ${{ inputs.test-report-artifact }} -name ${{ inputs.junit-xml-report-paths }} | paste -sd "," -)" >> $GITHUB_OUTPUT
-        echo "sonarqube_typescript_lcov_report_paths=$(find ${{ inputs.test-report-artifact }} -name ${{ inputs.typescript-lcov-report-paths }} | paste -sd "," -)" >> $GITHUB_OUTPUT
-        if [ "${{ inputs.include-lint }}" == "true" ]; then
-          echo "sonarqube_eslint_report_paths=$(find ${{ inputs.lint-report-artifact }} -name ${{ inputs.eslint-json-report-paths }} | paste -sd "," -)" >> $GITHUB_OUTPUT
-        fi
+    - name: Download lint-report artifact
+      uses: dawidd6/action-download-artifact@bf251b5aa9c2f7eeb574a96ee720e24f801b7c11 # v6
+      with:
+        workflow: ${{ inputs.lint-report-workflow }}
+        name: ${{ inputs.lint-report-artifact }}
 
     - name: SonarQube scan without lint
       if: inputs.include-lint == 'false'
       uses: sonarsource/sonarqube-scan-action@86fe81775628f1c6349c28baab87881a2170f495 # v2.1.0
       with:
         args: >
-          -Dsonar.junit.reportPaths=${{
-          steps.sonarqube_report_paths.outputs.sonarqube_junit_xml_report_paths
+          -Dsonar.junit.reportPaths=${{ 
+            inputs.junit-xml-report-paths 
           }} -Dsonar.typescript.lcov.reportPaths=${{
-          steps.sonarqube_report_paths.outputs.sonarqube_typescript_lcov_report_paths
+            inputs.typescript-lcov-report-paths 
           }}
       env:
         SONAR_TOKEN: ${{ inputs.sonar-token }}
@@ -103,12 +112,13 @@ runs:
       uses: sonarsource/sonarqube-scan-action@86fe81775628f1c6349c28baab87881a2170f495 # v2.1.0
       with:
         args: >
-          -Dsonar.junit.reportPaths=${{
-          steps.sonarqube_report_paths.outputs.sonarqube_junit_xml_report_paths
+          -Dsonar.junit.reportPaths=${{ 
+            inputs.junit-xml-report-paths 
           }} -Dsonar.typescript.lcov.reportPaths=${{
-          steps.sonarqube_report_paths.outputs.sonarqube_typescript_lcov_report_paths
+            inputs.typescript-lcov-report-paths 
           }} -Dsonar.eslint.reportPaths=${{
-          steps.sonarqube_report_paths.outputs.sonarqube_eslint_report_paths }}
+            inputs.eslint-json-report-paths 
+          }}
       env:
         SONAR_TOKEN: ${{ inputs.sonar-token }}
         SONAR_HOST_URL: ${{ inputs.sonar-host-url }}
