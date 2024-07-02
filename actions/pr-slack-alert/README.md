@@ -31,4 +31,5 @@ jobs:
 
 ## Future Work
 
-We could update the `payload.json` to generate the message based on the event type.
+We could update the `payload.json` to generate the message based on the event
+type.
