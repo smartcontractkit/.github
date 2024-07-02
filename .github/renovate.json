@@ -21,9 +21,9 @@
   },
   "packageRules": [
     {
-      "matchDepTypes": ["devDependencies"],
-      "matchUpdateTypes": ["patch"],
-      "enabled": false
+      "groupName": "minor-patch dependencies grouped by manager",
+      "branchName": "{{manager}}-dependencies",
+      "matchUpdateTypes": ["minor", "patch"]
     }
   ]
 }
