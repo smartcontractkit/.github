@@ -44,7 +44,7 @@ runs:
   steps:
     - name: Setup GitHub token
       id: setup-github-token
-      uses: smartcontractkit/.github/actions/setup-github-token@ef78fa97bf3c77de6563db1175422703e9e6674f
+      uses: smartcontractkit/.github/actions/setup-github-token@754b326e0e87aa5de63f37b3ae054a5cc2e02de3
       with:
         aws-role-arn: ${{ inputs.aws-role-arn }}
         aws-lambda-url: ${{ inputs.aws-lambda-url }}
