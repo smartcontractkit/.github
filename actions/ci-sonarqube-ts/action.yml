@@ -109,7 +109,7 @@ runs:
 
     - name: SonarQube scan without lint
       if: inputs.include-lint == 'false'
-      uses: sonarsource/sonarqube-scan-action@86fe81775628f1c6349c28baab87881a2170f495 # v2.1.0
+      uses: sonarsource/sonarqube-scan-action@aecaf43ae57e412bd97d70ef9ce6076e672fe0a9 # v2.3.0
       with:
         args: >
           -Dsonar.junit.reportPaths=${{ 
@@ -123,7 +123,7 @@ runs:
 
     - name: SonarQube scan with lint
       if: inputs.include-lint == 'true'
-      uses: sonarsource/sonarqube-scan-action@86fe81775628f1c6349c28baab87881a2170f495 # v2.1.0
+      uses: sonarsource/sonarqube-scan-action@aecaf43ae57e412bd97d70ef9ce6076e672fe0a9 # v2.3.0
       with:
         args: >
           -Dsonar.junit.reportPaths=${{ 
