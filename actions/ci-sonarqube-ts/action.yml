@@ -20,31 +20,31 @@ inputs:
     required: false
   test-report-workflow:
     description:
-      "workflow file name or run ID from where test report artifact was uploaded"
+      "workflow file name from where test report artifact was uploaded"
     required: false
     default: ${{ github.run_id }}
   test-report-artifact:
     description: "Name of artifact containing junit test and coverage results"
     required: false
     default: "ts-test-results"
-  junit-xml-report-paths:
+  junit-xml-report-path:
     description: "paths to junit test results in xml format"
     requried: false
     default: "junit.xml"
-  typescript-lcov-report-paths:
+  typescript-lcov-report-path:
     description: "paths to lcov test coverage report in lcov format"
     requried: false
     default: "lcov.info"
   lint-report-workflow:
     description:
-      "workflow file name or run ID from where lint report artifact was uploaded"
+      "workflow file name from where lint report artifact was uploaded"
     required: false
     default: ${{ github.run_id }}
   lint-report-artifact:
     description: "Name of artifact containing eslint report"
     requried: false
     default: "ts-lint-results"
-  eslint-json-report-paths:
+  eslint-json-report-path:
     description: "paths to eslint report in json format"
     requried: false
     default: "eslint-report.json"
@@ -81,16 +81,30 @@ runs:
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
-    - name: Download test-report artifact
+    - name: Download test-report artifact using workflow file name
+      if: inputs.test-report-workflow != ''
       uses: dawidd6/action-download-artifact@bf251b5aa9c2f7eeb574a96ee720e24f801b7c11 # v6
       with:
         workflow: ${{ inputs.test-report-workflow }}
         name: ${{ inputs.test-report-artifact }}
 
-    - name: Download lint-report artifact
+    - name: Download test-report artifact from current workflow
+      if: inputs.test-report-workflow == ''
+      uses: dawidd6/action-download-artifact@bf251b5aa9c2f7eeb574a96ee720e24f801b7c11 # v6
+      with:
+        name: ${{ inputs.test-report-artifact }}
+
+    - name: Download lint-report artifact using workflow file name
+      if: inputs.lint-report-workflow != ''
       uses: dawidd6/action-download-artifact@bf251b5aa9c2f7eeb574a96ee720e24f801b7c11 # v6
       with:
         workflow: ${{ inputs.lint-report-workflow }}
+        name: ${{ inputs.lint-report-artifact }}
+
+    - name: Download lint-report artifact from current workflow
+      if: inputs.lint-report-workflow == ''
+      uses: dawidd6/action-download-artifact@bf251b5aa9c2f7eeb574a96ee720e24f801b7c11 # v6
+      with:
         name: ${{ inputs.lint-report-artifact }}
 
     - name: SonarQube scan without lint
@@ -99,9 +113,9 @@ runs:
       with:
         args: >
           -Dsonar.junit.reportPaths=${{ 
-            inputs.junit-xml-report-paths 
+            inputs.junit-xml-report-path 
           }} -Dsonar.typescript.lcov.reportPaths=${{
-            inputs.typescript-lcov-report-paths 
+            inputs.typescript-lcov-report-path 
           }}
       env:
         SONAR_TOKEN: ${{ inputs.sonar-token }}
@@ -113,11 +127,11 @@ runs:
       with:
         args: >
           -Dsonar.junit.reportPaths=${{ 
-            inputs.junit-xml-report-paths 
+            inputs.junit-xml-report-path 
           }} -Dsonar.typescript.lcov.reportPaths=${{
-            inputs.typescript-lcov-report-paths 
+            inputs.typescript-lcov-report-path 
           }} -Dsonar.eslint.reportPaths=${{
-            inputs.eslint-json-report-paths 
+            inputs.eslint-json-report-path 
           }}
       env:
         SONAR_TOKEN: ${{ inputs.sonar-token }}
