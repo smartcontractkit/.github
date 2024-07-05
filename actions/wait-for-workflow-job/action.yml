@@ -108,7 +108,7 @@ runs:
 
             # Fetch the job details from the GitHub API
             job_details=$(gh api -H "Accept: application/vnd.github.v3+json" \
-                "https://api.github.com/repos/${REPO}/actions/jobs/$job_id")
+                "https://api.github.com/repos/${REPO}/actions/runs/$WF_RUN_ID/job/$job_id")
             job_status=$(echo "$job_details" | jq -r '.status')
             job_conclusion=$(echo "$job_details" | jq -r '.conclusion')
 
@@ -124,7 +124,7 @@ runs:
 
         # Fetch the final job conclusion from the GitHub API
         job_conclusion=$(gh api -H "Accept: application/vnd.github.v3+json" \
-          "https://api.github.com/repos/${REPO}/actions/jobs/$job_id" | jq -r '.conclusion')
+          "https://api.github.com/repos/${REPO}/actions/runs/$WF_RUN_ID/job/$job_id" | jq -r '.conclusion')
 
         echo "Job conclusion: $job_conclusion"
         # Check if the job conclusion is not 'success'
