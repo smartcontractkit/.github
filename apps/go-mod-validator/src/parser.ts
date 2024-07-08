@@ -56,7 +56,9 @@ function parseGoModLines(lines: string[]) {
 
     const result = parseGoModLine(line);
     if (result) {
-      console.debug(`Module: ${result.module}, Version: ${result.version}`);
+      console.debug(
+        `Parsed Module: ${result.module}, Version: ${result.version}`,
+      );
       dependencies.push(result);
     } else {
       console.error(`Could not parse line: ${line}`);
