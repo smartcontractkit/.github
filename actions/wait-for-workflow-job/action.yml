@@ -127,6 +127,7 @@ runs:
                 break
             fi
             echo "job status: ${job_status}"
+            echo "job link: ${job_html_url}"
             echo "Job is still in progress. Sleeping $sleep_time seconds..."
             sleep $sleep_time  # Adjust the sleep time as necessary
         done
