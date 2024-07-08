@@ -29,6 +29,11 @@ inputs:
     required: false
     default: "1800" # 30 minutes
 
+outputs:
+  run-link:
+    description: The found run link
+    value: ${{ steps.get-run-id.outputs.run-link }}
+
 runs:
   using: composite
   steps:
@@ -57,6 +62,7 @@ runs:
             # Check if the maximum wait time has been exceeded
             if [ "$elapsed_time" -ge "$max_wait_seconds" ]; then
                 echo "Timeout reached without job starting."
+                echo "run-link=""" >> $GITHUB_OUTPUT
                 exit 1
             fi
 
@@ -88,6 +94,7 @@ runs:
         # If the job ID is still not found, exit with an error
         if [ -z "$job_id" ]; then
             echo "Job '${JOB_NAME}' was never found."
+            echo "run-link=""" >> $GITHUB_OUTPUT
             exit 1
         fi
 
@@ -111,6 +118,8 @@ runs:
                 "https://api.github.com/repos/${REPO}/actions/jobs/$job_id")
             job_status=$(echo "$job_details" | jq -r '.status')
             job_conclusion=$(echo "$job_details" | jq -r '.conclusion')
+            job_html_url=$(echo "$job_details" | jq -r '.html_url')
+            echo "run-link=$job_html_url" >> $GITHUB_OUTPUT
 
             # Check if the job has a conclusion
             if [[ "$job_conclusion" != "null" ]]; then

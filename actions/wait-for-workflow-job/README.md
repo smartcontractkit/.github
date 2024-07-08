@@ -18,10 +18,10 @@ jobs:
       labels: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@V4
+        uses: actions/checkout@<not sure what commit to use here, cant find in tags>
       ... dispatch the workflow you want and get its workflow run id, then:
       - name: Get Job Results
-        uses: smartcontractkit/.github/wait-for-workflow-job@main
+        uses: smartcontractkit/.github/wait-for-workflow-job@<commit> # wait-for-workflow-job@x.y.z
         with:
           repo: smartcontractkit/chainlink
           workflow-run-id: ${{ steps.dispatch.outputs.run-id }}
