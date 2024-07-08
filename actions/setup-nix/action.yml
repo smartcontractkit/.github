@@ -4,7 +4,7 @@ description: "Setup nix with caches"
 inputs:
   # custom cache inputs ----------------------------------
   cache-url:
-    description: "Custom nix cache URL"
+    description: "Custom nix cache URL, for S3 use 's3://<bucket-name>' "
     required: false
     default: ""
   cache-pubkey:
@@ -50,6 +50,12 @@ inputs:
       "grafana org/tenant id - required if metrics-job-name is passed"
     required: false
 
+  # private signing key (optional) ----------------------
+  private-signing-key:
+    description: "Private signing key for Nix cache"
+    required: false
+    default: ""
+
 runs:
   using: composite
   steps:
@@ -88,6 +94,38 @@ runs:
         # nix build is run via daemon on root, credentials linked for daemon access
         sudo ln -s ~/.aws $ROOT_PATH
 
+    - name: store private signing key
+      if: ${{ inputs.private-signing-key != '' }}
+      shell: bash
+      run: |
+        echo "${{ inputs.private-signing-key }}" > ~/.nix-signing-key
+        chmod 600 ~/.nix-signing-key
+
+    - name: set NIX_SECRET_KEY_FILES
+      id: set-nix-secret-key-files
+      shell: bash
+      run: |
+        if [ '${{ inputs.private-signing-key }}' != '' ]; then
+          echo "NIX_SECRET_KEY_FILES=~/.nix-signing-key" >> $GITHUB_ENV
+        else
+          echo "NIX_SECRET_KEY_FILES=" >> $GITHUB_ENV
+        fi
+
+    - name: save upload-to-cache.sh
+      shell: bash
+      if: ${{ inputs.cache-url != '' }}
+      run: |
+        cat << EOF > ~/upload-to-cache.sh
+        #!/bin/sh
+        set -eu
+        set -f # disable globbing
+        export IFS=' '
+        echo "Uploading paths" \$OUT_PATHS
+        exec nix copy --to "${{ inputs.cache-url }}?scheme=https&region=${{ inputs.aws-region }}" \$OUT_PATHS
+        EOF
+        echo "NIX_POST_BUILD_HOOK_FILE=~/upload-to-cache.sh" >> $GITHUB_ENV
+        chmod +x ~/upload-to-cache.sh
+
     - uses: cachix/install-nix-action@ba0dd844c9180cbf77aa72a116d6fbc515d0e87b # v27
       with:
         install_url: https://releases.nixos.org/nix/nix-2.18.1/install
@@ -98,6 +136,8 @@ runs:
           sandbox = relaxed
           substituters = https://cache.nixos.org https://nix-community.cachix.org ${{ inputs.cache-url }}
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= ${{ inputs.cache-pubkey }}
+          secret-key-files = ${{ env.NIX_SECRET_KEY_FILES }}
+          post-build-hook = ${{ env.NIX_POST_BUILD_HOOK_FILE }}
 
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''
