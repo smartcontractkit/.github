@@ -1,0 +1,20 @@
+{
+  "name": "go-mod-validator",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/go-mod-validator/src",
+  "projectType": "library",
+  "targets": {
+    "lint": {
+      "executor": "@nx/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": [
+          "apps/go-mod-validator/**/*.ts",
+          "apps/go-mod-validator/package.json"
+        ]
+      }
+    },
+    "build": {}
+  },
+  "tags": []
+}

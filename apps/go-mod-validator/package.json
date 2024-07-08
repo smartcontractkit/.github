@@ -1,0 +1,27 @@
+{
+  "name": "go-mod-validator",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Parse output of `go list -m all` given as input, and verify dependencies",
+  "engines": {
+    "pnpm": "9"
+  },
+  "main": "out/index.js",
+  "scripts": {
+    "local": "ts-node src/index.ts",
+    "help": "ts-node --help",
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node16 --tsconfig=./tsconfig.json --outfile=out/index.js",
+    "scratch": "ts-node ./src/index.ts --local --tokenEnv=GITHUB_TOKEN --dir=./test"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "node-fetch": "^2.7.0",
+    "ts-node": "^10.9.2",
+    "@types/node-fetch": "^2.6.11",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "repository": "https://github.com/smartcontractkit/.github"
+}
