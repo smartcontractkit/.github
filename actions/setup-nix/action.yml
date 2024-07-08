@@ -21,6 +21,15 @@ inputs:
     description: ""
     required: false
     default: "us-west-1"
+  aws-access-key-id:
+    description: "The AWS_ACCESS_KEY_ID for S3 authentication. Will need to have read/write access to the bucket."
+    required: false
+  aws-secret-access-key:
+    description: "The AWS_SECRET_ACCESS_KEY for S3 authentication. Will need to have read/write access to the bucket."
+    required: false
+  aws-session-token:
+    description: "The AWS_SESSION_TOKEN for S3 authentication. Will need to have read/write access to the bucket."
+    required: false
   role-to-assume:
     description: ""
     required: false
@@ -71,6 +80,10 @@ runs:
     - name: setup AWS credentials for nix
       if: inputs.enable-aws == 'true'
       shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws-secret-access-key }}
+        AWS_SESSION_TOKEN: ${{ inputs.aws-session-token }}
       run: |
         # set up folder with AWS configs
         # nix reads AWS access from folder config - does not work with env vars
