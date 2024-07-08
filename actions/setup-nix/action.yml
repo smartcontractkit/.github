@@ -1,165 +1,45 @@
-name: setup-nix
-description: "Setup nix with caches"
+name: install-nix
+description:
+  "Install Nix using DeterminateSystems/nix-installer-action by default, with an
+  option for a custom install URL"
 
 inputs:
-  # custom cache inputs ----------------------------------
-  cache-url:
-    description: "Custom nix cache URL, for S3 use 's3://<bucket-name>' "
-    required: false
-    default: ""
-  cache-pubkey:
-    description: "Custom nix cache binary public key"
-    required: false
-    default: ""
-
-  # AWS inputs ------------------------------------
-  enable-aws:
-    description: "Enable AWS credentials for nix cache"
-    required: false
-    default: false
-  aws-region:
-    description: ""
-    required: false
-    default: "us-west-1"
-  aws-access-key-id:
-    description: "The AWS_ACCESS_KEY_ID for S3 authentication. Will need to have read/write access to the bucket."
-    required: false
-  aws-secret-access-key:
-    description: "The AWS_SECRET_ACCESS_KEY for S3 authentication. Will need to have read/write access to the bucket."
-    required: false
-  aws-session-token:
-    description: "The AWS_SESSION_TOKEN for S3 authentication. Will need to have read/write access to the bucket."
-    required: false
-  role-to-assume:
-    description: ""
-    required: false
-    default: ""
-  role-duration-seconds:
-    description: ""
-    required: false
-    default: 3600
-
-  # grafana inputs (optional) ----------------------
-  metrics-job-name:
-    description: "grafana metrics job name"
-    required: false
-  metrics-id:
+  install-url:
     description:
-      "grafana metrics id, used for continuity of metrics during job name
-      changes - required if metrics-job-name is passed"
+      "Custom URL for Nix installer (default uses DeterminateSystems installer)"
     required: false
-  gc-host:
-    description: "grafana hostname - required if metrics-job-name is passed"
-    required: false
-  gc-basic-auth:
-    description: "grafana basic auth - required if metrics-job-name is passed"
-    required: false
-  gc-org-id:
-    description:
-      "grafana org/tenant id - required if metrics-job-name is passed"
-    required: false
+    default: ""
 
-  # private signing key (optional) ----------------------
-  private-signing-key:
-    description: "Private signing key for Nix cache"
+  extra-conf:
+    description: "Additional Nix configuration options"
     required: false
     default: ""
 
 runs:
   using: composite
   steps:
-    - name: configure AWS credentials
-      if: inputs.enable-aws == 'true'
-      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+    - name: Install Nix
+      if: ${{ inputs.install-url == '' }}
+      uses: DeterminateSystems/nix-installer-action@da36cb69b1c3247ad7a1f931ebfd954a1105ef14 # v14
       with:
-        role-to-assume: ${{ inputs.role-to-assume }}
-        role-duration-seconds: ${{ inputs.role-duration-seconds }}
-        aws-region: ${{ inputs.aws-region }}
-        mask-aws-account-id: true
-
-    - name: setup AWS credentials for nix
-      if: inputs.enable-aws == 'true'
-      shell: bash
-      env:
-        AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
-        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws-secret-access-key }}
-        AWS_SESSION_TOKEN: ${{ inputs.aws-session-token }}
-      run: |
-        # set up folder with AWS configs
-        # nix reads AWS access from folder config - does not work with env vars
-        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-        aws configure set aws_session_token $AWS_SESSION_TOKEN
-        aws configure set region ${{ inputs.aws-region }}
-
-        # determine root path
-        ROOT_PATH=""
-        if [[ "${{ runner.os }}" == "Linux" ]]; then
-          ROOT_PATH="/root"
-        elif [[ "${{ runner.os }}" == "macOS" ]]; then
-          ROOT_PATH="/var/root"
-        else
-          echo "${{ runner.os }} not supported"
-          exit 1
-        fi
-
-        # symlink credential folders for nix build access
-        # nix build is run via daemon on root, credentials linked for daemon access
-        sudo ln -s ~/.aws $ROOT_PATH
-
-    - name: store private signing key
-      if: ${{ inputs.private-signing-key != '' }}
-      shell: bash
-      run: |
-        echo "${{ inputs.private-signing-key }}" > ~/.nix-signing-key
-        chmod 600 ~/.nix-signing-key
-
-    - name: set NIX_SECRET_KEY_FILES
-      id: set-nix-secret-key-files
-      shell: bash
-      run: |
-        if [ '${{ inputs.private-signing-key }}' != '' ]; then
-          echo "NIX_SECRET_KEY_FILES=~/.nix-signing-key" >> $GITHUB_ENV
-        else
-          echo "NIX_SECRET_KEY_FILES=" >> $GITHUB_ENV
-        fi
-
-    - name: save upload-to-cache.sh
-      shell: bash
-      if: ${{ inputs.cache-url != '' }}
-      run: |
-        cat << EOF > ~/upload-to-cache.sh
-        #!/bin/sh
-        set -eu
-        set -f # disable globbing
-        export IFS=' '
-        echo "Uploading paths" \$OUT_PATHS
-        exec nix copy --to "${{ inputs.cache-url }}?scheme=https&region=${{ inputs.aws-region }}" \$OUT_PATHS
-        EOF
-        echo "NIX_POST_BUILD_HOOK_FILE=~/upload-to-cache.sh" >> $GITHUB_ENV
-        chmod +x ~/upload-to-cache.sh
-
-    - uses: cachix/install-nix-action@ba0dd844c9180cbf77aa72a116d6fbc515d0e87b # v27
-      with:
-        install_url: https://releases.nixos.org/nix/nix-2.18.1/install
-        nix_path: nixpkgs=channel:nixos-unstable
-        # Enables sandbox for all drv except those with `__noChroot = true;`
-        # Add caches for public nixos cache + public community cache + specified private cache
-        extra_nix_config: |
+        determinate: true
+        extra-conf: |
           sandbox = relaxed
-          substituters = https://cache.nixos.org https://nix-community.cachix.org ${{ inputs.cache-url }}
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= ${{ inputs.cache-pubkey }}
-          secret-key-files = ${{ env.NIX_SECRET_KEY_FILES }}
-          post-build-hook = ${{ env.NIX_POST_BUILD_HOOK_FILE }}
+          ${{ inputs.extra-conf }}
 
-    - name: Collect metrics
-      if: always() && inputs.metrics-job-name != ''
-      id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-      with:
-        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
-        basic-auth: ${{ inputs.gc-basic-auth }}
-        hostname: ${{ inputs.gc-host }}
-        org-id: ${{ inputs.gc-org-id }}
-        this-job-name: ${{ inputs.metrics-job-name }}
-      continue-on-error: true
+    - name: Install Nix with Custom URL
+      if: ${{ inputs.install-url != '' }}
+      shell: bash
+      run: |
+        echo "Installing Nix from custom URL: ${{ inputs.install-url }}"
+        curl -L ${{ inputs.install-url }} | sh
+
+        # Apply extra configuration if provided
+        if [ -n "${{ inputs.extra-conf }}" ]; then
+          echo "${{ inputs.extra-conf }}" >> /etc/nix/nix.conf
+        fi
+
+    - name: Verify Nix Installation
+      shell: bash
+      run: |
+        nix --version

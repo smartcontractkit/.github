@@ -1,0 +1,11 @@
+{
+  "name": "setup-nix-cache",
+  "version": "0.1.0",
+  "description": "Setup Nix cache with S3 support and optional signing",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}

@@ -1,0 +1,174 @@
+name: setup-nix-cache
+description: "Setup Nix cache with S3 support and optional signing"
+
+inputs:
+  cache-url:
+    description: "Custom Nix cache URL, e.g., for S3 use 's3://<bucket-name>'"
+    required: true
+
+  cache-pubkeys:
+    description: "Comma-separated list of custom Nix cache public keys"
+    required: true
+
+  cache-mode:
+    description:
+      "Specify 'read' for read-only access to the cache or 'push' for uploading
+      build results"
+    required: true
+    default: "read"
+
+  aws-region:
+    description:
+      "AWS region for the S3 bucket (required for accessing S3-backed caches)"
+    required: true
+
+  role-to-assume:
+    description: "AWS role to assume for cache access (required)"
+    required: true
+
+  role-duration-seconds:
+    description: "Duration in seconds for assuming the role (default: 1 hour)"
+    required: false
+    default: 3600
+
+  private-signing-key:
+    description:
+      "Private signing key for Nix cache (only required if pushing to cache)"
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    # Step to configure AWS credentials for Nix cache
+    - name: Configure AWS credentials for Nix cache
+      uses: aws-actions/configure-aws-credentials@050bf7aae915badb82daa8e68fd95c9070706953 # v4.0.2
+      with:
+        role-to-assume: ${{ inputs.role-to-assume }}
+        role-duration-seconds: ${{ inputs.role-duration-seconds }}
+        aws-region: ${{ inputs.aws-region }}
+
+    # Step to set AWS environment variables and symlink the credentials
+    - name: 🛠️ Setup AWS credentials for Nix
+      shell: bash
+      run: |
+        echo "🔑 Setting up AWS credentials for Nix..."
+        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+        aws configure set aws_session_token $AWS_SESSION_TOKEN
+        aws configure set region ${{ inputs.aws-region }}
+
+        ROOT_PATH=""
+        if [[ "${{ runner.os }}" == "Linux" ]]; then
+          ROOT_PATH="/root"
+        elif [[ "${{ runner.os }}" == "macOS" ]]; then
+          ROOT_PATH="/var/root"
+        else
+          echo "⚠️ ${ { runner.os }} not supported!"
+          exit 1
+        fi
+
+        echo "🔗 Symlinking AWS credentials for Nix daemon..."
+        sudo ln -s ~/.aws $ROOT_PATH
+
+    # Step to preprocess public keys
+    - name: Preprocess Public Keys
+      shell: bash
+      run: |
+        PUBLIC_KEYS=$(echo "${{ inputs.cache-pubkeys }}" | tr ',' ' ')
+        echo "PUBLIC_KEYS=$PUBLIC_KEYS" >> $GITHUB_ENV
+
+    # Setup Cache with Nix
+    - name: Setup Nix Cache
+      shell: bash
+      run: |
+        # Define the substitutions and public keys strings
+        SUBSTITUTERS_LINE="substituters = https://cache.nixos.org ${{ inputs.cache-url }}?scheme=https&region=${{ inputs.aws-region }}"
+        PUBLIC_KEYS_LINE="trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ env.PUBLIC_KEYS }}"
+
+        # Replace or append the 'substituters' line
+        if grep -q "^substituters" /etc/nix/nix.conf; then
+          echo "🔄 Replacing existing 'substituters' line in /etc/nix/nix.conf"
+          sudo sed -i "s|^substituters.*|$SUBSTITUTERS_LINE|" /etc/nix/nix.conf
+        else
+          echo "➕ Appending 'substituters' line to /etc/nix/nix.conf"
+          echo "$SUBSTITUTERS_LINE" | sudo tee -a /etc/nix/nix.conf
+        fi
+
+        # Replace or append the 'trusted-public-keys' line
+        if grep -q "^trusted-public-keys" /etc/nix/nix.conf; then
+          echo "🔄 Replacing existing 'trusted-public-keys' line in /etc/nix/nix.conf"
+          sudo sed -i "s|^trusted-public-keys.*|$PUBLIC_KEYS_LINE|" /etc/nix/nix.conf
+        else
+          echo "➕ Appending 'trusted-public-keys' line to /etc/nix/nix.conf"
+          echo "$PUBLIC_KEYS_LINE" | sudo tee -a /etc/nix/nix.conf
+        fi
+
+    # Store private signing key if provided
+    - name: Store Private Signing Key for Nix cache signing
+      if: ${{ inputs.private-signing-key != '' }}
+      shell: bash
+      run: |
+        # Store the private signing key in a secure location
+        echo "${{ inputs.private-signing-key }}" > ${{ github.workspace }}/nix-signing.private
+        chmod 600 ${{ github.workspace }}/nix-signing.private
+
+        # Define the secret-key-files line
+        SECRET_KEY_FILES_LINE="secret-key-files = ${{ github.workspace }}/nix-signing.private"
+
+        # Replace or append the 'secret-key-files' line in /etc/nix/nix.conf
+        if grep -q "^secret-key-files" /etc/nix/nix.conf; then
+          echo "🔄 Replacing existing 'secret-key-files' line in /etc/nix/nix.conf"
+          sudo sed -i "s|^secret-key-files.*|$SECRET_KEY_FILES_LINE|" /etc/nix/nix.conf
+        else
+          echo "➕ Appending 'secret-key-files' line to /etc/nix/nix.conf"
+          echo "$SECRET_KEY_FILES_LINE" | sudo tee -a /etc/nix/nix.conf
+        fi
+
+    # Set up post-build hook for cache upload if pushing
+    - name: Configure Post-build Hook for Cache Upload
+      if: ${{ inputs.cache-mode == 'push' }}
+      shell: bash
+      run: |
+        # Check if the private signing key is provided
+        if [[ -z "${{ inputs.private-signing-key }}" ]]; then
+          echo "❌ Error: Private signing key is required in 'push' mode."
+          exit 1
+        fi
+
+        echo "🚀 Enabling push mode: configuring post-build hook for cache upload"
+
+        # Create a modified version of the script with the actual inputs for CACHE_URL and AWS_REGION
+        MODIFIED_SCRIPT_PATH="/tmp/upload-to-cache-modified.sh"
+        cp ${GITHUB_ACTION_PATH}/scripts/upload-to-cache.sh $MODIFIED_SCRIPT_PATH
+
+        # Use sed to replace the placeholders in the script
+        sed -i "s|export CACHE_URL=\$1|export CACHE_URL=${{ inputs.cache-url }}|" $MODIFIED_SCRIPT_PATH
+        sed -i "s|export AWS_REGION=\$2|export AWS_REGION=${{ inputs.aws-region }}|" $MODIFIED_SCRIPT_PATH
+
+        # Ensure the modified script has the right permissions
+        chmod 755 $MODIFIED_SCRIPT_PATH
+
+        # Copy the modified script to a persistent location
+        PERSISTENT_SCRIPT_PATH="/etc/nix/upload-to-cache.sh"
+        sudo cp $MODIFIED_SCRIPT_PATH $PERSISTENT_SCRIPT_PATH
+
+        # Check if the modified script exists and has correct permissions
+        if [ -f "$PERSISTENT_SCRIPT_PATH" ]; then
+          echo "✅ Modified script exists at $PERSISTENT_SCRIPT_PATH with the following permissions:"
+          ls -la $PERSISTENT_SCRIPT_PATH
+        else
+          echo "❌ Modified script does not exist at $PERSISTENT_SCRIPT_PATH"
+          exit 1
+        fi
+
+        # Set up the post-build hook to use the modified script
+        echo "Setting post-build-hook in /etc/nix/nix.conf"
+        echo "post-build-hook = $PERSISTENT_SCRIPT_PATH" | sudo tee -a /etc/nix/nix.conf
+
+    # Restart Nix daemon for both push and read modes to apply configuration changes
+    - name: Restart Nix Daemon
+      shell: bash
+      run: |
+        echo "🔄 Restarting Nix daemon to apply configuration changes..."
+        sudo pkill -HUP nix-daemon || true
