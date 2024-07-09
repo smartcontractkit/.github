@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import { JSDOM } from "jsdom";
+import { parse } from "node-html-parser";
 
 async function getDefaultBranch(
   repo: string,
@@ -41,12 +41,10 @@ async function findCommitInDefaultBranch(
       `GitHub API error: ${response.status} - ${response.statusText}`,
     );
   }
-
   const responseText = await response.text();
-  const dom = new JSDOM(responseText);
-  const document = dom.window.document;
 
-  const branchElements = document.querySelectorAll(".branches-list .branch a");
+  const dom = parse(responseText);
+  const branchElements = dom.querySelectorAll(".branches-list .branch a");
 
   for (const element of branchElements) {
     if (element.textContent == defaultBranch) {
@@ -119,17 +117,16 @@ async function getVersionType(versionString: string) {
 }
 
 export async function validateDependency(
-  dependency: { module: string; version: string },
+  path: string,
+  version: string,
   accessToken: string,
 ) {
-  const repo = dependency.module.slice(11); // ignore `github.com/`
+  const repo = path.slice(11); // ignore `github.com/`
 
   const defaultBranch = await getDefaultBranch(repo, accessToken);
-  console.debug(
-    `found default branch: ${defaultBranch} for module: ${dependency.module}`,
-  );
+  console.debug(`found default branch: ${defaultBranch} for path: ${path}`);
 
-  const result = await getVersionType(dependency.version);
+  const result = await getVersionType(version);
   if (result?.commitSha) {
     return await findCommitInDefaultBranch(
       repo,
