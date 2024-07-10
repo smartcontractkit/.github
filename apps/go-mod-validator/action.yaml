@@ -12,9 +12,12 @@ inputs:
     required: false
     default: "0"
   # inputs
+  github_action_ref:
+    description: ref of github action you're using
+    required: true
   github-token:
     description: ""
-    required: true
+    required: false
     default: ${{ github.token }}
   # grafana inputs (optional)
   metrics-job-name:
@@ -49,6 +52,7 @@ runs:
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: "smartcontractkit/.github"
+        ref: ${{ inputs.github_action_ref }}
         path: "github"
 
     - name: Setup go
