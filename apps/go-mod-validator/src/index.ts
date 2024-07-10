@@ -12,13 +12,18 @@ async function run() {
   }
 
   // get dependencies from go.mod file
-  const dependenciesMap = getDependenciesMap();
+  let dependenciesMap: Map<string, any> = new Map();
+  try {
+    dependenciesMap = getDependenciesMap();
+  } catch (err) {
+    console.log(`failed to get dependencies, err: ${err}`);
+    process.exit(1);
+  }
+  // const dependenciesMap = getDependenciesMap();
 
   // Verify each of the dependencies
-  let validationErr = null;
+  const validationFailedDependencies: string[] = [];
   for (const [file, dependencies] of dependenciesMap.entries()) {
-    console.info(`\nvalidating dependencies for ${file}`);
-
     for (let dependency of dependencies) {
       // handle replace redirectives
       if (dependency.Replace != undefined) {
@@ -34,35 +39,35 @@ async function run() {
         continue;
       }
 
+      // prepare dependency result string
+      let dependencyResult = `${dependency.Path}@${dependency.Version}`;
+      if (dependency.Indirect == true) {
+        dependencyResult += " // indirect";
+      }
+
+      // validate the dependency
       try {
         if (
-          await validateDependency(
+          !(await validateDependency(
             dependency.Path,
             dependency.Version,
             githubToken,
-          )
+          ))
         ) {
-          console.info(
-            `${dependency.Path}@${dependency.Version} is found in the default branch`,
-          );
-        } else {
-          console.error(
-            `${dependency.Path}@${dependency.Version} not found in the default branch`,
-          );
-          validationErr = new Error(
-            `${dependency.Path}@${dependency.Version} not found in the default branch`,
-          );
+          validationFailedDependencies.push(dependencyResult);
         }
       } catch (err) {
         console.error(
-          `failed to verify dependency: ${dependency.Path}@${dependency.Version}, with err: ${err}`,
+          `failed to verify dependency: ${dependency.Path}@${dependency.Version}, err: ${err}`,
         );
-        validationErr = err;
+        validationFailedDependencies.push(dependencyResult);
       }
     }
   }
 
-  if (validationErr != null) {
+  if (validationFailedDependencies.length != 0) {
+    console.log("\nvalidation failed for following dependencies:");
+    validationFailedDependencies.forEach((e) => console.log(e));
     process.exit(1);
   }
 }

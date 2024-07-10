@@ -9113,7 +9113,7 @@ async function getDefaultBranch(repo, accessToken) {
   const response = await (0, import_node_fetch.default)(apiUrl, { headers });
   if (!response.ok) {
     throw new Error(
-      `GitHub API request failed: ${response.status} ${response.statusText}`
+      `failed to find default branch: ${response.status} ${response.statusText}`
     );
   }
   const data = await response.json();
@@ -9127,7 +9127,7 @@ async function findCommitInDefaultBranch(repo, defaultBranch, commitSha, accessT
   const response = await (0, import_node_fetch.default)(url, { headers });
   if (!response.ok) {
     throw new Error(
-      `GitHub API error: ${response.status} - ${response.statusText}`
+      `failed to find commit in default branch: ${response.status} - ${response.statusText}`
     );
   }
   const responseText = await response.text();
@@ -9149,7 +9149,7 @@ async function findTagInDefaultBranch(repo, defaultBranch, tag, accessToken) {
   const response = await (0, import_node_fetch.default)(url, { headers });
   if (!response.ok) {
     throw new Error(
-      `GitHub API error: ${response.status} - ${response.statusText}`
+      `failed to find tag in default branch: ${response.status} - ${response.statusText}`
     );
   }
   const repoTags = await response.json();
@@ -9157,7 +9157,6 @@ async function findTagInDefaultBranch(repo, defaultBranch, tag, accessToken) {
     if (repoTag.name != tag) {
       continue;
     }
-    console.debug(`found commit: ${repoTag.commit.sha} for version: ${tag}`);
     return await findCommitInDefaultBranch(
       repo,
       defaultBranch,
@@ -9186,9 +9185,9 @@ async function getVersionType(versionString) {
   }
 }
 async function validateDependency(path, version, accessToken) {
-  const repo = path.slice(11);
+  const repoPathSplit = path.split("/");
+  const repo = `${repoPathSplit[1]}/${repoPathSplit[2]}`;
   const defaultBranch = await getDefaultBranch(repo, accessToken);
-  console.debug(`found default branch: ${defaultBranch} for path: ${path}`);
   const result = await getVersionType(version);
   if (result?.commitSha) {
     return await findCommitInDefaultBranch(
@@ -9218,12 +9217,7 @@ function getGoModFiles() {
     });
     return output.trim().split("\n");
   } catch (error) {
-    if (error instanceof Error) {
-      console.error(`failed to get go.mod files: ${error.message}`);
-    } else {
-      console.error(`failed to get go.mod files, unknown errror`);
-    }
-    return [];
+    throw new Error(`failed to get go.mod files: ${error}`);
   }
 }
 function getDependenciesMap() {
@@ -9239,16 +9233,9 @@ function getDependenciesMap() {
       );
       dependenciesMap.set(modFilePath, JSON.parse(output));
     } catch (error) {
-      if (error instanceof Error) {
-        console.error(
-          `failed to get go.mod dependencies from file: ${modFilePath}  err: ${error.message}`
-        );
-      } else {
-        console.error(
-          `failed to get go.mod dependencies from file: ${modFilePath}, unknown errror`
-        );
-      }
-      return dependenciesMap;
+      throw new Error(
+        `failed to get go.mod dependencies from file: ${modFilePath}: ${error}`
+      );
     }
   });
   return dependenciesMap;
@@ -9262,11 +9249,15 @@ async function run() {
     console.error("no GITHUB_TOKEN env variable found");
     process.exit(1);
   }
-  const dependenciesMap = getDependenciesMap();
-  let validationErr = null;
+  let dependenciesMap = /* @__PURE__ */ new Map();
+  try {
+    dependenciesMap = getDependenciesMap();
+  } catch (err) {
+    console.log(`failed to get dependencies, err: ${err}`);
+    process.exit(1);
+  }
+  const validationFailedDependencies = [];
   for (const [file, dependencies] of dependenciesMap.entries()) {
-    console.info(`
-validating dependencies for ${file}`);
     for (let dependency of dependencies) {
       if (dependency.Replace != void 0) {
         dependency = dependency.Replace;
@@ -9274,32 +9265,29 @@ validating dependencies for ${file}`);
       if (dependency.Version == void 0 || !dependency.Path.startsWith(smartContractKitPrefix)) {
         continue;
       }
+      let dependencyResult = `${dependency.Path}@${dependency.Version}`;
+      if (dependency.Indirect == true) {
+        dependencyResult += " // indirect";
+      }
       try {
-        if (await validateDependency(
+        if (!await validateDependency(
           dependency.Path,
           dependency.Version,
           githubToken
         )) {
-          console.info(
-            `${dependency.Path}@${dependency.Version} is found in the default branch`
-          );
-        } else {
-          console.error(
-            `${dependency.Path}@${dependency.Version} not found in the default branch`
-          );
-          validationErr = new Error(
-            `${dependency.Path}@${dependency.Version} not found in the default branch`
-          );
+          validationFailedDependencies.push(dependencyResult);
         }
       } catch (err) {
         console.error(
-          `failed to verify dependency: ${dependency.Path}@${dependency.Version}, with err: ${err}`
+          `failed to verify dependency: ${dependency.Path}@${dependency.Version}, err: ${err}`
         );
-        validationErr = err;
+        validationFailedDependencies.push(dependencyResult);
       }
     }
   }
-  if (validationErr != null) {
+  if (validationFailedDependencies.length != 0) {
+    console.log("\nvalidation failed for following dependencies:");
+    validationFailedDependencies.forEach((e) => console.log(e));
     process.exit(1);
   }
 }

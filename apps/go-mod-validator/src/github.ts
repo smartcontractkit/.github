@@ -14,7 +14,7 @@ async function getDefaultBranch(
   const response = await fetch(apiUrl, { headers });
   if (!response.ok) {
     throw new Error(
-      `GitHub API request failed: ${response.status} ${response.statusText}`,
+      `failed to find default branch: ${response.status} ${response.statusText}`,
     );
   }
 
@@ -38,7 +38,7 @@ async function findCommitInDefaultBranch(
   const response = await fetch(url, { headers });
   if (!response.ok) {
     throw new Error(
-      `GitHub API error: ${response.status} - ${response.statusText}`,
+      `failed to find commit in default branch: ${response.status} - ${response.statusText}`,
     );
   }
   const responseText = await response.text();
@@ -70,7 +70,7 @@ async function findTagInDefaultBranch(
   const response = await fetch(url, { headers });
   if (!response.ok) {
     throw new Error(
-      `GitHub API error: ${response.status} - ${response.statusText}`,
+      `failed to find tag in default branch: ${response.status} - ${response.statusText}`,
     );
   }
 
@@ -79,7 +79,6 @@ async function findTagInDefaultBranch(
     if (repoTag.name != tag) {
       continue;
     }
-    console.debug(`found commit: ${repoTag.commit.sha} for version: ${tag}`);
 
     // check commit is on the default branch
     return await findCommitInDefaultBranch(
@@ -121,10 +120,11 @@ export async function validateDependency(
   version: string,
   accessToken: string,
 ) {
-  const repo = path.slice(11); // ignore `github.com/`
+  // repo format smartcontractkit/chainlink
+  const repoPathSplit = path.split("/");
+  const repo = `${repoPathSplit[1]}/${repoPathSplit[2]}`;
 
   const defaultBranch = await getDefaultBranch(repo, accessToken);
-  console.debug(`found default branch: ${defaultBranch} for path: ${path}`);
 
   const result = await getVersionType(version);
   if (result?.commitSha) {

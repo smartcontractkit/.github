@@ -7,12 +7,7 @@ function getGoModFiles(): string[] {
     });
     return output.trim().split("\n");
   } catch (error) {
-    if (error instanceof Error) {
-      console.error(`failed to get go.mod files: ${error.message}`);
-    } else {
-      console.error(`failed to get go.mod files, unknown errror`);
-    }
-    return [];
+    throw new Error(`failed to get go.mod files: ${error}`);
   }
 }
 
@@ -35,16 +30,9 @@ export function getDependenciesMap(): Map<string, any> {
       );
       dependenciesMap.set(modFilePath, JSON.parse(output));
     } catch (error) {
-      if (error instanceof Error) {
-        console.error(
-          `failed to get go.mod dependencies from file: ${modFilePath}  err: ${error.message}`,
-        );
-      } else {
-        console.error(
-          `failed to get go.mod dependencies from file: ${modFilePath}, unknown errror`,
-        );
-      }
-      return dependenciesMap;
+      throw new Error(
+        `failed to get go.mod dependencies from file: ${modFilePath}: ${error}`,
+      );
     }
   });
 
