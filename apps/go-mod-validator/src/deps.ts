@@ -20,7 +20,7 @@ export function getDependenciesMap(): Map<string, any> {
   // get all go.mod files
   const modFilePaths = getGoModFiles();
 
-  let dependenciesMap = new Map();
+  const dependenciesMap = new Map();
   modFilePaths.forEach((modFilePath: string) => {
     console.info(`finding dependencies in ${modFilePath}`);
 

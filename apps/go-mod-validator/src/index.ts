@@ -16,7 +16,7 @@ async function run() {
 
   // Verify each of the dependencies
   let validationErr = null;
-  for (let [file, dependencies] of dependenciesMap.entries()) {
+  for (const [file, dependencies] of dependenciesMap.entries()) {
     console.info(`\nvalidating dependencies for ${file}`);
 
     for (let dependency of dependencies) {
