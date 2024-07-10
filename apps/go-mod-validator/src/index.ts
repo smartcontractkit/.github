@@ -1,6 +1,7 @@
-import * as fs from "fs";
-import { getSmartcontractkitDependencies } from "./parser";
 import { validateDependency } from "./github";
+import { getDependenciesMap } from "./deps";
+
+const smartContractKitPrefix = "github.com/smartcontractkit";
 
 async function run() {
   // Read required env vars
@@ -10,57 +11,54 @@ async function run() {
     process.exit(1);
   }
 
-  // read command-line arguments
-  const args = process.argv.slice(2);
-  if (args.length == 0) {
-    console.error("need 1 argument as the input");
-    process.exit(1);
-  }
-  const goListOutputFile = args[0];
-
-  // Read the file content
-  let goListOutputContent = "";
-  try {
-    goListOutputContent = fs.readFileSync(goListOutputFile, "utf-8");
-  } catch (err) {
-    console.error(
-      `failed to read input file: ${goListOutputFile}, with err: ${err}`,
-    );
-    process.exit(1);
-  }
-
-  // Parse the lines, to extract smartcontractkit/ dependencies
-  let dependencies = null;
-  try {
-    dependencies = getSmartcontractkitDependencies(goListOutputContent);
-  } catch (err) {
-    console.error(
-      `failed to get smartcontractkit dependencies from file: ${goListOutputFile}, with err: ${err}`,
-    );
-    process.exit(1);
-  }
+  // get dependencies from go.mod file
+  const dependenciesMap = getDependenciesMap();
 
   // Verify each of the dependencies
   let validationErr = null;
-  for (const dependency of dependencies) {
-    try {
-      if (await validateDependency(dependency, githubToken)) {
-        console.info(
-          `${dependency.module}@${dependency.version} is found in the default branch \n`,
-        );
-      } else {
-        console.error(
-          `${dependency.module}@${dependency.version} not found in the default branch\n`,
-        );
-        validationErr = new Error(
-          `${dependency.module}@${dependency.version} not found in the default branch`,
-        );
+  for (let [file, dependencies] of dependenciesMap.entries()) {
+    console.info(`\nvalidating dependencies for ${file}`);
+
+    for (let dependency of dependencies) {
+      // handle replace redirectives
+      if (dependency.Replace != undefined) {
+        dependency = dependency.Replace;
       }
-    } catch (err) {
-      console.error(
-        `failed to verify dependency: ${dependency.module}@${dependency.version}, with err: ${err} \n`,
-      );
-      validationErr = err;
+
+      // `go list -m -json all` also lists the main pacakge, avoid parsing it.
+      // and only validate dependencies belonging to our org
+      if (
+        dependency.Version == undefined ||
+        !dependency.Path.startsWith(smartContractKitPrefix)
+      ) {
+        continue;
+      }
+
+      try {
+        if (
+          await validateDependency(
+            dependency.Path,
+            dependency.Version,
+            githubToken,
+          )
+        ) {
+          console.info(
+            `${dependency.Path}@${dependency.Version} is found in the default branch`,
+          );
+        } else {
+          console.error(
+            `${dependency.Path}@${dependency.Version} not found in the default branch`,
+          );
+          validationErr = new Error(
+            `${dependency.Path}@${dependency.Version} not found in the default branch`,
+          );
+        }
+      } catch (err) {
+        console.error(
+          `failed to verify dependency: ${dependency.Path}@${dependency.Version}, with err: ${err}`,
+        );
+        validationErr = err;
+      }
     }
   }
 

@@ -2,19 +2,18 @@
   "name": "go-mod-validator",
   "version": "0.0.0",
   "private": true,
-  "description": "Parse output of `go list -m all` given as input, and verify dependencies",
+  "description": "Parses 'go.mod' file given as input, and verifies it's dependencies",
   "engines": {
-    "pnpm": "9"
+    "pnpm": "9",
+    "node": "20"
   },
   "main": "out/index.js",
   "scripts": {
     "local": "ts-node src/index.ts",
     "help": "ts-node --help",
-    "build": "esbuild src/index.ts --bundle --platform=node --target=node16 --tsconfig=./tsconfig.json --outfile=out/index.js",
-    "scratch": "ts-node ./src/index.ts --local --tokenEnv=GITHUB_TOKEN --dir=./test"
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --tsconfig=./tsconfig.json --outfile=dist/index.js"
   },
   "devDependencies": {
-    "@types/jsdom": "^21.1.7",
     "@types/node": "^20.14.9",
     "@types/node-fetch": "^2.6.11",
     "node-fetch": "^2.7.0",
@@ -22,7 +21,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "jsdom": "~24.1.0"
+    "node-html-parser": "^6.1.13"
   },
   "author": "@smartcontractkit",
   "license": "MIT",
