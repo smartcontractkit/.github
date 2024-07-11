@@ -22,8 +22,8 @@ steps:
     uses: actions/checkout
   - name: Setup go
     uses: actions/setup-go
-  - name: go-mod-validation
-    uses: smartcontractkit/.github/apps/go-mod-validator
+  - name: Validate go.mod
+    uses: smartcontractkit/.github/apps/go-mod-validator@<commit> # go-mod-validator@x.y.z
 ```
 
 This requires users to clone the repo, setup Go using their `go.mod` file and
