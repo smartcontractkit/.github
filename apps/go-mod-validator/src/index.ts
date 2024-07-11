@@ -6,11 +6,11 @@ import { Octokit } from "octokit";
 
 const smartContractKitPrefix = "github.com/smartcontractkit";
 
-function getOctokitClient() {
+function getContext() {
   const argv = minimist(process.argv.slice(2));
   const { local, tokenEnv, goModDir } = argv;
 
-  const dir = local ? goModDir || `"$(pwd)"` : core.getInput("go-mod-file-dir");
+  const dir = local ? goModDir || `"$(pwd)"` : core.getInput("go-mod-dir");
 
   const githubToken = local
     ? process.env[tokenEnv] || ""
@@ -20,14 +20,15 @@ function getOctokitClient() {
 }
 
 async function run() {
-  const { goModDir, octokitClient } = getOctokitClient();
+  const { goModDir, octokitClient } = getContext();
 
   // get dependencies from go.mod file
   let dependenciesMap: Map<string, any> = new Map();
   try {
     dependenciesMap = getDependenciesMap(goModDir);
   } catch (err) {
-    core.setFailed(`failed to get dependencies, err: ${err}`);
+    core.info(`failed to get dependencies, err: ${err}`);
+    core.setFailed(`failed to get dependencies`);
   }
 
   // Verify each of the dependencies
@@ -66,7 +67,7 @@ async function run() {
           validationFailedDependencies.push(dependencyResult);
         }
       } catch (err) {
-        core.error(
+        core.info(
           `failed to verify dependency: ${dependency.Path}@${dependency.Version}, err: ${err}`,
         );
         validationFailedDependencies.push(dependencyResult);
@@ -75,8 +76,12 @@ async function run() {
   }
 
   if (validationFailedDependencies.length != 0) {
-    core.setFailed("validation failed for following dependencies:");
-    validationFailedDependencies.forEach((e) => core.error(e));
+    core.info(
+      `validation failed for following dependencies:\n${validationFailedDependencies.join("\n")}`,
+    );
+    core.setFailed(
+      `validation failed for ${validationFailedDependencies.length} dependencies`,
+    );
   }
 }
 

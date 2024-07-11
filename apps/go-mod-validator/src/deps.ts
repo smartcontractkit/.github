@@ -2,8 +2,7 @@ import { execSync } from "child_process";
 import * as core from "@actions/core";
 
 function getGoModFiles(goModDir: string): string[] {
-  let output = execSync(`ls ${goModDir}`, { encoding: "utf-8" });
-  core.info(`ls: ${output}`);
+  let output = "";
 
   try {
     output = execSync(`find ${goModDir} -type f -name 'go.mod'`, {
