@@ -1,25 +1,31 @@
 import { validateDependency } from "./github";
 import { getDependenciesMap } from "./deps";
+import * as core from "@actions/core";
+import minimist from "minimist";
+import { Octokit } from "octokit";
 
 const smartContractKitPrefix = "github.com/smartcontractkit";
 
+function getOctokitClient() {
+  const argv = minimist(process.argv.slice(2));
+  const { local, tokenEnv } = argv;
+  const githubToken = local
+    ? process.env[tokenEnv] || ""
+    : core.getInput("github-token");
+
+  return new Octokit({ auth: githubToken });
+}
+
 async function run() {
-  // Read required env vars
-  const githubToken = process.env.GITHUB_TOKEN || "";
-  if (githubToken == "") {
-    console.error("no GITHUB_TOKEN env variable found");
-    process.exit(1);
-  }
+  const octokitClient = getOctokitClient();
 
   // get dependencies from go.mod file
   let dependenciesMap: Map<string, any> = new Map();
   try {
     dependenciesMap = getDependenciesMap();
   } catch (err) {
-    console.log(`failed to get dependencies, err: ${err}`);
-    process.exit(1);
+    core.setFailed(`failed to get dependencies, err: ${err}`);
   }
-  // const dependenciesMap = getDependenciesMap();
 
   // Verify each of the dependencies
   const validationFailedDependencies: string[] = [];
@@ -51,13 +57,13 @@ async function run() {
           !(await validateDependency(
             dependency.Path,
             dependency.Version,
-            githubToken,
+            octokitClient,
           ))
         ) {
           validationFailedDependencies.push(dependencyResult);
         }
       } catch (err) {
-        console.error(
+        core.error(
           `failed to verify dependency: ${dependency.Path}@${dependency.Version}, err: ${err}`,
         );
         validationFailedDependencies.push(dependencyResult);
@@ -66,9 +72,8 @@ async function run() {
   }
 
   if (validationFailedDependencies.length != 0) {
-    console.log("\nvalidation failed for following dependencies:");
-    validationFailedDependencies.forEach((e) => console.log(e));
-    process.exit(1);
+    core.setFailed("validation failed for following dependencies:");
+    validationFailedDependencies.forEach((e) => core.error(e));
   }
 }
 

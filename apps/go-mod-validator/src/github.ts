@@ -1,91 +1,53 @@
-import fetch from "node-fetch";
-import { parse } from "node-html-parser";
+import { Octokit } from "octokit";
 
 async function getDefaultBranch(
+  owner: string,
   repo: string,
-  accessToken: string,
+  octokitClient: Octokit,
 ): Promise<string> {
-  const apiUrl = `https://api.github.com/repos/${repo}`;
-  const headers = {
-    Authorization: `Bearer ${accessToken}`,
-    Accept: "application/vnd.github.v3+json",
-  };
-
-  const response = await fetch(apiUrl, { headers });
-  if (!response.ok) {
-    throw new Error(
-      `failed to find default branch: ${response.status} ${response.statusText}`,
-    );
-  }
-
-  const data = await response.json();
-  return data.default_branch;
+  const repoObject = await octokitClient.rest.repos.get({ owner, repo });
+  return repoObject.data.default_branch;
 }
 
-// TODO: there's no perfect way of finding the branches the commit belongs to in github.
-// Temporarily, parsing the html output of an undocumented API here.
 async function findCommitInDefaultBranch(
+  owner: string,
   repo: string,
   defaultBranch: string,
   commitSha: string,
-  accessToken: string,
+  octokitClient: Octokit,
 ) {
-  const url = `https://www.github.com/${repo}/branch_commits/${commitSha}`;
-  const headers = {
-    Authorization: `Bearer ${accessToken}`,
-  };
-
-  const response = await fetch(url, { headers });
-  if (!response.ok) {
-    throw new Error(
-      `failed to find commit in default branch: ${response.status} - ${response.statusText}`,
-    );
-  }
-  const responseText = await response.text();
-
-  const dom = parse(responseText);
-  const branchElements = dom.querySelectorAll(".branches-list .branch a");
-
-  for (const element of branchElements) {
-    if (element.textContent == defaultBranch) {
-      return true;
-    }
-  }
-
-  return false;
+  const compareResult = await octokitClient.rest.repos.compareCommits({
+    repo: repo,
+    owner: owner,
+    base: defaultBranch,
+    head: commitSha,
+  });
+  return (
+    compareResult.data.status === "identical" ||
+    compareResult.data.status === "behind"
+  );
 }
 
 async function findTagInDefaultBranch(
+  owner: string,
   repo: string,
   defaultBranch: string,
   tag: string,
-  accessToken: string,
+  octokitClient: Octokit,
 ) {
-  const url = `https://api.github.com/repos/${repo}/tags`;
-  const headers = {
-    Authorization: `Bearer ${accessToken}`,
-    Accept: "application/vnd.github.v3+json",
-  };
-
-  const response = await fetch(url, { headers });
-  if (!response.ok) {
-    throw new Error(
-      `failed to find tag in default branch: ${response.status} - ${response.statusText}`,
-    );
-  }
-
-  const repoTags = await response.json();
-  for (const repoTag of repoTags) {
+  const repoTags = await octokitClient.rest.repos.listTags({ owner, repo });
+  for (const repoTag of repoTags.data) {
     if (repoTag.name != tag) {
       continue;
     }
 
     // check commit is on the default branch
     return await findCommitInDefaultBranch(
+      owner,
       repo,
       defaultBranch,
       repoTag.commit.sha,
-      accessToken,
+      octokitClient,
     );
   }
 
@@ -118,29 +80,32 @@ async function getVersionType(versionString: string) {
 export async function validateDependency(
   path: string,
   version: string,
-  accessToken: string,
+  octokitClient: Octokit,
 ) {
   // repo format smartcontractkit/chainlink
   const repoPathSplit = path.split("/");
-  const repo = `${repoPathSplit[1]}/${repoPathSplit[2]}`;
+  const owner = repoPathSplit[1];
+  const repo = repoPathSplit[2];
 
-  const defaultBranch = await getDefaultBranch(repo, accessToken);
+  const defaultBranch = await getDefaultBranch(owner, repo, octokitClient);
 
   const result = await getVersionType(version);
   if (result?.commitSha) {
     return await findCommitInDefaultBranch(
+      owner,
       repo,
       defaultBranch,
       result.commitSha,
-      accessToken,
+      octokitClient,
     );
   }
   if (result?.tag) {
     return await findTagInDefaultBranch(
+      owner,
       repo,
       defaultBranch,
       result.tag,
-      accessToken,
+      octokitClient,
     );
   }
 

@@ -1,4 +1,5 @@
-const { execSync } = require("child_process");
+import { execSync } from "child_process";
+import * as core from "@actions/core";
 
 function getGoModFiles(): string[] {
   try {
@@ -17,7 +18,7 @@ export function getDependenciesMap(): Map<string, any> {
 
   const dependenciesMap = new Map();
   modFilePaths.forEach((modFilePath: string) => {
-    console.info(`finding dependencies in ${modFilePath}`);
+    core.info(`finding dependencies in ${modFilePath}`);
 
     // get the dir of go.mod file
     const modFileDir = modFilePath.slice(0, -6);
