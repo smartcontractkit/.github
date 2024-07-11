@@ -3,9 +3,13 @@ description: "Validates dependencies in go.mod files are tested"
 
 inputs:
   github-token:
-    description: ""
+    description: "github token to fetch upstream dependencies"
     required: true
     default: ${{ github.token }}
+  go-mod-file-dir:
+    description: "dir where go.mod file is located"
+    required: false
+    default: ${{ github.workspace }}
 
 runs:
   using: "node20"

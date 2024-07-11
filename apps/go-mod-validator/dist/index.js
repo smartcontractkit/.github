@@ -32800,18 +32800,23 @@ async function validateDependency(path, version2, octokitClient) {
 // src/deps.ts
 var import_child_process = require("child_process");
 var core = __toESM(require_core());
-function getGoModFiles() {
+function getGoModFiles(goModDir) {
+  let output = (0, import_child_process.execSync)(`ls ${goModDir}`, { encoding: "utf-8" });
+  core.info(`ls: ${output}`);
   try {
-    const output = (0, import_child_process.execSync)(`find "$(pwd)" -type f -name 'go.mod'`, {
+    output = (0, import_child_process.execSync)(`find ${goModDir} -type f -name 'go.mod'`, {
       encoding: "utf-8"
     });
-    return output.trim().split("\n");
   } catch (error2) {
     throw new Error(`failed to get go.mod files: ${error2}`);
   }
+  if (output.length == 0) {
+    throw new Error("no go.mod files found");
+  }
+  return output.trim().split("\n");
 }
-function getDependenciesMap() {
-  const modFilePaths = getGoModFiles();
+function getDependenciesMap(goModDir) {
+  const modFilePaths = getGoModFiles(goModDir);
   const dependenciesMap = /* @__PURE__ */ new Map();
   modFilePaths.forEach((modFilePath) => {
     core.info(`finding dependencies in ${modFilePath}`);
@@ -32838,15 +32843,16 @@ var import_octokit = __toESM(require_dist_node27());
 var smartContractKitPrefix = "github.com/smartcontractkit";
 function getOctokitClient() {
   const argv = (0, import_minimist.default)(process.argv.slice(2));
-  const { local, tokenEnv } = argv;
+  const { local, tokenEnv, goModDir } = argv;
+  const dir = local ? goModDir || `"$(pwd)"` : core2.getInput("go-mod-file-dir");
   const githubToken = local ? process.env[tokenEnv] || "" : core2.getInput("github-token");
-  return new import_octokit.Octokit({ auth: githubToken });
+  return { goModDir: dir, octokitClient: new import_octokit.Octokit({ auth: githubToken }) };
 }
 async function run() {
-  const octokitClient = getOctokitClient();
+  const { goModDir, octokitClient } = getOctokitClient();
   let dependenciesMap = /* @__PURE__ */ new Map();
   try {
-    dependenciesMap = getDependenciesMap();
+    dependenciesMap = getDependenciesMap(goModDir);
   } catch (err) {
     core2.setFailed(`failed to get dependencies, err: ${err}`);
   }

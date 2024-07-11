@@ -1,20 +1,27 @@
 import { execSync } from "child_process";
 import * as core from "@actions/core";
 
-function getGoModFiles(): string[] {
+function getGoModFiles(goModDir: string): string[] {
+  let output = execSync(`ls ${goModDir}`, { encoding: "utf-8" });
+  core.info(`ls: ${output}`);
+
   try {
-    const output = execSync("find \"$(pwd)\" -type f -name 'go.mod'", {
+    output = execSync(`find ${goModDir} -type f -name 'go.mod'`, {
       encoding: "utf-8",
     });
-    return output.trim().split("\n");
   } catch (error) {
     throw new Error(`failed to get go.mod files: ${error}`);
   }
+
+  if (output.length == 0) {
+    throw new Error("no go.mod files found");
+  }
+  return output.trim().split("\n");
 }
 
-export function getDependenciesMap(): Map<string, any> {
+export function getDependenciesMap(goModDir: string): Map<string, any> {
   // get all go.mod files
-  const modFilePaths = getGoModFiles();
+  const modFilePaths = getGoModFiles(goModDir);
 
   const dependenciesMap = new Map();
   modFilePaths.forEach((modFilePath: string) => {

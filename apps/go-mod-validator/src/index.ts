@@ -8,21 +8,24 @@ const smartContractKitPrefix = "github.com/smartcontractkit";
 
 function getOctokitClient() {
   const argv = minimist(process.argv.slice(2));
-  const { local, tokenEnv } = argv;
+  const { local, tokenEnv, goModDir } = argv;
+
+  const dir = local ? goModDir || `"$(pwd)"` : core.getInput("go-mod-file-dir");
+
   const githubToken = local
     ? process.env[tokenEnv] || ""
     : core.getInput("github-token");
 
-  return new Octokit({ auth: githubToken });
+  return { goModDir: dir, octokitClient: new Octokit({ auth: githubToken }) };
 }
 
 async function run() {
-  const octokitClient = getOctokitClient();
+  const { goModDir, octokitClient } = getOctokitClient();
 
   // get dependencies from go.mod file
   let dependenciesMap: Map<string, any> = new Map();
   try {
-    dependenciesMap = getDependenciesMap();
+    dependenciesMap = getDependenciesMap(goModDir);
   } catch (err) {
     core.setFailed(`failed to get dependencies, err: ${err}`);
   }
