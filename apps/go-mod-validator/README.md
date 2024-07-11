@@ -6,7 +6,8 @@ package.
 Requirements:
 
 1. Go compiler (version matching go.mod or higher)
-2. jq - https://jqlang.github.io/jq/
+2. jq - https://jqlang.github.io/jq/ (available by default in most linux
+   distributions)
 
 Validations implemented so far,
 
@@ -16,8 +17,14 @@ Validations implemented so far,
 ## Example usage
 
 ```yaml
-name: go-mod-validation
-uses: smartcontractkit/.github/apps/go-mod-validator
-with:
-  github-token: <optional>
+steps:
+  - name: Check out the repository
+    uses: actions/checkout
+  - name: Setup go
+    uses: actions/setup-go
+  - name: go-mod-validation
+    uses: smartcontractkit/.github/apps/go-mod-validator
 ```
+
+This requires users to clone the repo, setup Go using their `go.mod` file and
+then call `go-mod-validator`

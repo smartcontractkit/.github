@@ -32843,9 +32843,7 @@ var smartContractKitPrefix = "github.com/smartcontractkit";
 function getContext() {
   const argv = (0, import_minimist.default)(process.argv.slice(2));
   const { local, tokenEnv, goModDir } = argv;
-  core2.info(`goModDir: ${goModDir}`);
   const dir = local ? goModDir || `"$(pwd)"` : core2.getInput("go-mod-dir");
-  core2.info(`dir: ${dir}`);
   const githubToken = local ? process.env[tokenEnv] || "" : core2.getInput("github-token");
   return { goModDir: dir, octokitClient: new import_octokit.Octokit({ auth: githubToken }) };
 }
@@ -32856,6 +32854,7 @@ async function run() {
     dependenciesMap = getDependenciesMap(goModDir);
   } catch (err) {
     core2.info(`failed to get dependencies, err: ${err}`);
+    core2.setFailed(`failed to get dependencies`);
   }
   const validationFailedDependencies = [];
   for (const [file, dependencies] of dependenciesMap.entries()) {
@@ -32894,6 +32893,8 @@ ${validationFailedDependencies.join("\n")}`
     core2.setFailed(
       `validation failed for ${validationFailedDependencies.length} dependencies`
     );
+  } else {
+    core2.info("validation successful for all go.mod dependencies");
   }
 }
 run();

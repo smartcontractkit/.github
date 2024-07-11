@@ -82,6 +82,8 @@ async function run() {
     core.setFailed(
       `validation failed for ${validationFailedDependencies.length} dependencies`,
     );
+  } else {
+    core.info("validation successful for all go.mod dependencies");
   }
 }
 
