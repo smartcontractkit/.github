@@ -14,6 +14,21 @@ Validations implemented so far,
 1. Finds all `go.mod` files recursively and verifies dependencies are present in
    the default branch of the upstream dependency's repositories
 
+## Inputs
+
+1. github-token: token with read permissions on all smartcontractkit repos. By
+   default, we use ${{ github.token }}
+2. go-mod-dir: Common directory where go.mod files are located. By default, we
+   use ${{ github.workspace }}
+
+## Outputs
+
+1. Exits 0, all dependencies are verified as being on the default branch of the
+   upstream repositories.
+2. Exits 1, if _dependency is not on the default branch_ then please update your
+   `go.mod` file to use a dependency that's on the default branch of the
+   upstream repository.
+
 ## Example usage
 
 ```yaml

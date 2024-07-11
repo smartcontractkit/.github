@@ -31,8 +31,10 @@ async function run() {
     core.setFailed(`failed to get dependencies`);
   }
 
+  // <failed-dependency, error-string>
+  const validationFailedDependencies: Map<string, string> = new Map();
+
   // Verify each of the dependencies
-  const validationFailedDependencies: string[] = [];
   for (const [file, dependencies] of dependenciesMap.entries()) {
     for (let dependency of dependencies) {
       // handle replace redirectives
@@ -64,23 +66,27 @@ async function run() {
             octokitClient,
           ))
         ) {
-          validationFailedDependencies.push(dependencyResult);
+          validationFailedDependencies.set(
+            dependencyResult,
+            "dependency not on default branch",
+          );
         }
       } catch (err) {
-        core.info(
-          `failed to verify dependency: ${dependency.Path}@${dependency.Version}, err: ${err}`,
-        );
-        validationFailedDependencies.push(dependencyResult);
+        if (err instanceof Error) {
+          validationFailedDependencies.set(dependencyResult, err.message);
+        } else {
+          validationFailedDependencies.set(dependencyResult, "unknown");
+        }
       }
     }
   }
 
-  if (validationFailedDependencies.length != 0) {
-    core.info(
-      `validation failed for following dependencies:\n${validationFailedDependencies.join("\n")}`,
+  if (validationFailedDependencies.size != 0) {
+    validationFailedDependencies.forEach((val, key) =>
+      core.info(`validation failed for: ${key}, err: ${val}`),
     );
     core.setFailed(
-      `validation failed for ${validationFailedDependencies.length} dependencies`,
+      `validation failed for ${validationFailedDependencies.size} dependencies, pls refer README to fix the errors`,
     );
   } else {
     core.info("validation successful for all go.mod dependencies");

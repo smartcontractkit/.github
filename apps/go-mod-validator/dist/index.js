@@ -32856,7 +32856,7 @@ async function run() {
     core2.info(`failed to get dependencies, err: ${err}`);
     core2.setFailed(`failed to get dependencies`);
   }
-  const validationFailedDependencies = [];
+  const validationFailedDependencies = /* @__PURE__ */ new Map();
   for (const [file, dependencies] of dependenciesMap.entries()) {
     for (let dependency of dependencies) {
       if (dependency.Replace != void 0) {
@@ -32875,23 +32875,26 @@ async function run() {
           dependency.Version,
           octokitClient
         )) {
-          validationFailedDependencies.push(dependencyResult);
+          validationFailedDependencies.set(
+            dependencyResult,
+            "dependency not on default branch"
+          );
         }
       } catch (err) {
-        core2.info(
-          `failed to verify dependency: ${dependency.Path}@${dependency.Version}, err: ${err}`
-        );
-        validationFailedDependencies.push(dependencyResult);
+        if (err instanceof Error) {
+          validationFailedDependencies.set(dependencyResult, err.message);
+        } else {
+          validationFailedDependencies.set(dependencyResult, "unknown");
+        }
       }
     }
   }
-  if (validationFailedDependencies.length != 0) {
-    core2.info(
-      `validation failed for following dependencies:
-${validationFailedDependencies.join("\n")}`
+  if (validationFailedDependencies.size != 0) {
+    validationFailedDependencies.forEach(
+      (val, key) => core2.info(`validation failed for: ${key}, err: ${val}`)
     );
     core2.setFailed(
-      `validation failed for ${validationFailedDependencies.length} dependencies`
+      `validation failed for ${validationFailedDependencies.size} dependencies, pls refer README to fix the errors`
     );
   } else {
     core2.info("validation successful for all go.mod dependencies");

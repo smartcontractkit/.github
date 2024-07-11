@@ -3,11 +3,12 @@ description: "Validates dependencies in go.mod files are tested"
 
 inputs:
   github-token:
-    description: "Github token to fetch upstream dependencies"
+    description:
+      "Github token with read permissions on all smartcontractkit repos"
     required: true
     default: ${{ github.token }}
   go-mod-dir:
-    description: "Path to directory containing go.mod file"
+    description: "Common directory where go.mod files are located"
     required: true
     default: ${{ github.workspace }}
 
