@@ -7,6 +7,8 @@ import { CreateCommitOnBranchInput } from "../../generated/graphql";
 import { getRemoteHeadOid } from "./index";
 import { createCommitOnBranch } from "./index";
 
+import { it, expect } from "vitest";
+
 // nock-back provides the recording and playback functionality
 const nockBack = nock.back;
 // Set the fixture path and nockBack mode

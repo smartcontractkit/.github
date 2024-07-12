@@ -11,6 +11,8 @@ import {
 } from "./repo-tags";
 import { createRepo } from "./utilts.testutils";
 
+import { describe, it, expect } from "vitest";
+
 describe("repo-tags", () => {
   describe(getLocalRemoteTagDiff.name, () => {
     it("should return the correct tags", async () => {
