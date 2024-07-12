@@ -32724,20 +32724,21 @@ var require_dist_node27 = __commonJS({
 
 // src/github.ts
 async function getDefaultBranch(owner, repo, octokitClient) {
-  const repoObject = await octokitClient.rest.repos.get({ owner, repo });
+  const repoObject = await octokitClient.request(
+    `GET /repos/${owner}/${repo}/`
+  );
   return repoObject.data.default_branch;
 }
 async function findCommitInDefaultBranch(owner, repo, defaultBranch, commitSha, octokitClient) {
-  const compareResult = await octokitClient.rest.repos.compareCommits({
-    repo,
-    owner,
-    base: defaultBranch,
-    head: commitSha
-  });
+  const compareResult = await octokitClient.request(
+    `GET /repos/${owner}/${repo}/compare/${defaultBranch}...${commitSha}`
+  );
   return compareResult.data.status === "identical" || compareResult.data.status === "behind";
 }
 async function findTagInDefaultBranch(owner, repo, defaultBranch, tag, octokitClient) {
-  const repoTags = await octokitClient.rest.repos.listTags({ owner, repo });
+  const repoTags = await octokitClient.request(
+    `GET /repos/${owner}/${repo}/tags`
+  );
   for (const repoTag of repoTags.data) {
     if (repoTag.name != tag) {
       continue;
