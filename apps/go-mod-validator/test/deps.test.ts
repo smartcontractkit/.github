@@ -1,7 +1,8 @@
 import { execSync } from "child_process";
 import { getDependenciesMap } from "../src/deps";
+import { beforeEach, describe, expect, it, vi, Mock } from "vitest";
 
-jest.mock("child_process");
+vi.mock("child_process");
 
 describe("getDependenciesMap", () => {
   it("Successful: should return a map of <go.mod files: dependencies in json>", () => {
@@ -12,7 +13,7 @@ describe("getDependenciesMap", () => {
       '[{"Path": "github.com/smartcontractkit/grpc-proxy", "Version": "v0.0.0-20230731113816-f1be6620749f"}]';
 
     let callCount = 0;
-    (execSync as jest.Mock).mockImplementation((command) => {
+    (execSync as Mock).mockImplementation((command) => {
       if (command.includes("go list")) {
         callCount++;
         return callCount === 1 ? goListMockOutput1 : goListMockOutput2;
@@ -34,7 +35,7 @@ describe("getDependenciesMap", () => {
   it("Fail: should handle no go.mod files found", () => {
     const paths: string[] = [];
 
-    (execSync as jest.Mock).mockImplementation((command) => {
+    (execSync as Mock).mockImplementation((command) => {
       return paths.join("\n");
     });
 
@@ -45,7 +46,7 @@ describe("getDependenciesMap", () => {
     const paths: string[] = ["/path/to/first/go.mod"];
     const error = new Error("Command failed");
 
-    (execSync as jest.Mock).mockImplementation((command) => {
+    (execSync as Mock).mockImplementation((command) => {
       if (command.includes("go list")) {
         throw error;
       } else if (command.includes("find")) {
@@ -61,7 +62,7 @@ describe("getDependenciesMap", () => {
   it("Fail: should handle `find` command failure", () => {
     const error = new Error("Command failed");
 
-    (execSync as jest.Mock).mockImplementation((command) => {
+    (execSync as Mock).mockImplementation((command) => {
       if (command.includes("find")) {
         throw error;
       }

@@ -1,5 +1,6 @@
 import { validateDependency } from "../src/github";
 import { Octokit } from "octokit";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("verify pseudo dependency version is on the default branch", () => {
   const owner = "smartcontractkit";
@@ -30,8 +31,8 @@ describe("verify pseudo dependency version is on the default branch", () => {
       headers: {},
       url: "",
     };
-    jest
-      .spyOn(octokitClient, "request")
+
+    vi.spyOn(octokitClient, "request")
       .mockResolvedValueOnce(mockResponseRepo)
       .mockResolvedValueOnce(mockResponseCommit);
 
@@ -51,8 +52,7 @@ describe("verify pseudo dependency version is on the default branch", () => {
       headers: {},
       url: "",
     };
-    jest
-      .spyOn(octokitClient, "request")
+    vi.spyOn(octokitClient, "request")
       .mockResolvedValueOnce(mockResponseRepo)
       .mockRejectedValueOnce(new Error("Request failed"));
 
@@ -100,8 +100,7 @@ describe("verify dependency version is on the default branch", () => {
       headers: {},
       url: "",
     };
-    jest
-      .spyOn(octokitClient, "request")
+    vi.spyOn(octokitClient, "request")
       .mockResolvedValueOnce(mockResponseRepo)
       .mockResolvedValueOnce(mockResponseTags)
       .mockResolvedValueOnce(mockResponseCommit);
@@ -122,8 +121,7 @@ describe("verify dependency version is on the default branch", () => {
       headers: {},
       url: "",
     };
-    jest
-      .spyOn(octokitClient, "request")
+    vi.spyOn(octokitClient, "request")
       .mockResolvedValueOnce(mockResponseRepo)
       .mockRejectedValueOnce(new Error("Request failed"));
 
