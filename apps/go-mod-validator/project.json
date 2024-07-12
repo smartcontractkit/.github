@@ -4,6 +4,13 @@
   "sourceRoot": "apps/go-mod-validator/src",
   "projectType": "library",
   "targets": {
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/go-mod-validator/jest.config.ts"
+      }
+    },
     "lint": {
       "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
