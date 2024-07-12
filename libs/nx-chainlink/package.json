@@ -5,5 +5,8 @@
   "type": "commonjs",
   "main": "./src/index.js",
   "typings": "./src/index.d.ts",
-  "generators": "./generators.json"
+  "generators": "./generators.json",
+  "devDependencies": {
+    "vitest": "^1.6.0"
+  }
 }
