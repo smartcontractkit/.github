@@ -5,7 +5,10 @@ import writeChangeset from "@changesets/write";
 import { Changeset } from "@changesets/types";
 import { runVersion } from "./run";
 import { exec } from "@actions/exec";
-jest.mock("@actions/github", () => ({
+
+import { describe, it, expect, beforeEach, vi } from "vitest";
+
+vi.mock("@actions/github", () => ({
   context: {
     repo: {
       owner: "changesets",
@@ -15,34 +18,34 @@ jest.mock("@actions/github", () => ({
     sha: "xeac7",
   },
 }));
-jest.mock("@actions/github/lib/utils", () => ({
+vi.mock("@actions/github/lib/utils", () => ({
   GitHub: {
     plugin: () => {
       // function necessary to be used as constructor
       return function () {
         return {
           rest: mockedGithubMethods,
-          graphql: jest.fn().mockReturnValue({
+          graphql: vi.fn().mockReturnValue({
             data: require("./git/github-git/__fixtures__/createCommitOnBranch.json"),
           }),
         };
       };
     },
   },
-  getOctokitOptions: jest.fn(),
+  getOctokitOptions: vi.fn(),
 }));
-jest.mock("./git/local-git");
+vi.mock("./git/local-git");
 
 let mockedGithubMethods = {
   search: {
-    issuesAndPullRequests: jest.fn(),
+    issuesAndPullRequests: vi.fn(),
   },
   pulls: {
-    create: jest.fn(),
+    create: vi.fn(),
   },
   repos: {
-    createRelease: jest.fn(),
-    getBranch: jest.fn().mockReturnValue({ data: { commit: { sha: "abc" } } }),
+    createRelease: vi.fn(),
+    getBranch: vi.fn().mockReturnValue({ data: { commit: { sha: "abc" } } }),
   },
 };
 
@@ -78,7 +81,7 @@ const writeChangesets = (changesets: Changeset[], cwd: string) => {
 };
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 describe("version", () => {

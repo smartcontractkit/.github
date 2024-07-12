@@ -29,7 +29,12 @@ const setupOctokit = (githubToken: string) => {
   return new (GitHub.plugin(throttling))(
     getOctokitOptions(githubToken, {
       throttle: {
-        onRateLimit: (retryAfter: number, options: any, retryCount: number) => {
+        onRateLimit: (
+          retryAfter: number,
+          options: any,
+          _octokit,
+          retryCount: number,
+        ) => {
           core.warning(
             `Request quota exhausted for request ${options.method} ${options.url}`,
           );
@@ -42,6 +47,7 @@ const setupOctokit = (githubToken: string) => {
         onSecondaryRateLimit: (
           retryAfter: number,
           options: any,
+          _octokit,
           retryCount: number,
         ) => {
           core.warning(
