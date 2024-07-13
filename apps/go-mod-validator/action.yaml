@@ -1,0 +1,17 @@
+name: go-mod-validator
+description: "Validates dependencies in go.mod files are tested"
+
+inputs:
+  github-token:
+    description:
+      "Github token with read permissions on all smartcontractkit repos"
+    required: true
+    default: ${{ github.token }}
+  go-mod-dir:
+    description: "Common directory where go.mod files are located"
+    required: true
+    default: ${{ github.workspace }}
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
