@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi, Mock } from "vitest";
 vi.mock("child_process");
 
 describe("getDependenciesMap", () => {
-  it("Successful: should return a map of <go.mod files: dependencies in json>", () => {
+  it("should return a map of <go.mod files: dependencies in json>", async () => {
     const paths = ["/path/to/first/go.mod", "/path/to/second/go.mod"];
     const goListMockOutput1 =
       '[{"Path": "github.com/smartcontractkit/go-plugin", "Version": "v0.0.0-20240208201424-b3b91517de16"}]';
@@ -23,7 +23,7 @@ describe("getDependenciesMap", () => {
       return "";
     });
 
-    const result = getDependenciesMap("");
+    const result = await getDependenciesMap("");
     expect(result).toEqual(
       new Map<string, any>([
         [paths[0], JSON.parse(goListMockOutput1)],
@@ -32,17 +32,19 @@ describe("getDependenciesMap", () => {
     );
   });
 
-  it("Fail: should handle no go.mod files found", () => {
+  it("should handle no go.mod files found", async () => {
     const paths: string[] = [];
 
     (execSync as Mock).mockImplementation((command) => {
       return paths.join("\n");
     });
 
-    expect(() => getDependenciesMap("")).toThrow("no go.mod files found");
+    expect(async () => await getDependenciesMap("")).toThrow(
+      "no go.mod files found",
+    );
   });
 
-  it("Fail: should handle `go list` command failure", () => {
+  it("should handle `go list` command failure", () => {
     const paths: string[] = ["/path/to/first/go.mod"];
     const error = new Error("Command failed");
 
@@ -54,12 +56,12 @@ describe("getDependenciesMap", () => {
       }
     });
 
-    expect(() => getDependenciesMap("")).toThrow(
+    expect(async () => await getDependenciesMap("")).toThrow(
       `failed to get go.mod dependencies from file: ${paths[0]}: ${error}`,
     );
   });
 
-  it("Fail: should handle `find` command failure", () => {
+  it("should handle `find` command failure", () => {
     const error = new Error("Command failed");
 
     (execSync as Mock).mockImplementation((command) => {
@@ -68,7 +70,7 @@ describe("getDependenciesMap", () => {
       }
     });
 
-    expect(() => getDependenciesMap("")).toThrow(
+    expect(async () => await getDependenciesMap("")).toThrow(
       `failed to get go.mod files: ${error}`,
     );
   });

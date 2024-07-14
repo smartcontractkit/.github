@@ -5,9 +5,7 @@ async function getDefaultBranch(
   repo: string,
   octokitClient: Octokit,
 ): Promise<string> {
-  const repoObject = await octokitClient.request(
-    `GET /repos/${owner}/${repo}/`,
-  );
+  const repoObject = await octokitClient.rest.repos.get({ owner, repo });
   return repoObject.data.default_branch;
 }
 
@@ -18,9 +16,12 @@ async function findCommitInDefaultBranch(
   commitSha: string,
   octokitClient: Octokit,
 ) {
-  const compareResult = await octokitClient.request(
-    `GET /repos/${owner}/${repo}/compare/${defaultBranch}...${commitSha}`,
-  );
+  const compareResult = await octokitClient.rest.repos.compareCommits({
+    repo: repo,
+    owner: owner,
+    base: defaultBranch,
+    head: commitSha,
+  });
   return (
     compareResult.data.status === "identical" ||
     compareResult.data.status === "behind"
@@ -34,9 +35,7 @@ async function findTagInDefaultBranch(
   tag: string,
   octokitClient: Octokit,
 ) {
-  const repoTags = await octokitClient.request(
-    `GET /repos/${owner}/${repo}/tags`,
-  );
+  const repoTags = await octokitClient.rest.repos.listTags({ owner, repo });
   for (const repoTag of repoTags.data) {
     if (repoTag.name != tag) {
       continue;

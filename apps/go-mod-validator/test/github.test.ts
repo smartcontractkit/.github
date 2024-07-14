@@ -18,7 +18,7 @@ describe("verify pseudo dependency version is on the default branch", () => {
     octokitClient = new Octokit();
   });
 
-  it("Success: should check if the commit is present on the default branch", async () => {
+  it("should check if the commit is present on the default branch", async () => {
     const mockResponseRepo = {
       data: { default_branch: defaultBranch },
       status: 200,
@@ -45,7 +45,7 @@ describe("verify pseudo dependency version is on the default branch", () => {
     expect(repoObject).toEqual(true);
   });
 
-  it("Fail: should throw an error if the compare commits request fails", async () => {
+  it("should throw an error if the compare commits request fails", async () => {
     const mockResponseRepo = {
       data: { default_branch: defaultBranch },
       status: 200,
@@ -81,7 +81,7 @@ describe("verify dependency version is on the default branch", () => {
     octokitClient = new Octokit();
   });
 
-  it("Success: should check if the commit is present on the default branch", async () => {
+  it("should check if the commit is present on the default branch", async () => {
     const mockResponseRepo = {
       data: { default_branch: defaultBranch },
       status: 200,
@@ -114,7 +114,7 @@ describe("verify dependency version is on the default branch", () => {
     expect(repoObject).toEqual(true);
   });
 
-  it("Fail: should throw an error if the get tags request fails", async () => {
+  it("should throw an error if the get tags request fails", async () => {
     const mockResponseRepo = {
       data: { default_branch: defaultBranch },
       status: 200,

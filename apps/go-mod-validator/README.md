@@ -43,3 +43,11 @@ steps:
 
 This requires users to clone the repo, setup Go using their `go.mod` file and
 then call `go-mod-validator`
+
+## Running locally
+
+1. If `go.mod` files are present in the current directory (or any of the child
+   directories) - GITHUB_STEP_SUMMARY=/dev/null pnpm run local
+2. If `go.mod` files are present in another directory -
+   GITHUB_STEP_SUMMARY=/dev/null pnpm run local
+   --goModDir=/absolute/path/to/gomod/directory
