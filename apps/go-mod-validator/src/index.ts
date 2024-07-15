@@ -1,8 +1,9 @@
 import { validateDependency } from "./github";
 import { getDependenciesMap } from "./deps";
+import { FIXING_ERRORS } from "./strings";
+import * as github from "@actions/github";
 import * as core from "@actions/core";
 import minimist from "minimist";
-import { Octokit } from "octokit";
 
 const smartContractKitPrefix = "github.com/smartcontractkit";
 
@@ -10,13 +11,13 @@ function getContext() {
   const argv = minimist(process.argv.slice(2));
   const { local, tokenEnv, goModDir } = argv;
 
-  const dir = local ? goModDir || `"$(pwd)"` : core.getInput("go-mod-dir");
+  const dir = local ? goModDir || process.cwd() : core.getInput("go-mod-dir");
 
   const githubToken = local
     ? process.env[tokenEnv] || ""
     : core.getInput("github-token");
 
-  return { goModDir: dir, octokitClient: new Octokit({ auth: githubToken }) };
+  return { goModDir: dir, octokitClient: github.getOctokit(githubToken) };
 }
 
 async function run() {
@@ -25,10 +26,11 @@ async function run() {
   // get dependencies from go.mod file
   let dependenciesMap: Map<string, any> = new Map();
   try {
-    dependenciesMap = getDependenciesMap(goModDir);
+    dependenciesMap = await getDependenciesMap(goModDir);
   } catch (err) {
     core.info(`failed to get dependencies, err: ${err}`);
     core.setFailed(`failed to get dependencies`);
+    return;
   }
 
   // <failed-dependency, error-string>
@@ -59,34 +61,36 @@ async function run() {
 
       // validate the dependency
       try {
-        if (
-          !(await validateDependency(
-            dependency.Path,
-            dependency.Version,
-            octokitClient,
-          ))
-        ) {
+        const validationResult = await validateDependency(
+          dependency.Path,
+          dependency.Version,
+          octokitClient,
+        );
+        if (!validationResult) {
           validationFailedDependencies.set(
             dependencyResult,
             "dependency not on default branch",
           );
         }
-      } catch (err) {
-        if (err instanceof Error) {
-          validationFailedDependencies.set(dependencyResult, err.message);
-        } else {
-          validationFailedDependencies.set(dependencyResult, "unknown");
-        }
+      } catch (err: any) {
+        validationFailedDependencies.set(
+          dependencyResult,
+          err?.message || "unknown",
+        );
       }
     }
   }
 
-  if (validationFailedDependencies.size != 0) {
+  if (validationFailedDependencies.size > 0) {
     validationFailedDependencies.forEach((val, key) =>
-      core.info(`validation failed for: ${key}, err: ${val}`),
+      core.error(`validation failed for: ${key}, err: ${val}`),
     );
+
+    core.summary.addRaw(FIXING_ERRORS, true);
+    await core.summary.write();
+
     core.setFailed(
-      `validation failed for ${validationFailedDependencies.size} dependencies, pls refer README to fix the errors`,
+      `validation failed for ${validationFailedDependencies.size} dependencies`,
     );
   } else {
     core.info("validation successful for all go.mod dependencies");
