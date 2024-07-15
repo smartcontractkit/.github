@@ -1,9 +1,9 @@
 import { validateDependency } from "./github";
 import { getDependenciesMap } from "./deps";
 import { FIXING_ERRORS } from "./strings";
+import * as github from "@actions/github";
 import * as core from "@actions/core";
 import minimist from "minimist";
-import { Octokit } from "octokit";
 
 const smartContractKitPrefix = "github.com/smartcontractkit";
 
@@ -17,7 +17,7 @@ function getContext() {
     ? process.env[tokenEnv] || ""
     : core.getInput("github-token");
 
-  return { goModDir: dir, octokitClient: new Octokit({ auth: githubToken }) };
+  return { goModDir: dir, octokitClient: github.getOctokit(githubToken) };
 }
 
 async function run() {

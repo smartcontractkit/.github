@@ -43,12 +43,18 @@ function JSONParseDependencies(jsonString: string) {
 }
 
 async function getGoModFiles(goModDir: string): Promise<string[]> {
+  let files: string[] = [];
   try {
     const globber = await glob.create(`${goModDir}/**/go.mod`);
-    return await globber.glob();
+    files = await globber.glob();
   } catch (error) {
     throw new Error(`failed to get go.mod files: ${error}`);
   }
+
+  if (files.length == 0) {
+    throw new Error("no go.mod files found");
+  }
+  return files;
 }
 
 export async function getDependenciesMap(

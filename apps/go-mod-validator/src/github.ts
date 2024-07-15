@@ -1,4 +1,6 @@
-import { Octokit } from "octokit";
+import * as github from "@actions/github";
+
+export type Octokit = ReturnType<typeof github.getOctokit>;
 
 async function getDefaultBranch(
   owner: string,
