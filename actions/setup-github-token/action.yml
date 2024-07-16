@@ -5,7 +5,7 @@ inputs:
   revoke-token:
     description: something
     required: false
-    default: "false"
+    default: 'false'
   aws-role-arn:
     description: ARN of role capable of getting token from GATI
     required: true
@@ -26,7 +26,7 @@ inputs:
   set-git-config:
     description: Set git config
     required: false
-    default: "false"
+    default: 'false'
 
 outputs:
   access-token:
@@ -41,7 +41,7 @@ runs:
     - name: Check the role session name lengths and truncate if needed
       shell: bash
       id: role-session-name
-      if: inputs.revoke-token == "false"
+      if: inputs.revoke-token == 'false'
       env:
         ROLE_SESSION_NAME: ${{ inputs.role-session-name }}
       run: |
@@ -52,7 +52,7 @@ runs:
         fi
 
     - name: Assume role capable of getting token from gati
-      if: inputs.revoke-token == "false"
+      if: inputs.revoke-token == 'false'
       uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
       with:
         aws-region: ${{ inputs.aws-region }}
@@ -64,13 +64,13 @@ runs:
 
     - name: Get github token from gati
       id: get-gh-token
-      if: inputs.revoke-token == "false"
+      if: inputs.revoke-token == 'false'
       uses: smartcontractkit/chainlink-github-actions/github-app-token-issuer@main
       with:
         url: ${{ inputs.aws-lambda-url }}
 
     - name: Configure github token
-      if: inputs.set-git-config == "true" && inputs.revoke-token == "false"
+      if: inputs.set-git-config == 'true' && inputs.revoke-token == 'false'
       shell: bash
       run: |
         git config --global \
@@ -78,7 +78,7 @@ runs:
           "https://github.com/"
 
     - name: Revoke github token
-      if: inputs.revoke-token == "true"
+      if: inputs.revoke-token == 'true'
       shell: bash
       run: |
         curl -v -L \
