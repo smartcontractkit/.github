@@ -9,7 +9,7 @@ const mockedGlob = vi.mocked(glob);
 vi.mock("@actions/glob");
 
 describe("getDependenciesMap", () => {
-  it.only("should return a map of <go.mod files: dependencies in json>", async () => {
+  it("should return a map of <go.mod files: dependencies in json>", async () => {
     const paths = ["/path/to/first/go.mod", "/path/to/second/go.mod"];
     const goListMockOutput1 =
       '{"Path": "github.com/smartcontractkit/go-plugin", "Version": "v0.0.0-20240208201424-b3b91517de16"}';
