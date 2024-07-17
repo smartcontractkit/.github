@@ -372,9 +372,6 @@ importers:
       '@actions/glob':
         specifier: ^0.4.0
         version: 0.4.0
-      minimist:
-        specifier: ^1.2.8
-        version: 1.2.8
       octokit:
         specifier: ^3.2.1
         version: 3.2.1
@@ -382,9 +379,6 @@ importers:
       '@octokit/types':
         specifier: ^13.5.0
         version: 13.5.0
-      '@types/minimist':
-        specifier: ^1.2.5
-        version: 1.2.5
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.9

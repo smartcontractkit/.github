@@ -4,11 +4,11 @@ description:
   files exist in their respective default branches"
 
 inputs:
-  github-token:
+  github_token:
     description:
       "Github token with read permissions on all smartcontractkit repos"
     default: ${{ github.token }}
-  go-mod-dir:
+  go_mod_dir:
     description: "Common directory where go.mod files are located"
     default: ${{ github.workspace }}
 

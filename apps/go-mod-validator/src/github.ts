@@ -11,13 +11,13 @@ async function getDefaultBranch(
   return repoObject.data.default_branch;
 }
 
-async function findCommitInDefaultBranch(
+async function isCommitInDefaultBranch(
   owner: string,
   repo: string,
   defaultBranch: string,
   commitSha: string,
   octokitClient: Octokit,
-) {
+): Promise<boolean> {
   const compareResult = await octokitClient.rest.repos.compareCommits({
     repo: repo,
     owner: owner,
@@ -30,21 +30,20 @@ async function findCommitInDefaultBranch(
   );
 }
 
-async function findTagInDefaultBranch(
+async function isTagInDefaultBranch(
   owner: string,
   repo: string,
   defaultBranch: string,
   tag: string,
   octokitClient: Octokit,
-) {
+): Promise<boolean> {
   const repoTags = await octokitClient.rest.repos.listTags({ owner, repo });
   for (const repoTag of repoTags.data) {
     if (repoTag.name != tag) {
       continue;
     }
 
-    // check commit is on the default branch
-    return await findCommitInDefaultBranch(
+    return await isCommitInDefaultBranch(
       owner,
       repo,
       defaultBranch,
@@ -79,21 +78,21 @@ async function getVersionType(versionString: string) {
   }
 }
 
+// parses the dependency path and version to verify if the corresponding
+// tag/commit is present on the default branch of the dependency.
 export async function validateDependency(
   path: string,
   version: string,
   octokitClient: Octokit,
 ) {
-  // repo format smartcontractkit/chainlink
-  const repoPathSplit = path.split("/");
-  const owner = repoPathSplit[1];
-  const repo = repoPathSplit[2];
+  // repo format github.com/smartcontractkit/chainlink
+  const [, owner, repo] = path.split("/");
 
   const defaultBranch = await getDefaultBranch(owner, repo, octokitClient);
 
   const result = await getVersionType(version);
   if (result?.commitSha) {
-    return await findCommitInDefaultBranch(
+    return await isCommitInDefaultBranch(
       owner,
       repo,
       defaultBranch,
@@ -102,7 +101,7 @@ export async function validateDependency(
     );
   }
   if (result?.tag) {
-    return await findTagInDefaultBranch(
+    return await isTagInDefaultBranch(
       owner,
       repo,
       defaultBranch,

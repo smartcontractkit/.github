@@ -5,9 +5,7 @@ package.
 
 Requirements:
 
-1. Go compiler (version matching go.mod or higher)
-2. jq - https://jqlang.github.io/jq/ (available by default in most linux
-   distributions)
+1. Go compiler (version matching your `go.mod` or higher)
 
 Validations implemented so far,
 
@@ -46,7 +44,7 @@ then call `go-mod-validator`
 
 ## Running locally
 
-1. If `go.mod` files are present in the current directory (or any of the child
-   directories) - `pnpm run local`
-2. If `go.mod` files are present in another directory -
-   `pnpm run local --goModDir=/absolute/path/to/gomod/directory`
+1. Set github token by setting env variable `INPUT_GITHUB_TOKEN`
+2. Set directory containing `go.mod` files (also any child directories) by
+   setting env var `INPUT_GO_MOD_DIR`, default will be current working directory
+3. Run `pnpm run local`

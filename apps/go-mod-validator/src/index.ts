@@ -3,19 +3,12 @@ import { getDependenciesMap } from "./deps";
 import { FIXING_ERRORS } from "./strings";
 import * as github from "@actions/github";
 import * as core from "@actions/core";
-import minimist from "minimist";
 
 const smartContractKitPrefix = "github.com/smartcontractkit";
 
 function getContext() {
-  const argv = minimist(process.argv.slice(2));
-  const { local, tokenEnv, goModDir } = argv;
-
-  const dir = local ? goModDir || process.cwd() : core.getInput("go-mod-dir");
-
-  const githubToken = local
-    ? process.env[tokenEnv] || ""
-    : core.getInput("github-token");
+  const dir: string = core.getInput("go_mod_dir") || process.cwd();
+  const githubToken: string = core.getInput("github_token") || "";
 
   return { goModDir: dir, octokitClient: github.getOctokit(githubToken) };
 }
@@ -40,14 +33,14 @@ async function run() {
   for (const [file, dependencies] of dependenciesMap.entries()) {
     for (let dependency of dependencies) {
       // handle replace redirectives
-      if (dependency.Replace != undefined) {
+      if (dependency.Replace) {
         dependency = dependency.Replace;
       }
 
       // `go list -m -json all` also lists the main pacakge, avoid parsing it.
       // and only validate dependencies belonging to our org
       if (
-        dependency.Version == undefined ||
+        !dependency.Version ||
         !dependency.Path.startsWith(smartContractKitPrefix)
       ) {
         continue;
@@ -55,7 +48,7 @@ async function run() {
 
       // prepare dependency result string
       let dependencyResult = `${dependency.Path}@${dependency.Version}`;
-      if (dependency.Indirect == true) {
+      if (dependency.Indirect) {
         dependencyResult += " // indirect";
       }
 
