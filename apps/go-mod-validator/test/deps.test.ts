@@ -1,30 +1,28 @@
 import { execSync } from "child_process";
 import { getDependenciesMap } from "../src/deps";
-import { describe, expect, it, vi, Mock } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import * as glob from "@actions/glob";
 
+const mockedExecSync = vi.mocked(execSync);
 vi.mock("child_process");
-vi.mock("@actions/glob", () => ({
-  create: vi.fn(),
-}));
+const mockedGlob = vi.mocked(glob);
+vi.mock("@actions/glob");
 
 describe("getDependenciesMap", () => {
-  it("should return a map of <go.mod files: dependencies in json>", async () => {
+  it.only("should return a map of <go.mod files: dependencies in json>", async () => {
     const paths = ["/path/to/first/go.mod", "/path/to/second/go.mod"];
     const goListMockOutput1 =
       '{"Path": "github.com/smartcontractkit/go-plugin", "Version": "v0.0.0-20240208201424-b3b91517de16"}';
     const goListMockOutput2 =
       '{"Path": "github.com/smartcontractkit/grpc-proxy", "Version": "v0.0.0-20230731113816-f1be6620749f"}';
-
-    (glob.create as any).mockResolvedValue({
+    mockedGlob.create.mockResolvedValueOnce({
       glob: vi.fn().mockResolvedValue(paths),
+      getSearchPaths: vi.fn(),
+      globGenerator: vi.fn(),
     });
 
-    let callCount = 0;
-    (execSync as Mock).mockImplementation((command) => {
-      callCount++;
-      return callCount === 1 ? goListMockOutput1 : goListMockOutput2;
-    });
+    mockedExecSync.mockImplementationOnce(() => goListMockOutput1);
+    mockedExecSync.mockImplementationOnce(() => goListMockOutput2);
 
     const result = await getDependenciesMap("");
     expect(result).toEqual(
