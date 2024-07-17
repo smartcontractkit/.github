@@ -1,147 +1,114 @@
-import { validateDependency } from "../src/github";
-import { getOctokit } from "@actions/github";
-import fetch from "node-fetch";
-import * as fs from "fs";
-import { describe, expect, it } from "vitest";
-const nock = require("nock");
+import { isGoModReferencingDefaultBranch } from "../src/github";
+import { describe, expect, it, vi } from "vitest";
+import listTagsFixture from "./data/list_tags.json";
+import { GoModule } from "../src/deps";
 
-describe("verify pseudo dependency version is on the default branch", () => {
-  const owner = "smartcontractkit";
-  const repo = "go-plugin";
-  const dependencyPath = `github.com/${owner}/${repo}`;
+const owner = "smartcontractkit";
+const repo = "go-plugin";
+const goModPath = `github.com/${owner}/${repo}`;
+const mockGet = vi.fn();
+const mockCompareCommits = vi.fn();
+const mockListTags = vi.fn();
+const mockOctokit: any = {
+  rest: {
+    repos: {
+      get: mockGet,
+      compareCommits: mockCompareCommits,
+      listTags: mockListTags,
+    },
+  },
+};
+describe("isGoModReferencingDefaultBranch", () => {
+  describe("pseudo-versions", () => {
+    const commitSha = "b3b91517de16";
+    const version = `v0.0.0-20240208201424-${commitSha}`;
+    const goMod: GoModule = { path: goModPath, version };
 
-  const commitSha = "b3b91517de16";
-  const dependencyVersion = `v0.0.0-20240208201424-${commitSha}`;
+    it("should check if the commit is present on the default branch", async () => {
+      mockGet.mockResolvedValueOnce({
+        data: { default_branch: "main" },
+      });
+      mockCompareCommits.mockResolvedValueOnce({
+        data: {
+          status: "behind",
+        },
+      });
 
-  const octokitClient = getOctokit("fake-token", {
-    request: { fetch },
+      const referencesDefault = await isGoModReferencingDefaultBranch(
+        goMod,
+        mockOctokit,
+      );
+
+      expect(mockListTags).to.not.toHaveBeenCalled();
+      expect(mockGet).toHaveBeenCalledWith({ owner, repo });
+      expect(mockCompareCommits).toHaveBeenCalledWith({
+        owner,
+        repo,
+        base: "main",
+        head: commitSha,
+      });
+      expect(referencesDefault).toBeTruthy();
+    });
+
+    it("should throw an error if the compare commits request fails", async () => {
+      const errMessage = "not found";
+      mockGet.mockResolvedValue({
+        data: { default_branch: "main" },
+      });
+      mockCompareCommits.mockRejectedValue(errMessage);
+
+      const isReferencingDefaultBranch = () =>
+        isGoModReferencingDefaultBranch(goMod, mockOctokit);
+      expect(mockListTags).to.not.toHaveBeenCalled();
+      await expect(isReferencingDefaultBranch).rejects.toThrowError(errMessage);
+    });
   });
 
-  it("should check if the commit is present on the default branch", async () => {
-    const mockGetRepoResponse = JSON.parse(
-      fs.readFileSync(`${__dirname}/data/get_repo.json`, "utf8"),
-    );
-    const mockCompareCommitsResponse = JSON.parse(
-      fs.readFileSync(`${__dirname}/data/compare_commits.json`, "utf8"),
-    );
+  describe("regular versions", () => {
+    const version = "v0.1.0";
+    const goMod: GoModule = {
+      path: goModPath,
+      version,
+    };
 
-    nock(`https://api.github.com/repos`)
-      .get(`/${owner}/${repo}`)
-      .reply(200, mockGetRepoResponse);
+    it("should check if the commit is present on the default branch", async () => {
+      mockGet.mockResolvedValueOnce({
+        data: { default_branch: "main" },
+      });
+      mockCompareCommits.mockResolvedValueOnce({
+        data: {
+          status: "behind",
+        },
+      });
+      mockListTags.mockResolvedValueOnce({
+        data: listTagsFixture,
+      });
 
-    nock(`https://api.github.com/repos`)
-      .get(
-        `/${owner}/${repo}/compare/${mockGetRepoResponse.default_branch}...${commitSha}`,
-      )
-      .reply(200, mockCompareCommitsResponse);
+      const expectedCommitSha = listTagsFixture.find(
+        (tag) => tag.name === version,
+      )?.commit.sha;
+      expect(expectedCommitSha).toBeDefined();
 
-    const repoObject = await validateDependency(
-      dependencyPath,
-      dependencyVersion,
-      octokitClient,
-    );
+      const repoObject = await isGoModReferencingDefaultBranch(
+        goMod,
+        mockOctokit,
+      );
+      expect(mockListTags).toHaveBeenCalledOnce();
+      expect(mockCompareCommits).toHaveBeenCalledWith({
+        owner,
+        repo,
+        base: "main",
+        head: expectedCommitSha,
+      });
+      expect(repoObject).toEqual(true);
+    });
 
-    expect(repoObject).toEqual(true);
-  });
+    it("should throw an error if listing tags fails", async () => {
+      const errMessage = "not found";
+      mockListTags.mockRejectedValue(errMessage);
 
-  it("should throw an error if the compare commits request fails", async () => {
-    const errMessage = "not found";
-    const mockGetRepoResponse = JSON.parse(
-      fs.readFileSync(`${__dirname}/data/get_repo.json`, "utf8"),
-    );
-
-    nock(`https://api.github.com/repos`)
-      .get(`/${owner}/${repo}`)
-      .reply(404, errMessage);
-
-    nock(`https://api.github.com/repos`)
-      .get(
-        `/${owner}/${repo}/compare/${mockGetRepoResponse.default_branch}...${commitSha}`,
-      )
-      .reply(404, errMessage);
-
-    const result = validateDependency(
-      dependencyPath,
-      dependencyVersion,
-      octokitClient,
-    );
-    await expect(result).rejects.toThrow(errMessage);
-  });
-});
-
-describe("verify dependency version is on the default branch", () => {
-  const owner = "smartcontractkit";
-  const repo = "go-plugin";
-  const dependencyPath = `github.com/${owner}/${repo}`;
-  const defaultBranch = "main";
-
-  // const commitSha = "b3b91517de16";
-  const dependencyVersion = "v0.1.0";
-  const commitStatus = "behind";
-
-  const octokitClient = getOctokit("fake-token", {
-    request: { fetch },
-  });
-
-  it("should check if the commit is present on the default branch", async () => {
-    const mockGetRepoResponse = JSON.parse(
-      fs.readFileSync(`${__dirname}/data/get_repo.json`, "utf8"),
-    );
-    const mockListTagsResponse = JSON.parse(
-      fs.readFileSync(`${__dirname}/data/list_tags.json`, "utf8"),
-    );
-    const mockCompareCommitsResponse = JSON.parse(
-      fs.readFileSync(`${__dirname}/data/compare_commits.json`, "utf8"),
-    );
-
-    nock(`https://api.github.com/repos`)
-      .get(`/${owner}/${repo}`)
-      .reply(200, mockGetRepoResponse);
-
-    nock(`https://api.github.com/repos`)
-      .get(`/${owner}/${repo}/tags`)
-      .reply(200, mockListTagsResponse);
-
-    // find mock commit sha
-    const commitSha = mockListTagsResponse.reduce((acc, obj) => {
-      if (acc) return acc; // If a match is already found, return it
-      return obj["name"] === dependencyVersion ? obj.commit.sha : null;
-    }, null);
-
-    nock(`https://api.github.com/repos`)
-      .get(
-        `/${owner}/${repo}/compare/${mockGetRepoResponse.default_branch}...${commitSha}`,
-      )
-      .reply(200, mockCompareCommitsResponse);
-
-    const repoObject = await validateDependency(
-      dependencyPath,
-      dependencyVersion,
-      octokitClient,
-    );
-
-    expect(repoObject).toEqual(true);
-  });
-
-  it("should throw an error if the compare commits request fails", async () => {
-    const errMessage = "not found";
-    const mockGetRepoResponse = JSON.parse(
-      fs.readFileSync(`${__dirname}/data/get_repo.json`, "utf8"),
-    );
-
-    nock(`https://api.github.com/repos`)
-      .get(`/${owner}/${repo}`)
-      .reply(200, mockGetRepoResponse);
-
-    nock(`https://api.github.com/repos`)
-      .get(`/${owner}/${repo}/tags`)
-      .reply(404, errMessage);
-
-    const result = validateDependency(
-      dependencyPath,
-      dependencyVersion,
-      octokitClient,
-    );
-    await expect(result).rejects.toThrow(errMessage);
+      const result = isGoModReferencingDefaultBranch(goMod, mockOctokit);
+      await expect(result).rejects.toThrow(errMessage);
+    });
   });
 });
