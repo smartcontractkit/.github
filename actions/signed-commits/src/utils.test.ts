@@ -1,5 +1,7 @@
 import { execWithOutput } from "./utils";
 
+import { describe, it, expect } from "vitest";
+
 describe(execWithOutput.name, () => {
   it("trims the output by default", async () => {
     const cmd = "echo";

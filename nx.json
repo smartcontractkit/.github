@@ -18,7 +18,7 @@
         "color": true,
         "forwardAllArgs": true
       },
-      "inputs": ["default", "^default", "{workspaceRoot}/jest.preset.js"]
+      "inputs": ["default", "^default"]
     },
     "build": {
       "executor": "nx:run-commands",
@@ -39,19 +39,6 @@
         "color": true,
         "forwardAllArgs": true
       }
-    },
-    "@nx/jest:jest": {
-      "inputs": ["default", "^default", "{workspaceRoot}/jest.preset.js"],
-      "options": {
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "codeCoverage": true
-        }
-      },
-      "cache": true
     }
   },
   "parallel": 10
