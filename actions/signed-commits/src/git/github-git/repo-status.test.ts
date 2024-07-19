@@ -7,6 +7,8 @@ import { execSync } from "child_process";
 import * as fs from "fs";
 import { createRepo } from "./utilts.testutils";
 
+import { describe, it, expect } from "vitest";
+
 describe("repo-status", () => {
   describe("getGitStatusPorcelainV1", () => {
     it("should return the correct status", async () => {

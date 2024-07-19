@@ -53,7 +53,7 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
@@ -75,6 +75,13 @@ runs:
       if: inputs.check-only-affected == 'true'
       shell: bash
       run: pnpm run lint:affected --base=${{ inputs.base-ref }}
+
+    - name: Store lint result artifacts
+      if: always()
+      uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+      with:
+        name: ts-lint-results
+        path: ./eslint-report.json
 
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''

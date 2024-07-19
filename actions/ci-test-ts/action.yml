@@ -15,10 +15,6 @@ inputs:
     description: ""
     required: false
     default: "false"
-  base-ref:
-    description: ""
-    required: false
-    default: main
   # nodejs inputs
   node-version-file:
     description: ""
@@ -53,7 +49,7 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
@@ -66,15 +62,23 @@ runs:
         run-install: "true"
       continue-on-error: true
 
-    - name: Run lint
-      if: inputs.check-only-affected != 'true'
+    - name: Run test
       shell: bash
-      run: pnpm run lint
+      run: pnpm run test
 
     - name: Run lint affected
       if: inputs.check-only-affected == 'true'
       shell: bash
-      run: pnpm run lint:affected --base=${{ inputs.base-ref }}
+      run: pnpm run test:affected
+
+    - name: Store test result artifacts
+      if: always()
+      uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+      with:
+        name: ts-test-results
+        path: |
+          ./junit.xml
+          ./lcov.info
 
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''

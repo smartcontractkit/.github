@@ -14,7 +14,7 @@ jobs:
     if: always()
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
         with:
           ref:
             ${{ github.event.pull_request.head.sha ||
@@ -22,7 +22,9 @@ jobs:
 
       - name: Wait for workflows
         id: wait
-        uses: smartcontractkit/chainlink-github-actions/utils/wait-for-workflows@main
+        # Go to https://github.com/smartcontractkit/.github/tags
+        # To find the most recent version of wait-for-workflows
+        uses: smartcontractkit/.github/actions/wait-for-workflows@<commit> # wait-for-workflows@x.y.z
         with:
           max-timeout: "900"
           polling-interval: "30"

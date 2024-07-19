@@ -1,5 +1,14 @@
 # ci-test-go
 
+## 0.2.0
+
+### Minor Changes
+
+- [#459](https://github.com/smartcontractkit/.github/pull/459)
+  [`a58e85a`](https://github.com/smartcontractkit/.github/commit/a58e85ae381cc9baf0d88fe8d263bf8085ec3d0b)
+  Thanks [@momentmaker](https://github.com/momentmaker)! - Update to use
+  setup-golang composite action instead of setup-go action
+
 ## 0.1.5
 
 ### Patch Changes

@@ -1,0 +1,134 @@
+name: Wait For Workflow Job
+description: |
+  Waits for a job in a workflow to complete
+  This is useful when you need to wait for a specific (required) job to complete
+  but do not need the result of the whole workflow itself.
+
+inputs:
+  repo:
+    description: Owner and repo in the form owner/repo
+    required: true
+  workflow-run-id:
+    description: The id of the workflow running the job
+    required: true
+  job-name:
+    description: The name of the job
+    required: true
+  github-token:
+    description: The github token to use
+    required: true
+  retry-delay:
+    description:
+      The amount of time to sleep between calls to check for job complete
+    required: false
+    default: "60"
+  timeout:
+    description:
+      How long in seconds to check for the job to start and complete before
+      timing out and giving up
+    required: false
+    default: "1800" # 30 minutes
+
+runs:
+  using: composite
+  steps:
+    - name: Wait For Workflow Job
+      shell: bash
+      id: get-run-id
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        JOB_NAME: ${{ inputs.job-name }}
+        REPO: ${{ inputs.repo }}
+        WF_RUN_ID: ${{ inputs.workflow-run-id }}
+        RETRY_DELAY: ${{ inputs.retry-delay }}
+        TIMEOUT: ${{ inputs.timeout }}
+      run: |
+        # Convert sleep_time to an integer if necessary (Bash typically handles this, but it's good practice)
+        sleep_time=$(($RETRY_DELAY + 0))
+        # Set a maximum wait time
+        max_wait_seconds=$(($TIMEOUT + 0))
+        start_time=$(date +%s)
+
+        # wait until the job starts and then grab its job id, or until we timeout
+        while :; do
+            current_time=$(date +%s) # Get the current time in seconds since epoch
+            elapsed_time=$((current_time - start_time))
+
+            # Check if the maximum wait time has been exceeded
+            if [ "$elapsed_time" -ge "$max_wait_seconds" ]; then
+                echo "Timeout reached without job starting."
+                exit 1
+            fi
+
+            # Fetch the list of jobs from the GitHub API
+            jobs=$(gh api -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${REPO}/actions/runs/$WF_RUN_ID/jobs?per_page=100")
+
+            # Extract the total count of jobs, defaulting to '0' if not present
+            job_count=$(echo "$jobs" | jq '.total_count // 0')
+            if [ "$job_count" -eq 0 ]; then
+              echo "No jobs found yet. Sleeping $sleep_time seconds and then trying again..."
+              sleep $sleep_time
+              continue
+            fi
+
+            # Extract the job ID for the specified job name
+            job_id=$(echo "$jobs" | jq --arg job_name "$JOB_NAME" -r '.jobs[] | select(.name == $job_name) | .id')
+
+            # Check if the job ID is found
+            if [ -n "$job_id" ]; then
+                echo "Job exists."
+                break
+            fi
+
+            echo "Sleeping for $sleep_time seconds before checking for the job again..."
+            sleep $sleep_time
+        done
+
+        # If the job ID is still not found, exit with an error
+        if [ -z "$job_id" ]; then
+            echo "Job '${JOB_NAME}' was never found."
+            exit 1
+        fi
+
+        # Set a maximum wait time (e.g., 30 minutes) in seconds
+        max_wait_seconds=$((30 * 60))
+        start_time=$(date +%s)
+
+        # Loop until the job completes, or we timeout
+        while :; do
+            current_time=$(date +%s)
+            elapsed_time=$((current_time - start_time))
+
+            # Check if the maximum wait time has been exceeded
+            if [ "$elapsed_time" -ge "$max_wait_seconds" ]; then
+                echo "Timeout reached without job starting."
+                break
+            fi
+
+            # Fetch the job details from the GitHub API
+            job_details=$(gh api -H "Accept: application/vnd.github.v3+json" \
+                "https://api.github.com/repos/${REPO}/actions/jobs/$job_id")
+            job_status=$(echo "$job_details" | jq -r '.status')
+            job_conclusion=$(echo "$job_details" | jq -r '.conclusion')
+
+            # Check if the job has a conclusion
+            if [[ "$job_conclusion" != "null" ]]; then
+                echo "Job has completed."
+                break
+            fi
+            echo "job status: ${job_status}"
+            echo "Job is still in progress. Sleeping $sleep_time seconds..."
+            sleep $sleep_time  # Adjust the sleep time as necessary
+        done
+
+        # Fetch the final job conclusion from the GitHub API
+        job_conclusion=$(gh api -H "Accept: application/vnd.github.v3+json" \
+          "https://api.github.com/repos/${REPO}/actions/jobs/$job_id" | jq -r '.conclusion')
+
+        echo "Job conclusion: $job_conclusion"
+        # Check if the job conclusion is not 'success'
+        if [[ "$job_conclusion" != "success" ]]; then
+          echo "Workflow failed. To see its summary go to: https://github.com/${REPO}/actions/runs/${WF_RUN_ID}"
+          exit 1
+        fi
