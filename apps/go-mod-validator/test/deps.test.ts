@@ -24,7 +24,20 @@ describe("getDependenciesMap", () => {
     mockedExecSync.mockImplementationOnce(() => goList2);
 
     const result = await getAllGoModDeps("");
-    expect(result).toEqual([JSON.parse(goList1), JSON.parse(goList2)]);
+    expect(result).toMatchInlineSnapshot(`
+      [
+        {
+          "name": "github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16",
+          "path": "github.com/smartcontractkit/go-plugin",
+          "version": "v0.0.0-20240208201424-b3b91517de16",
+        },
+        {
+          "name": "github.com/smartcontractkit/grpc-proxy@v0.0.0-20230731113816-f1be6620749f",
+          "path": "github.com/smartcontractkit/grpc-proxy",
+          "version": "v0.0.0-20230731113816-f1be6620749f",
+        },
+      ]
+    `);
   });
 
   it("should handle no go.mod files found", async () => {
@@ -37,7 +50,7 @@ describe("getDependenciesMap", () => {
     await expect(getAllGoModDeps("")).rejects.toThrow("no go.mod files found");
   });
 
-  it("should handle `find` command failure", async () => {
+  it("should handle glob search failure", async () => {
     mockedGlob.create.mockRejectedValue(new Error("Glob error"));
     await expect(getAllGoModDeps("")).rejects.toThrow("Glob error");
   });

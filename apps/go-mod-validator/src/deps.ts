@@ -4,8 +4,8 @@ import * as core from "@actions/core";
 import * as glob from "@actions/glob";
 
 /**
- * Taken from go help list for the command `go list -json -m all`
- *
+ * Taken from `go help list` for the command `go list -json -m all`
+ *  @link https://pkg.go.dev/cmd/go#hdr-List_packages_or_modules
  *  type Module struct {
  *        Path       string        // module path
  *        Query      string        // version query corresponding to this version
@@ -55,6 +55,11 @@ interface ModuleError {
   Err: string;
 }
 export interface GoModule {
+  /**
+   * The name of the module is the path + version of the module,
+   * along with a postfix of "// indirect" indicating if the module is indirect.
+   */
+  name: string;
   /**
    * Module path
    */
@@ -106,13 +111,13 @@ function parseGoModListOutput(jsonStr: string): GoMod[] {
 }
 
 /**
- * Gets the paths of all go.mod files in the specified directory.
+ * Recursively gets the paths of all go.mod files in the specified directory.
  *
  * @param goModDir The directory to search for go.mod files.
  *
  * @throws If no go.mod files are found or an error occurs.
  */
-async function getGoModFiles(goModDir: string): Promise<string[]> {
+async function getAllGoModsWithin(goModDir: string): Promise<string[]> {
   let files: string[] = [];
   try {
     const globber = await glob.create(`${goModDir}/**/go.mod`);
@@ -136,25 +141,54 @@ async function getGoModFiles(goModDir: string): Promise<string[]> {
  * @param rootDir The directory containing the Go modules.
  *
  */
-export async function getAllGoModDeps(rootDir: string): Promise<GoMod[]> {
-  const modFilePaths = await getGoModFiles(rootDir);
+export async function getAllGoModDeps(rootDir: string): Promise<GoModule[]> {
+  const modFilePaths = await getAllGoModsWithin(rootDir);
 
   const deps = modFilePaths.flatMap((p) => {
     core.info(`finding dependencies in ${p}`);
-    const dir = dirname(p);
     try {
+      const dir = dirname(p);
       const output = execSync("go list -json -m all", {
         encoding: "utf-8",
         cwd: dir,
       });
 
-      return parseGoModListOutput(output);
+      const parsedDeps = parseGoModListOutput(output);
+      return goModsToGoModules(parsedDeps);
     } catch (error) {
       throw Error(
-        `failed to get go.mod dependencies from file: ${p}: ${error}`,
+        `failed to get go.mod dependencies from file: ${p}, err: ${error}`,
       );
     }
   });
 
   return deps;
+}
+
+/**
+ * Takes the parsed output of `go list -json -m all` and converts it to a list of GoModule objects.
+ *
+ * Performs the following transformations:
+ * - Filters out the main module and non-org dependencies.
+ * - Maps the GoMod object to a GoModule object.
+ * @param goMods
+ */
+function goModsToGoModules(goMods: GoMod[]): GoModule[] {
+  const orgPrefix = "github.com/smartcontractkit";
+
+  const goModules = goMods
+    // `go list -m -json all` also lists the main package, avoid parsing it.
+    // and only validate dependencies belonging to our org
+    .filter((d) => !d.Main && d.Path.startsWith(orgPrefix))
+    // Replace the module with the Replace field if it exists
+    .map((d) => d.Replace || d)
+    .map(
+      (d: GoMod): GoModule => ({
+        name: `${d.Path}@${d.Version}${d.Indirect ? " // indirect" : ""}`,
+        path: d.Path,
+        version: d.Version,
+      }),
+    );
+
+  return goModules;
 }

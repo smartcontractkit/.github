@@ -22,7 +22,11 @@ describe("isGoModReferencingDefaultBranch", () => {
   describe("pseudo-versions", () => {
     const commitSha = "b3b91517de16";
     const version = `v0.0.0-20240208201424-${commitSha}`;
-    const goMod: GoModule = { path: goModPath, version };
+    const goMod: GoModule = {
+      path: goModPath,
+      version,
+      name: `${goModPath}@${version}`,
+    };
 
     it("should check if the commit is present on the default branch", async () => {
       mockGet.mockResolvedValueOnce({
@@ -69,6 +73,7 @@ describe("isGoModReferencingDefaultBranch", () => {
     const goMod: GoModule = {
       path: goModPath,
       version,
+      name: `${goModPath}@${version}`,
     };
 
     it("should check if the commit is present on the default branch", async () => {
