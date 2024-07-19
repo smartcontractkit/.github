@@ -56,6 +56,32 @@ inputs:
     description: ""
     required: false
     default: go test ./...
+  go-test-race-cmd:
+    description: |
+      Command to run Go tests with race detection enabled. This command is used to
+      execute the Go test suite while checking for race conditions. By default,
+      it runs `go test` with the `-race` flag to enable the race detector, along
+      with flags for code coverage. The default command is:
+
+      `go test -race ./... -coverpkg=./... -coverprofile=race_coverage.txt`
+
+      - `-race` enables the race detector to identify concurrent access issues.
+      - `./...` specifies that all tests in the module should be run.
+      - `-coverpkg=./...` includes coverage for all packages.
+      - `-coverprofile=race_coverage.txt` generates a coverage report file named `race_coverage.txt`.
+
+      Customize this command if you need different flags or configurations for your testing environment.
+    required: false
+    default: go test -race ./... -coverpkg=./... -coverprofile=race_coverage.txt
+
+  enable-go-test-race:
+    description: |
+      Specifies whether to enable the Go race detector when running tests.
+      When set to "true", the race detector will be activated, which helps
+      identify race conditions in concurrent Go code. By default, this is set
+      to "false", meaning race detection is disabled unless explicitly enabled.
+    required: false
+    default: "false"
   # docker-compose inputs
   use-docker-compose:
     description: ""
@@ -143,14 +169,28 @@ runs:
         set -o pipefail
         ${{ inputs.go-test-cmd }}
 
+    - name: Run go tests with race detector
+      if: inputs.enable-go-test-race == 'true'
+      shell: bash
+      run: |
+        set -o pipefail
+        ${{ inputs.go-test-race-cmd }}
+
     - name: Store test report artifacts
       if: always()
       uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
       with:
         name: go-test-results
         path: |
-          ./output.txt
           ./coverage.txt
+          ./output.txt
+
+    - name: Store race coverage report
+      if: ${{ inputs.enable-go-test-race == 'true' }}
+      uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+      with:
+        name: go-test-race-results
+        path: ./race_coverage.txt
 
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''
