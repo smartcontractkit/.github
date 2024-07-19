@@ -1,5 +1,14 @@
 # ci-test-go
 
+## 0.3.0
+
+### Minor Changes
+
+- [#510](https://github.com/smartcontractkit/.github/pull/510)
+  [`9f8fd75`](https://github.com/smartcontractkit/.github/commit/9f8fd754ecd89fe1569bf02e5aa4f188cc1a7008)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding Run Go Tests
+  with Race Detector step
+
 ## 0.2.0
 
 ### Minor Changes
