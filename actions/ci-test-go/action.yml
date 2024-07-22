@@ -63,7 +63,7 @@ inputs:
       it runs `go test` with the `-race` flag to enable the race detector, along
       with flags for code coverage. The default command is:
 
-      `go test -race ./... -coverpkg=./... -coverprofile=race_coverage.txt`
+      `go test -race ./... -coverpkg=./...-coverprofile=race/race_coverage.txt`
 
       - `-race` enables the race detector to identify concurrent access issues.
       - `./...` specifies that all tests in the module should be run.
@@ -72,7 +72,8 @@ inputs:
 
       Customize this command if you need different flags or configurations for your testing environment.
     required: false
-    default: go test -race ./... -coverpkg=./... -coverprofile=race_coverage.txt
+    default:
+      go test -race ./... -coverpkg=./... -coverprofile=race/race_coverage.txt
 
   enable-go-test-race:
     description: |
@@ -169,16 +170,19 @@ runs:
         set -o pipefail
         ${{ inputs.go-test-cmd }}
 
-    - name: Run go tests with race detector
-      if: inputs.enable-go-test-race == 'true'
+    - name: Run Go tests with race detector
+      if: ${{ inputs.enable-go-test-race == 'true' }}
+      env:
+        GORACE: "log_file=$PWD/race,race_log=$PWD/race"
       shell: bash
       run: |
         set -o pipefail
+        mkdir race
         ${{ inputs.go-test-race-cmd }}
 
     - name: Store test report artifacts
       if: always()
-      uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+      uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
       with:
         name: go-test-results
         path: |
@@ -187,10 +191,10 @@ runs:
 
     - name: Store race coverage report
       if: ${{ inputs.enable-go-test-race == 'true' }}
-      uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+      uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
       with:
         name: go-test-race-results
-        path: ./race_coverage.txt
+        path: race/*.txt
 
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''
