@@ -1,5 +1,14 @@
 # ci-test-go
 
+## 0.3.1
+
+### Patch Changes
+
+- [#511](https://github.com/smartcontractkit/.github/pull/511)
+  [`7f1e627`](https://github.com/smartcontractkit/.github/commit/7f1e6278e80a9e7885157bc53c3e4115973e11f8)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding GORACE env
+  var set to create separate files for race traces
+
 ## 0.3.0
 
 ### Minor Changes
