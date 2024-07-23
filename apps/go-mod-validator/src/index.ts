@@ -1,28 +1,29 @@
 import { isGoModReferencingDefaultBranch } from "./github";
-import { getAllGoModDeps } from "./deps";
+import { getDeps } from "./deps";
 import { FIXING_ERRORS } from "./strings";
 import * as github from "@actions/github";
 import * as core from "@actions/core";
 
 function getContext() {
-  const goModDir = core.getInput("go_mod_dir", { required: true });
-  const githubToken = core.getInput("github_token", { required: true });
+  const goModDir = core.getInput("go-mod-dir", { required: true });
+  const githubToken = core.getInput("github-token", { required: true });
+  const depPrefix = core.getInput("dep-prefix", { required: true });
 
-  return { goModDir, gh: github.getOctokit(githubToken) };
+  return { goModDir, gh: github.getOctokit(githubToken), depPrefix };
 }
 
 async function run() {
-  const { goModDir, gh } = getContext();
+  const { goModDir, gh, depPrefix } = getContext();
 
-  const depsToValidate = await getAllGoModDeps(goModDir);
+  const depsToValidate = await getDeps(goModDir, depPrefix);
 
   // <dependency-name, error-string>
   const errs: Map<string, string> = new Map();
 
   for (const d of depsToValidate) {
-    const refsDefaultBranch = await isGoModReferencingDefaultBranch(d, gh);
+    const isValid = await isGoModReferencingDefaultBranch(d, gh);
 
-    if (!refsDefaultBranch) {
+    if (!isValid) {
       errs.set(d.name, "dependency not on default branch");
     }
   }

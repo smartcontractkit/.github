@@ -1,5 +1,5 @@
 import { execSync } from "child_process";
-import { getAllGoModDeps } from "../src/deps";
+import { getDeps } from "../src/deps";
 import { describe, expect, it, vi, MockedObject } from "vitest";
 import * as glob from "@actions/glob";
 
@@ -23,7 +23,7 @@ describe("getDependenciesMap", () => {
     mockedExecSync.mockImplementationOnce(() => goList1);
     mockedExecSync.mockImplementationOnce(() => goList2);
 
-    const result = await getAllGoModDeps("");
+    const result = await getDeps("", "github.com/smartcontractkit");
     expect(result).toMatchInlineSnapshot(`
       [
         {
@@ -47,11 +47,11 @@ describe("getDependenciesMap", () => {
       glob: vi.fn().mockResolvedValue(paths),
     } as MockedGlob);
 
-    await expect(getAllGoModDeps("")).rejects.toThrow("no go.mod files found");
+    await expect(getDeps("", "")).rejects.toThrow("no go.mod files found");
   });
 
   it("should handle glob search failure", async () => {
     mockedGlob.create.mockRejectedValue(new Error("Glob error"));
-    await expect(getAllGoModDeps("")).rejects.toThrow("Glob error");
+    await expect(getDeps("", "")).rejects.toThrow("Glob error");
   });
 });

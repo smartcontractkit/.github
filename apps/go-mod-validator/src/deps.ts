@@ -138,10 +138,15 @@ async function getAllGoModsWithin(goModDir: string): Promise<string[]> {
  * We recursively collect all go.mod files within a directory, then return the flattened list of all dependencies.
  * There may be duplicates in the list, but we don't care about that.
  *
+ * Dependencies are filtered by depPrefix.
+ *
  * @param rootDir The directory containing the Go modules.
  *
  */
-export async function getAllGoModDeps(rootDir: string): Promise<GoModule[]> {
+export async function getDeps(
+  rootDir: string,
+  depPrefix: string,
+): Promise<GoModule[]> {
   const modFilePaths = await getAllGoModsWithin(rootDir);
 
   const deps = modFilePaths.flatMap((p) => {
@@ -154,7 +159,7 @@ export async function getAllGoModDeps(rootDir: string): Promise<GoModule[]> {
       });
 
       const parsedDeps = parseGoModListOutput(output);
-      return goModsToGoModules(parsedDeps);
+      return goModsToGoModules(parsedDeps, depPrefix);
     } catch (error) {
       throw Error(
         `failed to get go.mod dependencies from file: ${p}, err: ${error}`,
@@ -173,13 +178,11 @@ export async function getAllGoModDeps(rootDir: string): Promise<GoModule[]> {
  * - Maps the GoMod object to a GoModule object.
  * @param goMods
  */
-function goModsToGoModules(goMods: GoMod[]): GoModule[] {
-  const orgPrefix = "github.com/smartcontractkit";
-
+function goModsToGoModules(goMods: GoMod[], depPrefix: string): GoModule[] {
   const goModules = goMods
     // `go list -m -json all` also lists the main package, avoid parsing it.
     // and only validate dependencies belonging to our org
-    .filter((d) => !d.Main && d.Path.startsWith(orgPrefix))
+    .filter((d) => !d.Main && d.Path.startsWith(depPrefix))
     // Replace the module with the Replace field if it exists
     .map((d) => d.Replace || d)
     .map(

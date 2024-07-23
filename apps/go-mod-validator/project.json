@@ -1,9 +1,40 @@
 {
   "name": "go-mod-validator",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/go-mod-validator/src",
   "projectType": "library",
   "targets": {
+    "build": {
+      "dependsOn": ["build:internal"],
+      "command": "rimraf dist/package.json"
+    },
+    "build:internal": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "format": ["cjs"],
+        "thirdParty": true,
+        "outputPath": "apps/go-mod-validator/dist/",
+        "main": "apps/go-mod-validator/src/index.ts",
+        "assets": [],
+        "outputFileName": "index.js",
+        "esbuildOptions": {
+          "outExtension": {
+            ".js": ".js"
+          }
+        },
+        "tsConfig": "tsconfig.json",
+        "platform": "node"
+      },
+      "configurations": {
+        "development": {
+          "minify": false
+        },
+        "production": {
+          "minify": false
+        }
+      }
+    },
     "test": {
       "executor": "nx:run-commands",
       "options": {
@@ -20,8 +51,7 @@
           "apps/go-mod-validator/package.json"
         ]
       }
-    },
-    "build": {}
+    }
   },
   "tags": []
 }

@@ -4,13 +4,16 @@ description:
   files exist in their respective default branches"
 
 inputs:
-  github_token:
+  github-token:
     description:
       "Github token with read permissions on all smartcontractkit repos"
     default: ${{ github.token }}
-  go_mod_dir:
+  go-mod-dir:
     description: "Common directory where go.mod files are located"
     default: ${{ github.workspace }}
+  dep-prefix:
+    description: "Prefix to filter dependencies by"
+    default: "github.com/smartcontractkit"
 
 runs:
   using: "node20"
