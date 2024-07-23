@@ -1,6 +1,6 @@
 {
   "name": "slack-notify-git-ref",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Notify slack about git refs",
   "private": true,
   "scripts": {},
