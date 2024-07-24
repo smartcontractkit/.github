@@ -20,14 +20,15 @@ export async function run() {
   // <dependency-name, error-string>
   const errs: Map<string, string> = new Map();
 
-  for (const d of depsToValidate) {
+  const validating = depsToValidate.map(async (d) => {
     const isValid = await isGoModReferencingDefaultBranch(d, gh);
 
     if (!isValid) {
       errs.set(d.name, "dependency not on default branch");
     }
-  }
+  });
 
+  await Promise.all(validating);
   if (errs.size > 0) {
     errs.forEach((depName, errMsg) =>
       core.error(`validation failed for: ${errMsg}, err: ${depName}`),
