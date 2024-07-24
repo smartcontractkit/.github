@@ -181,13 +181,16 @@ export async function getDeps(
  * - Maps the GoMod object to a GoModule object.
  * @param goMods
  */
-function goModsToGoModules(goMods: GoMod[], depPrefix: string): GoModule[] {
+export function goModsToGoModules(
+  goMods: GoMod[],
+  depPrefix: string,
+): GoModule[] {
   const goModules = goMods
+    // Replace the module with the Replace field if it exists
+    .map((d) => d.Replace || d)
     // `go list -m -json all` also lists the main package, avoid parsing it.
     // and only validate dependencies belonging to our org
     .filter((d) => !d.Main && d.Path.startsWith(depPrefix))
-    // Replace the module with the Replace field if it exists
-    .map((d) => d.Replace || d)
     .map(
       (d: GoMod): GoModule => ({
         name: `${d.Path}@${d.Version}${d.Indirect ? " // indirect" : ""}`,
