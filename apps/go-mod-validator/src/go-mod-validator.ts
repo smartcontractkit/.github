@@ -38,7 +38,7 @@ function getContext() {
   return { goModDir, gh, depPrefix };
 }
 
-export async function run() {
+export async function run(): Promise<string> {
   const { goModDir, gh, depPrefix } = getContext();
 
   const depsToValidate = await getDeps(goModDir, depPrefix);
@@ -61,10 +61,14 @@ export async function run() {
     );
 
     core.summary.addRaw(FIXING_ERRORS, true);
+    const summary = core.summary.stringify();
     await core.summary.write();
 
     core.setFailed(`validation failed for ${errs.size} dependencies`);
+    return summary;
   } else {
-    core.info("validation successful for all go.mod dependencies");
+    const msg = "validation successful for all go.mod dependencies";
+    core.info(msg);
+    return msg;
   }
 }
