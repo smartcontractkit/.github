@@ -119,15 +119,18 @@ function parseGoModListOutput(jsonStr: string): GoMod[] {
  */
 async function getAllGoModsWithin(goModDir: string): Promise<string[]> {
   let files: string[] = [];
+  const pattern = `${goModDir}/**/go.mod`;
   try {
-    const globber = await glob.create(`${goModDir}/**/go.mod`);
+    const globber = await glob.create(pattern);
     files = await globber.glob();
   } catch (error) {
     throw new Error(`failed to get go.mod files: ${error}`);
   }
 
   if (files.length == 0) {
-    throw new Error("no go.mod files found");
+    throw new Error(
+      `no go.mod files found with pattern ${pattern} and cwd ${process.cwd()}`,
+    );
   }
   return files;
 }
