@@ -3,13 +3,39 @@ import { getDeps } from "./deps";
 import { FIXING_ERRORS } from "./strings";
 import * as github from "@actions/github";
 import * as core from "@actions/core";
+import { throttling } from "@octokit/plugin-throttling";
 
 function getContext() {
   const goModDir = core.getInput("go-mod-dir", { required: true });
   const githubToken = core.getInput("github-token", { required: true });
   const depPrefix = core.getInput("dep-prefix", { required: true });
+  const gh = github.getOctokit(
+    githubToken,
+    {
+      throttle: {
+        onRateLimit: (retryAfter, options, octokit, retryCount) => {
+          octokit.log.warn(
+            `Request quota exhausted for request ${options.method} ${options.url}`,
+          );
 
-  return { goModDir, gh: github.getOctokit(githubToken), depPrefix };
+          if (retryCount < 1) {
+            // only retries once
+            octokit.log.info(`Retrying after ${retryAfter} seconds!`);
+            return true;
+          }
+        },
+        onSecondaryRateLimit: (retryAfter, options, octokit) => {
+          // does not retry, only logs a warning
+          octokit.log.warn(
+            `SecondaryRateLimit detected for request ${options.method} ${options.url}`,
+          );
+        },
+      },
+    },
+    throttling,
+  );
+
+  return { goModDir, gh, depPrefix };
 }
 
 export async function run() {
