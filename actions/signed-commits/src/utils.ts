@@ -1,3 +1,4 @@
+import * as core from "@actions/core";
 import unified from "unified";
 import type { Node, Parent } from "unist";
 import remarkParse from "remark-parse";
@@ -23,6 +24,7 @@ export async function getChangedPackages(
   cwd: string,
   previousVersions: Map<string, string>,
 ) {
+  core.debug(`Getting changed packages from ${cwd}`);
   let { packages } = await getPackages(cwd);
   let changedPackages = new Set<Package>();
 
@@ -37,6 +39,7 @@ export async function getChangedPackages(
 }
 
 export function getChangelogEntry(changelog: string, version: string) {
+  core.debug(`Getting changelog entry for ${version}`);
   let ast = unified().use(remarkParse).parse(changelog);
 
   let highestLevel: number = BumpLevels.dep;
