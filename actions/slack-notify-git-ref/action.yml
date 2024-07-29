@@ -86,8 +86,9 @@ runs:
         DOCKER_IMAGE_NAME: ${{ inputs.docker-image-name }}
         DOCKER_IMAGE_DIGEST: ${{ inputs.docker-image-digest }}
         CHANGELOG_URL: ${{ github.inputs.changelog-url }}
+        PATH_TO_PAYLOAD: ${{ github.action_path }}/payload.json
       run: |
-        payload=$(cat ./payload.json)
+        payload=$(cat "${PATH_TO_PAYLOAD}")
         echo "$payload" > payload_temp.json
 
         if [[ -n "${DOCKER_IMAGE_NAME:-}" ]]; then
