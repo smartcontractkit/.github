@@ -20,7 +20,7 @@
   "dependencies": {
     "dotenv": "^16.4.5",
     "minimist": "^1.2.8",
-    "octokit": "^3.2.1",
+    "octokit": "^4.0.2",
     "yaml": "^2.4.5",
     "zx": "^8.1.2"
   },
