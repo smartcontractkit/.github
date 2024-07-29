@@ -1,0 +1,143 @@
+name: slack-notify-git-ref
+description: "Notify slack about git ref (tag or branch)"
+
+inputs:
+  # general inputs
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+  # slack inputs
+  slack-channel-id:
+    description: "slack channel id to send the alert to"
+    required: true
+  slack-bot-token:
+    description:
+      "slack bot api token - the token requires `chat:write` permission"
+    required: true
+  # custom inputs
+  git-ref:
+    description: "git ref to notify slack about"
+    required: true
+  git-ref-type:
+    description: "git ref type. valid inputs: tag, branch"
+    required: true
+  docker-image-name:
+    description: |
+      optional docker image name with tag
+
+      Example: `public.ecr.aws/smartcontractkit/chainlink:v1.2.3`
+    required: false
+  docker-image-digest:
+    description: |
+      optional docker image with digest
+
+      Example: `public.ecr.aws/smartcontractkit/chainlink@sha256:1234567890abcdef`
+    required: false
+  changelog-url:
+    description: "URL for CHANGELOG to include in Slack message"
+    required: false
+  # grafana inputs (optional)
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+  metrics-id:
+    description:
+      "grafana metrics id, used for continuity of metrics during job name
+      changes  - required if metrics-job-name is passed"
+    required: false
+  gc-host:
+    description: "grafana hostname - required if metrics-job-name is passed"
+    required: false
+  gc-basic-auth:
+    description: "grafana basic auth - required if metrics-job-name is passed"
+    required: false
+  gc-org-id:
+    description:
+      "grafana org/tenant id - required if metrics-job-name is passed"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+    - name: Validate inputs
+      shell: bash
+      env:
+        GIT_REF_TYPE: ${{ inputs.git-ref-type }}
+      run: |
+        if [[ "${GIT_REF_TYPE}" != "tag" && "${GIT_REF_TYPE}" != "branch" ]]; then
+          echo "::error::invalid inputs.git-ref-type: ${{ inputs.git-ref-type }}. Must be either 'tag' or 'branch'."
+          exit 1
+        fi
+
+    - name: Read and optionally update payload
+      shell: bash
+      id: update-payload
+      env:
+        DOCKER_IMAGE_NAME: ${{ inputs.docker-image-name }}
+        DOCKER_IMAGE_DIGEST: ${{ inputs.docker-image-digest }}
+        CHANGELOG_URL: ${{ github.inputs.changelog-url }}
+      run: |
+        payload=$(cat ./payload.json)
+        echo "$payload" > payload_temp.json
+
+        if [[ -n "${DOCKER_IMAGE_NAME:-}" ]]; then
+          jq --arg name "\`${DOCKER_IMAGE_NAME}\`" \
+            '.attachments[0].fields += [{"title": "Docker Image Name", "value": $name, "short": false}]' \
+            payload_temp.json > payload_temp2.json
+          mv payload_temp2.json payload_temp.json
+        fi
+
+        if [[ -n "${DOCKER_IMAGE_DIGEST}" ]]; then
+          jq --arg digest "\`${DOCKER_IMAGE_DIGEST}\`" \
+            '.attachments[0].fields += [{"title": "Docker Image Digest", "value": $digest, "short": false}]' \
+            payload_temp.json > payload_temp2.json
+          mv payload_temp2.json payload_temp.json
+        fi
+
+        if [[ -n "${CHANGELOG_URL:-}" ]]; then
+          jq --arg changelog "\`${CHANGELOG_URL}\`" \
+            '.attachments[0].fields += [{"title": "CHANGELOG URL", "value": $changelog, "short": false}]' \
+            payload_temp.json > payload_temp2.json
+          mv payload_temp2.json payload_temp.json
+        fi
+
+        cat payload_temp.json
+        echo "payload=$(cat payload_temp.json)" >> $GITHUB_ENV
+
+    - name: Notify slack
+      uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+      with:
+        payload: ${{ env.payload }}
+        channel-id: ${{ inputs.slack-channel-id }}
+      env:
+        SLACK_BOT_TOKEN: ${{ inputs.slack-bot-token }}
+        # it doesn't seem like the slack action can parse out github context
+        # in a json file so hence why there is these env vars
+        GIT_REF_NAME: ${{ inputs.git-ref }}
+        GIT_SHA: ${{ github.sha }}
+        GITHUB_CREATOR: ${{ github.actor }}
+        GITHUB_REPO: ${{ github.repository }}
+        GITHUB_RUN_URL: |
+          "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+    - name: Collect metrics
+      if: always() && inputs.metrics-job-name != ''
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
+      with:
+        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        org-id: ${{ inputs.gc-org-id}}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true

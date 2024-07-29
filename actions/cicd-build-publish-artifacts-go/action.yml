@@ -155,7 +155,7 @@ runs:
           "https://github.com/"
 
     - name: Setup go
-      uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
+      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
       with:
         go-version-file: ${{ inputs.go-version-file }}
         cache: ${{ inputs.use-go-cache }}
@@ -168,10 +168,10 @@ runs:
         version: ${{ inputs.zig-version }}
 
     - name: Setup docker buildx
-      uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb # v3.3.0
+      uses: docker/setup-buildx-action@aa33708b10e362ff993539393ff100fa93ed6a27 # v3.5.0
 
     - name: Set up qemu
-      uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
+      uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
 
     - name: Process params
       shell: bash
