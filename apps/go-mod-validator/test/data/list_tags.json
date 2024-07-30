@@ -1,0 +1,82 @@
+[
+  {
+    "name": "v0.1.6",
+    "zipball_url": "https://api.github.com/repos/smartcontractkit/chainlink-common/zipball/refs/tags/v0.1.6",
+    "tarball_url": "https://api.github.com/repos/smartcontractkit/chainlink-common/tarball/refs/tags/v0.1.6",
+    "commit": {
+      "sha": "6899df9df96da2453a585f4fde08000de61f29ad",
+      "url": "https://api.github.com/repos/smartcontractkit/chainlink-common/commits/6899df9df96da2453a585f4fde08000de61f29ad"
+    },
+    "node_id": "REF_kwDOGSO5KbByZWZzL3RhZ3MvdjAuMS42"
+  },
+  {
+    "name": "v0.1.5",
+    "zipball_url": "https://api.github.com/repos/smartcontractkit/chainlink-common/zipball/refs/tags/v0.1.5",
+    "tarball_url": "https://api.github.com/repos/smartcontractkit/chainlink-common/tarball/refs/tags/v0.1.5",
+    "commit": {
+      "sha": "a982ca445d3b1baa0d7eb75bbf272dcbd460d1c5",
+      "url": "https://api.github.com/repos/smartcontractkit/chainlink-common/commits/a982ca445d3b1baa0d7eb75bbf272dcbd460d1c5"
+    },
+    "node_id": "REF_kwDOGSO5KbByZWZzL3RhZ3MvdjAuMS41"
+  },
+  {
+    "name": "v0.1.4",
+    "zipball_url": "https://api.github.com/repos/smartcontractkit/chainlink-common/zipball/refs/tags/v0.1.4",
+    "tarball_url": "https://api.github.com/repos/smartcontractkit/chainlink-common/tarball/refs/tags/v0.1.4",
+    "commit": {
+      "sha": "42405883da82df51cd70b8d97a9c31084e8d8f7d",
+      "url": "https://api.github.com/repos/smartcontractkit/chainlink-common/commits/42405883da82df51cd70b8d97a9c31084e8d8f7d"
+    },
+    "node_id": "REF_kwDOGSO5KbByZWZzL3RhZ3MvdjAuMS40"
+  },
+  {
+    "name": "v0.1.3",
+    "zipball_url": "https://api.github.com/repos/smartcontractkit/chainlink-common/zipball/refs/tags/v0.1.3",
+    "tarball_url": "https://api.github.com/repos/smartcontractkit/chainlink-common/tarball/refs/tags/v0.1.3",
+    "commit": {
+      "sha": "24530b163a6f03e71846e669b2c219d7a0f52ede",
+      "url": "https://api.github.com/repos/smartcontractkit/chainlink-common/commits/24530b163a6f03e71846e669b2c219d7a0f52ede"
+    },
+    "node_id": "REF_kwDOGSO5KbByZWZzL3RhZ3MvdjAuMS4z"
+  },
+  {
+    "name": "v0.1.2",
+    "zipball_url": "https://api.github.com/repos/smartcontractkit/chainlink-common/zipball/refs/tags/v0.1.2",
+    "tarball_url": "https://api.github.com/repos/smartcontractkit/chainlink-common/tarball/refs/tags/v0.1.2",
+    "commit": {
+      "sha": "79bdba019a72c6cbcebd30e0bc3eb5f25f4045e7",
+      "url": "https://api.github.com/repos/smartcontractkit/chainlink-common/commits/79bdba019a72c6cbcebd30e0bc3eb5f25f4045e7"
+    },
+    "node_id": "REF_kwDOGSO5KbByZWZzL3RhZ3MvdjAuMS4y"
+  },
+  {
+    "name": "v0.1.1",
+    "zipball_url": "https://api.github.com/repos/smartcontractkit/chainlink-common/zipball/refs/tags/v0.1.1",
+    "tarball_url": "https://api.github.com/repos/smartcontractkit/chainlink-common/tarball/refs/tags/v0.1.1",
+    "commit": {
+      "sha": "7b3d07b3750b0d6057715983276aaee701b2e4f4",
+      "url": "https://api.github.com/repos/smartcontractkit/chainlink-common/commits/7b3d07b3750b0d6057715983276aaee701b2e4f4"
+    },
+    "node_id": "REF_kwDOGSO5KbByZWZzL3RhZ3MvdjAuMS4x"
+  },
+  {
+    "name": "v0.1.0",
+    "zipball_url": "https://api.github.com/repos/smartcontractkit/chainlink-common/zipball/refs/tags/v0.1.0",
+    "tarball_url": "https://api.github.com/repos/smartcontractkit/chainlink-common/tarball/refs/tags/v0.1.0",
+    "commit": {
+      "sha": "c4759cac049a76c8000a8313f647305e08c6565d",
+      "url": "https://api.github.com/repos/smartcontractkit/chainlink-common/commits/c4759cac049a76c8000a8313f647305e08c6565d"
+    },
+    "node_id": "REF_kwDOGSO5KbByZWZzL3RhZ3MvdjAuMS4w"
+  },
+  {
+    "name": "0.1.0",
+    "zipball_url": "https://api.github.com/repos/smartcontractkit/chainlink-common/zipball/refs/tags/0.1.0",
+    "tarball_url": "https://api.github.com/repos/smartcontractkit/chainlink-common/tarball/refs/tags/0.1.0",
+    "commit": {
+      "sha": "c4759cac049a76c8000a8313f647305e08c6565d",
+      "url": "https://api.github.com/repos/smartcontractkit/chainlink-common/commits/c4759cac049a76c8000a8313f647305e08c6565d"
+    },
+    "node_id": "REF_kwDOGSO5Ka9yZWZzL3RhZ3MvMC4xLjA"
+  }
+]

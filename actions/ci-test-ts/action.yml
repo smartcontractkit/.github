@@ -2,6 +2,10 @@ name: ci-test
 description: Test typescript code
 
 inputs:
+  # github token to pass to tests
+  github-token:
+    description: "github token"
+    default: ${{ github.token }}
   # general inputs
   checkout-repo:
     description: "enable git checkout repo"
@@ -64,6 +68,8 @@ runs:
 
     - name: Run test
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
       run: pnpm run test
 
     - name: Run lint affected
