@@ -1,27 +1,27 @@
 {
-  "text": "New git ref for ${{ env.GITHUB_REPO }}",
+  "text": "New git ref for <https://github.com/${GITHUB_REPOSITORY}|${GITHUB_REPOSITORY}>",
   "attachments": [
     {
       "color": "#36a64f",
       "fields": [
         {
           "title": "Creator",
-          "value": "`${{ env.GITHUB_CREATOR }}`",
+          "value": "`${GITHUB_ACTOR}`",
           "short": true
         },
         {
           "title": "Git Ref",
-          "value": "`${{ env.GIT_REF_NAME }}`",
+          "value": "`${GIT_REF_NAME}`",
           "short": true
         },
         {
           "title": "Git SHA",
-          "value": "`${{ github.GIT_SHA }}`",
+          "value": "`${GITHUB_SHA}`",
           "short": false
         },
         {
           "title": "CI Run URL",
-          "value": "${{ env.GITHUB_RUN_URL }}",
+          "value": "<${GITHUB_RUN_URL}>",
           "short": false
         }
       ]
