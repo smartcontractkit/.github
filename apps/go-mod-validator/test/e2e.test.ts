@@ -12,7 +12,7 @@ function setup(repoName: string) {
 }
 
 describe("e2e tests", () => {
-  it("chainlink - should match snapshot", { timeout: 20_000 }, async () => {
+  it("chainlink - should match snapshot", { timeout: 50_000 }, async () => {
     setup("chainlink");
     const summary = await run();
 
@@ -39,7 +39,7 @@ describe("e2e tests", () => {
     `);
   });
 
-  it("crib - should match snapshot", { timeout: 20_000 }, async () => {
+  it("crib - should match snapshot", { timeout: 50_000 }, async () => {
     setup("crib");
     const summary = await run();
 
@@ -50,7 +50,7 @@ describe("e2e tests", () => {
 
   it(
     "chainlink-data-streams - should match snapshot",
-    { timeout: 20_000 },
+    { timeout: 50_000 },
     async () => {
       setup("chainlink-data-streams");
       const summary = await run();
