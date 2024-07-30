@@ -1,5 +1,13 @@
 # slack-notify-git-ref
 
+## 0.1.2
+
+### Patch Changes
+
+- [#523](https://github.com/smartcontractkit/.github/pull/523)
+  [`8347546`](https://github.com/smartcontractkit/.github/commit/83475467bf8dbaf95528fb6156352e3e625e659f)
+  Thanks [@chainchad](https://github.com/chainchad)! - Fix payload template
+
 ## 0.1.1
 
 ### Patch Changes
