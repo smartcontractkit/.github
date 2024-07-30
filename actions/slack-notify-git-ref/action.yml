@@ -88,7 +88,7 @@ runs:
         CHANGELOG_URL: ${{ github.inputs.changelog-url }}
         GIT_REF_NAME: ${{ inputs.git-ref }}
         GITHUB_RUN_URL: |
-          "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         PATH_TO_PAYLOAD: ${{ github.action_path }}/payload.json
       run: |
         envsubst < "${PATH_TO_PAYLOAD}" | tee payload_temp.json
