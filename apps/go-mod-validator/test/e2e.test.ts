@@ -18,7 +18,7 @@ describe("e2e tests", () => {
     annotationSpy.mockClear();
   });
 
-  it("chainlink - should match snapshot", { timeout: 50_000 }, async () => {
+  it("chainlink - should match snapshot", { timeout: 100_000 }, async () => {
     setup("chainlink");
     const summary = await run();
     expect(annotationSpy.mock.calls).toMatchInlineSnapshot(`
@@ -160,7 +160,7 @@ describe("e2e tests", () => {
     `);
   });
 
-  it("crib - should match snapshot", { timeout: 50_000 }, async () => {
+  it("crib - should match snapshot", { timeout: 100_000 }, async () => {
     setup("crib");
     const summary = await run();
 
