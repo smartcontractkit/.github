@@ -74,7 +74,7 @@ runs:
       env:
         GIT_REF_TYPE: ${{ inputs.git-ref-type }}
       run: |
-        if [[ "${GIT_REF_TYPE}" != "tag" && "${GIT_REF_TYPE}" != "branch" ]]; then
+        if [[ "${GIT_REF_TYPE:-}" != "tag" && "${GIT_REF_TYPE:-}" != "branch" ]]; then
           echo "::error::invalid inputs.git-ref-type: ${{ inputs.git-ref-type }}. Must be either 'tag' or 'branch'."
           exit 1
         fi
@@ -106,7 +106,7 @@ runs:
           mv payload_temp2.json payload_temp.json
         fi
 
-        if [[ -n "${DOCKER_IMAGE_DIGEST}" ]]; then
+        if [[ -n "${DOCKER_IMAGE_DIGEST:-}" ]]; then
           jq --arg digest "\`${DOCKER_IMAGE_DIGEST}\`" \
             '.attachments[0].fields += [{"title": "Docker Image Digest", "value": $digest, "short": false}]' \
             payload_temp.json > payload_temp2.json
@@ -121,7 +121,11 @@ runs:
         fi
 
         cat payload_temp.json
-        echo "payload=$(cat payload_temp.json)" >> $GITHUB_ENV
+        {
+          echo 'payload<<EOF'
+          cat payload_temp.json
+          echo 'EOF'
+        } >> $GITHUB_ENV
 
     - name: Notify slack
       uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
