@@ -1,5 +1,6 @@
 import { execSync } from "child_process";
 import { dirname } from "path";
+import { readFileSync } from "fs";
 import * as core from "@actions/core";
 import * as glob from "@actions/glob";
 
@@ -54,6 +55,7 @@ interface GoMod {
 interface ModuleError {
   Err: string;
 }
+
 export interface GoModule {
   /**
    * The name of the module is the path + version of the module,
@@ -68,6 +70,15 @@ export interface GoModule {
    * Module version
    */
   version: string;
+
+  /**
+   * The path to the go.mod file describing the module.
+   *
+   * Not to be confused with "path", which is the module path, like github.com/smartcontractkit/go-proxy.
+   * @example /path/to/go.mod
+   */
+
+  goModFilePath: string;
 }
 
 function parseGoModListOutput(jsonStr: string): GoMod[] {
@@ -152,25 +163,69 @@ export async function getDeps(
 ): Promise<GoModule[]> {
   const modFilePaths = await getAllGoModsWithin(rootDir);
 
-  const deps = modFilePaths.flatMap((p) => {
-    core.info(`finding dependencies in ${p}`);
+  const deps = modFilePaths.flatMap((goModFilePath) => {
+    core.info(`finding dependencies in ${goModFilePath}`);
     try {
-      const dir = dirname(p);
+      const dir = dirname(goModFilePath);
       const output = execSync("go list -json -m all", {
         encoding: "utf-8",
         cwd: dir,
       });
 
       const parsedDeps = parseGoModListOutput(output);
-      return goModsToGoModules(parsedDeps, depPrefix);
+      return goModsToGoModules(goModFilePath, parsedDeps, depPrefix);
     } catch (error) {
       throw Error(
-        `failed to get go.mod dependencies from file: ${p}, err: ${error}`,
+        `failed to get go.mod dependencies from file: ${goModFilePath}, err: ${error}`,
       );
     }
   });
 
   return deps;
+}
+
+/**
+ * Creates a function that finds the line number of a dependency path in a go.mod file.
+ */
+export function lineForDependencyPathFinder() {
+  const cache: {
+    // goModPath -> [go mod file lines]
+    [goModPath: string]: string[];
+  } = {};
+
+  /**
+   * Given a go.mod file path and a dependency path, returns the line number of the dependency path in the go.mod file.
+   *
+   * We assume that you cannot have two modules of the same name in the go.mod file.
+   * Technically, you can, but you need to make use of the replace directive along with two copies of the same module locally in order to do so.
+   * This seems to be a rare case, so we are not handling it.
+   *
+   * @param goModPath The path to the go.mod file. E.g. /path/to/go.mod
+   * @param depPath The dependency path to search for in the go.mod file. E.g. github.com/smartcontractkit/go-proxy
+   *
+   * @throws If the dependency path is found more than once in the go.mod file.
+   */
+  return function getDepPath(goModPath: string, depPath: string): number {
+    if (!cache[goModPath]) {
+      cache[goModPath] = readFileSync(goModPath, "utf-8").split("\n");
+    }
+
+    let line = -1;
+    for (let i = 0; i < cache[goModPath].length; i++) {
+      if (cache[goModPath][i].includes(depPath)) {
+        if (line !== -1) {
+          throw new Error(`duplicate dependency path found: ${depPath}`);
+        }
+        line = i + 1;
+      }
+    }
+
+    if (line === -1) {
+      throw new Error(`dependency path not found: ${depPath}`);
+    }
+
+    return line;
+  };
 }
 
 /**
@@ -182,6 +237,7 @@ export async function getDeps(
  * @param goMods
  */
 export function goModsToGoModules(
+  goModFilePath: string,
   goMods: GoMod[],
   depPrefix: string,
 ): GoModule[] {
@@ -193,6 +249,7 @@ export function goModsToGoModules(
     .filter((d) => !d.Main && d.Path.startsWith(depPrefix))
     .map(
       (d: GoMod): GoModule => ({
+        goModFilePath,
         name: `${d.Path}@${d.Version}${d.Indirect ? " // indirect" : ""}`,
         path: d.Path,
         version: d.Version,
