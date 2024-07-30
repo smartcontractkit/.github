@@ -1,5 +1,5 @@
 {
-  "text": "New git ref for ${GITHUB_REPOSITORY}",
+  "text": "New git ref for <https://github.com/${GITHUB_REPOSITORY}|${GITHUB_REPOSITORY}>",
   "attachments": [
     {
       "color": "#36a64f",
