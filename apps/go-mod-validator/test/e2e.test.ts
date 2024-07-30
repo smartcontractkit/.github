@@ -22,121 +22,121 @@ describe("e2e tests", () => {
     setup("chainlink");
     const summary = await run();
     expect(annotationSpy.mock.calls).toMatchInlineSnapshot(`
+      [
         [
-          [
-            "err: dependency not on default branch",
-            {
-              "file": "/home/parallels/src/cl/.github/apps/go-mod-validator/test/data/chainlink/go.mod",
-              "startLine": 73,
-            },
-          ],
-          [
-            "err: dependency not on default branch",
-            {
-              "file": "/home/parallels/src/cl/.github/apps/go-mod-validator/test/data/chainlink/core/scripts/go.mod",
-              "startLine": 272,
-            },
-          ],
-          [
-            "err: dependency not on default branch",
-            {
-              "file": "/home/parallels/src/cl/.github/apps/go-mod-validator/test/data/chainlink/integration-tests/go.mod",
-              "startLine": 378,
-            },
-          ],
-          [
-            "err: dependency not on default branch",
-            {
-              "file": "/home/parallels/src/cl/.github/apps/go-mod-validator/test/data/chainlink/integration-tests/load/go.mod",
-              "startLine": 371,
-            },
-          ],
-          [
-            "err: dependency not on default branch",
-            {
-              "file": "/home/parallels/src/cl/.github/apps/go-mod-validator/test/data/chainlink/go.mod",
-              "startLine": 80,
-            },
-          ],
-          [
-            "err: dependency not on default branch",
-            {
-              "file": "/home/parallels/src/cl/.github/apps/go-mod-validator/test/data/chainlink/core/scripts/go.mod",
-              "startLine": 277,
-            },
-          ],
-          [
-            "err: dependency not on default branch",
-            {
-              "file": "/home/parallels/src/cl/.github/apps/go-mod-validator/test/data/chainlink/integration-tests/go.mod",
-              "startLine": 383,
-            },
-          ],
-          [
-            "err: dependency not on default branch",
-            {
-              "file": "/home/parallels/src/cl/.github/apps/go-mod-validator/test/data/chainlink/integration-tests/load/go.mod",
-              "startLine": 375,
-            },
-          ],
-          [
-            "err: dependency not on default branch",
-            {
-              "file": "/home/parallels/src/cl/.github/apps/go-mod-validator/test/data/chainlink/core/scripts/go.mod",
-              "startLine": 369,
-            },
-          ],
-          [
-            "err: dependency not on default branch",
-            {
-              "file": "/home/parallels/src/cl/.github/apps/go-mod-validator/test/data/chainlink/go.mod",
-              "startLine": 348,
-            },
-          ],
-          [
-            "err: dependency not on default branch",
-            {
-              "file": "/home/parallels/src/cl/.github/apps/go-mod-validator/test/data/chainlink/integration-tests/go.mod",
-              "startLine": 497,
-            },
-          ],
-          [
-            "err: dependency not on default branch",
-            {
-              "file": "/home/parallels/src/cl/.github/apps/go-mod-validator/test/data/chainlink/integration-tests/load/go.mod",
-              "startLine": 497,
-            },
-          ],
-          [
-            "err: dependency not on default branch",
-            {
-              "file": "/home/parallels/src/cl/.github/apps/go-mod-validator/test/data/chainlink/go.mod",
-              "startLine": 84,
-            },
-          ],
-          [
-            "err: dependency not on default branch",
-            {
-              "file": "/home/parallels/src/cl/.github/apps/go-mod-validator/test/data/chainlink/core/scripts/go.mod",
-              "startLine": 280,
-            },
-          ],
-          [
-            "err: dependency not on default branch",
-            {
-              "file": "/home/parallels/src/cl/.github/apps/go-mod-validator/test/data/chainlink/integration-tests/go.mod",
-              "startLine": 386,
-            },
-          ],
-          [
-            "err: dependency not on default branch",
-            {
-              "file": "/home/parallels/src/cl/.github/apps/go-mod-validator/test/data/chainlink/integration-tests/load/go.mod",
-              "startLine": 379,
-            },
-          ],
-        ]
-      `);
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/go.mod",
+            "startLine": 73,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/core/scripts/go.mod",
+            "startLine": 272,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/integration-tests/go.mod",
+            "startLine": 378,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/integration-tests/load/go.mod",
+            "startLine": 371,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/go.mod",
+            "startLine": 80,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/core/scripts/go.mod",
+            "startLine": 277,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/integration-tests/go.mod",
+            "startLine": 383,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/integration-tests/load/go.mod",
+            "startLine": 375,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/core/scripts/go.mod",
+            "startLine": 369,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/go.mod",
+            "startLine": 348,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/integration-tests/go.mod",
+            "startLine": 497,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/integration-tests/load/go.mod",
+            "startLine": 497,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/go.mod",
+            "startLine": 84,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/core/scripts/go.mod",
+            "startLine": 280,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/integration-tests/go.mod",
+            "startLine": 386,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/integration-tests/load/go.mod",
+            "startLine": 379,
+          },
+        ],
+      ]
+    `);
     expect(summary).toMatchInlineSnapshot(`
       "
       #### Fixing Errors
@@ -182,7 +182,7 @@ describe("e2e tests", () => {
           [
             "err: dependency not on default branch",
             {
-              "file": "/home/parallels/src/cl/.github/apps/go-mod-validator/test/data/chainlink-data-streams/go.mod",
+              "file": "./test/data/chainlink-data-streams/go.mod",
               "startLine": 78,
             },
           ],

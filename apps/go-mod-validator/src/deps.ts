@@ -1,5 +1,5 @@
 import { execSync } from "child_process";
-import { dirname } from "path";
+import { dirname, sep } from "path";
 import { readFileSync } from "fs";
 import * as core from "@actions/core";
 import * as glob from "@actions/glob";
@@ -134,6 +134,7 @@ async function getAllGoModsWithin(goModDir: string): Promise<string[]> {
   try {
     const globber = await glob.create(pattern);
     files = await globber.glob();
+    files = files.map((f) => f.replace(`${process.cwd()}${sep}`, `.${sep}`));
   } catch (error) {
     throw new Error(`failed to get go.mod files: ${error}`);
   }
