@@ -21,7 +21,7 @@
         },
         {
           "title": "CI Run URL",
-          "value": "${GITHUB_RUN_URL}",
+          "value": "<${GITHUB_RUN_URL}>",
           "short": false
         }
       ]
