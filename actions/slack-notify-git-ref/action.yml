@@ -79,17 +79,19 @@ runs:
           exit 1
         fi
 
-    - name: Read and optionally update payload
+    - name: Render and update payload template
       shell: bash
       id: update-payload
       env:
         DOCKER_IMAGE_NAME: ${{ inputs.docker-image-name }}
         DOCKER_IMAGE_DIGEST: ${{ inputs.docker-image-digest }}
         CHANGELOG_URL: ${{ github.inputs.changelog-url }}
+        GIT_REF_NAME: ${{ inputs.git-ref }}
+        GITHUB_RUN_URL: |
+          "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         PATH_TO_PAYLOAD: ${{ github.action_path }}/payload.json
       run: |
-        payload=$(cat "${PATH_TO_PAYLOAD}")
-        echo "$payload" > payload_temp.json
+        envsubst < "${PATH_TO_PAYLOAD}" | tee payload_temp.json
 
         if [[ -n "${DOCKER_IMAGE_NAME:-}" ]]; then
           jq --arg name "\`${DOCKER_IMAGE_NAME}\`" \
@@ -122,14 +124,6 @@ runs:
         channel-id: ${{ inputs.slack-channel-id }}
       env:
         SLACK_BOT_TOKEN: ${{ inputs.slack-bot-token }}
-        # it doesn't seem like the slack action can parse out github context
-        # in a json file so hence why there is these env vars
-        GIT_REF_NAME: ${{ inputs.git-ref }}
-        GIT_SHA: ${{ github.sha }}
-        GITHUB_CREATOR: ${{ github.actor }}
-        GITHUB_REPO: ${{ github.repository }}
-        GITHUB_RUN_URL: |
-          "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''
