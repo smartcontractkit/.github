@@ -1,5 +1,5 @@
 import { isGoModReferencingDefaultBranch } from "./github";
-import { getDeps } from "./deps";
+import { getDeps, GoModule, lineForDependencyPathFinder } from "./deps";
 import { FIXING_ERRORS } from "./strings";
 import * as github from "@actions/github";
 import * as core from "@actions/core";
@@ -43,22 +43,30 @@ export async function run(): Promise<string> {
 
   const depsToValidate = await getDeps(goModDir, depPrefix);
 
-  // <dependency-name, error-string>
-  const errs: Map<string, string> = new Map();
+  const errs: Map<GoModule, string> = new Map();
 
   const validating = depsToValidate.map(async (d) => {
     const isValid = await isGoModReferencingDefaultBranch(d, gh);
 
     if (!isValid) {
-      errs.set(d.name, "dependency not on default branch");
+      errs.set(d, "dependency not on default branch");
     }
   });
 
   await Promise.all(validating);
+
   if (errs.size > 0) {
-    errs.forEach((depName, errMsg) =>
-      core.error(`validation failed for: ${errMsg}, err: ${depName}`),
+    const depLineFinder = lineForDependencyPathFinder();
+    const sortedErrs = [...errs.entries()].sort((a, b) =>
+      a[0].name.localeCompare(b[0].name),
     );
+    sortedErrs.forEach(([goMod, validationErr]) => {
+      const line = depLineFinder(goMod.goModFilePath, goMod.path);
+      core.error(`err: ${validationErr}`, {
+        file: goMod.goModFilePath,
+        startLine: line,
+      });
+    });
 
     core.summary.addRaw(FIXING_ERRORS, true);
     const summary = core.summary.stringify();

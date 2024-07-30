@@ -27,11 +27,13 @@ describe("getDependenciesMap", () => {
     expect(result).toMatchInlineSnapshot(`
       [
         {
+          "goModFilePath": "/path/to/first/go.mod",
           "name": "github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16",
           "path": "github.com/smartcontractkit/go-plugin",
           "version": "v0.0.0-20240208201424-b3b91517de16",
         },
         {
+          "goModFilePath": "/path/to/second/go.mod",
           "name": "github.com/smartcontractkit/grpc-proxy@v0.0.0-20230731113816-f1be6620749f",
           "path": "github.com/smartcontractkit/grpc-proxy",
           "version": "v0.0.0-20230731113816-f1be6620749f",
