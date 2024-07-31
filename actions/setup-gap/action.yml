@@ -175,7 +175,8 @@ runs:
       env:
         PATH_CERTS_DIR_PREFIX: /tmp/setup-gap
       run: |
-        echo "PATH_CERTS_DIR=${PATH_CERTS_DIR_PREFIX}-${{ inputs.gap-name }}" | tee -a $GITHUB_ENV
+        PATH_CERTS_DIR="${PATH_CERTS_DIR_PREFIX}-${{ inputs.gap-name }}"
+        echo "PATH_CERTS_DIR=${PATH_CERTS_DIR}" | tee -a $GITHUB_ENV
         mkdir -p "${PATH_CERTS_DIR}"
 
         echo "::debug::Generating new CA key+cert. Writing them to ${PATH_CERTS_DIR}/ca.key and ${PATH_CERTS_DIR}/ca.crt"
