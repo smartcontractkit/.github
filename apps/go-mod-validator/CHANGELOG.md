@@ -1,5 +1,14 @@
 # go-mod-validator
 
+## 0.2.1
+
+### Patch Changes
+
+- [#532](https://github.com/smartcontractkit/.github/pull/532)
+  [`3ff3400`](https://github.com/smartcontractkit/.github/commit/3ff34007fa2424e317969ae3ea290d923cea567c)
+  Thanks [@momentmaker](https://github.com/momentmaker)! - Update dist file and
+  add debug in core
+
 ## 0.2.0
 
 ### Minor Changes
