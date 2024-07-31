@@ -3,6 +3,23 @@ description: "setup github actions proxy"
 
 inputs:
   # general inputs
+  api-gateway-stage-name:
+    description: "The stage name for the target service on the AWS API GW."
+    required: false
+    default: "primary"
+  gap-name:
+    description:
+      "The name of the GAP. Used in the dir name for self-signed certs and the
+      docker container name. Required if using multiple invocations of this in
+      the same job."
+    required: false
+    default: default
+  use-tls:
+    description:
+      "Enable TLS for the local sigv4 proxy container. Ignored if `use-k8s:
+      true` as that input will automatically use TLS."
+    required: false
+    default: "false"
   checkout-repo:
     description: "Enable git checkout repo. Defaults to true."
     required: false
@@ -144,7 +161,7 @@ runs:
         aws-region: ${{ inputs.aws-region }}
         mask-aws-account-id: true
 
-    - name: Setup Certificate Authority (K8s only)
+    - name: Setup Certificate Authority
       # Generate a local ephemeral CA key and cert to sign the local proxy's certificate.
       # ---
       # Kubectl requires a TLS connection to it's configured endpoint, and performs certificate
@@ -152,33 +169,51 @@ runs:
       # The local aws-sigv4-proxy container will act as the k8s endpoint for kubectl, and therefore requires a
       # certificate signed by a trusted CA. Because this is for local TLS we can generate a CA, generate a server
       # certificate, sign the server certificate with the CA, and update the CA in the kubeconfig to trust it.
-      if: inputs.use-k8s == 'true'
+      # Also useful for other use-cases where a local TLS connection is required.
+      if: inputs.use-k8s == 'true' || inputs.use-tls == 'true'
+      shell: bash
+      env:
+        PATH_CERTS_DIR_PREFIX: /tmp/setup-gap
+      run: |
+        echo "PATH_CERTS_DIR=${PATH_CERTS_DIR_PREFIX}-${{ inputs.gap-name }}" | tee -a $GITHUB_ENV
+        mkdir -p "${PATH_CERTS_DIR}"
+
+        echo "::debug::Generating new CA key+cert. Writing them to ${PATH_CERTS_DIR}/ca.key and ${PATH_CERTS_DIR}/ca.crt"
+        openssl ecparam -genkey -name prime256v1 -out "${PATH_CERTS_DIR}/ca.key"
+        openssl req -x509 -new \
+          -nodes -key "${PATH_CERTS_DIR}/ca.key" \
+          -sha256 \
+          -days 1 \
+          -out "${PATH_CERTS_DIR}/ca.crt" \
+          -subj "/CN=My CA"
+
+    - name: Generate and Sign Server Certificate
+      if: inputs.use-k8s == 'true' || inputs.use-tls == 'true'
       shell: bash
       run: |
-        mkdir -p /tmp/setup-gap
-
-        echo "::debug::Generating new CA key+cert. Writing them to /tmp/setup-gap/ca.key and /tmp/setup-gap/ca.crt"
-        openssl ecparam -genkey -name prime256v1 -out /tmp/setup-gap/ca.key
-        openssl req -x509 -new -nodes -key /tmp/setup-gap/ca.key -sha256 -days 1 -out /tmp/setup-gap/ca.crt -subj "/CN=My CA"
-
-    - name: Generate and Sign Server Certificate (K8s only)
-      if: inputs.use-k8s == 'true'
-      shell: bash
-      run: |
-        mkdir -p /tmp/setup-gap
-
         echo "::debug::Generating server key and certificate signing request (CSR)"
-        openssl ecparam -genkey -name prime256v1 -out /tmp/setup-gap/server.key
-        openssl req -new -key /tmp/setup-gap/server.key -out /tmp/setup-gap/server.csr -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+        openssl ecparam -genkey -name prime256v1 -out "${PATH_CERTS_DIR}/server.key"
+        openssl req -new \
+          -key "${PATH_CERTS_DIR}/server.key" \
+          -out "${PATH_CERTS_DIR}/server.csr" \
+          -subj "/CN=localhost" \
+          -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
 
-        echo "::debug:: Generating SAN extension file"
-        echo -e "subjectAltName=DNS:localhost,IP:127.0.0.1" > /tmp/setup-gap/san.ext
+        echo "::debug::Generating SAN extension file"
+        echo -e "subjectAltName=DNS:localhost,IP:127.0.0.1" > "${PATH_CERTS_DIR}/san.ext"
 
         echo "::debug::Signing server certificate with CA"
-        openssl x509 -req -in /tmp/setup-gap/server.csr -CA /tmp/setup-gap/ca.crt -CAkey /tmp/setup-gap/ca.key -CAcreateserial -out /tmp/setup-gap/server.crt -days 1 -sha256 -extfile /tmp/setup-gap/san.ext
+        openssl x509 -req -in "${PATH_CERTS_DIR}/server.csr" \
+          -CA "${PATH_CERTS_DIR}/ca.crt" \
+          -CAkey "${PATH_CERTS_DIR}/ca.key" \
+          -CAcreateserial \
+          -out "${PATH_CERTS_DIR}/server.crt" \
+          -days 1 \
+          -sha256 \
+          -extfile "${PATH_CERTS_DIR}/san.ext"
 
         echo "::debug::Removing CSR and SAN extension files"
-        rm /tmp/setup-gap/server.csr /tmp/setup-gap/san.ext
+        rm "${PATH_CERTS_DIR}/server.csr" "${PATH_CERTS_DIR}/san.ext"
 
     - name: Setup Kubeconfig (K8s only)
       if: inputs.use-k8s == 'true'
@@ -194,10 +229,10 @@ runs:
         echo "::debug::Setting up kubeconfig for localhost proxy"
 
         # Update the server to use the localhost proxy
-        kubectl config set clusters.$CLUSTER_ARN.server https://localhost:${{ inputs.proxy-port }}/primary
+        kubectl config set clusters.$CLUSTER_ARN.server https://localhost:${{ inputs.proxy-port }}/${{ inputs.api-gateway-stage-name }}
 
         # Set the certificate-authority to the ephemeral certificate authority configured above
-        kubectl config set clusters.$CLUSTER_ARN.certificate-authority /tmp/setup-gap/ca.crt
+        kubectl config set clusters.$CLUSTER_ARN.certificate-authority "${PATH_CERTS_DIR}/ca.crt"
 
         # Remove certificate-authority-data populated from `aws eks update-kubeconfig` which is for the endpoint which is not publicly accessible
         kubectl config unset clusters.$CLUSTER_ARN.certificate-authority-data
@@ -217,6 +252,7 @@ runs:
         AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
         AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+        GAP_NAME: ${{ inputs.gap-name }}
       run: |
         DUPLICATE_AUTH_HEADER_FLAG=""
         if [ "${{ inputs.duplicate-authorization-header }}" == "true" ]; then
@@ -229,7 +265,7 @@ runs:
           -e AWS_SESSION_TOKEN \
           -p "${{ inputs.proxy-port }}":"${{ inputs.proxy-port }}" \
           public.ecr.aws/aws-observability/aws-sigv4-proxy:${{ inputs.proxy-version }} \
-          --name execute-api --region ${{ inputs.aws-region }} \
+          --name "${GAP_NAME}" --region ${{ inputs.aws-region }} \
           --host "${{ inputs.api-gateway-host }}" \
           --log-failed-requests $DUPLICATE_AUTH_HEADER_FLAG
 
@@ -260,7 +296,7 @@ runs:
           -e AWS_SECRET_ACCESS_KEY \
           -e AWS_SESSION_TOKEN \
           -p ${{ inputs.proxy-port }}:${{ inputs.proxy-port }} \
-          -v /tmp/setup-gap:/tls \
+          -v "${PATH_CERTS_DIR}":/tls \
           ${{ inputs.ecr-private-registry }}.dkr.ecr.${{ inputs.ecr-private-aws-region || inputs.aws-region }}.amazonaws.com/aws-sigv4-proxy:${{ inputs.ecr-private-image-tag }} \
             --name execute-api \
             --region ${{ inputs.aws-region }} \
@@ -281,10 +317,14 @@ runs:
     - name: Argocd login
       if: inputs.use-argocd == 'true'
       shell: bash
-      run:
-        argocd login localhost:${{ inputs.proxy-port }}/primary --skip-test-tls
-        --plaintext --grpc-web --username ${{ inputs.argocd-user }} --password
-        ${{ inputs.argocd-pass }}
+      run: |
+        argocd login \
+          localhost:${{ inputs.proxy-port }}/${{ inputs.api-gateway-stage-name }} \
+          --skip-test-tls \
+          --plaintext \
+          --grpc-web
+          --username ${{ inputs.argocd-user }} \
+          --password ${{ inputs.argocd-pass }}
 
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''
