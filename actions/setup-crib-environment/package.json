@@ -1,10 +1,10 @@
 {
-  "name": "setup-gap",
-  "version": "0.3.2",
-  "description": "setup github actions proxy",
+  "name": "setup-crib-environment",
+  "version": "0.0.0",
+  "description": "",
   "private": true,
   "scripts": {},
-  "author": "@smartcontractkit",
+  "author": "@njegosrailic",
   "license": "MIT",
   "dependencies": {},
   "repository": "https://github.com/smartcontractkit/.github"
