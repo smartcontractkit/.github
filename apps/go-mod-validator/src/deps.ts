@@ -165,23 +165,16 @@ export async function getDeps(
   const modFilePaths = await getAllGoModsWithin(rootDir);
 
   const deps = modFilePaths.flatMap((goModFilePath) => {
-    core.info(`Finding dependencies in ${goModFilePath}`);
+    core.info(`finding dependencies in ${goModFilePath}`);
     try {
       const dir = dirname(goModFilePath);
       const output = execSync("go list -json -m all", {
         encoding: "utf-8",
         cwd: dir,
       });
-      core.debug(`Raw output: ${output}`);
+
       const parsedDeps = parseGoModListOutput(output);
-      core.debug(`Parsed dependencies: ${JSON.stringify(parsedDeps)}`);
-      const mappedDeps = goModsToGoModules(
-        goModFilePath,
-        parsedDeps,
-        depPrefix,
-      );
-      core.debug(`Mapped dependencies: ${JSON.stringify(mappedDeps)}`);
-      return mappedDeps;
+      return goModsToGoModules(goModFilePath, parsedDeps, depPrefix);
     } catch (error) {
       throw Error(
         `failed to get go.mod dependencies from file: ${goModFilePath}, err: ${error}`,

@@ -1,0 +1,166 @@
+name: "Setup CRIB Environment"
+description:
+  "Composite action for deploying a CRIB, setting up GAP, Nix, and deploying to
+  an ephemeral environment."
+
+inputs:
+  api-gateway-host:
+    description: API Gateway host for K8s
+    required: true
+  aws-region:
+    description: AWS region
+    required: true
+  aws-role-arn:
+    description: AWS Role ARN for CRIB
+    required: true
+  devspace-ingress-cidrs:
+    default: 0.0.0.0/0
+    description: DevSpace ingress CIDRs
+    required: false
+  disable-environment-teardown:
+    default: "false"
+    description: Disable namespace deletion for debugging purposes.
+    required: false
+  ecr-private-registry:
+    default: ""
+    description: ECR private registry account ID in Prod, needed for GAP
+    required: false
+  ecr-private-registry-stage:
+    default: ""
+    description: ECR private registry account ID in Staging
+    required: false
+  github-token:
+    description: "The `GITHUB_TOKEN` issued for the workflow."
+    required: false
+    default: ${{ github.token }}
+  image-tag:
+    default: latest
+    description: Docker image tag for the product
+    required: false
+  ingress-base-domain:
+    description: DevSpace ingress base domain
+    required: true
+  k8s-cluster-name:
+    description: K8s cluster name
+    required: true
+  kube-cache-dir:
+    default: /dev/null
+    description: Configure kube cache dir
+    required: false
+  ns-ttl:
+    default: 1h
+    description: Namespace TTL, used by Kyverno for cleanup
+    required: false
+  product:
+    default: core
+    description: Product name
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate Inputs
+      shell: bash
+      run: |
+        # Validate product input
+        case "${{ inputs.product }}" in
+          "core"|"ccip")
+            echo "Product input is valid: ${{ inputs.product }}"
+            ;;
+          *)
+            echo "Invalid product input: ${{ inputs.product }}. Must be 'core' or 'ccip'."
+            exit 1
+            ;;
+        esac
+
+    - name: Checkout the repository
+      uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      with:
+        repository: "smartcontractkit/crib"
+        ref: "main"
+
+    - name: Setup GAP
+      uses: smartcontractkit/.github/actions/setup-gap@d316f66b2990ea4daa479daa3de6fc92b00f863e # setup-gap@0.3.2
+      with:
+        aws-role-arn: ${{ inputs.aws-role-arn }}
+        api-gateway-host: ${{ inputs.api-gateway-host }}
+        aws-region: ${{ inputs.aws-region }}
+        ecr-private-registry: ${{ inputs.ecr-private-registry }}
+        k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+        use-private-ecr-registry: true
+        use-k8s: true
+        gc-basic-auth: ${{ inputs.gc-basic-auth }}
+        gc-host: ${{ inputs.gc-host }}
+        gc-org-id: ${{ inputs.gc-org-id }}
+
+    - name: Setup Nix
+      uses: smartcontractkit/.github/actions/setup-nix@4df907a307d91761c15cdff65e508145bdbcfca3 # setup-nix@0.3.0
+      with:
+        cache-pubkey: ${{ inputs.cache-pubkey }}
+        enable-aws: true
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Nix Develop
+      uses: nicknovitski/nix-develop@a2060d116a50b36dfab02280af558e73ab52427d # v1.1.0
+      with:
+        arguments: "--accept-flake-config"
+
+    - name: Generate CRIB Namespace Name
+      id: generate-ns-name
+      shell: bash
+      run: |
+        echo "DEVSPACE-NAMESPACE=crib-ci-$(uuidgen | cut -c1-5)" >> $GITHUB_OUTPUT
+
+    - name: Deploy to CRIB ephemeral environment
+      working-directory: ${{ inputs.product }}
+      shell: bash
+      env:
+        CHAINLINK_CODE_DIR: "../"
+        CRIB_CI_ENV: true
+        CRIB_SKIP_DOCKER_ECR_LOGIN: true
+        CRIB_SKIP_HELM_ECR_LOGIN: true
+        DEVSPACE_IMAGE:
+          "${{
+          inputs.ecr-private-registry-stage}}.dkr.ecr.us-west-2.amazonaws.com/chainlink-devspace"
+        DEVSPACE_INGRESS_BASE_DOMAIN: ${{ inputs.ingress-base-domain }}
+        DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
+        KUBECACHEDIR: /dev/null
+        NS_TTL: ${{ inputs.ns-ttl }}
+        SETUP_AWS_PROFILE: false
+        SETUP_EKS_CONFIG: false
+      run: |
+        # Get the namespace name from GitHub Actions output
+        NAMESPACE="${{ steps.generate-ns-name.outputs.DEVSPACE-NAMESPACE }}"
+        echo "Using $NAMESPACE Kubernetes namespace"
+        kubectl create ns "$NAMESPACE"
+
+        # Kyverno needs some time to inject the RoleBinding
+        sleep 3
+
+        # Check if product is ccip and set ATLAS_ENABLED accordingly
+        if [[ "${{ inputs.product }}" == "ccip" ]]; then
+          export ATLAS_ENABLED=true
+        fi
+
+        ./cribbit.sh "$NAMESPACE"
+
+        devspace deploy --skip-build -o=${{ inputs.image-tag }}
+
+    - name: Tear down CRIB ephemeral environment
+      shell: bash
+      if: ${{ inputs.disable-environment-teardown != 'true' }}
+      env:
+        KUBECACHEDIR: /dev/null
+      run: |
+        # Get the namespace name from GitHub Actions output
+        NAMESPACE="${{ steps.generate-ns-name.outputs.DEVSPACE-NAMESPACE }}"
+
+        # Check if the namespace exists
+        if kubectl get ns "$NAMESPACE" > /dev/null 2>&1; then
+          echo "Namespace $NAMESPACE exists. Proceeding with deletion.."
+          kubectl delete ns "$NAMESPACE" --grace-period=0 --wait=false
+        else
+          echo "Namespace $NAMESPACE does not exist. Skipping deletion."
+        fi

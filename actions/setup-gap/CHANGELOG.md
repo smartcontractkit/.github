@@ -1,14 +1,5 @@
 # setup-gap
 
-## 0.4.0
-
-### Minor Changes
-
-- [#530](https://github.com/smartcontractkit/.github/pull/530)
-  [`da604f6`](https://github.com/smartcontractkit/.github/commit/da604f6c0abc8717f2c4b97a07c22aff5e3d8481)
-  Thanks [@chainchad](https://github.com/chainchad)! - Support TLS outside of
-  K8s and multiple invocations of setup-gap
-
 ## 0.3.2
 
 ### Patch Changes
