@@ -1,4 +1,5 @@
 import * as github from "@actions/github";
+import * as core from "@actions/core";
 import { GoModule } from "./deps";
 
 export type Octokit = ReturnType<typeof github.getOctokit>;
@@ -98,7 +99,9 @@ export async function isGoModReferencingDefaultBranch(
   const {
     data: { default_branch: defaultBranch },
   } = await octokitClient.rest.repos.get({ owner, repo });
-
+  core.debug(
+    `Processing module: ${mod.name} ${mod.path} ${mod.version} ${mod.goModFilePath}`,
+  );
   const result = await getVersionType(mod.version);
   if (result?.commitSha) {
     return isCommitInDefaultBranch(
