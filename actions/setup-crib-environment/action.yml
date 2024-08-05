@@ -55,6 +55,8 @@ inputs:
     default: core
     description: Product name
     required: false
+outputs:
+  devspace-namespace: ${{ steps.generate-ns-name.outputs.devspace-namespace }}
 
 runs:
   using: "composite"
@@ -111,7 +113,7 @@ runs:
       id: generate-ns-name
       shell: bash
       run: |
-        echo "DEVSPACE-NAMESPACE=crib-ci-$(uuidgen | cut -c1-5)" >> $GITHUB_OUTPUT
+        echo "devspace-namespace=crib-ci-$(uuidgen | cut -c1-5)" >> $GITHUB_OUTPUT
 
     - name: Deploy to CRIB ephemeral environment
       working-directory: ${{ inputs.product }}
@@ -132,7 +134,7 @@ runs:
         SETUP_EKS_CONFIG: false
       run: |
         # Get the namespace name from GitHub Actions output
-        NAMESPACE="${{ steps.generate-ns-name.outputs.DEVSPACE-NAMESPACE }}"
+        NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
         echo "Using $NAMESPACE Kubernetes namespace"
         kubectl create ns "$NAMESPACE"
 
@@ -155,7 +157,7 @@ runs:
         KUBECACHEDIR: /dev/null
       run: |
         # Get the namespace name from GitHub Actions output
-        NAMESPACE="${{ steps.generate-ns-name.outputs.DEVSPACE-NAMESPACE }}"
+        NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
 
         # Check if the namespace exists
         if kubectl get ns "$NAMESPACE" > /dev/null 2>&1; then
