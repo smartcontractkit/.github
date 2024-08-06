@@ -183,6 +183,8 @@ importers:
 
   actions/pr-slack-alert: {}
 
+  actions/setup-crib-environment: {}
+
   actions/setup-gap: {}
 
   actions/setup-github-token: {}
