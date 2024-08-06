@@ -1,5 +1,14 @@
 # setup-crib-environment
 
+## 0.3.0
+
+### Minor Changes
+
+- [#543](https://github.com/smartcontractkit/.github/pull/543)
+  [`338cf08`](https://github.com/smartcontractkit/.github/commit/338cf0821b7459a46b80b67a73ecaffdd12dee26)
+  Thanks [@gheorghestrimtu](https://github.com/gheorghestrimtu)! - add
+  working-directory input
+
 ## 0.2.1
 
 ### Patch Changes
