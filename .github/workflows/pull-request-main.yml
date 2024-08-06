@@ -106,7 +106,7 @@ jobs:
         run: pnpm nx run signed-commits:test
 
   ci-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu22.04-8cores-32GB
     permissions:
       id-token: write
       contents: read
