@@ -147,6 +147,40 @@ the minimum required files.
 Once ready to release this new action, run `pnpm changeset` to create the
 initial changeset file and bump the minor version.
 
+### Contributing
+
+#### Filing a PR
+
+Before creating a PR with your change, you should generate a "changeset" file.
+
+Let's assume that you've made some local changes in one of the reusable actions.
+Before filing a PR you need to generate a "changeset" description required for
+the automated release process. Follow the steps below:
+
+- Run `pnpm changset` in the git top level directory.
+- This repo contains multiple packages, so it will ask you for which package it
+  should generate changeset update.
+- Answer remaining questions. At the end, you will have a new
+  `.changeset/<random-name>.md` file generated.
+- Now you need to commit and push your changes
+- Create a Pull request which includes your code change and generated
+  "changeset" file.
+
+#### Preparing a release
+
+After merging your PR, a changesets CI job will create or update a "Version
+Packages" PR like
+[this one](https://github.com/smartcontractkit/.github/pull/540) which contains
+a release bump.
+
+#### Merging Version Packages PR
+
+Now you can Approve/Request approval and Merge the PR from the previous step.
+After merging, it will kick off the push-main.yml workflow and that will release
+a new versions and push tags automatically. You can navigate to the
+[tags view](https://github.com/smartcontractkit/.github/tags), to check if the
+latest tag is available.
+
 ### Git Hooks
 
 We use lefthook to manage git hooks. The hooks should be installed after running
