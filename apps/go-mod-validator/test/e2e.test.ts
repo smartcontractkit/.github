@@ -26,36 +26,8 @@ describe("e2e tests", () => {
         [
           "err: dependency not on default branch",
           {
-            "file": "./test/data/chainlink/go.mod",
-            "startLine": 73,
-          },
-        ],
-        [
-          "err: dependency not on default branch",
-          {
             "file": "./test/data/chainlink/core/scripts/go.mod",
             "startLine": 272,
-          },
-        ],
-        [
-          "err: dependency not on default branch",
-          {
-            "file": "./test/data/chainlink/integration-tests/go.mod",
-            "startLine": 378,
-          },
-        ],
-        [
-          "err: dependency not on default branch",
-          {
-            "file": "./test/data/chainlink/integration-tests/load/go.mod",
-            "startLine": 371,
-          },
-        ],
-        [
-          "err: dependency not on default branch",
-          {
-            "file": "./test/data/chainlink/go.mod",
-            "startLine": 80,
           },
         ],
         [
@@ -68,50 +40,8 @@ describe("e2e tests", () => {
         [
           "err: dependency not on default branch",
           {
-            "file": "./test/data/chainlink/integration-tests/go.mod",
-            "startLine": 383,
-          },
-        ],
-        [
-          "err: dependency not on default branch",
-          {
-            "file": "./test/data/chainlink/integration-tests/load/go.mod",
-            "startLine": 375,
-          },
-        ],
-        [
-          "err: dependency not on default branch",
-          {
             "file": "./test/data/chainlink/core/scripts/go.mod",
             "startLine": 369,
-          },
-        ],
-        [
-          "err: dependency not on default branch",
-          {
-            "file": "./test/data/chainlink/go.mod",
-            "startLine": 348,
-          },
-        ],
-        [
-          "err: dependency not on default branch",
-          {
-            "file": "./test/data/chainlink/integration-tests/go.mod",
-            "startLine": 497,
-          },
-        ],
-        [
-          "err: dependency not on default branch",
-          {
-            "file": "./test/data/chainlink/integration-tests/load/go.mod",
-            "startLine": 497,
-          },
-        ],
-        [
-          "err: dependency not on default branch",
-          {
-            "file": "./test/data/chainlink/go.mod",
-            "startLine": 84,
           },
         ],
         [
@@ -124,8 +54,78 @@ describe("e2e tests", () => {
         [
           "err: dependency not on default branch",
           {
+            "file": "./test/data/chainlink/go.mod",
+            "startLine": 73,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/go.mod",
+            "startLine": 80,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/go.mod",
+            "startLine": 348,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/go.mod",
+            "startLine": 84,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/integration-tests/go.mod",
+            "startLine": 378,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/integration-tests/go.mod",
+            "startLine": 383,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/integration-tests/go.mod",
+            "startLine": 497,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
             "file": "./test/data/chainlink/integration-tests/go.mod",
             "startLine": 386,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/integration-tests/load/go.mod",
+            "startLine": 371,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/integration-tests/load/go.mod",
+            "startLine": 375,
+          },
+        ],
+        [
+          "err: dependency not on default branch",
+          {
+            "file": "./test/data/chainlink/integration-tests/load/go.mod",
+            "startLine": 497,
           },
         ],
         [

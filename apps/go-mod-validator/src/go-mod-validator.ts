@@ -57,9 +57,12 @@ export async function run(): Promise<string> {
 
   if (errs.size > 0) {
     const depLineFinder = lineForDependencyPathFinder();
-    const sortedErrs = [...errs.entries()].sort((a, b) =>
-      a[0].name.localeCompare(b[0].name),
-    );
+    const sortedErrs = [...errs.entries()].sort((a, b) => {
+      const aKey = a[0].goModFilePath + a[0].name;
+      const bKey = b[0].goModFilePath + b[0].name;
+
+      return aKey.localeCompare(bKey);
+    });
     sortedErrs.forEach(([goMod, validationErr]) => {
       const line = depLineFinder(goMod.goModFilePath, goMod.path);
       core.error(`err: ${validationErr}`, {
