@@ -55,6 +55,10 @@ inputs:
     default: core
     description: Product name
     required: false
+  working-directory:
+    default: "deployments/core"
+    description: Working directory for deploying CRIB
+    required: false
 outputs:
   devspace-namespace:
     description: Kubernetes namespace used to provision CRIB
@@ -118,7 +122,7 @@ runs:
         echo "devspace-namespace=crib-ci-$(uuidgen | cut -c1-5)" >> $GITHUB_OUTPUT
 
     - name: Deploy to CRIB ephemeral environment
-      working-directory: ${{ inputs.product }}
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       env:
         CHAINLINK_CODE_DIR: "../"
