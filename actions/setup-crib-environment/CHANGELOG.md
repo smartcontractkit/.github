@@ -1,5 +1,13 @@
 # setup-crib-environment
 
+## 0.2.1
+
+### Patch Changes
+
+- [#542](https://github.com/smartcontractkit/.github/pull/542)
+  [`9718986`](https://github.com/smartcontractkit/.github/commit/97189867f98215d065a30cd43f44c8711fbafdec)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Fixed outputs syntax
+
 ## 0.2.0
 
 ### Minor Changes

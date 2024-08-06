@@ -60,7 +60,9 @@ inputs:
     description: Working directory for deploying CRIB
     required: false
 outputs:
-  devspace-namespace: ${{ steps.generate-ns-name.outputs.devspace-namespace }}
+  devspace-namespace:
+    description: Kubernetes namespace used to provision CRIB
+    value: ${{ steps.generate-ns-name.outputs.devspace-namespace }}
 
 runs:
   using: "composite"
