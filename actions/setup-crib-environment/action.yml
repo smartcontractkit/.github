@@ -151,7 +151,9 @@ runs:
         ./cribbit.sh "$NAMESPACE"
 
         devspace deploy --skip-build -o=${{ inputs.image-tag }}
-
+  # Run teardown at the of the Workflow Job, that way, CRIB workflow users
+  # should be able to run tests against provisioned environment
+  post:
     - name: Tear down CRIB ephemeral environment
       shell: bash
       if: ${{ inputs.disable-environment-teardown != 'true' }}
