@@ -147,6 +147,27 @@ the minimum required files.
 Once ready to release this new action, run `pnpm changeset` to create the
 initial changeset file and bump the minor version.
 
+### Releasing updated actions
+
+Let's assume that you made a PR with a change in one of the reusable actions,
+and you would like to release it. To do that, follow the steps below:
+
+- Run `pnpm changset` in the git top level directory.
+- This repo contains multiple packages, so it will ask you for which package it
+  should generate changeset update.
+- Answer remaining questions. At the end, you will have a new
+  `.changeset/<random-name>.md` file generated.
+- Now you need to commit and push changeset updates to your PR
+
+After merging your PR, the renovate bot will create a PR like
+[this one](https://github.com/smartcontractkit/.github/pull/540) Which contains
+a release bump.
+
+Approve and Merge that PR, and it will release new version and push tags
+automatically. Now you can navigate to the
+[tags view](https://github.com/smartcontractkit/.github/tags), to check if the
+latest tag is available.
+
 ### Git Hooks
 
 We use lefthook to manage git hooks. The hooks should be installed after running
