@@ -110,23 +110,12 @@ runs:
         enable-aws: true
         aws-region: ${{ inputs.aws-region }}
 
-    - name: Nix Develop
-      uses: nicknovitski/nix-develop@a2060d116a50b36dfab02280af558e73ab52427d # v1.1.0
-      with:
-        arguments: "--accept-flake-config"
-
     - name: Generate CRIB Namespace Name
       id: generate-ns-name
       shell: bash
       run: |
         echo "devspace-namespace=crib-ci-$(uuidgen | cut -c1-5)" >> $GITHUB_OUTPUT
 
-    - name: Debug workdir
-      shell: bash
-      run: |
-        echo "${{ github.workspace }}/crib/deployments/${{ inputs.product }}"
-        pwd
-        echo $GITHUB_WORKSPACE
     - name: Deploy to CRIB ephemeral environment
       working-directory:
         ${{ github.workspace }}/crib/deployments/${{ inputs.product }}
@@ -146,6 +135,8 @@ runs:
         SETUP_AWS_PROFILE: false
         SETUP_EKS_CONFIG: false
       run: |
+        echo "Working directory: $(pwd)"
+
         # Get the namespace name from GitHub Actions output
         NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
         echo "Using $NAMESPACE Kubernetes namespace"
@@ -159,9 +150,9 @@ runs:
           export ATLAS_ENABLED=true
         fi
 
-        ./cribbit.sh "$NAMESPACE"
+        nix develop -c ./cribbit.sh "$NAMESPACE"
 
-        devspace deploy --skip-build -o=${{ inputs.image-tag }}
+        nix develop -c devspace deploy --skip-build -o=${{ inputs.image-tag }}
 
     - name: Tear down CRIB ephemeral environment
       working-directory:
