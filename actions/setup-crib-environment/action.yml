@@ -98,6 +98,9 @@ runs:
         k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
         use-private-ecr-registry: true
         use-k8s: true
+        # Choose port that is less likely to be conflicting with other GAP
+        # instances that runs in the same workflow
+        proxy-port: 8888
         gc-basic-auth: ${{ inputs.gc-basic-auth }}
         gc-host: ${{ inputs.gc-host }}
         gc-org-id: ${{ inputs.gc-org-id }}
