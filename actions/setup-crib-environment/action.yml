@@ -55,10 +55,6 @@ inputs:
     default: core
     description: Product name
     required: false
-  working-directory:
-    default: "deployments/core"
-    description: Working directory for deploying CRIB
-    required: false
 outputs:
   devspace-namespace:
     description: Kubernetes namespace used to provision CRIB
@@ -81,16 +77,10 @@ runs:
             ;;
         esac
 
-    - name: Checkout the repository
-      uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
-      with:
-        repository: "smartcontractkit/crib"
-        ref: "main"
-        token: ${{ inputs.github-token }}
-
     - name: Setup GAP
       uses: smartcontractkit/.github/actions/setup-gap@d316f66b2990ea4daa479daa3de6fc92b00f863e # setup-gap@0.3.2
       with:
+        checkout-repo: false
         aws-role-arn: ${{ inputs.aws-role-arn }}
         api-gateway-host: ${{ inputs.api-gateway-host }}
         aws-region: ${{ inputs.aws-region }}
@@ -98,9 +88,20 @@ runs:
         k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
         use-private-ecr-registry: true
         use-k8s: true
+        # Choose port that is less likely to be conflicting with other GAP
+        # instances that runs in the same workflow
+        proxy-port: 8888
         gc-basic-auth: ${{ inputs.gc-basic-auth }}
         gc-host: ${{ inputs.gc-host }}
         gc-org-id: ${{ inputs.gc-org-id }}
+
+    - name: Checkout crib repo
+      uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+      with:
+        repository: "smartcontractkit/crib"
+        ref: "main"
+        path: "${{ github.workspace }}/crib"
+        token: ${{ inputs.github-token }}
 
     - name: Setup Nix
       uses: smartcontractkit/.github/actions/setup-nix@4df907a307d91761c15cdff65e508145bdbcfca3 # setup-nix@0.3.0
@@ -109,11 +110,6 @@ runs:
         enable-aws: true
         aws-region: ${{ inputs.aws-region }}
 
-    - name: Nix Develop
-      uses: nicknovitski/nix-develop@a2060d116a50b36dfab02280af558e73ab52427d # v1.1.0
-      with:
-        arguments: "--accept-flake-config"
-
     - name: Generate CRIB Namespace Name
       id: generate-ns-name
       shell: bash
@@ -121,7 +117,8 @@ runs:
         echo "devspace-namespace=crib-ci-$(uuidgen | cut -c1-5)" >> $GITHUB_OUTPUT
 
     - name: Deploy to CRIB ephemeral environment
-      working-directory: ${{ inputs.working-directory }}
+      working-directory:
+        ${{ github.workspace }}/crib/deployments/${{ inputs.product }}
       shell: bash
       env:
         CHAINLINK_CODE_DIR: "../"
@@ -138,6 +135,8 @@ runs:
         SETUP_AWS_PROFILE: false
         SETUP_EKS_CONFIG: false
       run: |
+        echo "Working directory: $(pwd)"
+
         # Get the namespace name from GitHub Actions output
         NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
         echo "Using $NAMESPACE Kubernetes namespace"
@@ -151,11 +150,13 @@ runs:
           export ATLAS_ENABLED=true
         fi
 
-        ./cribbit.sh "$NAMESPACE"
+        nix develop -c ./cribbit.sh "$NAMESPACE"
 
-        devspace deploy --skip-build -o=${{ inputs.image-tag }}
+        nix develop -c devspace deploy --skip-build -o=${{ inputs.image-tag }}
 
     - name: Tear down CRIB ephemeral environment
+      working-directory:
+        ${{ github.workspace }}/crib/deployments/${{ inputs.product }}
       shell: bash
       if: ${{ inputs.disable-environment-teardown != 'true' }}
       env:
