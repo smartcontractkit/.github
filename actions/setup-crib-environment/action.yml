@@ -83,11 +83,10 @@ runs:
 
     - name: Checkout the repository
       uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
-      env:
-        GITHUB_TOKEN: ${{ inputs.github-token }}
       with:
         repository: "smartcontractkit/crib"
         ref: "main"
+        token: ${{ inputs.github-token }}
 
     - name: Setup GAP
       uses: smartcontractkit/.github/actions/setup-gap@d316f66b2990ea4daa479daa3de6fc92b00f863e # setup-gap@0.3.2
