@@ -18,9 +18,8 @@ if [ -n "$profiles" ]; then
   result=$(echo $result | sed 's/ *$//')
 
   # Output the result
-  echo "Profiles args: $result"
-  echo "::set-output name=profile_args::$result"
+  echo "profile_args=$result" | tee -a "$GITHUB_OUTPUT"
 else
   echo "No profiles supplied"
-  echo "::set-output name=profile_args::"
+  echo "profile_args=" | tee -a "$GITHUB_OUTPUT"
 fi
