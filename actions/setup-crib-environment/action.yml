@@ -21,6 +21,12 @@ inputs:
     default: "false"
     description: Disable namespace deletion for debugging purposes.
     required: false
+  devspace-profiles:
+    default: ""
+    required: false
+    description: |
+      Coma separated list of devspace profiles to apply when running devspace commands.
+      Example: ci,values-dev-simulated-core-ocr1
   ecr-private-registry:
     default: ""
     description: ECR private registry account ID in Prod, needed for GAP
@@ -130,6 +136,7 @@ runs:
           inputs.ecr-private-registry-stage}}.dkr.ecr.us-west-2.amazonaws.com/chainlink-devspace"
         DEVSPACE_INGRESS_BASE_DOMAIN: ${{ inputs.ingress-base-domain }}
         DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
+        PROFILES: ${{ inputs.devspace-profiles }}
         KUBECACHEDIR: /dev/null
         NS_TTL: ${{ inputs.ns-ttl }}
         SETUP_AWS_PROFILE: false
@@ -152,7 +159,19 @@ runs:
 
         nix develop -c ./cribbit.sh "$NAMESPACE"
 
-        nix develop -c devspace deploy --skip-build -o=${{ inputs.image-tag }}
+        profile_args_array=()
+        if [[ -n "$PROFILES" ]]; then
+          # Convert comma-separated string to array
+          IFS=',' read -r -a profiles_array <<< "$PROFILES"
+
+          for profile in "${profiles_array[@]}"; do
+            profile_args_array+=("-p")
+            profile_args_array+=("$profile")
+          done
+          echo "running devspace with profile args: ${profile_args_array[@]}"
+        fi
+
+        nix develop -c devspace deploy --skip-build -o=${{ inputs.image-tag }} "${profile_args_array[@]}"
 
     - name: Tear down CRIB ephemeral environment
       working-directory:
