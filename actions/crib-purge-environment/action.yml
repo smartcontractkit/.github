@@ -5,10 +5,6 @@ description: |
   and depends on the environment setup from a dependent composite action.
 
 inputs:
-  product:
-    default: core
-    description: Product name
-    required: false
   namespace:
     description: CRIB Namespace that should be destroyed
     required: true
@@ -35,23 +31,8 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Validate Inputs
-      shell: bash
-      run: |
-        # Validate product input
-        case "${{ inputs.product }}" in
-          "core"|"ccip")
-            echo "Product input is valid: ${{ inputs.product }}"
-            ;;
-          *)
-            echo "Invalid product input: ${{ inputs.product }}. Must be 'core' or 'ccip'."
-            exit 1
-            ;;
-        esac
-
     - name: Tear down CRIB ephemeral environment
-      working-directory:
-        ${{ github.workspace }}/crib/deployments/${{ inputs.product }}
+      if: always()
       shell: bash
       env:
         KUBECACHEDIR: /dev/null
