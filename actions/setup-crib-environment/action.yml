@@ -122,13 +122,6 @@ runs:
       run: |
         echo "devspace-namespace=crib-ci-$(uuidgen | cut -c1-5)" >> $GITHUB_OUTPUT
 
-    - name: Parse profiles
-      id: parse-profiles
-      env:
-        PROFILES: ${{ inputs.devspace-profiles }}
-      shell: bash
-      run: ${{ github.action_path }}/scripts/parse_profiles.sh
-
     - name: Deploy to CRIB ephemeral environment
       working-directory:
         ${{ github.workspace }}/crib/deployments/${{ inputs.product }}
@@ -143,11 +136,11 @@ runs:
           inputs.ecr-private-registry-stage}}.dkr.ecr.us-west-2.amazonaws.com/chainlink-devspace"
         DEVSPACE_INGRESS_BASE_DOMAIN: ${{ inputs.ingress-base-domain }}
         DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
+        PROFILES: ${{ inputs.devspace-profiles }}
         KUBECACHEDIR: /dev/null
         NS_TTL: ${{ inputs.ns-ttl }}
         SETUP_AWS_PROFILE: false
         SETUP_EKS_CONFIG: false
-        PROFILE_ARGS: ${{ steps.parse-profiles.outputs.profile_args }}
       run: |
         echo "Working directory: $(pwd)"
 
@@ -164,9 +157,21 @@ runs:
           export ATLAS_ENABLED=true
         fi
 
-        nix develop -c ./cribbit.sh "$NAMESPACE" "${PROFILE_ARGS}"
+        nix develop -c ./cribbit.sh "$NAMESPACE"
 
-        nix develop -c devspace deploy --skip-build -o=${{ inputs.image-tag }} "${PROFILE_ARGS}"
+        profile_args_array=()
+        if [[ -n "$PROFILES" ]]; then
+          # Convert comma-separated string to array
+          IFS=',' read -r -a profiles_array <<< "$PROFILES"
+
+          for profile in "${profiles_array[@]}"; do
+            profile_args_array+=("-p")
+            profile_args_array+=("$profile")
+          done
+          echo "running devspace with profile args: ${profile_args_array[@]}"
+        fi
+
+        nix develop -c devspace deploy --skip-build -o=${{ inputs.image-tag }} "${profile_args_array[@]}"
 
     - name: Tear down CRIB ephemeral environment
       working-directory:
