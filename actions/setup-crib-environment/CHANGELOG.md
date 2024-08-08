@@ -1,5 +1,27 @@
 # setup-crib-environment
 
+## 0.4.0
+
+### Minor Changes
+
+- [#550](https://github.com/smartcontractkit/.github/pull/550)
+  [`3deb8db`](https://github.com/smartcontractkit/.github/commit/3deb8db9f687eee0678d2411ef40074078173e9a)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Run nix within crib
+  directory to support running from external repos which have other nix
+  configurations.
+
+### Patch Changes
+
+- [#548](https://github.com/smartcontractkit/.github/pull/548)
+  [`e7d233d`](https://github.com/smartcontractkit/.github/commit/e7d233d347b32356c127cfff6c7a59922ccf66f6)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Fix passing
+  github-input
+
+- [#551](https://github.com/smartcontractkit/.github/pull/551)
+  [`f79fdf4`](https://github.com/smartcontractkit/.github/commit/f79fdf44c23ed34e9f04823051bd53e7314f275e)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Add devspace-profiles
+  parameter to allow specifying which profiles to use
+
 ## 0.3.0
 
 ### Minor Changes
