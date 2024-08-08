@@ -22,9 +22,9 @@ inputs:
     description: Disable namespace deletion for debugging purposes.
     required: false
   devspace-profiles:
-    default: ''
+    default: ""
     required: false
-    description: | 
+    description: |
       Coma separated list of profiles which should be applied when running devspace commands.
       Path to each profile is relative from the `values-profiles` dir in the current product dir
       Example: values-dev-simulated-core-ocr1.yaml,ci.yaml

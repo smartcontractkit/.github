@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
 profiles=$PROFILES
 
-if [ -n "$profiles" ]; then
+if [[ -n "$profiles" ]]; then
   # Convert comma-separated string to array
   IFS=',' read -r -a profiles_array <<< "$profiles"
 

@@ -3,5 +3,5 @@ pre-commit:
   commands:
     prettier:
       description: "Check for prettier formatting"
-      run: pnpm run prettier:check {staged_files}
-      exclude: "node_modules/**/*|**.*.sh"
+      run: pnpm run prettier:check **/*.{json,md,js,ts,yml,yaml}
+      exclude: "node_modules/**/*"
