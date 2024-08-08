@@ -1,5 +1,5 @@
 {
-  "name": "setup-crib-environment",
+  "name": "crib-deploy-environment",
   "version": "0.4.0",
   "description": "",
   "private": true,
