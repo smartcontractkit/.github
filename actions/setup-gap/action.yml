@@ -20,15 +20,6 @@ inputs:
       true` as that input will automatically use TLS."
     required: false
     default: "false"
-  checkout-repo:
-    description: "Enable git checkout repo. Defaults to true."
-    required: false
-    default: "true"
-  checkout-repo-fetch-depth:
-    description:
-      "The number of commits to fetch. Defaults to 0 (all commits/history)."
-    required: false
-    default: "0"
   # aws sig4 proxy inputs
   api-gateway-host:
     description: |
@@ -147,12 +138,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout repo
-      if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-      with:
-        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
-
     - name: Assume role
       uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
       with:
