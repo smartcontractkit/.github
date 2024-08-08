@@ -1,10 +1,10 @@
 {
-  "name": "setup-crib-environment",
-  "version": "0.4.0",
+  "name": "crib-purge-environment",
+  "version": "0.0.0",
   "description": "",
   "private": true,
   "scripts": {},
-  "author": "@njegosrailic",
+  "author": "@smartcontractkit",
   "license": "MIT",
   "dependencies": {},
   "repository": "https://github.com/smartcontractkit/.github"

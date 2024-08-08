@@ -1,4 +1,4 @@
-# setup-crib-environment
+# crib-deploy-environment
 
 ## 0.4.0
 

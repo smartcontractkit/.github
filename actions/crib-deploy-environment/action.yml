@@ -17,10 +17,6 @@ inputs:
     default: 0.0.0.0/0
     description: DevSpace ingress CIDRs
     required: false
-  disable-environment-teardown:
-    default: "false"
-    description: Disable namespace deletion for debugging purposes.
-    required: false
   devspace-profiles:
     default: ""
     required: false
@@ -172,22 +168,3 @@ runs:
         fi
 
         nix develop -c devspace deploy --skip-build -o=${{ inputs.image-tag }} "${profile_args_array[@]}"
-
-    - name: Tear down CRIB ephemeral environment
-      working-directory:
-        ${{ github.workspace }}/crib/deployments/${{ inputs.product }}
-      shell: bash
-      if: ${{ inputs.disable-environment-teardown != 'true' }}
-      env:
-        KUBECACHEDIR: /dev/null
-      run: |
-        # Get the namespace name from GitHub Actions output
-        NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
-
-        # Check if the namespace exists
-        if kubectl get ns "$NAMESPACE" > /dev/null 2>&1; then
-          echo "Namespace $NAMESPACE exists. Proceeding with deletion.."
-          kubectl delete ns "$NAMESPACE" --grace-period=0 --wait=false
-        else
-          echo "Namespace $NAMESPACE does not exist. Skipping deletion."
-        fi

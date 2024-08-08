@@ -1,0 +1,60 @@
+name: crib-purge-environment
+description: |
+  Action to destroy CRIB epehemeral environment.
+  It requires to run crib-deployment-environment beforehand 
+  and depends on the environment setup from a dependent composite action.
+
+inputs:
+  namespace:
+    description: CRIB Namespace that should be destroyed
+    required: true
+  # grafana inputs (optional)
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+  metrics-id:
+    description:
+      "grafana metrics id, used for continuity of metrics during job name
+      changes  - required if metrics-job-name is passed"
+    required: false
+  gc-host:
+    description: "grafana hostname - required if metrics-job-name is passed"
+    required: false
+  gc-basic-auth:
+    description: "grafana basic auth - required if metrics-job-name is passed"
+    required: false
+  gc-org-id:
+    description:
+      "grafana org/tenant id - required if metrics-job-name is passed"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Tear down CRIB ephemeral environment
+      if: always()
+      shell: bash
+      env:
+        KUBECACHEDIR: /dev/null
+      run: |
+        NAMESPACE="${{ inputs.namespace }}"
+
+        # Check if the namespace exists
+        if kubectl get ns "$NAMESPACE" > /dev/null 2>&1; then
+          echo "Namespace $NAMESPACE exists. Proceeding with deletion.."
+          kubectl delete ns "$NAMESPACE" --grace-period=0 --wait=false
+        else
+          echo "Namespace $NAMESPACE does not exist. Skipping deletion."
+        fi
+
+    - name: Collect metrics
+      if: always() && inputs.metrics-job-name != ''
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
+      with:
+        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        org-id: ${{ inputs.gc-org-id}}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true
