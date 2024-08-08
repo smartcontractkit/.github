@@ -1,6 +1,23 @@
 import { getInvokeContext } from "../run";
+import { vi, describe, it, expect } from "vitest";
 
-import { describe, it, expect, vi } from "vitest";
+vi.mock("@actions/core", () => ({
+  setFailed: (msg: string) => {
+    console.log(`setFailed (stub): ${msg}`);
+  },
+  error: (msg: string) => {
+    console.log(`error (stub): ${msg}`);
+  },
+  warning: (msg: string) => {
+    console.log(`warn (stub): ${msg}`);
+  },
+  info: (msg: string) => {
+    console.log(`info (stub): ${msg}`);
+  },
+  debug: (msg: string) => {
+    console.log(`debug (stub): ${msg}`);
+  },
+}));
 
 vi.mock("@actions/github", () => ({
   context: {

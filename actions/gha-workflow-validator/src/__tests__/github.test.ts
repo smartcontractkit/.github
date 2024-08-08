@@ -1,9 +1,27 @@
 import { getComparison, getActionFileFromGithub } from "../github";
 import { getNock, getTestOctokit } from "./__helpers__/test-utils.js";
 
-import { describe, it, expect } from "vitest";
+import { vi, describe, it, expect } from "vitest";
 
 const nockBack = getNock();
+
+vi.mock("@actions/core", () => ({
+  setFailed: (msg: string) => {
+    console.log(`setFailed (stub): ${msg}`);
+  },
+  error: (msg: string) => {
+    console.log(`error (stub): ${msg}`);
+  },
+  warning: (msg: string) => {
+    console.log(`warn (stub): ${msg}`);
+  },
+  info: (msg: string) => {
+    console.log(`info (stub): ${msg}`);
+  },
+  debug: (msg: string) => {
+    console.log(`debug (stub): ${msg}`);
+  },
+}));
 
 describe(getActionFileFromGithub.name, () => {
   it("should return action.yml file", async () => {
