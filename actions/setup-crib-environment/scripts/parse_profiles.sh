@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set -euo pipefail
 profiles=$PROFILES
 
 if [ -n "$profiles" ]; then
