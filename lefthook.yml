@@ -4,4 +4,4 @@ pre-commit:
     prettier:
       description: "Check for prettier formatting"
       run: pnpm run prettier:check {staged_files}
-      exclude: "node_modules/**/*"
+      exclude: "node_modules/**/*|**.*.sh"
