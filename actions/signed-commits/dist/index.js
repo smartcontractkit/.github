@@ -60180,43 +60180,35 @@ async function getRemoteTagNames(remote, cwd) {
 async function commitAll(client, branch, owner, repo, message, cwd) {
   core2.debug(`Committing all changes in ${cwd} to ${owner}/${repo}:${branch}`);
   const fileChanges = await getFileChanges(cwd);
-  if (!fileChanges.additions || fileChanges.additions.length === 0) {
-    return;
+  const commits = compileCommits(fileChanges, message);
+  if (commits.length === 0) {
+    core2.info("No changes to commit. Skipping.");
   }
-  const fileAdditionsByPath = fileChanges.additions.reduce((acc, file) => {
-    const dir = (0, import_path2.dirname)(file.path);
-    if (!acc[dir]) acc[dir] = [];
-    acc[dir].push(file);
-    return acc;
-  }, {});
   let expectedHeadOid = await getRemoteHeadOid(client, {
     branch,
     owner,
     repo
   });
   let commitNumber = 1;
-  const entries = Object.entries(fileAdditionsByPath);
-  core2.info(`Creating ${entries.length} commits.`);
-  for (const [path4, fileAdditions] of entries) {
-    core2.debug(`Commit ${commitNumber++}/${entries.length} - ${path4}`);
+  core2.info(`Creating ${commits.length} commits.`);
+  for (const commit of commits) {
+    core2.debug(
+      `Commit ${commitNumber++}/${commits.length} - ${commit.message}`
+    );
     const input = {
       branch: {
         branchName: branch,
         repositoryNameWithOwner: `${owner}/${repo}`
       },
       message: {
-        headline: message + ` (${path4})`,
+        headline: commit.message,
         body: ""
       },
       expectedHeadOid,
-      fileChanges: { additions: fileAdditions }
+      fileChanges: commit.fileChanges
     };
     const response = await createCommitOnBranch(client, input);
-    const commitUrl = response?.createCommitOnBranch?.commit?.url || "";
-    if (!commitUrl) {
-      throw new Error("Cannot extract commit from GraphQL response, aborting.");
-    }
-    expectedHeadOid = commitUrl.split("/").pop();
+    expectedHeadOid = getRemoteHeadOidFromResponseOrThrow(response);
   }
 }
 async function createCommitOnBranch(client, input) {
@@ -60240,9 +60232,51 @@ async function createCommitOnBranch(client, input) {
   }
 }
 async function getRemoteHeadOid(client, opts) {
-  core2.debug(`Getting remote head oid for ${opts?.owner}/${opts?.repo}:${opts?.branch}`);
+  core2.debug(
+    `Getting remote head oid for ${opts?.owner}/${opts?.repo}:${opts?.branch}`
+  );
   const res = await client.rest.repos.getBranch(opts);
   return res.data.commit.sha;
+}
+function compileCommits(fileChanges, message) {
+  const commitFileChanges = [];
+  const deletions = fileChanges.deletions;
+  if (fileChanges.deletions && fileChanges.deletions.length > 0) {
+    const fileChanges2 = {
+      message: message + ` (deletions)`,
+      fileChanges: { deletions }
+    };
+    commitFileChanges.push(fileChanges2);
+  }
+  if (!fileChanges.additions || fileChanges.additions.length === 0) {
+    return commitFileChanges;
+  }
+  const fileAdditionsByPath = fileChanges.additions.reduce(
+    (acc, file) => {
+      const dir = (0, import_path2.dirname)(file.path);
+      if (!acc[dir]) acc[dir] = [];
+      acc[dir].push(file);
+      return acc;
+    },
+    {}
+  );
+  const entries = Object.entries(fileAdditionsByPath);
+  for (const [path4, additions] of entries) {
+    const input = {
+      message: message + ` (${path4})`,
+      fileChanges: { additions }
+    };
+    commitFileChanges.push(input);
+  }
+  return commitFileChanges;
+}
+function getRemoteHeadOidFromResponseOrThrow(response) {
+  const commitUrl = response?.createCommitOnBranch?.commit?.url || "";
+  if (!commitUrl) {
+    console.log(response);
+    throw new Error(`Cannot extract commit from GraphQL response, aborting.`);
+  }
+  return commitUrl.split("/").pop();
 }
 
 // node_modules/.pnpm/@babel+runtime@7.22.6/node_modules/@babel/runtime/helpers/esm/typeof.js
@@ -60545,7 +60579,9 @@ var setupOctokit = (githubToken) => {
 };
 var createRelease = async (octokit, { pkg, tagName }) => {
   try {
-    core3.debug(`Creating release for ${pkg.packageJson.name}@${pkg.packageJson.version}`);
+    core3.debug(
+      `Creating release for ${pkg.packageJson.name}@${pkg.packageJson.version}`
+    );
     let changelogFileName = import_path5.default.join(pkg.dir, "CHANGELOG.md");
     let changelog = await import_fs_extra2.default.readFile(changelogFileName, "utf8");
     let changelogEntry = getChangelogEntry(changelog, pkg.packageJson.version);

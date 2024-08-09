@@ -1,12 +1,31 @@
 import fixturez from "fixturez";
 import fs from "fs-extra";
 import path from "path";
+import nock from "nock";
 import writeChangeset from "@changesets/write";
 import { Changeset } from "@changesets/types";
 import { runVersion } from "./run";
 import { exec } from "@actions/exec";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
+
+vi.mock("@actions/core", () => ({
+  setFailed: (msg: string) => {
+    console.log(`setFailed (stub): ${msg}`);
+  },
+  error: (msg: string) => {
+    console.log(`error (stub): ${msg}`);
+  },
+  warning: (msg: string) => {
+    console.log(`warn (stub): ${msg}`);
+  },
+  info: (msg: string) => {
+    console.log(`info (stub): ${msg}`);
+  },
+  debug: (msg: string) => {
+    console.log(`debug (stub): ${msg}`);
+  },
+}));
 
 vi.mock("@actions/github", () => ({
   context: {
@@ -18,6 +37,7 @@ vi.mock("@actions/github", () => ({
     sha: "xeac7",
   },
 }));
+
 vi.mock("@actions/github/lib/utils", () => ({
   GitHub: {
     plugin: () => {
@@ -25,8 +45,20 @@ vi.mock("@actions/github/lib/utils", () => ({
       return function () {
         return {
           rest: mockedGithubMethods,
-          graphql: vi.fn().mockReturnValue({
-            data: require("./git/github-git/__fixtures__/createCommitOnBranch.json"),
+          graphql: vi.fn().mockImplementation((...args: any[]) => {
+            expect(args.length).toBe(2);
+            expect(args[0]).toContain(
+              "mutation($input: CreateCommitOnBranchInput!)",
+            );
+            expect(args[1].input).toBeDefined();
+
+            return {
+              createCommitOnBranch: {
+                commit: {
+                  url: "https://githhub.com/owner/repo/commit/0123abc3210",
+                },
+              },
+            };
           }),
         };
       };
