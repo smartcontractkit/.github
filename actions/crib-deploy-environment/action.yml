@@ -125,7 +125,7 @@ runs:
         echo "commit-sha=${{ github.sha }}" >> $GITHUB_OUTPUT
         echo "workflow-run-number=${{ github.run_number }}" >> $GITHUB_OUTPUT
 
-    - name: Crate and label CRIB namespace
+    - name: Create and label CRIB namespace
       shell: bash
       run: |
         NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
