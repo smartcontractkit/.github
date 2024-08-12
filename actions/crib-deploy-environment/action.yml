@@ -5,61 +5,61 @@ description:
 
 inputs:
   api-gateway-host:
-    description: API Gateway host for K8s
+    description: "API Gateway host for GAP, used to access the Kubernetes API."
     required: true
   aws-region:
-    description: AWS region
+    description: "AWS region."
     required: true
   aws-role-arn:
-    description: AWS Role ARN for CRIB
+    description: "AWS Role ARN to be used for setting up GAP."
     required: true
   devspace-ingress-cidrs:
-    default: 0.0.0.0/0
-    description: DevSpace ingress CIDRs
+    default: "0.0.0.0/0"
+    description: "DevSpace ingress CIDRs."
     required: false
   devspace-profiles:
     default: ""
-    required: false
     description: |
-      Coma separated list of devspace profiles to apply when running devspace commands.
-      Example: ci,values-dev-simulated-core-ocr1
+      "Comma-separated list of DevSpace profiles to apply when running DevSpace commands.
+      Example: ci,values-dev-simulated-core-ocr1."
+    required: false
   ecr-private-registry:
     default: ""
-    description: ECR private registry account ID in Prod, needed for GAP
+    description:
+      "ECR private registry account ID in Production, needed for GAP."
     required: false
   ecr-private-registry-stage:
     default: ""
-    description: ECR private registry account ID in Staging
+    description: "ECR private registry account ID in Staging."
     required: false
   github-token:
     description: "The `GITHUB_TOKEN` issued for the workflow."
-    required: false
     default: ${{ github.token }}
+    required: false
   image-tag:
-    default: latest
-    description: Docker image tag for the product
+    default: "latest"
+    description: "Docker image tag for the product."
     required: false
   ingress-base-domain:
-    description: DevSpace ingress base domain
+    description: "DevSpace ingress base domain."
     required: true
   k8s-cluster-name:
-    description: K8s cluster name
+    description: "Kubernetes cluster name."
     required: true
-  kube-cache-dir:
-    default: /dev/null
-    description: Configure kube cache dir
-    required: false
   ns-ttl:
-    default: 1h
-    description: Namespace TTL, used by Kyverno for cleanup
+    default: "1h"
+    description:
+      "Namespace TTL, which defines how long a namespace will remain alive after
+      creation."
     required: false
   product:
-    default: core
-    description: Product name
+    default: "core"
+    description: "The name of the product (e.g., core, ccip)."
     required: false
+
 outputs:
   devspace-namespace:
-    description: Kubernetes namespace used to provision CRIB
+    description: "Kubernetes namespace used to provision a CRIB environment."
     value: ${{ steps.generate-ns-name.outputs.devspace-namespace }}
 
 runs:
@@ -112,11 +112,36 @@ runs:
         enable-aws: true
         aws-region: ${{ inputs.aws-region }}
 
-    - name: Generate CRIB Namespace Name
+    - name: Generate CRIB Namespace Name and labels
       id: generate-ns-name
       shell: bash
       run: |
         echo "devspace-namespace=crib-ci-$(uuidgen | cut -c1-5)" >> $GITHUB_OUTPUT
+        # This will work only for PRs, push event itself does not contain PR information.
+        echo "pr-number=${{ github.event.number }}" >> $GITHUB_OUTPUT
+        echo "workflow-job=${{ github.job }}" >> $GITHUB_OUTPUT
+        echo "repo-name=$(basename $GITHUB_REPOSITORY)" >> $GITHUB_OUTPUT
+        echo "branch-name=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        echo "commit-sha=${{ github.sha }}" >> $GITHUB_OUTPUT
+        echo "workflow-run-number=${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+    - name: Crate and label CRIB namespace
+      shell: bash
+      run: |
+        NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
+        echo "Creating $NAMESPACE Kubernetes namespace.."
+        kubectl create ns "$NAMESPACE"
+
+        kubectl label namespace $NAMESPACE \
+          repo=${{ steps.generate-ns-name.outputs.repo-name }} \
+          branch=${{ steps.generate-ns-name.outputs.branch-name }} \
+          commit=${{ steps.generate-ns-name.outputs.commit-sha }} \
+          pr-number=${{ steps.generate-ns-name.outputs.pr-number || 'none' }} \
+          workflow-job=${{ steps.generate-ns-name.outputs.workflow-job }} \
+          workflow-run-number=${{ steps.generate-ns-name.outputs.workflow-run-number }}
+
+        echo "Kubernetes namespace [$NAMESPACE] successfully labeled:"
+        kubectl get namespace $NAMESPACE --show-labels
 
     - name: Deploy to CRIB ephemeral environment
       working-directory:
@@ -128,8 +153,8 @@ runs:
         CRIB_SKIP_DOCKER_ECR_LOGIN: true
         CRIB_SKIP_HELM_ECR_LOGIN: true
         DEVSPACE_IMAGE:
-          "${{
-          inputs.ecr-private-registry-stage}}.dkr.ecr.us-west-2.amazonaws.com/chainlink-devspace"
+          "${{ inputs.ecr-private-registry-stage
+          }}.dkr.ecr.us-west-2.amazonaws.com/chainlink-devspace"
         DEVSPACE_INGRESS_BASE_DOMAIN: ${{ inputs.ingress-base-domain }}
         DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
         PROFILES: ${{ inputs.devspace-profiles }}
@@ -143,7 +168,6 @@ runs:
         # Get the namespace name from GitHub Actions output
         NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
         echo "Using $NAMESPACE Kubernetes namespace"
-        kubectl create ns "$NAMESPACE"
 
         # Kyverno needs some time to inject the RoleBinding
         sleep 3
