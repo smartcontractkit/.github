@@ -152,9 +152,7 @@ runs:
         CRIB_CI_ENV: true
         CRIB_SKIP_DOCKER_ECR_LOGIN: true
         CRIB_SKIP_HELM_ECR_LOGIN: true
-        DEVSPACE_IMAGE:
-          "${{ inputs.ecr-private-registry-stage
-          }}.dkr.ecr.us-west-2.amazonaws.com/chainlink-devspace"
+        DEVSPACE_IMAGE: "${{inputs.ecr-private-registry-stage}}.dkr.ecr.us-west-2.amazonaws.com/chainlink-devspace"
         DEVSPACE_INGRESS_BASE_DOMAIN: ${{ inputs.ingress-base-domain }}
         DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
         PROFILES: ${{ inputs.devspace-profiles }}
