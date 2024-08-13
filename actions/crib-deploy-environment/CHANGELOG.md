@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 0.6.0
+
+### Minor Changes
+
+- [#559](https://github.com/smartcontractkit/.github/pull/559)
+  [`a37e968`](https://github.com/smartcontractkit/.github/commit/a37e96841ef11ced0c940f2b038e794850336fcb)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding an extra
+  step to label the Kubernetes namespace and associate it with GitHub context
+
 ## 0.5.0
 
 ### Minor Changes
