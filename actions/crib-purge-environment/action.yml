@@ -1,31 +1,37 @@
 name: crib-purge-environment
 description: |
   Action to destroy CRIB epehemeral environment.
-  It requires to run crib-deployment-environment beforehand 
+  It requires to run crib-deployment-environment beforehand
   and depends on the environment setup from a dependent composite action.
 
 inputs:
   namespace:
-    description: CRIB Namespace that should be destroyed
+    description: "The CRIB namespace that should be destroyed."
     required: true
-  # grafana inputs (optional)
+  # Grafana inputs (optional)
   metrics-job-name:
-    description: "grafana metrics job name"
+    description:
+      "The name of the Grafana metrics job. Required if other Grafana metrics
+      inputs are provided."
     required: false
   metrics-id:
     description:
-      "grafana metrics id, used for continuity of metrics during job name
-      changes  - required if metrics-job-name is passed"
+      "The Grafana metrics ID used for continuity of metrics during job name
+      changes. Required if `metrics-job-name` is provided."
     required: false
   gc-host:
-    description: "grafana hostname - required if metrics-job-name is passed"
+    description:
+      "The Grafana hostname. Required if `metrics-job-name` is provided."
     required: false
   gc-basic-auth:
-    description: "grafana basic auth - required if metrics-job-name is passed"
+    description:
+      "The basic authentication credentials for Grafana. Required if
+      `metrics-job-name` is provided."
     required: false
   gc-org-id:
     description:
-      "grafana org/tenant id - required if metrics-job-name is passed"
+      "The Grafana organization or tenant ID. Required if `metrics-job-name` is
+      provided."
     required: false
 
 runs:
