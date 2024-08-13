@@ -238,3 +238,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+### Testing
+
+- You can run unit tests with `pnpm nx run signed-commits:test`
+
+#### Manual E2E Testing
+
+_Note:_ This will modify the repo, only use this on test repos or personal
+forks.
+
+You can run the action locally by doing the following:
+
+```
+DEBUG=true INPUT_SETUPGITUSER=false INPUT_CWD="<path to local repo>" GITHUB_TOKEN=(gh auth token) INPUT_PRDRAFT=true GITHUB_REPOSITORY="<repo with changesets>" GITHUB_REF="refs/heads/main" GITHUB_SHA="<head SHA>" node actions/signed-commits/dist/index.js
+```

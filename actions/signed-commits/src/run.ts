@@ -69,6 +69,9 @@ const createRelease = async (
   { pkg, tagName }: { pkg: Package; tagName: string },
 ) => {
   try {
+    core.debug(
+      `Creating release for ${pkg.packageJson.name}@${pkg.packageJson.version}`,
+    );
     let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
 
     let changelog = await fs.readFile(changelogFileName, "utf8");
