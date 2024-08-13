@@ -1,5 +1,14 @@
 # setup-gap
 
+## 0.5.0
+
+### Minor Changes
+
+- [#556](https://github.com/smartcontractkit/.github/pull/556)
+  [`3122ec7`](https://github.com/smartcontractkit/.github/commit/3122ec73740f8afec38aa86ea1ed74e1e2bcd24e)
+  Thanks [@erikburt](https://github.com/erikburt)! - remove checkout-repo and
+  associated inputs
+
 ## 0.4.0
 
 ### Minor Changes
