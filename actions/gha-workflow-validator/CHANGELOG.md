@@ -1,5 +1,15 @@
 # gha-workflow-validator
 
+## 0.2.2
+
+### Patch Changes
+
+- [#557](https://github.com/smartcontractkit/.github/pull/557)
+  [`3da2284`](https://github.com/smartcontractkit/.github/commit/3da22843af54e81d2ccbd79903bbd28bd3098f3b)
+  Thanks [@erikburt](https://github.com/erikburt)! - Stub/mock logging during
+  tests. This reformats logs so they're not displayed like actual logs during
+  CI.
+
 ## 0.2.1
 
 ### Patch Changes
