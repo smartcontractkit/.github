@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 0.7.0
+
+### Minor Changes
+
+- [#560](https://github.com/smartcontractkit/.github/pull/560)
+  [`65f078f`](https://github.com/smartcontractkit/.github/commit/65f078f61ad5896468e2241c4a7e25e4c3052e28)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Option to notify CRIB
+  team whenever CRIB provisioning fails
+
 ## 0.6.0
 
 ### Minor Changes
