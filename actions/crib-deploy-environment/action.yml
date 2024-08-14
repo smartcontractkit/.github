@@ -56,7 +56,11 @@ inputs:
     default: "core"
     description: "The name of the product (e.g., core, ccip)."
     required: false
-
+  crib-alert-slack-webhook:
+    default: ""
+    description:
+      slack incoming webhook to notify CRIB team on CRIB provisioning failures
+    required: false
 outputs:
   devspace-namespace:
     description: "Kubernetes namespace used to provision a CRIB environment."
@@ -190,3 +194,44 @@ runs:
         fi
 
         nix develop -c devspace deploy --skip-build -o=${{ inputs.image-tag }} "${profile_args_array[@]}"
+    - name: Render notification template
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+      id: render-slack-template
+      if: failure() && inputs.crib-alert-slack-webhook != ''
+      with:
+        script: |
+          const {GITHUB_SERVER_URL, GITHUB_REPOSITORY, GITHUB_RUN_ID} = process.env;
+          const workflowRunUrl = `${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}`;
+
+          payload = {
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": ":red_circle: *Failed to provision CRIB environment for ${{ inputs.product }}*"
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": `<${workflowRunUrl}|Workflow Run>
+          Git Repo: ${GITHUB_REPOSITORY}
+          Sender: ${context.payload.sender.login}`
+                }
+              }
+            ]
+          };
+          return JSON.stringify(payload);
+
+    - name: Notify CRIB team on failure
+      if: failure() && inputs.crib-alert-slack-webhook != ''
+      id: slack
+      uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+      with:
+        # For posting a rich message using Block Kit
+        payload: ${{ steps.render-slack-template.outputs.result }}
+      env:
+        SLACK_WEBHOOK_URL: ${{ inputs.crib-alert-slack-webhook }}
+        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
