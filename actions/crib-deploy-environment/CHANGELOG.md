@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 0.7.1
+
+### Patch Changes
+
+- [#563](https://github.com/smartcontractkit/.github/pull/563)
+  [`21df589`](https://github.com/smartcontractkit/.github/commit/21df589fcb13a6fea70278e1a9c42eb4948770b2)
+  Thanks [@chainchad](https://github.com/chainchad)! - Sanitize branch name for
+  valid K8s label value
+
 ## 0.7.0
 
 ### Minor Changes
