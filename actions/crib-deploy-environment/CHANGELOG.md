@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 1.0.0
+
+### Major Changes
+
+- [#568](https://github.com/smartcontractkit/.github/pull/568)
+  [`9912dac`](https://github.com/smartcontractkit/.github/commit/9912dac3b0b2fdd352049f1a49e7fa0101ad4b19)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Option to specify
+  image URI for the product
+
 ## 0.8.0
 
 ### Minor Changes
