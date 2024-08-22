@@ -28,17 +28,9 @@ inputs:
     description:
       "ECR private registry account ID in Production, needed for GAP."
     required: false
-  ecr-private-registry-stage:
-    default: ""
-    description: "ECR private registry account ID in Staging."
-    required: false
   github-token:
     description: "The `GITHUB_TOKEN` issued for the workflow."
     default: ${{ github.token }}
-    required: false
-  image-tag:
-    default: "latest"
-    description: "Docker image tag for the product."
     required: false
   ingress-base-domain:
     description: "DevSpace ingress base domain."
@@ -55,6 +47,15 @@ inputs:
   product:
     default: "core"
     description: "The name of the product (e.g., core, ccip)."
+    required: false
+  product-image:
+    required: false
+    description:
+      "Docker image without tag e.g public.ecr.aws/chainlink/chainlink"
+    default: public.ecr.aws/chainlink/chainlink
+  product-image-tag:
+    default: "latest"
+    description: "Docker image tag for the product."
     required: false
   crib-alert-slack-webhook:
     default: ""
@@ -167,7 +168,7 @@ runs:
         CRIB_CI_ENV: true
         CRIB_SKIP_DOCKER_ECR_LOGIN: true
         CRIB_SKIP_HELM_ECR_LOGIN: true
-        DEVSPACE_IMAGE: "${{inputs.ecr-private-registry-stage}}.dkr.ecr.us-west-2.amazonaws.com/chainlink-devspace"
+        DEVSPACE_IMAGE: "${{inputs.product-image}}"
         DEVSPACE_INGRESS_BASE_DOMAIN: ${{ inputs.ingress-base-domain }}
         DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
         PROFILES: ${{ inputs.devspace-profiles }}
@@ -204,7 +205,7 @@ runs:
           echo "running devspace with profile args: ${profile_args_array[@]}"
         fi
 
-        nix develop -c devspace deploy --skip-build -o=${{ inputs.image-tag }} "${profile_args_array[@]}"
+        nix develop -c devspace deploy --skip-build -o=${{ inputs.product-image-tag }} "${profile_args_array[@]}"
     - name: Render notification template
       uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
       id: render-slack-template
