@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 0.8.0
+
+### Minor Changes
+
+- [#566](https://github.com/smartcontractkit/.github/pull/566)
+  [`ad3a990`](https://github.com/smartcontractkit/.github/commit/ad3a99081859689be328de096901577329970ee6)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Option to use
+  specific version of crib, which can be useful for testing on the branches
+
 ## 0.7.1
 
 ### Patch Changes
