@@ -61,6 +61,10 @@ inputs:
     description:
       slack incoming webhook to notify CRIB team on CRIB provisioning failures
     required: false
+  crib-repo-ref:
+    default: "main"
+    required: false
+    description: Useful for testing updates in CRIB
 outputs:
   devspace-namespace:
     description: "Kubernetes namespace used to provision a CRIB environment."
@@ -105,7 +109,7 @@ runs:
       uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
       with:
         repository: "smartcontractkit/crib"
-        ref: "main"
+        ref: ${{ inputs.crib-repo-ref }}
         path: "${{ github.workspace }}/crib"
         token: ${{ inputs.github-token }}
 
