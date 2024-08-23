@@ -57,6 +57,11 @@ inputs:
     default: "latest"
     description: "Docker image tag for the product."
     required: false
+  send-alerts:
+    default: "true"
+    description: |
+      Notify CRIB team when Env Provisioning fails. 
+      When enabled it requires to provide crib-alert-slack-webhook parameter as well.
   crib-alert-slack-webhook:
     default: ""
     description:
@@ -209,10 +214,12 @@ runs:
     - name: Render notification template
       uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
       id: render-slack-template
-      if: failure() && inputs.crib-alert-slack-webhook != ''
+      if:
+        failure() && inputs.crib-alert-slack-webhook != '' && inputs.send-alerts
+        == 'true'
       with:
         script: |
-          const {GITHUB_SERVER_URL, GITHUB_REPOSITORY, GITHUB_RUN_ID} = process.env;
+          const {GITHUB_SERVER_URL, GITHUB_REPOSITORY, GITHUB_RUN_ID, GITHUB_ACTOR} = process.env;
           const workflowRunUrl = `${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}`;
 
           payload = {
@@ -230,7 +237,7 @@ runs:
                   "type": "mrkdwn",
                   "text": `<${workflowRunUrl}|Workflow Run>
           Git Repo: ${GITHUB_REPOSITORY}
-          Sender: ${context.payload.sender.login}`
+          Github Actor: ${GITHUB_ACTOR}`
                 }
               }
             ]
@@ -238,7 +245,9 @@ runs:
           return JSON.stringify(payload);
 
     - name: Notify CRIB team on failure
-      if: failure() && inputs.crib-alert-slack-webhook != ''
+      if:
+        failure() && inputs.crib-alert-slack-webhook != '' && inputs.send-alerts
+        == 'true'
       id: slack
       uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
       with:
