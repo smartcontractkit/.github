@@ -128,6 +128,10 @@ importers:
 
   actions/cleanup-old-branches: {}
 
+  actions/crib-deploy-environment: {}
+
+  actions/crib-purge-environment: {}
+
   actions/dispatch-workflow: {}
 
   actions/get-latest-github-release: {}
@@ -182,8 +186,6 @@ importers:
   actions/policy-bot-config-validator: {}
 
   actions/pr-slack-alert: {}
-
-  actions/setup-crib-environment: {}
 
   actions/setup-gap: {}
 
@@ -361,6 +363,9 @@ importers:
       '@octokit/plugin-throttling':
         specifier: ^8.2.0
         version: 8.2.0(@octokit/core@5.2.0)
+      semver:
+        specifier: ^7.6.2
+        version: 7.6.2
     devDependencies:
       '@types/node':
         specifier: ^20.14.9
