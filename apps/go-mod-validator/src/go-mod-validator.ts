@@ -1,5 +1,5 @@
-import { isGoModReferencingDefaultBranch } from "./github";
-import { getDeps, GoModule, lineForDependencyPathFinder } from "./deps";
+import { defaultBranchGetter, isGoModReferencingDefaultBranch } from "./github";
+import { getDeps, BaseGoModule, lineForDependencyPathFinder } from "./deps";
 import { FIXING_ERRORS } from "./strings";
 import * as github from "@actions/github";
 import * as core from "@actions/core";
@@ -43,13 +43,30 @@ export async function run(): Promise<string> {
 
   const depsToValidate = await getDeps(goModDir, depPrefix);
 
-  const errs: Map<GoModule, string> = new Map();
-
+  const errs: Map<BaseGoModule, string> = new Map();
+  const getDefaultBranch = defaultBranchGetter(gh);
   const validating = depsToValidate.map(async (d) => {
-    const isValid = await isGoModReferencingDefaultBranch(d, gh);
+    // Bit of a code smell, but I wanted to avoid adding the defaultBranchGetter to deps.ts to keep it separate from
+    // the GitHub API client.
+    // And we want the default branch available in this scope for context.
+    const defaultBranch = await getDefaultBranch(d);
+    const isValid = await isGoModReferencingDefaultBranch(d, defaultBranch, gh);
+
+    let parsedVersion = "UNKNOWN";
+    if ("commitSha" in d) {
+      parsedVersion = d.commitSha;
+    }
+    if ("tag" in d) {
+      parsedVersion = d.tag;
+    }
 
     if (!isValid) {
-      errs.set(d, "dependency not on default branch");
+      errs.set(
+        d,
+        `[${d.goModFilePath}] dependency ${d.name} not on default branch.
+Default branch: ${defaultBranch}
+Version: ${parsedVersion}`,
+      );
     }
   });
 
