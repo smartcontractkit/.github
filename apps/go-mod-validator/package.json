@@ -9,7 +9,8 @@
   },
   "main": "out/index.js",
   "scripts": {
-    "local": "GITHUB_STEP_SUMMARY=/dev/null ts-node src/index.ts"
+    "local": "GITHUB_STEP_SUMMARY=/dev/null ts-node src/index.ts",
+    "test": "vitest"
   },
   "devDependencies": {
     "@types/node": "^20.14.9",
