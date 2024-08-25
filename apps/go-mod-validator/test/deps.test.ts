@@ -110,9 +110,9 @@ const pseudoTests = [
   },
 ];
 
-describe.only("getVersionType", () => {
+describe("getVersionType", () => {
   for (const { version } of pseudoTests) {
-    it("should return the correct version type", () => {
+    it(`should return the correct version type for ${version} `, () => {
       const verType = getVersionType(version);
       expect(verType).toMatchSnapshot();
     });
