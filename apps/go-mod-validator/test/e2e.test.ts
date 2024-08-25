@@ -25,153 +25,117 @@ describe("e2e tests", () => {
       setup("chainlink");
       const summary = await run();
       expect(annotationSpy.mock.calls).toMatchInlineSnapshot(`
-      [
         [
-          "err: [./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 // indirect not on default branch.
-      Default branch: main
-      Version: v1.0.10",
-          {
-            "file": "./test/data/chainlink/core/scripts/go.mod",
-            "startLine": 272,
-          },
-        ],
-        [
-          "err: [./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/chainlink-starknet/relayer@v0.0.1-beta-test.0.20240709043547-03612098f799 // indirect not on default branch.
-      Default branch: develop
-      Version: UNKNOWN",
-          {
-            "file": "./test/data/chainlink/core/scripts/go.mod",
-            "startLine": 277,
-          },
-        ],
-        [
-          "err: [./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch.
-      Default branch: main
-      Version: b3b91517de16",
-          {
-            "file": "./test/data/chainlink/core/scripts/go.mod",
-            "startLine": 369,
-          },
-        ],
-        [
-          "err: [./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 // indirect not on default branch.
-      Default branch: main
-      Version: v0.7.3",
-          {
-            "file": "./test/data/chainlink/core/scripts/go.mod",
-            "startLine": 280,
-          },
-        ],
-        [
-          "err: [./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 not on default branch.
-      Default branch: main
-      Version: v1.0.10",
-          {
-            "file": "./test/data/chainlink/go.mod",
-            "startLine": 73,
-          },
-        ],
-        [
-          "err: [./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/chainlink-starknet/relayer@v0.0.1-beta-test.0.20240709043547-03612098f799 not on default branch.
-      Default branch: develop
-      Version: UNKNOWN",
-          {
-            "file": "./test/data/chainlink/go.mod",
-            "startLine": 80,
-          },
-        ],
-        [
-          "err: [./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch.
-      Default branch: main
-      Version: b3b91517de16",
-          {
-            "file": "./test/data/chainlink/go.mod",
-            "startLine": 348,
-          },
-        ],
-        [
-          "err: [./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 not on default branch.
-      Default branch: main
-      Version: v0.7.3",
-          {
-            "file": "./test/data/chainlink/go.mod",
-            "startLine": 84,
-          },
-        ],
-        [
-          "err: [./test/data/chainlink/integration-tests/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 // indirect not on default branch.
-      Default branch: main
-      Version: v1.0.10",
-          {
-            "file": "./test/data/chainlink/integration-tests/go.mod",
-            "startLine": 378,
-          },
-        ],
-        [
-          "err: [./test/data/chainlink/integration-tests/go.mod] dependency github.com/smartcontractkit/chainlink-starknet/relayer@v0.0.1-beta-test.0.20240709043547-03612098f799 // indirect not on default branch.
-      Default branch: develop
-      Version: UNKNOWN",
-          {
-            "file": "./test/data/chainlink/integration-tests/go.mod",
-            "startLine": 383,
-          },
-        ],
-        [
-          "err: [./test/data/chainlink/integration-tests/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch.
-      Default branch: main
-      Version: b3b91517de16",
-          {
-            "file": "./test/data/chainlink/integration-tests/go.mod",
-            "startLine": 497,
-          },
-        ],
-        [
-          "err: [./test/data/chainlink/integration-tests/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 // indirect not on default branch.
-      Default branch: main
-      Version: v0.7.3",
-          {
-            "file": "./test/data/chainlink/integration-tests/go.mod",
-            "startLine": 386,
-          },
-        ],
-        [
-          "err: [./test/data/chainlink/integration-tests/load/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 // indirect not on default branch.
-      Default branch: main
-      Version: v1.0.10",
-          {
-            "file": "./test/data/chainlink/integration-tests/load/go.mod",
-            "startLine": 371,
-          },
-        ],
-        [
-          "err: [./test/data/chainlink/integration-tests/load/go.mod] dependency github.com/smartcontractkit/chainlink-starknet/relayer@v0.0.1-beta-test.0.20240709043547-03612098f799 // indirect not on default branch.
-      Default branch: develop
-      Version: UNKNOWN",
-          {
-            "file": "./test/data/chainlink/integration-tests/load/go.mod",
-            "startLine": 375,
-          },
-        ],
-        [
-          "err: [./test/data/chainlink/integration-tests/load/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch.
-      Default branch: main
-      Version: b3b91517de16",
-          {
-            "file": "./test/data/chainlink/integration-tests/load/go.mod",
-            "startLine": 497,
-          },
-        ],
-        [
-          "err: [./test/data/chainlink/integration-tests/load/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 // indirect not on default branch.
-      Default branch: main
-      Version: v0.7.3",
-          {
-            "file": "./test/data/chainlink/integration-tests/load/go.mod",
-            "startLine": 379,
-          },
-        ],
-      ]
-    `);
+          [
+            "err: [./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 // indirect not on default branch.
+        Default branch: main
+        Version: v1.0.10",
+            {
+              "file": "./test/data/chainlink/core/scripts/go.mod",
+              "startLine": 272,
+            },
+          ],
+          [
+            "err: [./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch.
+        Default branch: main
+        Version: b3b91517de16",
+            {
+              "file": "./test/data/chainlink/core/scripts/go.mod",
+              "startLine": 369,
+            },
+          ],
+          [
+            "err: [./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 // indirect not on default branch.
+        Default branch: main
+        Version: v0.7.3",
+            {
+              "file": "./test/data/chainlink/core/scripts/go.mod",
+              "startLine": 280,
+            },
+          ],
+          [
+            "err: [./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 not on default branch.
+        Default branch: main
+        Version: v1.0.10",
+            {
+              "file": "./test/data/chainlink/go.mod",
+              "startLine": 73,
+            },
+          ],
+          [
+            "err: [./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch.
+        Default branch: main
+        Version: b3b91517de16",
+            {
+              "file": "./test/data/chainlink/go.mod",
+              "startLine": 348,
+            },
+          ],
+          [
+            "err: [./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 not on default branch.
+        Default branch: main
+        Version: v0.7.3",
+            {
+              "file": "./test/data/chainlink/go.mod",
+              "startLine": 84,
+            },
+          ],
+          [
+            "err: [./test/data/chainlink/integration-tests/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 // indirect not on default branch.
+        Default branch: main
+        Version: v1.0.10",
+            {
+              "file": "./test/data/chainlink/integration-tests/go.mod",
+              "startLine": 378,
+            },
+          ],
+          [
+            "err: [./test/data/chainlink/integration-tests/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch.
+        Default branch: main
+        Version: b3b91517de16",
+            {
+              "file": "./test/data/chainlink/integration-tests/go.mod",
+              "startLine": 497,
+            },
+          ],
+          [
+            "err: [./test/data/chainlink/integration-tests/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 // indirect not on default branch.
+        Default branch: main
+        Version: v0.7.3",
+            {
+              "file": "./test/data/chainlink/integration-tests/go.mod",
+              "startLine": 386,
+            },
+          ],
+          [
+            "err: [./test/data/chainlink/integration-tests/load/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 // indirect not on default branch.
+        Default branch: main
+        Version: v1.0.10",
+            {
+              "file": "./test/data/chainlink/integration-tests/load/go.mod",
+              "startLine": 371,
+            },
+          ],
+          [
+            "err: [./test/data/chainlink/integration-tests/load/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch.
+        Default branch: main
+        Version: b3b91517de16",
+            {
+              "file": "./test/data/chainlink/integration-tests/load/go.mod",
+              "startLine": 497,
+            },
+          ],
+          [
+            "err: [./test/data/chainlink/integration-tests/load/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 // indirect not on default branch.
+        Default branch: main
+        Version: v0.7.3",
+            {
+              "file": "./test/data/chainlink/integration-tests/load/go.mod",
+              "startLine": 379,
+            },
+          ],
+        ]
+      `);
       expect(summary).toMatchInlineSnapshot(`
       "
       #### Fixing Errors
