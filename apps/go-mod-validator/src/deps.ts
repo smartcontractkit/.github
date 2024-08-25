@@ -3,6 +3,7 @@ import { dirname, sep } from "path";
 import { readFileSync } from "fs";
 import * as core from "@actions/core";
 import * as glob from "@actions/glob";
+import { isPseudoVersion, pseudoVersionRev } from "./pseudo-version";
 
 /**
  * Taken from `go help list` for the command `go list -json -m all`
@@ -321,17 +322,25 @@ export function goModsToGoModules(
  *
  */
 export function getVersionType(versionString: string) {
-  // matches pseudo versions like v0.0.5-0.20220116011046-fa5810519dcb
-  // `^v[0-9]+\.(0\.0-|\d+\.\d+-([^+]*\.)?0\.)\d{14}-[A-Za-z0-9]+(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$
-  const pseudoVersionRegex = /-([\d.]*)-([a-f0-9]{12})(?:\+[\w.-]+)?$/;
   // matches real versions like v0.1.0
   const versionRegex = /^(v\d+\.\d+\.\d+)$/;
 
-  const pseudoVersionMatch = versionString.match(pseudoVersionRegex);
+  if (isPseudoVersion(versionString)) {
+    return {
+      commitSha: pseudoVersionRev(versionString),
+      tag: undefined,
+    };
+  }
   const versionMatch = versionString.match(versionRegex);
+  if (versionMatch) {
+    return {
+      commitSha: undefined,
+      tag: versionMatch?.[1],
+    };
+  }
 
   return {
-    commitSha: pseudoVersionMatch?.[2],
-    tag: versionMatch?.[1],
+    commitSha: undefined,
+    tag: undefined,
   };
 }
