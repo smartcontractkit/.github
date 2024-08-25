@@ -18,118 +18,153 @@ describe("e2e tests", () => {
     annotationSpy.mockClear();
   });
 
-  it("chainlink - should match snapshot", { timeout: 100_000 }, async () => {
-    setup("chainlink");
-    const summary = await run();
-    expect(annotationSpy.mock.calls).toMatchInlineSnapshot(`
+  it.only(
+    "chainlink - should match snapshot",
+    { timeout: 100_000 },
+    async () => {
+      setup("chainlink");
+      const summary = await run();
+      expect(annotationSpy.mock.calls).toMatchInlineSnapshot(`
       [
         [
-          "err: dependency not on default branch",
+          "err: [./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 // indirect not on default branch.
+      Default branch: main
+      Version: v1.0.10",
           {
             "file": "./test/data/chainlink/core/scripts/go.mod",
             "startLine": 272,
           },
         ],
         [
-          "err: dependency not on default branch",
+          "err: [./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/chainlink-starknet/relayer@v0.0.1-beta-test.0.20240709043547-03612098f799 // indirect not on default branch.
+      Default branch: develop
+      Version: UNKNOWN",
           {
             "file": "./test/data/chainlink/core/scripts/go.mod",
             "startLine": 277,
           },
         ],
         [
-          "err: dependency not on default branch",
+          "err: [./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch.
+      Default branch: main
+      Version: b3b91517de16",
           {
             "file": "./test/data/chainlink/core/scripts/go.mod",
             "startLine": 369,
           },
         ],
         [
-          "err: dependency not on default branch",
+          "err: [./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 // indirect not on default branch.
+      Default branch: main
+      Version: v0.7.3",
           {
             "file": "./test/data/chainlink/core/scripts/go.mod",
             "startLine": 280,
           },
         ],
         [
-          "err: dependency not on default branch",
+          "err: [./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 not on default branch.
+      Default branch: main
+      Version: v1.0.10",
           {
             "file": "./test/data/chainlink/go.mod",
             "startLine": 73,
           },
         ],
         [
-          "err: dependency not on default branch",
+          "err: [./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/chainlink-starknet/relayer@v0.0.1-beta-test.0.20240709043547-03612098f799 not on default branch.
+      Default branch: develop
+      Version: UNKNOWN",
           {
             "file": "./test/data/chainlink/go.mod",
             "startLine": 80,
           },
         ],
         [
-          "err: dependency not on default branch",
+          "err: [./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch.
+      Default branch: main
+      Version: b3b91517de16",
           {
             "file": "./test/data/chainlink/go.mod",
             "startLine": 348,
           },
         ],
         [
-          "err: dependency not on default branch",
+          "err: [./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 not on default branch.
+      Default branch: main
+      Version: v0.7.3",
           {
             "file": "./test/data/chainlink/go.mod",
             "startLine": 84,
           },
         ],
         [
-          "err: dependency not on default branch",
+          "err: [./test/data/chainlink/integration-tests/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 // indirect not on default branch.
+      Default branch: main
+      Version: v1.0.10",
           {
             "file": "./test/data/chainlink/integration-tests/go.mod",
             "startLine": 378,
           },
         ],
         [
-          "err: dependency not on default branch",
+          "err: [./test/data/chainlink/integration-tests/go.mod] dependency github.com/smartcontractkit/chainlink-starknet/relayer@v0.0.1-beta-test.0.20240709043547-03612098f799 // indirect not on default branch.
+      Default branch: develop
+      Version: UNKNOWN",
           {
             "file": "./test/data/chainlink/integration-tests/go.mod",
             "startLine": 383,
           },
         ],
         [
-          "err: dependency not on default branch",
+          "err: [./test/data/chainlink/integration-tests/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch.
+      Default branch: main
+      Version: b3b91517de16",
           {
             "file": "./test/data/chainlink/integration-tests/go.mod",
             "startLine": 497,
           },
         ],
         [
-          "err: dependency not on default branch",
+          "err: [./test/data/chainlink/integration-tests/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 // indirect not on default branch.
+      Default branch: main
+      Version: v0.7.3",
           {
             "file": "./test/data/chainlink/integration-tests/go.mod",
             "startLine": 386,
           },
         ],
         [
-          "err: dependency not on default branch",
+          "err: [./test/data/chainlink/integration-tests/load/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 // indirect not on default branch.
+      Default branch: main
+      Version: v1.0.10",
           {
             "file": "./test/data/chainlink/integration-tests/load/go.mod",
             "startLine": 371,
           },
         ],
         [
-          "err: dependency not on default branch",
+          "err: [./test/data/chainlink/integration-tests/load/go.mod] dependency github.com/smartcontractkit/chainlink-starknet/relayer@v0.0.1-beta-test.0.20240709043547-03612098f799 // indirect not on default branch.
+      Default branch: develop
+      Version: UNKNOWN",
           {
             "file": "./test/data/chainlink/integration-tests/load/go.mod",
             "startLine": 375,
           },
         ],
         [
-          "err: dependency not on default branch",
+          "err: [./test/data/chainlink/integration-tests/load/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch.
+      Default branch: main
+      Version: b3b91517de16",
           {
             "file": "./test/data/chainlink/integration-tests/load/go.mod",
             "startLine": 497,
           },
         ],
         [
-          "err: dependency not on default branch",
+          "err: [./test/data/chainlink/integration-tests/load/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 // indirect not on default branch.
+      Default branch: main
+      Version: v0.7.3",
           {
             "file": "./test/data/chainlink/integration-tests/load/go.mod",
             "startLine": 379,
@@ -137,7 +172,7 @@ describe("e2e tests", () => {
         ],
       ]
     `);
-    expect(summary).toMatchInlineSnapshot(`
+      expect(summary).toMatchInlineSnapshot(`
       "
       #### Fixing Errors
 
@@ -146,7 +181,9 @@ describe("e2e tests", () => {
 
       Types of Errors:
 
-      1. Dependency not on default branch - Check for the dependency's commit on the upstream repository and use one of the commits from the default branch of the upstream repository.
+      1. Dependency not on default branch - Check for the dependency's commit on the upstream repository and use one of the commits from the default branch of the upstream repository. 
+
+      NOTE: If you see that the commit should be on the default branch, but it isn't, this means that the "default branch" setting of the repository is incorrect. Please update the default branch of the repository to the correct branch.
 
       e.g., 
       - For dependency github.com/smartcontractkit/grpc-proxy@v0.1.0, upstream repository is \`github.com/smartcontractkit/grpc-proxy\` and \`v0.1.0\` is the tag that produced the dependency, which isn't created from the default branch.
@@ -158,7 +195,8 @@ describe("e2e tests", () => {
 
       "
     `);
-  });
+    },
+  );
 
   it("crib - should match snapshot", { timeout: 100_000 }, async () => {
     setup("crib");
