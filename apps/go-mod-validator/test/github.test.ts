@@ -46,6 +46,7 @@ describe("isGoModReferencingDefaultBranch", () => {
         goMod,
         "main",
         mockOctokit,
+        {},
       );
 
       expect(mockListTags).to.not.toHaveBeenCalled();
@@ -63,7 +64,7 @@ describe("isGoModReferencingDefaultBranch", () => {
       mockCompareCommits.mockRejectedValue(errMessage);
 
       const isReferencingDefaultBranch = () =>
-        isGoModReferencingDefaultBranch(goMod, "main", mockOctokit);
+        isGoModReferencingDefaultBranch(goMod, "main", mockOctokit, {});
       expect(mockListTags).to.not.toHaveBeenCalled();
       await expect(isReferencingDefaultBranch).rejects.toThrowError(errMessage);
     });
@@ -99,6 +100,7 @@ describe("isGoModReferencingDefaultBranch", () => {
         goMod,
         "main",
         mockOctokit,
+        {},
       );
       expect(mockListTags).toHaveBeenCalledOnce();
       expect(mockCompareCommits).toHaveBeenCalledWith({
@@ -114,7 +116,12 @@ describe("isGoModReferencingDefaultBranch", () => {
       const errMessage = "not found";
       mockListTags.mockRejectedValue(errMessage);
 
-      const result = isGoModReferencingDefaultBranch(goMod, "", mockOctokit);
+      const result = isGoModReferencingDefaultBranch(
+        goMod,
+        "",
+        mockOctokit,
+        {},
+      );
       await expect(result).rejects.toThrow(errMessage);
     });
   });
