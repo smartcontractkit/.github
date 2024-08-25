@@ -32,24 +32,12 @@ import * as semver from "@snyk/go-semver/dist/go/semver";
 const pseudoVersionRegex =
   /^v[0-9]+\.(0\.0-|\d+\.\d+-([^+]*\.)?0\.)\d{14}-[A-Za-z0-9]+(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$/;
 
-export function isPseudoVersion(v: string) {
+export function isPseudoVersion(v: string): boolean {
   const hyphens = v.split("-").length;
   const validSemver = valid(v);
   const passesRegex = pseudoVersionRegex.test(v);
-  if (hyphens < 3) {
-    console.warn(`pseudo-version ${v} has less than 3 hyphens`);
-    return false;
-  }
-  if (!validSemver) {
-    console.warn(`pseudo-version ${v} is not a valid semver version`);
-    return false;
-  }
-  if (!passesRegex) {
-    console.warn(`pseudo-version ${v} does not pass regex test`);
-    return false;
-  }
 
-  return true;
+  return !!(hyphens >= 3 && validSemver && passesRegex);
 }
 
 export function pseudoVersionRev(v: string) {
