@@ -63,8 +63,8 @@ importers:
         specifier: ^9.1.0
         version: 9.1.0(eslint@8.57.0)
       jsdom:
-        specifier: ~24.1.0
-        version: 24.1.0
+        specifier: ~25.0.0
+        version: 25.0.0
       lefthook:
         specifier: ^1.6.15
         version: 1.6.18
@@ -128,6 +128,10 @@ importers:
 
   actions/cleanup-old-branches: {}
 
+  actions/crib-deploy-environment: {}
+
+  actions/crib-purge-environment: {}
+
   actions/dispatch-workflow: {}
 
   actions/get-latest-github-release: {}
@@ -161,7 +165,7 @@ importers:
         version: 5.5.3
       vitest:
         specifier: ^2.0.0
-        version: 2.0.4(@types/node@20.14.9)(jsdom@24.1.0)
+        version: 2.0.4(@types/node@20.14.9)(jsdom@25.0.0)
 
   actions/guard-from-missing-changesets: {}
 
@@ -182,8 +186,6 @@ importers:
   actions/policy-bot-config-validator: {}
 
   actions/pr-slack-alert: {}
-
-  actions/setup-crib-environment: {}
 
   actions/setup-gap: {}
 
@@ -300,7 +302,7 @@ importers:
         version: 5.5.3
       vitest:
         specifier: ^2.0.0
-        version: 2.0.4(@types/node@20.14.9)(jsdom@24.1.0)
+        version: 2.0.4(@types/node@20.14.9)(jsdom@25.0.0)
 
   actions/slack-notify-git-ref: {}
 
@@ -345,7 +347,7 @@ importers:
         version: 10.9.2(@swc/core@1.6.6(@swc/helpers@0.5.11))(@types/node@20.14.9)(typescript@5.5.3)
       vitest:
         specifier: ^2.0.0
-        version: 2.0.4(@types/node@20.14.9)(jsdom@24.1.0)
+        version: 2.0.4(@types/node@20.14.9)(jsdom@25.0.0)
 
   apps/go-mod-validator:
     dependencies:
@@ -376,7 +378,7 @@ importers:
         version: 5.5.3
       vitest:
         specifier: ^1.6.0
-        version: 1.6.0(@types/node@20.14.9)(jsdom@24.1.0)
+        version: 1.6.0(@types/node@20.14.9)(jsdom@25.0.0)
 
   apps/update-action-versions:
     dependencies:
@@ -419,7 +421,7 @@ importers:
     devDependencies:
       vitest:
         specifier: ^2.0.0
-        version: 2.0.4(@types/node@20.14.9)(jsdom@24.1.0)
+        version: 2.0.4(@types/node@20.14.9)(jsdom@25.0.0)
 
 packages:
 
@@ -4073,8 +4075,8 @@ packages:
     resolution: {integrity: sha512-NmLNjm6ucYwtcUmL7JQC1ZQ57LmHP4lT15FQ8D61nak1rO6DH+fz5qNK2Ap5UN4ZapYICE3/0KodcLYSPsPbaA==}
     engines: {node: '>= 14'}
 
-  https-proxy-agent@7.0.4:
-    resolution: {integrity: sha512-wlwpilI7YdjSkWaQ/7omYBMTliDcmCN8OLihO6I9B86g06lMyAoqgoDpV0XqoaPOKj+0DIdAvnsWfyAAhmimcg==}
+  https-proxy-agent@7.0.5:
+    resolution: {integrity: sha512-1e4Wqeblerz+tMKPIq2EMGiiWW1dIjZOksyHWSUm1rmuvw/how9hBHZ38lAGj5ID4Ik6EdkOw7NmWPy6LAwalw==}
     engines: {node: '>= 14'}
 
   human-id@1.0.2:
@@ -4439,8 +4441,8 @@ packages:
     resolution: {integrity: sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==}
     hasBin: true
 
-  jsdom@24.1.0:
-    resolution: {integrity: sha512-6gpM7pRXCwIOKxX47cgOyvyQDN/Eh0f1MeKySBV2xGdKtqJBLj8P25eY3EVCWo2mglDDzozR2r2MW4T+JiNUZA==}
+  jsdom@25.0.0:
+    resolution: {integrity: sha512-OhoFVT59T7aEq75TVw9xxEfkXgacpqAhQaYgP9y/fDqWQCMB/b1H66RfmPm/MaeaAIU9nDwMOVTlPN51+ao6CQ==}
     engines: {node: '>=18'}
     peerDependencies:
       canvas: ^2.11.2
@@ -4894,8 +4896,8 @@ packages:
   nullthrows@1.1.1:
     resolution: {integrity: sha512-2vPPEi+Z7WqML2jZYddDIfy5Dqb0r2fze2zTxNNknZaFpVHU3mFB3R+DWeJWGVx0ecvttSGlJTI+WG+8Z4cDWw==}
 
-  nwsapi@2.2.10:
-    resolution: {integrity: sha512-QK0sRs7MKv0tKe1+5uZIQk/C8XGza4DAnztJG8iD+TpJIORARrCxczA738awHrZoHeTjSSoHqao2teO0dC/gFQ==}
+  nwsapi@2.2.12:
+    resolution: {integrity: sha512-qXDmcVlZV4XRtKFzddidpfVP4oMSGhga+xdMc25mv8kaLUHtgzCDhUxkrN8exkGdTlLNaXj7CV3GtON7zuGZ+w==}
 
   nx@17.3.2:
     resolution: {integrity: sha512-QjF1gnwKebQISvATrSbW7dsmIcLbA0fcyDyxLo5wVHx/MIlcaIb/lLYaPTld73ZZ6svHEZ6n2gOkhMitmkIPQA==}
@@ -6104,6 +6106,18 @@ packages:
 
   ws@8.17.1:
     resolution: {integrity: sha512-6XQFvXTkbfUOZOKKILFG1PDK2NDQs4azKQl26T0YS5CxqWLgXajbPZ+h4gZekJyRqFU8pvnbAbbs/3TgRPy+GQ==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
+  ws@8.18.0:
+    resolution: {integrity: sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -8225,9 +8239,9 @@ snapshots:
       '@types/ws': 8.5.10
       graphql: 16.9.0
       graphql-ws: 5.14.2(graphql@16.9.0)
-      isomorphic-ws: 5.0.0(ws@8.16.0)
+      isomorphic-ws: 5.0.0(ws@8.17.1)
       tslib: 2.6.3
-      ws: 8.16.0
+      ws: 8.17.1
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -11263,7 +11277,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  https-proxy-agent@7.0.4:
+  https-proxy-agent@7.0.5:
     dependencies:
       agent-base: 7.1.0
       debug: 4.3.5
@@ -11440,6 +11454,10 @@ snapshots:
   isomorphic-ws@5.0.0(ws@8.16.0):
     dependencies:
       ws: 8.16.0
+
+  isomorphic-ws@5.0.0(ws@8.17.1):
+    dependencies:
+      ws: 8.17.1
 
   istanbul-lib-coverage@3.2.0: {}
 
@@ -11779,7 +11797,7 @@ snapshots:
     dependencies:
       argparse: 2.0.1
 
-  jsdom@24.1.0:
+  jsdom@25.0.0:
     dependencies:
       cssstyle: 4.0.1
       data-urls: 5.0.0
@@ -11787,9 +11805,9 @@ snapshots:
       form-data: 4.0.0
       html-encoding-sniffer: 4.0.0
       http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.4
+      https-proxy-agent: 7.0.5
       is-potential-custom-element-name: 1.0.1
-      nwsapi: 2.2.10
+      nwsapi: 2.2.12
       parse5: 7.1.2
       rrweb-cssom: 0.7.1
       saxes: 6.0.0
@@ -11800,7 +11818,7 @@ snapshots:
       whatwg-encoding: 3.1.1
       whatwg-mimetype: 4.0.0
       whatwg-url: 14.0.0
-      ws: 8.17.1
+      ws: 8.18.0
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - bufferutil
@@ -12220,7 +12238,7 @@ snapshots:
 
   nullthrows@1.1.1: {}
 
-  nwsapi@2.2.10: {}
+  nwsapi@2.2.12: {}
 
   nx@17.3.2(@swc-node/register@1.10.0(@swc/core@1.6.6(@swc/helpers@0.5.11))(@swc/types@0.1.9)(typescript@5.5.3))(@swc/core@1.6.6(@swc/helpers@0.5.11)):
     dependencies:
@@ -13333,7 +13351,7 @@ snapshots:
       '@types/node': 20.14.9
       fsevents: 2.3.3
 
-  vitest@1.6.0(@types/node@20.14.9)(jsdom@24.1.0):
+  vitest@1.6.0(@types/node@20.14.9)(jsdom@25.0.0):
     dependencies:
       '@vitest/expect': 1.6.0
       '@vitest/runner': 1.6.0
@@ -13357,7 +13375,7 @@ snapshots:
       why-is-node-running: 2.2.2
     optionalDependencies:
       '@types/node': 20.14.9
-      jsdom: 24.1.0
+      jsdom: 25.0.0
     transitivePeerDependencies:
       - less
       - lightningcss
@@ -13367,7 +13385,7 @@ snapshots:
       - supports-color
       - terser
 
-  vitest@2.0.4(@types/node@20.14.9)(jsdom@24.1.0):
+  vitest@2.0.4(@types/node@20.14.9)(jsdom@25.0.0):
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@vitest/expect': 2.0.4
@@ -13390,7 +13408,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 20.14.9
-      jsdom: 24.1.0
+      jsdom: 25.0.0
     transitivePeerDependencies:
       - less
       - lightningcss
@@ -13497,6 +13515,8 @@ snapshots:
   ws@8.16.0: {}
 
   ws@8.17.1: {}
+
+  ws@8.18.0: {}
 
   xml-name-validator@5.0.0: {}
 
