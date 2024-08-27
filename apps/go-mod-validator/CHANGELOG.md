@@ -1,5 +1,14 @@
 # go-mod-validator
 
+## 0.3.0
+
+### Minor Changes
+
+- [#572](https://github.com/smartcontractkit/.github/pull/572)
+  [`f72135a`](https://github.com/smartcontractkit/.github/commit/f72135af430664fba28efd54e52de03de54191e9)
+  Thanks [@HenryNguyen5](https://github.com/HenryNguyen5)! - Add caching, better
+  logging, and use reference pseudo-version parser
+
 ## 0.2.1
 
 ### Patch Changes
