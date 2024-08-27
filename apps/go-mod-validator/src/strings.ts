@@ -6,7 +6,7 @@ export const FIXING_ERRORS = `
 
 Types of Errors:
 
-1. Dependency not on default branch - Check for the dependency's commit on the upstream repository and use one of the commits from the default branch of the upstream repository. 
+1. Dependency not on default branch - Check for the dependency's commit on the upstream repository and use one of the commits from the default branch of the upstream repository. If you click on the commit link that gets generated, on the UI you will see the branches that a commit belongs to, which will not be the default branch.
 
 NOTE: If you see that the commit should be on the default branch, but it isn't, this means that the "default branch" setting of the repository is incorrect. Please update the default branch of the repository to the correct branch.
 

@@ -49,22 +49,30 @@ export async function run(): Promise<string> {
     // the GitHub API client.
     // And we want the default branch available in this scope for context.
     const defaultBranch = await getDefaultBranch(gh, d);
-    const isValid = await isGoModReferencingDefaultBranch(gh, d, defaultBranch);
+    const { commitSha, isInDefault } = await isGoModReferencingDefaultBranch(
+      gh,
+      d,
+      defaultBranch,
+    );
 
-    let parsedVersion = "UNKNOWN";
-    if ("commitSha" in d) {
-      parsedVersion = d.commitSha;
-    }
+    const repoUrl = `https://github.com/${d.owner}/${d.repo}`;
+    let detailString = "";
     if ("tag" in d) {
-      parsedVersion = d.tag;
+      detailString = `Version(tag): ${d.tag}
+Tree: ${repoUrl}/tree/${d.tag}
+Commit: ${repoUrl}/commit/${commitSha}`;
+    }
+    if ("commitSha" in d) {
+      detailString = `Version(commit): ${d.commitSha}
+Tree: ${repoUrl}/tree/${d.commitSha}
+Commit: ${repoUrl}/commit/${d.commitSha} `;
     }
 
-    if (!isValid) {
+    if (!isInDefault) {
       errs.set(
         d,
-        `[${d.goModFilePath}] dependency ${d.name} not on default branch.
-Default branch: ${defaultBranch}
-Version: ${parsedVersion}`,
+        `[${d.goModFilePath}] dependency ${d.name} not on default branch (${defaultBranch}).
+${detailString}`,
       );
     }
   });
