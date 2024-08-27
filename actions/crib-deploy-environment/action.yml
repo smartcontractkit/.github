@@ -5,61 +5,75 @@ description:
 
 inputs:
   api-gateway-host:
-    description: API Gateway host for K8s
+    description: "API Gateway host for GAP, used to access the Kubernetes API."
     required: true
   aws-region:
-    description: AWS region
+    description: "AWS region."
     required: true
   aws-role-arn:
-    description: AWS Role ARN for CRIB
+    description: "AWS Role ARN to be used for setting up GAP."
     required: true
   devspace-ingress-cidrs:
-    default: 0.0.0.0/0
-    description: DevSpace ingress CIDRs
+    default: "0.0.0.0/0"
+    description: "DevSpace ingress CIDRs."
     required: false
   devspace-profiles:
     default: ""
-    required: false
     description: |
-      Coma separated list of devspace profiles to apply when running devspace commands.
-      Example: ci,values-dev-simulated-core-ocr1
+      "Comma-separated list of DevSpace profiles to apply when running DevSpace commands.
+      Example: ci,values-dev-simulated-core-ocr1."
+    required: false
   ecr-private-registry:
     default: ""
-    description: ECR private registry account ID in Prod, needed for GAP
-    required: false
-  ecr-private-registry-stage:
-    default: ""
-    description: ECR private registry account ID in Staging
+    description:
+      "ECR private registry account ID in Production, needed for GAP."
     required: false
   github-token:
     description: "The `GITHUB_TOKEN` issued for the workflow."
-    required: false
     default: ${{ github.token }}
-  image-tag:
-    default: latest
-    description: Docker image tag for the product
     required: false
   ingress-base-domain:
-    description: DevSpace ingress base domain
+    description: "DevSpace ingress base domain."
     required: true
   k8s-cluster-name:
-    description: K8s cluster name
+    description: "Kubernetes cluster name."
     required: true
-  kube-cache-dir:
-    default: /dev/null
-    description: Configure kube cache dir
-    required: false
   ns-ttl:
-    default: 1h
-    description: Namespace TTL, used by Kyverno for cleanup
+    default: "1h"
+    description:
+      "Namespace TTL, which defines how long a namespace will remain alive after
+      creation."
     required: false
   product:
-    default: core
-    description: Product name
+    default: "core"
+    description: "The name of the product (e.g., core, ccip)."
     required: false
+  product-image:
+    required: false
+    description:
+      "Docker image without tag e.g public.ecr.aws/chainlink/chainlink"
+    default: public.ecr.aws/chainlink/chainlink
+  product-image-tag:
+    default: "latest"
+    description: "Docker image tag for the product."
+    required: false
+  send-alerts:
+    default: "true"
+    description: |
+      Notify CRIB team when Env Provisioning fails. 
+      When enabled it requires to provide crib-alert-slack-webhook parameter as well.
+  crib-alert-slack-webhook:
+    default: ""
+    description:
+      slack incoming webhook to notify CRIB team on CRIB provisioning failures
+    required: false
+  crib-repo-ref:
+    default: "main"
+    required: false
+    description: Useful for testing updates in CRIB
 outputs:
   devspace-namespace:
-    description: Kubernetes namespace used to provision CRIB
+    description: "Kubernetes namespace used to provision a CRIB environment."
     value: ${{ steps.generate-ns-name.outputs.devspace-namespace }}
 
 runs:
@@ -101,7 +115,7 @@ runs:
       uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
       with:
         repository: "smartcontractkit/crib"
-        ref: "main"
+        ref: ${{ inputs.crib-repo-ref }}
         path: "${{ github.workspace }}/crib"
         token: ${{ inputs.github-token }}
 
@@ -112,11 +126,43 @@ runs:
         enable-aws: true
         aws-region: ${{ inputs.aws-region }}
 
-    - name: Generate CRIB Namespace Name
+    - name: Generate CRIB Namespace Name and labels
       id: generate-ns-name
       shell: bash
       run: |
         echo "devspace-namespace=crib-ci-$(uuidgen | cut -c1-5)" >> $GITHUB_OUTPUT
+        # This will work only for PRs, push event itself does not contain PR information.
+        echo "pr-number=${{ github.event.number }}" >> $GITHUB_OUTPUT
+        echo "workflow-job=${{ github.job }}" >> $GITHUB_OUTPUT
+        echo "repo-name=$(basename $GITHUB_REPOSITORY)" >> $GITHUB_OUTPUT
+        echo "branch-name=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        echo "commit-sha=${{ github.sha }}" >> $GITHUB_OUTPUT
+        echo "workflow-run-number=${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+    - name: Create and label CRIB namespace
+      shell: bash
+      run: |
+        # a valid label must be an empty string or consist of alphanumeric characters,
+        # ‘-’, ‘_’ or ‘.’, and must start and end with an alphanumeric character
+        # (e.g. ‘MyValue’,  or ‘my_value’,  or ‘12345’, regex used for validation is
+        # ‘(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?’)
+        sanitized_branch=$(echo "${{ steps.generate-ns-name.outputs.branch-name }}" \
+          | sed 's/[^a-zA-Z0-9._-]/_/g')
+
+        NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
+        echo "Creating $NAMESPACE Kubernetes namespace.."
+        kubectl create ns "$NAMESPACE"
+
+        kubectl label namespace $NAMESPACE \
+          repo=${{ steps.generate-ns-name.outputs.repo-name }} \
+          branch="${sanitized_branch}" \
+          commit=${{ steps.generate-ns-name.outputs.commit-sha }} \
+          pr-number=${{ steps.generate-ns-name.outputs.pr-number || 'none' }} \
+          workflow-job=${{ steps.generate-ns-name.outputs.workflow-job }} \
+          workflow-run-number=${{ steps.generate-ns-name.outputs.workflow-run-number }}
+
+        echo "Kubernetes namespace [$NAMESPACE] successfully labeled:"
+        kubectl get namespace $NAMESPACE --show-labels
 
     - name: Deploy to CRIB ephemeral environment
       working-directory:
@@ -127,9 +173,7 @@ runs:
         CRIB_CI_ENV: true
         CRIB_SKIP_DOCKER_ECR_LOGIN: true
         CRIB_SKIP_HELM_ECR_LOGIN: true
-        DEVSPACE_IMAGE:
-          "${{
-          inputs.ecr-private-registry-stage}}.dkr.ecr.us-west-2.amazonaws.com/chainlink-devspace"
+        DEVSPACE_IMAGE: "${{inputs.product-image}}"
         DEVSPACE_INGRESS_BASE_DOMAIN: ${{ inputs.ingress-base-domain }}
         DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
         PROFILES: ${{ inputs.devspace-profiles }}
@@ -143,7 +187,6 @@ runs:
         # Get the namespace name from GitHub Actions output
         NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
         echo "Using $NAMESPACE Kubernetes namespace"
-        kubectl create ns "$NAMESPACE"
 
         # Kyverno needs some time to inject the RoleBinding
         sleep 3
@@ -167,4 +210,49 @@ runs:
           echo "running devspace with profile args: ${profile_args_array[@]}"
         fi
 
-        nix develop -c devspace deploy --skip-build -o=${{ inputs.image-tag }} "${profile_args_array[@]}"
+        nix develop -c devspace deploy --skip-build -o=${{ inputs.product-image-tag }} "${profile_args_array[@]}"
+    - name: Render notification template
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+      id: render-slack-template
+      if:
+        failure() && inputs.crib-alert-slack-webhook != '' && inputs.send-alerts
+        == 'true'
+      with:
+        script: |
+          const {GITHUB_SERVER_URL, GITHUB_REPOSITORY, GITHUB_RUN_ID, GITHUB_ACTOR} = process.env;
+          const workflowRunUrl = `${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}`;
+
+          payload = {
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": ":red_circle: *Failed to provision CRIB environment for ${{ inputs.product }}*"
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": `<${workflowRunUrl}|Workflow Run>
+          Git Repo: ${GITHUB_REPOSITORY}
+          Github Actor: ${GITHUB_ACTOR}`
+                }
+              }
+            ]
+          };
+          return JSON.stringify(payload);
+
+    - name: Notify CRIB team on failure
+      if:
+        failure() && inputs.crib-alert-slack-webhook != '' && inputs.send-alerts
+        == 'true'
+      id: slack
+      uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+      with:
+        # For posting a rich message using Block Kit
+        payload: ${{ steps.render-slack-template.outputs.result }}
+      env:
+        SLACK_WEBHOOK_URL: ${{ inputs.crib-alert-slack-webhook }}
+        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

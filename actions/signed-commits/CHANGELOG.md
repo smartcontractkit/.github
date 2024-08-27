@@ -1,5 +1,14 @@
 # changesets-signed-commits
 
+## 1.3.0
+
+### Minor Changes
+
+- [#517](https://github.com/smartcontractkit/.github/pull/517)
+  [`77ab525`](https://github.com/smartcontractkit/.github/commit/77ab5252dac0156b5f62236f8d1d92c99c6fa091)
+  Thanks [@erikburt](https://github.com/erikburt)! - bug fix: split commits by
+  monorepo package path due to github gql server errors for large payloads
+
 ## 1.2.4
 
 ### Patch Changes

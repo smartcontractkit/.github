@@ -1,5 +1,59 @@
 # crib-deploy-environment
 
+## 1.1.0
+
+### Minor Changes
+
+- [#570](https://github.com/smartcontractkit/.github/pull/570)
+  [`8c3b1f3`](https://github.com/smartcontractkit/.github/commit/8c3b1f3d4e7ea113eb1bdb03abfb939d12385ab8)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Make slack alerts
+  configurable
+
+## 1.0.0
+
+### Major Changes
+
+- [#568](https://github.com/smartcontractkit/.github/pull/568)
+  [`9912dac`](https://github.com/smartcontractkit/.github/commit/9912dac3b0b2fdd352049f1a49e7fa0101ad4b19)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Option to specify
+  image URI for the product
+
+## 0.8.0
+
+### Minor Changes
+
+- [#566](https://github.com/smartcontractkit/.github/pull/566)
+  [`ad3a990`](https://github.com/smartcontractkit/.github/commit/ad3a99081859689be328de096901577329970ee6)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Option to use
+  specific version of crib, which can be useful for testing on the branches
+
+## 0.7.1
+
+### Patch Changes
+
+- [#563](https://github.com/smartcontractkit/.github/pull/563)
+  [`21df589`](https://github.com/smartcontractkit/.github/commit/21df589fcb13a6fea70278e1a9c42eb4948770b2)
+  Thanks [@chainchad](https://github.com/chainchad)! - Sanitize branch name for
+  valid K8s label value
+
+## 0.7.0
+
+### Minor Changes
+
+- [#560](https://github.com/smartcontractkit/.github/pull/560)
+  [`65f078f`](https://github.com/smartcontractkit/.github/commit/65f078f61ad5896468e2241c4a7e25e4c3052e28)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Option to notify CRIB
+  team whenever CRIB provisioning fails
+
+## 0.6.0
+
+### Minor Changes
+
+- [#559](https://github.com/smartcontractkit/.github/pull/559)
+  [`a37e968`](https://github.com/smartcontractkit/.github/commit/a37e96841ef11ced0c940f2b038e794850336fcb)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding an extra
+  step to label the Kubernetes namespace and associate it with GitHub context
+
 ## 0.5.0
 
 ### Minor Changes
