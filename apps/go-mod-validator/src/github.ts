@@ -58,16 +58,16 @@ const cache: { [key: string]: Promise<boolean> } = {};
  *
  * The version can be a tag or a commit.
  *
+ * @param gh - The Octokit client used to make API requests to GitHub.
  * @param mod - The Go module to validate.
  * @param defaultBranch - The default branch of the repository.
- * @param gh - The Octokit client used to make API requests to GitHub.
  *
  * @returns A boolean indicating whether the version exists in the repository.
  */
 export async function isGoModReferencingDefaultBranch(
+  gh: Octokit,
   mod: GoModule,
   defaultBranch: string,
-  gh: Octokit,
   c = cache,
 ): Promise<boolean> {
   const cacheKey = `${mod.path}:${mod.version}:${defaultBranch}`;

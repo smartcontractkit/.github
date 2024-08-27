@@ -49,7 +49,7 @@ export async function run(): Promise<string> {
     // the GitHub API client.
     // And we want the default branch available in this scope for context.
     const defaultBranch = await getDefaultBranch(gh, d);
-    const isValid = await isGoModReferencingDefaultBranch(d, defaultBranch, gh);
+    const isValid = await isGoModReferencingDefaultBranch(gh, d, defaultBranch);
 
     let parsedVersion = "UNKNOWN";
     if ("commitSha" in d) {

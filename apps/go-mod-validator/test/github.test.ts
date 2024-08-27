@@ -62,9 +62,9 @@ describe("isGoModReferencingDefaultBranch", () => {
       });
 
       const referencesDefault = await isGoModReferencingDefaultBranch(
+        mockOctokit,
         goMod,
         "main",
-        mockOctokit,
         {},
       );
 
@@ -83,7 +83,7 @@ describe("isGoModReferencingDefaultBranch", () => {
       mockCompareCommits.mockRejectedValue(errMessage);
 
       const isReferencingDefaultBranch = () =>
-        isGoModReferencingDefaultBranch(goMod, "main", mockOctokit, {});
+        isGoModReferencingDefaultBranch(mockOctokit, goMod, "main", {});
       expect(mockListTags).to.not.toHaveBeenCalled();
       await expect(isReferencingDefaultBranch).rejects.toThrowError(errMessage);
     });
@@ -116,9 +116,9 @@ describe("isGoModReferencingDefaultBranch", () => {
       expect(expectedCommitSha).toBeDefined();
 
       const isValid = await isGoModReferencingDefaultBranch(
+        mockOctokit,
         goMod,
         "main",
-        mockOctokit,
         {},
       );
       expect(mockListTags).toHaveBeenCalledOnce();
@@ -136,9 +136,9 @@ describe("isGoModReferencingDefaultBranch", () => {
       mockListTags.mockRejectedValue(errMessage);
 
       const result = isGoModReferencingDefaultBranch(
+        mockOctokit,
         goMod,
         "",
-        mockOctokit,
         {},
       );
       await expect(result).rejects.toThrow(errMessage);
