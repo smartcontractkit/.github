@@ -3,35 +3,58 @@ import { describe, expect, it, vi } from "vitest";
 import listTagsFixture from "./data/list_tags.json";
 import { GoModule } from "../src/deps";
 
+vi.mock("@actions/core", async (importOriginal: any) => ({
+  ...(await importOriginal(typeof import("@actions/core"))),
+  setFailed: (msg: string) => {
+    console.log(`setFailed (stub): ${msg}`);
+  },
+  error: (msg: string) => {
+    console.log(`error (stub): ${msg}`);
+  },
+  warning: (msg: string) => {
+    console.log(`warn (stub): ${msg}`);
+  },
+  info: (msg: string) => {
+    console.log(`info (stub): ${msg}`);
+  },
+  debug: () => {
+    // noop
+  },
+}));
+
 const owner = "smartcontractkit";
 const repo = "go-plugin";
 const goModPath = `github.com/${owner}/${repo}`;
-const mockGet = vi.fn();
 const mockCompareCommits = vi.fn();
 const mockListTags = vi.fn();
 const mockOctokit: any = {
   rest: {
     repos: {
-      get: mockGet,
       compareCommits: mockCompareCommits,
       listTags: mockListTags,
     },
   },
 };
+
 describe("isGoModReferencingDefaultBranch", () => {
+  const fullRepo = {
+    owner,
+    repo,
+  };
+
   describe("pseudo-versions", () => {
     const commitSha = "b3b91517de16";
     const version = `v0.0.0-20240208201424-${commitSha}`;
     const goMod: GoModule = {
+      ...fullRepo,
       path: goModPath,
       version,
+      commitSha,
       name: `${goModPath}@${version}`,
+      goModFilePath: ".",
     };
 
     it("should check if the commit is present on the default branch", async () => {
-      mockGet.mockResolvedValueOnce({
-        data: { default_branch: "main" },
-      });
       mockCompareCommits.mockResolvedValueOnce({
         data: {
           status: "behind",
@@ -39,12 +62,13 @@ describe("isGoModReferencingDefaultBranch", () => {
       });
 
       const referencesDefault = await isGoModReferencingDefaultBranch(
-        goMod,
         mockOctokit,
+        goMod,
+        "main",
+        {},
       );
 
       expect(mockListTags).to.not.toHaveBeenCalled();
-      expect(mockGet).toHaveBeenCalledWith({ owner, repo });
       expect(mockCompareCommits).toHaveBeenCalledWith({
         owner,
         repo,
@@ -56,13 +80,10 @@ describe("isGoModReferencingDefaultBranch", () => {
 
     it("should throw an error if the compare commits request fails", async () => {
       const errMessage = "not found";
-      mockGet.mockResolvedValue({
-        data: { default_branch: "main" },
-      });
       mockCompareCommits.mockRejectedValue(errMessage);
 
       const isReferencingDefaultBranch = () =>
-        isGoModReferencingDefaultBranch(goMod, mockOctokit);
+        isGoModReferencingDefaultBranch(mockOctokit, goMod, "main", {});
       expect(mockListTags).to.not.toHaveBeenCalled();
       await expect(isReferencingDefaultBranch).rejects.toThrowError(errMessage);
     });
@@ -71,15 +92,15 @@ describe("isGoModReferencingDefaultBranch", () => {
   describe("regular versions", () => {
     const version = "v0.1.0";
     const goMod: GoModule = {
+      ...fullRepo,
       path: goModPath,
       version,
+      tag: version,
       name: `${goModPath}@${version}`,
+      goModFilePath: ".",
     };
 
     it("should check if the commit is present on the default branch", async () => {
-      mockGet.mockResolvedValueOnce({
-        data: { default_branch: "main" },
-      });
       mockCompareCommits.mockResolvedValueOnce({
         data: {
           status: "behind",
@@ -94,9 +115,11 @@ describe("isGoModReferencingDefaultBranch", () => {
       )?.commit.sha;
       expect(expectedCommitSha).toBeDefined();
 
-      const repoObject = await isGoModReferencingDefaultBranch(
-        goMod,
+      const isValid = await isGoModReferencingDefaultBranch(
         mockOctokit,
+        goMod,
+        "main",
+        {},
       );
       expect(mockListTags).toHaveBeenCalledOnce();
       expect(mockCompareCommits).toHaveBeenCalledWith({
@@ -105,14 +128,19 @@ describe("isGoModReferencingDefaultBranch", () => {
         base: "main",
         head: expectedCommitSha,
       });
-      expect(repoObject).toEqual(true);
+      expect(isValid).toEqual(true);
     });
 
     it("should throw an error if listing tags fails", async () => {
       const errMessage = "not found";
       mockListTags.mockRejectedValue(errMessage);
 
-      const result = isGoModReferencingDefaultBranch(goMod, mockOctokit);
+      const result = isGoModReferencingDefaultBranch(
+        mockOctokit,
+        goMod,
+        "",
+        {},
+      );
       await expect(result).rejects.toThrow(errMessage);
     });
   });
