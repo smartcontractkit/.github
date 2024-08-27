@@ -3,6 +3,25 @@ import { getDeps, getVersionType } from "../src/deps";
 import { describe, expect, it, vi, MockedObject } from "vitest";
 import * as glob from "@actions/glob";
 
+vi.mock("@actions/core", async (importOriginal: any) => ({
+  ...(await importOriginal(typeof import("@actions/core"))),
+  setFailed: (msg: string) => {
+    console.log(`setFailed (stub): ${msg}`);
+  },
+  error: (msg: string) => {
+    console.log(`error (stub): ${msg}`);
+  },
+  warning: (msg: string) => {
+    console.log(`warn (stub): ${msg}`);
+  },
+  info: (msg: string) => {
+    console.log(`info (stub): ${msg}`);
+  },
+  debug: () => {
+    // noop
+  },
+}));
+
 const mockedExecSync = vi.mocked(execSync);
 vi.mock("child_process");
 const mockedGlob = vi.mocked(glob);

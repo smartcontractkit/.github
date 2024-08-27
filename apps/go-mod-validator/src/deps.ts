@@ -192,17 +192,18 @@ export async function getDeps(
         encoding: "utf-8",
         cwd: dir,
       });
-      process.env.CI && core.debug(`Raw output: ${output}`);
+      core.debug(`Raw output: ${output}`);
+
       const parsedDeps = parseGoModListOutput(output);
-      process.env.CI &&
-        core.debug(`Parsed dependencies: ${JSON.stringify(parsedDeps)}`);
+      core.debug(`Parsed dependencies: ${JSON.stringify(parsedDeps)}`);
+
       const mappedDeps = goModsToGoModules(
         goModFilePath,
         parsedDeps,
         depPrefix,
       );
-      process.env.CI &&
-        core.debug(`Mapped dependencies: ${JSON.stringify(mappedDeps)}`);
+      core.debug(`Mapped dependencies: ${JSON.stringify(mappedDeps)}`);
+
       return mappedDeps;
     } catch (error) {
       throw Error(

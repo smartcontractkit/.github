@@ -3,6 +3,25 @@ import { describe, expect, it, vi } from "vitest";
 import listTagsFixture from "./data/list_tags.json";
 import { GoModule } from "../src/deps";
 
+vi.mock("@actions/core", async (importOriginal: any) => ({
+  ...(await importOriginal(typeof import("@actions/core"))),
+  setFailed: (msg: string) => {
+    console.log(`setFailed (stub): ${msg}`);
+  },
+  error: (msg: string) => {
+    console.log(`error (stub): ${msg}`);
+  },
+  warning: (msg: string) => {
+    console.log(`warn (stub): ${msg}`);
+  },
+  info: (msg: string) => {
+    console.log(`info (stub): ${msg}`);
+  },
+  debug: () => {
+    // noop
+  },
+}));
+
 const owner = "smartcontractkit";
 const repo = "go-plugin";
 const goModPath = `github.com/${owner}/${repo}`;

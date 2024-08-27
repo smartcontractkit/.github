@@ -2,10 +2,28 @@ import { describe, vi, it, expect, afterEach } from "vitest";
 import { run } from "../src/go-mod-validator";
 import { join } from "path";
 import * as core from "@actions/core";
-const testDataDir = "./test/data";
+
+vi.mock("@actions/core", async (importOriginal: any) => ({
+  ...(await importOriginal(typeof import("@actions/core"))),
+  setFailed: (msg: string) => {
+    console.log(`setFailed (stub): ${msg}`);
+  },
+  error: (msg: string) => {
+    console.log(`error (stub): ${msg}`);
+  },
+  warning: (msg: string) => {
+    console.log(`warn (stub): ${msg}`);
+  },
+  info: (msg: string) => {
+    console.log(`info (stub): ${msg}`);
+  },
+  debug: () => {
+    // noop
+  },
+}));
 
 function setup(repoName: string) {
-  process.env["INPUT_GO-MOD-DIR"] = join(testDataDir, repoName);
+  process.env["INPUT_GO-MOD-DIR"] = join("./test/data", repoName);
   process.env["INPUT_GITHUB-TOKEN"] = process.env.GITHUB_TOKEN;
   process.env["INPUT_DEP-PREFIX"] = "github.com/smartcontractkit";
   process.env["GITHUB_STEP_SUMMARY"] = "/dev/null";
