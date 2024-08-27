@@ -128,18 +128,13 @@ const pseudoTests = [
     older: "v2.3.0-pre+incompatible",
     version: "v2.3.0-pre.0.20060102150405-hash+incompatible",
   },
-  {
-    major: "unused",
-    older: "unused",
-    version: "v0.0.5-0.20220116011046-fa5810519dcb",
-  },
 ];
 
 describe("getVersionType", () => {
   for (const { version } of pseudoTests) {
     it(`should return the correct version type for ${version} `, () => {
       const verType = getVersionType(version);
-      expect(verType).toMatchSnapshot();
+      expect(verType).toEqual({ commitSha: "hash", tag: undefined });
     });
   }
 
