@@ -50,7 +50,6 @@ function parsePseudoVersion(v: string): {
   timestamp: string;
   rev: string;
   build: string;
-  err: Error | null;
 } {
   if (!isPseudoVersion(v)) {
     throw new Error("pseudo syntax error");
@@ -70,7 +69,6 @@ function parsePseudoVersion(v: string): {
       timestamp: v.slice(j + 1),
       rev: rev,
       build: build,
-      err: null,
     };
   } else {
     return {
@@ -78,7 +76,6 @@ function parsePseudoVersion(v: string): {
       timestamp: v.slice(i + 1),
       rev: rev,
       build: build,
-      err: null,
     };
   }
 }
