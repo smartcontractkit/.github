@@ -40,89 +40,89 @@ describe("e2e tests", () => {
     setup("chainlink");
     const summary = await run();
     expect(annotationSpy.mock.calls).toMatchInlineSnapshot(`
+      [
         [
-          [
-            "err: [./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 // indirect not on default branch (main).
-        Version(tag): v1.0.10
-        Tree: https://github.com/smartcontractkit/chain-selectors/tree/v1.0.10
-        Commit: https://github.com/smartcontractkit/chain-selectors/commit/00e6f0f6de86f013ca2047a175d4f0a909b4b068",
-            {
-              "file": "./test/data/chainlink/core/scripts/go.mod",
-              "startLine": 272,
-            },
-          ],
-          [
-            "err: [./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
-        Version(commit): b3b91517de16
-        Tree: https://github.com/smartcontractkit/go-plugin/tree/b3b91517de16
-        Commit: https://github.com/smartcontractkit/go-plugin/commit/b3b91517de16 ",
-            {
-              "file": "./test/data/chainlink/core/scripts/go.mod",
-              "startLine": 369,
-            },
-          ],
-          [
-            "err: [./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 // indirect not on default branch (main).
-        Version(tag): v0.7.3
-        Tree: https://github.com/smartcontractkit/wsrpc/tree/v0.7.3
-        Commit: https://github.com/smartcontractkit/wsrpc/commit/c691d6729bfbdbac704df13decf5e2e37eb3b672",
-            {
-              "file": "./test/data/chainlink/core/scripts/go.mod",
-              "startLine": 280,
-            },
-          ],
-          [
-            "err: [./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 not on default branch (main).
-        Version(tag): v1.0.10
-        Tree: https://github.com/smartcontractkit/chain-selectors/tree/v1.0.10
-        Commit: https://github.com/smartcontractkit/chain-selectors/commit/00e6f0f6de86f013ca2047a175d4f0a909b4b068",
-            {
-              "file": "./test/data/chainlink/go.mod",
-              "startLine": 73,
-            },
-          ],
-          [
-            "err: [./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
-        Version(commit): b3b91517de16
-        Tree: https://github.com/smartcontractkit/go-plugin/tree/b3b91517de16
-        Commit: https://github.com/smartcontractkit/go-plugin/commit/b3b91517de16 ",
-            {
-              "file": "./test/data/chainlink/go.mod",
-              "startLine": 348,
-            },
-          ],
-          [
-            "err: [./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 not on default branch (main).
-        Version(tag): v0.7.3
-        Tree: https://github.com/smartcontractkit/wsrpc/tree/v0.7.3
-        Commit: https://github.com/smartcontractkit/wsrpc/commit/c691d6729bfbdbac704df13decf5e2e37eb3b672",
-            {
-              "file": "./test/data/chainlink/go.mod",
-              "startLine": 84,
-            },
-          ],
-          [
-            "err: [./test/data/chainlink/integration-tests/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
-        Version(commit): b3b91517de16
-        Tree: https://github.com/smartcontractkit/go-plugin/tree/b3b91517de16
-        Commit: https://github.com/smartcontractkit/go-plugin/commit/b3b91517de16 ",
-            {
-              "file": "./test/data/chainlink/integration-tests/go.mod",
-              "startLine": 525,
-            },
-          ],
-          [
-            "err: [./test/data/chainlink/integration-tests/load/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
-        Version(commit): b3b91517de16
-        Tree: https://github.com/smartcontractkit/go-plugin/tree/b3b91517de16
-        Commit: https://github.com/smartcontractkit/go-plugin/commit/b3b91517de16 ",
-            {
-              "file": "./test/data/chainlink/integration-tests/load/go.mod",
-              "startLine": 518,
-            },
-          ],
-        ]
-      `);
+          "[./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 // indirect not on default branch (main).
+      Version(tag): v1.0.10
+      Tree: https://github.com/smartcontractkit/chain-selectors/tree/v1.0.10
+      Commit: https://github.com/smartcontractkit/chain-selectors/commit/00e6f0f6de86f013ca2047a175d4f0a909b4b068",
+          {
+            "file": "./test/data/chainlink/core/scripts/go.mod",
+            "startLine": 272,
+          },
+        ],
+        [
+          "[./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
+      Version(commit): b3b91517de16
+      Tree: https://github.com/smartcontractkit/go-plugin/tree/b3b91517de16
+      Commit: https://github.com/smartcontractkit/go-plugin/commit/b3b91517de16 ",
+          {
+            "file": "./test/data/chainlink/core/scripts/go.mod",
+            "startLine": 369,
+          },
+        ],
+        [
+          "[./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 // indirect not on default branch (main).
+      Version(tag): v0.7.3
+      Tree: https://github.com/smartcontractkit/wsrpc/tree/v0.7.3
+      Commit: https://github.com/smartcontractkit/wsrpc/commit/c691d6729bfbdbac704df13decf5e2e37eb3b672",
+          {
+            "file": "./test/data/chainlink/core/scripts/go.mod",
+            "startLine": 280,
+          },
+        ],
+        [
+          "[./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 not on default branch (main).
+      Version(tag): v1.0.10
+      Tree: https://github.com/smartcontractkit/chain-selectors/tree/v1.0.10
+      Commit: https://github.com/smartcontractkit/chain-selectors/commit/00e6f0f6de86f013ca2047a175d4f0a909b4b068",
+          {
+            "file": "./test/data/chainlink/go.mod",
+            "startLine": 73,
+          },
+        ],
+        [
+          "[./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
+      Version(commit): b3b91517de16
+      Tree: https://github.com/smartcontractkit/go-plugin/tree/b3b91517de16
+      Commit: https://github.com/smartcontractkit/go-plugin/commit/b3b91517de16 ",
+          {
+            "file": "./test/data/chainlink/go.mod",
+            "startLine": 348,
+          },
+        ],
+        [
+          "[./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 not on default branch (main).
+      Version(tag): v0.7.3
+      Tree: https://github.com/smartcontractkit/wsrpc/tree/v0.7.3
+      Commit: https://github.com/smartcontractkit/wsrpc/commit/c691d6729bfbdbac704df13decf5e2e37eb3b672",
+          {
+            "file": "./test/data/chainlink/go.mod",
+            "startLine": 84,
+          },
+        ],
+        [
+          "[./test/data/chainlink/integration-tests/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
+      Version(commit): b3b91517de16
+      Tree: https://github.com/smartcontractkit/go-plugin/tree/b3b91517de16
+      Commit: https://github.com/smartcontractkit/go-plugin/commit/b3b91517de16 ",
+          {
+            "file": "./test/data/chainlink/integration-tests/go.mod",
+            "startLine": 525,
+          },
+        ],
+        [
+          "[./test/data/chainlink/integration-tests/load/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
+      Version(commit): b3b91517de16
+      Tree: https://github.com/smartcontractkit/go-plugin/tree/b3b91517de16
+      Commit: https://github.com/smartcontractkit/go-plugin/commit/b3b91517de16 ",
+          {
+            "file": "./test/data/chainlink/integration-tests/load/go.mod",
+            "startLine": 518,
+          },
+        ],
+      ]
+    `);
     expect(summary).toMatchInlineSnapshot(`
         "
         #### Fixing Errors
@@ -168,7 +168,7 @@ describe("e2e tests", () => {
       expect(annotationSpy.mock.calls).toMatchInlineSnapshot(`
         [
           [
-            "err: [./test/data/chainlink-data-streams/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
+            "[./test/data/chainlink-data-streams/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
         Version(commit): b3b91517de16
         Tree: https://github.com/smartcontractkit/go-plugin/tree/b3b91517de16
         Commit: https://github.com/smartcontractkit/go-plugin/commit/b3b91517de16 ",
