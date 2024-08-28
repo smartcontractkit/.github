@@ -8,6 +8,8 @@
   "scripts": {
     "prettier:check": "prettier --check \"**/*.{json,md,js,ts,yml,yaml}\" --ignore-path=.prettierignore",
     "prettier:write": "prettier --write \"**/*.{json,md,js,ts,yml,yaml}\" --ignore-path=.prettierignore",
+    "hook:check": "prettier --check --ignore-path=.prettierignore",
+    "hook:fix": "prettier --write --ignore-path=.prettierignore",
     "lint": "pnpm nx run-many --target=lint --verbose",
     "lint:affected": "pnpm nx affected --target=lint --verbose",
     "build": "pnpm nx run-many --target=build --verbose",

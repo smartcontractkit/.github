@@ -1,7 +1,14 @@
+fix:
+  parallel: true
+  commands:
+    prettier:
+      description: "Fix prettier formatting"
+      glob: "*.{json,md,scss,yaml,yml}"
+      run: pnpm hook:fix {staged_files}
 pre-commit:
   parallel: true
   commands:
     prettier:
       description: "Check for prettier formatting"
-      run: pnpm run prettier:check **/*.{json,md,js,ts,yml,yaml}
-      exclude: "node_modules/**/*"
+      glob: "*.{json,md,scss,yaml,yml}"
+      run: pnpm hook:check {staged_files}
