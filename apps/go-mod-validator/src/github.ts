@@ -61,18 +61,38 @@ async function isTagInDefaultBranch(
       commitSha,
     });
   } catch (e) {
-    core.error(`Error checking tag in default branch: ${e}`);
+    let eStr = "unknown";
+    if (e instanceof Error) {
+      eStr = e.message;
+    } else if (typeof e === "string") {
+      eStr = e;
+    }
+
     return {
-      isInDefault: false,
+      isInDefault: "unknown",
       commitSha,
+      reason: eStr,
     };
   }
 }
 
-interface GoModDefaultBranchLookupResult {
+interface GoModDefaultBranchKnownLookupResult {
   isInDefault: boolean;
   commitSha: string;
 }
+
+interface GoModDefaultBranchUnknownResult {
+  isInDefault: "unknown";
+  /**
+   * Additional information when "isInDefault" is "unknown"
+   */
+  reason: string;
+  commitSha: string;
+}
+
+export type GoModDefaultBranchLookupResult =
+  | GoModDefaultBranchKnownLookupResult
+  | GoModDefaultBranchUnknownResult;
 
 // Create a singleton cache for storing promises
 const cache: { [key: string]: Promise<GoModDefaultBranchLookupResult> } = {};
