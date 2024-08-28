@@ -1,0 +1,66 @@
+name: license-checker
+description:
+  "Check for restricted licenses. A wrapper for
+  [LicenseFinder](https://github.com/pivotal/LicenseFinder)"
+
+inputs:
+  # specific inputs
+  license-finder-custom-args:
+    description: "custom args to pass to license_finder"
+    required: false
+    default: |
+      --recursive \
+      --use_spdx_id \
+      --format=markdown \
+      --decisions-file=${{ github.action_path }}/doc/dependency_decisions.yml \
+      --quiet
+  license-finder-version:
+    description: "license_finder version"
+    required: false
+    default: "7.2.1"
+  working-directory:
+    description: "working directory for license_finder"
+    required: false
+    default: "."
+  # grafana inputs (optional)
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+  metrics-id:
+    description:
+      "grafana metrics id, used for continuity of metrics during job name
+      changes  - required if metrics-job-name is passed"
+    required: false
+  gc-host:
+    description: "grafana hostname - required if metrics-job-name is passed"
+    required: false
+  gc-basic-auth:
+    description: "grafana basic auth - required if metrics-job-name is passed"
+    required: false
+  gc-org-id:
+    description:
+      "grafana org/tenant id - required if metrics-job-name is passed"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: "Install license-finder"
+      run: gem install license_finder -v ${{ inputs.license-finder-version }}
+      shell: bash
+    - name: Run license-finder
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        license_finder ${{ inputs.license-finder-custom-args }}
+      shell: bash
+    - name: Collect metrics
+      if: always() && inputs.metrics-job-name != ''
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
+      with:
+        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        org-id: ${{ inputs.gc-org-id}}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true
