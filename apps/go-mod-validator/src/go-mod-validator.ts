@@ -42,11 +42,13 @@ export async function run(): Promise<string> {
   const { goModDir, gh, depPrefix } = getContext();
 
   const depsToValidate = await getDeps(goModDir, depPrefix);
-  interface Invalidation {
-    type: "error" | "warning";
-    msg: string;
-  }
-  const invalidations: Map<BaseGoModule, Invalidation> = new Map();
+  const invalidations: Map<
+    BaseGoModule,
+    {
+      type: "error" | "warning";
+      msg: string;
+    }
+  > = new Map();
   const validating = depsToValidate.map(async (d) => {
     // Bit of a code smell, but I wanted to avoid adding the defaultBranchGetter to deps.ts to keep it separate from
     // the GitHub API client.
