@@ -45,7 +45,7 @@ runs:
   steps:
     - name: "Install license-finder"
       run: |
-        sudo gem install license_finder -v ${{ inputs.license-finder-version }}
+        sudo gem install license_finder -v ${{ inputs.license-finder-version }} --silent
       shell: bash
     - name: Run license-finder
       working-directory: ${{ inputs.working-directory }}
