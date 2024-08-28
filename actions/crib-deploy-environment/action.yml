@@ -60,7 +60,7 @@ inputs:
   send-alerts:
     default: "true"
     description: |
-      Notify CRIB team when Env Provisioning fails. 
+      Notify CRIB team when Env Provisioning fails.
       When enabled it requires to provide crib-alert-slack-webhook parameter as well.
   crib-alert-slack-webhook:
     default: ""
@@ -75,6 +75,13 @@ outputs:
   devspace-namespace:
     description: "Kubernetes namespace used to provision a CRIB environment."
     value: ${{ steps.generate-ns-name.outputs.devspace-namespace }}
+  ingress-service-names-env:
+    description:
+      "Aggregated key-value pairs of Ingress service endpoints in .env format,
+      excluding the ingress base domain. To construct the fully qualified domain
+      names (FQDNs) for accessing the services, append the base domain provided
+      as the ingress-base-domain input."
+    value: ${{ steps.get-ingress-services.outputs.ingress-service-names-env }}
 
 runs:
   using: "composite"
@@ -211,6 +218,49 @@ runs:
         fi
 
         nix develop -c devspace deploy --skip-build -o=${{ inputs.product-image-tag }} "${profile_args_array[@]}"
+
+    - name: Get List of the Ingress Services
+      shell: bash
+      id: get-ingress-services
+      run: |
+        BASE_DOMAIN="${{ inputs.ingress-base-domain }}"
+        NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
+
+        # Fetch all Ingress hostnames from the specified namespace
+        ingresses=$(kubectl get ingress -n "$NAMESPACE" -o jsonpath='{.items[*].spec.rules[*].host}' 2>/dev/null)
+
+        # Check if we received any hostnames
+        if [[ -z "$ingresses" ]]; then
+          echo "No Ingress hostnames found in namespace $NAMESPACE."
+          exit 1
+        fi
+
+        # Prepare the output string for environment variable
+        OUTPUT_STRING=""
+
+        # Loop through each ingress entry
+        for host in $ingresses; do
+          # Remove the domain from the host
+          base_name=${host%.$BASE_DOMAIN}
+
+          # Extract the prefix up to the first dot
+          prefix=${base_name%%.*}
+
+          # Remove the namespace from the prefix
+          key=${prefix#$NAMESPACE-}
+
+          # Replace hyphens with underscores and convert to uppercase
+          key=$(echo "$key" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
+
+          # Append to output string in the format KEY=base_name
+          OUTPUT_STRING+="$key=$base_name"$'\n'
+        done
+
+        # Set the output for use in the main workflow
+        echo "ingress-service-names-env<<EOF" >> $GITHUB_OUTPUT
+        echo "$OUTPUT_STRING" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
     - name: Render notification template
       uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
       id: render-slack-template
