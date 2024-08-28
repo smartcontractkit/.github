@@ -34,10 +34,7 @@ async function isTagInDefaultBranch(
   gh: Octokit,
   defaultBranch: string,
   mod: GoModuleWithTag,
-): Promise<{
-  isInDefault: boolean;
-  commitSha: string;
-}> {
+): Promise<GoModDefaultBranchLookupResult> {
   let commitSha = "";
   try {
     const tag = await gh.rest.git.getRef({
