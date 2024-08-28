@@ -147,4 +147,10 @@ describe("getVersionType", () => {
     verType = getVersionType(version);
     expect(verType).toEqual({ commitSha: "03612098f799", tag: undefined });
   });
+
+  it("should parse out the tag correctly", () => {
+    const version = "v0.0.1";
+    const verType = getVersionType(version);
+    expect(verType).toEqual({ commitSha: undefined, tag: "v0.0.1" });
+  });
 });
