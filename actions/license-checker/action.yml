@@ -10,7 +10,6 @@ inputs:
     required: false
     default: |
       --recursive \
-      --use_spdx_id \
       --quiet
   license-finder-version:
     description: "license_finder version"
