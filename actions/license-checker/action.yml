@@ -46,7 +46,8 @@ runs:
   using: composite
   steps:
     - name: "Install license-finder"
-      run: gem install license_finder -v ${{ inputs.license-finder-version }}
+      run: |
+        sudo gem install license_finder -v ${{ inputs.license-finder-version }}
       shell: bash
     - name: Run license-finder
       working-directory: ${{ inputs.working-directory }}
