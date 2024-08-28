@@ -72,7 +72,7 @@ describe("isGoModReferencingDefaultBranch", () => {
         },
       });
 
-      const referencesDefault = await isGoModReferencingDefaultBranch(
+      const result = await isGoModReferencingDefaultBranch(
         mockOctokit,
         goMod,
         "main",
@@ -81,13 +81,7 @@ describe("isGoModReferencingDefaultBranch", () => {
 
       expect(mockOctokit.rest.git.getRef).not.toHaveBeenCalled();
       expect(mockOctokit.rest.git.getTag).not.toHaveBeenCalled();
-      expect(mockOctokit.rest.repos.compareCommits).toHaveBeenCalledWith({
-        owner,
-        repo,
-        base: "main",
-        head: commitSha,
-      });
-      expect(referencesDefault).toBeTruthy();
+      expect(result).toEqual({ isInDefault: true, commitSha });
     });
 
     it("should throw an error if the compare commits request fails", async () => {
@@ -143,14 +137,14 @@ describe("isGoModReferencingDefaultBranch", () => {
         },
       });
 
-      const resp = await isGoModReferencingDefaultBranch(
+      const result = await isGoModReferencingDefaultBranch(
         mockOctokit,
         goMod,
         "main",
         {},
       );
 
-      expect(resp).toEqual({
+      expect(result).toEqual({
         isInDefault: true,
         commitSha,
       });
