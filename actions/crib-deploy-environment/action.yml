@@ -154,6 +154,7 @@ runs:
         kubectl create ns "$NAMESPACE"
 
         kubectl label namespace $NAMESPACE \
+          cleanup.kyverno.io/ttl=${{ inputs.ns-ttl }}
           repo=${{ steps.generate-ns-name.outputs.repo-name }} \
           branch="${sanitized_branch}" \
           commit=${{ steps.generate-ns-name.outputs.commit-sha }} \
@@ -178,7 +179,6 @@ runs:
         DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
         PROFILES: ${{ inputs.devspace-profiles }}
         KUBECACHEDIR: /dev/null
-        NS_TTL: ${{ inputs.ns-ttl }}
         SETUP_AWS_PROFILE: false
         SETUP_EKS_CONFIG: false
       run: |
