@@ -1,5 +1,22 @@
 # crib-deploy-environment
 
+## 1.2.0
+
+### Minor Changes
+
+- [#580](https://github.com/smartcontractkit/.github/pull/580)
+  [`f9f454a`](https://github.com/smartcontractkit/.github/commit/f9f454aa08c7a91e64d113220c28f12ffbcde236)
+  Thanks [@gheorghestrimtu](https://github.com/gheorghestrimtu)! - The branch
+  label will be trimmed to 63 characters and the last character will be
+  alphanumeric
+
+### Patch Changes
+
+- [#582](https://github.com/smartcontractkit/.github/pull/582)
+  [`7e90d1c`](https://github.com/smartcontractkit/.github/commit/7e90d1c92b0993f0fb5882b3baad8b917ae2e92b)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Apply kyverno ttl
+  label based on action inputs
+
 ## 1.1.0
 
 ### Minor Changes
