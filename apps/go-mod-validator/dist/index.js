@@ -753,18 +753,18 @@ var require_tunnel = __commonJS({
             res.statusCode
           );
           socket.destroy();
-          var error3 = new Error("tunneling socket could not be established, statusCode=" + res.statusCode);
-          error3.code = "ECONNRESET";
-          options.request.emit("error", error3);
+          var error2 = new Error("tunneling socket could not be established, statusCode=" + res.statusCode);
+          error2.code = "ECONNRESET";
+          options.request.emit("error", error2);
           self2.removeSocket(placeholder);
           return;
         }
         if (head.length > 0) {
           debug3("got illegal response body from proxy");
           socket.destroy();
-          var error3 = new Error("got illegal response body from proxy");
-          error3.code = "ECONNRESET";
-          options.request.emit("error", error3);
+          var error2 = new Error("got illegal response body from proxy");
+          error2.code = "ECONNRESET";
+          options.request.emit("error", error2);
           self2.removeSocket(placeholder);
           return;
         }
@@ -779,9 +779,9 @@ var require_tunnel = __commonJS({
           cause.message,
           cause.stack
         );
-        var error3 = new Error("tunneling socket could not be established, cause=" + cause.message);
-        error3.code = "ECONNRESET";
-        options.request.emit("error", error3);
+        var error2 = new Error("tunneling socket could not be established, cause=" + cause.message);
+        error2.code = "ECONNRESET";
+        options.request.emit("error", error2);
         self2.removeSocket(placeholder);
       }
     };
@@ -5117,7 +5117,7 @@ Content-Type: ${value.type || "application/octet-stream"}\r
         throw new TypeError("Body is unusable");
       }
       const promise = createDeferredPromise();
-      const errorSteps = (error3) => promise.reject(error3);
+      const errorSteps = (error2) => promise.reject(error2);
       const successSteps = (data) => {
         try {
           promise.resolve(convertBytesToJSValue(data));
@@ -5390,16 +5390,16 @@ var require_request = __commonJS({
         }
         return this[kHandler].onComplete(trailers);
       }
-      onError(error3) {
+      onError(error2) {
         this.onFinally();
         if (channels.error.hasSubscribers) {
-          channels.error.publish({ request: this, error: error3 });
+          channels.error.publish({ request: this, error: error2 });
         }
         if (this.aborted) {
           return;
         }
         this.aborted = true;
-        return this[kHandler].onError(error3);
+        return this[kHandler].onError(error2);
       }
       onFinally() {
         if (this.errorHandler) {
@@ -6262,8 +6262,8 @@ var require_RedirectHandler = __commonJS({
       onUpgrade(statusCode, headers, socket) {
         this.handler.onUpgrade(statusCode, headers, socket);
       }
-      onError(error3) {
-        this.handler.onError(error3);
+      onError(error2) {
+        this.handler.onError(error2);
       }
       onHeaders(statusCode, headers, resume, statusText) {
         this.location = this.history.length >= this.maxRedirections || util.isDisturbed(this.opts.body) ? null : parseLocation(statusCode, headers);
@@ -9997,13 +9997,13 @@ var require_mock_utils = __commonJS({
       if (mockDispatch2.data.callback) {
         mockDispatch2.data = { ...mockDispatch2.data, ...mockDispatch2.data.callback(opts) };
       }
-      const { data: { statusCode, data, headers, trailers, error: error3 }, delay, persist } = mockDispatch2;
+      const { data: { statusCode, data, headers, trailers, error: error2 }, delay, persist } = mockDispatch2;
       const { timesInvoked, times } = mockDispatch2;
       mockDispatch2.consumed = !persist && timesInvoked >= times;
       mockDispatch2.pending = timesInvoked < times;
-      if (error3 !== null) {
+      if (error2 !== null) {
         deleteMockDispatch(this[kDispatches], key);
-        handler.onError(error3);
+        handler.onError(error2);
         return true;
       }
       if (typeof delay === "number" && delay > 0) {
@@ -10041,19 +10041,19 @@ var require_mock_utils = __commonJS({
         if (agent.isMockActive) {
           try {
             mockDispatch.call(this, opts, handler);
-          } catch (error3) {
-            if (error3 instanceof MockNotMatchedError) {
+          } catch (error2) {
+            if (error2 instanceof MockNotMatchedError) {
               const netConnect = agent[kGetNetConnect]();
               if (netConnect === false) {
-                throw new MockNotMatchedError(`${error3.message}: subsequent request to origin ${origin} was not allowed (net.connect disabled)`);
+                throw new MockNotMatchedError(`${error2.message}: subsequent request to origin ${origin} was not allowed (net.connect disabled)`);
               }
               if (checkNetConnect(netConnect, origin)) {
                 originalDispatch.call(this, opts, handler);
               } else {
-                throw new MockNotMatchedError(`${error3.message}: subsequent request to origin ${origin} was not allowed (net.connect is not enabled for this origin)`);
+                throw new MockNotMatchedError(`${error2.message}: subsequent request to origin ${origin} was not allowed (net.connect is not enabled for this origin)`);
               }
             } else {
-              throw error3;
+              throw error2;
             }
           }
         } else {
@@ -10216,11 +10216,11 @@ var require_mock_interceptor = __commonJS({
       /**
        * Mock an undici request with a defined error.
        */
-      replyWithError(error3) {
-        if (typeof error3 === "undefined") {
+      replyWithError(error2) {
+        if (typeof error2 === "undefined") {
           throw new InvalidArgumentError("error must be defined");
         }
-        const newMockDispatch = addMockDispatch(this[kDispatches], this[kDispatchKey], { error: error3 });
+        const newMockDispatch = addMockDispatch(this[kDispatches], this[kDispatchKey], { error: error2 });
         return new MockScope(newMockDispatch);
       }
       /**
@@ -12238,17 +12238,17 @@ var require_fetch = __commonJS({
         this.emit("terminated", reason);
       }
       // https://fetch.spec.whatwg.org/#fetch-controller-abort
-      abort(error3) {
+      abort(error2) {
         if (this.state !== "ongoing") {
           return;
         }
         this.state = "aborted";
-        if (!error3) {
-          error3 = new DOMException2("The operation was aborted.", "AbortError");
+        if (!error2) {
+          error2 = new DOMException2("The operation was aborted.", "AbortError");
         }
-        this.serializedAbortReason = error3;
-        this.connection?.destroy(error3);
-        this.emit("terminated", error3);
+        this.serializedAbortReason = error2;
+        this.connection?.destroy(error2);
+        this.emit("terminated", error2);
       }
     };
     function fetch(input, init = {}) {
@@ -12352,13 +12352,13 @@ var require_fetch = __commonJS({
         performance.markResourceTiming(timingInfo, originalURL.href, initiatorType, globalThis2, cacheState);
       }
     }
-    function abortFetch(p, request, responseObject, error3) {
-      if (!error3) {
-        error3 = new DOMException2("The operation was aborted.", "AbortError");
+    function abortFetch(p, request, responseObject, error2) {
+      if (!error2) {
+        error2 = new DOMException2("The operation was aborted.", "AbortError");
       }
-      p.reject(error3);
+      p.reject(error2);
       if (request.body != null && isReadable(request.body?.stream)) {
-        request.body.stream.cancel(error3).catch((err) => {
+        request.body.stream.cancel(error2).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
           }
@@ -12370,7 +12370,7 @@ var require_fetch = __commonJS({
       }
       const response = responseObject[kState];
       if (response.body != null && isReadable(response.body?.stream)) {
-        response.body.stream.cancel(error3).catch((err) => {
+        response.body.stream.cancel(error2).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
           }
@@ -13149,13 +13149,13 @@ var require_fetch = __commonJS({
               fetchParams.controller.ended = true;
               this.body.push(null);
             },
-            onError(error3) {
+            onError(error2) {
               if (this.abort) {
                 fetchParams.controller.off("terminated", this.abort);
               }
-              this.body?.destroy(error3);
-              fetchParams.controller.terminate(error3);
-              reject(error3);
+              this.body?.destroy(error2);
+              fetchParams.controller.terminate(error2);
+              reject(error2);
             },
             onUpgrade(status, headersList, socket) {
               if (status !== 101) {
@@ -13621,8 +13621,8 @@ var require_util4 = __commonJS({
                   }
                   fr[kResult] = result;
                   fireAProgressEvent("load", fr);
-                } catch (error3) {
-                  fr[kError] = error3;
+                } catch (error2) {
+                  fr[kError] = error2;
                   fireAProgressEvent("error", fr);
                 }
                 if (fr[kState] !== "loading") {
@@ -13631,13 +13631,13 @@ var require_util4 = __commonJS({
               });
               break;
             }
-          } catch (error3) {
+          } catch (error2) {
             if (fr[kAborted]) {
               return;
             }
             queueMicrotask(() => {
               fr[kState] = "done";
-              fr[kError] = error3;
+              fr[kError] = error2;
               fireAProgressEvent("error", fr);
               if (fr[kState] !== "loading") {
                 fireAProgressEvent("loadend", fr);
@@ -15651,11 +15651,11 @@ var require_connection = __commonJS({
         });
       }
     }
-    function onSocketError(error3) {
+    function onSocketError(error2) {
       const { ws } = this;
       ws[kReadyState] = states.CLOSING;
       if (channels.socketError.hasSubscribers) {
-        channels.socketError.publish(error3);
+        channels.socketError.publish(error2);
       }
       this.destroy();
     }
@@ -17288,12 +17288,12 @@ var require_oidc_utils = __commonJS({
         var _a;
         return __awaiter2(this, void 0, void 0, function* () {
           const httpclient = _OidcClient.createHttpClient();
-          const res = yield httpclient.getJson(id_token_url).catch((error3) => {
+          const res = yield httpclient.getJson(id_token_url).catch((error2) => {
             throw new Error(`Failed to get ID Token. 
  
-        Error Code : ${error3.statusCode}
+        Error Code : ${error2.statusCode}
  
-        Error Message: ${error3.message}`);
+        Error Message: ${error2.message}`);
           });
           const id_token = (_a = res.result) === null || _a === void 0 ? void 0 : _a.value;
           if (!id_token) {
@@ -17314,8 +17314,8 @@ var require_oidc_utils = __commonJS({
             const id_token = yield _OidcClient.getCall(id_token_url);
             core_1.setSecret(id_token);
             return id_token;
-          } catch (error3) {
-            throw new Error(`Error message: ${error3.message}`);
+          } catch (error2) {
+            throw new Error(`Error message: ${error2.message}`);
           }
         });
       }
@@ -17800,7 +17800,7 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
     exports2.setCommandEcho = setCommandEcho;
     function setFailed2(message) {
       process.exitCode = ExitCode.Failure;
-      error3(message);
+      error2(message);
     }
     exports2.setFailed = setFailed2;
     function isDebug() {
@@ -17811,14 +17811,14 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       command_1.issueCommand("debug", {}, message);
     }
     exports2.debug = debug3;
-    function error3(message, properties = {}) {
+    function error2(message, properties = {}) {
       command_1.issueCommand("error", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
-    exports2.error = error3;
-    function warning3(message, properties = {}) {
+    exports2.error = error2;
+    function warning4(message, properties = {}) {
       command_1.issueCommand("warning", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
-    exports2.warning = warning3;
+    exports2.warning = warning4;
     function notice(message, properties = {}) {
       command_1.issueCommand("notice", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
@@ -19968,8 +19968,8 @@ function __read(o, n) {
   var i = m.call(o), r, ar = [], e;
   try {
     while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-  } catch (error3) {
-    e = { error: error3 };
+  } catch (error2) {
+    e = { error: error2 };
   } finally {
     try {
       if (r && !r.done && (m = i["return"])) m.call(i);
@@ -20200,9 +20200,9 @@ var init_tslib_es6 = __esm({
     } : function(o, v) {
       o["default"] = v;
     };
-    _SuppressedError = typeof SuppressedError === "function" ? SuppressedError : function(error3, suppressed, message) {
+    _SuppressedError = typeof SuppressedError === "function" ? SuppressedError : function(error2, suppressed, message) {
       var e = new Error(message);
-      return e.name = "SuppressedError", e.error = error3, e.suppressed = suppressed, e;
+      return e.name = "SuppressedError", e.error = error2, e.suppressed = suppressed, e;
     };
     tslib_es6_default = {
       __extends,
@@ -20752,11 +20752,11 @@ var require_ranges = __commonJS({
       let parts;
       try {
         parts = rangeStr.split(",").map(parsePart);
-      } catch (error3) {
-        if (error3 instanceof InvalidRequirementPart) {
+      } catch (error2) {
+        if (error2 instanceof InvalidRequirementPart) {
           throw new InvalidVersionRange();
         }
-        throw error3;
+        throw error2;
       }
       const range = {};
       function setInclusive(attr, value) {
@@ -21126,8 +21126,8 @@ var require_add = __commonJS({
       }
       if (kind === "error") {
         hook = function(method, options) {
-          return Promise.resolve().then(method.bind(null, options)).catch(function(error3) {
-            return orig(error3, options);
+          return Promise.resolve().then(method.bind(null, options)).catch(function(error2) {
+            return orig(error2, options);
           });
         };
       }
@@ -21863,7 +21863,7 @@ var require_dist_node5 = __commonJS({
         }
         if (status >= 400) {
           const data = await getResponseData(response);
-          const error3 = new import_request_error.RequestError(toErrorMessage(data), status, {
+          const error2 = new import_request_error.RequestError(toErrorMessage(data), status, {
             response: {
               url,
               status,
@@ -21872,7 +21872,7 @@ var require_dist_node5 = __commonJS({
             },
             request: requestOptions
           });
-          throw error3;
+          throw error2;
         }
         return parseSuccessResponseBody ? await getResponseData(response) : response.body;
       }).then((data) => {
@@ -21882,17 +21882,17 @@ var require_dist_node5 = __commonJS({
           headers,
           data
         };
-      }).catch((error3) => {
-        if (error3 instanceof import_request_error.RequestError)
-          throw error3;
-        else if (error3.name === "AbortError")
-          throw error3;
-        let message = error3.message;
-        if (error3.name === "TypeError" && "cause" in error3) {
-          if (error3.cause instanceof Error) {
-            message = error3.cause.message;
-          } else if (typeof error3.cause === "string") {
-            message = error3.cause;
+      }).catch((error2) => {
+        if (error2 instanceof import_request_error.RequestError)
+          throw error2;
+        else if (error2.name === "AbortError")
+          throw error2;
+        let message = error2.message;
+        if (error2.name === "TypeError" && "cause" in error2) {
+          if (error2.cause instanceof Error) {
+            message = error2.cause.message;
+          } else if (typeof error2.cause === "string") {
+            message = error2.cause;
           }
         }
         throw new import_request_error.RequestError(message, 500, {
@@ -24499,9 +24499,9 @@ var require_dist_node10 = __commonJS({
                 /<([^>]+)>;\s*rel="next"/
               ) || [])[1];
               return { value: normalizedResponse };
-            } catch (error3) {
-              if (error3.status !== 409)
-                throw error3;
+            } catch (error2) {
+              if (error2.status !== 409)
+                throw error2;
               url = "";
               return {
                 value: {
@@ -25085,8 +25085,8 @@ var require_light = __commonJS({
                 } else {
                   return returned;
                 }
-              } catch (error3) {
-                e2 = error3;
+              } catch (error2) {
+                e2 = error2;
                 {
                   this.trigger("error", e2);
                 }
@@ -25096,8 +25096,8 @@ var require_light = __commonJS({
             return (await Promise.all(promises)).find(function(x) {
               return x != null;
             });
-          } catch (error3) {
-            e = error3;
+          } catch (error2) {
+            e = error2;
             {
               this.trigger("error", e);
             }
@@ -25209,10 +25209,10 @@ var require_light = __commonJS({
         _randomIndex() {
           return Math.random().toString(36).slice(2);
         }
-        doDrop({ error: error3, message = "This job has been dropped by Bottleneck" } = {}) {
+        doDrop({ error: error2, message = "This job has been dropped by Bottleneck" } = {}) {
           if (this._states.remove(this.options.id)) {
             if (this.rejectOnDrop) {
-              this._reject(error3 != null ? error3 : new BottleneckError$1(message));
+              this._reject(error2 != null ? error2 : new BottleneckError$1(message));
             }
             this.Events.trigger("dropped", { args: this.args, options: this.options, task: this.task, promise: this.promise });
             return true;
@@ -25246,7 +25246,7 @@ var require_light = __commonJS({
           return this.Events.trigger("scheduled", { args: this.args, options: this.options });
         }
         async doExecute(chained, clearGlobalState, run2, free) {
-          var error3, eventInfo, passed;
+          var error2, eventInfo, passed;
           if (this.retryCount === 0) {
             this._assertStatus("RUNNING");
             this._states.next(this.options.id);
@@ -25264,24 +25264,24 @@ var require_light = __commonJS({
               return this._resolve(passed);
             }
           } catch (error1) {
-            error3 = error1;
-            return this._onFailure(error3, eventInfo, clearGlobalState, run2, free);
+            error2 = error1;
+            return this._onFailure(error2, eventInfo, clearGlobalState, run2, free);
           }
         }
         doExpire(clearGlobalState, run2, free) {
-          var error3, eventInfo;
+          var error2, eventInfo;
           if (this._states.jobStatus(this.options.id === "RUNNING")) {
             this._states.next(this.options.id);
           }
           this._assertStatus("EXECUTING");
           eventInfo = { args: this.args, options: this.options, retryCount: this.retryCount };
-          error3 = new BottleneckError$1(`This job timed out after ${this.options.expiration} ms.`);
-          return this._onFailure(error3, eventInfo, clearGlobalState, run2, free);
+          error2 = new BottleneckError$1(`This job timed out after ${this.options.expiration} ms.`);
+          return this._onFailure(error2, eventInfo, clearGlobalState, run2, free);
         }
-        async _onFailure(error3, eventInfo, clearGlobalState, run2, free) {
+        async _onFailure(error2, eventInfo, clearGlobalState, run2, free) {
           var retry, retryAfter;
           if (clearGlobalState()) {
-            retry = await this.Events.trigger("failed", error3, eventInfo);
+            retry = await this.Events.trigger("failed", error2, eventInfo);
             if (retry != null) {
               retryAfter = ~~retry;
               this.Events.trigger("retry", `Retrying ${this.options.id} after ${retryAfter} ms`, eventInfo);
@@ -25291,7 +25291,7 @@ var require_light = __commonJS({
               this.doDone(eventInfo);
               await free(this.options, eventInfo);
               this._assertStatus("DONE");
-              return this._reject(error3);
+              return this._reject(error2);
             }
           }
         }
@@ -25570,7 +25570,7 @@ var require_light = __commonJS({
           return this._queue.length === 0;
         }
         async _tryToRun() {
-          var args, cb, error3, reject, resolve, returned, task;
+          var args, cb, error2, reject, resolve, returned, task;
           if (this._running < 1 && this._queue.length > 0) {
             this._running++;
             ({ task, args, resolve, reject } = this._queue.shift());
@@ -25581,9 +25581,9 @@ var require_light = __commonJS({
                   return resolve(returned);
                 };
               } catch (error1) {
-                error3 = error1;
+                error2 = error1;
                 return function() {
-                  return reject(error3);
+                  return reject(error2);
                 };
               }
             }();
@@ -25717,8 +25717,8 @@ var require_light = __commonJS({
                   } else {
                     results.push(void 0);
                   }
-                } catch (error3) {
-                  e = error3;
+                } catch (error2) {
+                  e = error2;
                   results.push(v.Events.trigger("error", e));
                 }
               }
@@ -26051,14 +26051,14 @@ var require_light = __commonJS({
             return done;
           }
           async _addToQueue(job) {
-            var args, blocked, error3, options, reachedHWM, shifted, strategy;
+            var args, blocked, error2, options, reachedHWM, shifted, strategy;
             ({ args, options } = job);
             try {
               ({ reachedHWM, blocked, strategy } = await this._store.__submit__(this.queued(), options.weight));
             } catch (error1) {
-              error3 = error1;
-              this.Events.trigger("debug", `Could not queue ${options.id}`, { args, options, error: error3 });
-              job.doDrop({ error: error3 });
+              error2 = error1;
+              this.Events.trigger("debug", `Could not queue ${options.id}`, { args, options, error: error2 });
+              job.doDrop({ error: error2 });
               return false;
             }
             if (blocked) {
@@ -26289,12 +26289,12 @@ var require_dist_node11 = __commonJS({
       const req = state.global.key(state.id).schedule(jobOptions, request, options);
       if (isGraphQL) {
         const res = await req;
-        if (res.data.errors != null && res.data.errors.some((error3) => error3.type === "RATE_LIMITED")) {
-          const error3 = Object.assign(new Error("GraphQL Rate Limit Exceeded"), {
+        if (res.data.errors != null && res.data.errors.some((error2) => error2.type === "RATE_LIMITED")) {
+          const error2 = Object.assign(new Error("GraphQL Rate Limit Exceeded"), {
             response: res,
             data: res.data
           });
-          throw error3;
+          throw error2;
         }
       }
       return req;
@@ -26402,19 +26402,19 @@ var require_dist_node11 = __commonJS({
         "error",
         (e) => octokit.log.warn("Error in throttling-plugin limit handler", e)
       );
-      state.retryLimiter.on("failed", async function(error3, info3) {
+      state.retryLimiter.on("failed", async function(error2, info3) {
         const [state2, request, options] = info3.args;
         const { pathname } = new URL(options.url, "http://github.test");
-        const shouldRetryGraphQL = pathname.startsWith("/graphql") && error3.status !== 401;
-        if (!(shouldRetryGraphQL || error3.status === 403)) {
+        const shouldRetryGraphQL = pathname.startsWith("/graphql") && error2.status !== 401;
+        if (!(shouldRetryGraphQL || error2.status === 403)) {
           return;
         }
         const retryCount = ~~request.retryCount;
         request.retryCount = retryCount;
         options.request.retryCount = retryCount;
         const { wantRetry, retryAfter = 0 } = await async function() {
-          if (/\bsecondary rate\b/i.test(error3.message)) {
-            const retryAfter2 = Number(error3.response.headers["retry-after"]) || state2.fallbackSecondaryRateRetryAfter;
+          if (/\bsecondary rate\b/i.test(error2.message)) {
+            const retryAfter2 = Number(error2.response.headers["retry-after"]) || state2.fallbackSecondaryRateRetryAfter;
             const wantRetry2 = await emitter.trigger(
               "secondary-limit",
               retryAfter2,
@@ -26424,11 +26424,11 @@ var require_dist_node11 = __commonJS({
             );
             return { wantRetry: wantRetry2, retryAfter: retryAfter2 };
           }
-          if (error3.response.headers != null && error3.response.headers["x-ratelimit-remaining"] === "0" || (error3.response.data?.errors ?? []).some(
+          if (error2.response.headers != null && error2.response.headers["x-ratelimit-remaining"] === "0" || (error2.response.data?.errors ?? []).some(
             (error22) => error22.type === "RATE_LIMITED"
           )) {
             const rateLimitReset = new Date(
-              ~~error3.response.headers["x-ratelimit-reset"] * 1e3
+              ~~error2.response.headers["x-ratelimit-reset"] * 1e3
             ).getTime();
             const retryAfter2 = Math.max(
               // Add one second so we retry _after_ the reset time
@@ -26501,10 +26501,16 @@ async function isTagInDefaultBranch(gh, defaultBranch, mod) {
       commitSha
     });
   } catch (e) {
-    core.error(`Error checking tag in default branch: ${e}`);
+    let eStr = "unknown";
+    if (e instanceof Error) {
+      eStr = e.message;
+    } else if (typeof e === "string") {
+      eStr = e;
+    }
     return {
-      isInDefault: false,
-      commitSha
+      isInDefault: "unknown",
+      commitSha,
+      reason: eStr
     };
   }
 }
@@ -26626,8 +26632,8 @@ async function getAllGoModsWithin(goModDir) {
     const globber = await glob.create(pattern);
     files = await globber.glob();
     files = files.map((f) => f.replace(`${process.cwd()}${import_path.sep}`, `.${import_path.sep}`));
-  } catch (error3) {
-    throw new Error(`failed to get go.mod files: ${error3}`);
+  } catch (error2) {
+    throw new Error(`failed to get go.mod files: ${error2}`);
   }
   if (files.length == 0) {
     throw new Error(
@@ -26656,9 +26662,9 @@ async function getDeps(rootDir, depPrefix) {
       );
       core2.debug(`Mapped dependencies: ${JSON.stringify(mappedDeps)}`);
       return mappedDeps;
-    } catch (error3) {
+    } catch (error2) {
       throw Error(
-        `failed to get go.mod dependencies from file: ${goModFilePath}, err: ${error3}`
+        `failed to get go.mod dependencies from file: ${goModFilePath}, err: ${error2}`
       );
     }
   });
@@ -26794,14 +26800,11 @@ function getContext() {
 async function run() {
   const { goModDir, gh, depPrefix } = getContext();
   const depsToValidate = await getDeps(goModDir, depPrefix);
-  const errs = /* @__PURE__ */ new Map();
+  const invalidations = /* @__PURE__ */ new Map();
   const validating = depsToValidate.map(async (d) => {
     const defaultBranch = await getDefaultBranch(gh, d);
-    const { commitSha, isInDefault } = await isGoModReferencingDefaultBranch(
-      gh,
-      d,
-      defaultBranch
-    );
+    const result = await isGoModReferencingDefaultBranch(gh, d, defaultBranch);
+    const { commitSha, isInDefault } = result;
     const repoUrl = `https://github.com/${d.owner}/${d.repo}`;
     let detailString = "";
     if ("tag" in d) {
@@ -26814,33 +26817,58 @@ Commit: ${repoUrl}/commit/${commitSha}`;
 Tree: ${repoUrl}/tree/${d.commitSha}
 Commit: ${repoUrl}/commit/${d.commitSha} `;
     }
-    if (!isInDefault) {
-      errs.set(
-        d,
-        `[${d.goModFilePath}] dependency ${d.name} not on default branch (${defaultBranch}).
-${detailString}`
-      );
+    switch (isInDefault) {
+      case true:
+        break;
+      case false: {
+        const msg = `[${d.goModFilePath}] dependency ${d.name} not on default branch (${defaultBranch}).
+${detailString}`;
+        invalidations.set(d, { msg, type: "error" });
+        break;
+      }
+      case "unknown": {
+        const msg = `[${d.goModFilePath}] dependency ${d.name} not found in default branch (${defaultBranch}).
+Reason: ${result.reason}          
+${detailString}`;
+        invalidations.set(d, { msg, type: "warning" });
+        break;
+      }
+      default:
+        {
+          const isNever = (isInDefault2) => isInDefault2;
+          isNever(isInDefault);
+        }
+        break;
     }
   });
   await Promise.all(validating);
-  if (errs.size > 0) {
+  if (invalidations.size > 0) {
     const depLineFinder = lineForDependencyPathFinder();
-    const sortedErrs = [...errs.entries()].sort((a, b) => {
+    const sortedErrs = [...invalidations.entries()].sort((a, b) => {
       const aKey = a[0].goModFilePath + a[0].name;
       const bKey = b[0].goModFilePath + b[0].name;
       return aKey.localeCompare(bKey);
     });
-    sortedErrs.forEach(([goMod, validationErr]) => {
+    sortedErrs.forEach(([goMod, invalidation]) => {
       const line = depLineFinder(goMod.goModFilePath, goMod.path);
-      core3.error(`err: ${validationErr}`, {
-        file: goMod.goModFilePath,
-        startLine: line
-      });
+      switch (invalidation.type) {
+        case "error":
+          core3.error(invalidation.msg, {
+            file: goMod.goModFilePath,
+            startLine: line
+          });
+          break;
+        case "warning":
+          core3.warning(invalidation.msg, {
+            file: goMod.goModFilePath,
+            startLine: line
+          });
+      }
     });
     core3.summary.addRaw(FIXING_ERRORS, true);
     const summary2 = core3.summary.stringify();
     await core3.summary.write();
-    core3.setFailed(`validation failed for ${errs.size} dependencies`);
+    core3.setFailed(`validation failed for ${invalidations.size} dependencies`);
     return summary2;
   } else {
     const msg = "validation successful for all go.mod dependencies";
