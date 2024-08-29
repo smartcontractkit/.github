@@ -147,7 +147,7 @@ runs:
         # (e.g. ‘MyValue’,  or ‘my_value’,  or ‘12345’, regex used for validation is
         # ‘(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?’)
         sanitized_branch=$(echo "${{ steps.generate-ns-name.outputs.branch-name }}" \
-          | sed 's/[^a-zA-Z0-9._-]/_/g')
+          | sed 's/[^a-zA-Z0-9._-]/_/g' | cut -c1-63)
 
         NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
         echo "Creating $NAMESPACE Kubernetes namespace.."
