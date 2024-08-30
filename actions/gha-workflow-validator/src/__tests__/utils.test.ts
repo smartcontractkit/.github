@@ -1,8 +1,4 @@
-import {
-  extractActionReference,
-  filterForRelevantChanges,
-  parseAllAdditions,
-} from "../utils.js";
+import { filterForRelevantChanges, parseGithubDiff } from "../utils.js";
 import { GithubFiles, getComparison } from "../github.js";
 import { getNock, getTestOctokit } from "./__helpers__/test-utils.js";
 
@@ -138,31 +134,14 @@ describe(filterForRelevantChanges.name, () => {
   });
 });
 
-describe(extractActionReference.name, () => {
-  it("extracts action reference", () => {
-    const line =
-      "        - uses: smartcontractkit/.github/actions/foo@bar # foo@1.0.0";
-    const actionReference = extractActionReference(line);
-
-    expect(actionReference).toEqual({
-      owner: "smartcontractkit",
-      repo: ".github",
-      repoPath: "/actions/foo",
-      ref: "bar",
-      comment: "foo@1.0.0",
-      line,
-    });
-  });
-});
-
-describe(parseAllAdditions.name, () => {
+describe(parseGithubDiff.name, () => {
   it("parses all additions (empty)", () => {
-    const parsedFiles = parseAllAdditions([]);
+    const parsedFiles = parseGithubDiff([]);
     expect(parsedFiles).toEqual([]);
   });
 
   it("parses all additions (simple)", () => {
-    const parsedFiles = parseAllAdditions(simplePatchResponse);
+    const parsedFiles = parseGithubDiff(simplePatchResponse);
     expect(parsedFiles).toMatchSnapshot();
   });
 
@@ -178,31 +157,9 @@ describe(parseAllAdditions.name, () => {
     };
     const { owner, repo, base, head } = repoRequestOptions;
     const response = await getComparison(octokit, owner, repo, base, head);
-    const parsedFiles = parseAllAdditions(response);
+    const parsedFiles = parseGithubDiff(response);
     expect(parsedFiles).toMatchSnapshot();
 
     nockDone();
-  });
-
-  it("parses local reference as no reference", () => {
-    const parsedFiles = parseAllAdditions([
-      {
-        sha: "sha",
-        filename: ".github/workflows/test-workflow.yml",
-        status: "modified",
-        additions: 2,
-        deletions: 2,
-        changes: 4,
-        blob_url: "",
-        raw_url: "",
-        contents_url: "",
-        patch:
-          "@@ -24,2 +24,2 @@ runs:\n   steps:\n     - name: test-step\n+       -      uses: ./.github/actions/local-action\n",
-      },
-    ]);
-    const anyActionReferencesExist = parsedFiles.some((entry) =>
-      entry.addedLines.some((line) => line.actionReference),
-    );
-    expect(anyActionReferencesExist).toEqual(false);
   });
 });
