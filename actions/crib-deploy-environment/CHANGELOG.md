@@ -1,5 +1,13 @@
 # crib-deploy-environment
 
+## 1.2.1
+
+### Patch Changes
+
+- [#583](https://github.com/smartcontractkit/.github/pull/583)
+  [`ea7b19b`](https://github.com/smartcontractkit/.github/commit/ea7b19b74d9361112b66685d5d3fb19d9f790b04)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Fix ttl label
+
 ## 1.2.0
 
 ### Minor Changes
