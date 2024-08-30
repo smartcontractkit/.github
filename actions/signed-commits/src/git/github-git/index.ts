@@ -23,12 +23,14 @@ export async function commitAll(
   message: string,
   cwd?: string,
 ) {
+  console.log(`Committing all changes in ${cwd} to ${owner}/${repo}:${branch}`);
   core.debug(`Committing all changes in ${cwd} to ${owner}/${repo}:${branch}`);
 
   const fileChanges = await repoStatus.getFileChanges(cwd);
   const commits = compileCommits(fileChanges, message);
 
   if (commits.length === 0) {
+    console.log("No changes to commit. Skipping.");
     core.info("No changes to commit. Skipping.");
   }
 
@@ -39,8 +41,10 @@ export async function commitAll(
   });
 
   let commitNumber = 1;
+  console.log(`Creating ${commits.length} commits.`);
   core.info(`Creating ${commits.length} commits.`);
   for (const commit of commits) {
+    console.log(`Commit ${commitNumber++}/${commits.length} - ${commit.message}`);
     core.debug(
       `Commit ${commitNumber++}/${commits.length} - ${commit.message}`,
     );
@@ -72,6 +76,7 @@ export async function createCommitOnBranch(
   client: ReturnType<typeof getOctokit>,
   input: CreateCommitOnBranchInput,
 ) {
+  console.log(`Creating commit on branch ${input.branch.branchName}`);
   core.debug(`Creating commit on branch ${input.branch.branchName}`);
   const query = `
     mutation($input: CreateCommitOnBranchInput!) {
@@ -98,6 +103,7 @@ export async function getRemoteHeadOid(
   client: ReturnType<typeof getOctokit>,
   opts: Parameters<typeof client.rest.repos.getBranch>[0],
 ) {
+  console.log(`Getting remote head oid for ${opts?.owner}/${opts?.repo}:${opts?.branch}`);
   core.debug(
     `Getting remote head oid for ${opts?.owner}/${opts?.repo}:${opts?.branch}`,
   );

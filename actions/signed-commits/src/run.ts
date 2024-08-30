@@ -410,6 +410,7 @@ export async function runVersion({
     // instead, we should probably checkout the versionBranch
     // and update it via https://docs.github.com/en/free-pro-team@latest/rest/pulls/pulls?apiVersion=2022-11-28#update-a-pull-request-branch
     // _then_ run "changesets version", then commitAll.
+    console.log('githubGitUtils.commitAll');
     await githubGitUtils.commitAll(
       octokit,
       versionBranch,
