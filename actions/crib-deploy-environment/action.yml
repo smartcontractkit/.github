@@ -81,7 +81,7 @@ outputs:
       excluding the ingress base domain. To construct the FQDNs for accessing
       the services, append the base domain provided as the ingress-base-domain
       input."
-    value: ${{ steps.get-ingress-services.outputs.ingress-service-names-env }}
+    value: ${{ steps.get-ingress-services.outputs.ingress-service-names }}
 
 runs:
   using: "composite"
@@ -260,7 +260,7 @@ runs:
         JSON_OUTPUT="${JSON_OUTPUT%,}}"
 
         # Set the output for use in the main workflow
-        echo "ingress-service-names-json<<EOF" >> $GITHUB_OUTPUT
+        echo "ingress-service-names<<EOF" >> $GITHUB_OUTPUT
         echo "$JSON_OUTPUT" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
 
