@@ -154,13 +154,15 @@ runs:
         kubectl create ns "$NAMESPACE"
 
         kubectl label namespace $NAMESPACE \
-          cleanup.kyverno.io/ttl=${{ inputs.ns-ttl }}
           repo=${{ steps.generate-ns-name.outputs.repo-name }} \
           branch="${sanitized_branch}" \
           commit=${{ steps.generate-ns-name.outputs.commit-sha }} \
           pr-number=${{ steps.generate-ns-name.outputs.pr-number || 'none' }} \
           workflow-job=${{ steps.generate-ns-name.outputs.workflow-job }} \
           workflow-run-number=${{ steps.generate-ns-name.outputs.workflow-run-number }}
+
+        kubectl label namespace --overwrite=true $NAMESPACE \
+          cleanup.kyverno.io/ttl=${{ inputs.ns-ttl }}
 
         echo "Kubernetes namespace [$NAMESPACE] successfully labeled:"
         kubectl get namespace $NAMESPACE --show-labels
