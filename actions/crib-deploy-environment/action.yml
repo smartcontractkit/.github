@@ -75,12 +75,12 @@ outputs:
   devspace-namespace:
     description: "Kubernetes namespace used to provision a CRIB environment."
     value: ${{ steps.generate-ns-name.outputs.devspace-namespace }}
-  ingress-service-names-env:
+  ingress-service-names:
     description:
       "Aggregated key-value pairs of Ingress service endpoints in .env format,
-      excluding the ingress base domain. To construct the fully qualified domain
-      names (FQDNs) for accessing the services, append the base domain provided
-      as the ingress-base-domain input."
+      excluding the ingress base domain. To construct the FQDNs for accessing
+      the services, append the base domain provided as the ingress-base-domain
+      input."
     value: ${{ steps.get-ingress-services.outputs.ingress-service-names-env }}
 
 runs:
@@ -235,8 +235,8 @@ runs:
           exit 1
         fi
 
-        # Prepare the output string for environment variable
-        OUTPUT_STRING=""
+        # Prepare a JSON object for the output
+        JSON_OUTPUT="{"
 
         # Loop through each ingress entry
         for host in $ingresses; do
@@ -252,13 +252,16 @@ runs:
           # Replace hyphens with underscores and convert to uppercase
           key=$(echo "$key" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
 
-          # Append to output string in the format KEY=base_name
-          OUTPUT_STRING+="$key=$base_name"$'\n'
+          # Append to JSON object in the format "KEY": "base_name"
+          JSON_OUTPUT+="\"$key\":\"$base_name\","
         done
 
+        # Remove the trailing comma and close the JSON object
+        JSON_OUTPUT="${JSON_OUTPUT%,}}"
+
         # Set the output for use in the main workflow
-        echo "ingress-service-names-env<<EOF" >> $GITHUB_OUTPUT
-        echo "$OUTPUT_STRING" >> $GITHUB_OUTPUT
+        echo "ingress-service-names-json<<EOF" >> $GITHUB_OUTPUT
+        echo "$JSON_OUTPUT" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Render notification template
