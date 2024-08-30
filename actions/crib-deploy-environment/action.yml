@@ -260,7 +260,7 @@ runs:
         JSON_OUTPUT="${JSON_OUTPUT%,}}"
 
         # Set the output for use in the main workflow
-        echo "ingress-service-names-json<<EOF" >> $GITHUB_OUTPUT
+        echo "ingress-service-names<<EOF" >> $GITHUB_OUTPUT
         echo "$JSON_OUTPUT" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
 
