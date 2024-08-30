@@ -750,50 +750,158 @@
     :versions: []
     :when: 2024-08-28 01:30:11.851867000 Z
 - - :permit
-  - MIT
-  - :who:
-    :why:
+  - 0BSD
+  - :who: default
+    :why: default
     :versions: []
-    :when: 2024-08-28 01:37:57.153217000 Z
+    :when: 2024-08-30 20:53:43.668810000 Z
 - - :permit
-  - Apache 2.0
-  - :who:
-    :why:
+  - AFL-3.0
+  - :who: default
+    :why: default
     :versions: []
-    :when: 2024-08-28 01:37:57.473379000 Z
+    :when: 2024-08-30 20:53:43.988570000 Z
 - - :permit
-  - BSD Zero Clause License
-  - :who:
-    :why:
+  - Apache-2.0
+  - :who: default
+    :why: default
     :versions: []
-    :when: 2024-08-28 01:37:57.793378000 Z
+    :when: 2024-08-30 20:53:44.333665000 Z
 - - :permit
-  - New BSD
-  - :who:
-    :why:
+  - Artistic-2.0
+  - :who: default
+    :why: default
     :versions: []
-    :when: 2024-08-28 01:37:58.115423000 Z
+    :when: 2024-08-30 20:53:44.663637000 Z
 - - :permit
-  - Simplified BSD
-  - :who:
-    :why:
+  - BlueOak-1.0.0
+  - :who: default
+    :why: default
     :versions: []
-    :when: 2024-08-28 01:37:58.432726000 Z
+    :when: 2024-08-30 20:53:45.002515000 Z
+- - :permit
+  - BSD-2-Clause-Patent
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:45.347428000 Z
+- - :permit
+  - BSD-2-Clause
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:45.677636000 Z
+- - :permit
+  - BSD-3-Clause-Clear
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:46.005517000 Z
+- - :permit
+  - BSD-3-Clause
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:46.361381000 Z
+- - :permit
+  - BSD-4-Clause
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:46.689668000 Z
+- - :permit
+  - BSL-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:47.021691000 Z
+- - :permit
+  - CC0-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:47.353114000 Z
+- - :permit
+  - CERN-OHL-P-2.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:47.699451000 Z
+- - :permit
+  - ECL-2.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:48.025212000 Z
 - - :permit
   - ISC
-  - :who:
-    :why:
+  - :who: default
+    :why: default
     :versions: []
-    :when: 2024-08-28 01:37:58.756817000 Z
+    :when: 2024-08-30 20:53:48.376329000 Z
 - - :permit
-  - Mozilla Public License 2.0
-  - :who:
-    :why:
+  - LPPL-1.3c
+  - :who: default
+    :why: default
     :versions: []
-    :when: 2024-08-28 18:39:49.517136000 Z
+    :when: 2024-08-30 20:53:48.713961000 Z
 - - :permit
-  - Python-2.0
-  - :who:
-    :why:
+  - MIT-0
+  - :who: default
+    :why: default
     :versions: []
-    :when: 2024-08-28 18:40:21.771482000 Z
+    :when: 2024-08-30 20:53:49.043949000 Z
+- - :permit
+  - MIT
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:49.375805000 Z
+- - :permit
+  - MS-PL
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:49.704639000 Z
+- - :permit
+  - MulanPSL-2.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:50.063093000 Z
+- - :permit
+  - NCSA
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:50.392357000 Z
+- - :permit
+  - PostgreSQL
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:50.730102000 Z
+- - :permit
+  - Unlicense
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:51.063997000 Z
+- - :permit
+  - UPL-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:51.412648000 Z
+- - :permit
+  - WTFPL
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:51.739205000 Z
+- - :permit
+  - Zlib
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:52.072746000 Z
