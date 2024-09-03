@@ -147,7 +147,7 @@ runs:
         # (e.g. ‘MyValue’,  or ‘my_value’,  or ‘12345’, regex used for validation is
         # ‘(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?’)
         sanitized_branch=$(echo "${{ steps.generate-ns-name.outputs.branch-name }}" \
-          | sed 's/[^a-zA-Z0-9._-]/_/g')
+          | sed 's/[^a-zA-Z0-9._-]/_/g' | cut -c1-63 | sed 's/[._-]$//')
 
         NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
         echo "Creating $NAMESPACE Kubernetes namespace.."
@@ -160,6 +160,9 @@ runs:
           pr-number=${{ steps.generate-ns-name.outputs.pr-number || 'none' }} \
           workflow-job=${{ steps.generate-ns-name.outputs.workflow-job }} \
           workflow-run-number=${{ steps.generate-ns-name.outputs.workflow-run-number }}
+
+        kubectl label namespace --overwrite=true $NAMESPACE \
+          cleanup.kyverno.io/ttl=${{ inputs.ns-ttl }}
 
         echo "Kubernetes namespace [$NAMESPACE] successfully labeled:"
         kubectl get namespace $NAMESPACE --show-labels
@@ -178,7 +181,6 @@ runs:
         DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
         PROFILES: ${{ inputs.devspace-profiles }}
         KUBECACHEDIR: /dev/null
-        NS_TTL: ${{ inputs.ns-ttl }}
         SETUP_AWS_PROFILE: false
         SETUP_EKS_CONFIG: false
       run: |
@@ -191,9 +193,10 @@ runs:
         # Kyverno needs some time to inject the RoleBinding
         sleep 3
 
-        # Check if product is ccip and set ATLAS_ENABLED accordingly
+        # Check if product is ccip and set ATLAS_ENABLED and CCIP_UI_ENABLED accordingly
         if [[ "${{ inputs.product }}" == "ccip" ]]; then
           export ATLAS_ENABLED=true
+          export CCIP_UI_ENABLED=true
         fi
 
         nix develop -c ./cribbit.sh "$NAMESPACE"

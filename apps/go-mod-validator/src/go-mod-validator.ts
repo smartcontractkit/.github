@@ -1,5 +1,5 @@
-import { isGoModReferencingDefaultBranch } from "./github";
-import { getDeps, GoModule, lineForDependencyPathFinder } from "./deps";
+import { getDefaultBranch, isGoModReferencingDefaultBranch } from "./github";
+import { getDeps, BaseGoModule, lineForDependencyPathFinder } from "./deps";
 import { FIXING_ERRORS } from "./strings";
 import * as github from "@actions/github";
 import * as core from "@actions/core";
@@ -42,40 +42,94 @@ export async function run(): Promise<string> {
   const { goModDir, gh, depPrefix } = getContext();
 
   const depsToValidate = await getDeps(goModDir, depPrefix);
-
-  const errs: Map<GoModule, string> = new Map();
-
+  const invalidations: Map<
+    BaseGoModule,
+    {
+      type: "error" | "warning";
+      msg: string;
+    }
+  > = new Map();
   const validating = depsToValidate.map(async (d) => {
-    const isValid = await isGoModReferencingDefaultBranch(d, gh);
+    // Bit of a code smell, but I wanted to avoid adding the defaultBranchGetter to deps.ts to keep it separate from
+    // the GitHub API client.
+    // And we want the default branch available in this scope for context.
+    const defaultBranch = await getDefaultBranch(gh, d);
+    const result = await isGoModReferencingDefaultBranch(gh, d, defaultBranch);
+    const { commitSha, isInDefault } = result;
 
-    if (!isValid) {
-      errs.set(d, "dependency not on default branch");
+    const repoUrl = `https://github.com/${d.owner}/${d.repo}`;
+    let detailString = "";
+    if ("tag" in d) {
+      detailString = `Version(tag): ${d.tag}
+Tree: ${repoUrl}/tree/${d.tag}
+Commit: ${repoUrl}/commit/${commitSha}`;
+    }
+    if ("commitSha" in d) {
+      detailString = `Version(commit): ${d.commitSha}
+Tree: ${repoUrl}/tree/${d.commitSha}
+Commit: ${repoUrl}/commit/${d.commitSha} `;
+    }
+
+    switch (isInDefault) {
+      case true:
+        break;
+      case false: {
+        const msg = `[${d.goModFilePath}] dependency ${d.name} not on default branch (${defaultBranch}).
+${detailString}`;
+
+        invalidations.set(d, { msg, type: "error" });
+        break;
+      }
+      case "unknown": {
+        const msg = `[${d.goModFilePath}] dependency ${d.name} not found in default branch (${defaultBranch}).
+Reason: ${result.reason}          
+${detailString}`;
+
+        invalidations.set(d, { msg, type: "warning" });
+        break;
+      }
+      default:
+        {
+          // exhaustive check
+          const isNever = (isInDefault: never) => isInDefault;
+          isNever(isInDefault);
+        }
+        break;
     }
   });
 
   await Promise.all(validating);
 
-  if (errs.size > 0) {
+  if (invalidations.size > 0) {
     const depLineFinder = lineForDependencyPathFinder();
-    const sortedErrs = [...errs.entries()].sort((a, b) => {
+    const sortedErrs = [...invalidations.entries()].sort((a, b) => {
       const aKey = a[0].goModFilePath + a[0].name;
       const bKey = b[0].goModFilePath + b[0].name;
 
       return aKey.localeCompare(bKey);
     });
-    sortedErrs.forEach(([goMod, validationErr]) => {
+    sortedErrs.forEach(([goMod, invalidation]) => {
       const line = depLineFinder(goMod.goModFilePath, goMod.path);
-      core.error(`err: ${validationErr}`, {
-        file: goMod.goModFilePath,
-        startLine: line,
-      });
+      switch (invalidation.type) {
+        case "error":
+          core.error(invalidation.msg, {
+            file: goMod.goModFilePath,
+            startLine: line,
+          });
+          break;
+        case "warning":
+          core.warning(invalidation.msg, {
+            file: goMod.goModFilePath,
+            startLine: line,
+          });
+      }
     });
 
     core.summary.addRaw(FIXING_ERRORS, true);
     const summary = core.summary.stringify();
     await core.summary.write();
 
-    core.setFailed(`validation failed for ${errs.size} dependencies`);
+    core.setFailed(`validation failed for ${invalidations.size} dependencies`);
     return summary;
   } else {
     const msg = "validation successful for all go.mod dependencies";
