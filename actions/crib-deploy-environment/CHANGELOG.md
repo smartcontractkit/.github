@@ -1,5 +1,15 @@
 # crib-deploy-environment
 
+## 1.3.0
+
+### Minor Changes
+
+- [#589](https://github.com/smartcontractkit/.github/pull/589)
+  [`7b33373`](https://github.com/smartcontractkit/.github/commit/7b33373b05314e8969a103c072f907c07213ba16)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - The CRIB CCIP smoke
+  tests will set CCIP_UI_ENABLED to true, in order to test the newly added
+  component.
+
 ## 1.2.1
 
 ### Patch Changes
