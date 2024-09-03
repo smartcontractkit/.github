@@ -1,0 +1,907 @@
+---
+- - :restrict
+  - APL-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:31.522735000 Z
+- - :restrict
+  - AGPL-1.0-only
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:31.918025000 Z
+- - :restrict
+  - AGPL-1.0-or-later
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:32.229331000 Z
+- - :restrict
+  - Aladdin
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:32.538784000 Z
+- - :restrict
+  - BUSL-1.1
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:32.858285000 Z
+- - :restrict
+  - CPAL-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:33.169458000 Z
+- - :restrict
+  - CPL-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:33.478684000 Z
+- - :restrict
+  - copyleft-next-0.3.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:33.787602000 Z
+- - :restrict
+  - copyleft-next-0.3.1
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:34.104625000 Z
+- - :restrict
+  - CC-BY-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:34.415780000 Z
+- - :restrict
+  - CC-BY-2.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:34.733844000 Z
+- - :restrict
+  - CC-BY-2.5-AU
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:35.042150000 Z
+- - :restrict
+  - CC-BY-2.5
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:35.351949000 Z
+- - :restrict
+  - CC-BY-3.0-AT
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:35.659260000 Z
+- - :restrict
+  - CC-BY-3.0-DE
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:35.966954000 Z
+- - :restrict
+  - CC-BY-3.0-IGO
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:36.274883000 Z
+- - :restrict
+  - CC-BY-3.0-NL
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:36.585263000 Z
+- - :restrict
+  - CC-BY-3.0-US
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:36.906526000 Z
+- - :restrict
+  - CC-BY-3.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:37.219516000 Z
+- - :restrict
+  - CC-BY-4.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:37.527999000 Z
+- - :restrict
+  - CC-BY-ND-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:37.843101000 Z
+- - :restrict
+  - CC-BY-ND-2.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:38.153114000 Z
+- - :restrict
+  - CC-BY-ND-2.5
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:38.463862000 Z
+- - :restrict
+  - CC-BY-ND-3.0-DE
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:38.776972000 Z
+- - :restrict
+  - CC-BY-ND-3.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:39.097760000 Z
+- - :restrict
+  - CC-BY-ND-4.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:39.407165000 Z
+- - :restrict
+  - CC-BY-NC-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:39.717257000 Z
+- - :restrict
+  - CC-BY-NC-2.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:40.027751000 Z
+- - :restrict
+  - CC-BY-NC-2.5
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:40.335756000 Z
+- - :restrict
+  - CC-BY-NC-3.0-DE
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:40.644382000 Z
+- - :restrict
+  - CC-BY-NC-3.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:40.961392000 Z
+- - :restrict
+  - CC-BY-NC-4.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:41.275842000 Z
+- - :restrict
+  - CC-BY-NC-ND-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:41.585309000 Z
+- - :restrict
+  - CC-BY-NC-ND-2.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:41.894666000 Z
+- - :restrict
+  - CC-BY-NC-ND-2.5
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:42.203849000 Z
+- - :restrict
+  - CC-BY-NC-ND-3.0-DE
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:42.514022000 Z
+- - :restrict
+  - CC-BY-NC-ND-3.0-IGO
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:42.823197000 Z
+- - :restrict
+  - CC-BY-NC-ND-3.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:43.144210000 Z
+- - :restrict
+  - CC-BY-NC-ND-4.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:43.454956000 Z
+- - :restrict
+  - CC-BY-NC-SA-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:43.765278000 Z
+- - :restrict
+  - CC-BY-NC-SA-2.0-UK
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:44.076576000 Z
+- - :restrict
+  - CC-BY-NC-SA-2.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:44.386856000 Z
+- - :restrict
+  - CC-BY-NC-SA-2.0-DE
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:44.699984000 Z
+- - :restrict
+  - CC-BY-NC-SA-2.5
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:45.022355000 Z
+- - :restrict
+  - CC-BY-NC-SA-3.0-DE
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:45.333462000 Z
+- - :restrict
+  - CC-BY-NC-SA-3.0-IGO
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:45.709756000 Z
+- - :restrict
+  - CC-BY-NC-SA-3.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:46.018787000 Z
+- - :restrict
+  - CC-BY-NC-SA-4.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:46.331726000 Z
+- - :restrict
+  - CC-BY-SA-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:46.662144000 Z
+- - :restrict
+  - CC-BY-SA-2.0-UK
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:46.999567000 Z
+- - :restrict
+  - CC-BY-SA-2.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:47.327472000 Z
+- - :restrict
+  - CC-BY-SA-2.1-JP
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:47.654649000 Z
+- - :restrict
+  - CC-BY-SA-2.5
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:47.988830000 Z
+- - :restrict
+  - CC-BY-SA-3.0-AT
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:48.322938000 Z
+- - :restrict
+  - CC-BY-SA-3.0-DE
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:48.733805000 Z
+- - :restrict
+  - CC-BY-SA-3.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:49.118888000 Z
+- - :restrict
+  - CC-BY-SA-4.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:49.470085000 Z
+- - :restrict
+  - CC-BY-NC-SA-2.0-FR
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:49.803910000 Z
+- - :restrict
+  - CC-BY-SA-3.0-IGO
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:50.154239000 Z
+- - :restrict
+  - CC-PDDC
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:50.486438000 Z
+- - :restrict
+  - CC0-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:50.826482000 Z
+- - :restrict
+  - EPL-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:51.163149000 Z
+- - :restrict
+  - EPL-2.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:51.488562000 Z
+- - :restrict
+  - ErlPL-1.1
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:51.818751000 Z
+- - :restrict
+  - EUPL-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:52.162124000 Z
+- - :restrict
+  - EUPL-1.1
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:52.486328000 Z
+- - :restrict
+  - EUPL-1.2
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:52.848510000 Z
+- - :restrict
+  - AGPL-3.0-only
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:53.198630000 Z
+- - :restrict
+  - AGPL-3.0-or-later
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:53.551282000 Z
+- - :restrict
+  - GFDL-1.1-only
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:53.875773000 Z
+- - :restrict
+  - GFDL-1.1-invariants-only
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:54.188148000 Z
+- - :restrict
+  - GFDL-1.1-no-invariants-only
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:54.498662000 Z
+- - :restrict
+  - GFDL-1.1-or-later
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:54.820186000 Z
+- - :restrict
+  - GFDL-1.1-invariants-or-later
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:55.159173000 Z
+- - :restrict
+  - GFDL-1.1-no-invariants-or-later
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:55.505387000 Z
+- - :restrict
+  - GFDL-1.2-only
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:55.835352000 Z
+- - :restrict
+  - GFDL-1.2-invariants-only
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:56.151325000 Z
+- - :restrict
+  - GFDL-1.2-no-invariants-only
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:56.472810000 Z
+- - :restrict
+  - GFDL-1.2-or-later
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:56.816206000 Z
+- - :restrict
+  - GFDL-1.2-invariants-or-later
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:57.176669000 Z
+- - :restrict
+  - GFDL-1.2-no-invariants-or-later
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:57.516779000 Z
+- - :restrict
+  - GFDL-1.3-only
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:57.895337000 Z
+- - :restrict
+  - GFDL-1.3-invariants-only
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:58.208061000 Z
+- - :restrict
+  - GFDL-1.3-no-invariants-only
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:58.525345000 Z
+- - :restrict
+  - GFDL-1.3-or-later
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:58.863262000 Z
+- - :restrict
+  - GFDL-1.3-invariants-or-later
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:59.190651000 Z
+- - :restrict
+  - GFDL-1.3-no-invariants-or-later
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:59.531282000 Z
+- - :restrict
+  - GPL-1.0-only
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:29:59.857149000 Z
+- - :restrict
+  - GPL-1.0-or-later
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:00.190590000 Z
+- - :restrict
+  - GPL-2.0-only
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:00.510914000 Z
+- - :restrict
+  - GPL-2.0-or-later
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:00.844200000 Z
+- - :restrict
+  - GPL-3.0-only
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:01.167025000 Z
+- - :restrict
+  - GPL-3.0-or-later
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:01.487253000 Z
+- - :restrict
+  - LGPL-2.1-only
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:01.826315000 Z
+- - :restrict
+  - LGPL-2.1-or-later
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:02.165040000 Z
+- - :restrict
+  - LGPL-3.0-only
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:02.482447000 Z
+- - :restrict
+  - LGPL-3.0-or-later
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:02.803769000 Z
+- - :restrict
+  - LGPL-2.0-only
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:03.143875000 Z
+- - :restrict
+  - LGPL-2.0-or-later
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:03.495427000 Z
+- - :restrict
+  - IPL-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:03.824772000 Z
+- - :restrict
+  - MPL-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:04.142732000 Z
+- - :restrict
+  - MPL-1.1
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:04.461612000 Z
+- - :restrict
+  - MPL-2.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:04.795761000 Z
+- - :restrict
+  - MPL-2.0-no-copyleft-exception
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:05.119564000 Z
+- - :restrict
+  - OSL-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:05.436969000 Z
+- - :restrict
+  - OSL-1.1
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:05.765423000 Z
+- - :restrict
+  - OSL-2.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:06.089779000 Z
+- - :restrict
+  - OSL-2.1
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:06.402159000 Z
+- - :restrict
+  - OSL-3.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:06.717682000 Z
+- - :restrict
+  - RPSL-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:07.037275000 Z
+- - :restrict
+  - RPL-1.1
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:07.358748000 Z
+- - :restrict
+  - RPL-1.5
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:07.697530000 Z
+- - :restrict
+  - OFL-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:08.026836000 Z
+- - :restrict
+  - OFL-1.0-no-RFN
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:08.344168000 Z
+- - :restrict
+  - OFL-1.0-RFN
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:08.659968000 Z
+- - :restrict
+  - OFL-1.1
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:08.978391000 Z
+- - :restrict
+  - OFL-1.1-no-RFN
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:09.294943000 Z
+- - :restrict
+  - OFL-1.1-RFN
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:09.612648000 Z
+- - :restrict
+  - SISSL
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:09.934291000 Z
+- - :restrict
+  - SISSL-1.2
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:10.250312000 Z
+- - :restrict
+  - SPL-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:10.565960000 Z
+- - :restrict
+  - SunPro
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:10.886159000 Z
+- - :restrict
+  - Watcom-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:11.208722000 Z
+- - :restrict
+  - YPL-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:11.525973000 Z
+- - :restrict
+  - YPL-1.1
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-28 01:30:11.851867000 Z
+- - :permit
+  - 0BSD
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:43.668810000 Z
+- - :permit
+  - AFL-3.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:43.988570000 Z
+- - :permit
+  - Apache-2.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:44.333665000 Z
+- - :permit
+  - Artistic-2.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:44.663637000 Z
+- - :permit
+  - BlueOak-1.0.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:45.002515000 Z
+- - :permit
+  - BSD-2-Clause-Patent
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:45.347428000 Z
+- - :permit
+  - BSD-2-Clause
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:45.677636000 Z
+- - :permit
+  - BSD-3-Clause-Clear
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:46.005517000 Z
+- - :permit
+  - BSD-3-Clause
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:46.361381000 Z
+- - :permit
+  - BSD-4-Clause
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:46.689668000 Z
+- - :permit
+  - BSL-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:47.021691000 Z
+- - :permit
+  - CC0-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:47.353114000 Z
+- - :permit
+  - CERN-OHL-P-2.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:47.699451000 Z
+- - :permit
+  - ECL-2.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:48.025212000 Z
+- - :permit
+  - ISC
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:48.376329000 Z
+- - :permit
+  - LPPL-1.3c
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:48.713961000 Z
+- - :permit
+  - MIT-0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:49.043949000 Z
+- - :permit
+  - MIT
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:49.375805000 Z
+- - :permit
+  - MS-PL
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:49.704639000 Z
+- - :permit
+  - MulanPSL-2.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:50.063093000 Z
+- - :permit
+  - NCSA
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:50.392357000 Z
+- - :permit
+  - PostgreSQL
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:50.730102000 Z
+- - :permit
+  - Unlicense
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:51.063997000 Z
+- - :permit
+  - UPL-1.0
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:51.412648000 Z
+- - :permit
+  - WTFPL
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:51.739205000 Z
+- - :permit
+  - Zlib
+  - :who: default
+    :why: default
+    :versions: []
+    :when: 2024-08-30 20:53:52.072746000 Z
