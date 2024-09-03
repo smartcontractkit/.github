@@ -49,8 +49,7 @@ runs:
     - name: Run license-finder
       working-directory: ${{ inputs.working-directory }}
       run: |
-        license_finder --decisions-file=${{ github.action_path }}/doc/dependency_decisions.yml \
-          ${{ inputs.license-finder-custom-args }}
+        license_finder --decisions-file=${{ github.action_path }}/doc/dependency_decisions.yml ${{ inputs.license-finder-custom-args }}
       shell: bash
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''
