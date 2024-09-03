@@ -193,9 +193,10 @@ runs:
         # Kyverno needs some time to inject the RoleBinding
         sleep 3
 
-        # Check if product is ccip and set ATLAS_ENABLED accordingly
+        # Check if product is ccip and set ATLAS_ENABLED and CCIP_UI_ENABLED accordingly
         if [[ "${{ inputs.product }}" == "ccip" ]]; then
           export ATLAS_ENABLED=true
+          export CCIP_UI_ENABLED=true
         fi
 
         nix develop -c ./cribbit.sh "$NAMESPACE"
