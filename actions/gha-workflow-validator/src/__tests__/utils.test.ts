@@ -1,8 +1,18 @@
-import { filterForRelevantChanges, parseGithubDiff } from "../utils.js";
+import {
+  filterForRelevantChanges,
+  parseGithubDiff,
+  doValidationErrorsExist,
+  processLineValidationResults,
+} from "../utils.js";
 import { GithubFiles, getComparison } from "../github.js";
 import { getNock, getTestOctokit } from "./__helpers__/test-utils.js";
 
 import { vi, describe, it, expect } from "vitest";
+import {
+  FileValidationResult,
+  LineValidationResult,
+  ValidationType,
+} from "../validations/validation-check.js";
 
 const nockBack = getNock();
 
@@ -161,5 +171,372 @@ describe(parseGithubDiff.name, () => {
     expect(parsedFiles).toMatchSnapshot();
 
     nockDone();
+  });
+});
+
+describe(doValidationErrorsExist.name, () => {
+  it("should return true with no line validations", () => {
+    const fileValidations: FileValidationResult[] = [
+      {
+        filename: ".github/workflows/test.yml",
+        lineValidations: [],
+      },
+    ];
+    const result = doValidationErrorsExist(fileValidations);
+    expect(result).toBe(false);
+  });
+
+  it("should return true with only warning validations", () => {
+    const fileValidations: FileValidationResult[] = [
+      {
+        filename: ".github/workflows/test.yml",
+        lineValidations: [
+          {
+            filename: ".github/workflows/test.yml",
+            line: {
+              lineNumber: 1,
+              content: "line 1",
+              operation: "add",
+              ignored: false,
+            },
+            messages: [
+              {
+                message: "Error",
+                type: ValidationType.VERSION_COMMENT,
+                severity: "warning",
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    const result = doValidationErrorsExist(fileValidations);
+    expect(result).toBe(false);
+  });
+
+  it("should return true with only ignored validations", () => {
+    const fileValidations: FileValidationResult[] = [
+      {
+        filename: ".github/workflows/test.yml",
+        lineValidations: [
+          {
+            filename: ".github/workflows/test.yml",
+            line: {
+              lineNumber: 1,
+              content: "line 1",
+              operation: "add",
+              ignored: false,
+            },
+            messages: [
+              {
+                message: "Error",
+                type: ValidationType.VERSION_COMMENT,
+                severity: "warning",
+              },
+            ],
+          },
+          {
+            filename: ".github/workflows/test.yml",
+            line: {
+              lineNumber: 1,
+              content: "line 1",
+              operation: "add",
+              ignored: false,
+            },
+            messages: [
+              {
+                message: "Error",
+                type: ValidationType.VERSION_COMMENT,
+                severity: "ignored",
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    const result = doValidationErrorsExist(fileValidations);
+    expect(result).toBe(false);
+  });
+
+  it("should return true with warning and ignored validations", () => {
+    const fileValidations: FileValidationResult[] = [
+      {
+        filename: ".github/workflows/test.yml",
+        lineValidations: [
+          {
+            filename: ".github/workflows/test.yml",
+            line: {
+              lineNumber: 1,
+              content: "line 1",
+              operation: "add",
+              ignored: false,
+            },
+            messages: [
+              {
+                message: "Error",
+                type: ValidationType.VERSION_COMMENT,
+                severity: "ignored",
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    const result = doValidationErrorsExist(fileValidations);
+    expect(result).toBe(false);
+  });
+
+  it("should return false with single error", () => {
+    const fileValidations: FileValidationResult[] = [
+      {
+        filename: ".github/workflows/test.yml",
+        lineValidations: [
+          {
+            filename: ".github/workflows/test.yml",
+            line: {
+              lineNumber: 1,
+              content: "line 1",
+              operation: "add",
+              ignored: false,
+            },
+            messages: [
+              {
+                message: "Error",
+                type: ValidationType.VERSION_COMMENT,
+                severity: "error",
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    const result = doValidationErrorsExist(fileValidations);
+    expect(result).toBe(true);
+  });
+
+  it("should return false with all types", () => {
+    const fileValidations: FileValidationResult[] = [
+      {
+        filename: ".github/workflows/test.yml",
+        lineValidations: [
+          {
+            filename: ".github/workflows/test.yml",
+            line: {
+              lineNumber: 1,
+              content: "line 1",
+              operation: "add",
+              ignored: false,
+            },
+            messages: [
+              {
+                message: "Error",
+                type: ValidationType.VERSION_COMMENT,
+                severity: "error",
+              },
+            ],
+          },
+          {
+            filename: ".github/workflows/test.yml",
+            line: {
+              lineNumber: 1,
+              content: "line 1",
+              operation: "add",
+              ignored: false,
+            },
+            messages: [
+              {
+                message: "Error",
+                type: ValidationType.VERSION_COMMENT,
+                severity: "warning",
+              },
+            ],
+          },
+          {
+            filename: ".github/workflows/test.yml",
+            line: {
+              lineNumber: 1,
+              content: "line 1",
+              operation: "add",
+              ignored: false,
+            },
+            messages: [
+              {
+                message: "Error",
+                type: ValidationType.VERSION_COMMENT,
+                severity: "ignored",
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    const result = doValidationErrorsExist(fileValidations);
+    expect(result).toBe(true);
+  });
+});
+
+describe(processLineValidationResults.name, () => {
+  it("should combine empty results", () => {
+    const results = processLineValidationResults([]);
+    expect(results).toEqual([]);
+  });
+
+  it("should combine single result", () => {
+    const singleLineValidation: LineValidationResult = {
+      filename: ".github/workflows/test.yml",
+      line: {
+        lineNumber: 1,
+        content: "line 1",
+        operation: "add",
+        ignored: false,
+      },
+      messages: [
+        {
+          message: "Error",
+          type: ValidationType.VERSION_COMMENT,
+          severity: "error",
+        },
+      ],
+    };
+    const results = processLineValidationResults([singleLineValidation]);
+    expect(results).toEqual([singleLineValidation]);
+  });
+
+  it("should combine two results for the same line", () => {
+    const firstLineValidation: LineValidationResult = {
+      filename: ".github/workflows/test.yml",
+      line: {
+        lineNumber: 1,
+        content: "line 1",
+        operation: "add",
+        ignored: false,
+      },
+      messages: [
+        {
+          message: "Error",
+          type: ValidationType.VERSION_COMMENT,
+          severity: "error",
+        },
+      ],
+    };
+
+    const sameLineValidation: LineValidationResult = {
+      filename: ".github/workflows/test.yml",
+      line: {
+        lineNumber: 1,
+        content: "line 1",
+        operation: "add",
+        ignored: false,
+      },
+      messages: [
+        {
+          message: "Error",
+          type: ValidationType.NODE_VERSION,
+          severity: "warning",
+        },
+      ],
+    };
+
+    const results = processLineValidationResults([
+      firstLineValidation,
+      sameLineValidation,
+    ]);
+    expect(results.length).toBe(1);
+
+    const combinedLineValidation = results[0];
+    expect(combinedLineValidation.messages).toEqual([
+      ...firstLineValidation.messages,
+      ...sameLineValidation.messages,
+    ]);
+  });
+
+  it("should combine two results for two lines (and sort by line)", () => {
+    const lineTwoValidationOne: LineValidationResult = {
+      filename: ".github/workflows/test.yml",
+      line: {
+        lineNumber: 2,
+        content: "line 1",
+        operation: "add",
+        ignored: false,
+      },
+      messages: [
+        {
+          message: "Error",
+          type: ValidationType.VERSION_COMMENT,
+          severity: "error",
+        },
+      ],
+    };
+
+    const lineTwoValidationTwo: LineValidationResult = {
+      filename: ".github/workflows/test.yml",
+      line: {
+        lineNumber: 2,
+        content: "line 1",
+        operation: "add",
+        ignored: false,
+      },
+      messages: [
+        {
+          message: "Error",
+          type: ValidationType.NODE_VERSION,
+          severity: "warning",
+        },
+      ],
+    };
+
+    const lineOneValidationOne: LineValidationResult = {
+      filename: ".github/workflows/test.yml",
+      line: {
+        lineNumber: 1,
+        content: "line 1",
+        operation: "add",
+        ignored: false,
+      },
+      messages: [
+        {
+          message: "Error",
+          type: ValidationType.VERSION_COMMENT,
+          severity: "error",
+        },
+      ],
+    };
+
+    const lineOneValidationTwo: LineValidationResult = {
+      filename: ".github/workflows/test.yml",
+      line: {
+        lineNumber: 1,
+        content: "line 1",
+        operation: "add",
+        ignored: false,
+      },
+      messages: [
+        {
+          message: "Error",
+          type: ValidationType.NODE_VERSION,
+          severity: "warning",
+        },
+      ],
+    };
+
+    const results = processLineValidationResults([
+      lineOneValidationOne,
+      lineOneValidationTwo,
+      lineTwoValidationOne,
+      lineTwoValidationTwo,
+    ]);
+    expect(results.length).toBe(2);
+
+    const line1LV = results[0];
+    expect(line1LV.messages).toEqual([
+      ...lineOneValidationOne.messages,
+      ...lineOneValidationTwo.messages,
+    ]);
+
+    const line2LV = results[0];
+    expect(line2LV.messages).toEqual([
+      ...lineTwoValidationOne.messages,
+      ...lineTwoValidationTwo.messages,
+    ]);
   });
 });

@@ -6,10 +6,10 @@ runs:
   main: "dist/index.js"
 
 inputs:
-  validate-diff-only:
-    description: "Only run validations against the diff."
+  evaluate-mode:
+    description: "Set to true to never fail the action."
     required: false
-    default: true
+    default: false
   root-directory:
     description: "Root directory of the repository."
     required: false
@@ -23,7 +23,7 @@ inputs:
     required: false
     default: true
   validate-action-node-versions:
-    description: "Validate action references are using node 20."
+    description: "Validate actions referenced are using node 20."
     required: false
     default: true
   include-all-action-definitions:

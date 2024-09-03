@@ -1,7 +1,7 @@
 import {
   ActionReferenceValidation,
   extractActionReferenceFromLine,
-} from "../action-reference-validations.js";
+} from "../validations/action-reference-validations.js";
 import { FileLine, ParsedFile } from "../utils.js";
 import { getNock, getTestOctokit } from "./__helpers__/test-utils.js";
 
@@ -31,6 +31,7 @@ const jobStepLine: FileLine = {
   lineNumber: 1,
   content: "      - name: test step",
   operation: "add",
+  ignored: false,
 };
 
 const actionsCheckoutLineValid: FileLine = {
@@ -38,6 +39,7 @@ const actionsCheckoutLineValid: FileLine = {
   content:
     "        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1",
   operation: "add",
+  ignored: false,
 };
 
 const actionsCheckoutLineNoComment: FileLine = {
@@ -45,12 +47,14 @@ const actionsCheckoutLineNoComment: FileLine = {
   content:
     "        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11",
   operation: "add",
+  ignored: false,
 };
 
 const actionsCheckoutLineBadRef: FileLine = {
   lineNumber: 2,
   content: "        uses: actions/checkout@v4 # comment",
   operation: "add",
+  ignored: false,
 };
 
 const actionsCheckoutLineOutdatedRef: FileLine = {
@@ -58,12 +62,14 @@ const actionsCheckoutLineOutdatedRef: FileLine = {
   content:
     "        uses: actions/checkout@7739b9ba2efcda9dde65ad1e3c2dbe65b41dfba7 # v3.6.0",
   operation: "add",
+  ignored: false,
 };
 
 const actionsCheckoutLineAllErrors: FileLine = {
   lineNumber: 2,
   content: "        uses: actions/checkout@v3.6.0",
   operation: "add",
+  ignored: false,
 };
 
 describe(ActionReferenceValidation.name, () => {
@@ -83,8 +89,8 @@ describe(ActionReferenceValidation.name, () => {
     const noWorkflowChanges: ParsedFile = {
       filename: ".github/workflows/test.yml",
       lines: [
-        { lineNumber: 1, content: "line 1", operation: "add" },
-        { lineNumber: 2, content: "line 2", operation: "add" },
+        { lineNumber: 1, content: "line 1", operation: "add", ignored: false },
+        { lineNumber: 2, content: "line 2", operation: "add", ignored: false },
       ],
     };
     const result = await subject.validate(noWorkflowChanges);
@@ -125,14 +131,14 @@ describe(ActionReferenceValidation.name, () => {
 
     const result = await subject.validate(simpleChanges);
     const lineValidations = result.lineValidations.filter(
-      (lv) => lv.validationErrors.length > 0,
+      (lv) => lv.messages.length > 0,
     );
     expect(lineValidations.length).toEqual(1);
 
     const lvr = lineValidations[0];
     expect(lvr.line.lineNumber).toEqual(simpleChanges.lines[1].lineNumber);
-    expect(lvr.validationErrors.length).toEqual(1);
-    expect(lvr.validationErrors[0].message).toEqual("No version comment found");
+    expect(lvr.messages.length).toEqual(1);
+    expect(lvr.messages[0].message).toEqual("No version comment found");
 
     nockDone();
   });
@@ -150,7 +156,7 @@ describe(ActionReferenceValidation.name, () => {
 
     const result = await subject.validate(simpleChanges);
     const lineValidations = result.lineValidations.filter(
-      (lv) => lv.validationErrors.length > 0,
+      (lv) => lv.messages.length > 0,
     );
     expect(lineValidations.length).toEqual(1);
 
@@ -158,8 +164,8 @@ describe(ActionReferenceValidation.name, () => {
     expect(lineValidation.line.lineNumber).toEqual(
       simpleChanges.lines[1].lineNumber,
     );
-    expect(lineValidation.validationErrors.length).toEqual(1);
-    expect(lineValidation.validationErrors[0].message).toEqual(
+    expect(lineValidation.messages.length).toEqual(1);
+    expect(lineValidation.messages[0].message).toEqual(
       `v4 is not a valid SHA reference`,
     );
 
@@ -180,7 +186,7 @@ describe(ActionReferenceValidation.name, () => {
 
     const result = await subject.validate(simpleChanges);
     const lineValidations = result.lineValidations.filter(
-      (lv) => lv.validationErrors.length > 0,
+      (lv) => lv.messages.length > 0,
     );
     expect(lineValidations.length).toEqual(1);
 
@@ -188,8 +194,8 @@ describe(ActionReferenceValidation.name, () => {
     expect(lineValidation.line.lineNumber).toEqual(
       simpleChanges.lines[1].lineNumber,
     );
-    expect(lineValidation.validationErrors.length).toEqual(1);
-    expect(lineValidation.validationErrors[0].message).toEqual(
+    expect(lineValidation.messages.length).toEqual(1);
+    expect(lineValidation.messages[0].message).toEqual(
       "Action is using node16",
     );
 
@@ -210,7 +216,7 @@ describe(ActionReferenceValidation.name, () => {
 
     const result = await subject.validate(simpleChanges);
     const lineValidations = result.lineValidations.filter(
-      (lv) => lv.validationErrors.length > 0,
+      (lv) => lv.messages.length > 0,
     );
     expect(lineValidations.length).toEqual(1);
 
@@ -218,20 +224,20 @@ describe(ActionReferenceValidation.name, () => {
     expect(lineValidation.line.lineNumber).toEqual(
       simpleChanges.lines[1].lineNumber,
     );
-    expect(lineValidation.validationErrors.length).toEqual(3);
+    expect(lineValidation.messages.length).toEqual(3);
 
     expect(
-      lineValidation.validationErrors.some(
+      lineValidation.messages.some(
         (error) => error.message === "No version comment found",
       ),
     ).toEqual(true);
     expect(
-      lineValidation.validationErrors.some(
+      lineValidation.messages.some(
         (error) => error.message === "Action is using node16",
       ),
     ).toEqual(true);
     expect(
-      lineValidation.validationErrors.some(
+      lineValidation.messages.some(
         (error) => error.message === `v3.6.0 is not a valid SHA reference`,
       ),
     ).toEqual(true);

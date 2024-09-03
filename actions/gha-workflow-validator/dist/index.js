@@ -728,7 +728,7 @@ var require_tunnel = __commonJS({
         connectOptions.headers = connectOptions.headers || {};
         connectOptions.headers["Proxy-Authorization"] = "Basic " + new Buffer(connectOptions.proxyAuth).toString("base64");
       }
-      debug5("making CONNECT request");
+      debug7("making CONNECT request");
       var connectReq = self.request(connectOptions);
       connectReq.useChunkedEncodingByDefault = false;
       connectReq.once("response", onResponse);
@@ -748,40 +748,40 @@ var require_tunnel = __commonJS({
         connectReq.removeAllListeners();
         socket.removeAllListeners();
         if (res.statusCode !== 200) {
-          debug5(
+          debug7(
             "tunneling socket could not be established, statusCode=%d",
             res.statusCode
           );
           socket.destroy();
-          var error2 = new Error("tunneling socket could not be established, statusCode=" + res.statusCode);
-          error2.code = "ECONNRESET";
-          options.request.emit("error", error2);
+          var error3 = new Error("tunneling socket could not be established, statusCode=" + res.statusCode);
+          error3.code = "ECONNRESET";
+          options.request.emit("error", error3);
           self.removeSocket(placeholder);
           return;
         }
         if (head.length > 0) {
-          debug5("got illegal response body from proxy");
+          debug7("got illegal response body from proxy");
           socket.destroy();
-          var error2 = new Error("got illegal response body from proxy");
-          error2.code = "ECONNRESET";
-          options.request.emit("error", error2);
+          var error3 = new Error("got illegal response body from proxy");
+          error3.code = "ECONNRESET";
+          options.request.emit("error", error3);
           self.removeSocket(placeholder);
           return;
         }
-        debug5("tunneling connection has established");
+        debug7("tunneling connection has established");
         self.sockets[self.sockets.indexOf(placeholder)] = socket;
         return cb(socket);
       }
       function onError(cause) {
         connectReq.removeAllListeners();
-        debug5(
+        debug7(
           "tunneling socket could not be established, cause=%s\n",
           cause.message,
           cause.stack
         );
-        var error2 = new Error("tunneling socket could not be established, cause=" + cause.message);
-        error2.code = "ECONNRESET";
-        options.request.emit("error", error2);
+        var error3 = new Error("tunneling socket could not be established, cause=" + cause.message);
+        error3.code = "ECONNRESET";
+        options.request.emit("error", error3);
         self.removeSocket(placeholder);
       }
     };
@@ -836,9 +836,9 @@ var require_tunnel = __commonJS({
       }
       return target;
     }
-    var debug5;
+    var debug7;
     if (process.env.NODE_DEBUG && /\btunnel\b/.test(process.env.NODE_DEBUG)) {
-      debug5 = function() {
+      debug7 = function() {
         var args = Array.prototype.slice.call(arguments);
         if (typeof args[0] === "string") {
           args[0] = "TUNNEL: " + args[0];
@@ -848,10 +848,10 @@ var require_tunnel = __commonJS({
         console.error.apply(console, args);
       };
     } else {
-      debug5 = function() {
+      debug7 = function() {
       };
     }
-    exports2.debug = debug5;
+    exports2.debug = debug7;
   }
 });
 
@@ -5117,7 +5117,7 @@ Content-Type: ${value.type || "application/octet-stream"}\r
         throw new TypeError("Body is unusable");
       }
       const promise = createDeferredPromise();
-      const errorSteps = (error2) => promise.reject(error2);
+      const errorSteps = (error3) => promise.reject(error3);
       const successSteps = (data) => {
         try {
           promise.resolve(convertBytesToJSValue(data));
@@ -5390,16 +5390,16 @@ var require_request = __commonJS({
         }
         return this[kHandler].onComplete(trailers);
       }
-      onError(error2) {
+      onError(error3) {
         this.onFinally();
         if (channels.error.hasSubscribers) {
-          channels.error.publish({ request: this, error: error2 });
+          channels.error.publish({ request: this, error: error3 });
         }
         if (this.aborted) {
           return;
         }
         this.aborted = true;
-        return this[kHandler].onError(error2);
+        return this[kHandler].onError(error3);
       }
       onFinally() {
         if (this.errorHandler) {
@@ -6262,8 +6262,8 @@ var require_RedirectHandler = __commonJS({
       onUpgrade(statusCode, headers, socket) {
         this.handler.onUpgrade(statusCode, headers, socket);
       }
-      onError(error2) {
-        this.handler.onError(error2);
+      onError(error3) {
+        this.handler.onError(error3);
       }
       onHeaders(statusCode, headers, resume, statusText) {
         this.location = this.history.length >= this.maxRedirections || util.isDisturbed(this.opts.body) ? null : parseLocation(statusCode, headers);
@@ -9997,13 +9997,13 @@ var require_mock_utils = __commonJS({
       if (mockDispatch2.data.callback) {
         mockDispatch2.data = { ...mockDispatch2.data, ...mockDispatch2.data.callback(opts) };
       }
-      const { data: { statusCode, data, headers, trailers, error: error2 }, delay, persist } = mockDispatch2;
+      const { data: { statusCode, data, headers, trailers, error: error3 }, delay, persist } = mockDispatch2;
       const { timesInvoked, times } = mockDispatch2;
       mockDispatch2.consumed = !persist && timesInvoked >= times;
       mockDispatch2.pending = timesInvoked < times;
-      if (error2 !== null) {
+      if (error3 !== null) {
         deleteMockDispatch(this[kDispatches], key);
-        handler.onError(error2);
+        handler.onError(error3);
         return true;
       }
       if (typeof delay === "number" && delay > 0) {
@@ -10041,19 +10041,19 @@ var require_mock_utils = __commonJS({
         if (agent.isMockActive) {
           try {
             mockDispatch.call(this, opts, handler);
-          } catch (error2) {
-            if (error2 instanceof MockNotMatchedError) {
+          } catch (error3) {
+            if (error3 instanceof MockNotMatchedError) {
               const netConnect = agent[kGetNetConnect]();
               if (netConnect === false) {
-                throw new MockNotMatchedError(`${error2.message}: subsequent request to origin ${origin} was not allowed (net.connect disabled)`);
+                throw new MockNotMatchedError(`${error3.message}: subsequent request to origin ${origin} was not allowed (net.connect disabled)`);
               }
               if (checkNetConnect(netConnect, origin)) {
                 originalDispatch.call(this, opts, handler);
               } else {
-                throw new MockNotMatchedError(`${error2.message}: subsequent request to origin ${origin} was not allowed (net.connect is not enabled for this origin)`);
+                throw new MockNotMatchedError(`${error3.message}: subsequent request to origin ${origin} was not allowed (net.connect is not enabled for this origin)`);
               }
             } else {
-              throw error2;
+              throw error3;
             }
           }
         } else {
@@ -10216,11 +10216,11 @@ var require_mock_interceptor = __commonJS({
       /**
        * Mock an undici request with a defined error.
        */
-      replyWithError(error2) {
-        if (typeof error2 === "undefined") {
+      replyWithError(error3) {
+        if (typeof error3 === "undefined") {
           throw new InvalidArgumentError("error must be defined");
         }
-        const newMockDispatch = addMockDispatch(this[kDispatches], this[kDispatchKey], { error: error2 });
+        const newMockDispatch = addMockDispatch(this[kDispatches], this[kDispatchKey], { error: error3 });
         return new MockScope(newMockDispatch);
       }
       /**
@@ -12238,17 +12238,17 @@ var require_fetch = __commonJS({
         this.emit("terminated", reason);
       }
       // https://fetch.spec.whatwg.org/#fetch-controller-abort
-      abort(error2) {
+      abort(error3) {
         if (this.state !== "ongoing") {
           return;
         }
         this.state = "aborted";
-        if (!error2) {
-          error2 = new DOMException2("The operation was aborted.", "AbortError");
+        if (!error3) {
+          error3 = new DOMException2("The operation was aborted.", "AbortError");
         }
-        this.serializedAbortReason = error2;
-        this.connection?.destroy(error2);
-        this.emit("terminated", error2);
+        this.serializedAbortReason = error3;
+        this.connection?.destroy(error3);
+        this.emit("terminated", error3);
       }
     };
     function fetch(input, init = {}) {
@@ -12352,13 +12352,13 @@ var require_fetch = __commonJS({
         performance.markResourceTiming(timingInfo, originalURL.href, initiatorType, globalThis2, cacheState);
       }
     }
-    function abortFetch(p, request, responseObject, error2) {
-      if (!error2) {
-        error2 = new DOMException2("The operation was aborted.", "AbortError");
+    function abortFetch(p, request, responseObject, error3) {
+      if (!error3) {
+        error3 = new DOMException2("The operation was aborted.", "AbortError");
       }
-      p.reject(error2);
+      p.reject(error3);
       if (request.body != null && isReadable(request.body?.stream)) {
-        request.body.stream.cancel(error2).catch((err) => {
+        request.body.stream.cancel(error3).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
           }
@@ -12370,7 +12370,7 @@ var require_fetch = __commonJS({
       }
       const response = responseObject[kState];
       if (response.body != null && isReadable(response.body?.stream)) {
-        response.body.stream.cancel(error2).catch((err) => {
+        response.body.stream.cancel(error3).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
           }
@@ -13149,13 +13149,13 @@ var require_fetch = __commonJS({
               fetchParams.controller.ended = true;
               this.body.push(null);
             },
-            onError(error2) {
+            onError(error3) {
               if (this.abort) {
                 fetchParams.controller.off("terminated", this.abort);
               }
-              this.body?.destroy(error2);
-              fetchParams.controller.terminate(error2);
-              reject(error2);
+              this.body?.destroy(error3);
+              fetchParams.controller.terminate(error3);
+              reject(error3);
             },
             onUpgrade(status, headersList, socket) {
               if (status !== 101) {
@@ -13621,8 +13621,8 @@ var require_util4 = __commonJS({
                   }
                   fr[kResult] = result;
                   fireAProgressEvent("load", fr);
-                } catch (error2) {
-                  fr[kError] = error2;
+                } catch (error3) {
+                  fr[kError] = error3;
                   fireAProgressEvent("error", fr);
                 }
                 if (fr[kState] !== "loading") {
@@ -13631,13 +13631,13 @@ var require_util4 = __commonJS({
               });
               break;
             }
-          } catch (error2) {
+          } catch (error3) {
             if (fr[kAborted]) {
               return;
             }
             queueMicrotask(() => {
               fr[kState] = "done";
-              fr[kError] = error2;
+              fr[kError] = error3;
               fireAProgressEvent("error", fr);
               if (fr[kState] !== "loading") {
                 fireAProgressEvent("loadend", fr);
@@ -15651,11 +15651,11 @@ var require_connection = __commonJS({
         });
       }
     }
-    function onSocketError(error2) {
+    function onSocketError(error3) {
       const { ws } = this;
       ws[kReadyState] = states.CLOSING;
       if (channels.socketError.hasSubscribers) {
-        channels.socketError.publish(error2);
+        channels.socketError.publish(error3);
       }
       this.destroy();
     }
@@ -16797,12 +16797,12 @@ var require_lib = __commonJS({
             throw new Error("Client has already been disposed.");
           }
           const parsedUrl = new URL(requestUrl);
-          let info2 = this._prepareRequest(verb, parsedUrl, headers);
+          let info3 = this._prepareRequest(verb, parsedUrl, headers);
           const maxTries = this._allowRetries && RetryableHttpVerbs.includes(verb) ? this._maxRetries + 1 : 1;
           let numTries = 0;
           let response;
           do {
-            response = yield this.requestRaw(info2, data);
+            response = yield this.requestRaw(info3, data);
             if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
               let authenticationHandler;
               for (const handler of this.handlers) {
@@ -16812,7 +16812,7 @@ var require_lib = __commonJS({
                 }
               }
               if (authenticationHandler) {
-                return authenticationHandler.handleAuthentication(this, info2, data);
+                return authenticationHandler.handleAuthentication(this, info3, data);
               } else {
                 return response;
               }
@@ -16835,8 +16835,8 @@ var require_lib = __commonJS({
                   }
                 }
               }
-              info2 = this._prepareRequest(verb, parsedRedirectUrl, headers);
-              response = yield this.requestRaw(info2, data);
+              info3 = this._prepareRequest(verb, parsedRedirectUrl, headers);
+              response = yield this.requestRaw(info3, data);
               redirectsRemaining--;
             }
             if (!response.message.statusCode || !HttpResponseRetryCodes.includes(response.message.statusCode)) {
@@ -16865,7 +16865,7 @@ var require_lib = __commonJS({
        * @param info
        * @param data
        */
-      requestRaw(info2, data) {
+      requestRaw(info3, data) {
         return __awaiter(this, void 0, void 0, function* () {
           return new Promise((resolve, reject) => {
             function callbackForResult(err, res) {
@@ -16877,7 +16877,7 @@ var require_lib = __commonJS({
                 resolve(res);
               }
             }
-            this.requestRawWithCallback(info2, data, callbackForResult);
+            this.requestRawWithCallback(info3, data, callbackForResult);
           });
         });
       }
@@ -16887,12 +16887,12 @@ var require_lib = __commonJS({
        * @param data
        * @param onResult
        */
-      requestRawWithCallback(info2, data, onResult) {
+      requestRawWithCallback(info3, data, onResult) {
         if (typeof data === "string") {
-          if (!info2.options.headers) {
-            info2.options.headers = {};
+          if (!info3.options.headers) {
+            info3.options.headers = {};
           }
-          info2.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
+          info3.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
         }
         let callbackCalled = false;
         function handleResult(err, res) {
@@ -16901,7 +16901,7 @@ var require_lib = __commonJS({
             onResult(err, res);
           }
         }
-        const req = info2.httpModule.request(info2.options, (msg) => {
+        const req = info3.httpModule.request(info3.options, (msg) => {
           const res = new HttpClientResponse(msg);
           handleResult(void 0, res);
         });
@@ -16913,7 +16913,7 @@ var require_lib = __commonJS({
           if (socket) {
             socket.end();
           }
-          handleResult(new Error(`Request timeout: ${info2.options.path}`));
+          handleResult(new Error(`Request timeout: ${info3.options.path}`));
         });
         req.on("error", function(err) {
           handleResult(err);
@@ -16949,27 +16949,27 @@ var require_lib = __commonJS({
         return this._getProxyAgentDispatcher(parsedUrl, proxyUrl);
       }
       _prepareRequest(method, requestUrl, headers) {
-        const info2 = {};
-        info2.parsedUrl = requestUrl;
-        const usingSsl = info2.parsedUrl.protocol === "https:";
-        info2.httpModule = usingSsl ? https : http;
+        const info3 = {};
+        info3.parsedUrl = requestUrl;
+        const usingSsl = info3.parsedUrl.protocol === "https:";
+        info3.httpModule = usingSsl ? https : http;
         const defaultPort = usingSsl ? 443 : 80;
-        info2.options = {};
-        info2.options.host = info2.parsedUrl.hostname;
-        info2.options.port = info2.parsedUrl.port ? parseInt(info2.parsedUrl.port) : defaultPort;
-        info2.options.path = (info2.parsedUrl.pathname || "") + (info2.parsedUrl.search || "");
-        info2.options.method = method;
-        info2.options.headers = this._mergeHeaders(headers);
+        info3.options = {};
+        info3.options.host = info3.parsedUrl.hostname;
+        info3.options.port = info3.parsedUrl.port ? parseInt(info3.parsedUrl.port) : defaultPort;
+        info3.options.path = (info3.parsedUrl.pathname || "") + (info3.parsedUrl.search || "");
+        info3.options.method = method;
+        info3.options.headers = this._mergeHeaders(headers);
         if (this.userAgent != null) {
-          info2.options.headers["user-agent"] = this.userAgent;
+          info3.options.headers["user-agent"] = this.userAgent;
         }
-        info2.options.agent = this._getAgent(info2.parsedUrl);
+        info3.options.agent = this._getAgent(info3.parsedUrl);
         if (this.handlers) {
           for (const handler of this.handlers) {
-            handler.prepareRequest(info2.options);
+            handler.prepareRequest(info3.options);
           }
         }
-        return info2;
+        return info3;
       }
       _mergeHeaders(headers) {
         if (this.requestOptions && this.requestOptions.headers) {
@@ -17288,12 +17288,12 @@ var require_oidc_utils = __commonJS({
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
           const httpclient = _OidcClient.createHttpClient();
-          const res = yield httpclient.getJson(id_token_url).catch((error2) => {
+          const res = yield httpclient.getJson(id_token_url).catch((error3) => {
             throw new Error(`Failed to get ID Token. 
  
-        Error Code : ${error2.statusCode}
+        Error Code : ${error3.statusCode}
  
-        Error Message: ${error2.message}`);
+        Error Message: ${error3.message}`);
           });
           const id_token = (_a = res.result) === null || _a === void 0 ? void 0 : _a.value;
           if (!id_token) {
@@ -17314,8 +17314,8 @@ var require_oidc_utils = __commonJS({
             const id_token = yield _OidcClient.getCall(id_token_url);
             core_1.setSecret(id_token);
             return id_token;
-          } catch (error2) {
-            throw new Error(`Error message: ${error2.message}`);
+          } catch (error3) {
+            throw new Error(`Error message: ${error3.message}`);
           }
         });
       }
@@ -17800,33 +17800,33 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
     exports2.setCommandEcho = setCommandEcho;
     function setFailed2(message) {
       process.exitCode = ExitCode.Failure;
-      error2(message);
+      error3(message);
     }
     exports2.setFailed = setFailed2;
     function isDebug() {
       return process.env["RUNNER_DEBUG"] === "1";
     }
     exports2.isDebug = isDebug;
-    function debug5(message) {
+    function debug7(message) {
       command_1.issueCommand("debug", {}, message);
     }
-    exports2.debug = debug5;
-    function error2(message, properties = {}) {
+    exports2.debug = debug7;
+    function error3(message, properties = {}) {
       command_1.issueCommand("error", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
-    exports2.error = error2;
-    function warning3(message, properties = {}) {
+    exports2.error = error3;
+    function warning6(message, properties = {}) {
       command_1.issueCommand("warning", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
-    exports2.warning = warning3;
+    exports2.warning = warning6;
     function notice(message, properties = {}) {
       command_1.issueCommand("notice", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
     exports2.notice = notice;
-    function info2(message) {
+    function info3(message) {
       process.stdout.write(message + os.EOL);
     }
-    exports2.info = info2;
+    exports2.info = info3;
     function startGroup(name) {
       command_1.issue("group", name);
     }
@@ -18116,8 +18116,8 @@ var require_add = __commonJS({
       }
       if (kind === "error") {
         hook = function(method, options) {
-          return Promise.resolve().then(method.bind(null, options)).catch(function(error2) {
-            return orig(error2, options);
+          return Promise.resolve().then(method.bind(null, options)).catch(function(error3) {
+            return orig(error3, options);
           });
         };
       }
@@ -18853,7 +18853,7 @@ var require_dist_node5 = __commonJS({
         }
         if (status >= 400) {
           const data = await getResponseData(response);
-          const error2 = new import_request_error.RequestError(toErrorMessage(data), status, {
+          const error3 = new import_request_error.RequestError(toErrorMessage(data), status, {
             response: {
               url,
               status,
@@ -18862,7 +18862,7 @@ var require_dist_node5 = __commonJS({
             },
             request: requestOptions
           });
-          throw error2;
+          throw error3;
         }
         return parseSuccessResponseBody ? await getResponseData(response) : response.body;
       }).then((data) => {
@@ -18872,17 +18872,17 @@ var require_dist_node5 = __commonJS({
           headers,
           data
         };
-      }).catch((error2) => {
-        if (error2 instanceof import_request_error.RequestError)
-          throw error2;
-        else if (error2.name === "AbortError")
-          throw error2;
-        let message = error2.message;
-        if (error2.name === "TypeError" && "cause" in error2) {
-          if (error2.cause instanceof Error) {
-            message = error2.cause.message;
-          } else if (typeof error2.cause === "string") {
-            message = error2.cause;
+      }).catch((error3) => {
+        if (error3 instanceof import_request_error.RequestError)
+          throw error3;
+        else if (error3.name === "AbortError")
+          throw error3;
+        let message = error3.message;
+        if (error3.name === "TypeError" && "cause" in error3) {
+          if (error3.cause instanceof Error) {
+            message = error3.cause.message;
+          } else if (typeof error3.cause === "string") {
+            message = error3.cause;
           }
         }
         throw new import_request_error.RequestError(message, 500, {
@@ -21489,9 +21489,9 @@ var require_dist_node10 = __commonJS({
                 /<([^>]+)>;\s*rel="next"/
               ) || [])[1];
               return { value: normalizedResponse };
-            } catch (error2) {
-              if (error2.status !== 409)
-                throw error2;
+            } catch (error3) {
+              if (error3.status !== 409)
+                throw error3;
               url = "";
               return {
                 value: {
@@ -21923,7 +21923,7 @@ var require_internal_glob_options_helper = __commonJS({
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getOptions = void 0;
-    var core5 = __importStar(require_core());
+    var core8 = __importStar(require_core());
     function getOptions(copy) {
       const result = {
         followSymbolicLinks: true,
@@ -21934,19 +21934,19 @@ var require_internal_glob_options_helper = __commonJS({
       if (copy) {
         if (typeof copy.followSymbolicLinks === "boolean") {
           result.followSymbolicLinks = copy.followSymbolicLinks;
-          core5.debug(`followSymbolicLinks '${result.followSymbolicLinks}'`);
+          core8.debug(`followSymbolicLinks '${result.followSymbolicLinks}'`);
         }
         if (typeof copy.implicitDescendants === "boolean") {
           result.implicitDescendants = copy.implicitDescendants;
-          core5.debug(`implicitDescendants '${result.implicitDescendants}'`);
+          core8.debug(`implicitDescendants '${result.implicitDescendants}'`);
         }
         if (typeof copy.matchDirectories === "boolean") {
           result.matchDirectories = copy.matchDirectories;
-          core5.debug(`matchDirectories '${result.matchDirectories}'`);
+          core8.debug(`matchDirectories '${result.matchDirectories}'`);
         }
         if (typeof copy.omitBrokenSymbolicLinks === "boolean") {
           result.omitBrokenSymbolicLinks = copy.omitBrokenSymbolicLinks;
-          core5.debug(`omitBrokenSymbolicLinks '${result.omitBrokenSymbolicLinks}'`);
+          core8.debug(`omitBrokenSymbolicLinks '${result.omitBrokenSymbolicLinks}'`);
         }
       }
       return result;
@@ -22539,7 +22539,7 @@ var require_minimatch = __commonJS({
       }
       this.parseNegate();
       var set = this.globSet = this.braceExpand();
-      if (options.debug) this.debug = function debug5() {
+      if (options.debug) this.debug = function debug7() {
         console.error.apply(console, arguments);
       };
       this.debug(this.pattern, set);
@@ -23402,7 +23402,7 @@ var require_internal_globber = __commonJS({
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.DefaultGlobber = void 0;
-    var core5 = __importStar(require_core());
+    var core8 = __importStar(require_core());
     var fs = __importStar(require("fs"));
     var globOptionsHelper = __importStar(require_internal_glob_options_helper());
     var path = __importStar(require("path"));
@@ -23453,7 +23453,7 @@ var require_internal_globber = __commonJS({
           }
           const stack = [];
           for (const searchPath of patternHelper.getSearchPaths(patterns)) {
-            core5.debug(`Search path '${searchPath}'`);
+            core8.debug(`Search path '${searchPath}'`);
             try {
               yield __await(fs.promises.lstat(searchPath));
             } catch (err) {
@@ -23525,7 +23525,7 @@ var require_internal_globber = __commonJS({
             } catch (err) {
               if (err.code === "ENOENT") {
                 if (options.omitBrokenSymbolicLinks) {
-                  core5.debug(`Broken symlink '${item.path}'`);
+                  core8.debug(`Broken symlink '${item.path}'`);
                   return void 0;
                 }
                 throw new Error(`No information found for the path '${item.path}'. This may indicate a broken symbolic link.`);
@@ -23541,7 +23541,7 @@ var require_internal_globber = __commonJS({
               traversalChain.pop();
             }
             if (traversalChain.some((x) => x === realPath)) {
-              core5.debug(`Symlink cycle detected for path '${item.path}' and realpath '${realPath}'`);
+              core8.debug(`Symlink cycle detected for path '${item.path}' and realpath '${realPath}'`);
               return void 0;
             }
             traversalChain.push(realPath);
@@ -23630,7 +23630,7 @@ var require_internal_hash_files = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.hashFiles = void 0;
     var crypto4 = __importStar(require("crypto"));
-    var core5 = __importStar(require_core());
+    var core8 = __importStar(require_core());
     var fs = __importStar(require("fs"));
     var stream = __importStar(require("stream"));
     var util = __importStar(require("util"));
@@ -23639,7 +23639,7 @@ var require_internal_hash_files = __commonJS({
       var e_1, _a;
       var _b;
       return __awaiter(this, void 0, void 0, function* () {
-        const writeDelegate = verbose ? core5.info : core5.debug;
+        const writeDelegate = verbose ? core8.info : core8.debug;
         let hasMatch = false;
         const githubWorkspace = currentWorkspace ? currentWorkspace : (_b = process.env["GITHUB_WORKSPACE"]) !== null && _b !== void 0 ? _b : process.cwd();
         const result = crypto4.createHash("sha256");
@@ -23744,7 +23744,7 @@ var require_glob = __commonJS({
 });
 
 // actions/gha-workflow-validator/src/run.ts
-var core4 = __toESM(require_core());
+var core7 = __toESM(require_core());
 var github = __toESM(require_github());
 
 // actions/gha-workflow-validator/src/github.ts
@@ -23782,15 +23782,15 @@ async function getFileFromGithub(octokit, owner, repo, path, ref) {
       return Buffer.from(response.data.content, "base64").toString();
     }
     throw Error("No content found in getContent response");
-  } catch (error2) {
+  } catch (error3) {
     const requestPath = `${owner}/${repo}${path}@${ref}`;
-    if (error2.status) {
+    if (error3.status) {
       core.warning(
-        `Encountered Github Request Error while getting file - ${requestPath}. (${error2.status} - ${error2.message})`
+        `Encountered Github Request Error while getting file - ${requestPath}. (${error3.status} - ${error3.message})`
       );
     } else {
       core.warning(
-        `Encountered Unknown Error while getting file - ${requestPath} - ${error2}`
+        `Encountered Unknown Error while getting file - ${requestPath} - ${error3}`
       );
     }
   }
@@ -23800,18 +23800,27 @@ async function getFileFromGithub(octokit, owner, repo, path, ref) {
 var core2 = __toESM(require_core());
 var glob = __toESM(require_glob());
 var import_path = require("path");
-var import_promises = require("fs/promises");
+var import_fs = require("fs");
 
 // actions/gha-workflow-validator/src/strings.ts
+var VALIDATOR_IGNORE_LINE = "ghv-ignore!";
 var FIXING_ERRORS = `
-#### Fixing Errors
+
+
+This CI step validates Github Actions workflows. If invoked by a pull request, it will only operate on the changed files.
+
+It currently validates: Actions References, Actions Runner Types
+
+### Fixing Errors
 
 <details>
-<summary>Instructions</summary>
+<summary>Action References (sha-ref, version-comment, node-version) </summary>
+
+This validation is required to ensure that the action references use immutable SHAs, have a version comment, and are not using node16 or earlier.
 
 The proper format for referencing a Github Action external to the repository is as follows:
 
-\`<owner>/<repo>/<optional path>@<commit SHA> # <tag relating to the SHA>\`
+\`<owner>/<repo>/<optional path>@<commit SHA> # <version tag relating to the SHA>\`
 
 <details>
 <summary>Examples</summary>
@@ -23825,7 +23834,7 @@ smartcontractkit/chainlink-github-actions/github-app-token-issuer@5874ff7211cf5a
 
 ##### <ref> is not a valid SHA
 
-* Please reference a specific commit.
+* Please reference a specific commit. This is because tags are mutable and pose a security risk
 * Do not use things like \`@main\`, \`@branch/feature\`, \`@v4\`, or \`@v4.0.0\`.
 
 ##### No version comment found
@@ -23837,6 +23846,35 @@ smartcontractkit/chainlink-github-actions/github-app-token-issuer@5874ff7211cf5a
 
 * The action added is supposed to be run using a version that is not \`node20\`. This might create issues due to Github deprecating actions using \`node16\` and earlier.
 
+</details>
+
+<details>
+<summary>Actions Runners (runners)</summary>
+
+This validation is required to limit the cost of high cost runners. See [Github Actions Runner Guidance](https://smartcontract-it.atlassian.net/l/cp/Rw0Gc08x).
+
+##### Actions runner is to expensive
+
+* Consider using a smaller runner type. This will help reduce the cost of the Github Actions workflow.
+* If using macOs runners, consider using ubuntu runners instead.
+* If you must use an upgraded runner then see Ignoring Errors section below.
+
+</details>
+
+### Ignoring Errors
+
+You can use the following string to ignore a line from validation \`${VALIDATOR_IGNORE_LINE}\` (must be inlined).
+
+When adding this it will trigger an error, this is expected. Please reach out to \`#team-releng\` for approval and bypass.
+
+<details>
+<summary>Examples</summary>
+
+\`\`\`
+runs-on ubuntu-latest-99cores-999GB # ${VALIDATOR_IGNORE_LINE}
+
+uses: org/action@sha # v1.0.0-node16 ${VALIDATOR_IGNORE_LINE}
+\`\`\`
 </details>
 `;
 function htmlLink(text, url) {
@@ -23876,8 +23914,8 @@ async function globFiles(patterns) {
       files = files.concat(noPrefixMatchedFiles);
     }
     return files;
-  } catch (error2) {
-    core2.error(`Failed to get paths: ${error2}`);
+  } catch (error3) {
+    core2.error(`Failed to get paths: ${error3}`);
   }
   return [];
 }
@@ -23892,14 +23930,16 @@ function isGithubWorkflowOrActionFile(filename) {
 async function parseFiles(paths) {
   const parsedFiles = [];
   for (const path of paths) {
-    const content = await (0, import_promises.readFile)(path, "utf-8");
-    const lines = content.split("\n").map(
-      (line, index) => ({
+    const content = (0, import_fs.readFileSync)(path, "utf-8");
+    const lines = content.split("\n").map((line, index) => {
+      const ignored = line.includes(VALIDATOR_IGNORE_LINE);
+      return {
         lineNumber: index + 1,
         content: line,
-        operation: "unchanged"
-      })
-    ).filter((line) => line.content.trim() !== "");
+        operation: "unchanged",
+        ignored
+      };
+    });
     parsedFiles.push({ filename: path, lines });
   }
   return parsedFiles;
@@ -23931,67 +23971,48 @@ function parsePatchChanges(patch) {
     }
     const operation = line.startsWith("+") ? "add" : "unchanged";
     const currentLine = line.substring(1);
+    const ignored = currentLine.includes(VALIDATOR_IGNORE_LINE) && operation === "unchanged";
     additions.push({
       content: currentLine,
       lineNumber: currentLineInFile,
-      operation
+      operation,
+      ignored
     });
     currentLineInFile++;
   }
   return additions;
 }
-function logErrors(validationResults, annotatePR = false) {
-  for (const fileResults of validationResults) {
-    for (const lineResults of fileResults.lineValidations) {
-      const message = lineResults.validationErrors.map((error2) => error2.message).join(",");
-      core2.error(
-        `file: ${fileResults.filename} @ line: ${lineResults.line.lineNumber} - ${message}`
-      );
-      if (annotatePR) {
-        core2.error(message, {
-          file: fileResults.filename,
-          startLine: lineResults.line.lineNumber
-        });
-      }
-    }
-  }
-}
-async function setSummary(validationResults, fileUrlPrefix) {
-  const headerRow = [
-    { data: "Filename", header: true },
-    { data: "Line Number", header: true },
-    { data: "Violations", header: true }
-  ];
-  const errorRows = validationResults.reduce((acc, curr) => {
-    const filename = curr.filename;
-    const errorCellTuples = curr.lineValidations.map(
-      (validationResult) => {
-        const lineNumberCell = {
-          data: htmlLink(
-            `${validationResult.line.lineNumber}`,
-            `${fileUrlPrefix}/${filename}#L${validationResult.line.lineNumber}`
-          )
-        };
-        const violationsCell = {
-          data: validationResult.validationErrors.map((error2) => error2.message).join(", ")
-        };
-        return [lineNumberCell, violationsCell];
-      }
+function processLineValidationResults(results) {
+  const combinedResults = results.reduce((acc, current) => {
+    const existingEntry = acc.find(
+      (item) => item.line.lineNumber === current.line.lineNumber
     );
-    if (errorCellTuples.length === 0) {
-      return acc;
+    const processedMessages = current.messages.map((message) => {
+      if (current.line.ignored && message.type !== "ignore-comment" /* IGNORE_COMMENT */) {
+        return {
+          ...message,
+          severity: "ignored"
+        };
+      }
+      return message;
+    });
+    if (existingEntry) {
+      existingEntry.messages = [...existingEntry.messages, ...current.messages];
+    } else {
+      acc.push({ ...current });
     }
-    const filenameCell = {
-      data: filename,
-      rowspan: `${errorCellTuples.length}`
-    };
-    const firstErrorCellTuple = errorCellTuples.shift();
-    const firstRowForFile = [filenameCell, ...firstErrorCellTuple];
-    return [...acc, firstRowForFile, ...errorCellTuples];
+    return acc;
   }, []);
-  await core2.summary.addTable([headerRow, ...errorRows]).addSeparator().addRaw(FIXING_ERRORS).write();
+  return combinedResults.sort((a, b) => a.line.lineNumber - b.line.lineNumber);
 }
-function mapAndFilter(arr, mapFn) {
+function doValidationErrorsExist(files) {
+  return files.some(
+    (file) => file.lineValidations.some(
+      (lv) => lv.messages.some((m) => m.severity === "error")
+    )
+  );
+}
+function mapAndFilterUndefined(arr, mapFn) {
   if (!arr) return [];
   return arr.reduce((acc, curr) => {
     const result = mapFn(curr);
@@ -24002,7 +24023,7 @@ function mapAndFilter(arr, mapFn) {
   }, []);
 }
 
-// actions/gha-workflow-validator/src/action-reference-validations.ts
+// actions/gha-workflow-validator/src/validations/action-reference-validations.ts
 var core3 = __toESM(require_core());
 var CURRENT_NODE_VERSION = 20;
 var ActionReferenceValidation = class {
@@ -24013,7 +24034,7 @@ var ActionReferenceValidation = class {
   async validate(parsedFile) {
     core3.debug(`Validating action references in ${parsedFile.filename}`);
     const { filename } = parsedFile;
-    const lineActionRefs = mapAndFilter(
+    const lineActionRefs = mapAndFilterUndefined(
       parsedFile.lines,
       extractActionReference
     );
@@ -24041,7 +24062,7 @@ async function validateActionReferences(octokit, filename, options, lines) {
       lineValidationResults.push({
         filename,
         line,
-        validationErrors
+        messages: validationErrors
       });
     }
   }
@@ -24147,6 +24168,289 @@ function extractActionReferenceFromLine(line) {
   };
 }
 
+// actions/gha-workflow-validator/src/validations/actions-runner-validations.ts
+var core4 = __toESM(require_core());
+var ActionsRunnerValidation = class {
+  constructor(options) {
+    this.options = options ?? {};
+  }
+  async validate(parsedFile) {
+    core4.debug(`Validating action references in ${parsedFile.filename}`);
+    const { filename } = parsedFile;
+    const lineActionsRunners = mapAndFilterUndefined(
+      parsedFile.lines,
+      extractActionsRunner
+    );
+    const lineValidations = await validateActionsRunners(filename, lineActionsRunners);
+    return {
+      filename,
+      lineValidations
+    };
+  }
+};
+async function validateActionsRunners(filename, lines) {
+  const lineValidationResults = [];
+  for (const line of lines) {
+    const validationErrors = await validateActionsRunner(line.actionsRunner);
+    if (validationErrors.length > 0) {
+      lineValidationResults.push({
+        filename,
+        line,
+        messages: validationErrors
+      });
+    }
+  }
+  return lineValidationResults;
+}
+async function validateActionsRunner(actionsRunner) {
+  if (!actionsRunner) {
+    return [];
+  }
+  if (actionsRunner.cores >= 16 || actionsRunner.os === "macos") {
+    return [
+      {
+        type: "runner" /* RUNNER */,
+        severity: "error",
+        message: `Actions runner is too expensive (${actionsRunner.identifier})`
+      }
+    ];
+  }
+  return [];
+}
+function extractActionsRunner(fileLine) {
+  const actionsRunner = extractActionRunnerFromLine(fileLine.content);
+  if (!actionsRunner) {
+    return;
+  }
+  core4.debug(
+    `Extracted actions runner: ${actionsRunner.os}-${actionsRunner.osVersion}-${actionsRunner.cores}cores-${actionsRunner.memoryGb}GB (${fileLine.content})`
+  );
+  return {
+    ...fileLine,
+    actionsRunner
+  };
+}
+var RUNNER_PREFIXES = [
+  "ubuntu-latest-",
+  // upgraded ubuntu runners
+  "ubuntu24.04-",
+  "ubuntu22.04-",
+  "ubuntu20.04-",
+  "ubuntu18.04-",
+  "ubuntu-latest",
+  // base ubuntu runners
+  "ubuntu-24.04",
+  "ubuntu-22.04",
+  "ubuntu-20.04",
+  "ubuntu-18.04",
+  "macos-",
+  // macos runners
+  "macos-latest",
+  "macos-12",
+  "macos-11",
+  "windows-latest"
+];
+function extractActionRunnerFromLine(line) {
+  const trimmedLine = line.trim();
+  if (trimmedLine.startsWith("#")) {
+    core4.debug(`Skipping commented line.`);
+    return;
+  }
+  let runnerIdentifierIndex = ["", -1];
+  for (const prefix of RUNNER_PREFIXES) {
+    const index = trimmedLine.indexOf(prefix);
+    if (index !== -1) {
+      runnerIdentifierIndex = [prefix, index];
+      break;
+    }
+  }
+  if (runnerIdentifierIndex[1] === -1) {
+    return;
+  }
+  core4.debug(`Found runner identifier: ${runnerIdentifierIndex[0]}`);
+  const restOfLine = trimmedLine.substring(runnerIdentifierIndex[1]).trim().toLocaleLowerCase();
+  const [runnerString] = restOfLine.split(" ");
+  if (runnerString.startsWith("ubuntu")) {
+    core4.debug(`Parsing ubuntu runner: ${runnerString}`);
+    const regex = /^ubuntu-?(latest|\d{2}.\d{2})-?((\d{1,2})cores)?-?((\d{1,3})gb)?$/;
+    const match = runnerString.match(regex);
+    if (!match) {
+      return;
+    }
+    const [, osVersion, , numCores, , memoryGb] = match;
+    return {
+      os: "ubuntu",
+      osVersion,
+      cores: numCores ? parseInt(numCores) : 0,
+      memoryGb: memoryGb ? parseInt(memoryGb) : 0,
+      identifier: runnerString
+    };
+  } else if (runnerString.startsWith("macos")) {
+    core4.debug(`Parsing macos runner: ${runnerString}`);
+    const regex = /^macos-(latest|\d{2}|\d{2}.\d{2})-?(large|xl|xlarge)?$/;
+    const match = runnerString.match(regex);
+    if (!match) {
+      return;
+    }
+    const [, osVersion, size] = match;
+    let cores = 0;
+    let memoryGb = 0;
+    if (size === "large") {
+      cores = 12;
+      memoryGb = 30;
+    } else if (size === "xl" || size === "xlarge") {
+      cores = 8;
+      memoryGb = 14;
+    }
+    return {
+      os: "macos",
+      osVersion,
+      cores,
+      memoryGb,
+      identifier: runnerString
+    };
+  } else if (runnerString.startsWith("windows")) {
+    return {
+      os: "windows",
+      osVersion: "latest",
+      cores: 0,
+      memoryGb: 0,
+      identifier: runnerString
+    };
+  }
+  core4.warning(`Failed to parse runner from line: ${line}`);
+}
+
+// actions/gha-workflow-validator/src/validations/ignores-comment-validation.ts
+var core5 = __toESM(require_core());
+var IgnoresCommentValidation = class {
+  constructor(options) {
+    this.options = options ?? {};
+  }
+  async validate(parsedFile) {
+    core5.debug(`Validating action references in ${parsedFile.filename}`);
+    const { filename } = parsedFile;
+    const ignoreComments = mapAndFilterUndefined(
+      parsedFile.lines,
+      extractIgnoresComment
+    );
+    const lineValidations = ignoreComments.map(
+      (line) => {
+        return {
+          filename,
+          line,
+          messages: [
+            {
+              type: "ignore-comment" /* IGNORE_COMMENT */,
+              severity: "error",
+              message: "new ignore comment found"
+            }
+          ]
+        };
+      }
+    );
+    return {
+      filename,
+      lineValidations
+    };
+  }
+};
+function extractIgnoresComment(fileLine) {
+  if (fileLine.operation !== "add" || !fileLine.content.includes(VALIDATOR_IGNORE_LINE)) {
+    return;
+  }
+  return {
+    ...fileLine,
+    containsIgnoreComment: true
+  };
+}
+
+// actions/gha-workflow-validator/src/output.ts
+var core6 = __toESM(require_core());
+function logErrors(validationResults, annotatePR = false) {
+  for (const fileResults of validationResults) {
+    for (const lineResults of fileResults.lineValidations) {
+      if (lineResults.messages.length === 0) {
+        continue;
+      }
+      const validationMessages = lineResults.messages.map(
+        (error3, index) => `  ${index + 1}. ${error3.message} (${error3.type} / ${error3.severity})`
+      );
+      const maxSeverity = getMaxSeverityForLine(lineResults);
+      const logLine = `file: ${fileResults.filename} @ line: ${lineResults.line.lineNumber} - ${validationMessages.join(",")}`;
+      if (maxSeverity === "ignored") {
+        core6.info(`(ignored) ${logLine}`);
+        continue;
+      }
+      const loggingMethod = maxSeverity === "warning" ? core6.warning : core6.error;
+      loggingMethod(logLine);
+      if (annotatePR) {
+        loggingMethod(validationMessages.join("\n"), {
+          file: fileResults.filename,
+          startLine: lineResults.line.lineNumber
+        });
+      }
+    }
+  }
+}
+async function setSummary(validationResults, fileUrlPrefix) {
+  const headerRow = [
+    { data: "Filename", header: true },
+    { data: "Line Number", header: true },
+    { data: "Level", header: true },
+    { data: "Type", header: true },
+    { data: "Message", header: true }
+  ];
+  const errorRows = validationResults.flatMap((fileResult) => {
+    const filename = fileResult.filename;
+    const lineErrorRows = [];
+    fileResult.lineValidations.forEach((lineValidation) => {
+      if (lineValidation.messages.length === 0) return;
+      const ignoreErrors = lineValidation.line.ignored;
+      const lineNumberCell = {
+        data: htmlLink(
+          `${lineValidation.line.lineNumber}`,
+          `${fileUrlPrefix}/${filename}#L${lineValidation.line.lineNumber}`
+        ),
+        rowspan: `${lineValidation.messages.length}`
+      };
+      const validationRows = lineValidation.messages.filter(
+        (message) => message.type === "ignore-comment" /* IGNORE_COMMENT */ || !ignoreErrors
+      ).map((message, index) => {
+        const levelCell = { data: message.severity };
+        const typeCell = { data: message.type };
+        const messageCell = { data: message.message };
+        return index === 0 ? [lineNumberCell, levelCell, typeCell, messageCell] : [levelCell, typeCell, messageCell];
+      });
+      lineErrorRows.push(...validationRows);
+    });
+    if (lineErrorRows.length === 0) return [];
+    const filenameCell = {
+      data: filename,
+      rowspan: `${lineErrorRows.length}`
+    };
+    return lineErrorRows.map(
+      (row, index) => index === 0 ? [filenameCell, ...row] : row
+    );
+  });
+  await core6.summary.addTable([headerRow, ...errorRows]).addSeparator().addRaw(FIXING_ERRORS).write();
+}
+function getMaxSeverityForLine(lvr) {
+  const maxSeverity = lvr.messages.reduce((acc, curr) => {
+    if (acc === "error" || curr.severity === "error") return "error";
+    if (acc === "warning" || curr.severity === "warning") return "warning";
+    if (acc === "ignored" || curr.severity === "ignored") return "ignored";
+    return "";
+  }, "");
+  if (maxSeverity === "") {
+    core6.warning(
+      `Invalid validation severity found. Defaulting to "error" for ${lvr.filename} @ ${lvr.line.lineNumber}`
+    );
+    return "error";
+  }
+  return maxSeverity;
+}
+
 // actions/gha-workflow-validator/src/run.ts
 async function run() {
   const context2 = getInvokeContext();
@@ -24158,40 +24462,44 @@ async function run() {
     octokit
   );
   if (parsedFiles.length === 0) {
-    core4.info("No workflow files found in the changeset.");
+    core7.info("No workflow files found in the changeset.");
     process.exit(0);
   }
-  const validations = await validate2(inputs, parsedFiles, octokit);
-  const validationFailed = validations.some(
-    (validation) => validation.lineValidations.length > 0
-  );
-  const invokedThroughPr = !context2.prNumber;
+  const fileValidations = await validate2(context2, inputs, parsedFiles, octokit);
+  const validationFailed = doValidationErrorsExist(fileValidations);
+  const invokedThroughPr = !!context2.prNumber;
   const urlPrefix = `https://github.com/${context2.owner}/${context2.repo}/blob/${context2.head}`;
   if (!validationFailed) {
-    return core4.info("No errors found in workflow files.");
+    return core7.info("No errors found in workflow files.");
   }
-  logErrors(validations, invokedThroughPr);
-  await setSummary(validations, urlPrefix);
-  core4.info(
+  logErrors(fileValidations, invokedThroughPr);
+  await setSummary(fileValidations, urlPrefix);
+  core7.info(
     `Summary: https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/actions/runs/${github.context.runId}`
   );
-  return core4.setFailed(
+  if (inputs.evaluateMode) {
+    core7.warning(
+      "Errors found in workflow files. Evaluate mode enabled, not failing the workflow."
+    );
+    return;
+  }
+  core7.setFailed(
     "Errors found in workflow files. See inlined annotations on PR changes, or workflow summary for details."
   );
 }
 async function getParsedFilesForValidation(context2, inputs, octokit) {
-  if (context2.prNumber) {
+  if (!!context2.prNumber) {
     if (!context2.base || !context2.head) {
-      core4.setFailed(
+      core7.setFailed(
         `Missing one of base or head commit SHA. Base: ${context2.base}, Head: ${context2.head}`
       );
-      process.exit(1);
+      return process.exit(1);
     }
-    core4.debug(
+    core7.debug(
       `Getting diff workflow/actions files for PR: ${context2.prNumber}`
     );
     const allFiles = await getComparison(
-      github.getOctokit(context2.token),
+      octokit,
       context2.owner,
       context2.repo,
       context2.base,
@@ -24203,7 +24511,7 @@ async function getParsedFilesForValidation(context2, inputs, octokit) {
     );
     return parseGithubDiff(ghaWorkflowFiles);
   } else {
-    core4.debug("Getting all workflow/action files in the repository.");
+    core7.debug("Getting all workflow/action files in the repository.");
     const filePaths = await getAllWorkflowAndActionFiles(
       inputs.rootDir,
       inputs.validateAllActionDefinitions
@@ -24211,21 +24519,57 @@ async function getParsedFilesForValidation(context2, inputs, octokit) {
     return parseFiles(filePaths);
   }
 }
-async function validate2(inputs, parsedFiles, octokit) {
-  const validationResults = [];
+async function validate2({ prNumber }, inputs, parsedFiles, octokit) {
+  core7.debug(`Validating ${parseFiles.length} files`);
   const actionReferenceValidator = new ActionReferenceValidation(octokit, {
     validateNodeVersion: inputs.validateActionNodeVersion
   });
+  const actionsRunnerValidator = new ActionsRunnerValidation();
+  const ignoresCommentsValidator = new IgnoresCommentValidation();
+  const validationResults = [];
   for (const file of parsedFiles) {
-    core4.debug(`Processing: ${file.filename}`);
-    validationResults.push(await actionReferenceValidator.validate(file));
+    core7.info(`Processing: ${file.filename}`);
+    if (!!prNumber) {
+      file.lines = file.lines.filter((line) => line.operation === "add");
+    }
+    const ignoresCommentsResults = await ignoresCommentsValidator.validate(file);
+    const actionReferenceResults = inputs.validateActionRefs ? await actionReferenceValidator.validate(file) : void 0;
+    const actionsRunnerResults = inputs.validateRunners ? await actionsRunnerValidator.validate(file) : void 0;
+    const combinedLineValidations = [
+      ignoresCommentsResults,
+      actionReferenceResults,
+      actionsRunnerResults
+    ].filter((result) => !!result).flatMap((result) => result.lineValidations);
+    const flattenedLineValidations = processLineValidationResults(
+      combinedLineValidations
+    );
+    core7.info(
+      `Found ${flattenedLineValidations.length} total problems in ${file.filename}`
+    );
+    if (flattenedLineValidations.length === 0) {
+      continue;
+    }
+    core7.debug(
+      `Found ${ignoresCommentsResults?.lineValidations.length ?? 0} problems w/ ignore comments`
+    );
+    core7.debug(
+      `Found ${actionReferenceResults?.lineValidations.length ?? 0} problems w/ action references`
+    );
+    core7.debug(
+      `Found ${actionsRunnerResults?.lineValidations.length ?? 0} problems w/ actions runners`
+    );
+    validationResults.push({
+      filename: file.filename,
+      lineValidations: flattenedLineValidations
+    });
   }
+  core7.debug("Validation complete.");
   return validationResults;
 }
 function getInvokeContext() {
   const token = process.env.GITHUB_TOKEN;
   if (!token) {
-    core4.setFailed("GitHub token is not set.");
+    core7.setFailed("GitHub token is not set.");
     return process.exit(1);
   }
   const { context: context2 } = github;
@@ -24234,37 +24578,50 @@ function getInvokeContext() {
   const base = pull_request?.base.sha;
   const head = pull_request?.head.sha;
   const prNumber = pull_request?.number;
-  core4.debug(`Event name: ${context2.eventName}`);
-  core4.debug(
+  core7.debug(`Event name: ${context2.eventName}`);
+  core7.debug(
     `Owner: ${owner}, Repo: ${repo}, Base: ${base}, Head: ${head}, PR: ${prNumber ?? "N/A"}`
   );
   return { token, owner, repo, base, head, prNumber };
 }
 function getInputs() {
+  core7.debug("Getting inputs for run.");
   const isLocalDebug = process.env.CL_LOCAL_DEBUG;
   const inputKeys = {
-    validateRunners: "validate-runners",
-    validateActionRefs: "validate-action-refs",
-    validateActionNodeVersions: "validate-action-node-versions",
-    includeAllActionDefinitions: "include-all-action-definitions",
-    rootDir: "root-directory"
+    evaluateMode: ["evaluate-mode", core7.getBooleanInput],
+    validateRunners: ["validate-runners", core7.getBooleanInput],
+    validateActionRefs: ["validate-action-refs", core7.getBooleanInput],
+    validateActionNodeVersions: [
+      "validate-action-node-versions",
+      core7.getBooleanInput
+    ],
+    includeAllActionDefinitions: [
+      "include-all-action-definitions",
+      core7.getBooleanInput
+    ],
+    rootDir: ["root-directory", core7.getInput]
   };
   if (isLocalDebug) {
     for (const [key, value] of Object.entries(inputKeys)) {
-      inputKeys[key] = value.replace(/-/g, "_");
+      inputKeys[key][0] = value[0].replace(/-/g, "_");
     }
   }
-  return {
-    validateRunners: core4.getBooleanInput("validate_runners"),
-    validateActionRefs: core4.getBooleanInput("validate_action_refs"),
-    validateActionNodeVersion: core4.getBooleanInput(
-      "validate_action_node_versions"
+  const inputs = {
+    evaluateMode: inputKeys.evaluateMode[1](inputKeys.evaluateMode[0]),
+    validateRunners: inputKeys.validateRunners[1](inputKeys.validateRunners[0]),
+    validateActionRefs: inputKeys.validateActionRefs[1](
+      inputKeys.validateActionRefs[0]
     ),
-    validateAllActionDefinitions: core4.getBooleanInput(
-      "include_all_action_definitions"
+    validateActionNodeVersion: inputKeys.validateActionNodeVersions[1](
+      inputKeys.validateActionNodeVersions[0]
     ),
-    rootDir: core4.getInput("root_directory")
+    validateAllActionDefinitions: inputKeys.includeAllActionDefinitions[1](
+      inputKeys.includeAllActionDefinitions[0]
+    ),
+    rootDir: inputKeys.rootDir[1](inputKeys.rootDir[0])
   };
+  core7.debug(`Inputs: ${JSON.stringify(inputs)}`);
+  return inputs;
 }
 
 // actions/gha-workflow-validator/src/index.ts

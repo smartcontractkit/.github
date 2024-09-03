@@ -1,28 +1,31 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { getComparison, Octokit } from "./github.js";
-import { ActionReferenceValidation } from "./action-reference-validations.js";
-import { FileValidationResult } from "./validation-check.js";
+import { ActionReferenceValidation } from "./validations/action-reference-validations.js";
+import { ActionsRunnerValidation } from "./validations/actions-runner-validations.js";
+import { IgnoresCommentValidation } from "./validations/ignores-comment-validation.js";
+import { FileValidationResult } from "./validations/validation-check.js";
 import {
+  doValidationErrorsExist,
+  processLineValidationResults,
   getAllWorkflowAndActionFiles,
   filterForRelevantChanges,
-  logErrors,
   parseGithubDiff,
   parseFiles,
   ParsedFile,
-  setSummary,
 } from "./utils.js";
+import { logErrors, setSummary } from "./output.js";
 
-interface RunInputs {
+export interface RunInputs {
+  evaluateMode: boolean;
   validateRunners: boolean;
   validateActionRefs: boolean;
   validateActionNodeVersion: boolean;
   validateAllActionDefinitions: boolean;
-
   rootDir: string;
 }
 
-type InvokeContext = ReturnType<typeof getInvokeContext>;
+export type InvokeContext = ReturnType<typeof getInvokeContext>;
 
 export async function run() {
   const context = getInvokeContext();
@@ -39,45 +42,51 @@ export async function run() {
     process.exit(0);
   }
 
-  const validations = await validate(inputs, parsedFiles, octokit);
-  const validationFailed = validations.some(
-    (validation) => validation.lineValidations.length > 0,
-  );
+  const fileValidations = await validate(context, inputs, parsedFiles, octokit);
+  const validationFailed = doValidationErrorsExist(fileValidations);
 
-  const invokedThroughPr = !context.prNumber;
+  const invokedThroughPr = !!context.prNumber;
   const urlPrefix = `https://github.com/${context.owner}/${context.repo}/blob/${context.head}`;
 
   if (!validationFailed) {
     return core.info("No errors found in workflow files.");
   }
 
-  logErrors(validations, invokedThroughPr);
-  await setSummary(validations, urlPrefix);
+  logErrors(fileValidations, invokedThroughPr);
+  await setSummary(fileValidations, urlPrefix);
+
   core.info(
     `Summary: https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/actions/runs/${github.context.runId}`,
   );
-  return core.setFailed(
+  if (inputs.evaluateMode) {
+    core.warning(
+      "Errors found in workflow files. Evaluate mode enabled, not failing the workflow.",
+    );
+    return;
+  }
+  core.setFailed(
     "Errors found in workflow files. See inlined annotations on PR changes, or workflow summary for details.",
   );
 }
 
+// Exported for testing only
 export async function getParsedFilesForValidation(
   context: InvokeContext,
   inputs: RunInputs,
   octokit: Octokit,
 ): Promise<ParsedFile[]> {
-  if (context.prNumber) {
+  if (!!context.prNumber) {
     if (!context.base || !context.head) {
       core.setFailed(
         `Missing one of base or head commit SHA. Base: ${context.base}, Head: ${context.head}`,
       );
-      process.exit(1);
+      return process.exit(1);
     }
     core.debug(
       `Getting diff workflow/actions files for PR: ${context.prNumber}`,
     );
     const allFiles = await getComparison(
-      github.getOctokit(context.token),
+      octokit,
       context.owner,
       context.repo,
       context.base,
@@ -98,19 +107,72 @@ export async function getParsedFilesForValidation(
   }
 }
 
-export async function validate(
+async function validate(
+  { prNumber }: InvokeContext,
   inputs: RunInputs,
   parsedFiles: ParsedFile[],
   octokit: Octokit,
 ): Promise<FileValidationResult[]> {
-  const validationResults = [];
+  core.debug(`Validating ${parseFiles.length} files`);
+
   const actionReferenceValidator = new ActionReferenceValidation(octokit, {
     validateNodeVersion: inputs.validateActionNodeVersion,
   });
+  const actionsRunnerValidator = new ActionsRunnerValidation();
+  const ignoresCommentsValidator = new IgnoresCommentValidation();
+
+  const validationResults = [];
   for (const file of parsedFiles) {
-    core.debug(`Processing: ${file.filename}`);
-    validationResults.push(await actionReferenceValidator.validate(file));
+    core.info(`Processing: ${file.filename}`);
+    if (!!prNumber) {
+      file.lines = file.lines.filter((line) => line.operation === "add");
+    }
+
+    const ignoresCommentsResults =
+      await ignoresCommentsValidator.validate(file);
+    const actionReferenceResults = inputs.validateActionRefs
+      ? await actionReferenceValidator.validate(file)
+      : undefined;
+    const actionsRunnerResults = inputs.validateRunners
+      ? await actionsRunnerValidator.validate(file)
+      : undefined;
+    const combinedLineValidations = [
+      ignoresCommentsResults,
+      actionReferenceResults,
+      actionsRunnerResults,
+    ]
+      .filter((result) => !!result)
+      .flatMap((result) => result.lineValidations);
+
+    const flattenedLineValidations = processLineValidationResults(
+      combinedLineValidations,
+    );
+
+    core.info(
+      `Found ${flattenedLineValidations.length} total problems in ${file.filename}`,
+    );
+
+    if (flattenedLineValidations.length === 0) {
+      continue;
+    }
+
+    core.debug(
+      `Found ${ignoresCommentsResults?.lineValidations.length ?? 0} problems w/ ignore comments`,
+    );
+    core.debug(
+      `Found ${actionReferenceResults?.lineValidations.length ?? 0} problems w/ action references`,
+    );
+    core.debug(
+      `Found ${actionsRunnerResults?.lineValidations.length ?? 0} problems w/ actions runners`,
+    );
+
+    validationResults.push({
+      filename: file.filename,
+      lineValidations: flattenedLineValidations,
+    });
   }
+
+  core.debug("Validation complete.");
   return validationResults;
 }
 
@@ -141,32 +203,45 @@ export function getInvokeContext() {
 }
 
 function getInputs(): RunInputs {
+  core.debug("Getting inputs for run.");
   const isLocalDebug = process.env.CL_LOCAL_DEBUG;
 
-  const inputKeys = {
-    validateRunners: "validate-runners",
-    validateActionRefs: "validate-action-refs",
-    validateActionNodeVersions: "validate-action-node-versions",
-    includeAllActionDefinitions: "include-all-action-definitions",
-    rootDir: "root-directory",
+  const inputKeys: Record<string, [string, Function]> = {
+    evaluateMode: ["evaluate-mode", core.getBooleanInput],
+    validateRunners: ["validate-runners", core.getBooleanInput],
+    validateActionRefs: ["validate-action-refs", core.getBooleanInput],
+    validateActionNodeVersions: [
+      "validate-action-node-versions",
+      core.getBooleanInput,
+    ],
+    includeAllActionDefinitions: [
+      "include-all-action-definitions",
+      core.getBooleanInput,
+    ],
+    rootDir: ["root-directory", core.getInput],
   };
 
   if (isLocalDebug) {
     // change all dashes to underscore in input keys because most shells don't support dashes in env variables
     for (const [key, value] of Object.entries(inputKeys)) {
-      inputKeys[key as keyof typeof inputKeys] = value.replace(/-/g, "_");
+      inputKeys[key as keyof typeof inputKeys][0] = value[0].replace(/-/g, "_");
     }
   }
 
-  return {
-    validateRunners: core.getBooleanInput("validate_runners"),
-    validateActionRefs: core.getBooleanInput("validate_action_refs"),
-    validateActionNodeVersion: core.getBooleanInput(
-      "validate_action_node_versions",
+  const inputs = {
+    evaluateMode: inputKeys.evaluateMode[1](inputKeys.evaluateMode[0]),
+    validateRunners: inputKeys.validateRunners[1](inputKeys.validateRunners[0]),
+    validateActionRefs: inputKeys.validateActionRefs[1](
+      inputKeys.validateActionRefs[0],
     ),
-    validateAllActionDefinitions: core.getBooleanInput(
-      "include_all_action_definitions",
+    validateActionNodeVersion: inputKeys.validateActionNodeVersions[1](
+      inputKeys.validateActionNodeVersions[0],
     ),
-    rootDir: core.getInput("root_directory"),
+    validateAllActionDefinitions: inputKeys.includeAllActionDefinitions[1](
+      inputKeys.includeAllActionDefinitions[0],
+    ),
+    rootDir: inputKeys.rootDir[1](inputKeys.rootDir[0]),
   };
+  core.debug(`Inputs: ${JSON.stringify(inputs)}`);
+  return inputs;
 }

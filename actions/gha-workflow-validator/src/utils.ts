@@ -1,10 +1,14 @@
 import * as core from "@actions/core";
 import * as glob from "@actions/glob";
 import { sep } from "path";
-import { readFile } from "fs/promises";
+import { readFileSync } from "fs";
 import { GithubFiles } from "./github.js";
-import { FileValidationResult } from "./validation-check.js";
-import { FIXING_ERRORS, htmlLink } from "./strings.js";
+import {
+  FileValidationResult,
+  LineValidationResult,
+  ValidationType,
+} from "./validations/validation-check.js";
+import { VALIDATOR_IGNORE_LINE, FIXING_ERRORS, htmlLink } from "./strings.js";
 
 export interface ParsedFile {
   filename: string;
@@ -15,8 +19,15 @@ export interface FileLine {
   lineNumber: number;
   content: string;
   operation: "add" | "unchanged";
+  ignored: boolean;
 }
 
+/**
+ * Gets all workflow and action files in the specified directory and subdirectories.
+ * @param directory The root directory to search for workflow and action files
+ * @param allActionDefinitions Whether to include all action definitions or just those in the .github directory
+ * @returns Array of file paths to the workflow and action files
+ */
 export async function getAllWorkflowAndActionFiles(
   directory: string,
   allActionDefinitions: boolean,
@@ -69,6 +80,12 @@ async function globFiles(patterns: string[]): Promise<string[]> {
   return [];
 }
 
+/**
+ * Filters out files that are not GitHub workflows or actions.
+ * @param files The files to filter
+ * @param includeAllActionDefinitions Whether to include all action definitions or just those in the .github directory
+ * @returns The filtered files
+ */
 export function filterForRelevantChanges(
   files: GithubFiles,
   includeAllActionDefinitions: boolean,
@@ -83,6 +100,11 @@ export function filterForRelevantChanges(
   });
 }
 
+/**
+ * Checks if a file path is a GitHub workflow or action file in the .github directory.
+ * @param {string} filename The file path to check
+ * @returns {boolean} True if the file is a GitHub workflow or action file
+ */
 function isGithubWorkflowOrActionFile(filename: string): boolean {
   return (
     (filename.startsWith(".github/workflows") ||
@@ -91,22 +113,25 @@ function isGithubWorkflowOrActionFile(filename: string): boolean {
   );
 }
 
+/**
+ * Parses the files from the file system into a ParsedFile object.
+ * @param paths The paths to the files to parse.
+ * @returns Array of ParsedFile representing the files and their contents.
+ */
 export async function parseFiles(paths: string[]) {
   const parsedFiles: ParsedFile[] = [];
 
   for (const path of paths) {
-    const content = await readFile(path, "utf-8");
-    const lines = content
-      .split("\n")
-      .map(
-        (line, index) =>
-          ({
-            lineNumber: index + 1,
-            content: line,
-            operation: "unchanged",
-          }) as FileLine,
-      )
-      .filter((line) => line.content.trim() !== "");
+    const content = readFileSync(path, "utf-8");
+    const lines = content.split("\n").map((line, index) => {
+      const ignored = line.includes(VALIDATOR_IGNORE_LINE);
+      return {
+        lineNumber: index + 1,
+        content: line,
+        operation: "unchanged",
+        ignored,
+      } as FileLine;
+    });
 
     parsedFiles.push({ filename: path, lines });
   }
@@ -114,6 +139,11 @@ export async function parseFiles(paths: string[]) {
   return parsedFiles;
 }
 
+/**
+ * Parses the diff files from a GitHub PR diff.
+ * @param {GithubFiles} githubFiles The GithubFiles types from the GitHub commit comparison API
+ * @returns {ParsedFile[]} Array of ParsedFile representing the files and their changes
+ */
 export function parseGithubDiff(githubFiles: GithubFiles): ParsedFile[] {
   if (!githubFiles) return [];
 
@@ -124,6 +154,11 @@ export function parseGithubDiff(githubFiles: GithubFiles): ParsedFile[] {
   });
 }
 
+/**
+ * Parses the patch changes from a Git diff file entry.
+ * @param {string} patch The diff/patch string for a single file
+ * @returns Array of FileLines representing the additions and unchanged lines in the patch does not include deletions
+ */
 function parsePatchChanges(patch: string): FileLine[] {
   const lineChanges = patch?.split("\n") || [];
 
@@ -156,10 +191,14 @@ function parsePatchChanges(patch: string): FileLine[] {
     const operation = line.startsWith("+") ? "add" : "unchanged";
     const currentLine = line.substring(1);
 
+    // Only ignore the current line if it contains the ignore comment and it is unchanged.
+    const ignored =
+      currentLine.includes(VALIDATOR_IGNORE_LINE) && operation === "unchanged";
     additions.push({
       content: currentLine,
       lineNumber: currentLineInFile,
       operation,
+      ignored,
     });
 
     currentLineInFile++;
@@ -168,85 +207,65 @@ function parsePatchChanges(patch: string): FileLine[] {
   return additions;
 }
 
-export function logErrors(
-  validationResults: FileValidationResult[],
-  annotatePR: boolean = false,
-) {
-  for (const fileResults of validationResults) {
-    for (const lineResults of fileResults.lineValidations) {
-      const message = lineResults.validationErrors
-        .map((error) => error.message)
-        .join(",");
-      core.error(
-        `file: ${fileResults.filename} @ line: ${lineResults.line.lineNumber} - ${message}`,
-      );
-      if (annotatePR) {
-        core.error(message, {
-          file: fileResults.filename,
-          startLine: lineResults.line.lineNumber,
-        });
-      }
-    }
-  }
-}
-
-type TableRow = Parameters<typeof core.summary.addTable>[0][0];
-type TableCell = TableRow[0];
-
-export async function setSummary(
-  validationResults: FileValidationResult[],
-  fileUrlPrefix: string,
-) {
-  const headerRow: TableRow = [
-    { data: "Filename", header: true },
-    { data: "Line Number", header: true },
-    { data: "Violations", header: true },
-  ];
-
-  const errorRows = validationResults.reduce<TableRow[]>((acc, curr) => {
-    const filename = curr.filename;
-
-    const errorCellTuples: TableCell[][] = curr.lineValidations.map(
-      (validationResult) => {
-        const lineNumberCell: TableCell = {
-          data: htmlLink(
-            `${validationResult.line.lineNumber}`,
-            `${fileUrlPrefix}/${filename}#L${validationResult.line.lineNumber}`,
-          ),
-        };
-        const violationsCell: TableCell = {
-          data: validationResult.validationErrors
-            .map((error) => error.message)
-            .join(", "),
-        };
-
-        return [lineNumberCell, violationsCell];
-      },
+/**
+ * Combines an array of LineValidationResult objects, merging entries
+ * that have the same lineNumber by concatenating their messages arrays.
+ * Also lowers the severity of messages if the line is to be ignored.
+ *
+ * @param {LineValidationResult[]} results - Array of LineValidationResult objects to be combined.
+ * @returns {LineValidationResult[]} - A new array where entries with matching line numbers have their messages combined.
+ */
+export function processLineValidationResults(
+  results: LineValidationResult[],
+): LineValidationResult[] {
+  const combinedResults = results.reduce((acc, current) => {
+    // Find if we already have an entry with the same lineNumber
+    const existingEntry = acc.find(
+      (item) => item.line.lineNumber === current.line.lineNumber,
     );
 
-    if (errorCellTuples.length === 0) {
-      return acc;
+    const processedMessages = current.messages.map((message) => {
+      if (
+        current.line.ignored &&
+        message.type !== ValidationType.IGNORE_COMMENT
+      ) {
+        return {
+          ...message,
+          severity: "ignored",
+        };
+      }
+      return message;
+    });
+
+    if (existingEntry) {
+      // Combine messages for matching lineNumber
+      existingEntry.messages = [...existingEntry.messages, ...current.messages];
+    } else {
+      // If not, add the current result to the accumulator
+      acc.push({ ...current });
     }
 
-    // The filename cell to span all the rows for this file
-    const filenameCell: TableCell = {
-      data: filename,
-      rowspan: `${errorCellTuples.length}`,
-    };
-    const firstErrorCellTuple = errorCellTuples.shift() as TableCell[];
-    const firstRowForFile = [filenameCell, ...firstErrorCellTuple];
+    return acc;
+  }, [] as LineValidationResult[]);
 
-    return [...acc, firstRowForFile, ...errorCellTuples];
-  }, [] as TableRow[]);
-
-  await core.summary
-    .addTable([headerRow, ...errorRows])
-    .addSeparator()
-    .addRaw(FIXING_ERRORS)
-    .write();
+  return combinedResults.sort((a, b) => a.line.lineNumber - b.line.lineNumber);
 }
 
-export function mapAndFilter<T, U>(
+export function doValidationErrorsExist(files: FileValidationResult[]) {
+  return files.some((file) =>
+    file.lineValidations.some((lv) =>
+      lv.messages.some((m) => m.severity === "error"),
+    ),
+  );
+}
+
+/**
+ * Maps an array then filters out undefined values.
+ * @param {T[]} arr Array to map
+ * @param mapFn Mapping function
+ * @returns Array of mapped values with undefined values filtered out
+ */
+export function mapAndFilterUndefined<T, U>(
   arr: T[],
   mapFn: (x: T) => U | undefined,
 ): U[] {
@@ -256,21 +275,6 @@ export function mapAndFilter<T, U>(
     const result = mapFn(curr);
     if (result !== undefined) {
       acc.push(result);
-    }
-    return acc;
-  }, []);
-}
-
-export function flatMapFilter<T, U>(
-  arr: T[],
-  mapFn: (x: T) => U[] | undefined,
-): U[] {
-  if (!arr) return [];
-
-  return arr.reduce<U[]>((acc, curr) => {
-    const result = mapFn(curr);
-    if (result !== undefined) {
-      acc.push(...result); // Flattening by spreading the result array into the accumulator
     }
     return acc;
   }, []);
