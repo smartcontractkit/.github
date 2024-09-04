@@ -37,7 +37,7 @@
     "@octokit/plugin-throttling": "^8.2.0",
     "fs-extra": "^11.2.0",
     "graphql": "^16.8.1",
-    "mdast-util-to-string": "^1.1.0",
+    "mdast-util-to-string": "^4.0.0",
     "remark-parse": "^7.0.2",
     "remark-stringify": "^7.0.4",
     "resolve-from": "^5.0.0",

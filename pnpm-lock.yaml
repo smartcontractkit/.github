@@ -175,6 +175,8 @@ importers:
 
   actions/helm-version-bump-sender: {}
 
+  actions/license-checker: {}
+
   actions/llm-action-error-reporter: {}
 
   actions/llm-pr-writer: {}
@@ -234,8 +236,8 @@ importers:
         specifier: ^16.8.1
         version: 16.9.0
       mdast-util-to-string:
-        specifier: ^1.1.0
-        version: 1.1.0
+        specifier: ^4.0.0
+        version: 4.0.0
       remark-parse:
         specifier: ^7.0.2
         version: 7.0.2
@@ -2669,6 +2671,9 @@ packages:
     resolution: {integrity: sha512-oTHISsIybJGoh3b3Ay/10csbAd2k0su7G7DGrE1QWciC+IdydPm0WMw1+Gr9YMYjPiJ5poB3g5Ev73IlLoavLw==}
     deprecated: This is a stub types definition. loud-rejection provides its own type definitions, so you do not need this installed.
 
+  '@types/mdast@4.0.4':
+    resolution: {integrity: sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA==}
+
   '@types/minimist@1.2.5':
     resolution: {integrity: sha512-hov8bUuiLiyFPGyFPE1lwWhmzYbirOXQNNo40+y3zow8aFVTeyn3VWL0VFFfdNddA8S4Vf0Tc062rzyNr7Paag==}
 
@@ -4680,8 +4685,8 @@ packages:
   mdast-util-compact@1.0.4:
     resolution: {integrity: sha512-3YDMQHI5vRiS2uygEFYaqckibpJtKq5Sj2c8JioeOQBU6INpKbdWzfyLqFFnDwEcEnRFIdMsguzs5pC1Jp4Isg==}
 
-  mdast-util-to-string@1.1.0:
-    resolution: {integrity: sha512-jVU0Nr2B9X3MU4tSK7JP1CMkSvOj7X5l/GboG1tKRw52lLF1x2Ju92Ms9tNetCcbfX3hzlM73zYo2NKkWSfF/A==}
+  mdast-util-to-string@4.0.0:
+    resolution: {integrity: sha512-0H44vDimn51F0YwvxSJSm0eCDOJTRlmN0R1yBh4HLj9wiV1Dn0QoXGbvFAWj2hSItVTlCmBF1hqKlIyUBVFLPg==}
 
   merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
@@ -9468,6 +9473,10 @@ snapshots:
     dependencies:
       loud-rejection: 2.2.0
 
+  '@types/mdast@4.0.4':
+    dependencies:
+      '@types/unist': 3.0.2
+
   '@types/minimist@1.2.5': {}
 
   '@types/node-fetch@2.6.11':
@@ -11897,7 +11906,9 @@ snapshots:
     dependencies:
       unist-util-visit: 1.4.1
 
-  mdast-util-to-string@1.1.0: {}
+  mdast-util-to-string@4.0.0:
+    dependencies:
+      '@types/mdast': 4.0.4
 
   merge-stream@2.0.0: {}
 
