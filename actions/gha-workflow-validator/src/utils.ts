@@ -9,7 +9,7 @@ import {
   ValidationType,
   ValidationMessage,
 } from "./validations/validation-check.js";
-import { VALIDATOR_IGNORE_LINE, } from "./strings.js";
+import { VALIDATOR_IGNORE_LINE } from "./strings.js";
 
 export interface ParsedFile {
   filename: string;

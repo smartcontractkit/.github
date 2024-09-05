@@ -230,19 +230,28 @@ describe(ActionReferenceValidation.name, () => {
     expect(lineValidation.messages.length).toEqual(3);
 
     expect(
-      lineValidation.messages.some(
-        (error) => { return error.message === "No version comment found" && error.severity === "warning" },
-      ),
+      lineValidation.messages.some((error) => {
+        return (
+          error.message === "No version comment found" &&
+          error.severity === "warning"
+        );
+      }),
     ).toEqual(true);
     expect(
-      lineValidation.messages.some(
-        (error) => { return error.message === "Action is using node16" && error.severity === "warning" },
-      ),
+      lineValidation.messages.some((error) => {
+        return (
+          error.message === "Action is using node16" &&
+          error.severity === "warning"
+        );
+      }),
     ).toEqual(true);
     expect(
-      lineValidation.messages.some(
-        (error) => { return error.message === `v3.6.0 is not a valid SHA reference` && error.severity === "error" },
-      ),
+      lineValidation.messages.some((error) => {
+        return (
+          error.message === `v3.6.0 is not a valid SHA reference` &&
+          error.severity === "error"
+        );
+      }),
     ).toEqual(true);
 
     nockDone();
