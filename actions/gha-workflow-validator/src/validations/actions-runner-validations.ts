@@ -2,7 +2,7 @@ import { mapAndFilterUndefined, ParsedFile, FileLine } from "../utils.js";
 import * as core from "@actions/core";
 import {
   ValidationCheck,
-  ValidationMessages,
+  ValidationMessage,
   FileValidationResult,
   LineValidationResult,
   ValidationType,
@@ -71,7 +71,7 @@ async function validateActionsRunners(
 
 async function validateActionsRunner(
   actionsRunner: ActionsRunner | undefined,
-): Promise<ValidationMessages[]> {
+): Promise<ValidationMessage[]> {
   if (!actionsRunner) {
     return [];
   }

@@ -7,6 +7,7 @@ import {
   FileValidationResult,
   LineValidationResult,
   ValidationType,
+  ValidationMessage,
 } from "./validations/validation-check.js";
 import { VALIDATOR_IGNORE_LINE, FIXING_ERRORS, htmlLink } from "./strings.js";
 
@@ -232,17 +233,20 @@ export function processLineValidationResults(
         return {
           ...message,
           severity: "ignored",
-        };
+        } as ValidationMessage;
       }
       return message;
     });
 
     if (existingEntry) {
       // Combine messages for matching lineNumber
-      existingEntry.messages = [...existingEntry.messages, ...current.messages];
+      existingEntry.messages = [
+        ...existingEntry.messages,
+        ...processedMessages,
+      ];
     } else {
       // If not, add the current result to the accumulator
-      acc.push({ ...current });
+      acc.push({ ...current, messages: processedMessages });
     }
 
     return acc;

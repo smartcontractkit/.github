@@ -8,10 +8,10 @@ export interface FileValidationResult {
 export interface LineValidationResult {
   filename: string;
   line: FileLine;
-  messages: ValidationMessages[];
+  messages: ValidationMessage[];
 }
 
-export interface ValidationMessages {
+export interface ValidationMessage {
   type: ValidationType;
   severity: "error" | "warning" | "ignored";
   message: string;

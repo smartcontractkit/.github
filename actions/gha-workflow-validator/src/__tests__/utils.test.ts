@@ -11,6 +11,7 @@ import { vi, describe, it, expect } from "vitest";
 import {
   FileValidationResult,
   LineValidationResult,
+  ValidationMessage,
   ValidationType,
 } from "../validations/validation-check.js";
 
@@ -403,7 +404,7 @@ describe(processLineValidationResults.name, () => {
   });
 
   it("should combine two results for the same line", () => {
-    const firstLineValidation: LineValidationResult = {
+    const lineOneValidationOne: LineValidationResult = {
       filename: ".github/workflows/test.yml",
       line: {
         lineNumber: 1,
@@ -420,7 +421,7 @@ describe(processLineValidationResults.name, () => {
       ],
     };
 
-    const sameLineValidation: LineValidationResult = {
+    const lineOneValidationTwo: LineValidationResult = {
       filename: ".github/workflows/test.yml",
       line: {
         lineNumber: 1,
@@ -438,15 +439,15 @@ describe(processLineValidationResults.name, () => {
     };
 
     const results = processLineValidationResults([
-      firstLineValidation,
-      sameLineValidation,
+      lineOneValidationOne,
+      lineOneValidationTwo,
     ]);
     expect(results.length).toBe(1);
 
     const combinedLineValidation = results[0];
     expect(combinedLineValidation.messages).toEqual([
-      ...firstLineValidation.messages,
-      ...sameLineValidation.messages,
+      ...lineOneValidationOne.messages,
+      ...lineOneValidationTwo.messages,
     ]);
   });
 
@@ -537,6 +538,67 @@ describe(processLineValidationResults.name, () => {
     expect(line2LV.messages).toEqual([
       ...lineTwoValidationOne.messages,
       ...lineTwoValidationTwo.messages,
+    ]);
+  });
+
+  it("should lower severity for ignored lines", () => {
+    const message: ValidationMessage = {
+      message: "Error",
+      type: ValidationType.VERSION_COMMENT,
+      severity: "error",
+    };
+
+    const singleLineValidation: LineValidationResult = {
+      filename: ".github/workflows/test.yml",
+      line: {
+        lineNumber: 1,
+        content: "line 1",
+        operation: "add",
+        ignored: true,
+      },
+      messages: [message],
+    };
+    const results = processLineValidationResults([singleLineValidation]);
+    expect(results).toEqual([
+      {
+        ...singleLineValidation,
+        messages: [{ ...message, severity: "ignored" }],
+      },
+    ]);
+  });
+
+  it("should lower severity for ignored lines but not new ignore comments", () => {
+    const ignoresCommentMessage: ValidationMessage = {
+      message: "Error",
+      type: ValidationType.IGNORE_COMMENT,
+      severity: "error",
+    };
+
+    const lowerableMessage: ValidationMessage = {
+      message: "Error",
+      type: ValidationType.VERSION_COMMENT,
+      severity: "error",
+    };
+
+    const singleLineValidation: LineValidationResult = {
+      filename: ".github/workflows/test.yml",
+      line: {
+        lineNumber: 1,
+        content: "line 1",
+        operation: "add",
+        ignored: true,
+      },
+      messages: [ignoresCommentMessage, lowerableMessage],
+    };
+    const results = processLineValidationResults([singleLineValidation]);
+    expect(results).toEqual([
+      {
+        ...singleLineValidation,
+        messages: [
+          ignoresCommentMessage,
+          { ...lowerableMessage, severity: "ignored" },
+        ],
+      },
     ]);
   });
 });

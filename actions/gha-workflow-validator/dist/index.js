@@ -23997,9 +23997,9 @@ function processLineValidationResults(results) {
       return message;
     });
     if (existingEntry) {
-      existingEntry.messages = [...existingEntry.messages, ...current.messages];
+      existingEntry.messages = [...existingEntry.messages, ...processedMessages];
     } else {
-      acc.push({ ...current });
+      acc.push({ ...current, messages: processedMessages });
     }
     return acc;
   }, []);

@@ -3,7 +3,7 @@ import { Octokit, getActionFileFromGithub } from "../github.js";
 import * as core from "@actions/core";
 import {
   ValidationCheck,
-  ValidationMessages,
+  ValidationMessage,
   FileValidationResult,
   LineValidationResult,
   ValidationType,
@@ -92,12 +92,12 @@ async function validateActionReference(
   octokit: Octokit,
   options: ActionReferenceValidationOptions,
   actionRef: ActionReference | undefined,
-): Promise<ValidationMessages[]> {
+): Promise<ValidationMessage[]> {
   if (!actionRef) {
     return [];
   }
 
-  const validationErrors: ValidationMessages[] = [];
+  const validationErrors: ValidationMessage[] = [];
 
   const shaRefValidation = validateShaRef(actionRef);
   const versionCommentValidation = validateVersionCommentExists(actionRef);
@@ -120,7 +120,7 @@ async function validateActionReference(
 
 function validateShaRef(
   actionReference: ActionReference,
-): ValidationMessages | undefined {
+): ValidationMessage | undefined {
   const sha1Regex = /^[0-9a-f]{40}$/;
   if (sha1Regex.test(actionReference.ref)) return;
 
@@ -136,7 +136,7 @@ function validateShaRef(
 
 function validateVersionCommentExists(
   actionReference: ActionReference,
-): ValidationMessages | undefined {
+): ValidationMessage | undefined {
   if (actionReference.comment) return;
 
   return {
@@ -149,7 +149,7 @@ function validateVersionCommentExists(
 async function validateNodeActionVersion(
   octokit: Octokit,
   actionRef: ActionReference,
-): Promise<ValidationMessages | undefined> {
+): Promise<ValidationMessage | undefined> {
   const actionFile = await getActionFileFromGithub(
     octokit,
     actionRef.owner,
