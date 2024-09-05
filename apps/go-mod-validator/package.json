@@ -10,11 +10,17 @@
   "main": "out/index.js",
   "scripts": {
     "local": "GITHUB_STEP_SUMMARY=/dev/null ts-node src/index.ts",
-    "test": "vitest"
+    "test": "vitest",
+    "fixtures:gomods": "ts-node test/__helpers__/generate-gomod-fixtures.ts"
   },
   "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.14.9",
+    "@types/node-fetch": "^2.6.11",
+    "fs-extra": "^11.2.0",
+    "nock": "^13.5.4",
     "node-fetch": "^2.7.0",
+    "simple-git": "^3.26.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   },
