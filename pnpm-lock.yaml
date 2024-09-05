@@ -175,6 +175,8 @@ importers:
 
   actions/helm-version-bump-sender: {}
 
+  actions/license-checker: {}
+
   actions/llm-action-error-reporter: {}
 
   actions/llm-pr-writer: {}
@@ -363,6 +365,9 @@ importers:
       '@octokit/plugin-throttling':
         specifier: ^8.2.0
         version: 8.2.0(@octokit/core@5.2.0)
+      '@octokit/types':
+        specifier: ^13.5.0
+        version: 13.5.0
       '@snyk/go-semver':
         specifier: ^1.4.0
         version: 1.4.0

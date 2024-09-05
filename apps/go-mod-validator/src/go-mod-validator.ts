@@ -4,7 +4,7 @@ import { FIXING_ERRORS } from "./strings";
 import * as github from "@actions/github";
 import * as core from "@actions/core";
 import { throttling } from "@octokit/plugin-throttling";
-
+import { getChangedGoModFiles } from "./diff";
 function getContext() {
   const goModDir = core.getInput("go-mod-dir", { required: true });
   const githubToken = core.getInput("github-token", { required: true });
@@ -35,13 +35,48 @@ function getContext() {
     throttling,
   );
 
-  return { goModDir, gh, depPrefix };
+  const isPullRequest =
+    !!github.context.payload.pull_request ||
+    process.env.GITHUB_EVENT_NAME === "pull_request";
+
+  return { goModDir, gh, depPrefix, isPullRequest };
 }
 
 export async function run(): Promise<string> {
-  const { goModDir, gh, depPrefix } = getContext();
+  const { goModDir, gh, depPrefix, isPullRequest } = getContext();
 
-  const depsToValidate = await getDeps(goModDir, depPrefix);
+  let depsToValidate = await getDeps(goModDir, depPrefix);
+  if (isPullRequest) {
+    const pr = github.context.payload.pull_request;
+    if (!pr) {
+      throw new Error("Expected pull request context to be present");
+    }
+    const base: string = pr.base.sha;
+    const head: string = pr.head.sha;
+    const { owner, repo } = github.context.repo;
+
+    const changedFiles = await getChangedGoModFiles(
+      gh,
+      base,
+      head,
+      owner,
+      repo,
+      depPrefix,
+    );
+    depsToValidate = depsToValidate.filter((d) => {
+      return changedFiles.some(
+        (f) =>
+          f.filename === d.goModFilePath.replace(`${goModDir}/`, "") &&
+          f.addedLines.some((l) => {
+            return l.content.includes(d.path);
+          }),
+      );
+    });
+
+    //TODO : test this
+    depsToValidate = depsToValidate.filter((d) => !("tag" in d));
+  }
+
   const invalidations: Map<
     BaseGoModule,
     {
