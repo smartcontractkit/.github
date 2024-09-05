@@ -18,7 +18,8 @@ export async function getChangedGoModFiles(
     base,
     head,
     owner,
-    repo
+    repo,
+    depPrefix
   })
 
   const files = await getComparison(gh, owner, repo, base, head);
