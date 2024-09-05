@@ -142,7 +142,7 @@ function validateVersionCommentExists(
   return {
     message: `No version comment found`,
     type: ValidationType.VERSION_COMMENT,
-    severity: "error",
+    severity: "warning",
   };
 }
 
@@ -171,7 +171,7 @@ async function validateNodeActionVersion(
     return {
       message: `Action is using node${matches[1]}`,
       type: ValidationType.NODE_VERSION,
-      severity: "error",
+      severity: "warning",
     };
   }
 

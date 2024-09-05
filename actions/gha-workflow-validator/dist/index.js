@@ -24106,7 +24106,7 @@ function validateVersionCommentExists(actionReference) {
   return {
     message: `No version comment found`,
     type: "version-comment" /* VERSION_COMMENT */,
-    severity: "error"
+    severity: "warning"
   };
 }
 async function validateNodeActionVersion(octokit, actionRef) {
@@ -24129,7 +24129,7 @@ async function validateNodeActionVersion(octokit, actionRef) {
     return {
       message: `Action is using node${matches[1]}`,
       type: "node-version" /* NODE_VERSION */,
-      severity: "error"
+      severity: "warning"
     };
   }
   return;

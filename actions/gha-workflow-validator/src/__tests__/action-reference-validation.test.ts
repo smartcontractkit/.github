@@ -138,6 +138,7 @@ describe(ActionReferenceValidation.name, () => {
     const lvr = lineValidations[0];
     expect(lvr.line.lineNumber).toEqual(simpleChanges.lines[1].lineNumber);
     expect(lvr.messages.length).toEqual(1);
+    expect(lvr.messages[0].severity).toEqual("warning");
     expect(lvr.messages[0].message).toEqual("No version comment found");
 
     nockDone();
@@ -165,6 +166,7 @@ describe(ActionReferenceValidation.name, () => {
       simpleChanges.lines[1].lineNumber,
     );
     expect(lineValidation.messages.length).toEqual(1);
+    expect(lineValidation.messages[0].severity).toEqual("error");
     expect(lineValidation.messages[0].message).toEqual(
       `v4 is not a valid SHA reference`,
     );
@@ -195,6 +197,7 @@ describe(ActionReferenceValidation.name, () => {
       simpleChanges.lines[1].lineNumber,
     );
     expect(lineValidation.messages.length).toEqual(1);
+    expect(lineValidation.messages[0].severity).toEqual("warning");
     expect(lineValidation.messages[0].message).toEqual(
       "Action is using node16",
     );
@@ -228,17 +231,17 @@ describe(ActionReferenceValidation.name, () => {
 
     expect(
       lineValidation.messages.some(
-        (error) => error.message === "No version comment found",
+        (error) => { return error.message === "No version comment found" && error.severity === "warning" },
       ),
     ).toEqual(true);
     expect(
       lineValidation.messages.some(
-        (error) => error.message === "Action is using node16",
+        (error) => { return error.message === "Action is using node16" && error.severity === "warning" },
       ),
     ).toEqual(true);
     expect(
       lineValidation.messages.some(
-        (error) => error.message === `v3.6.0 is not a valid SHA reference`,
+        (error) => { return error.message === `v3.6.0 is not a valid SHA reference` && error.severity === "error" },
       ),
     ).toEqual(true);
 
