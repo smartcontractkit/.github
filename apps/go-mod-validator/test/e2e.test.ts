@@ -116,8 +116,8 @@ describe("e2e tests", () => {
 
       afterAll(() => {
         delete process.env["GITHUB_EVENT_NAME"];
-        mockGithubContext.payload = {}
-        mockGithubContext.repo = {}
+        mockGithubContext.payload = {};
+        mockGithubContext.repo = {};
       });
 
       it("should pass on this diff", async () => {

@@ -15,16 +15,15 @@ export async function getChangedGoModFiles(
   depPrefix: string,
 ): Promise<ParsedFile[]> {
   const files = await getComparison(gh, owner, repo, base, head);
-  const relevantFiles = filterForRelevantChanges(files, );
+  const relevantFiles = filterForRelevantChanges(files);
   return parseAllAdditions(relevantFiles, depPrefix);
 }
 
- function filterForRelevantChanges(files: GithubFiles): GithubFiles {
+function filterForRelevantChanges(files: GithubFiles): GithubFiles {
   return files?.filter(({ filename }) => filename.endsWith("go.mod"));
 }
 
-
- async function getComparison(
+async function getComparison(
   octokit: Octokit,
   owner: string,
   repo: string,
@@ -55,7 +54,10 @@ export interface FileAddition {
   content: string;
 }
 
- function parseAllAdditions(files: GithubFiles, depPrefix: string): ParsedFile[] {
+function parseAllAdditions(
+  files: GithubFiles,
+  depPrefix: string,
+): ParsedFile[] {
   if (!files) return [];
 
   return files?.map((entry) => {
@@ -65,7 +67,7 @@ export interface FileAddition {
   });
 }
 
- function parsePatchAdditions(patch: string, depPrefix: string): FileAddition[] {
+function parsePatchAdditions(patch: string, depPrefix: string): FileAddition[] {
   const lineChanges = patch?.split("\n") || [];
 
   const additions: FileAddition[] = [];
