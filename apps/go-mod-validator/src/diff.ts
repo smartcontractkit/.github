@@ -14,14 +14,6 @@ export async function getChangedGoModFiles(
   repo: string,
   depPrefix: string,
 ): Promise<ParsedFile[]> {
-  console.log({
-    base,
-    head,
-    owner,
-    repo,
-    depPrefix
-  })
-
   const files = await getComparison(gh, owner, repo, base, head);
   const relevantFiles = filterForRelevantChanges(files, );
   return parseAllAdditions(relevantFiles, depPrefix);

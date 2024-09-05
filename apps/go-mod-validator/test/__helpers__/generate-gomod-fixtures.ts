@@ -63,7 +63,12 @@ async function main() {
   }
 
   try {
-    await copyGoModAndGoSumFiles(dirToGlob, fixtures, repoName, commitSha);
+    await copyGoModAndGoSumFiles(
+      dirToGlob,
+      fixtures,
+      repoName,
+      commitSha || originalCommitSha,
+    );
   } catch (e) {
     console.error(e);
   }

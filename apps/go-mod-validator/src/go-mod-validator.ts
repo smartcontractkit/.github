@@ -71,7 +71,6 @@ export async function run(): Promise<string> {
       );
     });
 
-    //TODO : test this
     depsToValidate = depsToValidate.filter((d) => !("tag" in d));
   }
 

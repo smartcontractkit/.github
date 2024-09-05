@@ -35,7 +35,8 @@ const mockGithubContext = {
   repo: {},
 };
 
-const mockOctokit = getTestOctokit("record");
+const nock = getNock("lockdown");
+const mockOctokit = getTestOctokit(nock.currentMode);
 vi.doMock("@actions/github", () => ({
   getOctokit: () => mockOctokit,
   context: mockGithubContext,
@@ -51,255 +52,129 @@ function setup(repoName: string, commitSha: string) {
   process.env["INPUT_DEP-PREFIX"] = "github.com/smartcontractkit";
   process.env["GITHUB_STEP_SUMMARY"] = "/dev/null";
 }
+async function setupPR(repo: string, base: string, head: string) {
+  setup(repo, head);
+  mockGithubContext.payload = {
+    pull_request: {
+      base: {
+        sha: base,
+      },
+      head: {
+        sha: head,
+      },
+    },
+  };
+  mockGithubContext.repo = {
+    owner: "smartcontractkit",
+    repo,
+  };
+
+  const fixtureName = `${repo}-pull-request-base:${base}-head:${head}.json`;
+  const { nockDone } = await nock(fixtureName);
+  return nockDone;
+}
+
+async function setupNonPR(repo: string, commitSha: string) {
+  setup(repo, commitSha);
+  const fixtureName = `${repo}-commit:${commitSha}.json`;
+  const { nockDone } = await nock(fixtureName);
+  return nockDone;
+}
 
 describe("e2e tests", () => {
   const annotationSpy = vi.spyOn(core, "error");
 
+  async function testEntrypoint() {
+    const { run } = await import("../src/go-mod-validator");
+    const summary = await run();
+    expect(annotationSpy.mock.calls).toMatchSnapshot();
+    expect(summary).toMatchSnapshot();
+  }
+
   afterEach(() => {
     annotationSpy.mockClear();
-    delete process.env["GITHUB_EVENT_NAME"];
   });
 
-  it("chainlink - should match snapshot", { timeout: 100_000 }, async () => {
-    setup("chainlink");
-    const { run } = await import("../src/go-mod-validator");
-    const summary = await run();
-    expect(annotationSpy.mock.calls).toMatchInlineSnapshot(`
-      [
-        [
-          "[./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 // indirect not on default branch (main).
-      Version(tag): v1.0.10
-      Tree: https://github.com/smartcontractkit/chain-selectors/tree/v1.0.10
-      Commit: https://github.com/smartcontractkit/chain-selectors/commit/00e6f0f6de86f013ca2047a175d4f0a909b4b068",
-          {
-            "file": "./test/data/chainlink/core/scripts/go.mod",
-            "startLine": 272,
-          },
-        ],
-        [
-          "[./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
-      Version(commit): b3b91517de16
-      Tree: https://github.com/smartcontractkit/go-plugin/tree/b3b91517de16
-      Commit: https://github.com/smartcontractkit/go-plugin/commit/b3b91517de16 ",
-          {
-            "file": "./test/data/chainlink/core/scripts/go.mod",
-            "startLine": 369,
-          },
-        ],
-        [
-          "[./test/data/chainlink/core/scripts/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 // indirect not on default branch (main).
-      Version(tag): v0.7.3
-      Tree: https://github.com/smartcontractkit/wsrpc/tree/v0.7.3
-      Commit: https://github.com/smartcontractkit/wsrpc/commit/c691d6729bfbdbac704df13decf5e2e37eb3b672",
-          {
-            "file": "./test/data/chainlink/core/scripts/go.mod",
-            "startLine": 280,
-          },
-        ],
-        [
-          "[./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/chain-selectors@v1.0.10 not on default branch (main).
-      Version(tag): v1.0.10
-      Tree: https://github.com/smartcontractkit/chain-selectors/tree/v1.0.10
-      Commit: https://github.com/smartcontractkit/chain-selectors/commit/00e6f0f6de86f013ca2047a175d4f0a909b4b068",
-          {
-            "file": "./test/data/chainlink/go.mod",
-            "startLine": 73,
-          },
-        ],
-        [
-          "[./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
-      Version(commit): b3b91517de16
-      Tree: https://github.com/smartcontractkit/go-plugin/tree/b3b91517de16
-      Commit: https://github.com/smartcontractkit/go-plugin/commit/b3b91517de16 ",
-          {
-            "file": "./test/data/chainlink/go.mod",
-            "startLine": 348,
-          },
-        ],
-        [
-          "[./test/data/chainlink/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 not on default branch (main).
-      Version(tag): v0.7.3
-      Tree: https://github.com/smartcontractkit/wsrpc/tree/v0.7.3
-      Commit: https://github.com/smartcontractkit/wsrpc/commit/c691d6729bfbdbac704df13decf5e2e37eb3b672",
-          {
-            "file": "./test/data/chainlink/go.mod",
-            "startLine": 84,
-          },
-        ],
-        [
-          "[./test/data/chainlink/integration-tests/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
-      Version(commit): b3b91517de16
-      Tree: https://github.com/smartcontractkit/go-plugin/tree/b3b91517de16
-      Commit: https://github.com/smartcontractkit/go-plugin/commit/b3b91517de16 ",
-          {
-            "file": "./test/data/chainlink/integration-tests/go.mod",
-            "startLine": 525,
-          },
-        ],
-        [
-          "[./test/data/chainlink/integration-tests/load/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
-      Version(commit): b3b91517de16
-      Tree: https://github.com/smartcontractkit/go-plugin/tree/b3b91517de16
-      Commit: https://github.com/smartcontractkit/go-plugin/commit/b3b91517de16 ",
-          {
-            "file": "./test/data/chainlink/integration-tests/load/go.mod",
-            "startLine": 518,
-          },
-        ],
-      ]
-    `);
-    expect(summary).toMatchInlineSnapshot(`
-        "
-        #### Fixing Errors
-
-        <details>
-        <summary>Instructions</summary>
-
-        Types of Errors:
-
-        1. Dependency not on default branch - Check for the dependency's commit on the upstream repository and use one of the commits from the default branch of the upstream repository. If you click on the commit link that gets generated, on the UI you will see the branches that a commit belongs to, which will not be the default branch.
-
-        NOTE: If you see that the commit should be on the default branch, but it isn't, this means that the "default branch" setting of the repository is incorrect. Please update the default branch of the repository to the correct branch.
-
-        e.g., 
-        - For dependency github.com/smartcontractkit/grpc-proxy@v0.1.0, upstream repository is \`github.com/smartcontractkit/grpc-proxy\` and \`v0.1.0\` is the tag that produced the dependency, which isn't created from the default branch.
-          Update it to use one of the tags from the default repository using \`go mod tidy\`.
-        - For dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16, upstream repository is \`github.com/smartcontractkit/go-plugin\` and \`b3b91517de16\` is the commit that produced the dependency, which isn't on the default branch.
-          Update it to use one of the commits from the default repository using \`go mod tidy\`. Ideally we should update it to use a tag like the example above.
-
-        </details>
-
-        "
-      `);
-  });
-
-  describe.only("pull request mode", () => {
-    beforeAll(() => {
-      process.env["GITHUB_EVENT_NAME"] = "pull_request";
+  describe("chainlink", () => {
+    describe("non pull request mode", () => {
+      it("should fail on wsrpc", async () => {
+        const nockDone = await setupNonPR(
+          "chainlink",
+          "c97838d904aa7ac07fc4a48cd05db4c4859e5355",
+        );
+        await testEntrypoint();
+        nockDone();
+      });
     });
-    afterAll(() => {
-      delete process.env["GITHUB_EVENT_NAME"];
-    });
+    describe("pull request mode", () => {
+      const setupChainlinkPR = async (base: string, head: string) =>
+        setupPR("chainlink", base, head);
 
-    it("should produce a diff", { timeout: 100_000 }, async () => {
-      const base = "f185128e739dcf6562e9ba96075062193e96cc7a";
-      const head = "da8b9a5504339746d955cd745440ed3a012431de";
-      setup("chainlink", head);
-      const nock = getNock("record");
-      const { nockDone } = await nock(
-        `chainlink-pull-request-base:${base}-head:${head}.json`,
-      );
+      beforeAll(() => {
+        process.env["GITHUB_EVENT_NAME"] = "pull_request";
+      });
 
-      mockGithubContext.payload = {
-        pull_request: {
-          base: {
-            sha: base,
-          },
-          head: {
-            sha: head,
-          },
-        },
-      };
-      mockGithubContext.repo = {
-        owner: "smartcontractkit",
-        repo: "chainlink",
-      };
+      afterAll(() => {
+        delete process.env["GITHUB_EVENT_NAME"];
+        mockGithubContext.payload = {}
+        mockGithubContext.repo = {}
+      });
 
-      const { run } = await import("../src/go-mod-validator");
-      const summary = await run();
-      expect(annotationSpy.mock.calls).toMatchSnapshot();
-      expect(summary).toMatchSnapshot();
-      nockDone();
-    });
+      it("should pass on this diff", async () => {
+        const base = "f185128e739dcf6562e9ba96075062193e96cc7a";
+        const head = "da8b9a5504339746d955cd745440ed3a012431de";
+        setup("chainlink", head);
+        const nockDone = await setupChainlinkPR(base, head);
 
-    it("should not produce a diff", { timeout: 100_000 }, async () => {
-      const base = "7eec696575101ece78084fa9367314d1a6464f2a";
-      const head = "1356b654d5baa16ca0c1a41f300fa131e614d2f8";
-      setup("chainlink", head);
-      const nock = getNock("record");
-      const { nockDone } = await nock(
-        `chainlink-pull-request-base:${base}-head:${head}.json`,
-      );
+        await testEntrypoint();
+        nockDone();
+      });
 
-      mockGithubContext.payload = {
-        pull_request: {
-          base: {
-            sha: base,
-          },
-          head: {
-            sha: head,
-          },
-        },
-      };
-      mockGithubContext.repo = {
-        owner: "smartcontractkit",
-        repo: "chainlink",
-      };
+      it("should pass on this diff", async () => {
+        const base = "7eec696575101ece78084fa9367314d1a6464f2a";
+        const head = "1356b654d5baa16ca0c1a41f300fa131e614d2f8";
+        const nockDone = await setupChainlinkPR(base, head);
 
-      const { run } = await import("../src/go-mod-validator");
-      const summary = await run();
-      expect(annotationSpy.mock.calls).toMatchSnapshot();
-      expect(summary).toMatchSnapshot();
-      nockDone();
+        await testEntrypoint();
+        nockDone();
+      });
+
+      it("should ignore tagged wsrpc deps", async () => {
+        const base = "5bc558f2a38d8b673bb1ab48053d844ff67303f9";
+        const head = "d64ba3dafedb21f77e335c056c9a830c5710dba0";
+        const nockDone = await setupChainlinkPR(base, head);
+
+        await testEntrypoint();
+        nockDone();
+      });
     });
   });
 
-  it("crib - should match snapshot", { timeout: 100_000 }, async () => {
-    setup("crib");
-    const { run } = await import("../src/go-mod-validator");
-    const summary = await run();
+  describe("crib", () => {
+    describe("non pull request mode", () => {
+      it("should pass", async () => {
+        const nockDone = await setupNonPR(
+          "crib",
+          "af4b8a5081fbed821c4742a218415cd3c73c0ebd",
+        );
 
-    expect(annotationSpy.mock.calls).toMatchInlineSnapshot(`[]`);
-    expect(summary).toMatchInlineSnapshot(
-      `"validation successful for all go.mod dependencies"`,
-    );
+        await testEntrypoint();
+        nockDone();
+      });
+    });
   });
 
-  it(
-    "chainlink-data-streams - should match snapshot",
-    { timeout: 50_000 },
-    async () => {
-      setup("chainlink-data-streams");
-      const { run } = await import("../src/go-mod-validator");
-      const summary = await run();
+  describe("chainlink-data-streams", () => {
+    describe("non pull request mode", () => {
+      it("should produce a diff on go-plugin", async () => {
+        const nockDone = await setupNonPR(
+          "chainlink-data-streams",
+          "2dc0c8136bfa7472abbae24429078ee520c8b85b",
+        );
 
-      expect(annotationSpy.mock.calls).toMatchInlineSnapshot(`
-        [
-          [
-            "[./test/data/chainlink-data-streams/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
-        Version(commit): b3b91517de16
-        Tree: https://github.com/smartcontractkit/go-plugin/tree/b3b91517de16
-        Commit: https://github.com/smartcontractkit/go-plugin/commit/b3b91517de16 ",
-            {
-              "file": "./test/data/chainlink-data-streams/go.mod",
-              "startLine": 78,
-            },
-          ],
-        ]
-      `);
-      expect(summary).toMatchInlineSnapshot(`
-        "
-        #### Fixing Errors
-
-        <details>
-        <summary>Instructions</summary>
-
-        Types of Errors:
-
-        1. Dependency not on default branch - Check for the dependency's commit on the upstream repository and use one of the commits from the default branch of the upstream repository. If you click on the commit link that gets generated, on the UI you will see the branches that a commit belongs to, which will not be the default branch.
-
-        NOTE: If you see that the commit should be on the default branch, but it isn't, this means that the "default branch" setting of the repository is incorrect. Please update the default branch of the repository to the correct branch.
-
-        e.g., 
-        - For dependency github.com/smartcontractkit/grpc-proxy@v0.1.0, upstream repository is \`github.com/smartcontractkit/grpc-proxy\` and \`v0.1.0\` is the tag that produced the dependency, which isn't created from the default branch.
-          Update it to use one of the tags from the default repository using \`go mod tidy\`.
-        - For dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16, upstream repository is \`github.com/smartcontractkit/go-plugin\` and \`b3b91517de16\` is the commit that produced the dependency, which isn't on the default branch.
-          Update it to use one of the commits from the default repository using \`go mod tidy\`. Ideally we should update it to use a tag like the example above.
-
-        </details>
-
-        "
-      `);
-    },
-  );
+        await testEntrypoint();
+        nockDone();
+      });
+    });
+  });
 });
