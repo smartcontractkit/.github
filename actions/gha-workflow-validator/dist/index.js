@@ -23971,7 +23971,7 @@ function parsePatchChanges(patch) {
     }
     const operation = line.startsWith("+") ? "add" : "unchanged";
     const currentLine = line.substring(1);
-    const ignored = currentLine.includes(VALIDATOR_IGNORE_LINE) && operation === "unchanged";
+    const ignored = currentLine.includes(VALIDATOR_IGNORE_LINE);
     additions.push({
       content: currentLine,
       lineNumber: currentLineInFile,
@@ -23997,7 +23997,10 @@ function processLineValidationResults(results) {
       return message;
     });
     if (existingEntry) {
-      existingEntry.messages = [...existingEntry.messages, ...processedMessages];
+      existingEntry.messages = [
+        ...existingEntry.messages,
+        ...processedMessages
+      ];
     } else {
       acc.push({ ...current, messages: processedMessages });
     }

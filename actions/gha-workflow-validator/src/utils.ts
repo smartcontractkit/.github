@@ -9,7 +9,7 @@ import {
   ValidationType,
   ValidationMessage,
 } from "./validations/validation-check.js";
-import { VALIDATOR_IGNORE_LINE, FIXING_ERRORS, htmlLink } from "./strings.js";
+import { VALIDATOR_IGNORE_LINE, } from "./strings.js";
 
 export interface ParsedFile {
   filename: string;
@@ -193,8 +193,7 @@ function parsePatchChanges(patch: string): FileLine[] {
     const currentLine = line.substring(1);
 
     // Only ignore the current line if it contains the ignore comment and it is unchanged.
-    const ignored =
-      currentLine.includes(VALIDATOR_IGNORE_LINE) && operation === "unchanged";
+    const ignored = currentLine.includes(VALIDATOR_IGNORE_LINE);
     additions.push({
       content: currentLine,
       lineNumber: currentLineInFile,
