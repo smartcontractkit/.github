@@ -33,7 +33,12 @@ jobs:
 3. Record Fixtures (new only):
    `NOCK_BACK_MODE=record pnpm nx run gha-workflow-validator:test`
 4. Update Fixtures (existing only):
-   `NOCK_BACK_MODE=update pnpm nx run gha-workflow-validator:test`z
+   `NOCK_BACK_MODE=update pnpm nx run gha-workflow-validator:test`
+
+### Local Testing
+
+From the root of the repository run
+`./actions/gha-workflow-validator/scripts/test.sh`.
 
 ### Potential Future Features
 

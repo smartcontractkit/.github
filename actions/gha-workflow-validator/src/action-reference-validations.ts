@@ -1,112 +1,166 @@
-import { ActionReference, FileAddition, ParsedFile } from "./utils.js";
+import { mapAndFilter, ParsedFile, FileLine } from "./utils.js";
 import { Octokit, getActionFileFromGithub } from "./github.js";
 import * as core from "@actions/core";
+import {
+  ValidationCheck,
+  ValidationError,
+  FileValidationResult,
+  LineValidationResult,
+  ErrorType,
+} from "./validation-check.js";
 
 const CURRENT_NODE_VERSION = 20;
 
-export interface ValidationResult {
-  filename: string;
-  sha: string;
-  lineValidations: LineValidationResult[];
+interface FileLineActionReference extends FileLine {
+  actionReference?: ActionReference;
 }
 
-interface LineValidationResult {
-  line: FileAddition;
-  validationErrors: ValidationError[];
+interface ActionReference {
+  owner: string;
+  repo: string;
+  repoPath: string;
+  ref: string;
+  comment?: string;
 }
 
-type ValidationError = { message: string };
+interface ActionReferenceValidationOptions {
+  validateNodeVersion: boolean;
+}
 
-export async function validateActionReferenceChanges(
-  octokit: Octokit,
-  changes: ParsedFile[],
-): Promise<ValidationResult[]> {
-  core.debug(
-    `Validating action reference changes, on ${changes.length} changes`,
-  );
+export class ActionReferenceValidation implements ValidationCheck {
+  private options: ActionReferenceValidationOptions;
 
-  const resultsPromise = changes.map(async (change) => {
-    const lineValidationPromises = change.addedLines
-      .filter((addedLine) => addedLine.actionReference)
-      .map(async (line) => {
-        const validationErrors = line.actionReference
-          ? await validateLine(octokit, line.actionReference)
-          : [];
-        return { line: line, validationErrors };
-      });
+  constructor(
+    readonly octokit: Octokit,
+    options?: ActionReferenceValidationOptions,
+  ) {
+    this.options = options ?? { validateNodeVersion: true };
+  }
 
-    const nonEmptyLineValidations = (
-      await Promise.all(lineValidationPromises)
-    ).filter((error) => error.validationErrors.length > 0);
+  async validate(parsedFile: ParsedFile): Promise<FileValidationResult> {
+    core.debug(`Validating action references in ${parsedFile.filename}`);
+    const { filename } = parsedFile;
+
+    const lineActionRefs = mapAndFilter(
+      parsedFile.lines,
+      extractActionReference,
+    );
+
+    const lineValidations: LineValidationResult[] =
+      await validateActionReferences(
+        this.octokit,
+        filename,
+        this.options,
+        lineActionRefs,
+      );
 
     return {
-      filename: change.filename,
-      sha: change.sha,
-      lineValidations: nonEmptyLineValidations,
+      filename,
+      lineValidations,
     };
-  });
-
-  const filteredResults = (await Promise.all(resultsPromise)).filter(
-    (result) => result.lineValidations.length > 0,
-  );
-  core.debug(`Found ${filteredResults.length} files with validation errors`);
-  return filteredResults;
+  }
 }
 
-async function validateLine(
+async function validateActionReferences(
   octokit: Octokit,
-  line: ActionReference,
+  filename: string,
+  options: ActionReferenceValidationOptions,
+  lines: FileLineActionReference[],
+): Promise<LineValidationResult[]> {
+  const lineValidationResults: LineValidationResult[] = [];
+
+  for (const line of lines) {
+    const validationErrors = await validateActionReference(
+      octokit,
+      options,
+      line.actionReference,
+    );
+
+    if (validationErrors.length > 0) {
+      lineValidationResults.push({
+        filename,
+        line,
+        validationErrors,
+      });
+    }
+  }
+
+  return lineValidationResults;
+}
+
+async function validateActionReference(
+  octokit: Octokit,
+  options: ActionReferenceValidationOptions,
+  actionRef: ActionReference | undefined,
 ): Promise<ValidationError[]> {
+  if (!actionRef) {
+    return [];
+  }
+
   const validationErrors: ValidationError[] = [];
 
-  const shaRefValidation = validateShaRef(line);
-  const versionCommentValidation = validateVersionCommentExists(line);
-  const node20ActionValidation = await validateNodeActionVersion(octokit, line);
+  const shaRefValidation = validateShaRef(actionRef);
+  const versionCommentValidation = validateVersionCommentExists(actionRef);
+  const node20ActionValidation = options.validateNodeVersion
+    ? await validateNodeActionVersion(octokit, actionRef)
+    : undefined;
 
   if (shaRefValidation) {
-    validationErrors.push({ message: shaRefValidation });
+    validationErrors.push(shaRefValidation);
   }
   if (versionCommentValidation) {
-    validationErrors.push({ message: versionCommentValidation });
+    validationErrors.push(versionCommentValidation);
   }
   if (node20ActionValidation) {
-    validationErrors.push({ message: node20ActionValidation });
+    validationErrors.push(node20ActionValidation);
   }
 
   return validationErrors;
 }
 
-function validateShaRef(change: ActionReference) {
+function validateShaRef(
+  actionReference: ActionReference,
+): ValidationError | undefined {
   const sha1Regex = /^[0-9a-f]{40}$/;
-  if (sha1Regex.test(change.ref)) return;
+  if (sha1Regex.test(actionReference.ref)) return;
 
   const sha256Regex = /^[0-9a-f]{256}$/;
-  if (sha256Regex.test(change.ref)) return;
+  if (sha256Regex.test(actionReference.ref)) return;
 
-  return `${change.ref} is not a valid SHA reference`;
+  return {
+    message: `${actionReference.ref} is not a valid SHA reference`,
+    type: ErrorType.SHA_REF,
+    severity: "error",
+  };
 }
 
-function validateVersionCommentExists(change: ActionReference) {
-  if (change.comment) return;
+function validateVersionCommentExists(
+  actionReference: ActionReference,
+): ValidationError | undefined {
+  if (actionReference.comment) return;
 
-  return `No version comment found`;
+  return {
+    message: `No version comment found`,
+    type: ErrorType.VERSION_COMMENT,
+    severity: "error",
+  };
 }
 
 async function validateNodeActionVersion(
-  ghClient: Octokit,
-  change: ActionReference,
-) {
+  octokit: Octokit,
+  actionRef: ActionReference,
+): Promise<ValidationError | undefined> {
   const actionFile = await getActionFileFromGithub(
-    ghClient,
-    change.owner,
-    change.repo,
-    change.repoPath,
-    change.ref,
+    octokit,
+    actionRef.owner,
+    actionRef.repo,
+    actionRef.repoPath,
+    actionRef.ref,
   );
 
   if (!actionFile) {
     core.warning(
-      `No action file found for ${change.owner}/${change.repo}${change.repoPath}@${change.ref}`,
+      `No action file found for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref}`,
     );
     return;
   }
@@ -114,8 +168,70 @@ async function validateNodeActionVersion(
   const nodeVersionRegex = /^\s+using:\s*"?node(\d{2})"?/gm;
   const matches = nodeVersionRegex.exec(actionFile);
   if (matches && matches[1] !== `${CURRENT_NODE_VERSION}`) {
-    return `Action is using node${matches[1]}`;
+    return {
+      message: `Action is using node${matches[1]}`,
+      type: ErrorType.NODE_VERSION,
+      severity: "error",
+    };
   }
 
   return;
+}
+
+function extractActionReference(
+  fileLine: FileLine,
+): FileLineActionReference | undefined {
+  const actionReference = extractActionReferenceFromLine(fileLine.content);
+  if (!actionReference) {
+    return;
+  }
+
+  return {
+    ...fileLine,
+    actionReference,
+  };
+}
+
+export function extractActionReferenceFromLine(
+  line: string,
+): ActionReference | undefined {
+  const trimmedLine = line.trim();
+
+  if (trimmedLine.startsWith("#")) {
+    // commented line
+    return;
+  }
+
+  // example line:
+  // - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+  const trimSubString = "uses:";
+  const usesIndex = trimmedLine.indexOf(trimSubString);
+
+  if (usesIndex === -1) {
+    // Not an action reference
+    return;
+  }
+
+  // trim past the "uses:" substring to get "<owner>/<repo><optional path>@<ref> # <optional comment>""
+  const trimmedUses = line
+    .substring(line.indexOf(trimSubString) + trimSubString.length)
+    .trim();
+
+  if (trimmedUses.startsWith("./")) {
+    // Local action reference - do not extract or validate these.
+    return;
+  }
+
+  const [actionIdentifier, ...comment] = trimmedUses.split("#");
+  const [identifier, gitRef] = actionIdentifier.trim().split("@");
+  const [owner, repo, ...path] = identifier.split("/");
+  const repoPath = (path.length > 0 ? "/" : "") + path.join("/");
+
+  return {
+    owner,
+    repo,
+    repoPath,
+    ref: gitRef,
+    comment: comment.join().trim(),
+  };
 }
