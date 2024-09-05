@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.14.9",
-    "node-fetch": "^2.7.0",
+    "node-fetch": "^3.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   },

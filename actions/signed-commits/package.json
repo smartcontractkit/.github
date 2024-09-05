@@ -18,7 +18,7 @@
     "@types/unist": "^3.0.2",
     "fixturez": "^1.1.0",
     "nock": "^13.5.4",
-    "node-fetch": "^2.7.0",
+    "node-fetch": "^3.0.0",
     "prettier": "^2.8.8",
     "typescript": "^5.4.5",
     "vitest": "^2.0.0"
