@@ -66,10 +66,8 @@ export async function run(): Promise<string> {
     depsToValidate = depsToValidate.filter((d) => {
       return changedFiles.some(
         (f) =>
-          f.filename === d.goModFilePath.replace(`${goModDir}/`, "") &&
-          f.addedLines.some((l) => {
-            return l.content.includes(d.path);
-          }),
+          d.goModFilePath.includes(f.filename) &&
+          f.addedLines.some((l) => l.content.includes(d.path)),
       );
     });
 
