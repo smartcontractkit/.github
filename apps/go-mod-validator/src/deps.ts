@@ -148,7 +148,7 @@ function parseGoModListOutput(jsonStr: string): GoMod[] {
  *
  * @throws If no go.mod files are found or an error occurs.
  */
-async function getAllGoModsWithin(goModDir: string): Promise<string[]> {
+export async function getAllGoModsWithin(goModDir: string): Promise<string[]> {
   let files: string[] = [];
   const pattern = `${goModDir}/**/go.mod`;
   try {
