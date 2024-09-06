@@ -5,6 +5,7 @@ import * as github from "@actions/github";
 import * as core from "@actions/core";
 import { throttling } from "@octokit/plugin-throttling";
 import { getChangedGoModFiles } from "./diff";
+
 function getContext() {
   const goModDir = core.getInput("go-mod-dir", { required: true });
   const githubToken = core.getInput("github-token", { required: true });
