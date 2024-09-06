@@ -107,30 +107,13 @@ jobs:
 
   ci-test:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-      actions: read
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-      - name: Get GATI read-only test token
-        uses: ./actions/setup-github-token
-        id: setup-github-token
-        with:
-          aws-role-arn:
-            ${{ secrets.AWS_OIDC_GLOBAL_READ_ONLY_TOKEN_ISSUER_ROLE_ARN }}
-          aws-lambda-url: ${{ secrets.AWS_LAMBDA_RELENG_GATI }}
-          aws-region: ${{ secrets.AWS_REGION }}
       - name: ci-test
         uses: ./actions/ci-test-ts
         with:
-          # Somewhat of a smell since we expose this token to _all_ tests that this action runs
-          # But it's read-only. This was added in for the e2e tests inside the go-mod-validator action.
-          #
-          # We decided to keep the testing steps all in one place rather than split them out to handle this edge case.
-          github-token: ${{ steps.setup-github-token.outputs.access-token }}
           # general inputs
           checkout-repo: "false"
           # grafana inputs
