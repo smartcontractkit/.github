@@ -1,5 +1,8 @@
-import { validateActionReferenceChanges } from "../action-reference-validations.js";
-import { ParsedFile } from "../utils.js";
+import {
+  ActionReferenceValidation,
+  extractActionReferenceFromLine,
+} from "../action-reference-validations.js";
+import { FileLine, ParsedFile } from "../utils.js";
 import { getNock, getTestOctokit } from "./__helpers__/test-utils.js";
 
 import { vi, describe, it, expect } from "vitest";
@@ -24,63 +27,88 @@ vi.mock("@actions/core", () => ({
   },
 }));
 
-const defaultActionsCheckoutFile = {
-  lineNumber: 2,
-  content:
-    "        actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1",
-  actionReference: {
-    owner: "actions",
-    repo: "checkout",
-    repoPath: "",
-    ref: "b4ffde65f46336ab88eb53be808477a3936bae11",
-    comment: "v4.1.1",
-    line: "        actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1",
-  },
+const jobStepLine: FileLine = {
+  lineNumber: 1,
+  content: "      - name: test step",
+  operation: "add",
 };
 
-describe(validateActionReferenceChanges.name, () => {
+const actionsCheckoutLineValid: FileLine = {
+  lineNumber: 2,
+  content:
+    "        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1",
+  operation: "add",
+};
+
+const actionsCheckoutLineNoComment: FileLine = {
+  lineNumber: 2,
+  content:
+    "        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11",
+  operation: "add",
+};
+
+const actionsCheckoutLineBadRef: FileLine = {
+  lineNumber: 2,
+  content: "        uses: actions/checkout@v4 # comment",
+  operation: "add",
+};
+
+const actionsCheckoutLineOutdatedRef: FileLine = {
+  lineNumber: 2,
+  content:
+    "        uses: actions/checkout@7739b9ba2efcda9dde65ad1e3c2dbe65b41dfba7 # v3.6.0",
+  operation: "add",
+};
+
+const actionsCheckoutLineAllErrors: FileLine = {
+  lineNumber: 2,
+  content: "        uses: actions/checkout@v3.6.0",
+  operation: "add",
+};
+
+describe(ActionReferenceValidation.name, () => {
   it("should validate no changes", async () => {
     const octokit = getTestOctokit(nockBack.currentMode);
-    const result = await validateActionReferenceChanges(octokit, []);
-    expect(result).toEqual([]);
+    const subject = new ActionReferenceValidation(octokit);
+    const result = await subject.validate({
+      filename: "foo.yml",
+      lines: [],
+    });
+    expect(result).toEqual({ filename: "foo.yml", lineValidations: [] });
   });
 
   it("should validate no action references", async () => {
     const octokit = getTestOctokit(nockBack.currentMode);
-    const noWorkflowChanges: ParsedFile[] = [
-      {
-        filename: ".github/workflows/test.yml",
-        sha: "abc",
-        addedLines: [
-          { lineNumber: 1, content: "line 1" },
-          { lineNumber: 2, content: "line 2" },
-        ],
-      },
-    ];
-    const result = await validateActionReferenceChanges(
-      octokit,
-      noWorkflowChanges,
-    );
-    expect(result).toEqual([]);
+    const subject = new ActionReferenceValidation(octokit);
+    const noWorkflowChanges: ParsedFile = {
+      filename: ".github/workflows/test.yml",
+      lines: [
+        { lineNumber: 1, content: "line 1", operation: "add" },
+        { lineNumber: 2, content: "line 2", operation: "add" },
+      ],
+    };
+    const result = await subject.validate(noWorkflowChanges);
+    expect(result).toEqual({
+      filename: ".github/workflows/test.yml",
+      lineValidations: [],
+    });
   });
 
   it("should validate single action reference", async () => {
     const { nockDone } = await nockBack("actions-checkout-validation.json");
     const octokit = getTestOctokit(nockBack.currentMode);
+    const subject = new ActionReferenceValidation(octokit);
 
-    const simpleChanges: ParsedFile[] = [
-      {
-        filename: ".github/workflows/test.yml",
-        sha: "abc",
-        addedLines: [
-          { lineNumber: 1, content: "      - name: test step" },
-          defaultActionsCheckoutFile,
-        ],
-      },
-    ];
+    const simpleChanges: ParsedFile = {
+      filename: ".github/workflows/test.yml",
+      lines: [jobStepLine, actionsCheckoutLineValid],
+    };
 
-    const result = await validateActionReferenceChanges(octokit, simpleChanges);
-    expect(result).toEqual([]);
+    const result = await subject.validate(simpleChanges);
+    expect(result).toEqual({
+      filename: ".github/workflows/test.yml",
+      lineValidations: [],
+    });
     nockDone();
   });
 
@@ -88,42 +116,23 @@ describe(validateActionReferenceChanges.name, () => {
     const { nockDone } = await nockBack("actions-checkout-validation.json");
 
     const octokit = getTestOctokit(nockBack.currentMode);
+    const subject = new ActionReferenceValidation(octokit);
 
-    const simpleChanges: ParsedFile[] = [
-      {
-        filename: ".github/workflows/test.yml",
-        sha: "abc",
-        addedLines: [
-          { lineNumber: 1, content: "      - name: test step" },
-          {
-            ...defaultActionsCheckoutFile,
-            actionReference: {
-              ...defaultActionsCheckoutFile.actionReference,
-              comment: "",
-            },
-          },
-        ],
-      },
-    ];
+    const simpleChanges: ParsedFile = {
+      filename: ".github/workflows/test.yml",
+      lines: [jobStepLine, actionsCheckoutLineNoComment],
+    };
 
-    const result = await validateActionReferenceChanges(octokit, simpleChanges);
-    const errorsArray = result.filter(
-      (file) => file.lineValidations.length > 0,
+    const result = await subject.validate(simpleChanges);
+    const lineValidations = result.lineValidations.filter(
+      (lv) => lv.validationErrors.length > 0,
     );
-    expect(errorsArray.length).toEqual(1);
+    expect(lineValidations.length).toEqual(1);
 
-    const error = errorsArray[0];
-    const lineValidationsArray = error.lineValidations;
-    expect(lineValidationsArray.length).toEqual(1);
-
-    const lineValidation = lineValidationsArray[0];
-    expect(lineValidation.line.lineNumber).toEqual(
-      simpleChanges[0].addedLines[1].lineNumber,
-    );
-    expect(lineValidation.validationErrors.length).toEqual(1);
-    expect(lineValidation.validationErrors[0].message).toEqual(
-      "No version comment found",
-    );
+    const lvr = lineValidations[0];
+    expect(lvr.line.lineNumber).toEqual(simpleChanges.lines[1].lineNumber);
+    expect(lvr.validationErrors.length).toEqual(1);
+    expect(lvr.validationErrors[0].message).toEqual("No version comment found");
 
     nockDone();
   });
@@ -132,42 +141,26 @@ describe(validateActionReferenceChanges.name, () => {
     const { nockDone } = await nockBack("actions-checkout-validation-v4.json");
 
     const octokit = getTestOctokit(nockBack.currentMode);
+    const subject = new ActionReferenceValidation(octokit);
 
-    const badRef = "v4";
-    const simpleChanges: ParsedFile[] = [
-      {
-        filename: ".github/workflows/test.yml",
-        sha: "abc",
-        addedLines: [
-          { lineNumber: 1, content: "      - name: test step" },
-          {
-            ...defaultActionsCheckoutFile,
-            actionReference: {
-              ...defaultActionsCheckoutFile.actionReference,
-              ref: badRef,
-            },
-          },
-        ],
-      },
-    ];
+    const simpleChanges: ParsedFile = {
+      filename: ".github/workflows/test.yml",
+      lines: [jobStepLine, actionsCheckoutLineBadRef],
+    };
 
-    const result = await validateActionReferenceChanges(octokit, simpleChanges);
-    const errorsArray = result.filter(
-      (file) => file.lineValidations.length > 0,
+    const result = await subject.validate(simpleChanges);
+    const lineValidations = result.lineValidations.filter(
+      (lv) => lv.validationErrors.length > 0,
     );
-    expect(errorsArray.length).toEqual(1);
+    expect(lineValidations.length).toEqual(1);
 
-    const error = errorsArray[0];
-    const lineValidationsArray = error.lineValidations;
-    expect(lineValidationsArray.length).toEqual(1);
-
-    const lineValidation = lineValidationsArray[0];
+    const lineValidation = lineValidations[0];
     expect(lineValidation.line.lineNumber).toEqual(
-      simpleChanges[0].addedLines[1].lineNumber,
+      simpleChanges.lines[1].lineNumber,
     );
     expect(lineValidation.validationErrors.length).toEqual(1);
     expect(lineValidation.validationErrors[0].message).toEqual(
-      `${badRef} is not a valid SHA reference`,
+      `v4 is not a valid SHA reference`,
     );
 
     nockDone();
@@ -178,38 +171,22 @@ describe(validateActionReferenceChanges.name, () => {
       "actions-checkout-validation-node16.json",
     );
     const octokit = getTestOctokit(nockBack.currentMode);
+    const subject = new ActionReferenceValidation(octokit);
 
-    const simpleChanges: ParsedFile[] = [
-      {
-        filename: ".github/workflows/test.yml",
-        sha: "abc",
-        addedLines: [
-          { lineNumber: 1, content: "      - name: test step" },
-          {
-            ...defaultActionsCheckoutFile,
-            actionReference: {
-              ...defaultActionsCheckoutFile.actionReference,
-              ref: "7739b9ba2efcda9dde65ad1e3c2dbe65b41dfba7",
-              comment: "# v3.6.0",
-            },
-          },
-        ],
-      },
-    ];
+    const simpleChanges: ParsedFile = {
+      filename: ".github/workflows/test.yml",
+      lines: [jobStepLine, actionsCheckoutLineOutdatedRef],
+    };
 
-    const result = await validateActionReferenceChanges(octokit, simpleChanges);
-    const errorsArray = result.filter(
-      (file) => file.lineValidations.length > 0,
+    const result = await subject.validate(simpleChanges);
+    const lineValidations = result.lineValidations.filter(
+      (lv) => lv.validationErrors.length > 0,
     );
-    expect(errorsArray.length).toEqual(1);
+    expect(lineValidations.length).toEqual(1);
 
-    const error = errorsArray[0];
-    const lineValidationsArray = error.lineValidations;
-    expect(lineValidationsArray.length).toEqual(1);
-
-    const lineValidation = lineValidationsArray[0];
+    const lineValidation = lineValidations[0];
     expect(lineValidation.line.lineNumber).toEqual(
-      simpleChanges[0].addedLines[1].lineNumber,
+      simpleChanges.lines[1].lineNumber,
     );
     expect(lineValidation.validationErrors.length).toEqual(1);
     expect(lineValidation.validationErrors[0].message).toEqual(
@@ -224,39 +201,22 @@ describe(validateActionReferenceChanges.name, () => {
       "actions-checkout-validation-v3_6_0.json",
     );
     const octokit = getTestOctokit(nockBack.currentMode);
+    const subject = new ActionReferenceValidation(octokit);
 
-    const badRef = "v3.6.0";
-    const simpleChanges: ParsedFile[] = [
-      {
-        filename: ".github/workflows/test.yml",
-        sha: "abc",
-        addedLines: [
-          { lineNumber: 1, content: "      - name: test step" },
-          {
-            ...defaultActionsCheckoutFile,
-            actionReference: {
-              ...defaultActionsCheckoutFile.actionReference,
-              ref: badRef,
-              comment: "",
-            },
-          },
-        ],
-      },
-    ];
+    const simpleChanges: ParsedFile = {
+      filename: ".github/workflows/test.yml",
+      lines: [jobStepLine, actionsCheckoutLineAllErrors],
+    };
 
-    const result = await validateActionReferenceChanges(octokit, simpleChanges);
-    const errorsArray = result.filter(
-      (file) => file.lineValidations.length > 0,
+    const result = await subject.validate(simpleChanges);
+    const lineValidations = result.lineValidations.filter(
+      (lv) => lv.validationErrors.length > 0,
     );
-    expect(errorsArray.length).toEqual(1);
+    expect(lineValidations.length).toEqual(1);
 
-    const error = errorsArray[0];
-    const lineValidationsArray = error.lineValidations;
-    expect(lineValidationsArray.length).toEqual(1);
-
-    const lineValidation = lineValidationsArray[0];
+    const lineValidation = lineValidations[0];
     expect(lineValidation.line.lineNumber).toEqual(
-      simpleChanges[0].addedLines[1].lineNumber,
+      simpleChanges.lines[1].lineNumber,
     );
     expect(lineValidation.validationErrors.length).toEqual(3);
 
@@ -272,10 +232,45 @@ describe(validateActionReferenceChanges.name, () => {
     ).toEqual(true);
     expect(
       lineValidation.validationErrors.some(
-        (error) => error.message === `${badRef} is not a valid SHA reference`,
+        (error) => error.message === `v3.6.0 is not a valid SHA reference`,
       ),
     ).toEqual(true);
 
     nockDone();
+  });
+});
+
+describe(extractActionReferenceFromLine.name, () => {
+  it("extracts action reference", () => {
+    const line =
+      "        - uses: smartcontractkit/.github/actions/foo@bar # foo@1.0.0";
+    const actionReference = extractActionReferenceFromLine(line);
+
+    expect(actionReference).toEqual({
+      owner: "smartcontractkit",
+      repo: ".github",
+      repoPath: "/actions/foo",
+      ref: "bar",
+      comment: "foo@1.0.0",
+    });
+  });
+
+  it("extracts action reference (no comment)", () => {
+    const line = "        - uses: smartcontractkit/.github/actions/foo@bar";
+    const actionReference = extractActionReferenceFromLine(line);
+
+    expect(actionReference).toEqual({
+      owner: "smartcontractkit",
+      repo: ".github",
+      repoPath: "/actions/foo",
+      ref: "bar",
+      comment: "",
+    });
+  });
+
+  it("parses local reference as no reference", () => {
+    const line = "-      uses: ./.github/actions/local-action";
+    const actionReference = extractActionReferenceFromLine(line);
+    expect(actionReference).toBeUndefined();
   });
 });

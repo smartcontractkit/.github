@@ -41,6 +41,14 @@
           "minify": false
         }
       }
+    },
+    "check-types": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "color": true,
+        "command": "tsc --noEmit --pretty"
+      }
     }
   }
 }

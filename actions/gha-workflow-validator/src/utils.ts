@@ -1,27 +1,72 @@
 import * as core from "@actions/core";
+import * as glob from "@actions/glob";
+import { sep } from "path";
+import { readFile } from "fs/promises";
 import { GithubFiles } from "./github.js";
-import { ValidationResult } from "./action-reference-validations.js";
+import { FileValidationResult } from "./validation-check.js";
 import { FIXING_ERRORS, htmlLink } from "./strings.js";
 
 export interface ParsedFile {
   filename: string;
-  sha: string;
-  addedLines: FileAddition[];
+  lines: FileLine[];
 }
 
-export interface FileAddition {
+export interface FileLine {
   lineNumber: number;
   content: string;
-  actionReference?: ActionReference;
+  operation: "add" | "unchanged";
 }
 
-export interface ActionReference {
-  owner: string;
-  repo: string;
-  repoPath: string;
-  ref: string;
-  comment?: string;
-  line: string;
+export async function getAllWorkflowAndActionFiles(
+  directory: string,
+  allActionDefinitions: boolean,
+): Promise<string[]> {
+  core.debug(`Getting all workflow and action files in ${directory}`);
+
+  const workflowPatterns = [
+    `${directory}/.github/workflows/*.yml`,
+    `${directory}/.github/workflows/*.yaml`,
+  ];
+
+  const actionPatterns = allActionDefinitions
+    ? [
+        `${directory}/**/action.yml`,
+        `${directory}/**/action.yaml`,
+        `${directory}/action.yml`,
+        `${directory}/action.yaml`,
+      ]
+    : [
+        `${directory}/.github/actions/**/action.yml`,
+        `${directory}/.github/actions/**/action.yaml`,
+      ];
+
+  return await globFiles([...workflowPatterns, ...actionPatterns]);
+}
+
+async function globFiles(patterns: string[]): Promise<string[]> {
+  let files: string[] = [];
+
+  try {
+    for (const pattern of patterns) {
+      const globber = await glob.create(pattern, {
+        followSymbolicLinks: false,
+      });
+      const matchedFiles = await globber.glob();
+
+      core.debug(`Matched files for ${pattern}: ${matchedFiles.length}`);
+
+      const noPrefixMatchedFiles = matchedFiles.map((f) =>
+        f.replace(`${process.cwd()}${sep}`, `.${sep}`),
+      );
+      files = files.concat(noPrefixMatchedFiles);
+    }
+
+    return files;
+  } catch (error) {
+    core.error(`Failed to get paths: ${error}`);
+  }
+
+  return [];
 }
 
 export function filterForRelevantChanges(
@@ -46,20 +91,43 @@ function isGithubWorkflowOrActionFile(filename: string): boolean {
   );
 }
 
-export function parseAllAdditions(files: GithubFiles): ParsedFile[] {
-  if (!files) return [];
+export async function parseFiles(paths: string[]) {
+  const parsedFiles: ParsedFile[] = [];
 
-  return files?.map((entry) => {
-    const { filename, sha, patch } = entry;
-    const addedLines = patch ? parsePatchAdditions(patch) : [];
-    return { filename, sha, addedLines };
+  for (const path of paths) {
+    const content = await readFile(path, "utf-8");
+    const lines = content
+      .split("\n")
+      .map(
+        (line, index) =>
+          ({
+            lineNumber: index + 1,
+            content: line,
+            operation: "unchanged",
+          }) as FileLine,
+      )
+      .filter((line) => line.content.trim() !== "");
+
+    parsedFiles.push({ filename: path, lines });
+  }
+
+  return parsedFiles;
+}
+
+export function parseGithubDiff(githubFiles: GithubFiles): ParsedFile[] {
+  if (!githubFiles) return [];
+
+  return githubFiles?.map((entry) => {
+    const { filename, patch } = entry;
+    const lineChanges = patch ? parsePatchChanges(patch) : [];
+    return { filename, lines: lineChanges };
   });
 }
 
-function parsePatchAdditions(patch: string): FileAddition[] {
+function parsePatchChanges(patch: string): FileLine[] {
   const lineChanges = patch?.split("\n") || [];
 
-  const additions: FileAddition[] = [];
+  const additions: FileLine[] = [];
 
   let currentLineInFile = 0;
   for (const line of lineChanges) {
@@ -78,71 +146,30 @@ function parsePatchAdditions(patch: string): FileAddition[] {
       const [destinationLine] = destination.substring(1).split(",");
       currentLineInFile = parseInt(destinationLine, 10);
       continue;
-    } else if (line.startsWith("+")) {
-      const currentLine = line.substring(1);
-      const actionReference = extractActionReference(currentLine);
-      additions.push({
-        content: currentLine,
-        lineNumber: currentLineInFile,
-        actionReference,
-      });
-    } else if (line.startsWith("-")) {
-      // ignore deletions
+    }
+
+    if (line.startsWith("-")) {
+      // Do not track deletions
       continue;
     }
+
+    const operation = line.startsWith("+") ? "add" : "unchanged";
+    const currentLine = line.substring(1);
+
+    additions.push({
+      content: currentLine,
+      lineNumber: currentLineInFile,
+      operation,
+    });
+
     currentLineInFile++;
   }
 
   return additions;
 }
 
-export function extractActionReference(
-  line: string,
-): ActionReference | undefined {
-  const trimmedLine = line.trim();
-
-  if (trimmedLine.startsWith("#")) {
-    // commented line
-    return;
-  }
-
-  // example line:
-  // - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
-  const trimSubString = "uses:";
-  const usesIndex = trimmedLine.indexOf(trimSubString);
-
-  if (usesIndex === -1) {
-    // Not an action reference
-    return;
-  }
-
-  // trim past the "uses:" substring to get "<owner>/<repo><optional path>@<ref> # <optional comment>""
-  const trimmedUses = line
-    .substring(line.indexOf(trimSubString) + trimSubString.length)
-    .trim();
-
-  if (trimmedUses.startsWith("./")) {
-    // Local action reference - do not extract or validate these.
-    return;
-  }
-
-  const [actionIdentifier, ...comment] = trimmedUses.split("#");
-  const [identifier, gitRef] = actionIdentifier.trim().split("@");
-  const [owner, repo, ...path] = identifier.split("/");
-  const repoPath = (path.length > 0 ? "/" : "") + path.join("/");
-
-  return {
-    owner,
-    repo,
-    repoPath,
-    ref: gitRef,
-    comment: comment.join().trim(),
-    line,
-  };
-}
-
 export function logErrors(
-  validationResults: ValidationResult[],
+  validationResults: FileValidationResult[],
   annotatePR: boolean = false,
 ) {
   for (const fileResults of validationResults) {
@@ -167,7 +194,7 @@ type TableRow = Parameters<typeof core.summary.addTable>[0][0];
 type TableCell = TableRow[0];
 
 export async function setSummary(
-  validationResults: ValidationResult[],
+  validationResults: FileValidationResult[],
   fileUrlPrefix: string,
 ) {
   const headerRow: TableRow = [
@@ -217,4 +244,34 @@ export async function setSummary(
     .addSeparator()
     .addRaw(FIXING_ERRORS)
     .write();
+}
+
+export function mapAndFilter<T, U>(
+  arr: T[],
+  mapFn: (x: T) => U | undefined,
+): U[] {
+  if (!arr) return [];
+
+  return arr.reduce<U[]>((acc, curr) => {
+    const result = mapFn(curr);
+    if (result !== undefined) {
+      acc.push(result);
+    }
+    return acc;
+  }, []);
+}
+
+export function flatMapFilter<T, U>(
+  arr: T[],
+  mapFn: (x: T) => U[] | undefined,
+): U[] {
+  if (!arr) return [];
+
+  return arr.reduce<U[]>((acc, curr) => {
+    const result = mapFn(curr);
+    if (result !== undefined) {
+      acc.push(...result); // Flattening by spreading the result array into the accumulator
+    }
+    return acc;
+  }, []);
 }
