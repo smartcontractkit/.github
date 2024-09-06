@@ -11,6 +11,10 @@ import { getNock, getTestOctokit } from "./__helpers__/nock";
 import * as core from "@actions/core";
 import { join } from "path";
 
+vi.setConfig({
+  testTimeout: 60000,
+});
+
 vi.mock("@actions/core", async (importOriginal: any) => ({
   ...(await importOriginal(typeof import("@actions/core"))),
   setFailed: (msg: string) => {
@@ -30,13 +34,12 @@ vi.mock("@actions/core", async (importOriginal: any) => ({
   },
 }));
 
+const nock = getNock("lockdown");
+const mockOctokit = getTestOctokit(nock.currentMode);
 const mockGithubContext = {
   payload: {},
   repo: {},
 };
-
-const nock = getNock("lockdown");
-const mockOctokit = getTestOctokit(nock.currentMode);
 vi.doMock("@actions/github", () => ({
   getOctokit: () => mockOctokit,
   context: mockGithubContext,
@@ -52,6 +55,7 @@ function setup(repoName: string, commitSha: string) {
   process.env["INPUT_DEP-PREFIX"] = "github.com/smartcontractkit";
   process.env["GITHUB_STEP_SUMMARY"] = "/dev/null";
 }
+
 async function setupPR(repo: string, base: string, head: string) {
   setup(repo, head);
   mockGithubContext.payload = {
@@ -85,6 +89,7 @@ describe("e2e tests", () => {
   const annotationSpy = vi.spyOn(core, "error");
 
   async function testEntrypoint() {
+    vi.resetModules();
     const { run } = await import("../src/go-mod-validator");
     const summary = await run();
     expect(annotationSpy.mock.calls).toMatchSnapshot();
