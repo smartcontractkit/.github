@@ -115,12 +115,7 @@ describe("e2e tests", () => {
       const setupChainlinkPR = async (base: string, head: string) =>
         setupPR("chainlink", base, head);
 
-      beforeAll(() => {
-        process.env["GITHUB_EVENT_NAME"] = "pull_request";
-      });
-
       afterAll(() => {
-        delete process.env["GITHUB_EVENT_NAME"];
         mockGithubContext.payload = {};
         mockGithubContext.repo = {};
       });

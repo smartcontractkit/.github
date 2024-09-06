@@ -36,9 +36,7 @@ function getContext() {
     throttling,
   );
 
-  const isPullRequest =
-    !!github.context.payload.pull_request ||
-    process.env.GITHUB_EVENT_NAME === "pull_request";
+  const isPullRequest = !!github.context.payload.pull_request;
 
   return { goModDir, gh, depPrefix, isPullRequest };
 }
