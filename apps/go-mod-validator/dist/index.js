@@ -728,7 +728,7 @@ var require_tunnel = __commonJS({
         connectOptions.headers = connectOptions.headers || {};
         connectOptions.headers["Proxy-Authorization"] = "Basic " + new Buffer(connectOptions.proxyAuth).toString("base64");
       }
-      debug3("making CONNECT request");
+      debug4("making CONNECT request");
       var connectReq = self2.request(connectOptions);
       connectReq.useChunkedEncodingByDefault = false;
       connectReq.once("response", onResponse);
@@ -748,7 +748,7 @@ var require_tunnel = __commonJS({
         connectReq.removeAllListeners();
         socket.removeAllListeners();
         if (res.statusCode !== 200) {
-          debug3(
+          debug4(
             "tunneling socket could not be established, statusCode=%d",
             res.statusCode
           );
@@ -760,7 +760,7 @@ var require_tunnel = __commonJS({
           return;
         }
         if (head.length > 0) {
-          debug3("got illegal response body from proxy");
+          debug4("got illegal response body from proxy");
           socket.destroy();
           var error2 = new Error("got illegal response body from proxy");
           error2.code = "ECONNRESET";
@@ -768,13 +768,13 @@ var require_tunnel = __commonJS({
           self2.removeSocket(placeholder);
           return;
         }
-        debug3("tunneling connection has established");
+        debug4("tunneling connection has established");
         self2.sockets[self2.sockets.indexOf(placeholder)] = socket;
         return cb(socket);
       }
       function onError(cause) {
         connectReq.removeAllListeners();
-        debug3(
+        debug4(
           "tunneling socket could not be established, cause=%s\n",
           cause.message,
           cause.stack
@@ -836,9 +836,9 @@ var require_tunnel = __commonJS({
       }
       return target;
     }
-    var debug3;
+    var debug4;
     if (process.env.NODE_DEBUG && /\btunnel\b/.test(process.env.NODE_DEBUG)) {
-      debug3 = function() {
+      debug4 = function() {
         var args = Array.prototype.slice.call(arguments);
         if (typeof args[0] === "string") {
           args[0] = "TUNNEL: " + args[0];
@@ -848,10 +848,10 @@ var require_tunnel = __commonJS({
         console.error.apply(console, args);
       };
     } else {
-      debug3 = function() {
+      debug4 = function() {
       };
     }
-    exports2.debug = debug3;
+    exports2.debug = debug4;
   }
 });
 
@@ -3806,18 +3806,18 @@ var require_webidl = __commonJS({
     webidl.errors.exception = function(message) {
       return new TypeError(`${message.header}: ${message.message}`);
     };
-    webidl.errors.conversionFailed = function(context) {
-      const plural = context.types.length === 1 ? "" : " one of";
-      const message = `${context.argument} could not be converted to${plural}: ${context.types.join(", ")}.`;
+    webidl.errors.conversionFailed = function(context2) {
+      const plural = context2.types.length === 1 ? "" : " one of";
+      const message = `${context2.argument} could not be converted to${plural}: ${context2.types.join(", ")}.`;
       return webidl.errors.exception({
-        header: context.prefix,
+        header: context2.prefix,
         message
       });
     };
-    webidl.errors.invalidArgument = function(context) {
+    webidl.errors.invalidArgument = function(context2) {
       return webidl.errors.exception({
-        header: context.prefix,
-        message: `"${context.value}" is an invalid ${context.type}.`
+        header: context2.prefix,
+        message: `"${context2.value}" is an invalid ${context2.type}.`
       });
     };
     webidl.brandCheck = function(V, I, opts = void 0) {
@@ -9113,15 +9113,15 @@ var require_api_request = __commonJS({
         }
         addSignal(this, signal);
       }
-      onConnect(abort, context) {
+      onConnect(abort, context2) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context;
+        this.context = context2;
       }
       onHeaders(statusCode, rawHeaders, resume, statusMessage) {
-        const { callback, opaque, abort, context, responseHeaders, highWaterMark } = this;
+        const { callback, opaque, abort, context: context2, responseHeaders, highWaterMark } = this;
         const headers = responseHeaders === "raw" ? util.parseRawHeaders(rawHeaders) : util.parseHeaders(rawHeaders);
         if (statusCode < 200) {
           if (this.onInfo) {
@@ -9148,7 +9148,7 @@ var require_api_request = __commonJS({
               trailers: this.trailers,
               opaque,
               body,
-              context
+              context: context2
             });
           }
         }
@@ -9267,15 +9267,15 @@ var require_api_stream = __commonJS({
         }
         addSignal(this, signal);
       }
-      onConnect(abort, context) {
+      onConnect(abort, context2) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context;
+        this.context = context2;
       }
       onHeaders(statusCode, rawHeaders, resume, statusMessage) {
-        const { factory, opaque, context, callback, responseHeaders } = this;
+        const { factory, opaque, context: context2, callback, responseHeaders } = this;
         const headers = responseHeaders === "raw" ? util.parseRawHeaders(rawHeaders) : util.parseHeaders(rawHeaders);
         if (statusCode < 200) {
           if (this.onInfo) {
@@ -9303,7 +9303,7 @@ var require_api_stream = __commonJS({
             statusCode,
             headers,
             opaque,
-            context
+            context: context2
           });
           if (!res || typeof res.write !== "function" || typeof res.end !== "function" || typeof res.on !== "function") {
             throw new InvalidReturnValueError("expected Writable");
@@ -9495,17 +9495,17 @@ var require_api_pipeline = __commonJS({
         this.res = null;
         addSignal(this, signal);
       }
-      onConnect(abort, context) {
+      onConnect(abort, context2) {
         const { ret, res } = this;
         assert(!res, "pipeline cannot be retried");
         if (ret.destroyed) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context;
+        this.context = context2;
       }
       onHeaders(statusCode, rawHeaders, resume) {
-        const { opaque, handler, context } = this;
+        const { opaque, handler, context: context2 } = this;
         if (statusCode < 200) {
           if (this.onInfo) {
             const headers = this.responseHeaders === "raw" ? util.parseRawHeaders(rawHeaders) : util.parseHeaders(rawHeaders);
@@ -9523,7 +9523,7 @@ var require_api_pipeline = __commonJS({
             headers,
             opaque,
             body: this.res,
-            context
+            context: context2
           });
         } catch (err) {
           this.res.on("error", util.nop);
@@ -9607,7 +9607,7 @@ var require_api_upgrade = __commonJS({
         this.context = null;
         addSignal(this, signal);
       }
-      onConnect(abort, context) {
+      onConnect(abort, context2) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
@@ -9618,7 +9618,7 @@ var require_api_upgrade = __commonJS({
         throw new SocketError("bad upgrade", null);
       }
       onUpgrade(statusCode, rawHeaders, socket) {
-        const { callback, opaque, context } = this;
+        const { callback, opaque, context: context2 } = this;
         assert.strictEqual(statusCode, 101);
         removeSignal(this);
         this.callback = null;
@@ -9627,7 +9627,7 @@ var require_api_upgrade = __commonJS({
           headers,
           socket,
           opaque,
-          context
+          context: context2
         });
       }
       onError(err) {
@@ -9695,18 +9695,18 @@ var require_api_connect = __commonJS({
         this.abort = null;
         addSignal(this, signal);
       }
-      onConnect(abort, context) {
+      onConnect(abort, context2) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context;
+        this.context = context2;
       }
       onHeaders() {
         throw new SocketError("bad connect", null);
       }
       onUpgrade(statusCode, rawHeaders, socket) {
-        const { callback, opaque, context } = this;
+        const { callback, opaque, context: context2 } = this;
         removeSignal(this);
         this.callback = null;
         let headers = rawHeaders;
@@ -9718,7 +9718,7 @@ var require_api_connect = __commonJS({
           headers,
           socket,
           opaque,
-          context
+          context: context2
         });
       }
       onError(err) {
@@ -17807,10 +17807,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       return process.env["RUNNER_DEBUG"] === "1";
     }
     exports2.isDebug = isDebug;
-    function debug3(message) {
+    function debug4(message) {
       command_1.issueCommand("debug", {}, message);
     }
-    exports2.debug = debug3;
+    exports2.debug = debug4;
     function error2(message, properties = {}) {
       command_1.issueCommand("error", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
@@ -17916,7 +17916,7 @@ var require_internal_glob_options_helper = __commonJS({
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getOptions = void 0;
-    var core4 = __importStar2(require_core());
+    var core5 = __importStar2(require_core());
     function getOptions(copy) {
       const result = {
         followSymbolicLinks: true,
@@ -17927,19 +17927,19 @@ var require_internal_glob_options_helper = __commonJS({
       if (copy) {
         if (typeof copy.followSymbolicLinks === "boolean") {
           result.followSymbolicLinks = copy.followSymbolicLinks;
-          core4.debug(`followSymbolicLinks '${result.followSymbolicLinks}'`);
+          core5.debug(`followSymbolicLinks '${result.followSymbolicLinks}'`);
         }
         if (typeof copy.implicitDescendants === "boolean") {
           result.implicitDescendants = copy.implicitDescendants;
-          core4.debug(`implicitDescendants '${result.implicitDescendants}'`);
+          core5.debug(`implicitDescendants '${result.implicitDescendants}'`);
         }
         if (typeof copy.matchDirectories === "boolean") {
           result.matchDirectories = copy.matchDirectories;
-          core4.debug(`matchDirectories '${result.matchDirectories}'`);
+          core5.debug(`matchDirectories '${result.matchDirectories}'`);
         }
         if (typeof copy.omitBrokenSymbolicLinks === "boolean") {
           result.omitBrokenSymbolicLinks = copy.omitBrokenSymbolicLinks;
-          core4.debug(`omitBrokenSymbolicLinks '${result.omitBrokenSymbolicLinks}'`);
+          core5.debug(`omitBrokenSymbolicLinks '${result.omitBrokenSymbolicLinks}'`);
         }
       }
       return result;
@@ -18532,7 +18532,7 @@ var require_minimatch = __commonJS({
       }
       this.parseNegate();
       var set = this.globSet = this.braceExpand();
-      if (options.debug) this.debug = function debug3() {
+      if (options.debug) this.debug = function debug4() {
         console.error.apply(console, arguments);
       };
       this.debug(this.pattern, set);
@@ -19395,7 +19395,7 @@ var require_internal_globber = __commonJS({
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.DefaultGlobber = void 0;
-    var core4 = __importStar2(require_core());
+    var core5 = __importStar2(require_core());
     var fs = __importStar2(require("fs"));
     var globOptionsHelper = __importStar2(require_internal_glob_options_helper());
     var path = __importStar2(require("path"));
@@ -19446,7 +19446,7 @@ var require_internal_globber = __commonJS({
           }
           const stack = [];
           for (const searchPath of patternHelper.getSearchPaths(patterns)) {
-            core4.debug(`Search path '${searchPath}'`);
+            core5.debug(`Search path '${searchPath}'`);
             try {
               yield __await2(fs.promises.lstat(searchPath));
             } catch (err) {
@@ -19518,7 +19518,7 @@ var require_internal_globber = __commonJS({
             } catch (err) {
               if (err.code === "ENOENT") {
                 if (options.omitBrokenSymbolicLinks) {
-                  core4.debug(`Broken symlink '${item.path}'`);
+                  core5.debug(`Broken symlink '${item.path}'`);
                   return void 0;
                 }
                 throw new Error(`No information found for the path '${item.path}'. This may indicate a broken symbolic link.`);
@@ -19534,7 +19534,7 @@ var require_internal_globber = __commonJS({
               traversalChain.pop();
             }
             if (traversalChain.some((x) => x === realPath)) {
-              core4.debug(`Symlink cycle detected for path '${item.path}' and realpath '${realPath}'`);
+              core5.debug(`Symlink cycle detected for path '${item.path}' and realpath '${realPath}'`);
               return void 0;
             }
             traversalChain.push(realPath);
@@ -19623,7 +19623,7 @@ var require_internal_hash_files = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.hashFiles = void 0;
     var crypto4 = __importStar2(require("crypto"));
-    var core4 = __importStar2(require_core());
+    var core5 = __importStar2(require_core());
     var fs = __importStar2(require("fs"));
     var stream = __importStar2(require("stream"));
     var util = __importStar2(require("util"));
@@ -19632,7 +19632,7 @@ var require_internal_hash_files = __commonJS({
       var e_1, _a;
       var _b;
       return __awaiter2(this, void 0, void 0, function* () {
-        const writeDelegate = verbose ? core4.info : core4.debug;
+        const writeDelegate = verbose ? core5.info : core5.debug;
         let hasMatch = false;
         const githubWorkspace = currentWorkspace ? currentWorkspace : (_b = process.env["GITHUB_WORKSPACE"]) !== null && _b !== void 0 ? _b : process.cwd();
         const result = crypto4.createHash("sha256");
@@ -19813,14 +19813,14 @@ function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, e
   var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
   var _, done = false;
   for (var i = decorators.length - 1; i >= 0; i--) {
-    var context = {};
-    for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
-    for (var p in contextIn.access) context.access[p] = contextIn.access[p];
-    context.addInitializer = function(f) {
+    var context2 = {};
+    for (var p in contextIn) context2[p] = p === "access" ? {} : contextIn[p];
+    for (var p in contextIn.access) context2.access[p] = contextIn.access[p];
+    context2.addInitializer = function(f) {
       if (done) throw new TypeError("Cannot add initializers after decoration has completed");
       extraInitializers.push(accept(f || null));
     };
-    var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
+    var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context2);
     if (kind === "accessor") {
       if (result === void 0) continue;
       if (result === null || typeof result !== "object") throw new TypeError("Object expected");
@@ -21379,8 +21379,8 @@ var require_dist_node2 = __commonJS({
     function isKeyOperator(operator) {
       return operator === ";" || operator === "&" || operator === "?";
     }
-    function getValues(context, operator, key, modifier) {
-      var value = context[key], result = [];
+    function getValues(context2, operator, key, modifier) {
+      var value = context2[key], result = [];
       if (isDefined(value) && value !== "") {
         if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
           value = value.toString();
@@ -21444,7 +21444,7 @@ var require_dist_node2 = __commonJS({
         expand: expand.bind(null, template)
       };
     }
-    function expand(template, context) {
+    function expand(template, context2) {
       var operators = ["+", "#", ".", "/", ";", "?", "&"];
       template = template.replace(
         /\{([^\{\}]+)\}|([^\{\}]+)/g,
@@ -21458,7 +21458,7 @@ var require_dist_node2 = __commonJS({
             }
             expression.split(/,/g).forEach(function(variable) {
               var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
-              values.push(getValues(context, operator, tmp[1], tmp[2] || tmp[3]));
+              values.push(getValues(context2, operator, tmp[1], tmp[2] || tmp[3]));
             });
             if (operator && operator !== "+") {
               var separator = ",";
@@ -26767,12 +26767,74 @@ e.g.,
 
 // apps/go-mod-validator/src/go-mod-validator.ts
 var github = __toESM(require_github());
-var core3 = __toESM(require_core());
+var core4 = __toESM(require_core());
 var import_plugin_throttling = __toESM(require_dist_node11());
+
+// apps/go-mod-validator/src/diff.ts
+var core3 = __toESM(require_core());
+async function getChangedGoModFiles(gh, base, head, owner, repo, depPrefix) {
+  const files = await getComparison(gh, owner, repo, base, head);
+  const relevantFiles = filterForRelevantChanges(files);
+  return parseAllAdditions(relevantFiles, depPrefix);
+}
+function filterForRelevantChanges(files) {
+  return files?.filter(({ filename }) => filename.endsWith("go.mod"));
+}
+async function getComparison(octokit, owner, repo, base, head) {
+  core3.debug(`Comparing ${owner}/${repo} commits ${base}...${head}`);
+  const diff = await octokit.rest.repos.compareCommitsWithBasehead({
+    owner,
+    repo,
+    basehead: `${base}...${head}`
+    // <before>...<after> or <earlier>...<later>
+  });
+  return diff.data.files;
+}
+function parseAllAdditions(files, depPrefix) {
+  if (!files) return [];
+  return files?.map((entry) => {
+    const { filename, sha, patch } = entry;
+    const addedLines = patch ? parsePatchAdditions(patch, depPrefix) : [];
+    return { filename, sha, addedLines };
+  });
+}
+function parsePatchAdditions(patch, depPrefix) {
+  const lineChanges = patch?.split("\n") || [];
+  const additions = [];
+  let currentLineInFile = 0;
+  for (const line of lineChanges) {
+    if (line.startsWith("@@")) {
+      const [, , destination] = line.split(" ");
+      if (!destination.startsWith("+")) {
+        throw new Error("Invalid git hunk format");
+      }
+      const [destinationLine] = destination.substring(1).split(",");
+      currentLineInFile = parseInt(destinationLine, 10);
+      continue;
+    } else if (line.startsWith("+")) {
+      const currentLine = line.substring(1);
+      if (isGoModule(currentLine, depPrefix)) {
+        additions.push({
+          content: currentLine,
+          lineNumber: currentLineInFile
+        });
+      }
+    } else if (line.startsWith("-")) {
+      continue;
+    }
+    currentLineInFile++;
+  }
+  return additions;
+}
+function isGoModule(line, depPrefix) {
+  return line.includes(depPrefix);
+}
+
+// apps/go-mod-validator/src/go-mod-validator.ts
 function getContext() {
-  const goModDir = core3.getInput("go-mod-dir", { required: true });
-  const githubToken = core3.getInput("github-token", { required: true });
-  const depPrefix = core3.getInput("dep-prefix", { required: true });
+  const goModDir = core4.getInput("go-mod-dir", { required: true });
+  const githubToken = core4.getInput("github-token", { required: true });
+  const depPrefix = core4.getInput("dep-prefix", { required: true });
   const gh = github.getOctokit(
     githubToken,
     {
@@ -26795,11 +26857,42 @@ function getContext() {
     },
     import_plugin_throttling.throttling
   );
-  return { goModDir, gh, depPrefix };
+  const isPullRequest = !!github.context.payload.pull_request || process.env.GITHUB_EVENT_NAME === "pull_request";
+  return { goModDir, gh, depPrefix, isPullRequest };
 }
 async function run() {
-  const { goModDir, gh, depPrefix } = getContext();
-  const depsToValidate = await getDeps(goModDir, depPrefix);
+  const { goModDir, gh, depPrefix, isPullRequest } = getContext();
+  let depsToValidate = await getDeps(goModDir, depPrefix);
+  if (isPullRequest) {
+    core4.info(
+      "Running in pull request mode, filtering dependencies to validate based on changed files and only checking for pseudo-versions."
+    );
+    const pr = github.context.payload.pull_request;
+    if (!pr) {
+      throw new Error("Expected pull request context to be present");
+    }
+    const base = pr.base.sha;
+    const head = pr.head.sha;
+    const { owner, repo } = github.context.repo;
+    const changedFiles = await getChangedGoModFiles(
+      gh,
+      base,
+      head,
+      owner,
+      repo,
+      depPrefix
+    );
+    depsToValidate = depsToValidate.filter((d) => {
+      return changedFiles.some(
+        (f) => d.goModFilePath.includes(f.filename) && f.addedLines.some((l) => l.content.includes(d.path))
+      );
+    });
+    depsToValidate = depsToValidate.filter((d) => !("tag" in d));
+  } else {
+    core4.info(
+      "Running in non-pull request mode, checking all dependencies for default branch references."
+    );
+  }
   const invalidations = /* @__PURE__ */ new Map();
   const validating = depsToValidate.map(async (d) => {
     const defaultBranch = await getDefaultBranch(gh, d);
@@ -26853,26 +26946,26 @@ ${detailString}`;
       const line = depLineFinder(goMod.goModFilePath, goMod.path);
       switch (invalidation.type) {
         case "error":
-          core3.error(invalidation.msg, {
+          core4.error(invalidation.msg, {
             file: goMod.goModFilePath,
             startLine: line
           });
           break;
         case "warning":
-          core3.warning(invalidation.msg, {
+          core4.warning(invalidation.msg, {
             file: goMod.goModFilePath,
             startLine: line
           });
       }
     });
-    core3.summary.addRaw(FIXING_ERRORS, true);
-    const summary2 = core3.summary.stringify();
-    await core3.summary.write();
-    core3.setFailed(`validation failed for ${invalidations.size} dependencies`);
+    core4.summary.addRaw(FIXING_ERRORS, true);
+    const summary2 = core4.summary.stringify();
+    await core4.summary.write();
+    core4.setFailed(`validation failed for ${invalidations.size} dependencies`);
     return summary2;
   } else {
     const msg = "validation successful for all go.mod dependencies";
-    core3.info(msg);
+    core4.info(msg);
     return msg;
   }
 }
