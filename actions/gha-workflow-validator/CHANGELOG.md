@@ -1,5 +1,14 @@
 # gha-workflow-validator
 
+## 0.3.0
+
+### Minor Changes
+
+- [#585](https://github.com/smartcontractkit/.github/pull/585)
+  [`8867f68`](https://github.com/smartcontractkit/.github/commit/8867f681a3b908ab81d5f023c8d7021503670d4c)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: refactor validation
+  and control flow
+
 ## 0.2.2
 
 ### Patch Changes
