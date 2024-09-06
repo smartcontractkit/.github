@@ -47,6 +47,9 @@ export async function run(): Promise<string> {
 
   let depsToValidate = await getDeps(goModDir, depPrefix);
   if (isPullRequest) {
+    core.info(
+      "Running in pull request mode, filtering dependencies to validate based on changed files and only checking for pseudo-versions.",
+    );
     const pr = github.context.payload.pull_request;
     if (!pr) {
       throw new Error("Expected pull request context to be present");
@@ -72,6 +75,10 @@ export async function run(): Promise<string> {
     });
 
     depsToValidate = depsToValidate.filter((d) => !("tag" in d));
+  } else {
+    core.info(
+      "Running in non-pull request mode, checking all dependencies for default branch references.",
+    );
   }
 
   const invalidations: Map<
