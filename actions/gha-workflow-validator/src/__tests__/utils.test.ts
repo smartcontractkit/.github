@@ -17,23 +17,9 @@ import {
 
 const nockBack = getNock();
 
-vi.mock("@actions/core", () => ({
-  setFailed: (msg: string) => {
-    console.log(`setFailed (stub): ${msg}`);
-  },
-  error: (msg: string) => {
-    console.log(`error (stub): ${msg}`);
-  },
-  warning: (msg: string) => {
-    console.log(`warn (stub): ${msg}`);
-  },
-  info: (msg: string) => {
-    console.log(`info (stub): ${msg}`);
-  },
-  debug: (msg: string) => {
-    console.log(`debug (stub): ${msg}`);
-  },
-}));
+vi.mock("@actions/core", async () => {
+  return (await import("./__helpers__/test-utils.js")).coreLoggingStubs();
+});
 
 const simplePatchResponse: GithubFiles = [
   {
