@@ -23871,7 +23871,7 @@ When adding this it will trigger an error, this is expected. Please reach out to
 <summary>Examples</summary>
 
 \`\`\`
-runs-on ubuntu-latest-99cores-999GB # ${VALIDATOR_IGNORE_LINE}
+runs-on: ubuntu-latest-99cores-999GB # ${VALIDATOR_IGNORE_LINE}
 
 uses: org/action@sha # v1.0.0-node16 ${VALIDATOR_IGNORE_LINE}
 \`\`\`
@@ -24543,27 +24543,27 @@ async function validate2({ prNumber }, inputs, parsedFiles, octokit) {
       actionReferenceResults,
       actionsRunnerResults
     ].filter((result) => !!result).flatMap((result) => result.lineValidations);
-    const flattenedLineValidations = processLineValidationResults(
+    const processedLineValidations = processLineValidationResults(
       combinedLineValidations
     );
     core7.info(
-      `Found ${flattenedLineValidations.length} total problems in ${file.filename}`
+      `Found ${processedLineValidations.length} total problems in ${file.filename}`
     );
-    if (flattenedLineValidations.length === 0) {
+    if (processedLineValidations.length === 0) {
       continue;
     }
-    core7.debug(
+    core7.info(
       `Found ${ignoresCommentsResults?.lineValidations.length ?? 0} problems w/ ignore comments`
     );
-    core7.debug(
+    core7.info(
       `Found ${actionReferenceResults?.lineValidations.length ?? 0} problems w/ action references`
     );
-    core7.debug(
+    core7.info(
       `Found ${actionsRunnerResults?.lineValidations.length ?? 0} problems w/ actions runners`
     );
     validationResults.push({
       filename: file.filename,
-      lineValidations: flattenedLineValidations
+      lineValidations: processedLineValidations
     });
   }
   core7.debug("Validation complete.");

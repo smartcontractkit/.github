@@ -8,7 +8,9 @@ import {
 import { FIXING_ERRORS } from "../strings.js";
 
 vi.mock("@actions/core", async (importOriginal) => {
-  const stubs = (await import("./__helpers__/test-utils.js")).coreLoggingStubs();
+  const stubs = (
+    await import("./__helpers__/test-utils.js")
+  ).coreLoggingStubs();
 
   const summary: any = {};
   summary.addTable = vi.fn().mockReturnValue(summary);
@@ -19,11 +21,10 @@ vi.mock("@actions/core", async (importOriginal) => {
   return {
     ...stubs,
     summary,
-  }
+  };
 });
 
 describe(setSummary.name, () => {
-
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -53,7 +54,7 @@ describe(setSummary.name, () => {
               operation: "add",
               ignored: false,
             },
-            messages: []
+            messages: [],
           },
           {
             filename: "foo.yml",
@@ -63,11 +64,11 @@ describe(setSummary.name, () => {
               operation: "add",
               ignored: false,
             },
-            messages: []
+            messages: [],
           },
         ],
-      }
-    ]
+      },
+    ];
 
     setSummary(validationResult, "prefix.com");
     const { summary } = core;
@@ -93,11 +94,13 @@ describe(setSummary.name, () => {
               operation: "add",
               ignored: false,
             },
-            messages: [{
-              type: ValidationType.SHA_REF,
-              severity: "error",
-              message: "sha ref error",
-            }]
+            messages: [
+              {
+                type: ValidationType.SHA_REF,
+                severity: "error",
+                message: "sha ref error",
+              },
+            ],
           },
           {
             filename: "foo.yml",
@@ -107,15 +110,17 @@ describe(setSummary.name, () => {
               operation: "add",
               ignored: false,
             },
-            messages: [{
-              type: ValidationType.VERSION_COMMENT,
-              severity: "warning",
-              message: "version comment warning",
-            }]
+            messages: [
+              {
+                type: ValidationType.VERSION_COMMENT,
+                severity: "warning",
+                message: "version comment warning",
+              },
+            ],
           },
         ],
-      }
-    ]
+      },
+    ];
 
     setSummary(validationResult, "prefix.com");
     const { summary } = core;
@@ -141,11 +146,13 @@ describe(setSummary.name, () => {
               operation: "add",
               ignored: false,
             },
-            messages: [{
-              type: ValidationType.SHA_REF,
-              severity: "error",
-              message: "sha ref error",
-            }]
+            messages: [
+              {
+                type: ValidationType.SHA_REF,
+                severity: "error",
+                message: "sha ref error",
+              },
+            ],
           },
           {
             filename: "foo.yml",
@@ -155,11 +162,13 @@ describe(setSummary.name, () => {
               operation: "add",
               ignored: false,
             },
-            messages: [{
-              type: ValidationType.VERSION_COMMENT,
-              severity: "warning",
-              message: "version comment warning",
-            }]
+            messages: [
+              {
+                type: ValidationType.VERSION_COMMENT,
+                severity: "warning",
+                message: "version comment warning",
+              },
+            ],
           },
         ],
       },
@@ -174,11 +183,13 @@ describe(setSummary.name, () => {
               operation: "add",
               ignored: false,
             },
-            messages: [{
-              type: ValidationType.SHA_REF,
-              severity: "error",
-              message: "sha ref error",
-            }]
+            messages: [
+              {
+                type: ValidationType.SHA_REF,
+                severity: "error",
+                message: "sha ref error",
+              },
+            ],
           },
           {
             filename: "foo.yml",
@@ -188,15 +199,17 @@ describe(setSummary.name, () => {
               operation: "add",
               ignored: false,
             },
-            messages: [{
-              type: ValidationType.VERSION_COMMENT,
-              severity: "warning",
-              message: "version comment warning",
-            }]
+            messages: [
+              {
+                type: ValidationType.VERSION_COMMENT,
+                severity: "warning",
+                message: "version comment warning",
+              },
+            ],
           },
         ],
-      }
-    ]
+      },
+    ];
 
     setSummary(validationResult, "prefix.com");
     const { summary } = core;
