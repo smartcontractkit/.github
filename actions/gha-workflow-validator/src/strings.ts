@@ -66,7 +66,7 @@ When adding this it will trigger an error, this is expected. Please reach out to
 <summary>Examples</summary>
 
 \`\`\`
-runs-on ubuntu-latest-99cores-999GB # ${VALIDATOR_IGNORE_LINE}
+runs-on: ubuntu-latest-99cores-999GB # ${VALIDATOR_IGNORE_LINE}
 
 uses: org/action@sha # v1.0.0-node16 ${VALIDATOR_IGNORE_LINE}
 \`\`\`

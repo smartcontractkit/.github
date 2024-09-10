@@ -144,31 +144,31 @@ async function validate(
       .filter((result) => !!result)
       .flatMap((result) => result.lineValidations);
 
-    const flattenedLineValidations = processLineValidationResults(
+    const processedLineValidations = processLineValidationResults(
       combinedLineValidations,
     );
 
     core.info(
-      `Found ${flattenedLineValidations.length} total problems in ${file.filename}`,
+      `Found ${processedLineValidations.length} total problems in ${file.filename}`,
     );
 
-    if (flattenedLineValidations.length === 0) {
+    if (processedLineValidations.length === 0) {
       continue;
     }
 
-    core.debug(
+    core.info(
       `Found ${ignoresCommentsResults?.lineValidations.length ?? 0} problems w/ ignore comments`,
     );
-    core.debug(
+    core.info(
       `Found ${actionReferenceResults?.lineValidations.length ?? 0} problems w/ action references`,
     );
-    core.debug(
+    core.info(
       `Found ${actionsRunnerResults?.lineValidations.length ?? 0} problems w/ actions runners`,
     );
 
     validationResults.push({
       filename: file.filename,
-      lineValidations: flattenedLineValidations,
+      lineValidations: processedLineValidations,
     });
   }
 
