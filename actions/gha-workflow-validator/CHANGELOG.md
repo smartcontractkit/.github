@@ -1,5 +1,14 @@
 # gha-workflow-validator
 
+## 0.4.0
+
+### Minor Changes
+
+- [#593](https://github.com/smartcontractkit/.github/pull/593)
+  [`0b3660d`](https://github.com/smartcontractkit/.github/commit/0b3660db5463c171727741f6222cbe0b7038662a)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: actions runner
+  validation, and ignore functionality
+
 ## 0.3.0
 
 ### Minor Changes
