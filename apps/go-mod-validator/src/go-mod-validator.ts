@@ -4,6 +4,7 @@ import { FIXING_ERRORS } from "./strings";
 import * as github from "@actions/github";
 import * as core from "@actions/core";
 import { throttling } from "@octokit/plugin-throttling";
+import { getChangedGoModFiles } from "./diff";
 
 function getContext() {
   const goModDir = core.getInput("go-mod-dir", { required: true });
@@ -35,13 +36,50 @@ function getContext() {
     throttling,
   );
 
-  return { goModDir, gh, depPrefix };
+  const isPullRequest = !!github.context.payload.pull_request;
+
+  return { goModDir, gh, depPrefix, isPullRequest };
 }
 
 export async function run(): Promise<string> {
-  const { goModDir, gh, depPrefix } = getContext();
+  const { goModDir, gh, depPrefix, isPullRequest } = getContext();
 
-  const depsToValidate = await getDeps(goModDir, depPrefix);
+  let depsToValidate = await getDeps(goModDir, depPrefix);
+  if (isPullRequest) {
+    core.info(
+      "Running in pull request mode, filtering dependencies to validate based on changed files and only checking for pseudo-versions.",
+    );
+    const pr = github.context.payload.pull_request;
+    if (!pr) {
+      throw new Error("Expected pull request context to be present");
+    }
+    const base: string = pr.base.sha;
+    const head: string = pr.head.sha;
+    const { owner, repo } = github.context.repo;
+
+    const changedFiles = await getChangedGoModFiles(
+      gh,
+      base,
+      head,
+      owner,
+      repo,
+      depPrefix,
+    );
+    depsToValidate = depsToValidate.filter((d) => {
+      return changedFiles.some(
+        (f) =>
+          d.goModFilePath.includes(f.filename) &&
+          f.addedLines.some((l) => l.content.includes(d.path)),
+      );
+    });
+
+    depsToValidate = depsToValidate.filter((d) => !("tag" in d));
+  } else {
+    core.info(
+      "Running in non-pull request mode, checking all dependencies for default branch references.",
+    );
+  }
+
   const invalidations: Map<
     BaseGoModule,
     {

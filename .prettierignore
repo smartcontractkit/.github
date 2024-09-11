@@ -15,7 +15,7 @@ lcov.info
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
-
+/apps/go-mod-validator/test/__fixtures__/
 /.nx/cache
 
 # Don't LLM format prompt files
