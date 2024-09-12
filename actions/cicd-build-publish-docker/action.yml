@@ -1,0 +1,120 @@
+name: cicd-build-publish-docker
+description: "Reusable action to build and push generic docker images"
+
+inputs:
+  # general inputs
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+  publish:
+    description: Publish docker image
+    required: false
+    default: "false"
+  dockerfile:
+    description: Path to dockerfile
+    required: false
+    default: "Dockerfile"
+  # aws inputs
+  aws-region:
+    description: "The region for pushing docker image"
+    required: false
+  aws-account-number:
+    description: "Account number for pushing docker image"
+    required: true
+  aws-role-arn:
+    description: "AWS role ARN for pushing docker image"
+    required: true
+  # grafana inputs (optional)
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+  metrics-id:
+    description:
+      "grafana metrics id, used for continuity of metrics during job name
+      changes  - required if metrics-job-name is passed"
+    required: false
+  gc-host:
+    description: "grafana hostname - required if metrics-job-name is passed"
+    required: false
+  gc-basic-auth:
+    description: "grafana basic auth - required if metrics-job-name is passed"
+    required: false
+  gc-org-id:
+    description:
+      "grafana org/tenant id - required if metrics-job-name is passed"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+      if: inputs.publish == 'true'
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        role-duration-seconds: 900
+        aws-region: ${{ inputs.aws-region }}
+        mask-aws-account-id: true
+
+    - name: Login to ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      if: inputs.publish == 'true'
+      with:
+        registries: ${{ inputs.aws-account-number }}
+
+    - name: Docker meta
+      id: docker_meta
+      uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+      with:
+        images: ${{ steps.login_ecr.outputs.registry }}/ccip-scripts
+        # Tagging based on the Chainlink best practices
+        # It assumes tags are immutable
+        tags: |
+          type=sha,prefix=pr-=,event=pr
+          type=sha,prefix={{branch}}-=,event=push
+          type=ref,event=tag
+        flavor: |
+          latest=false
+
+    - name: Build and push
+      id: build-push
+      uses: docker/build-push-action@5cd11c3a4ced054e52742c5fd54dca954e0edd85 # v6.7.0
+      with:
+        push: ${{ inputs.publish }}
+        file: crib.Dockerfile
+        tags: ${{ steps.docker_meta.outputs.tags }}
+        labels: ${{ steps.docker_meta.outputs.labels }}
+
+    - name: Post step summary
+      shell: bash
+      env:
+        METADATA: ${{ steps.build-push.outputs.metadata }}
+      run: |
+        image_name=$(echo "$METADATA" | jq '."image.name"')
+
+        echo "## Image build details" >> $GITHUB_STEP_SUMMARY
+        echo "ECR Image URI: $image_name" >> $GITHUB_STEP_SUMMARY
+
+    - name: Collect metrics
+      if: always() && inputs.metrics-job-name != ''
+      id: collect-gha-metrics
+      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
+      with:
+        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        hostname: ${{ inputs.gc-host }}
+        org-id: ${{ inputs.gc-org-id}}
+        this-job-name: ${{ inputs.metrics-job-name }}
+      continue-on-error: true
