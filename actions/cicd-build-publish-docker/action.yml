@@ -34,8 +34,11 @@ inputs:
     default: "Dockerfile"
   # aws inputs
   aws-region:
-    description: "The region for pushing docker image"
-    required: true
+    description:
+      "The region for pushing docker image. For public images ecr-login requires
+      it to be us-east-1"
+    required: false
+    default: "us-east-1"
   aws-account-number:
     description: "Account number for pushing docker image"
     required: true
@@ -103,8 +106,7 @@ runs:
         # Tagging based on the Chainlink best practices
         # It assumes tags are immutable
         tags: |
-          type=sha,prefix=pr-=,event=pr
-          type=sha,prefix={{branch}}-=,event=push
+          type=sha,prefix=pr=,event=pr
           type=ref,event=tag
         flavor: |
           latest=false
