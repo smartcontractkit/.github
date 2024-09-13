@@ -35,7 +35,7 @@ inputs:
   # aws inputs
   aws-region:
     description: "The region for pushing docker image"
-    required: false
+    required: true
   aws-account-number:
     description: "Account number for pushing docker image"
     required: true
@@ -73,7 +73,6 @@ runs:
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
-      if: inputs.publish == 'true'
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
         role-duration-seconds: 900
