@@ -107,6 +107,7 @@ runs:
         # It assumes tags are immutable
         tags: |
           type=sha,prefix=pr=,event=pr
+          type=sha,prefix={{branch}},event=branch
           type=ref,event=tag
         flavor: |
           latest=false
