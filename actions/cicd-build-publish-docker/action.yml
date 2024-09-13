@@ -125,16 +125,6 @@ runs:
         tags: ${{ steps.docker_meta.outputs.tags }}
         labels: ${{ steps.docker_meta.outputs.labels }}
 
-    - name: Post step summary
-      shell: bash
-      env:
-        METADATA: ${{ steps.build-push.outputs.metadata }}
-      run: |
-        image_name=$(echo "$METADATA" | jq '."image.name"')
-
-        echo "## Image build details" >> $GITHUB_STEP_SUMMARY
-        echo "ECR Image URI: $image_name" >> $GITHUB_STEP_SUMMARY
-
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''
       id: collect-gha-metrics
