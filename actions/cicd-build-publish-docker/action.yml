@@ -15,6 +15,15 @@ inputs:
     required: true
     description:
       "Name of the ecr repo, without ECR registry host path. e.g. releng-app"
+  registry-type:
+    required: false
+    default: "private"
+    description:
+      "Is it a public ecr repo or private? Available options
+      ['private','public']"
+  registry-alias:
+    required: false
+    description: "ECR Public Repo alias, required only for public repos"
   publish:
     description: Publish docker image
     required: false
@@ -76,14 +85,23 @@ runs:
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
       if: inputs.publish == 'true'
       with:
-        registries: ${{ inputs.aws-account-number }}
+        registry-type: ${{ inputs.registry-type }}
+        registries:
+          ${{ inputs.registry-type == 'private' && inputs.aws-account-number ||
+          '' }}
 
     - name: Docker meta
       id: docker_meta
       uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+      env:
+        aliasSegment:
+          ${{ inputs.registry-type=='public' && format('{0}/',
+          inputs.registry-alias) }}
       with:
         images:
-          ${{ steps.login_ecr.outputs.registry }}/${{ inputs.ecr-repo-name }}
+          ${{ steps.login_ecr.outputs.registry }}/${{ env.aliasSegment }}${{
+          inputs.ecr-repo-name }}
+
         # Tagging based on the Chainlink best practices
         # It assumes tags are immutable
         tags: |
