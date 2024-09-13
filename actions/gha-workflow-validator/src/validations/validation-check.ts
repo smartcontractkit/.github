@@ -1,4 +1,4 @@
-import { FileLine, ParsedFile } from "./utils.js";
+import { FileLine, ParsedFile } from "../utils.js";
 
 export interface FileValidationResult {
   filename: string;
@@ -8,20 +8,21 @@ export interface FileValidationResult {
 export interface LineValidationResult {
   filename: string;
   line: FileLine;
-  validationErrors: ValidationError[];
+  messages: ValidationMessage[];
 }
 
-export interface ValidationError {
-  type: ErrorType;
-  severity: "error" | "warning";
+export interface ValidationMessage {
+  type: ValidationType;
+  severity: "error" | "warning" | "ignored";
   message: string;
 }
 
-export enum ErrorType {
+export enum ValidationType {
   SHA_REF = "sha-ref",
   VERSION_COMMENT = "version-comment",
   NODE_VERSION = "node-version",
   RUNNER = "runner",
+  IGNORE_COMMENT = "ignore-comment",
 }
 
 export interface ValidationCheck {
