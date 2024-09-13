@@ -31,7 +31,6 @@ inputs:
     # It assumes tags are immutable
     default: |
       type=sha,prefix=pr=,event=pr
-      type=sha,prefix={{branch}},event=branch
       type=ref,event=tag
   publish:
     description: Publish docker image
