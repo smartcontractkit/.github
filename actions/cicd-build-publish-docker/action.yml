@@ -24,6 +24,15 @@ inputs:
   registry-alias:
     required: false
     description: "ECR Public Repo alias, required only for public repos"
+  tags:
+    required: false
+    description: "Tags input for the docker metadata action"
+    # Default tags based on the Chainlink best practices
+    # It assumes tags are immutable
+    default: |
+      type=sha,prefix=pr=,event=pr
+      type=sha,prefix={{branch}},event=branch
+      type=ref,event=tag
   publish:
     description: Publish docker image
     required: false
@@ -103,12 +112,8 @@ runs:
           ${{ steps.login-ecr.outputs.registry }}/${{ env.aliasSegment }}${{
           inputs.ecr-repo-name }}
 
-        # Tagging based on the Chainlink best practices
-        # It assumes tags are immutable
-        tags: |
-          type=sha,prefix=pr=,event=pr
-          type=sha,prefix={{branch}},event=branch
-          type=ref,event=tag
+        tags: ${{ inputs.tags }}
+
         flavor: |
           latest=false
 
