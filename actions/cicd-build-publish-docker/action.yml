@@ -97,7 +97,7 @@ runs:
           inputs.registry-alias) }}
       with:
         images:
-          ${{ steps.login_ecr.outputs.registry }}/${{ env.aliasSegment }}${{
+          ${{ steps.login-ecr.outputs.registry }}/${{ env.aliasSegment }}${{
           inputs.ecr-repo-name }}
 
         # Tagging based on the Chainlink best practices
