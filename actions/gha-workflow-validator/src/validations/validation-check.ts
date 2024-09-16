@@ -21,7 +21,8 @@ export enum ValidationType {
   SHA_REF = "sha-ref",
   VERSION_COMMENT = "version-comment",
   NODE_VERSION = "node-version",
-  RUNNER = "runner",
+  RUNNER_UBUNTU = "runner-ubuntu",
+  RUNNER_MACOS = "runner-macos",
   IGNORE_COMMENT = "ignore-comment",
 }
 

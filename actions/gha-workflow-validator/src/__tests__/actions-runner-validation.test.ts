@@ -48,6 +48,13 @@ const actionsRunnerLineMacOs: FileLine = {
   ignored: false,
 };
 
+const actionsRunnerLineMacOsUpgraded: FileLine = {
+  lineNumber: 2,
+  content: "      runs-on: macos-12-xlarge",
+  operation: "add",
+  ignored: false,
+};
+
 describe(ActionsRunnerValidation.name, () => {
   it("should validate no changes", async () => {
     const subject = new ActionsRunnerValidation();
@@ -108,9 +115,9 @@ describe(ActionsRunnerValidation.name, () => {
       simpleChanges.lines[1].lineNumber,
     );
     expect(lineValidation.messages.length).toEqual(1);
-    expect(lineValidation.messages[0].message).toEqual(
-      `Actions runner is too expensive (ubuntu-latest-16cores-64gb)`,
-    );
+    expect(
+      lineValidation.messages[0].message.startsWith("This Ubuntu runner is"),
+    ).toBeTruthy();
     expect(lineValidation.messages[0].severity).toEqual("error");
   });
 
@@ -133,18 +140,33 @@ describe(ActionsRunnerValidation.name, () => {
       simpleChanges.lines[1].lineNumber,
     );
     expect(lineValidation.messages.length).toEqual(1);
-    expect(lineValidation.messages[0].message).toEqual(
-      `Actions runner is too expensive (ubuntu-latest-64cores-256gb)`,
-    );
+    expect(
+      lineValidation.messages[0].message.startsWith("This Ubuntu runner is"),
+    ).toBeTruthy();
     expect(lineValidation.messages[0].severity).toEqual("error");
   });
 
-  it("should error on macos runner", async () => {
+  it("should not error on base macos runner", async () => {
     const subject = new ActionsRunnerValidation();
 
     const simpleChanges: ParsedFile = {
       filename: ".github/workflows/test.yml",
       lines: [jobLine, actionsRunnerLineMacOs],
+    };
+
+    const result = await subject.validate(simpleChanges);
+    const lineValidationsWithErrors = result.lineValidations.filter(
+      (lv) => lv.messages.length > 0,
+    );
+    expect(lineValidationsWithErrors.length).toEqual(0);
+  });
+
+  it("should error on upgraded macos runner", async () => {
+    const subject = new ActionsRunnerValidation();
+
+    const simpleChanges: ParsedFile = {
+      filename: ".github/workflows/test.yml",
+      lines: [jobLine, actionsRunnerLineMacOsUpgraded],
     };
 
     const result = await subject.validate(simpleChanges);
@@ -159,7 +181,7 @@ describe(ActionsRunnerValidation.name, () => {
     );
     expect(lineValidation.messages.length).toEqual(1);
     expect(lineValidation.messages[0].message).toEqual(
-      `Actions runner is too expensive (macos-latest)`,
+      `MacOS actions runner can be up to 10x more expensive than Ubuntu runners. Consider using an Ubuntu runner or the base macOS runner.`,
     );
     expect(lineValidation.messages[0].severity).toEqual("error");
   });
@@ -220,7 +242,7 @@ describe(extractActionRunnerFromLine.name, () => {
     expect(actionsRunner).toEqual({
       os: "macos",
       osVersion: "latest",
-      cores: 0,
+      cores: 4,
       memoryGb: 0,
       identifier: "macos-latest",
     });
@@ -232,7 +254,7 @@ describe(extractActionRunnerFromLine.name, () => {
     expect(actionsRunner).toEqual({
       os: "macos",
       osVersion: "12",
-      cores: 0,
+      cores: 4,
       memoryGb: 0,
       identifier: "macos-12",
     });
