@@ -76,12 +76,25 @@ async function validateActionsRunner(
     return [];
   }
 
-  if (actionsRunner.cores >= 16 || actionsRunner.os === "macos") {
+  if (actionsRunner.os === "macos" && actionsRunner.cores >= 8) {
     return [
       {
-        type: ValidationType.RUNNER,
+        type: ValidationType.RUNNER_MACOS,
         severity: "error",
-        message: `Actions runner is too expensive (${actionsRunner.identifier})`,
+        message: `MacOS actions runner can be up to 10x more expensive than Ubuntu runners. Consider using an Ubuntu runner or the base macOS runner.`,
+      },
+    ];
+  }
+
+  if (actionsRunner.os === "ubuntu" && actionsRunner.cores >= 16) {
+    const costFactorMax = actionsRunner.cores / 2;
+    const costFactorMin = actionsRunner.cores / 4;
+
+    return [
+      {
+        type: ValidationType.RUNNER_UBUNTU,
+        severity: "error",
+        message: `This Ubuntu runner is ${costFactorMin}-${costFactorMax} more expensive than a base Ubuntu runner. Consider using a smaller Ubuntu runner.`,
       },
     ];
   }
@@ -186,7 +199,7 @@ export function extractActionRunnerFromLine(
 
     const [, osVersion, size] = match;
 
-    let cores = 0;
+    let cores = 4;
     let memoryGb = 0;
     if (size === "large") {
       cores = 12;
