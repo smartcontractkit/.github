@@ -23852,11 +23852,17 @@ smartcontractkit/chainlink-github-actions/github-app-token-issuer@5874ff7211cf5a
 <summary>Actions Runners (runners)</summary>
 
 This validation is required to limit the cost of high cost runners. See [Github Actions Runner Guidance](https://smartcontract-it.atlassian.net/l/cp/Rw0Gc08x).
+For specific runner costs see "[What are the per-minute costs of the runners?](https://smartcontract-it.atlassian.net/wiki/spaces/RE/pages/861241466/Github+Actions+Runner+Guidance#What-are-the-per-minute-costs-of-the-runners%3F)"
 
-##### Actions runner is to expensive
+##### \`runner-macos\`
 
-* Consider using a smaller runner type. This will help reduce the cost of the Github Actions workflow.
-* If using macOs runners, consider using ubuntu runners instead.
+* MacOS runners are very expensive in comparison to Ubuntu runners. If you need ARM64 architecture, consider using the new ARM64-based Ubuntu runners.
+* If you need a MacOS runner, consider using the base runner especially if this is a public repository.
+* If you must use an upgraded runner then see Ignoring Errors section below.
+
+##### \`runner-ubuntu\`
+
+* Per-minute compute costs scale with the number of cores. The base Ubuntu runner is the most cost-effective, especially for public repositories.
 * If you must use an upgraded runner then see Ignoring Errors section below.
 
 </details>
@@ -24209,12 +24215,23 @@ async function validateActionsRunner(actionsRunner) {
   if (!actionsRunner) {
     return [];
   }
-  if (actionsRunner.cores >= 16 || actionsRunner.os === "macos") {
+  if (actionsRunner.os === "macos" && actionsRunner.cores >= 8) {
     return [
       {
-        type: "runner" /* RUNNER */,
+        type: "runner-macos" /* RUNNER_MACOS */,
         severity: "error",
-        message: `Actions runner is too expensive (${actionsRunner.identifier})`
+        message: `MacOS actions runner can be up to 10x more expensive than Ubuntu runners. Consider using an Ubuntu runner or the base macOS runner.`
+      }
+    ];
+  }
+  if (actionsRunner.os === "ubuntu" && actionsRunner.cores >= 16) {
+    const costFactorMax = actionsRunner.cores / 2;
+    const costFactorMin = actionsRunner.cores / 4;
+    return [
+      {
+        type: "runner-ubuntu" /* RUNNER_UBUNTU */,
+        severity: "error",
+        message: `This Ubuntu runner is ${costFactorMin}-${costFactorMax} more expensive than a base Ubuntu runner. Consider using a smaller Ubuntu runner.`
       }
     ];
   }
@@ -24296,7 +24313,7 @@ function extractActionRunnerFromLine(line) {
       return;
     }
     const [, osVersion, size] = match;
-    let cores = 0;
+    let cores = 4;
     let memoryGb = 0;
     if (size === "large") {
       cores = 12;
