@@ -47,11 +47,17 @@ smartcontractkit/chainlink-github-actions/github-app-token-issuer@5874ff7211cf5a
 <summary>Actions Runners (runners)</summary>
 
 This validation is required to limit the cost of high cost runners. See [Github Actions Runner Guidance](https://smartcontract-it.atlassian.net/l/cp/Rw0Gc08x).
+For specific runner costs see "[What are the per-minute costs of the runners?](https://smartcontract-it.atlassian.net/wiki/spaces/RE/pages/861241466/Github+Actions+Runner+Guidance#What-are-the-per-minute-costs-of-the-runners%3F)"
 
-##### Actions runner is to expensive
+##### \`runner-macos\`
 
-* Consider using a smaller runner type. This will help reduce the cost of the Github Actions workflow.
-* If using macOs runners, consider using ubuntu runners instead.
+* MacOS runners are very expensive in comparison to Ubuntu runners. If you need ARM64 architecture, consider using the new ARM64-based Ubuntu runners.
+* If you need a MacOS runner, consider using the base runner especially if this is a public repository.
+* If you must use an upgraded runner then see Ignoring Errors section below.
+
+##### \`runner-ubuntu\`
+
+* Per-minute compute costs scale with the number of cores. The base Ubuntu runner is the most cost-effective, especially for public repositories.
 * If you must use an upgraded runner then see Ignoring Errors section below.
 
 </details>
