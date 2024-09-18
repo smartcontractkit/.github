@@ -6,6 +6,26 @@ runs:
   main: "dist/index.js"
 
 inputs:
+  evaluate-mode:
+    description: "Set to true to never fail the action."
+    required: false
+    default: false
+  root-directory:
+    description: "Root directory of the repository."
+    required: false
+    default: ${{ github.workspace }}
+  validate-runners:
+    description: "Validate the runners in the workflow are approved for use."
+    required: false
+    default: true
+  validate-action-refs:
+    description: "Validate action references use a SHA reference."
+    required: false
+    default: true
+  validate-action-node-versions:
+    description: "Validate actions referenced are using node 20."
+    required: false
+    default: true
   include-all-action-definitions:
     description:
       "Include all action.yml files in the repository, not just the ones in

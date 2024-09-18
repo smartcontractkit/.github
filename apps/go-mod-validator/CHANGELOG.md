@@ -1,5 +1,23 @@
 # go-mod-validator
 
+## 0.5.0
+
+### Minor Changes
+
+- [#597](https://github.com/smartcontractkit/.github/pull/597)
+  [`3203744`](https://github.com/smartcontractkit/.github/commit/3203744b59d8ebba43cfeee575212205606b2b00)
+  Thanks [@HenryNguyen5](https://github.com/HenryNguyen5)! - Add PR diff
+  validation mode
+
+## 0.4.0
+
+### Minor Changes
+
+- [#575](https://github.com/smartcontractkit/.github/pull/575)
+  [`df51c0a`](https://github.com/smartcontractkit/.github/commit/df51c0a98760e2ab723d90c0b49ac49317f84bff)
+  Thanks [@HenryNguyen5](https://github.com/HenryNguyen5)! - Improve logging,
+  fix false positive around tag pagination limits
+
 ## 0.3.0
 
 ### Minor Changes

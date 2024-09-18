@@ -1,5 +1,14 @@
 # setup-gap
 
+## 0.6.0
+
+### Minor Changes
+
+- [#602](https://github.com/smartcontractkit/.github/pull/602)
+  [`bc9d760`](https://github.com/smartcontractkit/.github/commit/bc9d760f88d43fc542d2a293a351be14c1638c43)
+  Thanks [@erikburt](https://github.com/erikburt)! - change gap-name default
+  value to execute-api
+
 ## 0.5.0
 
 ### Minor Changes

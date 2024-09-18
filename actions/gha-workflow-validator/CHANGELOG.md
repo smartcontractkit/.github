@@ -1,5 +1,32 @@
 # gha-workflow-validator
 
+## 0.4.1
+
+### Patch Changes
+
+- [#605](https://github.com/smartcontractkit/.github/pull/605)
+  [`e806c52`](https://github.com/smartcontractkit/.github/commit/e806c52fd88b39e9fbd4781945c88555c1fad06f)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: more descriptive
+  error messages for runner failures
+
+## 0.4.0
+
+### Minor Changes
+
+- [#593](https://github.com/smartcontractkit/.github/pull/593)
+  [`0b3660d`](https://github.com/smartcontractkit/.github/commit/0b3660db5463c171727741f6222cbe0b7038662a)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: actions runner
+  validation, and ignore functionality
+
+## 0.3.0
+
+### Minor Changes
+
+- [#585](https://github.com/smartcontractkit/.github/pull/585)
+  [`8867f68`](https://github.com/smartcontractkit/.github/commit/8867f681a3b908ab81d5f023c8d7021503670d4c)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: refactor validation
+  and control flow
+
 ## 0.2.2
 
 ### Patch Changes
