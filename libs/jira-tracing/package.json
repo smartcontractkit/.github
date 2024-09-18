@@ -1,5 +1,5 @@
 {
-  "name": "jira",
+  "name": "jira-tracing",
   "version": "0.1.0",
   "description": "Updates Jira issue with release information like the version and tags for a PR.",
   "main": "update-jira-issue.js",

@@ -469,12 +469,12 @@ jobs:
 
       - name: Setup Jira
         if: ${{ inputs.link_with_jira == true }}
-        run: pnpm --prefix=./dot_github/libs/jira-tracing i
+        run: pnpm install --filter jira-tracing
 
       - name: Create Traceability
         if: ${{ inputs.link_with_jira == true }}
         run: |
-          pnpm --prefix=./dot_github/libs/jira-tracing issue:traceability
+          pnpm --filter jira-tracing issue:traceability
         env:
           CHANGESET_FILES: ${{ inputs.changeset_files }}
           CHAINLINK_PRODUCT: ${{ inputs.product }}
