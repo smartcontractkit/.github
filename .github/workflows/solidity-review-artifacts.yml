@@ -452,7 +452,7 @@ jobs:
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
         with:
           repository: smartcontractkit/.github
-          ref: 10bec6ef7e8fefdcd9bf55f853e9e15835f61c8f
+          ref: f0b04120496dc2b73996af9a41f62d56f77abc1d
           path: ./dot_github
 
       - name: Setup NodeJS
@@ -461,12 +461,6 @@ jobs:
         with:
           package-json-directory: ${{ inputs.contracts_directory }}
           pnpm-version: ^9.0.0
-
-      - name: Check for jira-tracing project
-        shell: bash
-        working-directory: ./dot_github
-        run: |
-          pnpm list --recursive | grep jira-tracing
 
       - name: Setup git top level directory
         if: ${{ inputs.link_with_jira == true }}
