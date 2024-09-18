@@ -320,11 +320,11 @@ jobs:
             echo "::debug::contracts directory isn't the root directory, but ${{ inputs.contracts_directory }}."
             echo "::debug::it's probable that remappings.txt is stored there. Copying it to root folder"
           
-            ./dot_github/tools/solidity/modify_remappings.sh "${{ inputs.contracts_directory }}" "${{ inputs.contracts_directory }}/remappings.txt"          
+            ./dot_github/tools/scripts/solidity/modify_remappings.sh "${{ inputs.contracts_directory }}" "${{ inputs.contracts_directory }}/remappings.txt"          
             mv remappings_modified.txt remappings.txt
           fi
 
-          ./dot_github/tools/solidity/generate_uml.sh "${{ inputs.contracts_directory }}" "${{ env.artifacts_dir }}/uml-diagrams" "$contract_list"
+          ./dot_github/tools/scripts/solidity/generate_uml.sh "${{ inputs.contracts_directory }}" "${{ env.artifacts_dir }}/uml-diagrams" "$contract_list"
 
       - name: Generate Slither Markdown reports
         if: ${{ inputs.generate_slither_reports == true }}
@@ -338,7 +338,7 @@ jobs:
           fi
 
           echo "::debug::Processing contracts: $contract_list"
-          ./dot_github/tools/solidity/generate_slither_report.sh "${{ github.server_url }}/${{ github.repository }}/blob/${{ env.head_ref }}/" "${{ inputs.slither_config_file_path }}" "${{ inputs.contracts_directory }}" "$contract_list" "${{ env.artifacts_dir }}/slither-reports" "--solc-remaps @=${{ inputs.contracts_directory }}/node_modules/@"
+          ./dot_github/tools/scripts/solidity/generate_slither_report.sh "${{ github.server_url }}/${{ github.repository }}/blob/${{ env.head_ref }}/" "${{ inputs.slither_config_file_path }}" "${{ inputs.contracts_directory }}" "$contract_list" "${{ env.artifacts_dir }}/slither-reports" "--solc-remaps @=${{ inputs.contracts_directory }}/node_modules/@"
 
       - name: Upload UMLs and Slither reports
         uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
