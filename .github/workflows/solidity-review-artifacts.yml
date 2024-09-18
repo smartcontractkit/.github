@@ -464,6 +464,7 @@ jobs:
 
       - name: Check for jira-tracing project
         shell: bash
+        working-directory: ./dot_github
         run: |
           pnpm list --recursive | grep jira-tracing
 
@@ -474,10 +475,12 @@ jobs:
 
       - name: Setup Jira
         if: ${{ inputs.link_with_jira == true }}
+        working-directory: ./dot_github
         run: pnpm install --filter jira-tracing
 
       - name: Create Traceability
         if: ${{ inputs.link_with_jira == true }}
+        working-directory: ./dot_github
         run: |
           pnpm --filter jira-tracing issue:traceability
         env:
