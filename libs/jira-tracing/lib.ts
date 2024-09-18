@@ -20,7 +20,7 @@ export function generateJiraIssuesLink(baseUrl: string, label: string) {
 export function generateIssueLabel(
   product: string,
   baseRef: string,
-  headRef: string
+  headRef: string,
 ) {
   return `review-artifacts-${product}-base:${baseRef}-head:${headRef}`;
 }
@@ -28,14 +28,16 @@ export function generateIssueLabel(
 export async function getGitTopLevel(): Promise<string> {
   const gitTopLevelEnv = process.env.GIT_TOP_LEVEL_DIR;
   if (gitTopLevelEnv) {
-    core.debug(`GIT_TOP_LEVEL_DIR env var was set tu ${gitTopLevelEnv}. Will use it.`)
-    return gitTopLevelEnv
+    core.debug(
+      `GIT_TOP_LEVEL_DIR env var was set tu ${gitTopLevelEnv}. Will use it.`,
+    );
+    return gitTopLevelEnv;
   }
 
   const execPromise = promisify(exec);
   try {
     const { stdout, stderr } = await execPromise(
-      "git rev-parse --show-toplevel"
+      "git rev-parse --show-toplevel",
     );
 
     if (stderr) {
@@ -116,7 +118,7 @@ export function getJiraEnvVars() {
 
   if (!jiraHost || !jiraUserName || !jiraApiToken) {
     core.setFailed(
-      "Error: Missing required environment variables: JIRA_HOST and JIRA_USERNAME and JIRA_API_TOKEN."
+      "Error: Missing required environment variables: JIRA_HOST and JIRA_USERNAME and JIRA_API_TOKEN.",
     );
     process.exit(1);
   }

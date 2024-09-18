@@ -1,5 +1,7 @@
 name: Setup Solc Select
-description: Installs Solc Select, required versions and selects the version to use. Requires Python 3.6 or higher.
+description:
+  Installs Solc Select, required versions and selects the version to use.
+  Requires Python 3.6 or higher.
 inputs:
   to_install:
     description: Comma-separated list of solc versions to install
@@ -25,6 +27,6 @@ runs:
             exit 1
           fi
         done
-        
+
         solc-select install ${{ inputs.to_use }}
         solc-select use ${{ inputs.to_use }}

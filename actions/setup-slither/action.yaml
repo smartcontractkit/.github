@@ -1,5 +1,6 @@
 name: Setup Slither
-description: Installs Slither 0.10.3 for contract analysis. Requires Python 3.6 or higher.
+description:
+  Installs Slither 0.10.3 for contract analysis. Requires Python 3.6 or higher.
 runs:
   using: composite
   steps:

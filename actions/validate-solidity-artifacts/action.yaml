@@ -1,5 +1,8 @@
 name: Validate Solidity Artifacts
-description: Checks whether Slither reports and UML diagrams were generated for all necessary files. If not, a warning is printed in job summary, but the job is not marked as failed.
+description:
+  Checks whether Slither reports and UML diagrams were generated for all
+  necessary files. If not, a warning is printed in job summary, but the job is
+  not marked as failed.
 inputs:
   slither_reports_path:
     description: Path to the Slither reports directory (without trailing slash)
@@ -14,7 +17,9 @@ inputs:
     description: Whether UML diagrams should be validated
     required: true
   sol_files:
-    description: Comma-separated (CSV) or space-separated (shell) list of Solidity files to check
+    description:
+      Comma-separated (CSV) or space-separated (shell) list of Solidity files to
+      check
     required: true
 
 runs:
@@ -32,7 +37,7 @@ runs:
             return 1
           fi
         }
-        
+
         is_space_separated_string() {
           local input="$1"
           if [[ "$input" =~ ^[^[:space:]]+([[:space:]][^[:space:]]+)*$ ]]; then
@@ -41,22 +46,22 @@ runs:
             return 1
           fi
         }
-        
+
         array="${{ inputs.sol_files }}"
-        
+
         if is_csv_format "$array"; then
           echo "::debug::CSV format detected, nothing to do"
           echo "sol_files=$array" >> $GITHUB_OUTPUT
           exit 0
         fi
-        
+
         if is_space_separated_string "$array"; then
           echo "::debug::Space-separated format detected, converting to CSV"
           csv_array="${array// /,}"
           echo "sol_files=$csv_array" >> $GITHUB_OUTPUT
           exit 0
         fi
-        
+
         echo "::error::Invalid input format for sol_files. Please provide a comma-separated (CSV) or space-separated (shell) list of Solidity files"
         exit 1
 
@@ -74,7 +79,7 @@ runs:
             missing_svgs+=("$file")
           fi
         done
-        
+
         if [ ${#missing_svgs[@]} -gt 0 ]; then
             echo "::error::Missing UML diagrams for files: ${missing_svgs[@]}"
             echo "# Warning!" >> $GITHUB_STEP_SUMMARY
@@ -101,7 +106,7 @@ runs:
             missing_reports+=("$file")
           fi
         done
-        
+
         if [ ${#missing_reports[@]} -gt 0 ]; then
             echo "Error: Missing Slither reports for files: ${missing_reports[@]}"
             echo "# Warning!" >> $GITHUB_STEP_SUMMARY

@@ -7,7 +7,7 @@ function updateJiraIssue(
   issueNumber: string,
   tags: string[],
   fixVersionName: string,
-  dryRun: boolean
+  dryRun: boolean,
 ) {
   const payload = {
     issueIdOrKey: issueNumber,
@@ -19,8 +19,8 @@ function updateJiraIssue(
 
   core.info(
     `Updating JIRA issue ${issueNumber} with fix version ${fixVersionName} and labels [${payload.update.labels.join(
-      ", "
-    )}]`
+      ", ",
+    )}]`,
   );
   if (dryRun) {
     core.info("Dry run enabled, skipping JIRA issue update");
@@ -69,7 +69,7 @@ async function run() {
       core.setFailed(error.message);
     }
     core.setFailed(
-      "Error: Failed to update JIRA issue with fix version and labels."
+      "Error: Failed to update JIRA issue with fix version and labels.",
     );
   }
 }

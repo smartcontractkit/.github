@@ -1,13 +1,18 @@
 import * as core from "@actions/core";
 import jira from "jira.js";
-import { createJiraClient, getGitTopLevel, handleError, parseIssueNumberFrom } from "./lib";
+import {
+  createJiraClient,
+  getGitTopLevel,
+  handleError,
+  parseIssueNumberFrom,
+} from "./lib";
 import { promises as fs } from "fs";
 import { join } from "path";
 
 async function doesIssueExist(
   client: jira.Version3Client,
   issueNumber: string,
-  dryRun: boolean
+  dryRun: boolean,
 ) {
   const payload = {
     issueIdOrKey: issueNumber,
@@ -25,18 +30,18 @@ async function doesIssueExist(
      */
     const issue = await client.issues.getIssue(payload);
     core.debug(
-      `JIRA issue id:${issue.id} key: ${issue.key} found while querying for ${issueNumber}`
+      `JIRA issue id:${issue.id} key: ${issue.key} found while querying for ${issueNumber}`,
     );
     if (issue.key !== issueNumber) {
       core.error(
-        `JIRA issue key ${issueNumber} not found, but found issue key ${issue.key} instead. This can happen if the identifier doesn't match an issue, in which case a case-insensitive search and check for moved issues is performed. Make sure the issue key is correct.`
+        `JIRA issue key ${issueNumber} not found, but found issue key ${issue.key} instead. This can happen if the identifier doesn't match an issue, in which case a case-insensitive search and check for moved issues is performed. Make sure the issue key is correct.`,
       );
       return false;
     }
 
     return true;
   } catch (e) {
-    handleError(e)
+    handleError(e);
     return false;
   }
 }
@@ -63,7 +68,7 @@ async function main() {
   const exists = await doesIssueExist(client, issueNumber, dryRun);
   if (!exists) {
     core.setFailed(
-      `JIRA issue ${issueNumber} not found, this pull request must be associated with a JIRA issue.`
+      `JIRA issue ${issueNumber} not found, this pull request must be associated with a JIRA issue.`,
     );
     return;
   }
@@ -74,7 +79,7 @@ async function main() {
 
 async function appendIssueNumberToChangesetFile(
   changesetFile: string,
-  issueNumber: string
+  issueNumber: string,
 ) {
   const gitTopLevel = await getGitTopLevel();
   const fullChangesetPath = join(gitTopLevel, changesetFile);
@@ -97,7 +102,7 @@ function extractChangesetFile() {
   const parsedChangesetFiles = JSON.parse(changesetFiles);
   if (parsedChangesetFiles.length !== 1) {
     throw Error(
-      "This action only supports one changeset file per pull request."
+      "This action only supports one changeset file per pull request.",
     );
   }
   const [changesetFile] = parsedChangesetFiles;

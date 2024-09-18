@@ -32,6 +32,7 @@ detect_solc_version() {
    PRODUCT=$(extract_product "$FILE")
    if [ -n "$PRODUCT" ]; then
      FOUNDRY_PROFILE="$PRODUCT"
+     export FOUNDRY_PROFILE
    fi
    SOLC_IN_PROFILE=$(forge config --json --root "$FOUNDRY_DIR" | jq ".solc")
    SOLC_IN_PROFILE=$(echo "$SOLC_IN_PROFILE" | tr -d "'\"")

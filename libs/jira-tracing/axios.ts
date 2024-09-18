@@ -18,7 +18,7 @@ interface AxiosErrorFormatError<Data = any>
     AxiosErrorFormat<Data> {}
 
 export function formatAxiosError<Data = any>(
-  origErr: AxiosError<Data>
+  origErr: AxiosError<Data>,
 ): AxiosErrorFormatError<Data> {
   const { message, name, stack, code, config, response, isAxiosError } =
     origErr;
@@ -81,7 +81,7 @@ const RESPONSE_KEYS: (keyof AxiosResponse)[] = [
 
 function formatValue(
   value: any,
-  key: (typeof CONFIG_KEYS)[number] | (typeof RESPONSE_KEYS)[number]
+  key: (typeof CONFIG_KEYS)[number] | (typeof RESPONSE_KEYS)[number],
 ): any {
   if (key !== "data") {
     return value;
