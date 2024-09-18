@@ -461,6 +461,7 @@ jobs:
         with:
           package-json-directory: ${{ inputs.contracts_directory }}
           pnpm-version: ^9.0.0
+          use-cache: "false"
 
       - name: Setup git top level directory
         if: ${{ inputs.link_with_jira == true }}
