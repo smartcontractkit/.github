@@ -269,7 +269,7 @@ jobs:
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
         with:
           repository: smartcontractkit/.github
-          ref: 620887a48b07505059239131549cdc3161f396ff
+          ref: 10bec6ef7e8fefdcd9bf55f853e9e15835f61c8f
           path: ./dot_github
 
       - name: Setup NodeJS
@@ -295,14 +295,14 @@ jobs:
 
       - name: Install solc-select and solc
         if: ${{ inputs.generate_slither_reports == true }}
-        uses: smartcontractkit/.github/actions/setup-solc-select@620887a48b07505059239131549cdc3161f396ff
+        uses: smartcontractkit/.github/actions/setup-solc-select@10bec6ef7e8fefdcd9bf55f853e9e15835f61c8f
         with:
           to_install: ${{ inputs.default_solc_version }}
           to_use: ${{ inputs.default_solc_version }}
 
       - name: Install Slither
         if: ${{ inputs.generate_slither_reports == true }}
-        uses: smartcontractkit/.github/actions/setup-slither@620887a48b07505059239131549cdc3161f396ff
+        uses: smartcontractkit/.github/actions/setup-slither@10bec6ef7e8fefdcd9bf55f853e9e15835f61c8f
 
       - name: Install semver
         if: ${{ inputs.generate_slither_reports == true && inputs.install_semver == true }}
@@ -352,7 +352,7 @@ jobs:
           retention-days: 7
 
       - name: Validate if all Slither run for all contracts
-        uses: smartcontractkit/.github/actions/validate-solidity-artifacts@620887a48b07505059239131549cdc3161f396ff
+        uses: smartcontractkit/.github/actions/validate-solidity-artifacts@10bec6ef7e8fefdcd9bf55f853e9e15835f61c8f
         with:
           validate_slither_reports: ${{ inputs.generate_slither_reports }}
           validate_uml_diagrams: ${{ inputs.generate_uml_diagrams }}
@@ -413,7 +413,7 @@ jobs:
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
         with:
           repository: smartcontractkit/.github
-          ref: 3dcd41c6cfdd9adc3478ed096bebf30c7fa0b504
+          ref: 10bec6ef7e8fefdcd9bf55f853e9e15835f61c8f
           path: ./dot_github
 
       - name: Setup NodeJS
