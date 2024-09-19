@@ -71,7 +71,7 @@ process_selected_files() {
             >&2 echo "::debug::File found: ${MATCHES[0]}"
             flatten_and_generate_uml "$FOUNDRY_DIR" "${MATCHES[0]}" "$TARGET_DIR"
         else
-            >&2 echo "::error::File $FILE does not exist within the source directory $SOURCE_DIR."
+            >&2 echo "::error::File $FILE does not exist."
             exit 1
         fi
     done
