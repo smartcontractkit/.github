@@ -107,6 +107,7 @@ FOUNDRY_DIR=$3
 FILES=${4// /}  # Remove any spaces from the list of files
 TARGET_DIR=$5
 SLITHER_EXTRA_PARAMS="${6:-}"
+FAILED_FILES=()
 
 run_slither() {
     local FILE=$1
@@ -121,6 +122,7 @@ run_slither() {
     set +e
     if ! detect_solc_version "$FOUNDRY_DIR" "$FILE"; then
         >&2 echo "::error::Failed to select Solc version for $FILE"
+        FAILED_FILES+=("$FILE")
         return 1
     fi
 
@@ -129,7 +131,8 @@ run_slither() {
     # shellcheck disable=SC2086
     if ! output=$(eval slither --config-file "$CONFIG_FILE" "$FILE" --checklist --markdown-root "$REPO_URL" --fail-none $SLITHER_EXTRA_PARAMS); then
         >&2 echo "::warning::Slither failed for $FILE"
-        return 0
+        FAILED_FILES+=("$FILE")
+        return 1
     fi
     set -e
     # there's nothing to be expanded, false-positive
@@ -162,8 +165,13 @@ process_files() {
 # we want to handle non-zero exit codes ourselves
 set +e
 if ! process_files "$TARGET_DIR" "${FILES[@]}"; then
-    >&2 echo "::warning::Failed to generate some Slither reports"
-    exit 0
+    error_message="Failed to generate Slither reports for ${#FAILED_FILES[@]} files:\n"
+    for FILE in "${FAILED_FILES[@]}"; do
+        error_message+="  $FILE\n"
+        echo "$FILE" >> "$TARGET_DIR/slither_generation_failures.txt"
+    done
+
+    >&2 echo -e "$error_message"
 fi
 
 echo "Slither reports saved in $TARGET_DIR folder"
