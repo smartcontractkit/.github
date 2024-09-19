@@ -84,7 +84,7 @@ on:
         description: "link generated artifacts with Jira issues?"
         type: boolean
         default: true
-        required: true
+        required: false
       jira_host:
         description: "Jira host"
         type: string
@@ -147,7 +147,7 @@ jobs:
       - name: Copy modified changesets
         if: ${{ inputs.changeset_changes == 'true' }}
         run: |
-          mkdir -p ${{ env.artifacts_dir }}/changesets
+          mkdir -p "${{ env.artifacts_dir }}"/changesets
           files="${{ inputs.changeset_files }}"
           IFS=","
           for changeset in $files; do
@@ -428,7 +428,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ARTIFACTS=$(gh api -X GET repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts)
+          ARTIFACTS=$(gh api -X GET repos/"${{ github.repository }}"/actions/runs/"${{ github.run_id }}"/artifacts)
+          # shellcheck disable=SC2086
           ARTIFACT_ID=$(echo "$ARTIFACTS" | jq '.artifacts[] | select(.name=="review-artifacts-${{ inputs.product }}-${{ inputs.base_ref }}-${{ env.head_ref }}") | .id')
           echo "Artifact ID: $ARTIFACT_ID"
 
@@ -440,6 +441,7 @@ jobs:
           artifact_url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/$ARTIFACT_ID"
           echo "[Artifact URL]($artifact_url)" >> $GITHUB_STEP_SUMMARY
           echo "artifact-url=$artifact_url" >> $GITHUB_OUTPUT
+          # shellcheck enable=SC2086
 
       - name: Checkout caller repository
         if: ${{ inputs.link_with_jira == true }}
@@ -499,6 +501,7 @@ jobs:
       - name: Print warning in job summary
         shell: bash
         run: |
+          # shellcheck disable=SC2086
           echo "# Solidity Review Artifact NOT Generated" >> $GITHUB_STEP_SUMMARY
           echo "Base Ref used: **${{ inputs.base_ref }}**" >> $GITHUB_STEP_SUMMARY
           echo "Commit SHA used: **${{ env.head_ref }}**" >> $GITHUB_STEP_SUMMARY
@@ -506,4 +509,5 @@ jobs:
           echo "* no modified Solidity files found between ${{ inputs.base_ref }} and ${{ env.head_ref }} commits" >> $GITHUB_STEP_SUMMARY
           echo "* or they are located outside of search path" >> $GITHUB_STEP_SUMMARY
           echo "* or they were limited to test files" >> $GITHUB_STEP_SUMMARY
+          # shellcheck enable=SC2086
           exit 1
