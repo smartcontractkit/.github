@@ -127,12 +127,12 @@ run_slither() {
     fi
 
     SLITHER_OUTPUT_FILE="$TARGET_DIR/$(basename "${FILE%.sol}")-slither-report.md"
-    # quoting "$SLITHER_EXTRA_PARAMS" brakes the script
+    # quoting "$SLITHER_EXTRA_PARAMS" brakes the script, we do need it to be expanded
     # shellcheck disable=SC2086
     if ! output=$(eval slither --config-file "$CONFIG_FILE" "$FILE" --checklist --markdown-root "$REPO_URL" --fail-none $SLITHER_EXTRA_PARAMS); then
         >&2 echo "::warning::Slither failed for $FILE"
         FAILED_FILES+=("$FILE")
-        return 1
+        return
     fi
     set -e
     # there's nothing to be expanded, false-positive
@@ -163,7 +163,6 @@ process_files() {
 }
 
 # we want to handle non-zero exit codes ourselves
-set +e
 process_files "$TARGET_DIR" "${FILES[@]}"
 
 if [[ "${#FAILED_FILES[@]}" -gt 0 ]]; then
