@@ -245,7 +245,7 @@ export function lineForDependencyPathFinder() {
 
     let line = -1;
     for (let i = 0; i < cache[goModPath].length; i++) {
-      // Given github.com/smartcontractkit/chainlink-common v0.2.3-0.20240918210534-564164004d06, then split by space and take the first part
+      // HACK: We add a space after the depPath to avoid matching substrings.
       if (cache[goModPath][i].includes(depPath + " ")) {
         if (line !== -1) {
           throw new Error(`duplicate dependency path found: ${depPath}`);
