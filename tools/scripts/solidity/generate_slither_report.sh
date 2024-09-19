@@ -106,7 +106,7 @@ CONFIG_FILE=$2
 FOUNDRY_DIR=$3
 FILES=${4// /}  # Remove any spaces from the list of files
 TARGET_DIR=$5
-SLITHER_EXTRA_PARAMS=${6-''}
+SLITHER_EXTRA_PARAMS="${6:-}"
 
 run_slither() {
     local FILE=$1
@@ -127,7 +127,7 @@ run_slither() {
     SLITHER_OUTPUT_FILE="$TARGET_DIR/$(basename "${FILE%.sol}")-slither-report.md"
     # quoting "$SLITHER_EXTRA_PARAMS" brakes the script
     # shellcheck disable=SC2086
-    if ! output=$(slither --config-file "$CONFIG_FILE" "$FILE" --checklist --markdown-root "$REPO_URL" --fail-none $SLITHER_EXTRA_PARAMS); then
+    if ! output=$(eval slither --config-file "$CONFIG_FILE" "$FILE" --checklist --markdown-root "$REPO_URL" --fail-none $SLITHER_EXTRA_PARAMS); then
         >&2 echo "::debug::Slither failed for $FILE"
         return 0
     fi
