@@ -53,25 +53,23 @@ flatten_and_generate_uml() {
 process_selected_files() {
     local FOUNDRY_DIR=$1
     local TARGET_DIR=$2
-    local FILES=("${3//,/ }")  # Split the comma-separated list into an array
+    local FILES="$3"
 
     mkdir -p "$TARGET_DIR"
+    IFS=","
 
-    for FILE in "${FILES[@]}"; do
+    # we want to iterate over array without special characters
+    # shellcheck disable=SC2086
+    for FILE in $FILES; do
         FILE=${FILE//\"/}
-        mapfile -t MATCHES < <(find . -type f -path "*/$FILE")
 
-        if [[ ${#MATCHES[@]} -gt 1 ]]; then
-            >&2 echo "::error:: Multiple matches found for $FILE:"
-            for MATCH in "${MATCHES[@]}"; do
-                >&2 echo "  $MATCH"
-            done
-            exit 1
-        elif [[ ${#MATCHES[@]} -eq 1 ]]; then
-            >&2 echo "::debug::File found: ${MATCHES[0]}"
-            flatten_and_generate_uml "$FOUNDRY_DIR" "${MATCHES[0]}" "$TARGET_DIR"
+        MATCH=$(find . -type f -path "*/$FILE" -print -quit)
+
+        if [[ -n "$MATCH" ]]; then
+            >&2 echo "::debug::File found: $FILE"
+            flatten_and_generate_uml "$FOUNDRY_DIR" "$FILE" "$TARGET_DIR"
         else
-            >&2 echo "::error::File $FILE does not exist."
+            >&2 echo "::error::File $FILE not found"
             exit 1
         fi
     done

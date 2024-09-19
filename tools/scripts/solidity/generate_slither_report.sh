@@ -74,6 +74,8 @@ detect_solc_version() {
 
    echo "Will use $SOLC_TO_USE"
    SOLC_TO_USE=$(echo "$SOLC_TO_USE" | tr -d "'\"")
+   # remove all characters except numbers and dots,
+   # because we need to select specific version and cannot use semver here
    SOLC_TO_USE="${SOLC_TO_USE//[^0-9.]/}"
 
    INSTALLED_VERSIONS=$(solc-select versions)
@@ -144,11 +146,14 @@ run_slither() {
 
 process_files() {
     local TARGET_DIR=$1
-    local FILES=("${2//,/ }")  # Split the comma-separated list into an array
+    local FILES="$2"
 
     mkdir -p "$TARGET_DIR"
+    IFS=","
 
-    for FILE in "${FILES[@]}"; do
+    # we want to iterate over array without special characters
+    # shellcheck disable=SC2086
+    for FILE in $FILES; do
       FILE=${FILE//\"/}
       run_slither "$FILE" "$TARGET_DIR"
     done
