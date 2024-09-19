@@ -31,3 +31,23 @@ export function getNock(mode?: nock.BackMode) {
 
   return nockBack;
 }
+
+export function coreLoggingStubs() {
+  return {
+    setFailed: (msg: string) => {
+      console.log(`setFailed (stub): ${msg}`);
+    },
+    error: (msg: string) => {
+      console.log(`error (stub): ${msg}`);
+    },
+    warning: (msg: string) => {
+      console.log(`warn (stub): ${msg}`);
+    },
+    info: (msg: string) => {
+      console.log(`info (stub): ${msg}`);
+    },
+    debug: (msg: string) => {
+      console.log(`debug (stub): ${msg}`);
+    },
+  };
+}

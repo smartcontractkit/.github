@@ -1,12 +1,12 @@
-import { mapAndFilter, ParsedFile, FileLine } from "./utils.js";
-import { Octokit, getActionFileFromGithub } from "./github.js";
+import { mapAndFilterUndefined, ParsedFile, FileLine } from "../utils.js";
+import { Octokit, getActionFileFromGithub } from "../github.js";
 import * as core from "@actions/core";
 import {
   ValidationCheck,
-  ValidationError,
+  ValidationMessage,
   FileValidationResult,
   LineValidationResult,
-  ErrorType,
+  ValidationType,
 } from "./validation-check.js";
 
 const CURRENT_NODE_VERSION = 20;
@@ -41,7 +41,7 @@ export class ActionReferenceValidation implements ValidationCheck {
     core.debug(`Validating action references in ${parsedFile.filename}`);
     const { filename } = parsedFile;
 
-    const lineActionRefs = mapAndFilter(
+    const lineActionRefs = mapAndFilterUndefined(
       parsedFile.lines,
       extractActionReference,
     );
@@ -80,7 +80,7 @@ async function validateActionReferences(
       lineValidationResults.push({
         filename,
         line,
-        validationErrors,
+        messages: validationErrors,
       });
     }
   }
@@ -92,12 +92,12 @@ async function validateActionReference(
   octokit: Octokit,
   options: ActionReferenceValidationOptions,
   actionRef: ActionReference | undefined,
-): Promise<ValidationError[]> {
+): Promise<ValidationMessage[]> {
   if (!actionRef) {
     return [];
   }
 
-  const validationErrors: ValidationError[] = [];
+  const validationErrors: ValidationMessage[] = [];
 
   const shaRefValidation = validateShaRef(actionRef);
   const versionCommentValidation = validateVersionCommentExists(actionRef);
@@ -120,7 +120,7 @@ async function validateActionReference(
 
 function validateShaRef(
   actionReference: ActionReference,
-): ValidationError | undefined {
+): ValidationMessage | undefined {
   const sha1Regex = /^[0-9a-f]{40}$/;
   if (sha1Regex.test(actionReference.ref)) return;
 
@@ -129,27 +129,27 @@ function validateShaRef(
 
   return {
     message: `${actionReference.ref} is not a valid SHA reference`,
-    type: ErrorType.SHA_REF,
+    type: ValidationType.SHA_REF,
     severity: "error",
   };
 }
 
 function validateVersionCommentExists(
   actionReference: ActionReference,
-): ValidationError | undefined {
+): ValidationMessage | undefined {
   if (actionReference.comment) return;
 
   return {
     message: `No version comment found`,
-    type: ErrorType.VERSION_COMMENT,
-    severity: "error",
+    type: ValidationType.VERSION_COMMENT,
+    severity: "warning",
   };
 }
 
 async function validateNodeActionVersion(
   octokit: Octokit,
   actionRef: ActionReference,
-): Promise<ValidationError | undefined> {
+): Promise<ValidationMessage | undefined> {
   const actionFile = await getActionFileFromGithub(
     octokit,
     actionRef.owner,
@@ -170,8 +170,8 @@ async function validateNodeActionVersion(
   if (matches && matches[1] !== `${CURRENT_NODE_VERSION}`) {
     return {
       message: `Action is using node${matches[1]}`,
-      type: ErrorType.NODE_VERSION,
-      severity: "error",
+      type: ValidationType.NODE_VERSION,
+      severity: "warning",
     };
   }
 
@@ -192,6 +192,7 @@ function extractActionReference(
   };
 }
 
+// Only exported for use in tests
 export function extractActionReferenceFromLine(
   line: string,
 ): ActionReference | undefined {

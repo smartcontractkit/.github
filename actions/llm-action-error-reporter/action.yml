@@ -141,7 +141,7 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
-        PR_NUMBER: ${{ env.pr_number }}
+        PR_NUMBER: ${{ steps.get_pr_number.outputs.pr_number }}
         edit_comment: ${{ inputs.edit-comment }}
       run: |
         workflow_name=$(gh run view ${{ github.event.workflow_run.id }} --json workflowName --jq '.workflowName')
