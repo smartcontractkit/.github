@@ -128,7 +128,7 @@ run_slither() {
     # quoting "$SLITHER_EXTRA_PARAMS" brakes the script
     # shellcheck disable=SC2086
     if ! output=$(eval slither --config-file "$CONFIG_FILE" "$FILE" --checklist --markdown-root "$REPO_URL" --fail-none $SLITHER_EXTRA_PARAMS); then
-        >&2 echo "::debug::Slither failed for $FILE"
+        >&2 echo "::warning::Slither failed for $FILE"
         return 0
     fi
     set -e
