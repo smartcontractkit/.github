@@ -164,14 +164,16 @@ process_files() {
 
 # we want to handle non-zero exit codes ourselves
 set +e
-if ! process_files "$TARGET_DIR" "${FILES[@]}"; then
-    error_message="Failed to generate Slither reports for ${#FAILED_FILES[@]} files:\n"
-    for FILE in "${FAILED_FILES[@]}"; do
-        error_message+="  $FILE\n"
-        echo "$FILE" >> "$TARGET_DIR/slither_generation_failures.txt"
-    done
+process_files "$TARGET_DIR" "${FILES[@]}"
 
-    >&2 echo -e "$error_message"
+if [[ "${#FAILED_FILES[@]}" -gt 0 ]]; then
+  error_message="Failed to generate Slither reports for ${#FAILED_FILES[@]} files:\n"
+  for FILE in "${FAILED_FILES[@]}"; do
+      error_message+="  $FILE\n"
+      echo "$FILE" >> "$TARGET_DIR/slither_generation_failures.txt"
+  done
+
+  >&2 echo -e "$error_message"
 fi
 
 echo "Slither reports saved in $TARGET_DIR folder"
