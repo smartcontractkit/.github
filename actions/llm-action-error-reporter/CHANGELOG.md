@@ -1,5 +1,13 @@
 # llm-action-error-reporter
 
+## 0.2.0
+
+### Minor Changes
+
+- [#604](https://github.com/smartcontractkit/.github/pull/604)
+  [`bff23e9`](https://github.com/smartcontractkit/.github/commit/bff23e98280a3f60233e7ab2d5675a006843732c)
+  Thanks [@kalanyuz](https://github.com/kalanyuz)! - bug fixes / formatting
+
 ## 0.1.0
 
 ### Minor Changes
