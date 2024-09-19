@@ -300,7 +300,7 @@ jobs:
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
         with:
           repository: smartcontractkit/.github
-          ref: 9c0d065116c1d45d9cfe9cf642ef6344e93da1cd
+          ref: bceb5744da5732f75d271f1588934b9ec7fc5ca7
           path: ./dot_github
 
       - name: Setup NodeJS
@@ -455,7 +455,7 @@ jobs:
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
         with:
           repository: smartcontractkit/.github
-          ref: 9c0d065116c1d45d9cfe9cf642ef6344e93da1cd
+          ref: bceb5744da5732f75d271f1588934b9ec7fc5ca7
           path: ./dot_github
 
       - name: Setup NodeJS
