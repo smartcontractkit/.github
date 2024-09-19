@@ -135,6 +135,8 @@ importers:
 
   actions/crib-purge-environment: {}
 
+  actions/ctf-build-test-image: {}
+
   actions/dispatch-workflow: {}
 
   actions/get-latest-github-release: {}
