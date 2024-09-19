@@ -200,7 +200,7 @@ jobs:
           ref: ${{ env.head_ref }}
 
       - name: Setup NodeJS
-        uses: smartcontractkit/.github/actions/setup-nodejs@bff23e98280a3f60233e7ab2d5675a006843732c
+        uses: smartcontractkit/.github/actions/setup-nodejs@bff23e98280a3f60233e7ab2d5675a006843732c # v0.0.0
         with:
           package-json-directory: ${{ inputs.contracts_directory }}
           pnpm-version: ^9.0.0
@@ -304,7 +304,7 @@ jobs:
           path: ./dot_github
 
       - name: Setup NodeJS
-        uses: smartcontractkit/.github/actions/setup-nodejs@bff23e98280a3f60233e7ab2d5675a006843732c
+        uses: smartcontractkit/.github/actions/setup-nodejs@bff23e98280a3f60233e7ab2d5675a006843732c # v0.0.0
         with:
           package-json-directory: ${{ inputs.contracts_directory }}
           pnpm-version: ^9.0.0
@@ -327,14 +327,14 @@ jobs:
 
       - name: Install solc-select and solc
         if: ${{ inputs.generate_slither_reports == true }}
-        uses: smartcontractkit/.github/actions/setup-solc-select@10bec6ef7e8fefdcd9bf55f853e9e15835f61c8f
+        uses: smartcontractkit/.github/actions/setup-solc-select@10bec6ef7e8fefdcd9bf55f853e9e15835f61c8f # v0.0.0
         with:
           to_install: ${{ inputs.default_solc_version }}
           to_use: ${{ inputs.default_solc_version }}
 
       - name: Install Slither
         if: ${{ inputs.generate_slither_reports == true }}
-        uses: smartcontractkit/.github/actions/setup-slither@10bec6ef7e8fefdcd9bf55f853e9e15835f61c8f
+        uses: smartcontractkit/.github/actions/setup-slither@10bec6ef7e8fefdcd9bf55f853e9e15835f61c8f # v0.0.0
 
       - name: Install semver
         if:
@@ -386,7 +386,7 @@ jobs:
           retention-days: 7
 
       - name: Validate if all Slither run for all contracts
-        uses: smartcontractkit/.github/actions/validate-solidity-artifacts@9c0d065116c1d45d9cfe9cf642ef6344e93da1cd
+        uses: smartcontractkit/.github/actions/validate-solidity-artifacts@9c0d065116c1d45d9cfe9cf642ef6344e93da1cd # v0.0.0
         with:
           validate_slither_reports: ${{ inputs.generate_slither_reports }}
           validate_uml_diagrams: ${{ inputs.generate_uml_diagrams }}
@@ -460,7 +460,7 @@ jobs:
 
       - name: Setup NodeJS
         if: ${{ inputs.link_with_jira == true }}
-        uses: smartcontractkit/.github/actions/setup-nodejs@bff23e98280a3f60233e7ab2d5675a006843732c
+        uses: smartcontractkit/.github/actions/setup-nodejs@bff23e98280a3f60233e7ab2d5675a006843732c # v0.0.0
         with:
           package-json-directory: ${{ inputs.contracts_directory }}
           pnpm-version: ^9.0.0
