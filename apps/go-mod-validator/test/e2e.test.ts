@@ -1,12 +1,4 @@
-import {
-  describe,
-  vi,
-  it,
-  expect,
-  afterEach,
-  beforeAll,
-  afterAll,
-} from "vitest";
+import { describe, vi, it, expect, afterEach, afterAll } from "vitest";
 import { getNock, getTestOctokit } from "./__helpers__/nock";
 import * as core from "@actions/core";
 import { join } from "path";
@@ -105,7 +97,7 @@ describe("e2e tests", () => {
       it("should fail on wsrpc", async () => {
         const nockDone = await setupNonPR(
           "chainlink",
-          "c97838d904aa7ac07fc4a48cd05db4c4859e5355",
+          "1a9f26932d8132c0326016d954a852faca626a05",
         );
         await testEntrypoint();
         nockDone();
@@ -121,8 +113,8 @@ describe("e2e tests", () => {
       });
 
       it("should pass on this diff", async () => {
-        const base = "f185128e739dcf6562e9ba96075062193e96cc7a";
-        const head = "da8b9a5504339746d955cd745440ed3a012431de";
+        const base = "1a9f26932d8132c0326016d954a852faca626a05";
+        const head = "d14a9b5111baaffa95266b0d39ea21f6ecfd0137";
         setup("chainlink", head);
         const nockDone = await setupChainlinkPR(base, head);
 
@@ -132,16 +124,16 @@ describe("e2e tests", () => {
 
       it("should pass on this diff", async () => {
         const base = "7eec696575101ece78084fa9367314d1a6464f2a";
-        const head = "1356b654d5baa16ca0c1a41f300fa131e614d2f8";
+        const head = "1a9f26932d8132c0326016d954a852faca626a05";
         const nockDone = await setupChainlinkPR(base, head);
 
         await testEntrypoint();
         nockDone();
       });
 
-      it("should ignore tagged wsrpc deps", async () => {
+      it("shoulid pass on this diff", async () => {
         const base = "5bc558f2a38d8b673bb1ab48053d844ff67303f9";
-        const head = "d64ba3dafedb21f77e335c056c9a830c5710dba0";
+        const head = "1a9f26932d8132c0326016d954a852faca626a05";
         const nockDone = await setupChainlinkPR(base, head);
 
         await testEntrypoint();
