@@ -1,7 +1,7 @@
 {
-  "name": "setup-gap",
-  "version": "0.6.0",
-  "description": "setup github actions proxy",
+  "name": "ctf-build-test-image",
+  "version": "0.1.0",
+  "description": "",
   "private": true,
   "scripts": {},
   "author": "@smartcontractkit",

@@ -1,0 +1,961 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`setSummary > should set summary with multiple files 1`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        [
+          {
+            "data": "Filename",
+            "header": true,
+          },
+          {
+            "data": "Line Number",
+            "header": true,
+          },
+          {
+            "data": "Level",
+            "header": true,
+          },
+          {
+            "data": "Type",
+            "header": true,
+          },
+          {
+            "data": "Message",
+            "header": true,
+          },
+        ],
+        [
+          {
+            "data": "foo.yml",
+            "rowspan": "2",
+          },
+          {
+            "data": "<a href="prefix.com/foo.yml#L1">1</a>",
+            "rowspan": "1",
+          },
+          {
+            "data": "error",
+          },
+          {
+            "data": "sha-ref",
+          },
+          {
+            "data": "sha ref error",
+          },
+        ],
+        [
+          {
+            "data": "<a href="prefix.com/foo.yml#L3">3</a>",
+            "rowspan": "1",
+          },
+          {
+            "data": "warning",
+          },
+          {
+            "data": "version-comment",
+          },
+          {
+            "data": "version comment warning",
+          },
+        ],
+        [
+          {
+            "data": "bar.yml",
+            "rowspan": "2",
+          },
+          {
+            "data": "<a href="prefix.com/bar.yml#L1337">1337</a>",
+            "rowspan": "1",
+          },
+          {
+            "data": "error",
+          },
+          {
+            "data": "sha-ref",
+          },
+          {
+            "data": "sha ref error",
+          },
+        ],
+        [
+          {
+            "data": "<a href="prefix.com/bar.yml#L1338">1338</a>",
+            "rowspan": "1",
+          },
+          {
+            "data": "warning",
+          },
+          {
+            "data": "version-comment",
+          },
+          {
+            "data": "version comment warning",
+          },
+        ],
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": {
+        "addRaw": [MockFunction spy] {
+          "calls": [
+            [
+              "
+
+
+This CI step validates Github Actions workflows. If invoked by a pull request, it will only operate on the changed files.
+
+It currently validates: Actions References, Actions Runner Types
+
+### Fixing Errors
+
+<details>
+<summary>Action References (sha-ref, version-comment, node-version) </summary>
+
+This validation is required to ensure that the action references use immutable SHAs, have a version comment, and are not using node16 or earlier.
+
+The proper format for referencing a Github Action external to the repository is as follows:
+
+\`<owner>/<repo>/<optional path>@<commit SHA> # <version tag relating to the SHA>\`
+
+<details>
+<summary>Examples</summary>
+
+\`\`\`
+actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
+
+smartcontractkit/chainlink-github-actions/github-app-token-issuer@5874ff7211cf5a5a2670bb010fbff914eaaae138 # v2.3.12
+\`\`\`
+</details>
+
+##### <ref> is not a valid SHA
+
+* Please reference a specific commit. This is because tags are mutable and pose a security risk
+* Do not use things like \`@main\`, \`@branch/feature\`, \`@v4\`, or \`@v4.0.0\`.
+
+##### No version comment found
+
+* Ensure you have left a comment indicating the git tag (or version) associated with the SHA reference.
+* \`@<commit> # v4.0.0\`
+
+##### Action is using node...
+
+* The action added is supposed to be run using a version that is not \`node20\`. This might create issues due to Github deprecating actions using \`node16\` and earlier.
+
+</details>
+
+<details>
+<summary>Actions Runners (runners)</summary>
+
+This validation is required to limit the cost of high cost runners. See [Github Actions Runner Guidance](https://smartcontract-it.atlassian.net/l/cp/Rw0Gc08x).
+For specific runner costs see "[What are the per-minute costs of the runners?](https://smartcontract-it.atlassian.net/wiki/spaces/RE/pages/861241466/Github+Actions+Runner+Guidance#What-are-the-per-minute-costs-of-the-runners%3F)"
+
+##### \`runner-macos\`
+
+* MacOS runners are very expensive in comparison to Ubuntu runners. If you need ARM64 architecture, consider using the new ARM64-based Ubuntu runners.
+* If you need a MacOS runner, consider using the base runner especially if this is a public repository.
+* If you must use an upgraded runner then see Ignoring Errors section below.
+
+##### \`runner-ubuntu\`
+
+* Per-minute compute costs scale with the number of cores. The base Ubuntu runner is the most cost-effective, especially for public repositories.
+* If you must use an upgraded runner then see Ignoring Errors section below.
+
+</details>
+
+### Ignoring Errors
+
+You can use the following string to ignore a line from validation \`ghv-ignore!\` (must be inlined).
+
+When adding this it will trigger an error, this is expected. Please reach out to \`#team-releng\` for approval and bypass.
+
+<details>
+<summary>Examples</summary>
+
+\`\`\`
+runs-on: ubuntu-latest-99cores-999GB # ghv-ignore!
+
+uses: org/action@sha # v1.0.0-node16 ghv-ignore!
+\`\`\`
+</details>
+",
+            ],
+          ],
+          "results": [
+            {
+              "type": "return",
+              "value": [Circular],
+            },
+          ],
+        },
+        "addSeparator": [MockFunction spy] {
+          "calls": [
+            [],
+          ],
+          "results": [
+            {
+              "type": "return",
+              "value": [Circular],
+            },
+          ],
+        },
+        "addTable": [MockFunction spy] {
+          "calls": [
+            [
+              [
+                [
+                  {
+                    "data": "Filename",
+                    "header": true,
+                  },
+                  {
+                    "data": "Line Number",
+                    "header": true,
+                  },
+                  {
+                    "data": "Level",
+                    "header": true,
+                  },
+                  {
+                    "data": "Type",
+                    "header": true,
+                  },
+                  {
+                    "data": "Message",
+                    "header": true,
+                  },
+                ],
+                [
+                  {
+                    "data": "foo.yml",
+                    "rowspan": "2",
+                  },
+                  {
+                    "data": "<a href="prefix.com/foo.yml#L1">1</a>",
+                    "rowspan": "1",
+                  },
+                  {
+                    "data": "error",
+                  },
+                  {
+                    "data": "sha-ref",
+                  },
+                  {
+                    "data": "sha ref error",
+                  },
+                ],
+                [
+                  {
+                    "data": "<a href="prefix.com/foo.yml#L3">3</a>",
+                    "rowspan": "1",
+                  },
+                  {
+                    "data": "warning",
+                  },
+                  {
+                    "data": "version-comment",
+                  },
+                  {
+                    "data": "version comment warning",
+                  },
+                ],
+                [
+                  {
+                    "data": "bar.yml",
+                    "rowspan": "2",
+                  },
+                  {
+                    "data": "<a href="prefix.com/bar.yml#L1337">1337</a>",
+                    "rowspan": "1",
+                  },
+                  {
+                    "data": "error",
+                  },
+                  {
+                    "data": "sha-ref",
+                  },
+                  {
+                    "data": "sha ref error",
+                  },
+                ],
+                [
+                  {
+                    "data": "<a href="prefix.com/bar.yml#L1338">1338</a>",
+                    "rowspan": "1",
+                  },
+                  {
+                    "data": "warning",
+                  },
+                  {
+                    "data": "version-comment",
+                  },
+                  {
+                    "data": "version comment warning",
+                  },
+                ],
+              ],
+            ],
+          ],
+          "results": [
+            {
+              "type": "return",
+              "value": [Circular],
+            },
+          ],
+        },
+        "write": [MockFunction spy] {
+          "calls": [
+            [],
+          ],
+          "results": [
+            {
+              "type": "return",
+              "value": [Circular],
+            },
+          ],
+        },
+      },
+    },
+  ],
+}
+`;
+
+exports[`setSummary > should set summary with no errors  1`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        [
+          {
+            "data": "Filename",
+            "header": true,
+          },
+          {
+            "data": "Line Number",
+            "header": true,
+          },
+          {
+            "data": "Level",
+            "header": true,
+          },
+          {
+            "data": "Type",
+            "header": true,
+          },
+          {
+            "data": "Message",
+            "header": true,
+          },
+        ],
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": {
+        "addRaw": [MockFunction spy] {
+          "calls": [
+            [
+              "
+
+
+This CI step validates Github Actions workflows. If invoked by a pull request, it will only operate on the changed files.
+
+It currently validates: Actions References, Actions Runner Types
+
+### Fixing Errors
+
+<details>
+<summary>Action References (sha-ref, version-comment, node-version) </summary>
+
+This validation is required to ensure that the action references use immutable SHAs, have a version comment, and are not using node16 or earlier.
+
+The proper format for referencing a Github Action external to the repository is as follows:
+
+\`<owner>/<repo>/<optional path>@<commit SHA> # <version tag relating to the SHA>\`
+
+<details>
+<summary>Examples</summary>
+
+\`\`\`
+actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
+
+smartcontractkit/chainlink-github-actions/github-app-token-issuer@5874ff7211cf5a5a2670bb010fbff914eaaae138 # v2.3.12
+\`\`\`
+</details>
+
+##### <ref> is not a valid SHA
+
+* Please reference a specific commit. This is because tags are mutable and pose a security risk
+* Do not use things like \`@main\`, \`@branch/feature\`, \`@v4\`, or \`@v4.0.0\`.
+
+##### No version comment found
+
+* Ensure you have left a comment indicating the git tag (or version) associated with the SHA reference.
+* \`@<commit> # v4.0.0\`
+
+##### Action is using node...
+
+* The action added is supposed to be run using a version that is not \`node20\`. This might create issues due to Github deprecating actions using \`node16\` and earlier.
+
+</details>
+
+<details>
+<summary>Actions Runners (runners)</summary>
+
+This validation is required to limit the cost of high cost runners. See [Github Actions Runner Guidance](https://smartcontract-it.atlassian.net/l/cp/Rw0Gc08x).
+For specific runner costs see "[What are the per-minute costs of the runners?](https://smartcontract-it.atlassian.net/wiki/spaces/RE/pages/861241466/Github+Actions+Runner+Guidance#What-are-the-per-minute-costs-of-the-runners%3F)"
+
+##### \`runner-macos\`
+
+* MacOS runners are very expensive in comparison to Ubuntu runners. If you need ARM64 architecture, consider using the new ARM64-based Ubuntu runners.
+* If you need a MacOS runner, consider using the base runner especially if this is a public repository.
+* If you must use an upgraded runner then see Ignoring Errors section below.
+
+##### \`runner-ubuntu\`
+
+* Per-minute compute costs scale with the number of cores. The base Ubuntu runner is the most cost-effective, especially for public repositories.
+* If you must use an upgraded runner then see Ignoring Errors section below.
+
+</details>
+
+### Ignoring Errors
+
+You can use the following string to ignore a line from validation \`ghv-ignore!\` (must be inlined).
+
+When adding this it will trigger an error, this is expected. Please reach out to \`#team-releng\` for approval and bypass.
+
+<details>
+<summary>Examples</summary>
+
+\`\`\`
+runs-on: ubuntu-latest-99cores-999GB # ghv-ignore!
+
+uses: org/action@sha # v1.0.0-node16 ghv-ignore!
+\`\`\`
+</details>
+",
+            ],
+          ],
+          "results": [
+            {
+              "type": "return",
+              "value": [Circular],
+            },
+          ],
+        },
+        "addSeparator": [MockFunction spy] {
+          "calls": [
+            [],
+          ],
+          "results": [
+            {
+              "type": "return",
+              "value": [Circular],
+            },
+          ],
+        },
+        "addTable": [MockFunction spy] {
+          "calls": [
+            [
+              [
+                [
+                  {
+                    "data": "Filename",
+                    "header": true,
+                  },
+                  {
+                    "data": "Line Number",
+                    "header": true,
+                  },
+                  {
+                    "data": "Level",
+                    "header": true,
+                  },
+                  {
+                    "data": "Type",
+                    "header": true,
+                  },
+                  {
+                    "data": "Message",
+                    "header": true,
+                  },
+                ],
+              ],
+            ],
+          ],
+          "results": [
+            {
+              "type": "return",
+              "value": [Circular],
+            },
+          ],
+        },
+        "write": [MockFunction spy] {
+          "calls": [
+            [],
+          ],
+          "results": [
+            {
+              "type": "return",
+              "value": [Circular],
+            },
+          ],
+        },
+      },
+    },
+  ],
+}
+`;
+
+exports[`setSummary > should set summary with no input 1`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        [
+          {
+            "data": "Filename",
+            "header": true,
+          },
+          {
+            "data": "Line Number",
+            "header": true,
+          },
+          {
+            "data": "Level",
+            "header": true,
+          },
+          {
+            "data": "Type",
+            "header": true,
+          },
+          {
+            "data": "Message",
+            "header": true,
+          },
+        ],
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": {
+        "addRaw": [MockFunction spy] {
+          "calls": [
+            [
+              "
+
+
+This CI step validates Github Actions workflows. If invoked by a pull request, it will only operate on the changed files.
+
+It currently validates: Actions References, Actions Runner Types
+
+### Fixing Errors
+
+<details>
+<summary>Action References (sha-ref, version-comment, node-version) </summary>
+
+This validation is required to ensure that the action references use immutable SHAs, have a version comment, and are not using node16 or earlier.
+
+The proper format for referencing a Github Action external to the repository is as follows:
+
+\`<owner>/<repo>/<optional path>@<commit SHA> # <version tag relating to the SHA>\`
+
+<details>
+<summary>Examples</summary>
+
+\`\`\`
+actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
+
+smartcontractkit/chainlink-github-actions/github-app-token-issuer@5874ff7211cf5a5a2670bb010fbff914eaaae138 # v2.3.12
+\`\`\`
+</details>
+
+##### <ref> is not a valid SHA
+
+* Please reference a specific commit. This is because tags are mutable and pose a security risk
+* Do not use things like \`@main\`, \`@branch/feature\`, \`@v4\`, or \`@v4.0.0\`.
+
+##### No version comment found
+
+* Ensure you have left a comment indicating the git tag (or version) associated with the SHA reference.
+* \`@<commit> # v4.0.0\`
+
+##### Action is using node...
+
+* The action added is supposed to be run using a version that is not \`node20\`. This might create issues due to Github deprecating actions using \`node16\` and earlier.
+
+</details>
+
+<details>
+<summary>Actions Runners (runners)</summary>
+
+This validation is required to limit the cost of high cost runners. See [Github Actions Runner Guidance](https://smartcontract-it.atlassian.net/l/cp/Rw0Gc08x).
+For specific runner costs see "[What are the per-minute costs of the runners?](https://smartcontract-it.atlassian.net/wiki/spaces/RE/pages/861241466/Github+Actions+Runner+Guidance#What-are-the-per-minute-costs-of-the-runners%3F)"
+
+##### \`runner-macos\`
+
+* MacOS runners are very expensive in comparison to Ubuntu runners. If you need ARM64 architecture, consider using the new ARM64-based Ubuntu runners.
+* If you need a MacOS runner, consider using the base runner especially if this is a public repository.
+* If you must use an upgraded runner then see Ignoring Errors section below.
+
+##### \`runner-ubuntu\`
+
+* Per-minute compute costs scale with the number of cores. The base Ubuntu runner is the most cost-effective, especially for public repositories.
+* If you must use an upgraded runner then see Ignoring Errors section below.
+
+</details>
+
+### Ignoring Errors
+
+You can use the following string to ignore a line from validation \`ghv-ignore!\` (must be inlined).
+
+When adding this it will trigger an error, this is expected. Please reach out to \`#team-releng\` for approval and bypass.
+
+<details>
+<summary>Examples</summary>
+
+\`\`\`
+runs-on: ubuntu-latest-99cores-999GB # ghv-ignore!
+
+uses: org/action@sha # v1.0.0-node16 ghv-ignore!
+\`\`\`
+</details>
+",
+            ],
+          ],
+          "results": [
+            {
+              "type": "return",
+              "value": [Circular],
+            },
+          ],
+        },
+        "addSeparator": [MockFunction spy] {
+          "calls": [
+            [],
+          ],
+          "results": [
+            {
+              "type": "return",
+              "value": [Circular],
+            },
+          ],
+        },
+        "addTable": [MockFunction spy] {
+          "calls": [
+            [
+              [
+                [
+                  {
+                    "data": "Filename",
+                    "header": true,
+                  },
+                  {
+                    "data": "Line Number",
+                    "header": true,
+                  },
+                  {
+                    "data": "Level",
+                    "header": true,
+                  },
+                  {
+                    "data": "Type",
+                    "header": true,
+                  },
+                  {
+                    "data": "Message",
+                    "header": true,
+                  },
+                ],
+              ],
+            ],
+          ],
+          "results": [
+            {
+              "type": "return",
+              "value": [Circular],
+            },
+          ],
+        },
+        "write": [MockFunction spy] {
+          "calls": [
+            [],
+          ],
+          "results": [
+            {
+              "type": "return",
+              "value": [Circular],
+            },
+          ],
+        },
+      },
+    },
+  ],
+}
+`;
+
+exports[`setSummary > should set summary with single file 1`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        [
+          {
+            "data": "Filename",
+            "header": true,
+          },
+          {
+            "data": "Line Number",
+            "header": true,
+          },
+          {
+            "data": "Level",
+            "header": true,
+          },
+          {
+            "data": "Type",
+            "header": true,
+          },
+          {
+            "data": "Message",
+            "header": true,
+          },
+        ],
+        [
+          {
+            "data": "foo.yml",
+            "rowspan": "2",
+          },
+          {
+            "data": "<a href="prefix.com/foo.yml#L1">1</a>",
+            "rowspan": "1",
+          },
+          {
+            "data": "error",
+          },
+          {
+            "data": "sha-ref",
+          },
+          {
+            "data": "sha ref error",
+          },
+        ],
+        [
+          {
+            "data": "<a href="prefix.com/foo.yml#L3">3</a>",
+            "rowspan": "1",
+          },
+          {
+            "data": "warning",
+          },
+          {
+            "data": "version-comment",
+          },
+          {
+            "data": "version comment warning",
+          },
+        ],
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": {
+        "addRaw": [MockFunction spy] {
+          "calls": [
+            [
+              "
+
+
+This CI step validates Github Actions workflows. If invoked by a pull request, it will only operate on the changed files.
+
+It currently validates: Actions References, Actions Runner Types
+
+### Fixing Errors
+
+<details>
+<summary>Action References (sha-ref, version-comment, node-version) </summary>
+
+This validation is required to ensure that the action references use immutable SHAs, have a version comment, and are not using node16 or earlier.
+
+The proper format for referencing a Github Action external to the repository is as follows:
+
+\`<owner>/<repo>/<optional path>@<commit SHA> # <version tag relating to the SHA>\`
+
+<details>
+<summary>Examples</summary>
+
+\`\`\`
+actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
+
+smartcontractkit/chainlink-github-actions/github-app-token-issuer@5874ff7211cf5a5a2670bb010fbff914eaaae138 # v2.3.12
+\`\`\`
+</details>
+
+##### <ref> is not a valid SHA
+
+* Please reference a specific commit. This is because tags are mutable and pose a security risk
+* Do not use things like \`@main\`, \`@branch/feature\`, \`@v4\`, or \`@v4.0.0\`.
+
+##### No version comment found
+
+* Ensure you have left a comment indicating the git tag (or version) associated with the SHA reference.
+* \`@<commit> # v4.0.0\`
+
+##### Action is using node...
+
+* The action added is supposed to be run using a version that is not \`node20\`. This might create issues due to Github deprecating actions using \`node16\` and earlier.
+
+</details>
+
+<details>
+<summary>Actions Runners (runners)</summary>
+
+This validation is required to limit the cost of high cost runners. See [Github Actions Runner Guidance](https://smartcontract-it.atlassian.net/l/cp/Rw0Gc08x).
+For specific runner costs see "[What are the per-minute costs of the runners?](https://smartcontract-it.atlassian.net/wiki/spaces/RE/pages/861241466/Github+Actions+Runner+Guidance#What-are-the-per-minute-costs-of-the-runners%3F)"
+
+##### \`runner-macos\`
+
+* MacOS runners are very expensive in comparison to Ubuntu runners. If you need ARM64 architecture, consider using the new ARM64-based Ubuntu runners.
+* If you need a MacOS runner, consider using the base runner especially if this is a public repository.
+* If you must use an upgraded runner then see Ignoring Errors section below.
+
+##### \`runner-ubuntu\`
+
+* Per-minute compute costs scale with the number of cores. The base Ubuntu runner is the most cost-effective, especially for public repositories.
+* If you must use an upgraded runner then see Ignoring Errors section below.
+
+</details>
+
+### Ignoring Errors
+
+You can use the following string to ignore a line from validation \`ghv-ignore!\` (must be inlined).
+
+When adding this it will trigger an error, this is expected. Please reach out to \`#team-releng\` for approval and bypass.
+
+<details>
+<summary>Examples</summary>
+
+\`\`\`
+runs-on: ubuntu-latest-99cores-999GB # ghv-ignore!
+
+uses: org/action@sha # v1.0.0-node16 ghv-ignore!
+\`\`\`
+</details>
+",
+            ],
+          ],
+          "results": [
+            {
+              "type": "return",
+              "value": [Circular],
+            },
+          ],
+        },
+        "addSeparator": [MockFunction spy] {
+          "calls": [
+            [],
+          ],
+          "results": [
+            {
+              "type": "return",
+              "value": [Circular],
+            },
+          ],
+        },
+        "addTable": [MockFunction spy] {
+          "calls": [
+            [
+              [
+                [
+                  {
+                    "data": "Filename",
+                    "header": true,
+                  },
+                  {
+                    "data": "Line Number",
+                    "header": true,
+                  },
+                  {
+                    "data": "Level",
+                    "header": true,
+                  },
+                  {
+                    "data": "Type",
+                    "header": true,
+                  },
+                  {
+                    "data": "Message",
+                    "header": true,
+                  },
+                ],
+                [
+                  {
+                    "data": "foo.yml",
+                    "rowspan": "2",
+                  },
+                  {
+                    "data": "<a href="prefix.com/foo.yml#L1">1</a>",
+                    "rowspan": "1",
+                  },
+                  {
+                    "data": "error",
+                  },
+                  {
+                    "data": "sha-ref",
+                  },
+                  {
+                    "data": "sha ref error",
+                  },
+                ],
+                [
+                  {
+                    "data": "<a href="prefix.com/foo.yml#L3">3</a>",
+                    "rowspan": "1",
+                  },
+                  {
+                    "data": "warning",
+                  },
+                  {
+                    "data": "version-comment",
+                  },
+                  {
+                    "data": "version comment warning",
+                  },
+                ],
+              ],
+            ],
+          ],
+          "results": [
+            {
+              "type": "return",
+              "value": [Circular],
+            },
+          ],
+        },
+        "write": [MockFunction spy] {
+          "calls": [
+            [],
+          ],
+          "results": [
+            {
+              "type": "return",
+              "value": [Circular],
+            },
+          ],
+        },
+      },
+    },
+  ],
+}
+`;

@@ -13,7 +13,7 @@ inputs:
       docker container name. Required if using multiple invocations of this in
       the same job."
     required: false
-    default: default
+    default: execute-api
   use-tls:
     description:
       "Enable TLS for the local sigv4 proxy container. Ignored if `use-k8s:

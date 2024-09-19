@@ -89,6 +89,9 @@ importers:
       update-ts-references:
         specifier: ^3.3.0
         version: 3.3.0
+      vitest:
+        specifier: ^2.0.0
+        version: 2.0.4(@types/node@20.14.9)(jsdom@24.1.0)
 
   actions/check-git-tag-for-monorepo: {}
 
@@ -131,6 +134,8 @@ importers:
   actions/crib-deploy-environment: {}
 
   actions/crib-purge-environment: {}
+
+  actions/ctf-build-test-image: {}
 
   actions/dispatch-workflow: {}
 
