@@ -3,23 +3,23 @@
 exports[`e2e tests > chainlink > non pull request mode > should fail on wsrpc 1`] = `
 [
   [
-    "[./test/__fixtures__/chainlink/c97838d904aa7ac07fc4a48cd05db4c4859e5355/core/scripts/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 // indirect not on default branch (main).
-Version(tag): v0.7.3
-Tree: https://github.com/smartcontractkit/wsrpc/tree/v0.7.3
-Commit: https://github.com/smartcontractkit/wsrpc/commit/c691d6729bfbdbac704df13decf5e2e37eb3b672",
+    "[./test/__fixtures__/chainlink/1a9f26932d8132c0326016d954a852faca626a05/integration-tests/go.mod] dependency github.com/smartcontractkit/ccip-owner-contracts@v0.0.0-20240910151738-3f318badcfb5 not on default branch (main).
+Version(commit): 3f318badcfb5
+Tree: https://github.com/smartcontractkit/ccip-owner-contracts/tree/3f318badcfb5
+Commit: https://github.com/smartcontractkit/ccip-owner-contracts/commit/3f318badcfb5 ",
     {
-      "file": "./test/__fixtures__/chainlink/c97838d904aa7ac07fc4a48cd05db4c4859e5355/core/scripts/go.mod",
-      "startLine": 282,
+      "file": "./test/__fixtures__/chainlink/1a9f26932d8132c0326016d954a852faca626a05/integration-tests/go.mod",
+      "startLine": 38,
     },
   ],
   [
-    "[./test/__fixtures__/chainlink/c97838d904aa7ac07fc4a48cd05db4c4859e5355/go.mod] dependency github.com/smartcontractkit/wsrpc@v0.7.3 not on default branch (main).
-Version(tag): v0.7.3
-Tree: https://github.com/smartcontractkit/wsrpc/tree/v0.7.3
-Commit: https://github.com/smartcontractkit/wsrpc/commit/c691d6729bfbdbac704df13decf5e2e37eb3b672",
+    "[./test/__fixtures__/chainlink/1a9f26932d8132c0326016d954a852faca626a05/integration-tests/load/go.mod] dependency github.com/smartcontractkit/ccip-owner-contracts@v0.0.0-20240910151738-3f318badcfb5 // indirect not on default branch (main).
+Version(commit): 3f318badcfb5
+Tree: https://github.com/smartcontractkit/ccip-owner-contracts/tree/3f318badcfb5
+Commit: https://github.com/smartcontractkit/ccip-owner-contracts/commit/3f318badcfb5 ",
     {
-      "file": "./test/__fixtures__/chainlink/c97838d904aa7ac07fc4a48cd05db4c4859e5355/go.mod",
-      "startLine": 87,
+      "file": "./test/__fixtures__/chainlink/1a9f26932d8132c0326016d954a852faca626a05/integration-tests/load/go.mod",
+      "startLine": undefined,
     },
   ],
 ]
@@ -53,68 +53,17 @@ exports[`e2e tests > chainlink > pull request mode > should ignore tagged wsrpc 
 
 exports[`e2e tests > chainlink > pull request mode > should ignore tagged wsrpc deps 2`] = `"validation successful for all go.mod dependencies"`;
 
-exports[`e2e tests > chainlink > pull request mode > should pass on this diff 1`] = `
-[
-  [
-    "[./test/__fixtures__/chainlink/da8b9a5504339746d955cd745440ed3a012431de/core/scripts/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
-Version(commit): b3b91517de16
-Tree: https://github.com/smartcontractkit/go-plugin/tree/b3b91517de16
-Commit: https://github.com/smartcontractkit/go-plugin/commit/b3b91517de16 ",
-    {
-      "file": "./test/__fixtures__/chainlink/da8b9a5504339746d955cd745440ed3a012431de/core/scripts/go.mod",
-      "startLine": 333,
-    },
-  ],
-  [
-    "[./test/__fixtures__/chainlink/da8b9a5504339746d955cd745440ed3a012431de/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
-Version(commit): b3b91517de16
-Tree: https://github.com/smartcontractkit/go-plugin/tree/b3b91517de16
-Commit: https://github.com/smartcontractkit/go-plugin/commit/b3b91517de16 ",
-    {
-      "file": "./test/__fixtures__/chainlink/da8b9a5504339746d955cd745440ed3a012431de/go.mod",
-      "startLine": 337,
-    },
-  ],
-  [
-    "[./test/__fixtures__/chainlink/da8b9a5504339746d955cd745440ed3a012431de/integration-tests/go.mod] dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16 not on default branch (main).
-Version(commit): b3b91517de16
-Tree: https://github.com/smartcontractkit/go-plugin/tree/b3b91517de16
-Commit: https://github.com/smartcontractkit/go-plugin/commit/b3b91517de16 ",
-    {
-      "file": "./test/__fixtures__/chainlink/da8b9a5504339746d955cd745440ed3a012431de/integration-tests/go.mod",
-      "startLine": 487,
-    },
-  ],
-]
-`;
+exports[`e2e tests > chainlink > pull request mode > should pass on this diff 1`] = `[]`;
 
-exports[`e2e tests > chainlink > pull request mode > should pass on this diff 2`] = `
-"
-#### Fixing Errors
-
-<details>
-<summary>Instructions</summary>
-
-Types of Errors:
-
-1. Dependency not on default branch - Check for the dependency's commit on the upstream repository and use one of the commits from the default branch of the upstream repository. If you click on the commit link that gets generated, on the UI you will see the branches that a commit belongs to, which will not be the default branch.
-
-NOTE: If you see that the commit should be on the default branch, but it isn't, this means that the "default branch" setting of the repository is incorrect. Please update the default branch of the repository to the correct branch.
-
-e.g., 
-- For dependency github.com/smartcontractkit/grpc-proxy@v0.1.0, upstream repository is \`github.com/smartcontractkit/grpc-proxy\` and \`v0.1.0\` is the tag that produced the dependency, which isn't created from the default branch.
-  Update it to use one of the tags from the default repository using \`go mod tidy\`.
-- For dependency github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16, upstream repository is \`github.com/smartcontractkit/go-plugin\` and \`b3b91517de16\` is the commit that produced the dependency, which isn't on the default branch.
-  Update it to use one of the commits from the default repository using \`go mod tidy\`. Ideally we should update it to use a tag like the example above.
-
-</details>
-
-"
-`;
+exports[`e2e tests > chainlink > pull request mode > should pass on this diff 2`] = `"validation successful for all go.mod dependencies"`;
 
 exports[`e2e tests > chainlink > pull request mode > should pass on this diff 3`] = `[]`;
 
 exports[`e2e tests > chainlink > pull request mode > should pass on this diff 4`] = `"validation successful for all go.mod dependencies"`;
+
+exports[`e2e tests > chainlink > pull request mode > shoulid pass on this diff 1`] = `[]`;
+
+exports[`e2e tests > chainlink > pull request mode > shoulid pass on this diff 2`] = `"validation successful for all go.mod dependencies"`;
 
 exports[`e2e tests > chainlink-data-streams > non pull request mode > should produce a diff on go-plugin 1`] = `
 [
