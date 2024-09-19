@@ -29,7 +29,9 @@ inputs:
       "ECR private registry account ID in Production, needed for GAP."
     required: false
   github-token:
-    description: "The `GITHUB_TOKEN` issued for the workflow."
+    description:
+      "The `GITHUB_TOKEN` issued for the workflow. It is required unless the
+      action is called from the crib repo."
     default: ${{ github.token }}
     required: false
   ingress-base-domain:
