@@ -92,7 +92,7 @@ describe("e2e tests", () => {
     annotationSpy.mockClear();
   });
 
-  describe.skip("chainlink", () => {
+  describe("chainlink", () => {
     describe("non pull request mode", () => {
       it("should fail on wsrpc", async () => {
         const nockDone = await setupNonPR(
