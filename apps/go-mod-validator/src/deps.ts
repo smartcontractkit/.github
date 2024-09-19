@@ -238,13 +238,15 @@ export function lineForDependencyPathFinder() {
    */
   return function getDepPath(goModPath: string, depPath: string): number {
     if (!cache[goModPath]) {
-      cache[goModPath] = readFileSync(goModPath, "utf-8").split("\n").map(l => l.trim());
+      cache[goModPath] = readFileSync(goModPath, "utf-8")
+        .split("\n")
+        .map((l) => l.trim());
     }
 
     let line = -1;
     for (let i = 0; i < cache[goModPath].length; i++) {
       // Given github.com/smartcontractkit/chainlink-common v0.2.3-0.20240918210534-564164004d06, then split by space and take the first part
-      if (cache[goModPath][i].includes(depPath + ' ')) {
+      if (cache[goModPath][i].includes(depPath + " ")) {
         if (line !== -1) {
           throw new Error(`duplicate dependency path found: ${depPath}`);
         }
