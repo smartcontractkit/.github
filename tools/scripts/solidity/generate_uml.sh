@@ -18,11 +18,11 @@ flatten_and_generate_uml() {
     local FILE=$2
     local TARGET_DIR=$3
 
+    # we want to handle non-zero exit codes ourselves
     set +e
     FLATTENED_FILE="$TARGET_DIR/flattened_$(basename "$FILE")"
     echo "::debug::Flattening $FILE to $FLATTENED_FILE"
-    forge flatten "$FILE" -o "$FLATTENED_FILE" --root "$FOUNDRY_DIR"
-    if [[ $? -ne 0 ]]; then
+    if ! forge flatten "$FILE" -o "$FLATTENED_FILE" --root "$FOUNDRY_DIR"; then
         >&2 echo "::error::Failed to flatten $FILE"
         FAILED_FILES+=("$FILE")
         return
@@ -31,8 +31,7 @@ flatten_and_generate_uml() {
     OUTPUT_FILE=${FLATTENED_FILE//"flattened_"/""}
     OUTPUT_FILE_SVG="${OUTPUT_FILE%.sol}.svg"
     echo "::debug::Generating SVG UML for $FLATTENED_FILE to $OUTPUT_FILE_SVG"
-    sol2uml "$FLATTENED_FILE" -o "$OUTPUT_FILE_SVG"
-    if [[ $? -ne 0 ]]; then
+    if ! sol2uml "$FLATTENED_FILE" -o "$OUTPUT_FILE_SVG"; then
         >&2 echo "::error::Failed to generate UML diagram in SVG format for $FILE"
         FAILED_FILES+=("$FILE")
         rm "$FLATTENED_FILE"
@@ -40,8 +39,7 @@ flatten_and_generate_uml() {
     fi
     OUTPUT_FILE_DOT="${OUTPUT_FILE%.sol}.dot"
     echo "::debug::Generating DOT UML for $FLATTENED_FILE to $OUTPUT_FILE_DOT"
-    sol2uml "$FLATTENED_FILE" -o "$OUTPUT_FILE_DOT" -f dot
-    if [[ $? -ne 0 ]]; then
+    if ! sol2uml "$FLATTENED_FILE" -o "$OUTPUT_FILE_DOT" -f dot; then
         >&2 echo "::error::Failed to generate UML diagram in DOT format for $FILE"
         FAILED_FILES+=("$FILE")
         rm "$FLATTENED_FILE"
@@ -61,7 +59,7 @@ process_selected_files() {
 
     for FILE in "${FILES[@]}"; do
         FILE=${FILE//\"/}
-        MATCHES=($(find . -type f -path "*/$FILE"))
+        mapfile -t MATCHES < <(find . -type f -path "*/$FILE")
 
         if [[ ${#MATCHES[@]} -gt 1 ]]; then
             >&2 echo "::error:: Multiple matches found for $FILE:"

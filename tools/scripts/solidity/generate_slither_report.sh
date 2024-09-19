@@ -38,10 +38,9 @@ detect_solc_version() {
    SOLC_IN_PROFILE=$(echo "$SOLC_IN_PROFILE" | tr -d "'\"")
    echo "::debug::Detected Solidity version in profile: $SOLC_IN_PROFILE"
 
+   # we want to handle non-zero exit codes ourselves
    set +e
-   SOLCVER=$(extract_pragma "$FILE")
-
-   if [[ $? -ne 0 ]]; then
+   if ! SOLCVER=$(extract_pragma "$FILE"); then
      >&2 echo "::error:: Failed to extract the Solidity version from $FILE."
      return 1
    fi
@@ -116,9 +115,9 @@ run_slither() {
       return 1
     fi
 
+   # we want to handle non-zero exit codes ourselves
     set +e
-    detect_solc_version "$FOUNDRY_DIR" "$FILE"
-    if [[ $? -ne 0 ]]; then
+    if ! detect_solc_version "$FOUNDRY_DIR" "$FILE"; then
         >&2 echo "::error::Failed to select Solc version for $FILE"
         return 1
     fi
@@ -129,7 +128,10 @@ run_slither() {
         return 0
     fi
     set -e
+    # there's nothing to be expanded, false-positive
+    # shellcheck disable=SC2016
     output=$(echo "$output" | sed '/\*\*THIS CHECKLIST IS NOT COMPLETE\*\*. Use `--show-ignored-findings` to show all the results./d'  | sed '/Summary/d')
+    # shellcheck enable=SC2016
 
     echo "# Summary for $FILE" > "$SLITHER_OUTPUT_FILE"
     echo "$output" >> "$SLITHER_OUTPUT_FILE"
@@ -151,10 +153,9 @@ process_files() {
     done
 }
 
+# we want to handle non-zero exit codes ourselves
 set +e
-process_files "$TARGET_DIR" "${FILES[@]}"
-
-if [[ $? -ne 0 ]]; then
+if ! process_files "$TARGET_DIR" "${FILES[@]}"; then
     >&2 echo "::warning::Failed to generate some Slither reports"
     exit 0
 fi
