@@ -1,0 +1,7 @@
+{
+  "name": "setup-solc-select",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "actions/setup-solc-select",
+  "targets": {}
+}

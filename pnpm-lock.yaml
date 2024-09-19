@@ -211,6 +211,10 @@ importers:
 
   actions/setup-renovate: {}
 
+  actions/setup-slither: {}
+
+  actions/setup-solc-select: {}
+
   actions/signed-commits:
     dependencies:
       '@actions/core':
@@ -317,6 +321,8 @@ importers:
   actions/slack-notify-git-ref: {}
 
   actions/update-actions: {}
+
+  actions/validate-solidity-artifacts: {}
 
   actions/wait-for-workflow-job: {}
 
