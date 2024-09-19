@@ -134,7 +134,7 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
-      - name: Checkout the repo
+      - name: Checkout the caller repository
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
         with:
           fetch-depth: 0
@@ -300,7 +300,7 @@ jobs:
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
         with:
           repository: smartcontractkit/.github
-          ref: 10bec6ef7e8fefdcd9bf55f853e9e15835f61c8f
+          ref: 9c0d065116c1d45d9cfe9cf642ef6344e93da1cd
           path: ./dot_github
 
       - name: Setup NodeJS
@@ -386,7 +386,7 @@ jobs:
           retention-days: 7
 
       - name: Validate if all Slither run for all contracts
-        uses: smartcontractkit/.github/actions/validate-solidity-artifacts@10bec6ef7e8fefdcd9bf55f853e9e15835f61c8f
+        uses: smartcontractkit/.github/actions/validate-solidity-artifacts@9c0d065116c1d45d9cfe9cf642ef6344e93da1cd
         with:
           validate_slither_reports: ${{ inputs.generate_slither_reports }}
           validate_uml_diagrams: ${{ inputs.generate_uml_diagrams }}
@@ -455,7 +455,7 @@ jobs:
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
         with:
           repository: smartcontractkit/.github
-          ref: f0b04120496dc2b73996af9a41f62d56f77abc1d
+          ref: 9c0d065116c1d45d9cfe9cf642ef6344e93da1cd
           path: ./dot_github
 
       - name: Setup NodeJS
