@@ -17,7 +17,7 @@ extract_pragma() {
     >&2 echo ":error::$FILE is not a file or it could not be found. Exiting."
     return 1
   fi
-  SOLCVER="$(echo "$SOLCVER" | sed 's/[^0-9\.^]//g')"
+  SOLCVER="${SOLCVER//[^0-9.^]/}"
   >&2 echo "::debug::Detected Solidity version in pragma: $SOLCVER"
   echo "$SOLCVER"
 }
@@ -74,7 +74,7 @@ detect_solc_version() {
 
    echo "Will use $SOLC_TO_USE"
    SOLC_TO_USE=$(echo "$SOLC_TO_USE" | tr -d "'\"")
-   SOLC_TO_USE="$(echo "$SOLC_TO_USE" | sed 's/[^0-9\.]//g')"
+   SOLC_TO_USE="${SOLC_TO_USE//[^0-9.]/}"
 
    INSTALLED_VERSIONS=$(solc-select versions)
 
@@ -123,15 +123,16 @@ run_slither() {
     fi
 
     SLITHER_OUTPUT_FILE="$TARGET_DIR/$(basename "${FILE%.sol}")-slither-report.md"
+    # quoting "$SLITHER_EXTRA_PARAMS" brakes the script
+    # shellcheck disable=SC2086
     if ! output=$(slither --config-file "$CONFIG_FILE" "$FILE" --checklist --markdown-root "$REPO_URL" --fail-none $SLITHER_EXTRA_PARAMS); then
-        >&2 echo "::warning::Slither failed for $FILE"
+        >&2 echo "::debug::Slither failed for $FILE"
         return 0
     fi
     set -e
     # there's nothing to be expanded, false-positive
     # shellcheck disable=SC2016
     output=$(echo "$output" | sed '/\*\*THIS CHECKLIST IS NOT COMPLETE\*\*. Use `--show-ignored-findings` to show all the results./d'  | sed '/Summary/d')
-    # shellcheck enable=SC2016
 
     echo "# Summary for $FILE" > "$SLITHER_OUTPUT_FILE"
     echo "$output" >> "$SLITHER_OUTPUT_FILE"
@@ -143,7 +144,7 @@ run_slither() {
 
 process_files() {
     local TARGET_DIR=$1
-    local FILES=(${2//,/ })  # Split the comma-separated list into an array
+    local FILES=("${2//,/ }")  # Split the comma-separated list into an array
 
     mkdir -p "$TARGET_DIR"
 

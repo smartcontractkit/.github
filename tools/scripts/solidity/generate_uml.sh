@@ -23,7 +23,7 @@ flatten_and_generate_uml() {
     FLATTENED_FILE="$TARGET_DIR/flattened_$(basename "$FILE")"
     echo "::debug::Flattening $FILE to $FLATTENED_FILE"
     if ! forge flatten "$FILE" -o "$FLATTENED_FILE" --root "$FOUNDRY_DIR"; then
-        >&2 echo "::error::Failed to flatten $FILE"
+        >&2 echo "::warning::Failed to flatten $FILE"
         FAILED_FILES+=("$FILE")
         return
     fi
@@ -32,7 +32,7 @@ flatten_and_generate_uml() {
     OUTPUT_FILE_SVG="${OUTPUT_FILE%.sol}.svg"
     echo "::debug::Generating SVG UML for $FLATTENED_FILE to $OUTPUT_FILE_SVG"
     if ! sol2uml "$FLATTENED_FILE" -o "$OUTPUT_FILE_SVG"; then
-        >&2 echo "::error::Failed to generate UML diagram in SVG format for $FILE"
+        >&2 echo "::warning::Failed to generate UML diagram in SVG format for $FILE"
         FAILED_FILES+=("$FILE")
         rm "$FLATTENED_FILE"
         return
@@ -40,7 +40,7 @@ flatten_and_generate_uml() {
     OUTPUT_FILE_DOT="${OUTPUT_FILE%.sol}.dot"
     echo "::debug::Generating DOT UML for $FLATTENED_FILE to $OUTPUT_FILE_DOT"
     if ! sol2uml "$FLATTENED_FILE" -o "$OUTPUT_FILE_DOT" -f dot; then
-        >&2 echo "::error::Failed to generate UML diagram in DOT format for $FILE"
+        >&2 echo "::warning::Failed to generate UML diagram in DOT format for $FILE"
         FAILED_FILES+=("$FILE")
         rm "$FLATTENED_FILE"
         return
@@ -53,7 +53,7 @@ flatten_and_generate_uml() {
 process_selected_files() {
     local FOUNDRY_DIR=$1
     local TARGET_DIR=$2
-    local FILES=(${3//,/ })  # Split the comma-separated list into an array
+    local FILES=("${3//,/ }")  # Split the comma-separated list into an array
 
     mkdir -p "$TARGET_DIR"
 
@@ -80,7 +80,7 @@ process_selected_files() {
 process_selected_files "$FOUNDRY_DIR" "$TARGET_DIR" "${FILES[@]}"
 
 if [[ "${#FAILED_FILES[@]}" -gt 0 ]]; then
-    error_message="::error::Failed to generate UML diagrams for ${#FAILED_FILES[@]} files:\n"
+    error_message="Failed to generate UML diagrams for ${#FAILED_FILES[@]} files:\n"
     for FILE in "${FAILED_FILES[@]}"; do
         error_message+="  $FILE\n"
         echo "$FILE" >> "$TARGET_DIR/uml_generation_failures.txt"

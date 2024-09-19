@@ -80,14 +80,15 @@ runs:
           fi
         done
 
-        if [ ${#missing_svgs[@]} -gt 0 ]; then
-            echo "::error::Missing UML diagrams for files: ${missing_svgs[@]}"
-            echo "# Warning!" >> $GITHUB_STEP_SUMMARY
-            echo "## Reason: Missing UML diagrams for files:" >> $GITHUB_STEP_SUMMARY
-            for file in "${missing_svgs[@]}"; do
-              echo " $file" >> $GITHUB_STEP_SUMMARY
-            done
-            echo "## Suggested solution: Try to generate them locally or using a different tool" >> $GITHUB_STEP_SUMMARY
+        if [ ${#missing_svgs[@]} -gt 0 ]; then       
+          {
+              echo "# Warning!"
+              echo "## Reason: Missing UML diagrams for ${#missing_svgs[@]} files:" 
+          } >> $GITHUB_STEP_SUMMARY
+          for file in "${missing_svgs[@]}"; do
+            echo " $file" >> $GITHUB_STEP_SUMMARY
+          done
+          echo "## Suggested solution: Try to generate them locally or using a different tool" >> $GITHUB_STEP_SUMMARY
         else 
             echo "All UML diagrams generated successfully"
         fi
@@ -108,13 +109,14 @@ runs:
         done
 
         if [ ${#missing_reports[@]} -gt 0 ]; then
-            echo "Error: Missing Slither reports for files: ${missing_reports[@]}"
-            echo "# Warning!" >> $GITHUB_STEP_SUMMARY
-            echo "## Reason: Missing Slither reports for files:" >> $GITHUB_STEP_SUMMARY
-            for file in "${missing_reports[@]}"; do
-              echo " $file" >> $GITHUB_STEP_SUMMARY
-            done
-            echo "## Suggested solution: Try to generate them them locally" >> $GITHUB_STEP_SUMMARY
+          {
+              echo "# Warning!" 
+              echo "## Reason: Missing Slither reports for ${#missing_reports[@]} files:" 
+          } >> $GITHUB_STEP_SUMMARY
+          for file in "${missing_reports[@]}"; do
+            echo " $file" >> $GITHUB_STEP_SUMMARY
+          done
+          echo "## Suggested solution: Try to generate them them locally" >> $GITHUB_STEP_SUMMARY
         else 
-           echo "All Slither reports generated successfully"
+         echo "All Slither reports generated successfully"
         fi
