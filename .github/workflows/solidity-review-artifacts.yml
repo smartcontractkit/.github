@@ -1,0 +1,516 @@
+# This is a reusable workflow that generates Solidity Artifacts meant for Solidity Review process.
+# Please visit https://github.com/smartcontractkit/solidity-review-artifacts-example repository for an example of
+# how to add it to your repository.
+
+name: Solidity Review Artifacts
+on:
+  workflow_call:
+    inputs:
+      product:
+        description:
+          "product for which to generate artifacts; should be the same as
+          Foundry profile"
+        type: string
+        required: true
+      commit_to_use:
+        description:
+          "commit SHA to use for artifact generation; if empty HEAD will be used"
+        type: string
+        required: false
+      base_ref:
+        description:
+          "commit or tag to use as base reference, when looking for modified
+          Solidity files; for a new repository use empty tree commit
+          4b825dc642cb6eb9a060e54bf8d69288fbee4904 to select all files"
+        type: string
+        required: true
+      product_changes:
+        description:
+          "true or false, indicates whether there were any changes in the
+          product contracts, designed to work with dorny/paths-filter"
+        type: string
+        required: true
+      product_files:
+        description:
+          "comma-separated list of modified files in the product contracts,
+          designed to work with dorny/paths-filter"
+        type: string
+        required: true
+      changeset_changes:
+        description:
+          "true or false, indicates whether there were any changes in the
+          changeset files, designed to work with dorny/paths-filter. Set to
+          false if your project does not use changesets"
+        type: string
+        required: true
+      changeset_files:
+        description:
+          "comma-separated list of modified files in the changeset folder,
+          designed to work with dorny/paths-filter. Set to empty string if your
+          project does not use changesets"
+        type: string
+        required: true
+      foundry_version:
+        description: "foundry version to use"
+        type: string
+        required: true
+      contracts_directory:
+        description:
+          "root of directory, in which contracts and foundry.toml is located"
+        default: "."
+        type: string
+        required: false
+      generate_code_coverage:
+        description: "generate code coverage report?"
+        type: boolean
+        default: true
+        required: false
+      generate_forge_book:
+        description: "generate documentation as Forge book?"
+        type: boolean
+        default: true
+        required: false
+      generate_uml_diagrams:
+        description: "generate UML class diagrams?"
+        type: boolean
+        default: true
+        required: false
+      generate_slither_reports:
+        description: "generate Slither reports?"
+        type: boolean
+        default: true
+        required: false
+      link_with_jira:
+        description: "link generated artifacts with Jira issues?"
+        type: boolean
+        default: true
+        required: false
+      jira_host:
+        description: "Jira host"
+        type: string
+        required: false
+      default_solc_version:
+        description:
+          "solc version to install and use as default. defaults to 0.8.24"
+        type: string
+        required: false
+        default: "0.8.24"
+      slither_config_file_path:
+        description: "path to the slither config file"
+        type: string
+        required: true
+      lcov_prune_script_path:
+        description:
+          "path to the lcov_prune script (used to prune lcov report from files
+          that we are not interested in); path should be relative to
+          contracts_directory; set to empty string to skip pruning the lcov
+          report"
+        type: string
+        required: false
+        default: ""
+      install_semver:
+        description:
+          "install semver?; set to false if you already have it in your project"
+        type: boolean
+        required: false
+        default: true
+    secrets:
+      jira_username:
+        required: false
+      jira_api_token:
+        required: false
+
+env:
+  FOUNDRY_PROFILE: ci
+  # Unfortunately, we can't use the "default" field in the inputs section, because it does not have
+  # access to the workflow context
+  head_ref: ${{ inputs.commit_to_use || github.sha }}
+  artifacts_dir: review_artifacts
+
+jobs:
+  gather-basic-info:
+    name: Gather basic info
+    if: ${{ inputs.product_changes == 'true' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout the caller repository
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        with:
+          fetch-depth: 0
+
+      - name: Create artifact directory
+        shell: bash
+        run: |
+          mkdir -p ${{ env.artifacts_dir }}
+
+      - name: Copy modified changesets
+        if: ${{ inputs.changeset_changes == 'true' }}
+        run: |
+          mkdir -p "${{ env.artifacts_dir }}"/changesets
+          files="${{ inputs.changeset_files }}"
+          IFS=","
+          # shellcheck disable=SC2086
+          for changeset in $files; do
+            echo "::debug:: Copying $changeset"
+            cp $changeset "${{ env.artifacts_dir }}/changesets"
+          done
+
+      - name: Generate basic info and modified contracts list
+        shell: bash
+        run: |
+          echo "Product: ${{ inputs.product }}" > ${{ env.artifacts_dir }}/commit_sha_base_ref.txt
+          echo "Commit SHA used to generate artifacts: ${{ env.head_ref }}" >> ${{ env.artifacts_dir }}/commit_sha_base_ref.txt
+          echo "Base reference SHA used to find modified contracts: ${{ inputs.base_ref }}" >> ${{ env.artifacts_dir }}/commit_sha_base_ref.txt
+
+          IFS=',' read -r -a modified_files <<< "${{ inputs.product_files }}"
+          echo "# Modified contracts:" > ${{ env.artifacts_dir }}/modified_contracts.md
+          for file in "${modified_files[@]}"; do
+            echo " - [$file](${{ github.server_url }}/${{ github.repository }}/blob/${{ env.head_ref }}/$file)" >> ${{ env.artifacts_dir }}/modified_contracts.md
+            echo "$file" >> ${{ env.artifacts_dir }}/modified_contracts.txt
+          done
+
+      - name: Upload basic info and modified contracts list
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
+        timeout-minutes: 2
+        continue-on-error: true
+        with:
+          name: tmp-basic-info
+          path: |
+            ${{ env.artifacts_dir }}/modified_contracts.md
+            ${{ env.artifacts_dir }}/modified_contracts.txt
+            ${{ env.artifacts_dir }}/commit_sha_base_ref.txt
+            ${{ env.artifacts_dir }}/changesets
+          retention-days: 7
+
+  # some of the artifacts can only be generated on product level, and we cannot scope them to single contracts, so we need to generate them for the whole product
+  # use inputs.generate_code_coverage and inputs.generate_forge_book to control which artifacts to generate
+  coverage-and-book:
+    if:
+      ${{ inputs.product_changes == 'true' && (inputs.generate_code_coverage ==
+      true || inputs.generate_forge_book == true) }}
+    name: Generate Docs and Code Coverage reports
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    needs: [gather-basic-info]
+    steps:
+      - name: Checkout the caller repository
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        with:
+          ref: ${{ env.head_ref }}
+
+      - name: Setup NodeJS
+        uses: smartcontractkit/.github/actions/setup-nodejs@bff23e98280a3f60233e7ab2d5675a006843732c # v0.0.0
+        with:
+          package-json-directory: ${{ inputs.contracts_directory }}
+          pnpm-version: ^9.0.0
+
+      - name: Create code coverage directory
+        if: ${{ inputs.generate_code_coverage == true }}
+        shell: bash
+        working-directory: ${{ inputs.contracts_directory }}
+        run: |
+          mkdir -p code-coverage
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@8f1998e9878d786675189ef566a2e4bf24869773 # v1.2.0
+        with:
+          version: ${{ inputs.foundry_version }}
+
+      # required for code coverage report generation
+      - name: Setup LCOV
+        if: ${{ inputs.generate_code_coverage == true }}
+        uses: hrishikesh-kadam/setup-lcov@f5da1b26b0dcf5d893077a3c4f29cf78079c841d # v1.0.0
+
+      - name: Run Forge build for product contracts
+        run: |
+          forge --version
+          forge build
+        working-directory: ${{ inputs.contracts_directory }}
+        env:
+          FOUNDRY_PROFILE: ${{ inputs.product }}
+
+      - name: Run coverage for product contracts
+        if: ${{ inputs.generate_code_coverage == true }}
+        working-directory: ${{ inputs.contracts_directory }}
+        run: forge coverage --report lcov --report-file code-coverage/lcov.info
+        env:
+          FOUNDRY_PROFILE: ${{ inputs.product }}
+
+      - name: Prune lcov report
+        if:
+          ${{ inputs.generate_code_coverage == true &&
+          inputs.lcov_prune_script_path != '' }}
+        shell: bash
+        working-directory: ${{ inputs.contracts_directory }}
+        run: |
+          ${{ inputs.lcov_prune_script_path }}  ${{ inputs.product }} code-coverage/lcov.info code-coverage/lcov.info.pruned
+
+      - name: Generate Code Coverage HTML report for product contracts
+        if: ${{ inputs.generate_code_coverage == true }}
+        shell: bash
+        working-directory: ${{ inputs.contracts_directory }}
+        run: |
+          lcov_file="code-coverage/lcov.info"
+          if [[ -f "code-coverage/lcov.info.pruned" ]]; then
+            lcov_file="code-coverage/lcov.info.pruned"
+          fi
+          echo "::debug::Using $lcov_file for code coverage report generation"
+          genhtml "$lcov_file" --branch-coverage --output-directory code-coverage
+
+      - name: Run Forge doc for product contracts
+        if: ${{ inputs.generate_forge_book == true }}
+        run: forge doc --build -o forge_book
+        working-directory: ${{ inputs.contracts_directory }}
+        env:
+          FOUNDRY_PROFILE: ${{ inputs.product }}
+
+      - name: Upload Artifacts for product contracts
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
+        timeout-minutes: 2
+        continue-on-error: true
+        with:
+          name: tmp-${{ inputs.product }}-artifacts
+          path: |
+            ${{ inputs.contracts_directory }}/forge_book
+            ${{ inputs.contracts_directory }}/code-coverage/lcov-.info
+            ${{ inputs.contracts_directory }}/code-coverage
+          retention-days: 7
+
+  # we scope UML class diagrams generations and Slither reports to modified or added contracts only
+  # use inputs.generate_uml_diagrams and inputs.generate_slither_reports to control which artifacts to generate
+  uml-static-analysis:
+    if:
+      ${{ inputs.product_changes == 'true' && ( inputs.generate_uml_diagrams ==
+      true || inputs.generate_slither_reports == true) }}
+    name: Generate UML and Slither reports for modified contracts
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    needs: [gather-basic-info]
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout caller repository
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        with:
+          fetch-depth: 0
+          ref: ${{ env.head_ref }}
+
+      - name: Checkout .github repository
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        with:
+          repository: smartcontractkit/.github
+          ref: 65249c7eae628aad6e70a0c0850d981cd0074bf9
+          path: ./dot_github
+
+      - name: Setup NodeJS
+        uses: smartcontractkit/.github/actions/setup-nodejs@bff23e98280a3f60233e7ab2d5675a006843732c # v0.0.0
+        with:
+          package-json-directory: ${{ inputs.contracts_directory }}
+          pnpm-version: ^9.0.0
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@8f1998e9878d786675189ef566a2e4bf24869773 # v1.2.0
+        with:
+          version: ${{ inputs.foundry_version }}
+
+      - name: Install Sol2uml
+        if: ${{ inputs.generate_uml_diagrams == true }}
+        run: |
+          pnpm add -g sol2uml
+
+      - name: Set up Python
+        if: ${{ inputs.generate_slither_reports == true }}
+        uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f #v5.1.1
+        with:
+          python-version: "3.8"
+
+      - name: Install solc-select and solc
+        if: ${{ inputs.generate_slither_reports == true }}
+        uses: smartcontractkit/.github/actions/setup-solc-select@10bec6ef7e8fefdcd9bf55f853e9e15835f61c8f # v0.0.0
+        with:
+          to_install: ${{ inputs.default_solc_version }}
+          to_use: ${{ inputs.default_solc_version }}
+
+      - name: Install Slither
+        if: ${{ inputs.generate_slither_reports == true }}
+        uses: smartcontractkit/.github/actions/setup-slither@10bec6ef7e8fefdcd9bf55f853e9e15835f61c8f # v0.0.0
+
+      - name: Install semver
+        if:
+          ${{ inputs.generate_slither_reports == true && inputs.install_semver
+          == true }}
+        run: |
+          pnpm add -g semver
+
+      - name: Generate UML
+        if: ${{ inputs.generate_uml_diagrams == true }}
+        shell: bash
+        run: |
+          contract_list="${{ inputs.product_files }}"
+
+          # copy remappings to repository root and modify them so that solc can find dependencies
+          if [[ -n "${{ inputs.contracts_directory }}" && ("${{ inputs.contracts_directory }}" != "./" && "${{ inputs.contracts_directory }}" != ".") ]]; then
+            echo "::debug::contracts directory isn't the root directory, but ${{ inputs.contracts_directory }}."
+            echo "::debug::it's probable that remappings.txt is stored there. Copying it to root folder"
+
+            ./dot_github/tools/scripts/solidity/modify_remappings.sh "${{ inputs.contracts_directory }}" "${{ inputs.contracts_directory }}/remappings.txt"          
+            mv remappings_modified.txt remappings.txt
+          fi
+
+          ./dot_github/tools/scripts/solidity/generate_uml.sh "${{ inputs.contracts_directory }}" "${{ env.artifacts_dir }}/uml-diagrams" "$contract_list"
+
+      - name: Generate Slither Markdown reports
+        if: ${{ inputs.generate_slither_reports == true }}
+        run: |
+          contract_list="${{ inputs.product_files }}"
+
+          # without foundry.toml in the root of directory from which we execute further scripts, Slither sometimes fails to use remappings correctly          
+          if [[ -n "${{ inputs.contracts_directory }}" && ("${{ inputs.contracts_directory }}" != "./" && "${{ inputs.contracts_directory }}" != ".") ]]; then
+            echo "::debug::contracts directory isn't the root directory, but in ${{ inputs.contracts_directory }}. Copying foundry.toml to root folder"          
+            cp "${{ inputs.contracts_directory }}"/foundry.toml foundry.toml
+          fi
+
+          echo "::debug::Processing contracts: $contract_list"
+          ./dot_github/tools/scripts/solidity/generate_slither_report.sh "${{ github.server_url }}/${{ github.repository }}/blob/${{ env.head_ref }}/" "${{ inputs.slither_config_file_path }}" "${{ inputs.contracts_directory }}" "$contract_list" "${{ env.artifacts_dir }}/slither-reports" "--solc-remaps @=${{ inputs.contracts_directory }}/node_modules/@"
+
+      - name: Upload UMLs and Slither reports
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
+        timeout-minutes: 10
+        continue-on-error: true
+        with:
+          name: tmp-contracts-artifacts
+          path: |
+            ${{ env.artifacts_dir }}/uml-diagrams
+            ${{ env.artifacts_dir }}/slither-reports
+          retention-days: 7
+
+      - name: Validate if all Slither run for all contracts
+        uses: smartcontractkit/.github/actions/validate-solidity-artifacts@9c0d065116c1d45d9cfe9cf642ef6344e93da1cd # v0.0.0
+        with:
+          validate_slither_reports: ${{ inputs.generate_slither_reports }}
+          validate_uml_diagrams: ${{ inputs.generate_uml_diagrams }}
+          slither_reports_path: "${{ env.artifacts_dir }}/slither-reports"
+          uml_diagrams_path: "${{ env.artifacts_dir }}/uml-diagrams"
+          sol_files: ${{ inputs.product_files }}
+
+  gather-all-artifacts:
+    name: Gather all artifacts
+    if:
+      ${{ always() && inputs.product_changes == 'true' &&
+      needs.gather-basic-info.result != 'failure' &&
+      needs.coverage-and-book.result != 'failure' &&
+      needs.uml-static-analysis.result != 'failure' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [coverage-and-book, uml-static-analysis, gather-basic-info]
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+        with:
+          path: review_artifacts
+          merge-multiple: true
+
+      - name: Upload all artifacts as single package
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
+        with:
+          name:
+            review-artifacts-${{ inputs.product }}-${{ inputs.base_ref }}-${{
+            env.head_ref }}
+          path: review_artifacts
+
+      - name: Remove temporary artifacts
+        uses: geekyeggo/delete-artifact@24928e75e6e6590170563b8ddae9fac674508aa1 # v5.0
+        with:
+          name: tmp-*
+
+      - name: Print Artifact URL in job summary
+        id: gather-all-artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ARTIFACTS=$(gh api -X GET "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts")
+          ARTIFACT_ID=$(echo "$ARTIFACTS" | jq '.artifacts[] | select(.name=="review-artifacts-${{ inputs.product }}-${{ inputs.base_ref }}-${{ env.head_ref }}") | .id')
+          echo "Artifact ID: $ARTIFACT_ID"
+
+          artifact_url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/$ARTIFACT_ID"
+          echo "artifact-url=$artifact_url" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "# Solidity Review Artifact Generated"
+            echo "Product: **${{ inputs.product }}**"
+            echo "Base Ref used: **${{ inputs.base_ref }}**"
+            echo "Commit SHA used: **${{ env.head_ref }}**"
+            echo "[Artifact URL]($artifact_url)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Checkout caller repository
+        if: ${{ inputs.link_with_jira == true }}
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        with:
+          ref: ${{ env.head_ref }}
+
+      - name: Checkout chainlink-github-actions repository
+        if: ${{ inputs.link_with_jira == true }}
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        with:
+          repository: smartcontractkit/.github
+          ref: 65249c7eae628aad6e70a0c0850d981cd0074bf9
+          path: ./dot_github
+
+      - name: Setup NodeJS
+        if: ${{ inputs.link_with_jira == true }}
+        uses: smartcontractkit/.github/actions/setup-nodejs@bff23e98280a3f60233e7ab2d5675a006843732c # v0.0.0
+        with:
+          package-json-directory: ${{ inputs.contracts_directory }}
+          pnpm-version: ^9.0.0
+
+      - name: Setup git top level directory
+        if: ${{ inputs.link_with_jira == true }}
+        id: find-git-top-level-dir
+        run: |
+          current_dir="$(pwd)"
+          echo "top_level_dir=$current_dir" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Jira
+        if: ${{ inputs.link_with_jira == true }}
+        working-directory: ./dot_github
+        run: pnpm install --filter jira-tracing
+
+      - name: Create Traceability
+        if: ${{ inputs.link_with_jira == true }}
+        working-directory: ./dot_github
+        run: |
+          pnpm --filter jira-tracing issue:traceability
+        env:
+          CHANGESET_FILES: ${{ inputs.changeset_files }}
+          CHAINLINK_PRODUCT: ${{ inputs.product }}
+          BASE_REF: ${{ inputs.base_ref }}
+          HEAD_REF: ${{ env.head_ref }}
+          ARTIFACT_URL: ${{ steps.gather-all-artifacts.outputs.artifact-url }}
+          GIT_TOP_LEVEL_DIR:
+            ${{ steps.find-git-top-level-dir.outputs.top_level_dir }}
+
+          JIRA_HOST: ${{ inputs.jira_host }}
+          JIRA_USERNAME: ${{ secrets.jira_username }}
+          JIRA_API_TOKEN: ${{ secrets.jira_api_token }}
+
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify-no-changes:
+    if: ${{ inputs.product_changes == 'false' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print warning in job summary
+        shell: bash
+        run: |
+          {
+            echo "# Solidity Review Artifact NOT Generated"
+            echo "Base Ref used: **\`${{ inputs.base_ref }}\`**"
+            echo "Commit SHA used: **\`${{ env.head_ref }}\`**"
+            echo "## Reason: No modified Solidity files found for \`${{ inputs.product }}\`"
+            echo "* no modified Solidity files found between \`${{ inputs.base_ref }}\` and \`${{ env.head_ref }}\` commits"
+            echo "* or they are located outside of search path"
+            echo "* or they were limited to test files"
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 1
