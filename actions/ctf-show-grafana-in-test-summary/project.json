@@ -1,0 +1,7 @@
+{
+  "name": "ctf-show-grafana-in-test-summary",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "actions/ctf-show-grafana-in-test-summary",
+  "targets": {}
+}
