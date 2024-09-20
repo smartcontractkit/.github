@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 1.3.1
+
+### Patch Changes
+
+- [#576](https://github.com/smartcontractkit/.github/pull/576)
+  [`d39fedf`](https://github.com/smartcontractkit/.github/commit/d39fedfcf36a7c8aa5d357ce1e75e33edbe1c2f4)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Update docs about
+  inputs
+
 ## 1.3.0
 
 ### Minor Changes
