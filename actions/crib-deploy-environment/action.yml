@@ -62,12 +62,13 @@ inputs:
   send-alerts:
     default: "true"
     description: |
-      Notify CRIB team when Env Provisioning fails. 
+      Send slack alerts when CRIB provisioning fails.
       When enabled it requires to provide crib-alert-slack-webhook parameter as well.
   crib-alert-slack-webhook:
     default: ""
-    description:
-      slack incoming webhook to notify CRIB team on CRIB provisioning failures
+    description: |
+      The URL of the slack webhook which should be used for sending alerts.
+      for example: https://hooks.slack.com/services/aaa/bbb
     required: false
   crib-repo-ref:
     default: "main"
