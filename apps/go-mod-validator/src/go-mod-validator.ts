@@ -147,7 +147,11 @@ ${detailString}`;
       return aKey.localeCompare(bKey);
     });
     sortedErrs.forEach(([goMod, invalidation]) => {
-      const line = depLineFinder(goMod.goModFilePath, goMod.path);
+      // indirect dependencies are not part of the go.mod file
+      // so we can't find the line number
+      const line = goMod.name.endsWith("// indirect")
+        ? undefined
+        : depLineFinder(goMod.goModFilePath, goMod.path);
       switch (invalidation.type) {
         case "error":
           core.error(invalidation.msg, {

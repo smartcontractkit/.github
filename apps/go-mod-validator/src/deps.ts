@@ -238,12 +238,15 @@ export function lineForDependencyPathFinder() {
    */
   return function getDepPath(goModPath: string, depPath: string): number {
     if (!cache[goModPath]) {
-      cache[goModPath] = readFileSync(goModPath, "utf-8").split("\n");
+      cache[goModPath] = readFileSync(goModPath, "utf-8")
+        .split("\n")
+        .map((l) => l.trim());
     }
 
     let line = -1;
     for (let i = 0; i < cache[goModPath].length; i++) {
-      if (cache[goModPath][i].includes(depPath)) {
+      // HACK: We add a space after the depPath to avoid matching substrings.
+      if (cache[goModPath][i].includes(depPath + " ")) {
         if (line !== -1) {
           throw new Error(`duplicate dependency path found: ${depPath}`);
         }
