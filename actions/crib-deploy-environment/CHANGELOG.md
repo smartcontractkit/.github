@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 1.3.2
+
+### Patch Changes
+
+- [#613](https://github.com/smartcontractkit/.github/pull/613)
+  [`1cdb129`](https://github.com/smartcontractkit/.github/commit/1cdb12962cf96632b2fb43d11fd07d077478e232)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Improve description
+  for slack alert params
+
 ## 1.3.1
 
 ### Patch Changes
