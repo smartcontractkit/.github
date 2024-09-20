@@ -1,0 +1,7 @@
+{
+  "name": "ctf-check-mod-version",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "actions/ctf-check-mod-version",
+  "targets": {}
+}
