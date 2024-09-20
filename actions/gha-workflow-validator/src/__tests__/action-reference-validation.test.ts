@@ -256,6 +256,7 @@ describe(extractActionReferenceFromLine.name, () => {
       repoPath: "/actions/foo",
       ref: "bar",
       comment: "foo@1.0.0",
+      isWorkflowFile: false,
     });
   });
 
@@ -269,6 +270,22 @@ describe(extractActionReferenceFromLine.name, () => {
       repoPath: "/actions/foo",
       ref: "bar",
       comment: "",
+      isWorkflowFile: false,
+    });
+  });
+
+  it("it parses workflow reference with isWorkflowFile=true", () => {
+    const line =
+      "        - uses: smartcontractkit/.github/.github/workflows/worfklow.yml@bar";
+    const actionReference = extractActionReferenceFromLine(line);
+
+    expect(actionReference).toEqual({
+      owner: "smartcontractkit",
+      repo: ".github",
+      repoPath: "/.github/workflows/worfklow.yml",
+      ref: "bar",
+      comment: "",
+      isWorkflowFile: true,
     });
   });
 
