@@ -9,7 +9,7 @@ import {
   PR_PREFIX,
 } from "./lib";
 import * as core from "@actions/core";
-import { extractChangesetFiles } from './changeset-lib'
+import { extractChangesetFiles } from "./changeset-lib";
 
 /**
  * Adds traceability to JIRA issues by commenting on each issue with a link to the artifact payload
@@ -24,7 +24,7 @@ async function addTraceabillityToJiraIssues(
   client: jira.Version3Client,
   issues: string[],
   label: string,
-  artifactUrl: string
+  artifactUrl: string,
 ) {
   for (const issue of issues) {
     await checkAndAddArtifactPayloadComment(client, issue, artifactUrl);
@@ -46,7 +46,7 @@ async function addTraceabillityToJiraIssues(
 async function checkAndAddArtifactPayloadComment(
   client: jira.Version3.Version3Client,
   issue: string,
-  artifactUrl: string
+  artifactUrl: string,
 ) {
   const maxResults = 5000;
   const getCommentsResponse = await client.issueComments.getComments({
@@ -56,7 +56,7 @@ async function checkAndAddArtifactPayloadComment(
   core.debug(JSON.stringify(getCommentsResponse.comments));
   if ((getCommentsResponse.total ?? 0) > maxResults) {
     throw Error(
-      `Too many (${getCommentsResponse.total}) comments on issue ${issue}, please increase maxResults (${maxResults})`
+      `Too many (${getCommentsResponse.total}) comments on issue ${issue}, please increase maxResults (${maxResults})`,
     );
   }
 
@@ -93,9 +93,9 @@ async function checkAndAddArtifactPayloadComment(
   const commentExists = getCommentsResponse.comments?.some((c) =>
     c?.body?.content?.some((innerContent) =>
       innerContent?.content?.some((c) =>
-        c.marks?.some((m) => m.attrs?.href === artifactUrl)
-      )
-    )
+        c.marks?.some((m) => m.attrs?.href === artifactUrl),
+      ),
+    ),
   );
 
   if (commentExists) {
@@ -163,10 +163,13 @@ async function main() {
   const changesetFiles = extractChangesetFiles();
   core.info(
     `Extracting Jira issue numbers from changeset files: ${changesetFiles.join(
-      ", "
-    )}`
+      ", ",
+    )}`,
   );
-  const jiraIssueNumbers = await extractJiraIssueNumbersFrom(PR_PREFIX, changesetFiles);
+  const jiraIssueNumbers = await extractJiraIssueNumbersFrom(
+    PR_PREFIX,
+    changesetFiles,
+  );
 
   const client = createJiraClient();
   const label = generateIssueLabel(product, baseRef, headRef);
@@ -175,7 +178,7 @@ async function main() {
       client,
       jiraIssueNumbers,
       label,
-      artifactUrl
+      artifactUrl,
     );
   } catch (e) {
     handleError(e);
@@ -186,7 +189,7 @@ async function main() {
   const { jiraHost } = getJiraEnvVars();
   core.summary.addLink(
     "Jira Issues",
-    generateJiraIssuesLink(`${jiraHost}/issues/`, label)
+    generateJiraIssuesLink(`${jiraHost}/issues/`, label),
   );
   core.summary.write();
 }

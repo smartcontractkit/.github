@@ -4,22 +4,22 @@ import { getGitTopLevel } from "./lib";
 import { promises as fs } from "fs";
 
 export async function appendIssueNumberToChangesetFile(
-    prefix: string,
-    changesetFile: string,
-    issueNumber: string
-  ) {
-    const gitTopLevel = await getGitTopLevel();
-    const fullChangesetPath = join(gitTopLevel, changesetFile);
-    const changesetContents = await fs.readFile(fullChangesetPath, "utf-8");
-    // Check if the issue number is already in the changeset file
-    if (changesetContents.includes(issueNumber)) {
-      core.info("Issue number already exists in changeset file, skipping...");
-      return;
-    }
-
-    const updatedChangesetContents = `${changesetContents}\n\n${prefix}${issueNumber}`;
-    await fs.writeFile(fullChangesetPath, updatedChangesetContents);
+  prefix: string,
+  changesetFile: string,
+  issueNumber: string,
+) {
+  const gitTopLevel = await getGitTopLevel();
+  const fullChangesetPath = join(gitTopLevel, changesetFile);
+  const changesetContents = await fs.readFile(fullChangesetPath, "utf-8");
+  // Check if the issue number is already in the changeset file
+  if (changesetContents.includes(issueNumber)) {
+    core.info("Issue number already exists in changeset file, skipping...");
+    return;
   }
+
+  const updatedChangesetContents = `${changesetContents}\n\n${prefix}${issueNumber}`;
+  await fs.writeFile(fullChangesetPath, updatedChangesetContents);
+}
 
 /**
  * Extracts the list of changeset files. Intended to be used with https://github.com/dorny/paths-filter with
@@ -40,7 +40,7 @@ export function extractChangesetFiles(): string[] {
   }
 
   core.info(
-    `Changeset to extract issues from: ${parsedChangesetFiles.join(", ")}`
+    `Changeset to extract issues from: ${parsedChangesetFiles.join(", ")}`,
   );
   return parsedChangesetFiles;
 }
@@ -55,10 +55,12 @@ export function extractChangesetFiles(): string[] {
  * @throws {Error} If more than one changeset file exists.
  */
 export function extractChangesetFile(): string {
-  const changesetFiles = extractChangesetFiles()
+  const changesetFiles = extractChangesetFiles();
   if (changesetFiles.length > 1) {
-    throw new Error(`Found ${changesetFiles.length} changeset files, but only 1 was expected.`)
+    throw new Error(
+      `Found ${changesetFiles.length} changeset files, but only 1 was expected.`,
+    );
   }
 
-  return changesetFiles[0]
+  return changesetFiles[0];
 }

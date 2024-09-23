@@ -1,13 +1,18 @@
 import * as core from "@actions/core";
 import jira from "jira.js";
-import { tagsToLabels, createJiraClient, parseIssueNumberFrom, EMPTY_PREFIX } from "./lib";
+import {
+  tagsToLabels,
+  createJiraClient,
+  parseIssueNumberFrom,
+  EMPTY_PREFIX,
+} from "./lib";
 
 function updateJiraIssue(
   client: jira.Version3Client,
   issueNumber: string,
   tags: string[],
   fixVersionName: string,
-  dryRun: boolean
+  dryRun: boolean,
 ) {
   const payload = {
     issueIdOrKey: issueNumber,
@@ -19,8 +24,8 @@ function updateJiraIssue(
 
   core.info(
     `Updating JIRA issue ${issueNumber} with fix version ${fixVersionName} and labels [${payload.update.labels.join(
-      ", "
-    )}]`
+      ", ",
+    )}]`,
   );
   if (dryRun) {
     core.info("Dry run enabled, skipping JIRA issue update");
@@ -43,7 +48,12 @@ async function main() {
   const client = createJiraClient();
 
   // Checks for the Jira issue number and exit if it can't find it
-  const issueNumber = parseIssueNumberFrom(EMPTY_PREFIX, prTitle, commitMessage, branchName);
+  const issueNumber = parseIssueNumberFrom(
+    EMPTY_PREFIX,
+    prTitle,
+    commitMessage,
+    branchName,
+  );
   if (!issueNumber) {
     const msg =
       "No JIRA issue number found in: PR title, commit message, or branch name. Please include the issue ID in one of these.";
@@ -69,7 +79,7 @@ async function run() {
       core.setFailed(error.message);
     }
     core.setFailed(
-      "Error: Failed to update JIRA issue with fix version and labels."
+      "Error: Failed to update JIRA issue with fix version and labels.",
     );
   }
 }

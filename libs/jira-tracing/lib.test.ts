@@ -5,19 +5,25 @@ import {
   getGitTopLevel,
   parseIssueNumberFrom,
   tagsToLabels,
-  EMPTY_PREFIX, SOLIDITY_REVIEW_PREFIX
+  EMPTY_PREFIX,
+  SOLIDITY_REVIEW_PREFIX,
 } from "./lib";
 import * as core from "@actions/core";
 
 describe("parseIssueNumberFrom", () => {
   it("should return the first JIRA issue number found", () => {
-    let r = parseIssueNumberFrom(EMPTY_PREFIX, "CORE-123", "CORE-456", "CORE-789");
+    let r = parseIssueNumberFrom(
+      EMPTY_PREFIX,
+      "CORE-123",
+      "CORE-456",
+      "CORE-789",
+    );
     expect(r).to.equal("CORE-123");
 
     r = parseIssueNumberFrom(
-        EMPTY_PREFIX,
+      EMPTY_PREFIX,
       "chore/test-RE-78-branch",
-      "RE-78 Create new test branches"
+      "RE-78 Create new test branches",
     );
     expect(r).to.equal("RE-78");
 
@@ -28,33 +34,33 @@ describe("parseIssueNumberFrom", () => {
 
   it("works with multiline commit bodies", () => {
     let r = parseIssueNumberFrom(
-        EMPTY_PREFIX,
+      EMPTY_PREFIX,
       `This is a multiline commit body
 
 CORE-1011`,
       "CORE-456",
-      "CORE-789"
+      "CORE-789",
     );
     expect(r).to.equal("CORE-1011");
 
     r = parseIssueNumberFrom(
-        SOLIDITY_REVIEW_PREFIX,
-        `This is a multiline commit body with prefix
+      SOLIDITY_REVIEW_PREFIX,
+      `This is a multiline commit body with prefix
 
 ${SOLIDITY_REVIEW_PREFIX}CORE-1011`,
-        "CORE-456",
-        "CORE-789"
+      "CORE-456",
+      "CORE-789",
     );
     expect(r).to.equal("CORE-1011");
 
     r = parseIssueNumberFrom(
-        SOLIDITY_REVIEW_PREFIX,
-        `This is a multiline commit body with prefix
+      SOLIDITY_REVIEW_PREFIX,
+      `This is a multiline commit body with prefix
 
 CORE-111,
 ${SOLIDITY_REVIEW_PREFIX}CORE-1011`,
-        "CORE-456",
-        "CORE-789"
+      "CORE-456",
+      "CORE-789",
     );
     expect(r).to.equal("CORE-1011");
   });
@@ -66,16 +72,16 @@ ${SOLIDITY_REVIEW_PREFIX}CORE-1011`,
 
   it("works when the label is in the middle of the commit message", () => {
     let r = parseIssueNumberFrom(
-        EMPTY_PREFIX,
+      EMPTY_PREFIX,
       "This is a commit message with CORE-123 in the middle",
       "CORE-456",
-      "CORE-789"
+      "CORE-789",
     );
     expect(r).to.equal("CORE-123");
 
     r = parseIssueNumberFrom(
-        EMPTY_PREFIX,
-      "#internal address security vulnerabilities RE-2917 around updating nodes and node operators on capabilities registry"
+      EMPTY_PREFIX,
+      "#internal address security vulnerabilities RE-2917 around updating nodes and node operators on capabilities registry",
     );
     expect(r).to.equal("RE-2917");
   });
@@ -84,7 +90,10 @@ ${SOLIDITY_REVIEW_PREFIX}CORE-1011`,
     let r = parseIssueNumberFrom("PR: ", "PR: RE-78 Create new test branches");
     expect(r).to.equal("RE-78");
 
-    r = parseIssueNumberFrom("PR: ", "RE-99, PR: RE-78 Create new test branches");
+    r = parseIssueNumberFrom(
+      "PR: ",
+      "RE-99, PR: RE-78 Create new test branches",
+    );
     expect(r).to.equal("RE-78");
   });
 });
@@ -116,10 +125,10 @@ describe("getGitTopLevel", () => {
     await getGitTopLevel();
 
     expect(mockExecPromise).toHaveBeenCalledWith(
-      "git rev-parse --show-toplevel"
+      "git rev-parse --show-toplevel",
     );
     expect(mockConsoleLog).toHaveBeenCalledWith(
-      "Top-level directory: /path/to/top-level-dir"
+      "Top-level directory: /path/to/top-level-dir",
     );
   });
 
@@ -132,10 +141,10 @@ describe("getGitTopLevel", () => {
     await getGitTopLevel().catch(() => {});
 
     expect(mockExecPromise).toHaveBeenCalledWith(
-      "git rev-parse --show-toplevel"
+      "git rev-parse --show-toplevel",
     );
     expect(mockConsoleError).toHaveBeenCalledWith(
-      "Error executing command: Command failed"
+      "Error executing command: Command failed",
     );
   });
 
@@ -149,10 +158,10 @@ describe("getGitTopLevel", () => {
     await getGitTopLevel().catch(() => {});
 
     expect(mockExecPromise).toHaveBeenCalledWith(
-      "git rev-parse --show-toplevel"
+      "git rev-parse --show-toplevel",
     );
     expect(mockConsoleError).toHaveBeenCalledWith(
-      "Error in command output: Error: Command failed"
+      "Error in command output: Error: Command failed",
     );
   });
 });
@@ -162,10 +171,10 @@ describe("generateJiraIssuesLink", () => {
     expect(
       generateJiraIssuesLink(
         "https://smartcontract-it.atlassian.net/issues/",
-        "review-artifacts-automation-base:0de9b3b-head:e5b3b9d"
-      )
+        "review-artifacts-automation-base:0de9b3b-head:e5b3b9d",
+      ),
     ).toMatchInlineSnapshot(
-      `"https://smartcontract-it.atlassian.net/issues/?jql=labels+%3D+%22review-artifacts-automation-base%3A0de9b3b-head%3Ae5b3b9d%22"`
+      `"https://smartcontract-it.atlassian.net/issues/?jql=labels+%3D+%22review-artifacts-automation-base%3A0de9b3b-head%3Ae5b3b9d%22"`,
     );
   });
 });
@@ -176,7 +185,7 @@ describe("generateIssueLabel", () => {
     const baseRef = "0de9b3b";
     const headRef = "e5b3b9d";
     expect(generateIssueLabel(product, baseRef, headRef)).toMatchInlineSnapshot(
-      `"review-artifacts-automation-base:0de9b3b-head:e5b3b9d"`
+      `"review-artifacts-automation-base:0de9b3b-head:e5b3b9d"`,
     );
   });
 });

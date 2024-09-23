@@ -7,14 +7,14 @@ import { join } from "path";
 import { isAxiosError } from "axios";
 import { formatAxiosError } from "./axios";
 
-export const EMPTY_PREFIX = ""
-export const PR_PREFIX = "PR issue: "
-export const SOLIDITY_REVIEW_PREFIX = "Solidity Review issue: "
+export const EMPTY_PREFIX = "";
+export const PR_PREFIX = "PR issue: ";
+export const SOLIDITY_REVIEW_PREFIX = "Solidity Review issue: ";
 
 export async function doesIssueExist(
   client: jira.Version3Client,
   issueNumber: string,
-  dryRun: boolean
+  dryRun: boolean,
 ) {
   const payload = {
     issueIdOrKey: issueNumber,
@@ -32,18 +32,18 @@ export async function doesIssueExist(
      */
     const issue = await client.issues.getIssue(payload);
     core.debug(
-      `JIRA issue id:${issue.id} key: ${issue.key} found while querying for ${issueNumber}`
+      `JIRA issue id:${issue.id} key: ${issue.key} found while querying for ${issueNumber}`,
     );
     if (issue.key !== issueNumber) {
       core.error(
-        `JIRA issue key ${issueNumber} not found, but found issue key ${issue.key} instead. This can happen if the identifier doesn't match an issue, in which case a case-insensitive search and check for moved issues is performed. Make sure the issue key is correct.`
+        `JIRA issue key ${issueNumber} not found, but found issue key ${issue.key} instead. This can happen if the identifier doesn't match an issue, in which case a case-insensitive search and check for moved issues is performed. Make sure the issue key is correct.`,
       );
       return false;
     }
 
     return true;
   } catch (e) {
-    handleError(e)
+    handleError(e);
     return false;
   }
 }
@@ -62,7 +62,7 @@ export function generateJiraIssuesLink(baseUrl: string, label: string) {
 export function generateIssueLabel(
   product: string,
   baseRef: string,
-  headRef: string
+  headRef: string,
 ) {
   return `review-artifacts-${product}-base:${baseRef}-head:${headRef}`;
 }
@@ -71,7 +71,7 @@ export async function getGitTopLevel(): Promise<string> {
   const execPromise = promisify(exec);
   try {
     const { stdout, stderr } = await execPromise(
-      "git rev-parse --show-toplevel"
+      "git rev-parse --show-toplevel",
     );
 
     if (stderr) {
@@ -102,7 +102,7 @@ export function parseIssueNumberFrom(
   ...inputs: (string | undefined)[]
 ): string | undefined {
   function parse(str?: string) {
-    prefix = prefix.toUpperCase()
+    prefix = prefix.toUpperCase();
     const jiraIssueRegex = new RegExp(`${prefix}([A-Z]{2,}-\\d+)`);
 
     const match = str?.toUpperCase().match(jiraIssueRegex);
@@ -116,7 +116,10 @@ export function parseIssueNumberFrom(
   return parsed[0];
 }
 
-export async function extractJiraIssueNumbersFrom(prefix: string, filePaths: string[]) {
+export async function extractJiraIssueNumbersFrom(
+  prefix: string,
+  filePaths: string[],
+) {
   const issueNumbers: string[] = [];
   const gitTopLevel = await getGitTopLevel();
 
@@ -156,7 +159,7 @@ export function getJiraEnvVars() {
 
   if (!jiraHost || !jiraUserName || !jiraApiToken) {
     core.setFailed(
-      "Error: Missing required environment variables: JIRA_HOST and JIRA_USERNAME and JIRA_API_TOKEN."
+      "Error: Missing required environment variables: JIRA_HOST and JIRA_USERNAME and JIRA_API_TOKEN.",
     );
     process.exit(1);
   }

@@ -1,6 +1,15 @@
 import * as core from "@actions/core";
-import { createJiraClient, EMPTY_PREFIX, parseIssueNumberFrom, doesIssueExist, PR_PREFIX } from "./lib";
-import { appendIssueNumberToChangesetFile, extractChangesetFile } from "./changeset-lib";
+import {
+  createJiraClient,
+  EMPTY_PREFIX,
+  parseIssueNumberFrom,
+  doesIssueExist,
+  PR_PREFIX,
+} from "./lib";
+import {
+  appendIssueNumberToChangesetFile,
+  extractChangesetFile,
+} from "./changeset-lib";
 
 async function main() {
   const prTitle = process.env.PR_TITLE;
@@ -11,7 +20,12 @@ async function main() {
   const client = createJiraClient();
 
   // Checks for the Jira issue number and exit if it can't find it
-  const issueNumber = parseIssueNumberFrom(EMPTY_PREFIX, prTitle, commitMessage, branchName);
+  const issueNumber = parseIssueNumberFrom(
+    EMPTY_PREFIX,
+    prTitle,
+    commitMessage,
+    branchName,
+  );
   if (!issueNumber) {
     const msg =
       "No JIRA issue number found in PR title, commit message, or branch name. This pull request must be associated with a JIRA issue.";
@@ -23,7 +37,7 @@ async function main() {
   const exists = await doesIssueExist(client, issueNumber, dryRun);
   if (!exists) {
     core.setFailed(
-      `JIRA issue ${issueNumber} not found, this pull request must be associated with a JIRA issue.`
+      `JIRA issue ${issueNumber} not found, this pull request must be associated with a JIRA issue.`,
     );
     return;
   }
