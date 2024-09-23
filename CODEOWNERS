@@ -1,4 +1,4 @@
 * @smartcontractkit/releng
 
 # Chainlink Testing Framework (CTF)
-/actions/ctf-* @smartcontractkit/test-tooling-team
+/actions/ctf-*/** @smartcontractkit/test-tooling-team
