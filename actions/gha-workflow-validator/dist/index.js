@@ -24116,6 +24116,12 @@ function validateVersionCommentExists(actionReference) {
   };
 }
 async function validateNodeActionVersion(octokit, actionRef) {
+  if (actionRef.isWorkflowFile) {
+    core3.debug(
+      `Skipping node version validation for ${actionRef.owner}/${actionRef.repo}/${actionRef.repoPath}`
+    );
+    return;
+  }
   const actionFile = await getActionFileFromGithub(
     octokit,
     actionRef.owner,
@@ -24145,6 +24151,9 @@ function extractActionReference(fileLine) {
   if (!actionReference) {
     return;
   }
+  if (actionReference.isWorkflowFile) {
+    core3.debug(`Found workflow file reference: ${fileLine.content}`);
+  }
   return {
     ...fileLine,
     actionReference
@@ -24173,7 +24182,8 @@ function extractActionReferenceFromLine(line) {
     repo,
     repoPath,
     ref: gitRef,
-    comment: comment.join().trim()
+    comment: comment.join().trim(),
+    isWorkflowFile: repoPath.endsWith(".yml") || repoPath.endsWith(".yaml")
   };
 }
 
