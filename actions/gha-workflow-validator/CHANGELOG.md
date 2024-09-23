@@ -1,5 +1,14 @@
 # gha-workflow-validator
 
+## 0.4.2
+
+### Patch Changes
+
+- [#626](https://github.com/smartcontractkit/.github/pull/626)
+  [`e9ec4fc`](https://github.com/smartcontractkit/.github/commit/e9ec4fc9bffaa44a907708e791c2904f43049da4)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: don't treat workflow
+  references as action references
+
 ## 0.4.1
 
 ### Patch Changes
