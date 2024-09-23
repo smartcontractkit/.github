@@ -68,6 +68,14 @@ export function generateIssueLabel(
 }
 
 export async function getGitTopLevel(): Promise<string> {
+  const gitTopLevelEnv = process.env.GIT_TOP_LEVEL_DIR;
+  if (gitTopLevelEnv) {
+    core.debug(
+      `GIT_TOP_LEVEL_DIR env var was set tu ${gitTopLevelEnv}. Will use it.`,
+    );
+    return gitTopLevelEnv;
+  }
+
   const execPromise = promisify(exec);
   try {
     const { stdout, stderr } = await execPromise(
