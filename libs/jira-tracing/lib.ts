@@ -6,6 +6,48 @@ import { promisify } from "util";
 import { join } from "path";
 import { isAxiosError } from "axios";
 import { formatAxiosError } from "./axios";
+
+export const EMPTY_PREFIX = ""
+export const PR_PREFIX = "PR issue: "
+export const SOLIDITY_REVIEW_PREFIX = "Solidity Review issue: "
+
+export async function doesIssueExist(
+  client: jira.Version3Client,
+  issueNumber: string,
+  dryRun: boolean
+) {
+  const payload = {
+    issueIdOrKey: issueNumber,
+  };
+
+  if (dryRun) {
+    core.info("Dry run enabled, skipping JIRA issue enforcement");
+    return true;
+  }
+
+  try {
+    /**
+     * The issue is identified by its ID or key, however, if the identifier doesn't match an issue, a case-insensitive search and check for moved issues is performed.
+     * If a matching issue is found its details are returned, a 302 or other redirect is not returned. The issue key returned in the response is the key of the issue found.
+     */
+    const issue = await client.issues.getIssue(payload);
+    core.debug(
+      `JIRA issue id:${issue.id} key: ${issue.key} found while querying for ${issueNumber}`
+    );
+    if (issue.key !== issueNumber) {
+      core.error(
+        `JIRA issue key ${issueNumber} not found, but found issue key ${issue.key} instead. This can happen if the identifier doesn't match an issue, in which case a case-insensitive search and check for moved issues is performed. Make sure the issue key is correct.`
+      );
+      return false;
+    }
+
+    return true;
+  } catch (e) {
+    handleError(e)
+    return false;
+  }
+}
+
 export function generateJiraIssuesLink(baseUrl: string, label: string) {
   // https://smartcontract-it.atlassian.net/issues/?jql=labels%20%3D%20%22review-artifacts-automation-base%3A8d818ea265ff08887e61ace4f83364a3ee149ef0-head%3A3c45b71f3610de28f429cef0163936eaa448e63c%22
   const jqlQuery = `labels = "${label}"`;
@@ -20,24 +62,16 @@ export function generateJiraIssuesLink(baseUrl: string, label: string) {
 export function generateIssueLabel(
   product: string,
   baseRef: string,
-  headRef: string,
+  headRef: string
 ) {
   return `review-artifacts-${product}-base:${baseRef}-head:${headRef}`;
 }
 
 export async function getGitTopLevel(): Promise<string> {
-  const gitTopLevelEnv = process.env.GIT_TOP_LEVEL_DIR;
-  if (gitTopLevelEnv) {
-    core.debug(
-      `GIT_TOP_LEVEL_DIR env var was set tu ${gitTopLevelEnv}. Will use it.`,
-    );
-    return gitTopLevelEnv;
-  }
-
   const execPromise = promisify(exec);
   try {
     const { stdout, stderr } = await execPromise(
-      "git rev-parse --show-toplevel",
+      "git rev-parse --show-toplevel"
     );
 
     if (stderr) {
@@ -59,16 +93,20 @@ export async function getGitTopLevel(): Promise<string> {
 /**
  * Given a list of strings, this function will return the first JIRA issue number it finds.
  *
- * @example parseIssueNumberFrom("CORE-123", "CORE-456", "CORE-789") => "CORE-123"
- * @example parseIssueNumberFrom("2f3df5gf", "chore/test-RE-78-branch", "RE-78 Create new test branches") => "RE-78"
+ * @example parseIssueNumberFrom("", "CORE-123", "CORE-456", "CORE-789") => "CORE-123"
+ * @example parseIssueNumberFrom("", "2f3df5gf", "chore/test-RE-78-branch", "RE-78 Create new test branches") => "RE-78"
+ * @example parseIssueNumberFrom("PR: ", "2f3df5gf", "chore/test-RE-78-branch", "PR: RE-78 Create new test branches") => "RE-78"
  */
 export function parseIssueNumberFrom(
+  prefix: string,
   ...inputs: (string | undefined)[]
 ): string | undefined {
   function parse(str?: string) {
-    const jiraIssueRegex = /[A-Z]{2,}-\d+/;
+    prefix = prefix.toUpperCase()
+    const jiraIssueRegex = new RegExp(`${prefix}([A-Z]{2,}-\\d+)`);
 
-    return str?.toUpperCase().match(jiraIssueRegex)?.[0];
+    const match = str?.toUpperCase().match(jiraIssueRegex);
+    return match ? match[1] : undefined;
   }
 
   core.debug(`Parsing issue number from: ${inputs.join(", ")}`);
@@ -78,7 +116,7 @@ export function parseIssueNumberFrom(
   return parsed[0];
 }
 
-export async function extractJiraIssueNumbersFrom(filePaths: string[]) {
+export async function extractJiraIssueNumbersFrom(prefix: string, filePaths: string[]) {
   const issueNumbers: string[] = [];
   const gitTopLevel = await getGitTopLevel();
 
@@ -86,7 +124,7 @@ export async function extractJiraIssueNumbersFrom(filePaths: string[]) {
     const fullPath = join(gitTopLevel, path);
     core.info(`Reading file: ${fullPath}`);
     const content = await readFile(fullPath, "utf-8");
-    const issueNumber = parseIssueNumberFrom(content);
+    const issueNumber = parseIssueNumberFrom(prefix, content);
     core.info(`Extracted issue number: ${issueNumber}`);
     if (issueNumber) {
       issueNumbers.push(issueNumber);
@@ -118,7 +156,7 @@ export function getJiraEnvVars() {
 
   if (!jiraHost || !jiraUserName || !jiraApiToken) {
     core.setFailed(
-      "Error: Missing required environment variables: JIRA_HOST and JIRA_USERNAME and JIRA_API_TOKEN.",
+      "Error: Missing required environment variables: JIRA_HOST and JIRA_USERNAME and JIRA_API_TOKEN."
     );
     process.exit(1);
   }

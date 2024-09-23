@@ -6,32 +6,10 @@ import {
   generateJiraIssuesLink,
   getJiraEnvVars,
   handleError,
+  PR_PREFIX,
 } from "./lib";
 import * as core from "@actions/core";
-
-/**
- * Extracts the list of changeset files. Intended to be used with https://github.com/dorny/paths-filter with
- * the 'csv' output format.
- *
- * @returns An array of strings representing the changeset files.
- * @throws {Error} If the required environment variable CHANGESET_FILES is missing.
- * @throws {Error} If no changeset file exists.
- */
-function extractChangesetFiles(): string[] {
-  const changesetFiles = process.env.CHANGESET_FILES;
-  if (!changesetFiles) {
-    throw Error("Missing required environment variable CHANGESET_FILES");
-  }
-  const parsedChangesetFiles = changesetFiles.split(",");
-  if (parsedChangesetFiles.length === 0) {
-    throw Error("At least one changeset file must exist");
-  }
-
-  core.info(
-    `Changeset to extract issues from: ${parsedChangesetFiles.join(", ")}`,
-  );
-  return parsedChangesetFiles;
-}
+import { extractChangesetFiles } from './changeset-lib'
 
 /**
  * Adds traceability to JIRA issues by commenting on each issue with a link to the artifact payload
@@ -46,7 +24,7 @@ async function addTraceabillityToJiraIssues(
   client: jira.Version3Client,
   issues: string[],
   label: string,
-  artifactUrl: string,
+  artifactUrl: string
 ) {
   for (const issue of issues) {
     await checkAndAddArtifactPayloadComment(client, issue, artifactUrl);
@@ -68,7 +46,7 @@ async function addTraceabillityToJiraIssues(
 async function checkAndAddArtifactPayloadComment(
   client: jira.Version3.Version3Client,
   issue: string,
-  artifactUrl: string,
+  artifactUrl: string
 ) {
   const maxResults = 5000;
   const getCommentsResponse = await client.issueComments.getComments({
@@ -78,7 +56,7 @@ async function checkAndAddArtifactPayloadComment(
   core.debug(JSON.stringify(getCommentsResponse.comments));
   if ((getCommentsResponse.total ?? 0) > maxResults) {
     throw Error(
-      `Too many (${getCommentsResponse.total}) comments on issue ${issue}, please increase maxResults (${maxResults})`,
+      `Too many (${getCommentsResponse.total}) comments on issue ${issue}, please increase maxResults (${maxResults})`
     );
   }
 
@@ -115,9 +93,9 @@ async function checkAndAddArtifactPayloadComment(
   const commentExists = getCommentsResponse.comments?.some((c) =>
     c?.body?.content?.some((innerContent) =>
       innerContent?.content?.some((c) =>
-        c.marks?.some((m) => m.attrs?.href === artifactUrl),
-      ),
-    ),
+        c.marks?.some((m) => m.attrs?.href === artifactUrl)
+      )
+    )
   );
 
   if (commentExists) {
@@ -185,10 +163,10 @@ async function main() {
   const changesetFiles = extractChangesetFiles();
   core.info(
     `Extracting Jira issue numbers from changeset files: ${changesetFiles.join(
-      ", ",
-    )}`,
+      ", "
+    )}`
   );
-  const jiraIssueNumbers = await extractJiraIssueNumbersFrom(changesetFiles);
+  const jiraIssueNumbers = await extractJiraIssueNumbersFrom(PR_PREFIX, changesetFiles);
 
   const client = createJiraClient();
   const label = generateIssueLabel(product, baseRef, headRef);
@@ -197,7 +175,7 @@ async function main() {
       client,
       jiraIssueNumbers,
       label,
-      artifactUrl,
+      artifactUrl
     );
   } catch (e) {
     handleError(e);
@@ -208,7 +186,7 @@ async function main() {
   const { jiraHost } = getJiraEnvVars();
   core.summary.addLink(
     "Jira Issues",
-    generateJiraIssuesLink(`${jiraHost}/issues/`, label),
+    generateJiraIssuesLink(`${jiraHost}/issues/`, label)
   );
   core.summary.write();
 }
