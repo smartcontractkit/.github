@@ -127,6 +127,8 @@ importers:
 
   actions/cicd-build-publish-charts: {}
 
+  actions/cicd-build-publish-docker: {}
+
   actions/cicd-changesets: {}
 
   actions/cleanup-old-branches: {}
@@ -135,7 +137,25 @@ importers:
 
   actions/crib-purge-environment: {}
 
+  actions/ctf-build-image: {}
+
   actions/ctf-build-test-image: {}
+
+  actions/ctf-build-tests: {}
+
+  actions/ctf-check-mod-version: {}
+
+  actions/ctf-cleanup: {}
+
+  actions/ctf-run-tests: {}
+
+  actions/ctf-run-tests-binary: {}
+
+  actions/ctf-setup-go: {}
+
+  actions/ctf-setup-run-tests-environment: {}
+
+  actions/ctf-show-grafana-in-test-summary: {}
 
   actions/dispatch-workflow: {}
 
