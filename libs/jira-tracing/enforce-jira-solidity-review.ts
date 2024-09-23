@@ -55,6 +55,13 @@ async function main() {
       `Found linked Solidity Review issue(s): ${join(...jiraSolidityIssues)}. Nothing more needs to be done.`,
     );
 
+    exportIssueKeysToGithubEnv(jiraPRIssueKey, jiraSolidityIssues[0]);
+    if (jiraSolidityIssues.length > 1) {
+      core.warning(
+        `Found more than one Solidity Review issue linked to PR. Only the first one will be exported to GitHub environment.`,
+      );
+    }
+
     return;
   }
 
