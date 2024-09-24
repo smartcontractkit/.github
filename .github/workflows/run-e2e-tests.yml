@@ -481,7 +481,7 @@ jobs:
           START_TIME=$(date +%s)
           echo "Checking for '${{ env.CHAINLINK_IMAGE }}' in ECR..."
           while true; do
-            IMAGE=$(aws ecr describe-images --repository-name "${{ inputs.chainlink_image_name || 'chainlink' }}" --query 'imageDetails[?contains(imageTags, `${{ needs.build-test-configurations.outputs.chainlink_image_tag }}`)].imageTags[]'' --output text)
+            IMAGE=$(aws ecr describe-images --repository-name "${{ inputs.chainlink_image_name || 'chainlink' }}" --query 'imageDetails[?contains(imageTags, `${{ needs.build-test-configurations.outputs.chainlink_image_tag }}`)].imageTags[]')
             if [[ "$IMAGE" == "$IMAGE_TAG" ]]; then
                 echo "Found tag!"
                 exit 0
