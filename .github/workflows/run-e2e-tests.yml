@@ -19,6 +19,19 @@ on:
           develop or commit sha"
         required: false
         type: string
+      chainlink_image_name:
+        description:
+          "Enter Chainlink image name to use for the tests. Example: 'chainlink'
+          or 'ccip'"
+        required: false
+        type: string
+        default: "chainlink"
+      test_chainlink_image_type:
+        description:
+          "Run tests by type of Chainlink image used. Example: 'amd64' or
+          'plugins-arm64'"
+        required: false
+        type: string
       chainlink_upgrade_version:
         description:
           "Enter Chainlink version to use for the upgrade tests. Example:
@@ -218,12 +231,15 @@ on:
         required: false
 
 env:
+  CHAINLINK_IMAGE_BASE:
+    ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
+    }}.amazonaws.com
   CHAINLINK_IMAGE:
     ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
-    }}.amazonaws.com/chainlink
+    }}.amazonaws.com/${{ inputs.chainlink_image_name || 'chainlink' }}
   QA_CHAINLINK_IMAGE:
     ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
-    }}.amazonaws.com/chainlink
+    }}.amazonaws.com/${{ inputs.chainlink_image_name || 'chainlink' }}
   DEFAULT_CHAINLINK_VERSION: ${{ inputs.chainlink_version }}
   DEFAULT_CHAINLINK_PLUGINS_VERSION:
     ${{ inputs.chainlink_version != '' && format('{0}-plugins',
@@ -244,56 +260,20 @@ jobs:
   validate-inputs:
     name: Validate workflow inputs
     runs-on: ubuntu-latest
-    outputs:
-      require_chainlink_image_versions_in_qa_ecr_matrix:
-        ${{ steps.set-required-chainlink-image-versions-matrix.outputs.versions
-        }}
-      require_chainlink_plugin_versions_in_qa_ecr_matrix:
-        ${{ steps.set-required-chainlink-plugin-versions-matrix.outputs.versions
-        }}
     steps:
       - name: Check input conditions
         run: |
-          if [[ "${{ inputs.test_ids }}" != "" && "${{ inputs.test_trigger }}" != "" ]]; then
-            echo "::error::Error: Both 'test_ids' and 'test_trigger' are provided. Please specify only one."
+          if [[ "${{ inputs.test_ids }}" != "" && "${{ inputs.test_workflow }}" != "" ]]; then
+            echo "::error::Error: Both 'test_ids' and 'test_workflow' are provided. Please specify only one."
+            exit 1
+          fi
+          if [[ "${{ inputs.test_chainlink_image_type }}" != "" && "${{ inputs.chainlink_version }}" != "" ]]; then
+            echo "::error::Error: Both 'test_chainlink_image_type' and 'chainlink_version' are provided. Please specify only one."
             exit 1
           fi
           if [[ "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" != "" ]]; then
             echo "Will run tests with custom test secrets"
           fi
-      - name: Install jq
-        run: sudo apt-get install jq
-
-      - name: Create matrix for required Chainlink image versions
-        id: set-required-chainlink-image-versions-matrix
-        shell: bash
-        run: |
-          image_versions="${{ inputs.require_chainlink_image_versions_in_qa_ecr }}"
-          default_version="${{ env.DEFAULT_CHAINLINK_VERSION }}"
-          current_sha="${{ github.sha }}"
-
-          if [[ "$default_version" == "$current_sha" ]]; then
-            # Append the current SHA to required image versions
-            if [[ -z "$image_versions" ]]; then
-              image_versions="${{ github.sha }}"
-            else
-              image_versions+=",${{ github.sha }}"
-            fi            
-          fi
-
-          # Convert the comma-separated string to a JSON array
-          image_versions=$(echo "$image_versions" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
-
-          echo "Required Chainlink image versions: $image_versions"   
-          echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
-
-      - name: Create matrix for required Chainlink plugin versions
-        id: set-required-chainlink-plugin-versions-matrix
-        shell: bash
-        run: |
-          image_versions=$(echo "${{ inputs.require_chainlink_plugin_versions_in_qa_ecr }}" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
-          echo "Required Chainlink plugin image versions: $image_versions"   
-          echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
 
   check-test-configurations:
     name: Check test configurations
@@ -306,7 +286,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@83100a879006dde55ace09a5dfd99b37e62f5a3f # v1.34.4
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@95212946b92c2bacb36dc9382b6db62d4db3a24d # DEBUG: Testing version
       - name: Run Check Tests Command
         run: |
           if ! citool check-tests ${{ github.workspace }}/${{ inputs.check_test_path }} ${{ github.workspace }}/${{ inputs.test_path }}; then
@@ -334,8 +314,8 @@ jobs:
           exit 1
           fi
 
-  load-test-configurations:
-    name: Load test configurations
+  build-test-configurations:
+    name: Build Test Configurations
     needs: [validate-inputs]
     runs-on: ubuntu-latest
     outputs:
@@ -344,6 +324,8 @@ jobs:
       docker-matrix: ${{ steps.set-docker-matrix.outputs.matrix }}
       k8s-runner-matrix: ${{ steps.set-k8s-runner-matrix.outputs.matrix }}
       workflow_id: ${{ steps.gen_id.outputs.workflow_id }}
+      chainlink_image_tag:
+        ${{ steps.determine-chainlink-image-tag.outputs.chainlink_image_tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
@@ -355,9 +337,29 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@83100a879006dde55ace09a5dfd99b37e62f5a3f # v1.34.4
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@95212946b92c2bacb36dc9382b6db62d4db3a24d # DEBUG: Testing version
       - name: Install jq
         run: sudo apt-get install jq
+
+      - name: Get Chainlink Image Tag
+        id: get-chainlink-image-tag
+        uses: ./.github/actions/get-chainlink-image-tag
+      - name: Determine Chainlink Image Tag
+        id: determine-chainlink-image-tag
+        run: |
+          chainlink_image_tag=""
+          if [[ "${{ inputs.chainlink_version}}" != "" ]]; then
+            echo "'chainlink_version' provided"
+            chainlink_image_tag=${{ inputs.chainlink_version }}
+          else
+            echo "determining chainlink image tag based on workflow event"
+            chainlink_image_tag=${{ steps.get-chainlink-image-tag.outputs.base-image-tag }}-${{ inputs.test_chainlink_image_type }}
+          fi
+
+          echo "chainlink_image_tag=$chainlink_image_tag"
+          echo "chainlink_image_tag=$chainlink_image_tag" >> $GITHUB_OUTPUT
+          echo "## Chainlink Image" >> $GITHUB_STEP_SUMMARY
+          echo "${{ env.CHAINLINK_IMAGE }}:$chainlink_image_tag" >> $GITHUB_STEP_SUMMARY
 
       - name: Generate Docker Tests Matrix
         id: set-docker-matrix
@@ -369,7 +371,7 @@ jobs:
             MATRIX_JSON=$(echo '${{ inputs.custom_test_list_json }}' | jq -c '{tests: [.tests[] | select(.test_env_type == "docker")]}')
           else
             echo "Using default test list"
-            MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'docker' --test-list '${{ inputs.test_list }}' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}')
+            MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'docker' --test-list '${{ inputs.test_list }}' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}' --chainlink-image-type '${{ inputs.test_chainlink_image_type }})
           fi
 
           echo "Docker tests:"
@@ -386,7 +388,7 @@ jobs:
             MATRIX_JSON=$(echo '${{ inputs.custom_test_list_json }}' | jq -c '{tests: [.tests[] | select(.test_env_type == "k8s-remote-runner")]}')
           else
             echo "Using default test list"
-            MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'k8s-remote-runner' --test-list '${{ inputs.test_list }}' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}')
+            MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'k8s-remote-runner' --test-list '${{ inputs.test_list }}' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}' --chainlink-image-type '${{ inputs.test_chainlink_image_type }})
           fi
 
           echo "K8s tests:"
@@ -458,98 +460,62 @@ jobs:
         shell: bash
         run: echo "workflow_id=$(uuidgen)" >> "$GITHUB_OUTPUT"
 
-  # Check if Chainlink images required for the tests exist. If not, build and push the images to QA ECR
-  require-chainlink-image-versions-in-qa-ecr:
-    name: Get Chainlink image
-    needs: [validate-inputs, load-test-configurations]
-    if:
-      ${{
-      fromJson(needs.validate-inputs.outputs.require_chainlink_image_versions_in_qa_ecr_matrix)
-      != '' }}
-    runs-on: ubuntu-latest
+  wait-for-chainlink-image:
+    name: Wait for Chainlink Image
     environment: integration
-    permissions:
-      id-token: write
-      contents: read
-    env:
-      CHAINLINK_IMAGE:
-        ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
-        }}.amazonaws.com/chainlink
-    strategy:
-      matrix:
-        version:
-          ${{
-          fromJson(needs.validate-inputs.outputs.require_chainlink_image_versions_in_qa_ecr_matrix)
-          }}
-    steps:
-      - name: Checkout the repo
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
-
-      - name: Get Chainlink image
-        uses: ./.github/actions/build-chainlink-image
-        with:
-          dockerfile: core/chainlink.Dockerfile
-          git_commit_sha: ${{ matrix.version }}
-          tag_suffix: ""
-          check_image_exists: "true"
-          AWS_REGION: ${{ secrets.QA_AWS_REGION }}
-          AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
-
-  # Check if Chainlink plugins required for the tests exist. If not, build and push the images to QA ECR
-  require-chainlink-plugin-versions-in-qa-ecr:
-    name: Get Chainlink plugins image
-    needs: [validate-inputs, load-test-configurations]
-    if:
-      ${{
-      fromJson(needs.validate-inputs.outputs.require_chainlink_plugin_versions_in_qa_ecr_matrix)
-      != '' }}
     runs-on: ubuntu-latest
-    environment: integration
-    permissions:
-      id-token: write
-      contents: read
+    needs: [build-test-configurations]
     env:
-      CHAINLINK_IMAGE:
-        ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
-        }}.amazonaws.com/chainlink
-    strategy:
-      matrix:
-        version:
-          ${{
-          fromJson(needs.validate-inputs.outputs.require_chainlink_plugin_versions_in_qa_ecr_matrix)
-          }}
+      POLL_INTERVAL: 10
+      TIMEOUT: 600
     steps:
-      - name: Checkout the repo
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
-
-      - name: Get Chainlink plugins image
-        uses: ./.github/actions/build-chainlink-image
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
         with:
-          dockerfile: plugins/chainlink.Dockerfile
-          git_commit_sha: ${{ matrix.version }}
-          tag_suffix: "-plugins"
-          check_image_exists: "true"
-          AWS_REGION: ${{ secrets.QA_AWS_REGION }}
-          AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
+          role-to-assume: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.QA_AWS_REGION }}
+          mask-aws-account-id: true
+          role-session-name: e2e-tests-wait-for-chainlink-image
+      - name: Wait for Chainlink Image
+        run: |
+          START_TIME=$(date +%s)
+          echo "Checking for '${{ env.CHAINLINK_IMAGE }}' in ECR..."
+          while true; do
+            IMAGE=$(aws ecr describe-images --repository-name "${{ inputs.chainlink_image_name || 'chainlink' }}" --query 'imageDetails[?contains(imageTags, `${{ needs.build-test-configurations.outputs.chainlink_image_tag }}`)].imageTags[]'' --output text)
+            if [[ "$IMAGE" == "$IMAGE_TAG" ]]; then
+                echo "Found tag!"
+                exit 0
+            else
+                echo "Not found, waiting $POLL_INTERVAL seconds..."
+            fi
+            
+            CURRENT_TIME=$(date +%s)
+            ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
+            if [[ "$ELAPSED_TIME" -ge "$TIMEOUT" ]]; then
+                echo "Timeout reached after $TIMEOUT seconds."
+                exit 1
+            fi
+            
+            sleep "$POLL_INTERVAL"
+          done
 
   # Run Docker tests
   run-docker-tests:
-    name: ${{ matrix.tests.id }}
+    name: ${{ matrix.tests.name || matrix.tests.id }}
     needs:
       [
-        load-test-configurations,
-        require-chainlink-image-versions-in-qa-ecr,
-        require-chainlink-plugin-versions-in-qa-ecr,
+        build-test-configurations,
         get_latest_chainlink_release_version,
+        wait-for-chainlink-image,
       ]
     # Run when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok)
     if:
-      ${{ needs.load-test-configurations.outputs.run-docker-tests == 'true' &&
+      ${{ needs.build-test-configurations.outputs.run-docker-tests == 'true' &&
       always() && !failure() && !cancelled() }}
     runs-on: ${{ matrix.tests.runs_on }}
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.load-test-configurations.outputs.docker-matrix)}}
+      matrix: ${{fromJson(needs.build-test-configurations.outputs.docker-matrix)}}
     environment: integration
     permissions:
       actions: read
@@ -565,7 +531,9 @@ jobs:
       TEST_CONFIG_OVERRIDE_PATH:
         ${{ matrix.tests.test_config_override_path ||
         inputs.test_config_override_path }}
-      TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
+      TEST_ID:
+        ${{ matrix.tests.id_sanitized || matrix.tests.id }}${{
+        inputs.test_chainlink_image_type }}
     steps:
       - name: Collect Metrics
         if: always()
@@ -585,24 +553,11 @@ jobs:
       - name: Install jq
         run: sudo apt-get install -y jq
 
-      - name: Show test config override path in summary
-        if: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
-        shell: bash
+      - name: Show Test Configuration
         run: |
-          echo "### Test config override path" >> "$GITHUB_STEP_SUMMARY"
-          echo "[${{ env.TEST_CONFIG_OVERRIDE_PATH }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/${{ github.sha }}/${{ env.TEST_CONFIG_OVERRIDE_PATH }})" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Show chainlink version in summary
-        if:
-          ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
-          env.DEFAULT_CHAINLINK_VERSION }}
-        shell: bash
-        run: |
-          echo "### Chainlink version" >> "$GITHUB_STEP_SUMMARY"
-          echo "${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION || env.DEFAULT_CHAINLINK_VERSION }}" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Show test configuration in logs
-        run: echo '${{ toJson(matrix.tests) }}' | jq .
+          echo "Test Confgi Override Path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}"
+          echo "Test Configuration"  
+          echo '${{ toJson(matrix.tests) }}' | jq .
 
       - name: Setup GAP for Grafana
         uses: smartcontractkit/.github/actions/setup-gap@d316f66b2990ea4daa479daa3de6fc92b00f863e # setup-gap@0.3.2
@@ -647,12 +602,11 @@ jobs:
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@b8731364b119e88983e94b0c4da87fc27ddb41b8 # ctf-run-tests@0.0.0
         env:
-          DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION:
-            ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
-            env.DEFAULT_CHAINLINK_VERSION }}
+            ${{ needs.build-test-configurations.outputs.chainlink_image_tag }}
           E2E_TEST_CHAINLINK_UPGRADE_VERSION:
-            ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_UPGRADE_VERSION }}
+            ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_UPGRADE_VERSION ||
+            needs.build-test-configurations.outputs.chainlink_image_tag }}
           E2E_TEST_CHAINLINK_POSTGRES_VERSION:
             ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_POSTGRES_VERSION
             }}
@@ -691,7 +645,8 @@ jobs:
             ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_IMAGE ||
             env.CHAINLINK_IMAGE }}
           default_e2e_test_chainlink_upgrade_image:
-            ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_UPGRADE_IMAGE }}
+            ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_UPGRADE_IMAGE ||
+            env.CHAINLINK_IMAGE}}
           aws_registries: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}
           artifacts_name: ${{ env.TEST_ID }}-test-logs
           artifacts_location: |
@@ -766,7 +721,7 @@ jobs:
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
           name:
-            test_result_${{ needs.load-test-configurations.outputs.workflow_id
+            test_result_${{ needs.build-test-configurations.outputs.workflow_id
             }}_${{ env.TEST_ID }}
           path: test_result.json
           retention-days: 1
@@ -776,8 +731,8 @@ jobs:
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
           name:
-            custom_test_artifacts_${{ env.TEST_ID }}_${{
-            needs.load-test-configurations.outputs.workflow_id }}
+            custom_test_artifacts_${{ env.TEST_ID }}${{
+            needs.build-test-configurations.outputs.workflow_id }}
           path: ${{ matrix.tests.test_artifacts_on_failure }}
           retention-days: 1
 
@@ -787,12 +742,12 @@ jobs:
 
   # Run K8s tests using old remote runner
 
-  get-remote-runner-test-image:
-    needs: [load-test-configurations]
+  prepare-remote-runner-test-image:
+    needs: [build-test-configurations]
     if:
-      ${{ needs.load-test-configurations.outputs.run-k8s-tests == 'true' &&
+      ${{ needs.build-test-configurations.outputs.run-k8s-tests == 'true' &&
       always() && !failure() && !cancelled() }}
-    name: Get remote runner test image
+    name: Prepare remote runner test image
     runs-on: ubuntu-latest
     environment: integration
     permissions:
@@ -835,20 +790,20 @@ jobs:
   run-k8s-runner-tests:
     needs:
       [
-        load-test-configurations,
-        get-remote-runner-test-image,
+        build-test-configurations,
+        prepare-remote-runner-test-image,
         require-chainlink-image-versions-in-qa-ecr,
         require-chainlink-plugin-versions-in-qa-ecr,
         get_latest_chainlink_release_version,
       ]
     if:
-      ${{ needs.load-test-configurations.outputs.run-k8s-tests == 'true' &&
+      ${{ needs.build-test-configurations.outputs.run-k8s-tests == 'true' &&
       always() && !failure() && !cancelled() }}
     name: ${{ matrix.tests.id }}
     runs-on: ${{ matrix.tests.runs_on }}
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.load-test-configurations.outputs.k8s-runner-matrix)}}
+      matrix: ${{fromJson(needs.build-test-configurations.outputs.k8s-runner-matrix)}}
     environment: integration
     permissions:
       actions: read
@@ -899,9 +854,9 @@ jobs:
 
       - name: Show remote runner version in summary
         run: |
-          echo "Remote Runner Version: ${{ needs.get-remote-runner-test-image.outputs.remote-runner-version }}"
+          echo "Remote Runner Version: ${{ needs.prepare-remote-runner-test-image.outputs.remote-runner-version }}"
           echo "### Remote Runner Version" >> "$GITHUB_STEP_SUMMARY"
-          echo "${{ needs.get-remote-runner-test-image.outputs.remote-runner-version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ needs.prepare-remote-runner-test-image.outputs.remote-runner-version }}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Show test configuration in logs
         run: echo '${{ toJson(matrix.tests) }}' | jq .
@@ -995,7 +950,7 @@ jobs:
         with:
           name:
             custom_test_artifacts_${{ env.TEST_ID }}_${{
-            needs.load-test-configurations.outputs.workflow_id }}
+            needs.build-test-configurations.outputs.workflow_id }}
           path: ${{ matrix.tests.test_artifacts_on_failure }}
           retention-days: 1
 
@@ -1004,7 +959,7 @@ jobs:
         uses: smartcontractkit/.github/actions/ctf-show-grafana-in-test-summary@b6e37806737eef87e8c9137ceeb23ef0bff8b1db # ctf-show-grafana-in-test-summary@0.1.0
 
   after_tests:
-    needs: [load-test-configurations, run-docker-tests, run-k8s-runner-tests]
+    needs: [build-test-configurations, run-docker-tests, run-k8s-runner-tests]
     if: always()
     name: After tests
     runs-on: ubuntu-latest
@@ -1018,7 +973,7 @@ jobs:
         with:
           path: test_results
           pattern:
-            test_result_${{ needs.load-test-configurations.outputs.workflow_id
+            test_result_${{ needs.build-test-configurations.outputs.workflow_id
             }}_*
 
       - name: Set detailed test results
