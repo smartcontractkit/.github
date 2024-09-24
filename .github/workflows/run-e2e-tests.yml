@@ -263,8 +263,8 @@ jobs:
     steps:
       - name: Check input conditions
         run: |
-          if [[ "${{ inputs.test_ids }}" != "" && "${{ inputs.test_workflow }}" != "" ]]; then
-            echo "::error::Error: Both 'test_ids' and 'test_workflow' are provided. Please specify only one."
+          if [[ "${{ inputs.test_ids }}" != "" && "${{ inputs.test_trigger }}" != "" ]]; then
+            echo "::error::Error: Both 'test_ids' and 'test_trigger' are provided. Please specify only one."
             exit 1
           fi
           if [[ "${{ inputs.test_chainlink_image_type }}" != "" && "${{ inputs.chainlink_version }}" != "" ]]; then
@@ -357,9 +357,9 @@ jobs:
           fi
 
           echo "chainlink_image_tag=$chainlink_image_tag"
-          echo "chainlink_image_tag=$chainlink_image_tag" >> $GITHUB_OUTPUT
-          echo "## Chainlink Image" >> $GITHUB_STEP_SUMMARY
-          echo "${{ env.CHAINLINK_IMAGE }}:`$chainlink_image_tag`" >> $GITHUB_STEP_SUMMARY
+          echo "chainlink_image_tag=$chainlink_image_tag" >> "$GITHUB_OUTPUT"
+          echo "## Chainlink Image" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ env.CHAINLINK_IMAGE }}:`$chainlink_image_tag`" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Generate Docker Tests Matrix
         id: set-docker-matrix
@@ -872,7 +872,8 @@ jobs:
           ENV_JOB_IMAGE:
             ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
             secrets.QA_AWS_REGION }}.amazonaws.com/chainlink-tests:${{
-            needs.get-remote-runner-test-image.outputs.remote-runner-version }}
+            needs.prepare-remote-runner-test-image.outputs.remote-runner-version
+            }}
           INTERNAL_DOCKER_REPO:
             ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
             secrets.QA_AWS_REGION }}.amazonaws.com
