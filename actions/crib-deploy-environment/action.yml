@@ -163,6 +163,7 @@ runs:
         CRIB_SKIP_DOCKER_ECR_LOGIN: true
         CRIB_SKIP_HELM_ECR_LOGIN: true
         DEVSPACE_IMAGE: "${{inputs.product-image}}"
+        DEVSPACE_IMAGE_TAG: "${{inputs.product-image-tag}}"
         DEVSPACE_INGRESS_BASE_DOMAIN: ${{ inputs.ingress-base-domain }}
         DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
         PROFILES: ${{ inputs.devspace-profiles }}
