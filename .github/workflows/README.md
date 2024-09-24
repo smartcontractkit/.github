@@ -1,3 +1,5 @@
+# Workflows
+
 ## Run E2E Tests Reusable Workflow
 
 The [E2E Tests Reusable Workflow](./run-e2e-tests.yml) is designed to run any
