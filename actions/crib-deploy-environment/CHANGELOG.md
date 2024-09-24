@@ -1,5 +1,15 @@
 # crib-deploy-environment
 
+## 2.0.0
+
+### Major Changes
+
+- [#631](https://github.com/smartcontractkit/.github/pull/631)
+  [`cde4002`](https://github.com/smartcontractkit/.github/commit/cde4002f27bd784a479841abd33d947d839a6b88)
+  Thanks [@gheorghestrimtu](https://github.com/gheorghestrimtu)! - Instead of
+  using product name to run CRIB we will use the name of the Devspace command
+  configured in the crib repo.
+
 ## 1.3.2
 
 ### Patch Changes
