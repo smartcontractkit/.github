@@ -181,7 +181,7 @@ runs:
 
         nix develop -c ./cribbit.sh "$NAMESPACE"
 
-        nix develop -c devspace ${{ inputs.command }} ${{ inputs.command-args }}
+        nix develop -c devspace run ${{ inputs.command }} ${{ inputs.command-args }}
     - name: Render notification template
       uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
       id: render-slack-template
