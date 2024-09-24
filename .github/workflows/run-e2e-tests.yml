@@ -217,7 +217,7 @@ on:
       SLACK_CHANNEL:
         required: false
       AWS_ACCOUNT_ID_PROD:
-        required: true
+        required: false
 
 env:
   CHAINLINK_IMAGE:
