@@ -400,6 +400,7 @@ jobs:
           K8S_MATRIX_EMPTY=$(echo '${{ steps.set-k8s-runner-matrix.outputs.matrix }}' | jq '.tests == null or .tests == []')
 
           # Check if jq commands succeeded
+          # shellcheck disable=SC2181
           if [ $? -ne 0 ]; then
             echo "JSON parse error occurred."
             exit 1
@@ -438,13 +439,13 @@ jobs:
           K8S_TESTS_REQUIRING_SECRETS=$(echo '${{ steps.set-k8s-runner-matrix.outputs.matrix }}' | jq 'if .tests then .tests[] | select(has("test_secrets_required") and .test_secrets_required) | .id else empty end' -r)
 
           # Determine if any tests require secrets
-          if [ ! -z "$DOCKER_TESTS_REQUIRING_SECRETS" ] || [ ! -z "$K8S_TESTS_REQUIRING_SECRETS" ]; then
+          if [ -n "$DOCKER_TESTS_REQUIRING_SECRETS" ] || [ -n "$K8S_TESTS_REQUIRING_SECRETS" ]; then
             echo "Tests in ${{ github.workspace }}/${{ inputs.test_path }} requiring custom test secrets:"
-            if [ ! -z "$DOCKER_TESTS_REQUIRING_SECRETS" ]; then
-              echo $DOCKER_TESTS_REQUIRING_SECRETS
+            if [ -n "$DOCKER_TESTS_REQUIRING_SECRETS" ]; then
+              echo "$DOCKER_TESTS_REQUIRING_SECRETS"
             fi
-            if [ ! -z "$K8S_TESTS_REQUIRING_SECRETS" ]; then
-              echo $K8S_TESTS_REQUIRING_SECRETS
+            if [ -n "$K8S_TESTS_REQUIRING_SECRETS" ]; then
+              echo "$K8S_TESTS_REQUIRING_SECRETS"
             fi
             echo "::error::Error: Some of the tests require custom test secrets to run. Please see workflow logs and set 'test_secrets_override_key' to run these tests."
             exit 1
@@ -588,8 +589,8 @@ jobs:
         if: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
         shell: bash
         run: |
-          echo "### Test config override path" >> $GITHUB_STEP_SUMMARY
-          echo "[${{ env.TEST_CONFIG_OVERRIDE_PATH }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/${{ github.sha }}/${{ env.TEST_CONFIG_OVERRIDE_PATH }})" >> $GITHUB_STEP_SUMMARY
+          echo "### Test config override path" >> "$GITHUB_STEP_SUMMARY"
+          echo "[${{ env.TEST_CONFIG_OVERRIDE_PATH }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/${{ github.sha }}/${{ env.TEST_CONFIG_OVERRIDE_PATH }})" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Show chainlink version in summary
         if:
@@ -597,8 +598,8 @@ jobs:
           env.DEFAULT_CHAINLINK_VERSION }}
         shell: bash
         run: |
-          echo "### Chainlink version" >> $GITHUB_STEP_SUMMARY
-          echo "${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION || env.DEFAULT_CHAINLINK_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "### Chainlink version" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION || env.DEFAULT_CHAINLINK_VERSION }}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Show test configuration in logs
         run: echo '${{ toJson(matrix.tests) }}' | jq .
@@ -637,8 +638,8 @@ jobs:
           # Start OpenTelemetry Collector
           # Note the user must be set to the same user as the runner for the trace data to be accessible
           docker run -d --network=tracing --name=otel-collector \
-            -v $PWD/otel-collector-ci.yaml:/etc/otel-collector.yaml \
-            -v $PWD/../../integration-tests/smoke/traces:/tracing \
+            -v "$PWD"/otel-collector-ci.yaml:/etc/otel-collector.yaml \
+            -v "$PWD"/../../integration-tests/smoke/traces:/tracing \
             --user "$(id -u):$(id -g)" \
             -p 4317:4317 otel/opentelemetry-collector:0.88.0 --config=/etc/otel-collector.yaml
 
@@ -885,22 +886,22 @@ jobs:
       - name: Show test config override path in summary
         if: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
         run: |
-          echo "### Test config override path" >> $GITHUB_STEP_SUMMARY
-          echo "[${{ env.TEST_CONFIG_OVERRIDE_PATH }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/${{ github.sha }}/${{ env.TEST_CONFIG_OVERRIDE_PATH }})" >> $GITHUB_STEP_SUMMARY
+          echo "### Test config override path" >> "$GITHUB_STEP_SUMMARY"
+          echo "[${{ env.TEST_CONFIG_OVERRIDE_PATH }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/${{ github.sha }}/${{ env.TEST_CONFIG_OVERRIDE_PATH }})" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Show chainlink version in summary
         if:
           ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
           env.DEFAULT_CHAINLINK_VERSION }}
         run: |
-          echo "### Chainlink version" >> $GITHUB_STEP_SUMMARY
-          echo "${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION || env.DEFAULT_CHAINLINK_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "### Chainlink version" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION || env.DEFAULT_CHAINLINK_VERSION }}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Show remote runner version in summary
         run: |
           echo "Remote Runner Version: ${{ needs.get-remote-runner-test-image.outputs.remote-runner-version }}"
-          echo "### Remote Runner Version" >> $GITHUB_STEP_SUMMARY
-          echo "${{ needs.get-remote-runner-test-image.outputs.remote-runner-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "### Remote Runner Version" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ needs.get-remote-runner-test-image.outputs.remote-runner-version }}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Show test configuration in logs
         run: echo '${{ toJson(matrix.tests) }}' | jq .
@@ -1042,7 +1043,7 @@ jobs:
         shell: bash
         run:
           echo "short_sha=$(echo ${{ github.sha }} | cut -c1-7)" >>
-          $GITHUB_OUTPUT
+          "$GITHUB_OUTPUT"
 
       - name: Send Slack notification
         uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # v1.25.0
