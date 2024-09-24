@@ -230,7 +230,7 @@ env:
     inputs.chainlink_version) }}
   DEFAULT_CHAINLINK_UPGRADE_VERSION: ${{ inputs.chainlink_version }}
   CHAINLINK_ENV_USER: ${{ github.actor }}
-  CHAINLINK_COMMIT_SHA: ${{ inputs.evm-ref }}
+  CHAINLINK_COMMIT_SHA: ${{ github.sha }}
   MOD_CACHE_VERSION: 1
   TEST_LOG_LEVEL: ${{ inputs.test_log_level }}
   METRICS_COLLECTION_ID: chainlink-e2e-tests
@@ -266,6 +266,7 @@ jobs:
 
       - name: Create matrix for required Chainlink image versions
         id: set-required-chainlink-image-versions-matrix
+        shell: bash
         run: |
           image_versions="${{ inputs.require_chainlink_image_versions_in_qa_ecr }}"
           default_version="${{ env.DEFAULT_CHAINLINK_VERSION }}"
@@ -288,6 +289,7 @@ jobs:
 
       - name: Create matrix for required Chainlink plugin versions
         id: set-required-chainlink-plugin-versions-matrix
+        shell: bash
         run: |
           image_versions=$(echo "${{ inputs.require_chainlink_plugin_versions_in_qa_ecr }}" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
           echo "Required Chainlink plugin image versions: $image_versions"   
@@ -359,6 +361,7 @@ jobs:
 
       - name: Generate Docker Tests Matrix
         id: set-docker-matrix
+        shell: bash
         run: |
           # Check if custom_test_list_json is provided and non-empty
           if [[ -n '${{ inputs.custom_test_list_json }}' ]]; then
@@ -375,6 +378,7 @@ jobs:
 
       - name: Generate K8s Tests Matrix
         id: set-k8s-runner-matrix
+        shell: bash
         run: |
           # Check if custom_test_list_json is provided and non-empty
           if [[ -n '${{ inputs.custom_test_list_json }}' ]]; then
@@ -450,6 +454,7 @@ jobs:
 
       - name: Generate random workflow id
         id: gen_id
+        shell: bash
         run: echo "workflow_id=$(uuidgen)" >> $GITHUB_OUTPUT
 
   # Check if Chainlink images required for the tests exist. If not, build and push the images to QA ECR
@@ -581,6 +586,7 @@ jobs:
 
       - name: Show test config override path in summary
         if: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
+        shell: bash
         run: |
           echo "### Test config override path" >> $GITHUB_STEP_SUMMARY
           echo "[${{ env.TEST_CONFIG_OVERRIDE_PATH }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/${{ github.sha }}/${{ env.TEST_CONFIG_OVERRIDE_PATH }})" >> $GITHUB_STEP_SUMMARY
@@ -589,6 +595,7 @@ jobs:
         if:
           ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
           env.DEFAULT_CHAINLINK_VERSION }}
+        shell: bash
         run: |
           echo "### Chainlink version" >> $GITHUB_STEP_SUMMARY
           echo "${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION || env.DEFAULT_CHAINLINK_VERSION }}" >> $GITHUB_STEP_SUMMARY
@@ -611,6 +618,7 @@ jobs:
         if:
           inputs.enable_otel_traces_for_ocr2_plugins &&
           matrix.tests.test_env_vars.ENABLE_OTEL_TRACES == 'true'
+        shell: bash
         run: |
           # Create network
           docker network create --driver bridge tracing
@@ -704,6 +712,7 @@ jobs:
         if:
           inputs.enable_otel_traces_for_ocr2_plugins &&
           matrix.tests.test_env_vars.ENABLE_OTEL_TRACES == 'true'
+        shell: bash
         run: |
           docker logs otel-collector
 
@@ -711,6 +720,7 @@ jobs:
         if:
           inputs.enable_otel_traces_for_ocr2_plugins &&
           matrix.tests.test_env_vars.ENABLE_OTEL_TRACES == 'true'
+        shell: bash
         run: |
           ls -l ./integration-tests/smoke/traces
 
