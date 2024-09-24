@@ -285,7 +285,7 @@ jobs:
           image_versions=$(echo "$image_versions" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
 
           echo "Required Chainlink image versions: $image_versions"   
-          echo "versions=$image_versions" >> $GITHUB_OUTPUT
+          echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
 
       - name: Create matrix for required Chainlink plugin versions
         id: set-required-chainlink-plugin-versions-matrix
@@ -293,7 +293,7 @@ jobs:
         run: |
           image_versions=$(echo "${{ inputs.require_chainlink_plugin_versions_in_qa_ecr }}" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
           echo "Required Chainlink plugin image versions: $image_versions"   
-          echo "versions=$image_versions" >> $GITHUB_OUTPUT
+          echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
 
   check-test-configurations:
     name: Check test configurations
@@ -374,7 +374,7 @@ jobs:
 
           echo "Docker tests:"
           echo "$MATRIX_JSON" | jq
-          echo "matrix=$MATRIX_JSON" >> $GITHUB_OUTPUT
+          echo "matrix=$MATRIX_JSON" >> "$GITHUB_OUTPUT"
 
       - name: Generate K8s Tests Matrix
         id: set-k8s-runner-matrix
@@ -391,7 +391,7 @@ jobs:
 
           echo "K8s tests:"
           echo "$MATRIX_JSON" | jq
-          echo "matrix=$MATRIX_JSON" >> $GITHUB_OUTPUT
+          echo "matrix=$MATRIX_JSON" >> "$GITHUB_OUTPUT"
 
       - name: Check Test Matrices
         id: check-matrices
@@ -406,14 +406,14 @@ jobs:
           fi
 
           if [[ "$DOCKER_MATRIX_EMPTY" == "true" ]]; then
-            echo "run-docker-tests=false" >> $GITHUB_OUTPUT
+            echo "run-docker-tests=false" >> "$GITHUB_OUTPUT"
           else
-            echo "run-docker-tests=true" >> $GITHUB_OUTPUT
+            echo "run-docker-tests=true" >> "$GITHUB_OUTPUT"
           fi
           if [[ "$K8S_MATRIX_EMPTY" == "true" ]]; then
-            echo "run-k8s-tests=false" >> $GITHUB_OUTPUT
+            echo "run-k8s-tests=false" >> "$GITHUB_OUTPUT"
           else
-            echo "run-k8s-tests=true" >> $GITHUB_OUTPUT
+            echo "run-k8s-tests=true" >> "$GITHUB_OUTPUT"
           fi
 
           # Check if both matrices are empty
@@ -455,7 +455,7 @@ jobs:
       - name: Generate random workflow id
         id: gen_id
         shell: bash
-        run: echo "workflow_id=$(uuidgen)" >> $GITHUB_OUTPUT
+        run: echo "workflow_id=$(uuidgen)" >> "$GITHUB_OUTPUT"
 
   # Check if Chainlink images required for the tests exist. If not, build and push the images to QA ECR
   require-chainlink-image-versions-in-qa-ecr:
@@ -822,12 +822,13 @@ jobs:
       - name: Set Remote Runner Version
         id: set-remote-runner-version
         run: |
+          # shellcheck disable=SC2129
           if [[ -z "${{ inputs.with_existing_remote_runner_version }}" ]]; then
-            echo "remote-runner-image=${{ steps.build-test-runner-image.outputs.test_image }}" >> $GITHUB_OUTPUT
-            echo "remote-runner-repository=${{ steps.build-test-runner-image.outputs.test_image_repository }}" >> $GITHUB_OUTPUT
-            echo "remote-runner-version=${{ steps.build-test-runner-image.outputs.test_image_tag }}" >> $GITHUB_OUTPUT
+            echo "remote-runner-image=${{ steps.build-test-runner-image.outputs.test_image }}" >> "$GITHUB_OUTPUT"
+            echo "remote-runner-repository=${{ steps.build-test-runner-image.outputs.test_image_repository }}" >> "$GITHUB_OUTPUT"
+            echo "remote-runner-version=${{ steps.build-test-runner-image.outputs.test_image_tag }}" >> "$GITHUB_OUTPUT"
           else
-            echo "remote-runner-version=${{ inputs.with_existing_remote_runner_version }}" >> $GITHUB_OUTPUT
+            echo "remote-runner-version=${{ inputs.with_existing_remote_runner_version }}" >> "$GITHUB_OUTPUT"
           fi
 
   run-k8s-runner-tests:
@@ -1030,10 +1031,10 @@ jobs:
             # Display the combined JSON
             jq . test_results.json
             # Set the combined results as an output
-            echo "results=$(jq -c . test_results.json)" >> $GITHUB_OUTPUT
+            echo "results=$(jq -c . test_results.json)" >> "$GITHUB_OUTPUT"
           else
             echo "No test results directory found."
-            echo "results=[]" >> $GITHUB_OUTPUT
+            echo "results=[]" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Set short SHA
