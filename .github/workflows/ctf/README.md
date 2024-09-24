@@ -20,11 +20,30 @@ Learn more about the advantages of using reusable workflows
 
 ### E2E Test Configuration on GitHub CI
 
-The
-[e2e-tests.yml](https://github.com/smartcontractkit/chainlink/blob/develop/.github/e2e-tests.yml)
-file lists all E2E tests configured for execution on CI. Each entry specifies
-the type of GitHub Runner needed and the workflows in which the test is included
-(for example, `smoke/ocr_test.go:*` is executed both in PRs and nightly).
+The `test_path` workflow input is used to provide path the YAML test
+configuration file that defines all E2E tests configured for execution on CI.
+Each entry specifies the type of GitHub Runner needed and the workflows in which
+the test is included.
+
+**Example:**
+
+```yml
+- id: smoke/ocr_test.go:*
+  path: integration-tests/smoke/ocr_test.go
+  test_env_type: docker
+  runs_on: ubuntu-latest
+  triggers:
+    - PR E2E Core Tests
+    - Merge Queue E2E Core Tests
+    - Nightly E2E Tests
+  test_cmd:
+    cd integration-tests/ && go test smoke/ocr_test.go -timeout 30m -count=1
+    -test.parallel=2 -json
+  pyroscope_env: ci-smoke-ocr-evm-simulated
+```
+
+**Example of e2e-tests.yml:**
+https://github.com/smartcontractkit/chainlink/blob/develop/.github/e2e-tests.yml
 
 ### Slack Notification After Tests
 
@@ -57,30 +76,6 @@ jobs:
 ```
 
 ## Guides
-
-### How to Run Selected Tests on GitHub CI
-
-The
-[Run Selected E2E Tests Workflow](https://github.com/smartcontractkit/chainlink/actions/workflows/run-selected-e2e-tests.yml)
-allows you to execute specific E2E tests as defined in the
-[e2e-tests.yml](https://github.com/smartcontractkit/chainlink/blob/develop/.github/e2e-tests.yml).
-This is useful for various purposes such as testing specific features on a
-particular branch or verifying that modifications to a test have not introduced
-any issues.
-
-For details on all available inputs that the workflow supports, refer to the
-[workflow definition](https://github.com/smartcontractkit/chainlink/actions/workflows/run-selected-e2e-tests.yml).
-
-**Example Usage:**
-
-To run a set of VRFv2Plus tests from a custom branch, use the following command:
-
-```bash
-gh workflow run run-selected-e2e-tests.yml \
--f test_ids="TestVRFv2Plus_LinkBilling,TestVRFv2Plus_NativeBilling,TestVRFv2Plus_DirectFunding,TestVRFV2PlusWithBHS" \
--f chainlink_version=develop \
---ref TT-1550-Provide-PoC-for-keeping-test-configs-in-git
-```
 
 ### How to Run Custom Tests with Reusable Workflow
 
