@@ -216,6 +216,8 @@ on:
       # Used in some tests to send slack notifications
       SLACK_CHANNEL:
         required: false
+      AWS_ACCOUNT_ID_PROD:
+        required: true
 
 env:
   CHAINLINK_IMAGE:
@@ -675,6 +677,9 @@ jobs:
           E2E_TEST_PYROSCOPE_KEY:
             ${{ matrix.tests.pyroscope_env != '' && secrets.QA_PYROSCOPE_KEY ||
             '' }}
+          E2E_JD_IMAGE:
+            ${{ secrets.AWS_ACCOUNT_ID_PROD }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/job-distributor
+          E2E_JD_VERSION: 0.3.0
         with:
           test_command_to_run:
             ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1
@@ -692,7 +697,7 @@ jobs:
             env.CHAINLINK_IMAGE }}
           default_e2e_test_chainlink_upgrade_image:
             ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_UPGRADE_IMAGE }}
-          aws_registries: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}
+          aws_registries: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }},${{ secrets.AWS_ACCOUNT_ID_PROD }}
           artifacts_name: ${{ env.TEST_ID }}-test-logs
           artifacts_location: |
             ./integration-tests/smoke/logs/
