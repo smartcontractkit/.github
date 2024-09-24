@@ -679,7 +679,7 @@ jobs:
             '' }}
           E2E_JD_IMAGE:
             ${{ secrets.AWS_ACCOUNT_ID_PROD }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/job-distributor
-          E2E_JD_VERSION: 0.3.0
+          E2E_JD_VERSION:  ${{ matrix.tests.jd_version }}
         with:
           test_command_to_run:
             ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1
