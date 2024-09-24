@@ -792,8 +792,7 @@ jobs:
       [
         build-test-configurations,
         prepare-remote-runner-test-image,
-        require-chainlink-image-versions-in-qa-ecr,
-        require-chainlink-plugin-versions-in-qa-ecr,
+        wait-for-chainlink-image,
         get_latest_chainlink_release_version,
       ]
     if:
