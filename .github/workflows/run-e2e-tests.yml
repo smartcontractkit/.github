@@ -40,7 +40,8 @@ on:
         required: false
         type: string
       test_list:
-        description: "Base64 encoded list of tests (YML objects) to run"
+        description:
+          "Base64-encoded list (YML objects) specifying the tests to run"
         required: false
         type: string
       custom_test_list_json:
