@@ -24081,6 +24081,12 @@ async function validateActionReference(octokit, options, actionRef) {
   if (!actionRef) {
     return [];
   }
+  if (actionRef.isWorkflowFile) {
+    core3.debug(
+      `Skipping validation for workflow reference: ${actionRef.owner}/${actionRef.repo}/${actionRef.repoPath}`
+    );
+    return [];
+  }
   const validationErrors = [];
   const shaRefValidation = validateShaRef(actionRef);
   const versionCommentValidation = validateVersionCommentExists(actionRef);
@@ -24116,12 +24122,6 @@ function validateVersionCommentExists(actionReference) {
   };
 }
 async function validateNodeActionVersion(octokit, actionRef) {
-  if (actionRef.isWorkflowFile) {
-    core3.debug(
-      `Skipping node version validation for ${actionRef.owner}/${actionRef.repo}/${actionRef.repoPath}`
-    );
-    return;
-  }
   const actionFile = await getActionFileFromGithub(
     octokit,
     actionRef.owner,
@@ -24194,7 +24194,7 @@ var ActionsRunnerValidation = class {
     this.options = options ?? {};
   }
   async validate(parsedFile) {
-    core4.debug(`Validating action references in ${parsedFile.filename}`);
+    core4.debug(`Validating gha runners in ${parsedFile.filename}`);
     const { filename } = parsedFile;
     const lineActionsRunners = mapAndFilterUndefined(
       parsedFile.lines,
@@ -24358,7 +24358,7 @@ var IgnoresCommentValidation = class {
     this.options = options ?? {};
   }
   async validate(parsedFile) {
-    core5.debug(`Validating action references in ${parsedFile.filename}`);
+    core5.debug(`Validating ignores comments in ${parsedFile.filename}`);
     const { filename } = parsedFile;
     const ignoreComments = mapAndFilterUndefined(
       parsedFile.lines,
