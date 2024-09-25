@@ -99,33 +99,6 @@ configuration file:
 **Full example of e2e-tests.yml:**
 https://github.com/smartcontractkit/chainlink/blob/develop/.github/e2e-tests.yml
 
-### Optional Workflow Execution without Tests Configuration File
-
-For scenarios where using the standard `e2e-tests.yml` configuration file isn't
-suitable, the workflow offers an alternative through the `custom_test_list_json`
-workflow input. This option allows for the specification of a custom
-JSON-formatted list of tests to run.
-
-```yml
-run-e2e-tests-workflow:
-  name: Run E2E Tests
-  uses: smartcontractkit/.github/.github/workflows/run-e2e-tests.yml@aad83f232743646faa35f5ac03ee3829148d37ce
-  with:
-    custom_test_list_json: >
-      {
-        "tests": [
-          {
-            "id": "TestVRFv2Plus",
-            "path": "integration-tests/smoke/vrfv2plus_test.go",
-            "runs_on": "ubuntu-latest",
-            "test_env_type": "docker",
-            "test_cmd": "cd integration-tests/smoke && go test
-      vrfv2plus_test.go"
-          }
-        ]
-      }
-```
-
 ## Slack Notification After Tests
 
 To configure Slack notifications after tests executed via the reusable workflow,
@@ -150,7 +123,7 @@ jobs:
     with:
       chainlink_version: develop
       test_trigger: Nightly E2E Tests
-      slack_notification_after_tests: true
+      slack_notification_after_tests: always
       slack_notification_after_tests_channel_id: "#team-test-tooling-internal"
       slack_notification_after_tests_name: Nightly E2E Tests
       slack_notification_after_tests_notify_user_id_on_failure: U0XXXXXXX
