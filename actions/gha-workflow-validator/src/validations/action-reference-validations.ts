@@ -21,6 +21,7 @@ interface ActionReference {
   repoPath: string;
   ref: string;
   comment?: string;
+  isWorkflowFile?: boolean;
 }
 
 interface ActionReferenceValidationOptions {
@@ -150,6 +151,13 @@ async function validateNodeActionVersion(
   octokit: Octokit,
   actionRef: ActionReference,
 ): Promise<ValidationMessage | undefined> {
+  if (actionRef.isWorkflowFile) {
+    core.debug(
+      `Skipping node version validation for ${actionRef.owner}/${actionRef.repo}/${actionRef.repoPath}`,
+    );
+    return;
+  }
+
   const actionFile = await getActionFileFromGithub(
     octokit,
     actionRef.owner,
@@ -184,6 +192,10 @@ function extractActionReference(
   const actionReference = extractActionReferenceFromLine(fileLine.content);
   if (!actionReference) {
     return;
+  }
+
+  if (actionReference.isWorkflowFile) {
+    core.debug(`Found workflow file reference: ${fileLine.content}`);
   }
 
   return {
@@ -234,5 +246,6 @@ export function extractActionReferenceFromLine(
     repoPath,
     ref: gitRef,
     comment: comment.join().trim(),
+    isWorkflowFile: repoPath.endsWith(".yml") || repoPath.endsWith(".yaml"),
   };
 }

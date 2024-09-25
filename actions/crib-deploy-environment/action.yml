@@ -17,12 +17,6 @@ inputs:
     default: "0.0.0.0/0"
     description: "DevSpace ingress CIDRs."
     required: false
-  devspace-profiles:
-    default: ""
-    description: |
-      "Comma-separated list of DevSpace profiles to apply when running DevSpace commands.
-      Example: ci,values-dev-simulated-core-ocr1."
-    required: false
   ecr-private-registry:
     default: ""
     description:
@@ -46,9 +40,13 @@ inputs:
       "Namespace TTL, which defines how long a namespace will remain alive after
       creation."
     required: false
-  product:
+  command:
     default: "core"
-    description: "The name of the product (e.g., core, ccip)."
+    description: "The devspace command to run."
+    required: false
+  command-args:
+    default: "--skip-build"
+    description: "The arguments to pass to the devspace command."
     required: false
   product-image:
     required: false
@@ -82,20 +80,6 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Validate Inputs
-      shell: bash
-      run: |
-        # Validate product input
-        case "${{ inputs.product }}" in
-          "core"|"ccip")
-            echo "Product input is valid: ${{ inputs.product }}"
-            ;;
-          *)
-            echo "Invalid product input: ${{ inputs.product }}. Must be 'core' or 'ccip'."
-            exit 1
-            ;;
-        esac
-
     - name: Setup GAP
       uses: smartcontractkit/.github/actions/setup-gap@d316f66b2990ea4daa479daa3de6fc92b00f863e # setup-gap@0.3.2
       with:
@@ -171,8 +155,7 @@ runs:
         kubectl get namespace $NAMESPACE --show-labels
 
     - name: Deploy to CRIB ephemeral environment
-      working-directory:
-        ${{ github.workspace }}/crib/deployments/${{ inputs.product }}
+      working-directory: ${{ github.workspace }}/crib/deployments/chainlink
       shell: bash
       env:
         CHAINLINK_CODE_DIR: "../"
@@ -180,6 +163,7 @@ runs:
         CRIB_SKIP_DOCKER_ECR_LOGIN: true
         CRIB_SKIP_HELM_ECR_LOGIN: true
         DEVSPACE_IMAGE: "${{inputs.product-image}}"
+        DEVSPACE_IMAGE_TAG: "${{inputs.product-image-tag}}"
         DEVSPACE_INGRESS_BASE_DOMAIN: ${{ inputs.ingress-base-domain }}
         DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
         PROFILES: ${{ inputs.devspace-profiles }}
@@ -196,27 +180,9 @@ runs:
         # Kyverno needs some time to inject the RoleBinding
         sleep 3
 
-        # Check if product is ccip and set ATLAS_ENABLED and CCIP_UI_ENABLED accordingly
-        if [[ "${{ inputs.product }}" == "ccip" ]]; then
-          export ATLAS_ENABLED=true
-          export CCIP_UI_ENABLED=true
-        fi
-
         nix develop -c ./cribbit.sh "$NAMESPACE"
 
-        profile_args_array=()
-        if [[ -n "$PROFILES" ]]; then
-          # Convert comma-separated string to array
-          IFS=',' read -r -a profiles_array <<< "$PROFILES"
-
-          for profile in "${profiles_array[@]}"; do
-            profile_args_array+=("-p")
-            profile_args_array+=("$profile")
-          done
-          echo "running devspace with profile args: ${profile_args_array[@]}"
-        fi
-
-        nix develop -c devspace deploy --skip-build -o=${{ inputs.product-image-tag }} "${profile_args_array[@]}"
+        nix develop -c devspace run ${{ inputs.command }} ${{ inputs.command-args }}
     - name: Render notification template
       uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
       id: render-slack-template
@@ -234,7 +200,7 @@ runs:
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": ":red_circle: *Failed to provision CRIB environment for ${{ inputs.product }}*"
+                  "text": ":red_circle: *Failed to provision CRIB environment for ${{ inputs.command}}*"
                 }
               },
               {
