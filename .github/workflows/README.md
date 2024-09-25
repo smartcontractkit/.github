@@ -223,8 +223,15 @@ input to provide an updated list of tests for execution by the E2E Tests
 Reusable Workflow:
 
 ```yml
+name: My custom workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      # List of custom inputs
+
 jobs:
-  # Set tests to run based on the workflow inputs
+  # Set tests to run based on the "My custom workflow" inputs
   set-tests-to-run:
     name: Set tests to run
     runs-on: ubuntu-latest
@@ -264,23 +271,5 @@ jobs:
         # Base64-encoded list specifying the tests to run
       test_list: ${{ needs.set-tests-to-run.outputs.test_list }}
     secrets:
-      QA_AWS_REGION: ${{ secrets.QA_AWS_REGION }}
-      QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
-      QA_AWS_ACCOUNT_NUMBER: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}
-      QA_PYROSCOPE_INSTANCE: ${{ secrets.QA_PYROSCOPE_INSTANCE }}
-      QA_PYROSCOPE_KEY: ${{ secrets.QA_PYROSCOPE_KEY }}
-      QA_KUBECONFIG: ${{ secrets.QA_KUBECONFIG }}
-      GRAFANA_INTERNAL_TENANT_ID: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
-      GRAFANA_INTERNAL_BASIC_AUTH: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-      GRAFANA_INTERNAL_HOST: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-      GRAFANA_INTERNAL_URL_SHORTENER_TOKEN:
-        ${{ secrets.GRAFANA_INTERNAL_URL_SHORTENER_TOKEN }}
-      LOKI_TENANT_ID: ${{ secrets.LOKI_TENANT_ID }}
-      LOKI_URL: ${{ secrets.LOKI_URL }}
-      LOKI_BASIC_AUTH: ${{ secrets.LOKI_BASIC_AUTH }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      AWS_REGION: ${{ secrets.QA_AWS_REGION }}
-      AWS_OIDC_IAM_ROLE_VALIDATION_PROD_ARN:
-        ${{ secrets.AWS_OIDC_IAM_ROLE_VALIDATION_PROD_ARN }}
-      AWS_API_GW_HOST_GRAFANA: ${{ secrets.AWS_API_GW_HOST_GRAFANA }}
+      # GitHub Secrets to be passed to the E2E Tests Workflow
 ```
