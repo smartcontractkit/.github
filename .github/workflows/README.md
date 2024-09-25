@@ -109,7 +109,7 @@ JSON-formatted list of tests to run.
 ```yml
 run-e2e-tests-workflow:
   name: Run E2E Tests
-  uses: ./.github/workflows/run-e2e-tests-reusable-workflow.yml
+  uses: smartcontractkit/.github/.github/workflows/run-e2e-tests.yml@aad83f232743646faa35f5ac03ee3829148d37ce
   with:
     custom_test_list_json: >
       {
@@ -146,7 +146,7 @@ follow these steps:
 jobs:
   call-run-e2e-tests-workflow:
     name: Run E2E Tests
-    uses: ./.github/workflows/run-e2e-tests-reusable-workflow.yml
+    uses: smartcontractkit/.github/.github/workflows/run-e2e-tests.yml@aad83f232743646faa35f5ac03ee3829148d37ce
     with:
       chainlink_version: develop
       test_trigger: Nightly E2E Tests
@@ -211,3 +211,76 @@ follow these simple steps:
 3. **See Real Examples**: For practical insights and better understanding, refer
    to real-world applications of this setup in the
    [Examples of Core Repo Workflows Utilizing the Reusable Workflow](https://github.com/smartcontractkit/.github/blob/main/.github/workflows/README.md#examples-of-core-repo-workflows-utilizing-the-reusable-workflow).
+
+### Overriding Default Values in the `e2e-tests.yml` Configuration File
+
+If you need to modify default values specified in the `e2e-tests.yml` file
+before executing tests, you can use the `test_list` workflow input. This
+approach allows you to override settings such as `E2E_TEST_CHAINLINK_IMAGE` and
+`E2E_TEST_CHAINLINK_VERSION` specifically for the tests defined in
+`e2e-tests.yml`. Below is an example of a workflow that uses the `test_list`
+input to provide an updated list of tests for execution by the E2E Tests
+Reusable Workflow:
+
+```yml
+jobs:
+  # Set tests to run based on the workflow inputs
+  set-tests-to-run:
+    name: Set tests to run
+    runs-on: ubuntu-latest
+    outputs:
+      test_list: ${{ steps.set-tests.outputs.test_list }}
+    steps:
+      - name: Set tests to run
+        id: set-tests
+        run: |
+
+          cat > test_list.yaml <<EOF
+          - id: smoke/automation_upgrade_test.go:^TestAutomationNodeUpgrade/registry_2_0
+            test_env_vars:
+              E2E_TEST_CHAINLINK_IMAGE: ${{ env.image }}
+              E2E_TEST_CHAINLINK_VERSION: ${{ env.version }}
+
+          - id: smoke/automation_upgrade_test.go:^TestAutomationNodeUpgrade/registry_2_1
+            test_env_vars:
+              E2E_TEST_CHAINLINK_IMAGE: ${{ env.image }}
+              E2E_TEST_CHAINLINK_VERSION: ${{ env.version }}
+
+          - id: smoke/automation_upgrade_test.go:^TestAutomationNodeUpgrade/registry_2_2
+            test_env_vars:
+              E2E_TEST_CHAINLINK_IMAGE: ${{ env.image }}
+              E2E_TEST_CHAINLINK_VERSION: ${{ env.version }}
+          EOF
+
+          echo "test_list=$(cat test_list.yaml | base64 -w 0)" >> $GITHUB_OUTPUT
+
+  run-e2e-tests:
+    name: Run E2E Tests
+    needs: set-tests-to-run
+    uses: smartcontractkit/.github/.github/workflows/run-e2e-tests.yml@aad83f232743646faa35f5ac03ee3829148d37ce
+    with:
+      test_path:
+        .github/e2e-tests.yml
+        # Base64-encoded list specifying the tests to run
+      test_list: ${{ needs.set-tests-to-run.outputs.test_list }}
+    secrets:
+      QA_AWS_REGION: ${{ secrets.QA_AWS_REGION }}
+      QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
+      QA_AWS_ACCOUNT_NUMBER: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}
+      QA_PYROSCOPE_INSTANCE: ${{ secrets.QA_PYROSCOPE_INSTANCE }}
+      QA_PYROSCOPE_KEY: ${{ secrets.QA_PYROSCOPE_KEY }}
+      QA_KUBECONFIG: ${{ secrets.QA_KUBECONFIG }}
+      GRAFANA_INTERNAL_TENANT_ID: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
+      GRAFANA_INTERNAL_BASIC_AUTH: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
+      GRAFANA_INTERNAL_HOST: ${{ secrets.GRAFANA_INTERNAL_HOST }}
+      GRAFANA_INTERNAL_URL_SHORTENER_TOKEN:
+        ${{ secrets.GRAFANA_INTERNAL_URL_SHORTENER_TOKEN }}
+      LOKI_TENANT_ID: ${{ secrets.LOKI_TENANT_ID }}
+      LOKI_URL: ${{ secrets.LOKI_URL }}
+      LOKI_BASIC_AUTH: ${{ secrets.LOKI_BASIC_AUTH }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      AWS_REGION: ${{ secrets.QA_AWS_REGION }}
+      AWS_OIDC_IAM_ROLE_VALIDATION_PROD_ARN:
+        ${{ secrets.AWS_OIDC_IAM_ROLE_VALIDATION_PROD_ARN }}
+      AWS_API_GW_HOST_GRAFANA: ${{ secrets.AWS_API_GW_HOST_GRAFANA }}
+```
