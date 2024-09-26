@@ -1,5 +1,14 @@
 # gha-workflow-validator
 
+## 0.4.3
+
+### Patch Changes
+
+- [#640](https://github.com/smartcontractkit/.github/pull/640)
+  [`ba7692f`](https://github.com/smartcontractkit/.github/commit/ba7692f48b306aaefc4708a6088f5cd8c0ba5bd9)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: proper logging during
+  validation, fully skip validation of workflows
+
 ## 0.4.2
 
 ### Patch Changes
