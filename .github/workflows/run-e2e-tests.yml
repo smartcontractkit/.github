@@ -178,6 +178,8 @@ on:
         required: true
       QA_AWS_ACCOUNT_NUMBER:
         required: true
+      PROD_AWS_ACCOUNT_NUMBER:
+        required: true
       QA_PYROSCOPE_INSTANCE:
         required: true
       QA_PYROSCOPE_KEY:
@@ -217,8 +219,6 @@ on:
       # Used in some tests to send slack notifications
       SLACK_CHANNEL:
         required: false
-      AWS_ACCOUNT_ID_PROD:
-        required: false
 
 env:
   CHAINLINK_IMAGE:
@@ -243,7 +243,7 @@ env:
     || secrets.SLACK_CHANNEL }}
   SLACK_USER: ${{ inputs.SLACK_USER }}
   E2E_JD_IMAGE:
-    ${{ secrets.AWS_ACCOUNT_ID_PROD }}.dkr.ecr.${{
+    ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
     secrets.AWS_REGION}}.amazonaws.com/job-distributor
 
 jobs:
@@ -705,8 +705,8 @@ jobs:
           default_e2e_test_chainlink_upgrade_image:
             ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_UPGRADE_IMAGE }}
           aws_registries:
-            ${{ secrets.QA_AWS_ACCOUNT_NUMBER }},${{ secrets.AWS_ACCOUNT_ID_PROD
-            }}
+            ${{ secrets.QA_AWS_ACCOUNT_NUMBER }},${{
+            secrets.PROD_AWS_ACCOUNT_NUMBER }}
           artifacts_name: ${{ env.TEST_ID }}-test-logs
           artifacts_location: |
             ./integration-tests/smoke/logs/
