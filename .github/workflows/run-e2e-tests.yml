@@ -658,10 +658,10 @@ jobs:
           if [ -z "$json_content" ] || ! echo "$json_content" | jq empty; then
             echo "No dynamic environment variables for $test_id."
           else
-            echo "$env_vars" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' | while IFS='=' read -r key value; do
+            echo "$json_content" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' | while IFS='=' read -r key value; do
               echo "Setting $key=$value for $test_id"
               echo "$key=$value" >> "$GITHUB_ENV"
-            done          
+            done
           fi
 
       - name: Run tests
@@ -929,7 +929,7 @@ jobs:
           if [ -z "$json_content" ] || ! echo "$json_content" | jq empty; then
             echo "No dynamic environment variables for $test_id."
           else
-            echo "$env_vars" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' | while IFS='=' read -r key value; do
+            echo "$json_content" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' | while IFS='=' read -r key value; do
               echo "Setting $key=$value for $test_id"
               echo "$key=$value" >> "$GITHUB_ENV"
             done
