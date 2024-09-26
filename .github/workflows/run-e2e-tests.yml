@@ -653,14 +653,14 @@ jobs:
         shell: bash
         run: |
           json_content='${{ toJson(matrix.tests.test_env_vars) }}'
-          test_id='${{ matrix.tests.id_sanitized }}'
+          test_id='${{ matrix.tests.id }}'
 
           if [ -z "$json_content" ] || ! echo "$json_content" | jq empty; then
             echo "No dynamic environment variables for $test_id."
           else
             for var in $(echo "$json_content" | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]'); do
               echo "Setting $var for $test_id"
-              echo "$var" >> $GITHUB_ENV
+              echo "$var" >> "$GITHUB_ENV"
             done
           fi
 
@@ -924,14 +924,14 @@ jobs:
         shell: bash
         run: |
           json_content='${{ toJson(matrix.tests.test_env_vars) }}'
-          test_id='${{ matrix.tests.id_sanitized }}'
+          test_id='${{ matrix.tests.id }}'
 
           if [ -z "$json_content" ] || ! echo "$json_content" | jq empty; then
             echo "No dynamic environment variables for $test_id."
           else
             for var in $(echo "$json_content" | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]'); do
               echo "Setting $var for $test_id"
-              echo "$var" >> $GITHUB_ENV
+              echo "$var" >> "$GITHUB_ENV"
             done
           fi
 
