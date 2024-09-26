@@ -98,6 +98,13 @@ async function validateActionReference(
     return [];
   }
 
+  if (actionRef.isWorkflowFile) {
+    core.debug(
+      `Skipping validation for workflow reference: ${actionRef.owner}/${actionRef.repo}/${actionRef.repoPath}`,
+    );
+    return [];
+  }
+
   const validationErrors: ValidationMessage[] = [];
 
   const shaRefValidation = validateShaRef(actionRef);
@@ -151,13 +158,6 @@ async function validateNodeActionVersion(
   octokit: Octokit,
   actionRef: ActionReference,
 ): Promise<ValidationMessage | undefined> {
-  if (actionRef.isWorkflowFile) {
-    core.debug(
-      `Skipping node version validation for ${actionRef.owner}/${actionRef.repo}/${actionRef.repoPath}`,
-    );
-    return;
-  }
-
   const actionFile = await getActionFileFromGithub(
     octokit,
     actionRef.owner,

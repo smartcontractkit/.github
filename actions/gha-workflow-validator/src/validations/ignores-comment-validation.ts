@@ -22,7 +22,7 @@ export class IgnoresCommentValidation implements ValidationCheck {
   }
 
   async validate(parsedFile: ParsedFile): Promise<FileValidationResult> {
-    core.debug(`Validating action references in ${parsedFile.filename}`);
+    core.debug(`Validating ignores comments in ${parsedFile.filename}`);
     const { filename } = parsedFile;
 
     const ignoreComments = mapAndFilterUndefined(
