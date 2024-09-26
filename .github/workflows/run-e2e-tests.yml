@@ -655,7 +655,8 @@ jobs:
           json_content='${{ toJson(matrix.tests.test_env_vars) }}'
           test_id='${{ matrix.tests.id }}'
 
-          if [ -z "$json_content" ] || ! echo "$json_content" | jq empty; then
+          # Check if json_content is non-empty and is a valid JSON object that is not null
+          if [ -z "$json_content" ] || [ "$json_content" = 'null' ] || ! echo "$json_content" | jq -e .; then
             echo "No dynamic environment variables for $test_id."
           else
             echo "$json_content" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' | while IFS='=' read -r key value; do
@@ -926,7 +927,8 @@ jobs:
           json_content='${{ toJson(matrix.tests.test_env_vars) }}'
           test_id='${{ matrix.tests.id }}'
 
-          if [ -z "$json_content" ] || ! echo "$json_content" | jq empty; then
+          # Check if json_content is non-empty and is a valid JSON object that is not null
+          if [ -z "$json_content" ] || [ "$json_content" = 'null' ] || ! echo "$json_content" | jq -e .; then
             echo "No dynamic environment variables for $test_id."
           else
             echo "$json_content" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' | while IFS='=' read -r key value; do
