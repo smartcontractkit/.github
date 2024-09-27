@@ -24092,21 +24092,27 @@ async function validateActionReference(octokit, options, actionRef) {
   const shaRefValidation = validateShaRef(actionRef);
   const versionCommentValidation = validateVersionCommentExists(actionRef);
   const node20ActionValidation = options.validateNodeVersion ? await validateNodeActionVersion(octokit, actionRef) : void 0;
-  if (shaRefValidation) {
+  if (!actionRef.trusted && shaRefValidation) {
+    core3.debug(
+      `SHA Ref Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${shaRefValidation.message}`
+    );
     validationErrors.push(shaRefValidation);
   }
-  if (versionCommentValidation) {
+  if (versionCommentValidation && !(actionRef.trusted && shaRefValidation)) {
+    core3.debug(
+      `Version Comment Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${versionCommentValidation.message}`
+    );
     validationErrors.push(versionCommentValidation);
   }
   if (node20ActionValidation) {
+    core3.debug(
+      `Node 20 Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${node20ActionValidation.message}`
+    );
     validationErrors.push(node20ActionValidation);
   }
   return validationErrors;
 }
 function validateShaRef(actionReference) {
-  if (actionReference.owner === "actions" || actionReference.owner === "smartcontractkit") {
-    return;
-  }
   const sha1Regex = /^[0-9a-f]{40}$/;
   if (sha1Regex.test(actionReference.ref)) return;
   const sha256Regex = /^[0-9a-f]{256}$/;
@@ -24187,7 +24193,8 @@ function extractActionReferenceFromLine(line) {
     repoPath,
     ref: gitRef,
     comment: comment.join().trim(),
-    isWorkflowFile: repoPath.endsWith(".yml") || repoPath.endsWith(".yaml")
+    isWorkflowFile: repoPath.endsWith(".yml") || repoPath.endsWith(".yaml"),
+    trusted: owner === "actions" || owner === "smartcontractkit"
   };
 }
 
@@ -24401,7 +24408,7 @@ function extractIgnoresComment(fileLine) {
 
 // actions/gha-workflow-validator/src/output.ts
 var core6 = __toESM(require_core());
-function logErrors(validationResults, annotatePR = false) {
+function logValidationMessages(validationResults, annotatePR = false) {
   for (const fileResults of validationResults) {
     for (const lineResults of fileResults.lineValidations) {
       if (lineResults.messages.length === 0) {
@@ -24500,17 +24507,17 @@ async function run() {
     process.exit(0);
   }
   const fileValidations = await validate2(context2, inputs, parsedFiles, octokit);
-  const validationFailed = doValidationErrorsExist(fileValidations);
   const invokedThroughPr = !!context2.prNumber;
   const urlPrefix = `https://github.com/${context2.owner}/${context2.repo}/blob/${context2.head}`;
-  if (!validationFailed) {
-    return core7.info("No errors found in workflow files.");
-  }
-  logErrors(fileValidations, invokedThroughPr);
+  logValidationMessages(fileValidations, invokedThroughPr);
   await setSummary(fileValidations, urlPrefix);
+  const validationFailed = doValidationErrorsExist(fileValidations);
   core7.info(
     `Summary: https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/actions/runs/${github.context.runId}`
   );
+  if (!validationFailed) {
+    return core7.info("No errors found in workflow files.");
+  }
   if (inputs.evaluateMode) {
     core7.warning(
       "Errors found in workflow files. Evaluate mode enabled, not failing the workflow."

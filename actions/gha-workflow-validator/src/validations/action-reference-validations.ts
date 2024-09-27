@@ -22,6 +22,7 @@ interface ActionReference {
   ref: string;
   comment?: string;
   isWorkflowFile?: boolean;
+  trusted: boolean;
 }
 
 interface ActionReferenceValidationOptions {
@@ -113,13 +114,23 @@ async function validateActionReference(
     ? await validateNodeActionVersion(octokit, actionRef)
     : undefined;
 
-  if (shaRefValidation) {
+  if (!actionRef.trusted && shaRefValidation) {
+    core.debug(
+      `SHA Ref Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${shaRefValidation.message}`,
+    );
     validationErrors.push(shaRefValidation);
   }
-  if (versionCommentValidation) {
+  if (versionCommentValidation && !(actionRef.trusted && shaRefValidation)) {
+    // Don't error on trusted actions that are using tags
+    core.debug(
+      `Version Comment Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${versionCommentValidation.message}`,
+    );
     validationErrors.push(versionCommentValidation);
   }
   if (node20ActionValidation) {
+    core.debug(
+      `Node 20 Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${node20ActionValidation.message}`,
+    );
     validationErrors.push(node20ActionValidation);
   }
 
@@ -129,14 +140,6 @@ async function validateActionReference(
 function validateShaRef(
   actionReference: ActionReference,
 ): ValidationMessage | undefined {
-  if (
-    actionReference.owner === "actions" ||
-    actionReference.owner === "smartcontractkit"
-  ) {
-    // don't enforce required sha refs for actions in these orgs
-    return;
-  }
-
   const sha1Regex = /^[0-9a-f]{40}$/;
   if (sha1Regex.test(actionReference.ref)) return;
 
@@ -255,5 +258,6 @@ export function extractActionReferenceFromLine(
     ref: gitRef,
     comment: comment.join().trim(),
     isWorkflowFile: repoPath.endsWith(".yml") || repoPath.endsWith(".yaml"),
+    trusted: owner === "actions" || owner === "smartcontractkit",
   };
 }

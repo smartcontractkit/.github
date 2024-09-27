@@ -81,7 +81,7 @@ describe(ActionReferenceValidation.name, () => {
 
     const actionsCheckoutLineBadRef: FileLine = {
       lineNumber: 2,
-      content: "        uses: actions/checkout@v4 # comment",
+      content: "        uses: actions/checkout@v4",
       operation: "add",
       ignored: false,
     };
@@ -124,6 +124,34 @@ describe(ActionReferenceValidation.name, () => {
     });
   });
 
+  it("should invalidate action reference (sha-ref / no comment)", async () => {
+    const octokit = getTestOctokit(nockBack.currentMode);
+    const subject = new ActionReferenceValidation(octokit, {
+      validateNodeVersion: false,
+    });
+
+    const actionsCheckoutLineBadRef: FileLine = {
+      lineNumber: 2,
+      content:
+        "        uses: actions/checkout@de90cc6fb38fc0963ad72b210f1f284cd68cea36",
+      operation: "add",
+      ignored: false,
+    };
+
+    const simpleChanges: ParsedFile = {
+      filename: ".github/workflows/test.yml",
+      lines: [JOB_STEP_LINE, actionsCheckoutLineBadRef],
+    };
+
+    const result = await subject.validate(simpleChanges);
+    const lineValidations = result.lineValidations.filter(
+      (lv) => lv.messages.length > 0,
+    );
+    expect(lineValidations.length).toEqual(1);
+    const lineValidation = lineValidations[0];
+    expect(lineValidation.messages).toMatchSnapshot();
+  });
+
   it("should invalidate single action reference (no version comment)", async () => {
     const { nockDone } = await nockBack(
       "dorny-paths-filter-de90cc6fb38fc0963ad72b210f1f284cd68cea36.json",
@@ -151,7 +179,7 @@ describe(ActionReferenceValidation.name, () => {
     );
     expect(lineValidations.length).toEqual(1);
     const lineValidation = lineValidations[0];
-    expect(lineValidation.messages.length).toMatchInlineSnapshot(`1`);
+    expect(lineValidation.messages).toMatchSnapshot();
     nockDone();
   });
 
@@ -178,9 +206,8 @@ describe(ActionReferenceValidation.name, () => {
       (lv) => lv.messages.length > 0,
     );
     expect(lineValidations.length).toEqual(1);
-
     const lineValidation = lineValidations[0];
-    expect(lineValidation.messages.length).toMatchInlineSnapshot(`1`);
+    expect(lineValidation.messages).toMatchSnapshot();
     nockDone();
   });
 
@@ -211,7 +238,7 @@ describe(ActionReferenceValidation.name, () => {
 
     expect(lineValidations.length).toEqual(1);
     const lineValidation = lineValidations[0];
-    expect(lineValidation.messages.length).toMatchInlineSnapshot(`1`);
+    expect(lineValidation.messages).toMatchSnapshot();
     nockDone();
   });
 
@@ -237,18 +264,14 @@ describe(ActionReferenceValidation.name, () => {
       (lv) => lv.messages.length > 0,
     );
     expect(lineValidations.length).toEqual(1);
-
     const lineValidation = lineValidations[0];
-    expect(lineValidation.line.lineNumber).toEqual(
-      simpleChanges.lines[1].lineNumber,
-    );
-    expect(lineValidation.messages.length).toMatchInlineSnapshot(`3`);
+    expect(lineValidation.messages).toMatchSnapshot();
     nockDone();
   });
 });
 
 describe(extractActionReferenceFromLine.name, () => {
-  it("extracts action reference", () => {
+  it("extracts action reference (trusted)", () => {
     const line =
       "        - uses: smartcontractkit/.github/actions/foo@bar # foo@1.0.0";
     const actionReference = extractActionReferenceFromLine(line);
@@ -260,6 +283,22 @@ describe(extractActionReferenceFromLine.name, () => {
       ref: "bar",
       comment: "foo@1.0.0",
       isWorkflowFile: false,
+      trusted: true,
+    });
+  });
+
+  it("extracts action reference (untrusted)", () => {
+    const line = "        - uses: dorny/paths-filter@bar # v1.0.0";
+    const actionReference = extractActionReferenceFromLine(line);
+
+    expect(actionReference).toEqual({
+      owner: "dorny",
+      repo: "paths-filter",
+      repoPath: "",
+      ref: "bar",
+      comment: "v1.0.0",
+      isWorkflowFile: false,
+      trusted: false,
     });
   });
 
@@ -274,6 +313,7 @@ describe(extractActionReferenceFromLine.name, () => {
       ref: "bar",
       comment: "",
       isWorkflowFile: false,
+      trusted: true,
     });
   });
 
@@ -289,6 +329,7 @@ describe(extractActionReferenceFromLine.name, () => {
       ref: "bar",
       comment: "",
       isWorkflowFile: true,
+      trusted: true,
     });
   });
 
