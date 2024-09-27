@@ -1,5 +1,13 @@
 # gha-workflow-validator
 
+## 0.4.4
+
+### Patch Changes
+
+- [#643](https://github.com/smartcontractkit/.github/pull/643)
+  [`742abb7`](https://github.com/smartcontractkit/.github/commit/742abb725b961adb8504e92a3472a1d5ebae3a4f)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: relax sha-ref rules
+
 ## 0.4.3
 
 ### Patch Changes
