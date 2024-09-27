@@ -1,5 +1,14 @@
 # gha-workflow-validator
 
+## 0.4.5
+
+### Patch Changes
+
+- [#645](https://github.com/smartcontractkit/.github/pull/645)
+  [`aabe535`](https://github.com/smartcontractkit/.github/commit/aabe535c92759769c98573d7653f6ea094b35c64)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: small bugfix with
+  logging and version comment errors
+
 ## 0.4.4
 
 ### Patch Changes
