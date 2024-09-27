@@ -129,6 +129,14 @@ async function validateActionReference(
 function validateShaRef(
   actionReference: ActionReference,
 ): ValidationMessage | undefined {
+  if (
+    actionReference.owner === "actions" ||
+    actionReference.owner === "smartcontractkit"
+  ) {
+    // don't enforce required sha refs for actions in these orgs
+    return;
+  }
+
   const sha1Regex = /^[0-9a-f]{40}$/;
   if (sha1Regex.test(actionReference.ref)) return;
 
@@ -173,7 +181,7 @@ async function validateNodeActionVersion(
     return;
   }
 
-  const nodeVersionRegex = /^\s+using:\s*"?node(\d{2})"?/gm;
+  const nodeVersionRegex = /^\s+using:\s*["']?node(\d{2})["']?/gm;
   const matches = nodeVersionRegex.exec(actionFile);
   if (matches && matches[1] !== `${CURRENT_NODE_VERSION}`) {
     return {

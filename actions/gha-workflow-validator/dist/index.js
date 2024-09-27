@@ -23826,9 +23826,9 @@ The proper format for referencing a Github Action external to the repository is 
 <summary>Examples</summary>
 
 \`\`\`
-actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
+organization/action@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
 
-smartcontractkit/chainlink-github-actions/github-app-token-issuer@5874ff7211cf5a5a2670bb010fbff914eaaae138 # v2.3.12
+organization/monorepo/path/to/directory@5874ff7211cf5a5a2670bb010fbff914eaaae138 # v2.3.12
 \`\`\`
 </details>
 
@@ -23836,6 +23836,7 @@ smartcontractkit/chainlink-github-actions/github-app-token-issuer@5874ff7211cf5a
 
 * Please reference a specific commit. This is because tags are mutable and pose a security risk
 * Do not use things like \`@main\`, \`@branch/feature\`, \`@v4\`, or \`@v4.0.0\`.
+* **Note:** \`actions/*\` , and \`smartcontractkit/*\` actions are exempt from this rule.
 
 ##### No version comment found
 
@@ -24103,6 +24104,9 @@ async function validateActionReference(octokit, options, actionRef) {
   return validationErrors;
 }
 function validateShaRef(actionReference) {
+  if (actionReference.owner === "actions" || actionReference.owner === "smartcontractkit") {
+    return;
+  }
   const sha1Regex = /^[0-9a-f]{40}$/;
   if (sha1Regex.test(actionReference.ref)) return;
   const sha256Regex = /^[0-9a-f]{256}$/;
@@ -24135,7 +24139,7 @@ async function validateNodeActionVersion(octokit, actionRef) {
     );
     return;
   }
-  const nodeVersionRegex = /^\s+using:\s*"?node(\d{2})"?/gm;
+  const nodeVersionRegex = /^\s+using:\s*["']?node(\d{2})["']?/gm;
   const matches = nodeVersionRegex.exec(actionFile);
   if (matches && matches[1] !== `${CURRENT_NODE_VERSION}`) {
     return {
