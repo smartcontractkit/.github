@@ -287,8 +287,39 @@ describe(extractActionReferenceFromLine.name, () => {
     });
   });
 
+  it("extracts action reference (quoted / trusted)", () => {
+    const line =
+      '        - uses: "smartcontractkit/.github/actions/foo@bar" # foo@1.0.0';
+    const actionReference = extractActionReferenceFromLine(line);
+
+    expect(actionReference).toEqual({
+      owner: "smartcontractkit",
+      repo: ".github",
+      repoPath: "/actions/foo",
+      ref: "bar",
+      comment: "foo@1.0.0",
+      isWorkflowFile: false,
+      trusted: true,
+    });
+  });
+
   it("extracts action reference (untrusted)", () => {
     const line = "        - uses: dorny/paths-filter@bar # v1.0.0";
+    const actionReference = extractActionReferenceFromLine(line);
+
+    expect(actionReference).toEqual({
+      owner: "dorny",
+      repo: "paths-filter",
+      repoPath: "",
+      ref: "bar",
+      comment: "v1.0.0",
+      isWorkflowFile: false,
+      trusted: false,
+    });
+  });
+
+  it("extracts action reference (quoted / untrusted)", () => {
+    const line = '        - uses: "dorny/paths-filter@bar" # v1.0.0';
     const actionReference = extractActionReferenceFromLine(line);
 
     expect(actionReference).toEqual({

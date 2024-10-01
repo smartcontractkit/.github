@@ -24188,7 +24188,9 @@ function extractActionReferenceFromLine(line) {
     const searchQuote = isDoubleQuoted ? `"` : `'`;
     const indexOfQuote = actionIdentifier.indexOf(`${searchQuote}`);
     if (indexOfQuote === -1 || indexOfQuote !== actionIdentifier.length - 1) {
-      core3.warning("Invalid action reference - unmatched/misplaced quote (skipping): " + line);
+      core3.warning(
+        "Invalid action reference - unmatched/misplaced quote (skipping): " + line
+      );
       return;
     } else {
       actionIdentifier = actionIdentifier.substring(0, indexOfQuote);
