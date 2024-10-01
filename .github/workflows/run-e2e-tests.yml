@@ -490,7 +490,7 @@ jobs:
             result=$(aws ecr describe-images \
               --repository-name "${{ inputs.chainlink_image_name || 'chainlink' }}" \
               --filter "tagStatus=TAGGED" \
-              --query 'imageDetails[?contains(imageTags, `'${{ needs.build-test-configurations.outputs.chainlink_image_tag }}'`)]'
+              --query 'imageDetails[?contains(imageTags, `'${{ needs.build-test-configurations.outputs.chainlink_image_tag }}'`)]' \
               --output json)
             echo "End Command Output"
 
