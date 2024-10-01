@@ -496,8 +496,9 @@ jobs:
                 echo "Image not found, waiting $POLL_INTERVAL seconds..."
             fi
 
-            echo "Command Output"
-            aws ecr describe-images --repository-name "${{ inputs.chainlink_image_name || 'chainlink' }}" --query 'imageDetails[?imageTags && contains(imageTags, "${{ needs.build-test-configurations.outputs.chainlink_image_tag }}")].imageTags[]' --output text
+            echo "Command Output:"
+            aws ecr describe-images --repository-name "${{ inputs.chainlink_image_name || 'chainlink' }}" --query 'imageDetails[?imageTags && contains(imageTags, "${{ needs.build-test-configurations.outputs.chainlink_image_tag }}")].imageTags[]'
+            echo "End Command Output"
             if [ -s aws_error.log ]; then
               echo "Error running ECR command:"
               cat aws_error.log
