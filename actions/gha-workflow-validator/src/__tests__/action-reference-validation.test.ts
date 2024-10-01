@@ -334,7 +334,37 @@ describe(extractActionReferenceFromLine.name, () => {
   });
 
   it("parses local reference as no reference", () => {
-    const line = "-      uses: ./.github/actions/local-action";
+    const line = "-      uses: ./.github/actions/local-action # comment";
+    const actionReference = extractActionReferenceFromLine(line);
+    expect(actionReference).toBeUndefined();
+  });
+
+  it("parses local reference as no reference (with single quotes)", () => {
+    const line = "-      uses: './.github/actions/local-action' # comment";
+    const actionReference = extractActionReferenceFromLine(line);
+    expect(actionReference).toBeUndefined();
+  });
+
+  it("parses local reference as no reference (with double quotes)", () => {
+    const line = '-      uses: "./.github/actions/local-action" # comment';
+    const actionReference = extractActionReferenceFromLine(line);
+    expect(actionReference).toBeUndefined();
+  });
+
+  it("parses invalid reference as no reference (unmatched quote)", () => {
+    const line = '-      uses: "./.github/actions/local-action # comment';
+    const actionReference = extractActionReferenceFromLine(line);
+    expect(actionReference).toBeUndefined();
+  });
+
+  it("parses invalid reference as no reference (unmatched quote 2)", () => {
+    const line = "-      uses: \"./.github/actions/local-action' # comment";
+    const actionReference = extractActionReferenceFromLine(line);
+    expect(actionReference).toBeUndefined();
+  });
+
+  it("parses invalid reference as no reference (misplaced quotes)", () => {
+    const line = '-      uses: "./.github/actions/"local-action # comment';
     const actionReference = extractActionReferenceFromLine(line);
     expect(actionReference).toBeUndefined();
   });
