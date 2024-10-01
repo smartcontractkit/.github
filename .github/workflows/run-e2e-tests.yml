@@ -631,7 +631,8 @@ jobs:
         uses: smartcontractkit/.github/actions/ctf-run-tests@b8731364b119e88983e94b0c4da87fc27ddb41b8 # ctf-run-tests@0.0.0
         env:
           E2E_TEST_CHAINLINK_VERSION:
-            ${{ needs.build-test-configurations.outputs.chainlink_image_tag }}
+            ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
+            needs.build-test-configurations.outputs.chainlink_image_tag }}
           E2E_TEST_CHAINLINK_UPGRADE_VERSION:
             ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_UPGRADE_VERSION ||
             needs.build-test-configurations.outputs.chainlink_image_tag }}
