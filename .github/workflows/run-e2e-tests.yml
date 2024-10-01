@@ -472,7 +472,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-test-configurations]
     env:
-      POLL_INTERVAL: 10
+      POLL_INTERVAL: 30
       TIMEOUT: 600
     steps:
       - name: Configure AWS credentials
@@ -487,22 +487,13 @@ jobs:
           START_TIME=$(date +%s)
           echo "Checking for '${{ env.CHAINLINK_IMAGE }}:${{ needs.build-test-configurations.outputs.chainlink_image_tag }}' in ECR..."
           while true; do
-            IMAGE=$(aws ecr describe-images --repository-name "${{ inputs.chainlink_image_name || 'chainlink' }}" --query 'imageDetails[?imageTags && contains(imageTags, "${{ needs.build-test-configurations.outputs.chainlink_image_tag }}")].imageTags[]' --output text 2>aws_error.log)
-            if [[ "$IMAGE" == "${{ needs.build-test-configurations.outputs.chainlink_image_tag }}" ]]; then
-                echo "$IMAGE == ${{ needs.build-test-configurations.outputs.chainlink_image_tag }}"
-                echo "Found tag!"
-                exit 0
-            else
-                echo "Image not found, waiting $POLL_INTERVAL seconds..."
-            fi
-
             echo "Command Output:"
-            aws ecr describe-images --repository-name "${{ inputs.chainlink_image_name || 'chainlink' }}" --query 'imageDetails[?imageTags && contains(imageTags, "${{ needs.build-test-configurations.outputs.chainlink_image_tag }}")].imageTags[]'
+            aws ecr describe-images \
+              --repository-name "${{ inputs.chainlink_image_name || 'chainlink' }}" \
+              --filter "tagStatus=TAGGED" \
+              --query 'imageDetails[?contains(imageTags, `'${{ needs.build-test-configurations.outputs.chainlink_image_tag }}'`)]' \
+              --output json
             echo "End Command Output"
-            if [ -s aws_error.log ]; then
-              echo "Error running ECR command:"
-              cat aws_error.log
-            fi
             
             CURRENT_TIME=$(date +%s)
             ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
