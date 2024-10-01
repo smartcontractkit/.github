@@ -53,7 +53,8 @@ on:
         required: false
         type: string
       test_list:
-        description: "Base64 encoded list of tests (YML objects) to run"
+        description:
+          "Base64-encoded list (YML objects) specifying the tests to run"
         required: false
         type: string
       custom_test_list_json:
@@ -190,6 +191,8 @@ on:
         required: true
       QA_AWS_ACCOUNT_NUMBER:
         required: true
+      PROD_AWS_ACCOUNT_NUMBER:
+        required: true
       QA_PYROSCOPE_INSTANCE:
         required: true
       QA_PYROSCOPE_KEY:
@@ -255,6 +258,9 @@ env:
     ${{ inputs.slack_notification_after_tests_channel_id || inputs.SLACK_CHANNEL
     || secrets.SLACK_CHANNEL }}
   SLACK_USER: ${{ inputs.SLACK_USER }}
+  E2E_JD_IMAGE:
+    ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
+    secrets.AWS_REGION}}.amazonaws.com/job-distributor
 
 jobs:
   validate-inputs:
@@ -286,7 +292,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@b0d1a6bb6118fd2c024ffb0cb4c7d9d5b84b5e97 # DEBUG: Testing version
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@c2b6620f9743b326f3fcb82829c760d01b742306 # DEBUG: Testing version
       - name: Run Check Tests Command
         run: |
           if ! citool check-tests ${{ github.workspace }}/${{ inputs.check_test_path }} ${{ github.workspace }}/${{ inputs.test_path }}; then
@@ -337,7 +343,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@b0d1a6bb6118fd2c024ffb0cb4c7d9d5b84b5e97 # DEBUG: Testing version
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@c2b6620f9743b326f3fcb82829c760d01b742306 # DEBUG: Testing version
       - name: Install jq
         run: sudo apt-get install jq
 
@@ -605,6 +611,22 @@ jobs:
             --user "$(id -u):$(id -g)" \
             -p 4317:4317 otel/opentelemetry-collector:0.88.0 --config=/etc/otel-collector.yaml
 
+      - name: Set dynamic env vars for tests
+        shell: bash
+        run: |
+          json_content='${{ toJson(matrix.tests.test_env_vars) }}'
+          test_id='${{ matrix.tests.id }}'
+
+          # Check if json_content is non-empty and is a valid JSON object that is not null
+          if [ -z "$json_content" ] || [ "$json_content" = 'null' ] || ! echo "$json_content" | jq -e .; then
+            echo "No dynamic environment variables for $test_id."
+          else
+            echo "$json_content" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' | while IFS='=' read -r key value; do
+              echo "Setting $key=$value for $test_id"
+              echo "$key=$value" >> "$GITHUB_ENV"
+            done
+          fi
+
       - name: Run tests
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@b8731364b119e88983e94b0c4da87fc27ddb41b8 # ctf-run-tests@0.0.0
@@ -625,8 +647,6 @@ jobs:
           E2E_TEST_LOKI_TENANT_ID: ${{ secrets.LOKI_TENANT_ID }}
           E2E_TEST_LOKI_ENDPOINT: ${{ secrets.LOKI_URL }}
           E2E_TEST_LOKI_BASIC_AUTH: ${{ secrets.LOKI_BASIC_AUTH }}
-          E2E_TEST_GRAFANA_DASHBOARD_URL:
-            ${{ matrix.tests.test_env_vars.E2E_TEST_GRAFANA_DASHBOARD_URL }}
           E2E_TEST_GRAFANA_BEARER_TOKEN:
             ${{ secrets.GRAFANA_INTERNAL_URL_SHORTENER_TOKEN }}
           E2E_TEST_PYROSCOPE_ENVIRONMENT: ${{ matrix.tests.pyroscope_env }}
@@ -867,6 +887,22 @@ jobs:
       - name: Show test configuration in logs
         run: echo '${{ toJson(matrix.tests) }}' | jq .
 
+      - name: Set dynamic env vars for tests
+        shell: bash
+        run: |
+          json_content='${{ toJson(matrix.tests.test_env_vars) }}'
+          test_id='${{ matrix.tests.id }}'
+
+          # Check if json_content is non-empty and is a valid JSON object that is not null
+          if [ -z "$json_content" ] || [ "$json_content" = 'null' ] || ! echo "$json_content" | jq -e .; then
+            echo "No dynamic environment variables for $test_id."
+          else
+            echo "$json_content" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' | while IFS='=' read -r key value; do
+              echo "Setting $key=$value for $test_id"
+              echo "$key=$value" >> "$GITHUB_ENV"
+            done
+          fi
+
       - name: Run tests
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@b6e37806737eef87e8c9137ceeb23ef0bff8b1db # ctf-run-tests@0.1.0
@@ -885,29 +921,16 @@ jobs:
             ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
             secrets.QA_AWS_REGION }}.amazonaws.com
           # We can comment these out when we have a stable soak test and aren't worried about resource consumption
-          TEST_UPLOAD_CPU_PROFILE:
-            ${{ matrix.tests.test_env_vars.TEST_UPLOAD_CPU_PROFILE }}
-          TEST_UPLOAD_MEM_PROFILE:
-            ${{ matrix.tests.test_env_vars.TEST_UPLOAD_MEM_PROFILE }}
           REF_NAME: ${{ github.head_ref || github.ref_name }}
           E2E_TEST_CHAINLINK_VERSION:
             ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
             env.DEFAULT_CHAINLINK_VERSION }}
-          E2E_TEST_CHAINLINK_UPGRADE_VERSION:
-            ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_UPGRADE_VERSION }}
-          E2E_TEST_CHAINLINK_POSTGRES_VERSION:
-            ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_POSTGRES_VERSION
-            }}
-          E2E_TEST_SELECTED_NETWORK:
-            ${{ matrix.tests.test_env_vars.E2E_TEST_SELECTED_NETWORK }}
           E2E_TEST_LOGGING_RUN_ID: ${{ github.run_id }}
           E2E_TEST_LOG_STREAM_LOG_TARGETS: ${{ vars.LOGSTREAM_LOG_TARGETS }}
           E2E_TEST_LOG_COLLECT: ${{ vars.TEST_LOG_COLLECT }}
           E2E_TEST_LOKI_TENANT_ID: ${{ secrets.LOKI_TENANT_ID }}
           E2E_TEST_LOKI_ENDPOINT: ${{ secrets.LOKI_URL }}
           E2E_TEST_LOKI_BASIC_AUTH: ${{ secrets.LOKI_BASIC_AUTH }}
-          E2E_TEST_GRAFANA_DASHBOARD_URL:
-            ${{ matrix.tests.test_env_vars.E2E_TEST_GRAFANA_DASHBOARD_URL }}
           E2E_TEST_GRAFANA_BEARER_TOKEN:
             ${{ secrets.GRAFANA_INTERNAL_URL_SHORTENER_TOKEN }}
           E2E_TEST_PYROSCOPE_ENVIRONMENT: ${{ matrix.tests.pyroscope_env }}

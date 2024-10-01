@@ -22,6 +22,7 @@ interface ActionReference {
   ref: string;
   comment?: string;
   isWorkflowFile?: boolean;
+  trusted: boolean;
 }
 
 interface ActionReferenceValidationOptions {
@@ -98,6 +99,13 @@ async function validateActionReference(
     return [];
   }
 
+  if (actionRef.isWorkflowFile) {
+    core.debug(
+      `Skipping validation for workflow reference: ${actionRef.owner}/${actionRef.repo}/${actionRef.repoPath}`,
+    );
+    return [];
+  }
+
   const validationErrors: ValidationMessage[] = [];
 
   const shaRefValidation = validateShaRef(actionRef);
@@ -106,13 +114,23 @@ async function validateActionReference(
     ? await validateNodeActionVersion(octokit, actionRef)
     : undefined;
 
-  if (shaRefValidation) {
+  if (!actionRef.trusted && shaRefValidation) {
+    core.debug(
+      `SHA Ref Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${shaRefValidation.message}`,
+    );
     validationErrors.push(shaRefValidation);
   }
-  if (versionCommentValidation) {
+  if (versionCommentValidation && !(actionRef.trusted && shaRefValidation)) {
+    // Don't error on trusted actions that are using tags
+    core.debug(
+      `Version Comment Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${versionCommentValidation.message}`,
+    );
     validationErrors.push(versionCommentValidation);
   }
   if (node20ActionValidation) {
+    core.debug(
+      `Node 20 Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${node20ActionValidation.message}`,
+    );
     validationErrors.push(node20ActionValidation);
   }
 
@@ -151,13 +169,6 @@ async function validateNodeActionVersion(
   octokit: Octokit,
   actionRef: ActionReference,
 ): Promise<ValidationMessage | undefined> {
-  if (actionRef.isWorkflowFile) {
-    core.debug(
-      `Skipping node version validation for ${actionRef.owner}/${actionRef.repo}/${actionRef.repoPath}`,
-    );
-    return;
-  }
-
   const actionFile = await getActionFileFromGithub(
     octokit,
     actionRef.owner,
@@ -173,7 +184,7 @@ async function validateNodeActionVersion(
     return;
   }
 
-  const nodeVersionRegex = /^\s+using:\s*"?node(\d{2})"?/gm;
+  const nodeVersionRegex = /^\s+using:\s*["']?node(\d{2})["']?/gm;
   const matches = nodeVersionRegex.exec(actionFile);
   if (matches && matches[1] !== `${CURRENT_NODE_VERSION}`) {
     return {
@@ -247,5 +258,6 @@ export function extractActionReferenceFromLine(
     ref: gitRef,
     comment: comment.join().trim(),
     isWorkflowFile: repoPath.endsWith(".yml") || repoPath.endsWith(".yaml"),
+    trusted: owner === "actions" || owner === "smartcontractkit",
   };
 }

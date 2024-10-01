@@ -14,7 +14,7 @@ import {
   parseFiles,
   ParsedFile,
 } from "./utils.js";
-import { logErrors, setSummary } from "./output.js";
+import { logValidationMessages, setSummary } from "./output.js";
 
 export interface RunInputs {
   evaluateMode: boolean;
@@ -43,21 +43,21 @@ export async function run() {
   }
 
   const fileValidations = await validate(context, inputs, parsedFiles, octokit);
-  const validationFailed = doValidationErrorsExist(fileValidations);
 
   const invokedThroughPr = !!context.prNumber;
   const urlPrefix = `https://github.com/${context.owner}/${context.repo}/blob/${context.head}`;
 
+  logValidationMessages(fileValidations, invokedThroughPr);
+  await setSummary(fileValidations, urlPrefix);
+
+  const validationFailed = doValidationErrorsExist(fileValidations);
+  core.info(
+    `Summary: https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/actions/runs/${github.context.runId}`,
+  );
   if (!validationFailed) {
     return core.info("No errors found in workflow files.");
   }
 
-  logErrors(fileValidations, invokedThroughPr);
-  await setSummary(fileValidations, urlPrefix);
-
-  core.info(
-    `Summary: https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/actions/runs/${github.context.runId}`,
-  );
   if (inputs.evaluateMode) {
     core.warning(
       "Errors found in workflow files. Evaluate mode enabled, not failing the workflow.",

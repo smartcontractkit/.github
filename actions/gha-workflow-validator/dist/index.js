@@ -23826,9 +23826,9 @@ The proper format for referencing a Github Action external to the repository is 
 <summary>Examples</summary>
 
 \`\`\`
-actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
+organization/action@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
 
-smartcontractkit/chainlink-github-actions/github-app-token-issuer@5874ff7211cf5a5a2670bb010fbff914eaaae138 # v2.3.12
+organization/monorepo/path/to/directory@5874ff7211cf5a5a2670bb010fbff914eaaae138 # v2.3.12
 \`\`\`
 </details>
 
@@ -23836,6 +23836,7 @@ smartcontractkit/chainlink-github-actions/github-app-token-issuer@5874ff7211cf5a
 
 * Please reference a specific commit. This is because tags are mutable and pose a security risk
 * Do not use things like \`@main\`, \`@branch/feature\`, \`@v4\`, or \`@v4.0.0\`.
+* **Note:** \`actions/*\` , and \`smartcontractkit/*\` actions are exempt from this rule.
 
 ##### No version comment found
 
@@ -24081,17 +24082,32 @@ async function validateActionReference(octokit, options, actionRef) {
   if (!actionRef) {
     return [];
   }
+  if (actionRef.isWorkflowFile) {
+    core3.debug(
+      `Skipping validation for workflow reference: ${actionRef.owner}/${actionRef.repo}/${actionRef.repoPath}`
+    );
+    return [];
+  }
   const validationErrors = [];
   const shaRefValidation = validateShaRef(actionRef);
   const versionCommentValidation = validateVersionCommentExists(actionRef);
   const node20ActionValidation = options.validateNodeVersion ? await validateNodeActionVersion(octokit, actionRef) : void 0;
-  if (shaRefValidation) {
+  if (!actionRef.trusted && shaRefValidation) {
+    core3.debug(
+      `SHA Ref Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${shaRefValidation.message}`
+    );
     validationErrors.push(shaRefValidation);
   }
-  if (versionCommentValidation) {
+  if (versionCommentValidation && !(actionRef.trusted && shaRefValidation)) {
+    core3.debug(
+      `Version Comment Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${versionCommentValidation.message}`
+    );
     validationErrors.push(versionCommentValidation);
   }
   if (node20ActionValidation) {
+    core3.debug(
+      `Node 20 Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${node20ActionValidation.message}`
+    );
     validationErrors.push(node20ActionValidation);
   }
   return validationErrors;
@@ -24116,12 +24132,6 @@ function validateVersionCommentExists(actionReference) {
   };
 }
 async function validateNodeActionVersion(octokit, actionRef) {
-  if (actionRef.isWorkflowFile) {
-    core3.debug(
-      `Skipping node version validation for ${actionRef.owner}/${actionRef.repo}/${actionRef.repoPath}`
-    );
-    return;
-  }
   const actionFile = await getActionFileFromGithub(
     octokit,
     actionRef.owner,
@@ -24135,7 +24145,7 @@ async function validateNodeActionVersion(octokit, actionRef) {
     );
     return;
   }
-  const nodeVersionRegex = /^\s+using:\s*"?node(\d{2})"?/gm;
+  const nodeVersionRegex = /^\s+using:\s*["']?node(\d{2})["']?/gm;
   const matches = nodeVersionRegex.exec(actionFile);
   if (matches && matches[1] !== `${CURRENT_NODE_VERSION}`) {
     return {
@@ -24183,7 +24193,8 @@ function extractActionReferenceFromLine(line) {
     repoPath,
     ref: gitRef,
     comment: comment.join().trim(),
-    isWorkflowFile: repoPath.endsWith(".yml") || repoPath.endsWith(".yaml")
+    isWorkflowFile: repoPath.endsWith(".yml") || repoPath.endsWith(".yaml"),
+    trusted: owner === "actions" || owner === "smartcontractkit"
   };
 }
 
@@ -24194,7 +24205,7 @@ var ActionsRunnerValidation = class {
     this.options = options ?? {};
   }
   async validate(parsedFile) {
-    core4.debug(`Validating action references in ${parsedFile.filename}`);
+    core4.debug(`Validating gha runners in ${parsedFile.filename}`);
     const { filename } = parsedFile;
     const lineActionsRunners = mapAndFilterUndefined(
       parsedFile.lines,
@@ -24358,7 +24369,7 @@ var IgnoresCommentValidation = class {
     this.options = options ?? {};
   }
   async validate(parsedFile) {
-    core5.debug(`Validating action references in ${parsedFile.filename}`);
+    core5.debug(`Validating ignores comments in ${parsedFile.filename}`);
     const { filename } = parsedFile;
     const ignoreComments = mapAndFilterUndefined(
       parsedFile.lines,
@@ -24397,7 +24408,7 @@ function extractIgnoresComment(fileLine) {
 
 // actions/gha-workflow-validator/src/output.ts
 var core6 = __toESM(require_core());
-function logErrors(validationResults, annotatePR = false) {
+function logValidationMessages(validationResults, annotatePR = false) {
   for (const fileResults of validationResults) {
     for (const lineResults of fileResults.lineValidations) {
       if (lineResults.messages.length === 0) {
@@ -24496,17 +24507,17 @@ async function run() {
     process.exit(0);
   }
   const fileValidations = await validate2(context2, inputs, parsedFiles, octokit);
-  const validationFailed = doValidationErrorsExist(fileValidations);
   const invokedThroughPr = !!context2.prNumber;
   const urlPrefix = `https://github.com/${context2.owner}/${context2.repo}/blob/${context2.head}`;
-  if (!validationFailed) {
-    return core7.info("No errors found in workflow files.");
-  }
-  logErrors(fileValidations, invokedThroughPr);
+  logValidationMessages(fileValidations, invokedThroughPr);
   await setSummary(fileValidations, urlPrefix);
+  const validationFailed = doValidationErrorsExist(fileValidations);
   core7.info(
     `Summary: https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/actions/runs/${github.context.runId}`
   );
+  if (!validationFailed) {
+    return core7.info("No errors found in workflow files.");
+  }
   if (inputs.evaluateMode) {
     core7.warning(
       "Errors found in workflow files. Evaluate mode enabled, not failing the workflow."
