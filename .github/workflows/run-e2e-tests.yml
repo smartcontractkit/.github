@@ -492,14 +492,13 @@ jobs:
               --filter "tagStatus=TAGGED" \
               --query 'imageDetails[?contains(imageTags, `'${{ needs.build-test-configurations.outputs.chainlink_image_tag }}'`)]' \
               --output json)
-            echo "End Command Output"
 
+            echo "Command Output: $result"
             if [[ "$result" != "[]" ]]; then
                 echo "Found ${{ needs.build-test-configurations.outputs.chainlink_image_tag }}"
-                return 0
+                exit 0
             else
-                echo "Chainlink image not found in ECR. Waiting..."
-                echo "Command Output: $result"
+                echo "Chainlink image not found in ECR. Waiting $POLL_INTERVAL seconds..."
             fi
             
             CURRENT_TIME=$(date +%s)
