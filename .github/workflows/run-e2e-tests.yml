@@ -472,7 +472,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-test-configurations]
     env:
-      POLL_INTERVAL: 30
+      POLL_INTERVAL: 15
       TIMEOUT: 600
     steps:
       - name: Configure AWS credentials
@@ -487,13 +487,20 @@ jobs:
           START_TIME=$(date +%s)
           echo "Checking for '${{ env.CHAINLINK_IMAGE }}:${{ needs.build-test-configurations.outputs.chainlink_image_tag }}' in ECR..."
           while true; do
-            echo "Command Output:"
-            aws ecr describe-images \
+            result=$(aws ecr describe-images \
               --repository-name "${{ inputs.chainlink_image_name || 'chainlink' }}" \
               --filter "tagStatus=TAGGED" \
-              --query 'imageDetails[?contains(imageTags, `'${{ needs.build-test-configurations.outputs.chainlink_image_tag }}'`)]' \
-              --output json
+              --query 'imageDetails[?contains(imageTags, `'${{ needs.build-test-configurations.outputs.chainlink_image_tag }}'`)]'
+              --output json)
             echo "End Command Output"
+
+            if [[ "$result" != "[]" ]]; then
+                echo "Found ${{ needs.build-test-configurations.outputs.chainlink_image_tag }}"
+                return 0
+            else
+                echo "Chainlink image not found in ECR. Waiting..."
+                echo "Command Output: $result"
+            fi
             
             CURRENT_TIME=$(date +%s)
             ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
