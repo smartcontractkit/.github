@@ -489,14 +489,15 @@ jobs:
           while true; do
             IMAGE=$(aws ecr describe-images --repository-name "${{ inputs.chainlink_image_name || 'chainlink' }}" --query 'imageDetails[?imageTags && contains(imageTags, "${{ needs.build-test-configurations.outputs.chainlink_image_tag }}")].imageTags[]' --output text 2>aws_error.log)
             if [[ "$IMAGE" == "${{ needs.build-test-configurations.outputs.chainlink_image_tag }}" ]]; then
-                echo "$IMAGE" == "${{ needs.build-test-configurations.outputs.chainlink_image_tag }}"
+                echo '"$IMAGE" == "${{ needs.build-test-configurations.outputs.chainlink_image_tag }}"'
                 echo "Found tag!"
                 exit 0
             else
                 echo "Image not found, waiting $POLL_INTERVAL seconds..."
             fi
 
-            echo "Command Output: $IMAGE"
+            echo "Command Output"
+            aws ecr describe-images --repository-name "${{ inputs.chainlink_image_name || 'chainlink' }}" --query 'imageDetails[?imageTags && contains(imageTags, "${{ needs.build-test-configurations.outputs.chainlink_image_tag }}")].imageTags[]' --output text
             if [ -s aws_error.log ]; then
               echo "Error running ECR command:"
               cat aws_error.log
