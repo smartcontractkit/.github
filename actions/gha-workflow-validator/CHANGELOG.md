@@ -1,5 +1,14 @@
 # gha-workflow-validator
 
+## 0.4.6
+
+### Patch Changes
+
+- [#647](https://github.com/smartcontractkit/.github/pull/647)
+  [`881ce37`](https://github.com/smartcontractkit/.github/commit/881ce375ab24c705507846c8080393174fe8226b)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: bug when parsing
+  action references wrapped in quotes
+
 ## 0.4.5
 
 ### Patch Changes
