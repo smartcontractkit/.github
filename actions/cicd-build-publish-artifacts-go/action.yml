@@ -26,6 +26,10 @@ inputs:
     description: ""
     required: false
     default: "false"
+  workdir:
+    description: ""
+    required: false
+    default: "."
   # aws inputs
   aws-role-duration-seconds:
     description: ""
@@ -220,6 +224,7 @@ runs:
         version: ${{ inputs.goreleaser-version }}
         distribution: ${{ inputs.goreleaser-dist }}
         args: release ${{ inputs.goreleaser-args }} --clean
+        workdir: ${{ inputs.workdir }}
       env:
         IMAGE_REPO: ${{ steps.process-params.outputs.image-repo }}
         IMAGE_TAG: ${{ inputs.docker-image-tag }}
