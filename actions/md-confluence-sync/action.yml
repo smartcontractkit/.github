@@ -7,7 +7,7 @@ inputs:
       "use specified markdown file(s) for converting to html. Supports file
       globbing patterns"
     required: true
-  base_url:
+  base-url:
     description: "Confluence base url e.g: https://example.com/wiki/"
     required: true
   user:
@@ -63,7 +63,7 @@ runs:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
     - name: Lint MD files using Prettier
-      uses: smartcontractkit/.github/actions/ci-prettier@a738d4cfa4826d6f44dbebcc3724385f6de58d42 # v0.1.1
+      uses: smartcontractkit/.github/actions/ci-prettier@a738d4cfa4826d6f44dbebcc3724385f6de58d42 # ci-prettier@0.1.1
       with:
         basic-auth: ${{ inputs.gc-basic-auth }}
         checkout-repo: "false"
@@ -83,7 +83,7 @@ runs:
     - name: Sync docs
       env:
         FILES: ${{ inputs.files }}
-        BASE_URL: ${{ inputs.base_url }}
+        BASE_URL: ${{ inputs.base-url }}
         USER: ${{ inputs.user }}
         TOKEN: ${{ inputs.token }}
         SPACE: ${{ inputs.space }}
