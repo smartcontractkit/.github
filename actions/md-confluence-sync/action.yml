@@ -7,6 +7,9 @@ inputs:
       "use specified markdown file(s) for converting to html. Supports file
       globbing patterns"
     required: true
+  base_url:
+    description: "Confluence base url e.g: https://example.com/wiki/"
+    required: true
   user:
     description:
       "Service account email address, should have write access to the given
@@ -67,6 +70,7 @@ runs:
     - name: Sync docs
       env:
         FILES: ${{ inputs.files }}
+        BASE_URL: ${{ inputs.base_url }}
         USER: ${{ inputs.user }}
         TOKEN: ${{ inputs.token }}
         SPACE: ${{ inputs.space }}
