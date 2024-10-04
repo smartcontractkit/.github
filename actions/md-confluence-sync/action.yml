@@ -78,6 +78,8 @@ runs:
         TOKEN: ${{ inputs.token }}
         SPACE: ${{ inputs.space }}
         PARENT: ${{ inputs.parent }}
+        MARK_DEBUG: ${{ inputs.debug }}
+        MARK_DRY_RUN: ${{ inputs.dry-run }}
       shell: bash
       run: ${{ github.action_path }}/mark-sync.sh
 
