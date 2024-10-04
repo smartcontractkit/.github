@@ -40,6 +40,10 @@ inputs:
     description: ""
     required: false
     default: "--report lcov"
+  run-test-working-directory:
+    description: "override directory to run tests in"
+    required: false
+    default: ""
   # nodejs inputs
   node-version-file:
     description: ""
@@ -85,6 +89,7 @@ runs:
         pnpm-version: ${{ inputs.pnpm-version }}
         use-cache: "true"
         run-install: "true"
+        package-json-directory: ${{ inputs.working-directory }}
 
     - name: Setup foundry
       uses: foundry-rs/foundry-toolchain@8f1998e9878d786675189ef566a2e4bf24869773 # v1.2.0
@@ -96,11 +101,13 @@ runs:
       run: forge --version
 
     - name: Run build
+      working-directory: ${{ inputs.working-directory }}
       if: inputs.check-only-affected != 'true'
       shell: bash
       run: pnpm run build ${{ inputs.forge-build-args }}
 
     - name: Run build affected
+      working-directory: ${{ inputs.working-directory }}
       if: inputs.check-only-affected == 'true'
       shell: bash
       run:
@@ -108,11 +115,13 @@ runs:
         inputs.forge-build-args }}
 
     - name: Run test
+      working-directory: ${{ inputs.working-directory }}
       if: inputs.check-only-affected != 'true'
       shell: bash
       run: pnpm run test ${{ inputs.forge-test-args }}
 
     - name: Run test affected
+      working-directory: ${{ inputs.working-directory }}
       if: inputs.check-only-affected == 'true'
       shell: bash
       run:
@@ -120,11 +129,13 @@ runs:
         inputs.forge-test-args }}
 
     - name: Run snapshot
+      working-directory: ${{ inputs.working-directory }}
       if: inputs.check-only-affected != 'true'
       shell: bash
       run: pnpm run snapshot ${{ inputs.forge-snapshot-args }}
 
     - name: Run snapshot affected
+      working-directory: ${{ inputs.working-directory }}
       if: inputs.check-only-affected == 'true'
       shell: bash
       run:
@@ -132,11 +143,13 @@ runs:
         inputs.forge-snapshot-args }}
 
     - name: Run coverage
+      working-directory: ${{ inputs.working-directory }}
       if: inputs.check-only-affected != 'true'
       shell: bash
       run: pnpm run coverage ${{ inputs.forge-coverage-args }}
 
     - name: Run coverage affected
+      working-directory: ${{ inputs.working-directory }}
       if: inputs.check-only-affected == 'true'
       shell: bash
       run:
