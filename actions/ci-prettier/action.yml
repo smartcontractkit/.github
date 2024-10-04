@@ -21,6 +21,11 @@ inputs:
     description: ""
     required: false
     default: ".tool-versions"
+  nodejs-version:
+    description:
+      "NodeJS version used only if the node-version-file isn't provided"
+    required: false
+    default: "^20.16.0"
   pnpm-version:
     description: ""
     required: false
@@ -53,6 +58,13 @@ runs:
       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Create .tool-versions file if it doesn't exist
+      shell: bash
+      run: |
+        if [ ! -f "${{ inputs.node-version-file }}" ]; then
+          echo "nodejs ${{ inputs.nodejs-version }}" > ${{ inputs.node-version-file }}
+        fi
 
     - name: Setup nodejs
       uses: smartcontractkit/.github/actions/setup-nodejs@5b1046c28343660ecb84844c6fa95a66d1cdb52e # setup-nodejs@0.2.1
