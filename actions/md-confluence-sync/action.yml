@@ -62,6 +62,16 @@ runs:
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
+    - name: Lint MD files using Prettier
+      uses: smartcontractkit/.github/actions/ci-prettier@a738d4cfa4826d6f44dbebcc3724385f6de58d42 # v0.1.1
+      with:
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        checkout-repo: "false"
+        gc-host: ${{ inputs.gc-host }}
+        gc-org-id: ${{ inputs.gc-org-id}}
+        prettier-command: pnpm prettier --check ${{ inputs.files }}/**/*.md
+        this-job-name: ${{ inputs.metrics-job-name }}
+
     - name: Set up Go
       uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
 
