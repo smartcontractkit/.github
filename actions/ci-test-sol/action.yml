@@ -40,7 +40,7 @@ inputs:
     description: ""
     required: false
     default: "--report lcov"
-  run-test-working-directory:
+  working-directory:
     description: "override directory to run tests in"
     required: false
     default: ""
