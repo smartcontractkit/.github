@@ -13,4 +13,5 @@ mark -f "$FILES" \
   -b "$BASE_URL" \
   --space "$SPACE" \
   --parents "$PARENT" \
-  --mermaid-provider mermaid-go
+  --mermaid-provider mermaid-go \
+  --ci
