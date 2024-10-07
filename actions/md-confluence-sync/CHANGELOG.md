@@ -1,5 +1,14 @@
 # md-confluence-sync
 
+## 0.0.3
+
+### Patch Changes
+
+- [#657](https://github.com/smartcontractkit/.github/pull/657)
+  [`017fa90`](https://github.com/smartcontractkit/.github/commit/017fa90bbd19abe1a0ce0d374f979787982e09c1)
+  Thanks [@chainchad](https://github.com/chainchad)! - Update input and validate
+  env vars
+
 ## 0.0.2
 
 ### Patch Changes
