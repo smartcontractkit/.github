@@ -49,6 +49,8 @@ runs:
         aws-region: ${{ inputs.aws-region }}
 
     # Step to set AWS environment variables and symlink the credentials
+    # We need to set these using aws configure due to a limitation on how Nix reads the credentials for AWS.
+    # See https://github.com/NixOS/nix/issues/2143 for more details.
     - name: 🛠️ Setup AWS credentials for Nix
       shell: bash
       run: |
