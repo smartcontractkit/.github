@@ -94,7 +94,7 @@ runs:
           sudo sed -i "s|^substituters.*|$SUBSTITUTERS_LINE|" /etc/nix/nix.conf
         else
           echo "➕ Appending 'substituters' line to /etc/nix/nix.conf"
-          echo "$SUBSTITUTERS_LINE" | sudo tee -a /etc/nix/nix.conf
+          echo "$SUBSTITUTERS_LINE" >> /etc/nix/nix.conf
         fi
 
         # Replace or append the 'trusted-public-keys' line
@@ -103,7 +103,7 @@ runs:
           sudo sed -i "s|^trusted-public-keys.*|$PUBLIC_KEYS_LINE|" /etc/nix/nix.conf
         else
           echo "➕ Appending 'trusted-public-keys' line to /etc/nix/nix.conf"
-          echo "$PUBLIC_KEYS_LINE" | sudo tee -a /etc/nix/nix.conf
+          echo "$PUBLIC_KEYS_LINE" >> /etc/nix/nix.conf
         fi
 
     # Store private signing key if provided
@@ -124,7 +124,7 @@ runs:
           sudo sed -i "s|^secret-key-files.*|$SECRET_KEY_FILES_LINE|" /etc/nix/nix.conf
         else
           echo "➕ Appending 'secret-key-files' line to /etc/nix/nix.conf"
-          echo "$SECRET_KEY_FILES_LINE" | sudo tee -a /etc/nix/nix.conf
+          echo "$SECRET_KEY_FILES_LINE" >> /etc/nix/nix.conf
         fi
 
     # Set up post-build hook for cache upload if pushing
@@ -166,7 +166,7 @@ runs:
 
         # Set up the post-build hook to use the modified script
         echo "Setting post-build-hook in /etc/nix/nix.conf"
-        echo "post-build-hook = $PERSISTENT_SCRIPT_PATH" | sudo tee -a /etc/nix/nix.conf
+        echo "post-build-hook = $PERSISTENT_SCRIPT_PATH" >> /etc/nix/nix.conf
 
     # Restart Nix daemon for both push and read modes to apply configuration changes
     - name: Restart Nix Daemon
