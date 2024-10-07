@@ -156,7 +156,7 @@ runs:
         sudo cp $MODIFIED_SCRIPT_PATH $PERSISTENT_SCRIPT_PATH
 
         # Check if the modified script exists and has correct permissions
-        if [ -f "$PERSISTENT_SCRIPT_PATH" ]; then
+        if [[ -f "$PERSISTENT_SCRIPT_PATH" ]]; then
           echo "✅ Modified script exists at $PERSISTENT_SCRIPT_PATH with the following permissions:"
           ls -la $PERSISTENT_SCRIPT_PATH
         else
