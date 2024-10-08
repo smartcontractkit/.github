@@ -8,9 +8,10 @@ inputs:
       "The conclusion status of the parent workflow: either 'success' or
       'failure'"
     required: true
-  edit-comment:
-    description: "Whether to edit the last comment or create a new one"
+  pr-comment-generate-success-report:
+    description: "Whether to generate a success report"
     required: false
+    default: "true"
   pr-comment-identifier:
     description: "Comment string identifier used to find the PR comment to edit"
     required: false
@@ -141,7 +142,6 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
         PR_NUMBER: ${{ steps.get_pr_number.outputs.pr_number }}
-        edit_comment: ${{ inputs.edit-comment }}
       run: |
         workflow_name=$(gh run view ${{ github.event.workflow_run.id }} --json workflowName --jq '.workflowName')
         head_sha=$(gh run view ${{ github.event.workflow_run.id }} --json headSha --jq '.headSha')
@@ -161,27 +161,24 @@ runs:
         comment_id=$(gh pr view $PR_NUMBER --json comments \
           --jq '.comments[] | select(.author.login == "github-actions" and (.body | contains("${{ inputs.pr-comment-identifier }}"))) | .id')
 
-        if [[ -n "${comment_id:-}" && "$edit_comment" == "true" ]]; then
-          # Update the existing comment.
+        if [[ -n "${comment_id:-}" ]]; then
+          # Delete the existing comment.
           gh api \
-            --method PATCH \
+            --method DELETE \
             -H "Accept: application/vnd.github.v3+json" \
-            /repos/${GITHUB_REPOSITORY}/issues/comments/$comment_id \
-            -f body="$pr_message"
-        else
-          # Post a new comment.
-          gh pr comment $PR_NUMBER -b "$pr_message"
+            "/repos/${GITHUB_REPOSITORY}/issues/comments/${comment_id}"
         fi
+        # Post a new comment.
+        gh pr comment $PR_NUMBER -b "$pr_message"
 
     - name: Generate Success Report
       if:
         ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion !=
-        'failure' }}
+        'failure' && inputs.pr-comment-generate-success-report == 'true' }}
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
         PR_NUMBER: ${{ steps.get_pr_number.outputs.pr_number }}
-        edit_comment: ${{ inputs.edit-comment }}
       run: |
         workflow_name=$(gh run view ${{ github.event.workflow_run.id }} --json workflowName --jq '.workflowName')
         head_sha=$(gh run view ${{ github.event.workflow_run.id }} --json headSha --jq '.headSha')
@@ -199,17 +196,15 @@ runs:
         comment_id=$(gh pr view $PR_NUMBER --json comments \
           --jq '.comments[] | select(.author.login == "github-actions" and (.body | contains("${{ inputs.pr-comment-identifier }}"))) | .id')
 
-        if [[ -n "${comment_id:-}" && "$edit_comment" == "true" ]]; then
-          # Update the existing comment.
+        if [[ -n "${comment_id:-}" ]]; then
+          # Delete the existing comment.
           gh api \
-            --method PATCH \
+            --method DELETE \
             -H "Accept: application/vnd.github.v3+json" \
-            /repos/${GITHUB_REPOSITORY}/issues/comments/$comment_id \
-            -f body="$pr_message"
-        else
-          # Post a new comment.
-          gh pr comment $PR_NUMBER -b "$pr_message"
+            "/repos/${GITHUB_REPOSITORY}/issues/comments/${comment_id}"
         fi
+        # Post a new comment.
+        gh pr comment $PR_NUMBER -b "$pr_message"
 
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''
