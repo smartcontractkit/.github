@@ -1,28 +1,29 @@
 name: LLM Action Error Reporter
+description: "Generates an error report for a failed workflow run using ChatGPT"
+
 # workaround while waiting for https://github.com/actions/runner/issues/886 (gh run view can't run in currently running workflow)
 inputs:
   parent-workflow-conclusion:
     description:
       "The conclusion status of the parent workflow: either 'success' or
       'failure'"
-    type: string
     required: true
   edit-comment:
     description: "Whether to edit the last comment or create a new one"
     required: false
-    type: boolean
+  pr-comment-identifier:
+    description: "Comment string identifier used to find the PR comment to edit"
+    required: false
+    default: "<!-- llm-action-error-reporter -->"
   gh-token:
     description: "github token to make a comment with"
-    type: string
     required: true
   openai-model:
     description: "openai model. defaults to 'gpt-4-turbo-2024-04-09'"
     required: false
     default: "gpt-4-turbo-2024-04-09"
-    type: string
   openai-api-key:
     description: "openai api key"
-    type: string
     required: true
   workflow-ref:
     description: "ref of the workflow to checkout"
@@ -56,10 +57,8 @@ runs:
 
     - name: Check if this run is invoked from a pull request event
       shell: bash
-      if: >
-        github.event.workflow_run.event == 'pull_request'
-      run: |
-        echo "SKIP_ACTION=false" >> $GITHUB_ENV
+      if: github.event.workflow_run.event == 'pull_request'
+      run: echo "SKIP_ACTION=false" >> $GITHUB_ENV
 
     - name: Get PR number
       if: ${{ env.SKIP_ACTION == 'false' }}
@@ -125,7 +124,7 @@ runs:
         )
 
         # throw error openai_result when is not 200
-        if [ "$openai_result" != '200' ]; then
+        if [[ "$openai_result" != '200' ]]; then
           echo "::error::OpenAI API call failed with status $openai_result: $(cat prompt_response.json)"
           exit 1
         fi
@@ -149,19 +148,28 @@ runs:
         short_sha=$(echo $head_sha | cut -c1-7)
         repo_url=$(gh repo view --json url --jq '.url')
 
-        pr_message="**Below is an analysis created by an LLM. Be mindful of hallucinations and verify accuracy.**
+        pr_message="${{ inputs.pr-comment-identifier }}
+        **Below is an analysis created by an LLM. Be mindful of hallucinations and verify accuracy.**
 
         ## WF: $workflow_name[#$short_sha]($repo_url/commit/$head_sha)
 
+        Workflow run ID: [${GITHUB_RUN_ID}](https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}#${GITHUB_JOB})
+
         $(cat chatgpt_output.txt)"
 
-        # Fetch the comments on the pull request and filter for comments by github.actor
-        author_comments=$(gh pr view $PR_NUMBER --json comments --jq ".comments | map(select(.author.login == \"github-actions\")) | length")
+        # Fetch last comment ID we made by this action (if applicable).
+        comment_id=$(gh pr view $PR_NUMBER --json comments \
+          --jq '.comments[] | select(.author.login == "github-actions" and (.body | contains("${{ inputs.pr-comment-identifier }}"))) | .id')
 
-        # Check if edit-comment is true and there are prior comments from github.actor
-        if [ "$edit_comment" = "true" ] && [ "$author_comments" -gt 0 ]; then
-          gh pr comment $PR_NUMBER -b "$pr_message" --edit-last
+        if [[ -n "${comment_id:-}" && "$edit_comment" == "true" ]]; then
+          # Update the existing comment.
+          gh api \
+            --method PATCH \
+            -H "Accept: application/vnd.github.v3+json" \
+            /repos/${GITHUB_REPOSITORY}/issues/comments/$comment_id \
+            -f body="$pr_message"
         else
+          # Post a new comment.
           gh pr comment $PR_NUMBER -b "$pr_message"
         fi
 
@@ -180,17 +188,26 @@ runs:
         short_sha=$(echo $head_sha | cut -c1-7)
         repo_url=$(gh repo view --json url --jq '.url')
 
-        pr_message="## WF: $workflow_name[#$short_sha]($repo_url/commit/$head_sha)
+        pr_message="${{ inputs.pr-comment-identifier }}
+        ## WF: $workflow_name[#$short_sha]($repo_url/commit/$head_sha)
+
+        Workflow run ID: [${GITHUB_RUN_ID}](https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}#${GITHUB_JOB})
 
         No errors found in this run. 🎉"
 
-        # Fetch the comments on the pull request and filter for comments by github.actor
-        author_comments=$(gh pr view $PR_NUMBER --json comments --jq ".comments | map(select(.author.login == \"github-actions\")) | length")
+        # Fetch last comment ID we made by this action (if applicable).
+        comment_id=$(gh pr view $PR_NUMBER --json comments \
+          --jq '.comments[] | select(.author.login == "github-actions" and (.body | contains("${{ inputs.pr-comment-identifier }}"))) | .id')
 
-        # Check if edit-comment is true and there are prior comments from github.actor
-        if [ "$edit_comment" = "true" ] && [ "$author_comments" -gt 0 ]; then
-          gh pr comment $PR_NUMBER -b "$pr_message" --edit-last
+        if [[ -n "${comment_id:-}" && "$edit_comment" == "true" ]]; then
+          # Update the existing comment.
+          gh api \
+            --method PATCH \
+            -H "Accept: application/vnd.github.v3+json" \
+            /repos/${GITHUB_REPOSITORY}/issues/comments/$comment_id \
+            -f body="$pr_message"
         else
+          # Post a new comment.
           gh pr comment $PR_NUMBER -b "$pr_message"
         fi
 
