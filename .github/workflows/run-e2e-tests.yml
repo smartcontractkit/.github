@@ -1032,7 +1032,7 @@ jobs:
       test_results: ${{ steps.set_test_results.outputs.results }}
     steps:
       - name: Download all test result artifacts
-        uses: actions/download-artifact@9c19ed7fe5d278cd354c7dfd5d3b88589c7e2395 # v4.1.6
+        uses: actions/download-artifact@v4.1.8
         with:
           path: test_results
           pattern:
