@@ -171,7 +171,7 @@ jobs:
           done
 
       - name: Upload basic info and modified contracts list
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
+        uses: actions/upload-artifact@v4.4.3
         timeout-minutes: 2
         continue-on-error: true
         with:
@@ -266,7 +266,7 @@ jobs:
           FOUNDRY_PROFILE: ${{ inputs.product }}
 
       - name: Upload Artifacts for product contracts
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
+        uses: actions/upload-artifact@v4.4.3
         timeout-minutes: 2
         continue-on-error: true
         with:
@@ -375,7 +375,7 @@ jobs:
           ./dot_github/tools/scripts/solidity/generate_slither_report.sh "${{ github.server_url }}/${{ github.repository }}/blob/${{ env.head_ref }}/" "${{ inputs.slither_config_file_path }}" "${{ inputs.contracts_directory }}" "$contract_list" "${{ env.artifacts_dir }}/slither-reports" "--solc-remaps @=${{ inputs.contracts_directory }}/node_modules/@"
 
       - name: Upload UMLs and Slither reports
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
+        uses: actions/upload-artifact@v4.4.3
         timeout-minutes: 10
         continue-on-error: true
         with:
@@ -412,7 +412,7 @@ jobs:
           merge-multiple: true
 
       - name: Upload all artifacts as single package
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
+        uses: actions/upload-artifact@v4.4.3
         with:
           name:
             review-artifacts-${{ inputs.product }}-${{ inputs.base_ref }}-${{
