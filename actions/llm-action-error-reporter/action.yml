@@ -7,18 +7,20 @@ inputs:
       'failure'"
     type: string
     required: true
-  edit-comment:
-    description: "Whether to edit the last comment or create a new one"
+  skip-on-success:
+    description:
+      "Whether to skip the action if the parent workflow is successful"
     required: false
     type: boolean
+    default: false
   gh-token:
     description: "github token to make a comment with"
     type: string
     required: true
   openai-model:
-    description: "openai model. defaults to 'gpt-4-turbo-2024-04-09'"
+    description: "openai model. defaults to 'gpt-4o-2024-05-13'"
     required: false
-    default: "gpt-4-turbo-2024-04-09"
+    default: "gpt-4o-2024-05-13"
     type: string
   openai-api-key:
     description: "openai api key"
@@ -28,6 +30,29 @@ inputs:
     description: "ref of the workflow to checkout"
     required: false
     default: "main"
+  log-lines-limit:
+    description: "The maximum number of log lines to process per group"
+    required: false
+    default: "500"
+  # grafana inputs (optional)
+  metrics-job-name:
+    description: "grafana metrics job name"
+    required: false
+  metrics-id:
+    description:
+      "grafana metrics id, used for continuity of metrics during job name
+      changes - required if metrics-job-name is passed"
+    required: false
+  gc-host:
+    description: "grafana hostname - required if metrics-job-name is passed"
+    required: false
+  gc-basic-auth:
+    description: "grafana basic auth - required if metrics-job-name is passed"
+    required: false
+  gc-org-id:
+    description:
+      "grafana org/tenant id - required if metrics-job-name is passed"
+    required: false
 
 runs:
   using: "composite"
@@ -53,7 +78,8 @@ runs:
 
         # Convert pull_requests array to JSON string and get pr_number from the first object
         pull_requests_json='${{ toJson(github.event.workflow_run.pull_requests) }}'
-        echo "pr_number="$(echo "$pull_requests_json" | jq '.[0].number')"" >> "$GITHUB_OUTPUT"
+        pr_number=$(echo "$pull_requests_json" | jq -r '.[0].number')
+        echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
 
     - name: Prepare logs
       if:
@@ -62,9 +88,52 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
+        LINE_LIMIT: ${{ inputs.log-lines-limit }}
       run: |
         echo "Analyzing run ${{ github.event.workflow_run.id }}"
-        gh run view ${{ github.event.workflow_run.id }} --log-failed | jq -Rs . | sed 's/^"//;s/"$//' > runlog.log
+        log_raw=$(gh run view ${{ github.event.workflow_run.id }} --log-failed)
+        log_output=$(echo "$log_raw" | awk -v limit=$LINE_LIMIT -F'\t' '
+        {
+          group = $1
+          sub(/^[^\t]+\t/, "")                  # Remove the first field and the following tab
+
+          # Initialize the count for the group if not already done
+          if (!(group in count)) {
+            count[group] = 0
+          }
+
+          # Store the line in a circular buffer
+          lines[group, count[group] % limit] = $0  # Store only the remaining fields
+          count[group]++
+        }
+        END {
+          for (group in count) {
+            print "======= " group " ======="
+
+            # Determine the total number of lines to print
+            total = (count[group] > limit) ? limit : count[group]
+
+            # Calculate the starting index for the circular buffer
+            start = (count[group] > limit) ? (count[group] % limit) : 0
+
+            # Collect the lines in the correct order
+            ordered_lines = ""
+            for (i = 0; i < total; i++) {
+              idx = (start + i) % limit
+              if (lines[group, idx] != "") {
+                ordered_lines = ordered_lines lines[group, idx] "\n"
+              }
+            }
+
+            # Print the lines in order, ensuring the latest line is last
+            print ordered_lines
+
+            print ""  # Add an empty line between groups for readability
+          }
+        }
+        ')
+
+        echo "$log_output" > runlog.log
 
     - name: Checkout action repo
       if: ${{ env.SKIP_ACTION == 'false' }}
@@ -85,7 +154,7 @@ runs:
         'failure' }}
       shell: bash
       run: |
-        log_output=$(cat runlog.log | sed -e 's/\\ No newline at end of file//g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
+        log_output=$(cat runlog.log | jq -Rs . | sed 's/^"//;s/"$//' | sed -e 's/\\ No newline at end of file//g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
         openai_prompt=$(cat error_reporter_actions/actions/llm-action-error-reporter/log-analyze-prompt.md | sed 's/"/\\"/g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
         openai_model=${{ inputs.openai-model }}
         openai_result=$(echo '{
@@ -123,54 +192,132 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
         PR_NUMBER: ${{ steps.get_pr_number.outputs.pr_number }}
-        edit_comment: ${{ inputs.edit-comment }}
       run: |
         workflow_name=$(gh run view ${{ github.event.workflow_run.id }} --json workflowName --jq '.workflowName')
         head_sha=$(gh run view ${{ github.event.workflow_run.id }} --json headSha --jq '.headSha')
-        short_sha=$(echo $head_sha | cut -c1-7)
         repo_url=$(gh repo view --json url --jq '.url')
+        wf_job_urls=$(gh run view ${{ github.event.workflow_run.id }} --json jobs --jq '.jobs | map("[\(.name)](\(.url))") | join(" , ")')
+        workflow_id=$(echo "$workflow_name" | tr -d ' ' | tr '[:upper:]' '[:lower:]')
 
-        pr_message="**Below is an analysis created by an LLM. Be mindful of hallucinations and verify accuracy.**
+        pr_message="
+        <$workflow_id>
 
-        ## WF: $workflow_name[#$short_sha]($repo_url/commit/$head_sha)
+        ## AER Report: [$workflow_name]($repo_url/actions/runs/${{ github.event.workflow_run.id }})
 
-        $(cat chatgpt_output.txt)"
+        [commit]($repo_url/commit/$head_sha) , $wf_job_urls
+
+        $(cat chatgpt_output.txt)
+        </$workflow_id>"
 
         # Fetch the comments on the pull request and filter for comments by github.actor
-        author_comments=$(gh pr view $PR_NUMBER --json comments --jq ".comments | map(select(.author.login == \"github-actions\")) | length")
+        author_comments=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments | map(select(.author.login == "github-actions" and (.body | contains("## AER Report:")))) | length')
 
-        # Check if edit-comment is true and there are prior comments from github.actor
-        if [ "$edit_comment" = "true" ] && [ "$author_comments" -gt 0 ]; then
+        # Get the latest comment body
+        latest_comment_body=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments
+        | map(select(.author.login == "github-actions" and (.body | contains("## AER Report:"))))
+        | sort_by(.createdAt) | reverse | .[0].body')
+
+        # Check if comment exists and contains <$workflow_id>...</$workflow_id>
+        if [[ "$author_comments" -gt 0 && "$latest_comment_body" == *"<$workflow_id>"* && "$latest_comment_body" == *"</$workflow_id>"* ]]; then
+          # Create a temporary sed script file
+          sed_script=$(mktemp)
+
+          # Escape backslashes and ampersands, but NOT forward slashes within HTML tags
+          # The goal is to only escape backslashes and ampersands
+          pr_message=$(printf '%s' "$pr_message" | sed -e 's/\\/\\\\/g' -e 's/&/\\&/g')
+          # Replace newlines with escaped newlines for sed
+          pr_message=$(echo "$pr_message" | sed 's/$/\\/' | sed '$s/\\$//')
+
+          # Write the sed replacement command to the script
+          echo "/<$workflow_id>/,/<\\/${workflow_id}>/c\\" > "$sed_script"
+          echo "${pr_message}" >> "$sed_script"
+
+          # Perform the replacement using sed with the temporary script
+          pr_message=$(echo "$latest_comment_body" | sed -f "$sed_script")
+
+          # Remove the temporary sed script
+          rm "$sed_script"
+
           gh pr comment $PR_NUMBER -b "$pr_message" --edit-last
         else
-          gh pr comment $PR_NUMBER -b "$pr_message"
+          if [ "$author_comments" -gt 0 ]; then
+            pr_message="${latest_comment_body}
+            
+            ${pr_message}"
+
+            gh pr comment $PR_NUMBER -b "$pr_message" --edit-last
+          else
+            gh pr comment $PR_NUMBER -b "**Below is an analysis created by an LLM (${{ inputs.openai-model }}). Be mindful of hallucinations and verify accuracy.**
+            
+            $pr_message"
+          fi
         fi
 
     - name: Generate Success Report
       if:
         ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion !=
-        'failure' }}
+        'failure'}}
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
         PR_NUMBER: ${{ steps.get_pr_number.outputs.pr_number }}
-        edit_comment: ${{ inputs.edit-comment }}
+        skip_on_success: ${{ inputs.skip-on-success }}
       run: |
         workflow_name=$(gh run view ${{ github.event.workflow_run.id }} --json workflowName --jq '.workflowName')
         head_sha=$(gh run view ${{ github.event.workflow_run.id }} --json headSha --jq '.headSha')
-        short_sha=$(echo $head_sha | cut -c1-7)
         repo_url=$(gh repo view --json url --jq '.url')
+        wf_job_urls=$(gh run view ${{ github.event.workflow_run.id }} --json jobs --jq '.jobs | map("[\(.name)](\(.url))") | join(" , ")')
+        workflow_id=$(echo "$workflow_name" | tr -d ' ' | tr '[:upper:]' '[:lower:]')
 
-        pr_message="## WF: $workflow_name[#$short_sha]($repo_url/commit/$head_sha)
+        pr_message="
+        <$workflow_id>
 
-        No errors found in this run. 🎉"
+        ## AER Report: [$workflow_name]($repo_url/actions/runs/${{ github.event.workflow_run.id }}) ran successfully :white_check_mark:
+
+        </$workflow_id>"
 
         # Fetch the comments on the pull request and filter for comments by github.actor
-        author_comments=$(gh pr view $PR_NUMBER --json comments --jq ".comments | map(select(.author.login == \"github-actions\")) | length")
+        author_comments=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments | map(select(.author.login == "github-actions" and (.body | contains("## AER Report:")))) | length')
 
-        # Check if edit-comment is true and there are prior comments from github.actor
-        if [ "$edit_comment" = "true" ] && [ "$author_comments" -gt 0 ]; then
+        # Get the latest comment body
+        latest_comment_body=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments
+        | map(select(.author.login == "github-actions" and (.body | contains("## AER Report:"))))
+        | sort_by(.createdAt) | reverse | .[0].body')
+
+        # Check if comment exists and contains <$workflow_id>...</$workflow_id>
+        if [[ "$author_comments" -gt 0 && "$latest_comment_body" == *"<$workflow_id>"* && "$latest_comment_body" == *"</$workflow_id>"* ]]; then
+          # Create a temporary sed script file
+          sed_script=$(mktemp)
+
+          # Escape backslashes and ampersands, but NOT forward slashes within HTML tags
+          # The goal is to only escape backslashes and ampersands
+          pr_message=$(printf '%s' "$pr_message" | sed -e 's/\\/\\\\/g' -e 's/&/\\&/g')
+          # Replace newlines with escaped newlines for sed
+          pr_message=$(echo "$pr_message" | sed 's/$/\\/' | sed '$s/\\$//')
+
+          # Write the sed replacement command to the script
+          echo "/<$workflow_id>/,/<\\/${workflow_id}>/c\\" > "$sed_script"
+          echo "${pr_message}" >> "$sed_script"
+
+          # Perform the replacement using sed with the temporary script
+          pr_message=$(echo "$latest_comment_body" | sed -f "$sed_script")
+
+          # Remove the temporary sed script
+          rm "$sed_script"
+
           gh pr comment $PR_NUMBER -b "$pr_message" --edit-last
         else
-          gh pr comment $PR_NUMBER -b "$pr_message"
+          # there is prior error but from a different workflow
+          if [ "$author_comments" -gt 0 ]; then
+            pr_message="${latest_comment_body}
+            
+            ${pr_message}"
+
+            gh pr comment $PR_NUMBER -b "$pr_message" --edit-last
+          else
+            # if no prior error(s) then don't clutter the PR with success message
+            if [ "$skip_on_success" == "false" ]; then
+              gh pr comment $PR_NUMBER -b "$pr_message"
+            fi
+          fi
         fi
