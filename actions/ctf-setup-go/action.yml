@@ -54,7 +54,7 @@ runs:
 
     - name: Cache Go Modules
       if: inputs.cache_restore_only == 'false' && inputs.no_cache == 'false'
-      uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+      uses: actions/cache@v4.1.1
       id: cache-packages
       with:
         path: ${{ steps.go-cache-dir.outputs.gomodcache }}
@@ -64,7 +64,7 @@ runs:
         restore-keys: |
           ${{ runner.os }}-${{ inputs.cache_key_id }}-gomod-
 
-    - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+    - uses: actions/cache@v4.1.1
       if: inputs.cache_restore_only == 'false' && inputs.cache_builds == 'true'
       name: Cache Go Builds
       with:
@@ -78,7 +78,7 @@ runs:
 
     - name: Restore Go Modules
       if: inputs.cache_restore_only != 'false' && inputs.no_cache == 'false'
-      uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+      uses: actions/cache/restore@v4.1.1
       id: restore-cache-packages
       with:
         path: |
