@@ -50,25 +50,6 @@ inputs:
     description: "enable linting"
     required: false
     default: "false"
-  # grafana inputs (optional)
-  metrics-job-name:
-    description: "grafana metrics job name"
-    required: false
-  metrics-id:
-    description:
-      "grafana metrics id, used for continuity of metrics during job name
-      changes - required if metrics-job-name is passed"
-    required: false
-  gc-host:
-    description: "grafana hostname - required if metrics-job-name is passed"
-    required: false
-  gc-basic-auth:
-    description: "grafana basic auth - required if metrics-job-name is passed"
-    required: false
-  gc-org-id:
-    description:
-      "grafana org/tenant id - required if metrics-job-name is passed"
-    required: false
 
 runs:
   using: composite
@@ -110,9 +91,9 @@ runs:
       uses: sonarsource/sonarqube-scan-action@aecaf43ae57e412bd97d70ef9ce6076e672fe0a9 # v2.3.0
       with:
         args: >
-          -Dsonar.go.tests.reportPaths=${{ 
+          -Dsonar.go.tests.reportPaths=${{
             inputs.test-result-report-path
-          }} -Dsonar.go.coverage.reportPaths=${{ 
+          }} -Dsonar.go.coverage.reportPaths=${{
             inputs.test-coverage-report-path
           }}
       env:
@@ -124,25 +105,13 @@ runs:
       uses: sonarsource/sonarqube-scan-action@aecaf43ae57e412bd97d70ef9ce6076e672fe0a9 # v2.3.0
       with:
         args: >
-          -Dsonar.go.tests.reportPaths=${{ 
-            inputs.test-result-report-path 
-          }} -Dsonar.go.coverage.reportPaths=${{ 
+          -Dsonar.go.tests.reportPaths=${{
+            inputs.test-result-report-path
+          }} -Dsonar.go.coverage.reportPaths=${{
             inputs.test-coverage-report-path
-          }} -Dsonar.go.golangci-lint.reportPaths=${{ 
+          }} -Dsonar.go.golangci-lint.reportPaths=${{
             inputs.lint-report-path
           }}
       env:
         SONAR_TOKEN: ${{ inputs.sonar-token }}
         SONAR_HOST_URL: ${{ inputs.sonar-host-url }}
-
-    - name: Collect metrics
-      if: always() && inputs.metrics-job-name != ''
-      id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-      with:
-        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
-        basic-auth: ${{ inputs.gc-basic-auth }}
-        hostname: ${{ inputs.gc-host }}
-        org-id: ${{ inputs.gc-org-id}}
-        this-job-name: ${{ inputs.metrics-job-name }}
-      continue-on-error: true
