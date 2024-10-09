@@ -284,13 +284,13 @@ jobs:
               image_versions="${{ github.sha }}"
             else
               image_versions+=",${{ github.sha }}"
-            fi            
+            fi
           fi
 
           # Convert the comma-separated string to a JSON array
           image_versions=$(echo "$image_versions" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
 
-          echo "Required Chainlink image versions: $image_versions"   
+          echo "Required Chainlink image versions: $image_versions"
           echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
 
       - name: Create matrix for required Chainlink plugin versions
@@ -298,7 +298,7 @@ jobs:
         shell: bash
         run: |
           image_versions=$(echo "${{ inputs.require_chainlink_plugin_versions_in_qa_ecr }}" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
-          echo "Required Chainlink plugin image versions: $image_versions"   
+          echo "Required Chainlink plugin image versions: $image_versions"
           echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
 
   check-test-configurations:
@@ -308,7 +308,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        uses: actions/checkout@v4.2.1
       - name: Install citool
         shell: bash
         run: go install
@@ -352,7 +352,7 @@ jobs:
       workflow_id: ${{ steps.gen_id.outputs.workflow_id }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        uses: actions/checkout@v4.2.1
       - name: Setup Go
         uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
@@ -456,7 +456,7 @@ jobs:
             echo "::error::Error: Some of the tests require custom test secrets to run. Please see workflow logs and set 'test_secrets_override_key' to run these tests."
             exit 1
           else
-            echo "No tests require secrets. Proceeding without additional secret setup."          
+            echo "No tests require secrets. Proceeding without additional secret setup."
           fi
 
       - name: Generate random workflow id
@@ -489,7 +489,7 @@ jobs:
           }}
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        uses: actions/checkout@v4.2.1
 
       - name: Get Chainlink image
         uses: ./.github/actions/build-chainlink-image
@@ -526,7 +526,7 @@ jobs:
           }}
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        uses: actions/checkout@v4.2.1
 
       - name: Get Chainlink plugins image
         uses: ./.github/actions/build-chainlink-image
@@ -587,7 +587,7 @@ jobs:
         continue-on-error: true
 
       - name: Checkout repository
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        uses: actions/checkout@v4.2.1
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -825,7 +825,7 @@ jobs:
         }}.amazonaws.com/chainlink-tests
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        uses: actions/checkout@v4.2.1
       - name: Build Test Runner Image
         id: build-test-runner-image
         uses: smartcontractkit/.github/actions/ctf-build-test-image@a5e4f4c8fbb8e15ab2ad131552eca6ac83c4f4b3 # ctf-build-test-image@0.1.0
@@ -894,7 +894,7 @@ jobs:
         continue-on-error: true
 
       - name: Checkout repository
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        uses: actions/checkout@v4.2.1
       - name: Install jq
         run: sudo apt-get install -y jq
 
