@@ -20,24 +20,6 @@ inputs:
     description: "Enable magic nix cache"
     required: false
     default: "false"
-  # grafana inputs (optional)
-  metrics-job-name:
-    description: "grafana metrics job name"
-    required: false
-  metrics-id:
-    description:
-      "grafana metrics id, used for continuity of metrics during job name
-      changes - required if metrics-job-name is passed"
-    required: false
-  gc-host:
-    description: "grafana hostname"
-    required: false
-  gc-basic-auth:
-    description: "grafana basic auth"
-    required: false
-  gc-org-id:
-    description: "grafana org/tenant id"
-    required: false
 
 runs:
   using: composite
@@ -68,15 +50,3 @@ runs:
     - name: use magic nix cache
       if: inputs.enable-magic-cache == 'true'
       uses: DeterminateSystems/magic-nix-cache-action@b46e247b898aa56e6d2d2e728dc6df6c84fdb738 #v7
-
-    - name: Collect metrics
-      if: always() && inputs.metrics-job-name != ''
-      id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-      with:
-        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
-        basic-auth: ${{ inputs.gc-basic-auth }}
-        hostname: ${{ inputs.gc-host }}
-        org-id: ${{ inputs.gc-org-id}}
-        this-job-name: ${{ inputs.metrics-job-name }}
-      continue-on-error: true

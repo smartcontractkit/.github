@@ -284,13 +284,13 @@ jobs:
               image_versions="${{ github.sha }}"
             else
               image_versions+=",${{ github.sha }}"
-            fi            
+            fi
           fi
 
           # Convert the comma-separated string to a JSON array
           image_versions=$(echo "$image_versions" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
 
-          echo "Required Chainlink image versions: $image_versions"   
+          echo "Required Chainlink image versions: $image_versions"
           echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
 
       - name: Create matrix for required Chainlink plugin versions
@@ -298,7 +298,7 @@ jobs:
         shell: bash
         run: |
           image_versions=$(echo "${{ inputs.require_chainlink_plugin_versions_in_qa_ecr }}" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
-          echo "Required Chainlink plugin image versions: $image_versions"   
+          echo "Required Chainlink plugin image versions: $image_versions"
           echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
 
   check-test-configurations:
@@ -456,7 +456,7 @@ jobs:
             echo "::error::Error: Some of the tests require custom test secrets to run. Please see workflow logs and set 'test_secrets_override_key' to run these tests."
             exit 1
           else
-            echo "No tests require secrets. Proceeding without additional secret setup."          
+            echo "No tests require secrets. Proceeding without additional secret setup."
           fi
 
       - name: Generate random workflow id
@@ -573,19 +573,6 @@ jobs:
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
     steps:
-      - name: Collect Metrics
-        if: always()
-        id: collect-gha-metrics
-        uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-        with:
-          id: e2e_tests_${{ env.TEST_ID }}
-          org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
-          basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-          hostname: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-          this-job-name: ${{ inputs.workflow_name }} / ${{ matrix.tests.id }}
-          test-results-file: '{"testType":"go","filePath":"/tmp/gotest.log"}'
-        continue-on-error: true
-
       - name: Checkout repository
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
       - name: Install jq
@@ -881,18 +868,6 @@ jobs:
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
     steps:
-      - name: Collect Metrics
-        if: always()
-        id: collect-gha-metrics
-        uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-        with:
-          id: e2e_tests_${{ env.TEST_ID }}
-          org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
-          basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-          hostname: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-          this-job-name: ${{ inputs.workflow_name }} / ${{ matrix.tests.id }}
-        continue-on-error: true
-
       - name: Checkout repository
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
       - name: Install jq
