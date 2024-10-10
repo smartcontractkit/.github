@@ -227,7 +227,7 @@ export function extractActionReferenceFromLine(
   }
 
   // example line:
-  // - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+  // - uses: actions/checkout@v4.2.1
   const trimSubString = "uses:";
   const usesIndex = trimmedLine.indexOf(trimSubString);
 

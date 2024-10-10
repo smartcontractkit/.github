@@ -77,7 +77,7 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      uses: actions/checkout@v4.2.1
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
@@ -112,10 +112,10 @@ runs:
       uses: sonarsource/sonarqube-scan-action@aecaf43ae57e412bd97d70ef9ce6076e672fe0a9 # v2.3.0
       with:
         args: >
-          -Dsonar.junit.reportPaths=${{ 
-            inputs.junit-xml-report-path 
+          -Dsonar.junit.reportPaths=${{
+            inputs.junit-xml-report-path
           }} -Dsonar.typescript.lcov.reportPaths=${{
-            inputs.typescript-lcov-report-path 
+            inputs.typescript-lcov-report-path
           }}
       env:
         SONAR_TOKEN: ${{ inputs.sonar-token }}
@@ -126,12 +126,12 @@ runs:
       uses: sonarsource/sonarqube-scan-action@aecaf43ae57e412bd97d70ef9ce6076e672fe0a9 # v2.3.0
       with:
         args: >
-          -Dsonar.junit.reportPaths=${{ 
-            inputs.junit-xml-report-path 
+          -Dsonar.junit.reportPaths=${{
+            inputs.junit-xml-report-path
           }} -Dsonar.typescript.lcov.reportPaths=${{
-            inputs.typescript-lcov-report-path 
+            inputs.typescript-lcov-report-path
           }} -Dsonar.eslint.reportPaths=${{
-            inputs.eslint-json-report-path 
+            inputs.eslint-json-report-path
           }}
       env:
         SONAR_TOKEN: ${{ inputs.sonar-token }}
