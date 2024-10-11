@@ -1,4 +1,8 @@
 name: LLM Action Error Reporter
+description: |
+  Action Error Reporter is designed to report errors from a parent workflow.
+  It uses ChatGPT to analyze the logs and generate a report that is posted as a
+  comment on the PR that triggered the parent workflow.
 # workaround while waiting for https://github.com/actions/runner/issues/886 (gh run view can't run in currently running workflow)
 inputs:
   parent-workflow-conclusion:
@@ -81,6 +85,21 @@ runs:
         pr_number=$(echo "$pull_requests_json" | jq -r '.[0].number')
         echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
 
+    - name: Checkout action repo
+      if: ${{ env.SKIP_ACTION == 'false' }}
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      with:
+        repository: smartcontractkit/.github
+        ref: ${{ inputs.workflow-ref }}
+        path: "error_reporter_actions"
+          # prevents access to any other action and workflow files
+        sparse-checkout: |
+          actions/llm-action-error-reporter/log-analyze-prompt.md
+          actions/llm-action-error-reporter/update_pr_comment.sh
+          actions/llm-action-error-reporter/trim_logs.sh
+        sparse-checkout-cone-mode: false
+        fetch-depth: 1
+
     - name: Prepare logs
       if:
         ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion ==
@@ -91,62 +110,11 @@ runs:
         LINE_LIMIT: ${{ inputs.log-lines-limit }}
       run: |
         echo "Analyzing run ${{ github.event.workflow_run.id }}"
-        log_raw=$(gh run view ${{ github.event.workflow_run.id }} --log-failed)
-        log_output=$(echo "$log_raw" | awk -v limit=$LINE_LIMIT -F'\t' '
-        {
-          group = $1
-          sub(/^[^\t]+\t/, "")                  # Remove the first field and the following tab
+        export LOG_RAW=$(gh run view ${{ github.event.workflow_run.id }} --log-failed)
 
-          # Initialize the count for the group if not already done
-          if (!(group in count)) {
-            count[group] = 0
-          }
-
-          # Store the line in a circular buffer
-          lines[group, count[group] % limit] = $0  # Store only the remaining fields
-          count[group]++
-        }
-        END {
-          for (group in count) {
-            print "======= " group " ======="
-
-            # Determine the total number of lines to print
-            total = (count[group] > limit) ? limit : count[group]
-
-            # Calculate the starting index for the circular buffer
-            start = (count[group] > limit) ? (count[group] % limit) : 0
-
-            # Collect the lines in the correct order
-            ordered_lines = ""
-            for (i = 0; i < total; i++) {
-              idx = (start + i) % limit
-              if (lines[group, idx] != "") {
-                ordered_lines = ordered_lines lines[group, idx] "\n"
-              }
-            }
-
-            # Print the lines in order, ensuring the latest line is last
-            print ordered_lines
-
-            print ""  # Add an empty line between groups for readability
-          }
-        }
-        ')
-
-        echo "$log_output" > runlog.log
-
-    - name: Checkout action repo
-      if: ${{ env.SKIP_ACTION == 'false' }}
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-      with:
-        repository: smartcontractkit/.github
-        ref: ${{ inputs.workflow-ref }}
-        path: "error_reporter_actions"
-        # prevents access to any other action and workflow files
-        sparse-checkout: |
-          actions/llm-action-error-reporter/log-analyze-prompt.md
-        sparse-checkout-cone-mode: false
-        fetch-depth: 1
+        # trim logs and outputs to runlog.log
+        chmod +x error_reporter_actions/actions/llm-action-error-reporter/trim_logs.sh
+        ./error_reporter_actions/actions/llm-action-error-reporter/trim_logs.sh
 
     - name: Call ChatGPT
       if:
@@ -175,7 +143,7 @@ runs:
         )
 
         # throw error openai_result when is not 200
-        if [ "$openai_result" != '200' ]; then
+        if [[ "$openai_result" != '200' ]]; then
           echo "::error::OpenAI API call failed with status $openai_result: $(cat prompt_response.json)"
           exit 1
         fi
@@ -192,66 +160,27 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
         PR_NUMBER: ${{ steps.get_pr_number.outputs.pr_number }}
+        OPENAI_MODEL: ${{ inputs.openai-model }}
       run: |
-        workflow_name=$(gh run view ${{ github.event.workflow_run.id }} --json workflowName --jq '.workflowName')
-        head_sha=$(gh run view ${{ github.event.workflow_run.id }} --json headSha --jq '.headSha')
-        repo_url=$(gh repo view --json url --jq '.url')
-        wf_job_urls=$(gh run view ${{ github.event.workflow_run.id }} --json jobs --jq '.jobs | map("[\(.name)](\(.url))") | join(" , ")')
-        workflow_id=$(echo "$workflow_name" | tr -d ' ' | tr '[:upper:]' '[:lower:]')
+        export WORKFLOW_NAME=$(gh run view ${{ github.event.workflow_run.id }} --json workflowName --jq '.workflowName')
+        export HEAD_SHA=$(gh run view ${{ github.event.workflow_run.id }} --json headSha --jq '.headSha')
+        export REPO_URL=$(gh repo view --json url --jq '.url')
+        export WF_JOB_URLS=$(gh run view ${{ github.event.workflow_run.id }} --json jobs --jq '.jobs | map("[\(.name)](\(.url))") | join(" , ")')
+        export WORKFLOW_ID=$(echo "$WORKFLOW_NAME" | tr -d ' ' | tr '[:upper:]' '[:lower:]')
 
-        pr_message="
-        <$workflow_id>
+        export PR_MESSAGE="
+        <$WORKFLOW_ID>
 
-        ## AER Report: [$workflow_name]($repo_url/actions/runs/${{ github.event.workflow_run.id }})
+        ## AER Report: [$WORKFLOW_NAME]($REPO_URL/actions/runs/${{ github.event.workflow_run.id }})
 
-        [commit]($repo_url/commit/$head_sha) , $wf_job_urls
+        [aer_run:${GITHUB_RUN_ID}](https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}#${GITHUB_JOB}) , [commit]($REPO_URL/commit/$HEAD_SHA) , $WF_JOB_URLS
 
         $(cat chatgpt_output.txt)
-        </$workflow_id>"
+        </$WORKFLOW_ID>"
 
-        # Fetch the comments on the pull request and filter for comments by github.actor
-        author_comments=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments | map(select(.author.login == "github-actions" and (.body | contains("## AER Report:")))) | length')
-
-        # Get the latest comment body
-        latest_comment_body=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments
-        | map(select(.author.login == "github-actions" and (.body | contains("## AER Report:"))))
-        | sort_by(.createdAt) | reverse | .[0].body')
-
-        # Check if comment exists and contains <$workflow_id>...</$workflow_id>
-        if [[ "$author_comments" -gt 0 && "$latest_comment_body" == *"<$workflow_id>"* && "$latest_comment_body" == *"</$workflow_id>"* ]]; then
-          # Create a temporary sed script file
-          sed_script=$(mktemp)
-
-          # Escape backslashes and ampersands, but NOT forward slashes within HTML tags
-          # The goal is to only escape backslashes and ampersands
-          pr_message=$(printf '%s' "$pr_message" | sed -e 's/\\/\\\\/g' -e 's/&/\\&/g')
-          # Replace newlines with escaped newlines for sed
-          pr_message=$(echo "$pr_message" | sed 's/$/\\/' | sed '$s/\\$//')
-
-          # Write the sed replacement command to the script
-          echo "/<$workflow_id>/,/<\\/${workflow_id}>/c\\" > "$sed_script"
-          echo "${pr_message}" >> "$sed_script"
-
-          # Perform the replacement using sed with the temporary script
-          pr_message=$(echo "$latest_comment_body" | sed -f "$sed_script")
-
-          # Remove the temporary sed script
-          rm "$sed_script"
-
-          gh pr comment $PR_NUMBER -b "$pr_message" --edit-last
-        else
-          if [ "$author_comments" -gt 0 ]; then
-            pr_message="${latest_comment_body}
-            
-            ${pr_message}"
-
-            gh pr comment $PR_NUMBER -b "$pr_message" --edit-last
-          else
-            gh pr comment $PR_NUMBER -b "**Below is an analysis created by an LLM (${{ inputs.openai-model }}). Be mindful of hallucinations and verify accuracy.**
-            
-            $pr_message"
-          fi
-        fi
+        # post the error report to the PR
+        chmod +x error_reporter_actions/actions/llm-action-error-reporter/update_pr_comment.sh
+        ./error_reporter_actions/actions/llm-action-error-reporter/update_pr_comment.sh
 
     - name: Generate Success Report
       if:
@@ -261,66 +190,26 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
         PR_NUMBER: ${{ steps.get_pr_number.outputs.pr_number }}
-        skip_on_success: ${{ inputs.skip-on-success }}
+        SKIP_ON_SUCCESS: ${{ inputs.skip-on-success }}
       run: |
-        workflow_name=$(gh run view ${{ github.event.workflow_run.id }} --json workflowName --jq '.workflowName')
-        head_sha=$(gh run view ${{ github.event.workflow_run.id }} --json headSha --jq '.headSha')
-        repo_url=$(gh repo view --json url --jq '.url')
-        wf_job_urls=$(gh run view ${{ github.event.workflow_run.id }} --json jobs --jq '.jobs | map("[\(.name)](\(.url))") | join(" , ")')
-        workflow_id=$(echo "$workflow_name" | tr -d ' ' | tr '[:upper:]' '[:lower:]')
+        export WORKFLOW_NAME=$(gh run view ${{ github.event.workflow_run.id }} --json workflowName --jq '.workflowName')
+        export HEAD_SHA=$(gh run view ${{ github.event.workflow_run.id }} --json headSha --jq '.headSha')
+        export REPO_URL=$(gh repo view --json url --jq '.url')
+        export WF_JOB_URLS=$(gh run view ${{ github.event.workflow_run.id }} --json jobs --jq '.jobs | map("[\(.name)](\(.url))") | join(" , ")')
+        export WORKFLOW_ID=$(echo "$WORKFLOW_NAME" | tr -d ' ' | tr '[:upper:]' '[:lower:]')
 
-        pr_message="
-        <$workflow_id>
+        export PR_MESSAGE="
+        <$WORKFLOW_ID>
 
-        ## AER Report: [$workflow_name]($repo_url/actions/runs/${{ github.event.workflow_run.id }}) ran successfully :white_check_mark:
+        ## AER Report: [$WORKFLOW_NAME]($REPO_URL/actions/runs/${{ github.event.workflow_run.id }}) ran successfully :white_check_mark:
 
-        </$workflow_id>"
+        [aer_run:${GITHUB_RUN_ID}](https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}#${GITHUB_JOB}) , [commit]($REPO_URL/commit/$HEAD_SHA)
 
-        # Fetch the comments on the pull request and filter for comments by github.actor
-        author_comments=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments | map(select(.author.login == "github-actions" and (.body | contains("## AER Report:")))) | length')
+        </$WORKFLOW_ID>"
 
-        # Get the latest comment body
-        latest_comment_body=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments
-        | map(select(.author.login == "github-actions" and (.body | contains("## AER Report:"))))
-        | sort_by(.createdAt) | reverse | .[0].body')
-
-        # Check if comment exists and contains <$workflow_id>...</$workflow_id>
-        if [[ "$author_comments" -gt 0 && "$latest_comment_body" == *"<$workflow_id>"* && "$latest_comment_body" == *"</$workflow_id>"* ]]; then
-          # Create a temporary sed script file
-          sed_script=$(mktemp)
-
-          # Escape backslashes and ampersands, but NOT forward slashes within HTML tags
-          # The goal is to only escape backslashes and ampersands
-          pr_message=$(printf '%s' "$pr_message" | sed -e 's/\\/\\\\/g' -e 's/&/\\&/g')
-          # Replace newlines with escaped newlines for sed
-          pr_message=$(echo "$pr_message" | sed 's/$/\\/' | sed '$s/\\$//')
-
-          # Write the sed replacement command to the script
-          echo "/<$workflow_id>/,/<\\/${workflow_id}>/c\\" > "$sed_script"
-          echo "${pr_message}" >> "$sed_script"
-
-          # Perform the replacement using sed with the temporary script
-          pr_message=$(echo "$latest_comment_body" | sed -f "$sed_script")
-
-          # Remove the temporary sed script
-          rm "$sed_script"
-
-          gh pr comment $PR_NUMBER -b "$pr_message" --edit-last
-        else
-          # there is prior error but from a different workflow
-          if [ "$author_comments" -gt 0 ]; then
-            pr_message="${latest_comment_body}
-            
-            ${pr_message}"
-
-            gh pr comment $PR_NUMBER -b "$pr_message" --edit-last
-          else
-            # if no prior error(s) then don't clutter the PR with success message
-            if [ "$skip_on_success" == "false" ]; then
-              gh pr comment $PR_NUMBER -b "$pr_message"
-            fi
-          fi
-        fi
+        # post the error report to the PR
+        chmod +x error_reporter_actions/actions/llm-action-error-reporter/update_pr_comment.sh
+        ./error_reporter_actions/actions/llm-action-error-reporter/update_pr_comment.sh
 
     - name: Collect metrics
       if: always() && inputs.metrics-job-name != ''
