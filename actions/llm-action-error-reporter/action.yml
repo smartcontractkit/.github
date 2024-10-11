@@ -91,7 +91,8 @@ runs:
       with:
         repository: smartcontractkit/.github
         ref: ${{ inputs.workflow-ref }}
-        path: "error_reporter_actions"
+        path:
+          "error_reporter_actions"
           # prevents access to any other action and workflow files
         sparse-checkout: |
           actions/llm-action-error-reporter/log-analyze-prompt.md
@@ -110,10 +111,11 @@ runs:
         LINE_LIMIT: ${{ inputs.log-lines-limit }}
       run: |
         echo "Analyzing run ${{ github.event.workflow_run.id }}"
-        export LOG_RAW=$(gh run view ${{ github.event.workflow_run.id }} --log-failed)
+        LOG_RAW=$(gh run view ${{ github.event.workflow_run.id }} --log-failed)
+        echo "$LOG_RAW" > rawlog.log
 
         # trim logs and outputs to runlog.log
-        chmod +x error_reporter_actions/actions/llm-action-error-reporter/trim_logs.sh
+        chmod +x ./error_reporter_actions/actions/llm-action-error-reporter/trim_logs.sh
         ./error_reporter_actions/actions/llm-action-error-reporter/trim_logs.sh
 
     - name: Call ChatGPT
@@ -166,6 +168,7 @@ runs:
         export HEAD_SHA=$(gh run view ${{ github.event.workflow_run.id }} --json headSha --jq '.headSha')
         export REPO_URL=$(gh repo view --json url --jq '.url')
         export WF_JOB_URLS=$(gh run view ${{ github.event.workflow_run.id }} --json jobs --jq '.jobs | map("[\(.name)](\(.url))") | join(" , ")')
+        export AER_JOB_URLS=$(gh run view $GITHUB_RUN_ID --json jobs --jq '.jobs | map("[aer_workflow](\(.url))") | join(" , ")')
         export WORKFLOW_ID=$(echo "$WORKFLOW_NAME" | tr -d ' ' | tr '[:upper:]' '[:lower:]')
 
         export PR_MESSAGE="
@@ -173,19 +176,19 @@ runs:
 
         ## AER Report: [$WORKFLOW_NAME]($REPO_URL/actions/runs/${{ github.event.workflow_run.id }})
 
-        [aer_run:${GITHUB_RUN_ID}](https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}#${GITHUB_JOB}) , [commit]($REPO_URL/commit/$HEAD_SHA) , $WF_JOB_URLS
+        $AER_JOB_URLS , [commit]($REPO_URL/commit/$HEAD_SHA) , $WF_JOB_URLS
 
         $(cat chatgpt_output.txt)
         </$WORKFLOW_ID>"
 
         # post the error report to the PR
-        chmod +x error_reporter_actions/actions/llm-action-error-reporter/update_pr_comment.sh
+        chmod +x ./error_reporter_actions/actions/llm-action-error-reporter/update_pr_comment.sh
         ./error_reporter_actions/actions/llm-action-error-reporter/update_pr_comment.sh
 
     - name: Generate Success Report
       if:
         ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion !=
-        'failure'}}
+        'failure' }}
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
@@ -196,6 +199,7 @@ runs:
         export HEAD_SHA=$(gh run view ${{ github.event.workflow_run.id }} --json headSha --jq '.headSha')
         export REPO_URL=$(gh repo view --json url --jq '.url')
         export WF_JOB_URLS=$(gh run view ${{ github.event.workflow_run.id }} --json jobs --jq '.jobs | map("[\(.name)](\(.url))") | join(" , ")')
+        export AER_JOB_URLS=$(gh run view $GITHUB_RUN_ID --json jobs --jq '.jobs | map("[aer_workflow](\(.url))") | join(" , ")')
         export WORKFLOW_ID=$(echo "$WORKFLOW_NAME" | tr -d ' ' | tr '[:upper:]' '[:lower:]')
 
         export PR_MESSAGE="
@@ -203,12 +207,12 @@ runs:
 
         ## AER Report: [$WORKFLOW_NAME]($REPO_URL/actions/runs/${{ github.event.workflow_run.id }}) ran successfully :white_check_mark:
 
-        [aer_run:${GITHUB_RUN_ID}](https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}#${GITHUB_JOB}) , [commit]($REPO_URL/commit/$HEAD_SHA)
+        $AER_JOB_URLS , [commit]($REPO_URL/commit/$HEAD_SHA)
 
         </$WORKFLOW_ID>"
 
         # post the error report to the PR
-        chmod +x error_reporter_actions/actions/llm-action-error-reporter/update_pr_comment.sh
+        chmod +x ./error_reporter_actions/actions/llm-action-error-reporter/update_pr_comment.sh
         ./error_reporter_actions/actions/llm-action-error-reporter/update_pr_comment.sh
 
     - name: Collect metrics

@@ -5,7 +5,7 @@ set -euo pipefail
 # - LOG_RAW
 # - LINE_LIMIT
 
-log_output=$(echo "$LOG_RAW" | awk -v limit=$LINE_LIMIT -F'\t' '
+log_output=$(cat rawlog.log | awk -v limit=$LINE_LIMIT -F'\t' '
 {
     group = $1
     sub(/^[^\t]+\t/, "")                  # Remove the first field and the following tab
