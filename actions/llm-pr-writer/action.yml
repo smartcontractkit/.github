@@ -20,10 +20,10 @@ inputs:
     required: true
   openai-model:
     description:
-      "openai model. defaults to 'gpt-3.5-turbo-0125'. use
-      'gpt-4-turbo-2024-04-09' if your codebase is complex or large."
+      "openai model. defaults to 'gpt-4o-2024-08-06'. use
+      'gpt-4-turbo-2024-04-09' if 4o does not perform as expected."
     required: false
-    default: "gpt-3.5-turbo-0125"
+    default: "gpt-4o-2024-08-06"
   exclude-paths:
     description: "semi-colon(;) separated paths to exclude from diff"
     required: false

@@ -7,7 +7,15 @@ Given the patch output of `git diff` command in the triple backticks at the bott
 - Provide a bullet point summary of what has been changed.
 - Focus only on lines starting with + or - (indicating additions or deletions).
 - Organize the changes by file name without path.
-- For each file, group related changes as a subitem with <= 10 words under the same list item, indented with double spacebar characters and no line breaks between list items.
+- For each file, group related changes as a subitem with <= 10 words under the same list item, indented with double spacebar characters and no line breaks between list items:
+```md
+- **file1.txt**
+  - changes...
+- **file2.txt**
+  - changes...
+- **file3.txt**
+  - change
+```
 
 **Why**
 
