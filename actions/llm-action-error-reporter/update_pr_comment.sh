@@ -54,5 +54,6 @@ else
       gh pr comment $PR_NUMBER -b "**Below is an analysis created by an LLM ($OPENAI_MODEL). Be mindful of hallucinations and verify accuracy.**
       
       $PR_MESSAGE"
+    fi
   fi
 fi
