@@ -58,7 +58,7 @@ jobs:
       actions: read
     steps:
       - name: Analyze logs
-        uses: smartcontractkit/.github/actions/llm-action-error-reporter@[SHA] # points to a specific tag like llm-action-error-reporter@0.1.0
+        uses: smartcontractkit/.github/actions/llm-action-error-reporter@[SHA] # points to a specific tag like llm-action-error-reporter@0.3.0
         with:
           # GitHub token used to fetch the PR diff and create a new PR comment.
           # ${{ secrets.GITHUB_TOKEN }} will be sufficient.
@@ -66,9 +66,14 @@ jobs:
           # "The conclusion status of the parent workflow: either 'success' or 'failure'"
           # you would usually supply '${{ github.event.workflow_run.conclusion }}' here
           parent_workflow_conclusion: ''
-          # replaces the last comment made by github-action bot if true, creates another comment otherwise
-          # **WARNING**: may overwrite bot comments if you have multiple workflows that comments on the PR
-          edit-comment: [true/false]
+          # skips reporting success on PR if the parent workflow hasn't failed to reduce noise
+          # does not prevent editing of existing failure reports
+          # default is false
+          skip-on-success: [true/false]
+          # The maximum number of log lines to process per job
+          # defined by gh action log format: [job-name] [step-name] [log-line]
+          # default is 500
+          log-lines-limit: ''
           # OpenAI model to use for PR description generation. Defaults to 'gpt-3.5-turbo-0125'.
           # If your repository contains complex logic or expects large diffs, use 'gpt-4-turbo-2024-04-09' or newer.
           # Learn more at: https://platform.openai.com/docs/models/overview
@@ -80,15 +85,6 @@ jobs:
           # ref to smartcontractkit/.github repository to load the prompt from. Defaults to main.
           # Usually used during development.
           workflow-ref: ''
-        with:
-          # state of the workflow that evoked this workflow
-          parent-workflow-conclusion: ${{ github.event.workflow_run.conclusion }}
-          # replaces the last comment made by github-action bot if true, creates another comment otherwise
-          # **WARNING**: may overwrite bot comments if you have multiple workflows that comments on the PR
-          edit-comment: true
-          gh-token: ${{ github.token }}
-          openai-model: 'gpt-4-turbo-2024-04-09'
-          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
 ```
 
 # Configuration Example
@@ -104,15 +100,21 @@ jobs:
       repository-projects: read
       actions: read
     steps:
-      - name: Analyze logs    with:
-        # state of the workflow that evoked this workflow
-        parent-workflow-conclusion: ${{ github.event.workflow_run.conclusion }}
-        # replaces the last comment made by github-action bot if true, creates another comment otherwise
-        # **WARNING**: may overwrite bot comments if you have multiple workflows that comments on the PR
-        edit-comment: true
-        gh-token: ${{ github.token }}
-        openai-model: 'gpt-4-turbo-2024-04-09'
-        openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+      - name: Analyze logs
+        with:
+          # state of the workflow that evoked this workflow
+          parent-workflow-conclusion: ${{ github.event.workflow_run.conclusion }}
+          # skips reporting success on PR if the parent workflow hasn't failed to reduce noise
+          # does not prevent editing of existing failure reports
+          # default is false
+          skip-on-success: true
+          # The maximum number of log lines to process per job
+          # defined by gh action log format: [job-name] [step-name] [log-line]
+          # default is 500
+          log-lines-limit: 300
+          gh-token: ${{ github.token }}
+          openai-model: 'gpt-4o-2024-05-13'
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
 ```
 
 # CLI tool
