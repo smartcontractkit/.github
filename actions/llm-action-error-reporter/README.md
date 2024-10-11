@@ -62,10 +62,10 @@ jobs:
         with:
           # GitHub token used to fetch the PR diff and create a new PR comment.
           # ${{ secrets.GITHUB_TOKEN }} will be sufficient.
-          gh-token: ''
+          gh-token: ""
           # "The conclusion status of the parent workflow: either 'success' or 'failure'"
           # you would usually supply '${{ github.event.workflow_run.conclusion }}' here
-          parent_workflow_conclusion: ''
+          parent_workflow_conclusion: ""
           # skips reporting success on PR if the parent workflow hasn't failed to reduce noise
           # does not prevent editing of existing failure reports
           # default is false
@@ -73,18 +73,18 @@ jobs:
           # The maximum number of log lines to process per job
           # defined by gh action log format: [job-name] [step-name] [log-line]
           # default is 500
-          log-lines-limit: ''
+          log-lines-limit: ""
           # OpenAI model to use for PR description generation. Defaults to 'gpt-3.5-turbo-0125'.
           # If your repository contains complex logic or expects large diffs, use 'gpt-4-turbo-2024-04-09' or newer.
           # Learn more at: https://platform.openai.com/docs/models/overview
-          openai-model: ''
+          openai-model: ""
           # OpenAI API Key, used to generate PR descriptions using the GPT model.
           # Needs to have access to the chat-completion endpoints
           # Example: ${{ secrets.OPENAI_API_KEY }}
-          openai-api-key: ''
+          openai-api-key: ""
           # ref to smartcontractkit/.github repository to load the prompt from. Defaults to main.
           # Usually used during development.
-          workflow-ref: ''
+          workflow-ref: ""
 ```
 
 # Configuration Example
@@ -103,7 +103,8 @@ jobs:
       - name: Analyze logs
         with:
           # state of the workflow that evoked this workflow
-          parent-workflow-conclusion: ${{ github.event.workflow_run.conclusion }}
+          parent-workflow-conclusion:
+            ${{ github.event.workflow_run.conclusion }}
           # skips reporting success on PR if the parent workflow hasn't failed to reduce noise
           # does not prevent editing of existing failure reports
           # default is false
@@ -113,7 +114,7 @@ jobs:
           # default is 500
           log-lines-limit: 300
           gh-token: ${{ github.token }}
-          openai-model: 'gpt-4o-2024-05-13'
+          openai-model: "gpt-4o-2024-05-13"
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
 ```
 
