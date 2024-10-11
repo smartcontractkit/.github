@@ -72,9 +72,8 @@ runs:
       with:
         repository: smartcontractkit/.github
         ref: ${{ inputs.workflow-ref }}
-        path:
-          "error_reporter_actions"
-          # prevents access to any other action and workflow files
+        path: "error_reporter_actions"
+        # prevents access to any other action and workflow files
         sparse-checkout: |
           actions/llm-action-error-reporter/log-analyze-prompt.md
           actions/llm-action-error-reporter/update_pr_comment.sh
@@ -104,6 +103,8 @@ runs:
         'failure' }}
       shell: bash
       run: |
+        # processes the contents of runlog.log  and prompt: converts to raw string, removes leading and trailing quotes, and cleans up known problematic patterns.
+        # this helps prepare both prompt and log content for the OpenAI API call
         log_output=$(cat runlog.log | jq -Rs . | sed 's/^"//;s/"$//' | sed -e 's/\\ No newline at end of file//g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
         openai_prompt=$(cat error_reporter_actions/actions/llm-action-error-reporter/log-analyze-prompt.md | sed 's/"/\\"/g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
         openai_model=${{ inputs.openai-model }}
