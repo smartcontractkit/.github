@@ -96,7 +96,6 @@ runs:
         echo "$LOG_RAW" > rawlog.log
 
         # trim logs and outputs to runlog.log
-        chmod +x ./error_reporter_actions/actions/llm-action-error-reporter/trim_logs.sh
         ./error_reporter_actions/actions/llm-action-error-reporter/trim_logs.sh
 
     - name: Call ChatGPT
@@ -163,7 +162,6 @@ runs:
         </$WORKFLOW_ID>"
 
         # post the error report to the PR
-        chmod +x ./error_reporter_actions/actions/llm-action-error-reporter/update_pr_comment.sh
         ./error_reporter_actions/actions/llm-action-error-reporter/update_pr_comment.sh
 
     - name: Generate Success Report
@@ -193,5 +191,4 @@ runs:
         </$WORKFLOW_ID>"
 
         # post the error report to the PR
-        chmod +x ./error_reporter_actions/actions/llm-action-error-reporter/update_pr_comment.sh
         ./error_reporter_actions/actions/llm-action-error-reporter/update_pr_comment.sh
