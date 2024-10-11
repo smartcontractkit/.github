@@ -174,13 +174,13 @@ runs:
         echo "Working directory: $(pwd)"
 
         # Get the namespace name from GitHub Actions output
-        NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
-        echo "Using $NAMESPACE Kubernetes namespace"
+        export DEVSPACE_NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
+        echo "Using $DEVSPACE_NAMESPACE Kubernetes namespace"
 
         # Kyverno needs some time to inject the RoleBinding
         sleep 3
 
-        nix develop -c ./cribbit.sh "$NAMESPACE"
+        nix develop -c ./cribbit.sh "$DEVSPACE_NAMESPACE"
 
         nix develop -c devspace run ${{ inputs.command }} ${{ inputs.command-args }}
     - name: Render notification template
