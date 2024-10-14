@@ -66,12 +66,14 @@ runs:
       with:
         workflow: ${{ inputs.test-report-workflow }}
         name: ${{ inputs.test-report-artifact }}
+        workflow_conclusion: "" # ignore workflow status to let the latest artifact be downloaded
 
     - name: Download test-report artifact from current workflow
       if: inputs.test-report-workflow == ''
       uses: dawidd6/action-download-artifact@bf251b5aa9c2f7eeb574a96ee720e24f801b7c11 # v6
       with:
         name: ${{ inputs.test-report-artifact }}
+        workflow_conclusion: ""
 
     - name: Download lint-report artifact using workflow file name
       if: inputs.lint-report-workflow != ''
@@ -79,12 +81,14 @@ runs:
       with:
         workflow: ${{ inputs.lint-report-workflow }}
         name: ${{ inputs.lint-report-artifact }}
+        workflow_conclusion: ""
 
     - name: Download lint-report artifact from current workflow
       if: inputs.lint-report-workflow == ''
       uses: dawidd6/action-download-artifact@bf251b5aa9c2f7eeb574a96ee720e24f801b7c11 # v6
       with:
         name: ${{ inputs.lint-report-artifact }}
+        workflow_conclusion: ""
 
     - name: SonarQube scan without lint
       if: inputs.include-lint == 'false'
