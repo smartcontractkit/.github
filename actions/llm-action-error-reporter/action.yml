@@ -76,8 +76,6 @@ runs:
         # prevents access to any other action and workflow files
         sparse-checkout: |
           actions/llm-action-error-reporter/log-analyze-prompt.md
-          actions/llm-action-error-reporter/update_pr_comment.sh
-          actions/llm-action-error-reporter/trim_logs.sh
         sparse-checkout-cone-mode: false
         fetch-depth: 1
 
@@ -95,7 +93,7 @@ runs:
         echo "$LOG_RAW" > rawlog.log
 
         # trim logs and outputs to runlog.log
-        ./error_reporter_actions/actions/llm-action-error-reporter/trim_logs.sh
+        ${{ github.action_path }}/trim_logs.sh
 
     - name: Call ChatGPT
       if:
@@ -163,7 +161,7 @@ runs:
         </$WORKFLOW_ID>"
 
         # post the error report to the PR
-        ./error_reporter_actions/actions/llm-action-error-reporter/update_pr_comment.sh
+        ${{ github.action_path }}/update_pr_comment.sh
 
     - name: Generate Success Report
       if:
@@ -192,4 +190,4 @@ runs:
         </$WORKFLOW_ID>"
 
         # post the error report to the PR
-        ./error_reporter_actions/actions/llm-action-error-reporter/update_pr_comment.sh
+        ${{ github.action_path }}/update_pr_comment.sh
