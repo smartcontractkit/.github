@@ -47,7 +47,7 @@ jobs:
       repository-projects: read
     steps:
       - name: Generate PR Description
-        uses: smartcontractkit/.github/actions/llm-pr-writer@[SHA] # points to a specific tag (ie. llm-pr-writer@0.3.0)
+        uses: smartcontractkit/.github/actions/llm-pr-writer@[SHA] # points to a specific tag (ie. llm-pr-writer@0.5.0)
         with:
           # GitHub token used to fetch the PR diff and create a new PR comment.
           # ${{ secrets.GITHUB_TOKEN }} will be sufficient.
@@ -56,8 +56,8 @@ jobs:
           # Needs to have access to the chat-completion endpoints
           # Example: ${{ secrets.OPENAI_API_KEY }}
           openai-api-key: ""
-          # OpenAI model to use for PR description generation. Defaults to 'gpt-3.5-turbo-0125'.
-          # If your repository contains complex logic or expects large diffs, use 'gpt-4-turbo-2024-04-09' or newer.
+          # OpenAI model to use for PR description generation. Defaults to 'gpt-4o-2024-08-06'.
+          # 'gpt-4-turbo-2024-04-09' can work better in some yaml heavy repositories.
           # Learn more at: https://platform.openai.com/docs/models/overview
           openai-model: ""
           # File paths or patterns to exclude from the diff analysis. Use semicolons (;) to separate multiple paths.

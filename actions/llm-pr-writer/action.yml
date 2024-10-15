@@ -20,10 +20,10 @@ inputs:
     required: true
   openai-model:
     description:
-      "openai model. defaults to 'gpt-3.5-turbo-0125'. use
-      'gpt-4-turbo-2024-04-09' if your codebase is complex or large."
+      "openai model. defaults to 'gpt-4o-2024-08-06'. use
+      'gpt-4-turbo-2024-04-09' if 4o does not perform as expected."
     required: false
-    default: "gpt-3.5-turbo-0125"
+    default: "gpt-4o-2024-08-06"
   exclude-paths:
     description: "semi-colon(;) separated paths to exclude from diff"
     required: false
@@ -37,25 +37,6 @@ inputs:
     description: "ref of the workflow to checkout"
     required: false
     default: "main"
-  # grafana inputs (optional)
-  metrics-job-name:
-    description: "grafana metrics job name"
-    required: false
-  metrics-id:
-    description:
-      "grafana metrics id, used for continuity of metrics during job name
-      changes - required if metrics-job-name is passed"
-    required: false
-  gc-host:
-    description: "grafana hostname - required if metrics-job-name is passed"
-    required: false
-  gc-basic-auth:
-    description: "grafana basic auth - required if metrics-job-name is passed"
-    required: false
-  gc-org-id:
-    description:
-      "grafana org/tenant id - required if metrics-job-name is passed"
-    required: false
 
 runs:
   using: composite
@@ -137,6 +118,8 @@ runs:
       if: ${{ env.SKIP_ACTION == 'false' }}
       shell: bash
       run: |
+        # processes the contents of diff_output.txt and prompt: converts to raw string, removes leading and trailing quotes, and cleans up known problematic patterns.
+        # this helps prepare both prompt and log content for the OpenAI API call
         diff_output=$(cat diff_output.txt | sed -e 's/\\ No newline at end of file//g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
         openai_prompt=$(cat pr_writer_actions/actions/llm-pr-writer/pr-writer-prompt.md | sed 's/"/\\"/g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
         openai_model=${{ inputs.openai-model }}
@@ -202,15 +185,3 @@ runs:
         ---
         $pr_message
         "
-
-    - name: Collect metrics
-      if: always()
-      id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-      with:
-        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
-        basic-auth: ${{ inputs.gc-basic-auth }}
-        hostname: ${{ inputs.gc-host }}
-        org-id: ${{ inputs.gc-org-id}}
-        this-job-name: ${{ inputs.metrics-job-name }}
-      continue-on-error: true

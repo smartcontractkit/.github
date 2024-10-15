@@ -573,19 +573,6 @@ jobs:
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
     steps:
-      - name: Collect Metrics
-        if: always()
-        id: collect-gha-metrics
-        uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-        with:
-          id: e2e_tests_${{ env.TEST_ID }}
-          org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
-          basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-          hostname: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-          this-job-name: ${{ inputs.workflow_name }} / ${{ matrix.tests.id }}
-          test-results-file: '{"testType":"go","filePath":"/tmp/gotest.log"}'
-        continue-on-error: true
-
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
       - name: Install jq
@@ -881,18 +868,6 @@ jobs:
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
     steps:
-      - name: Collect Metrics
-        if: always()
-        id: collect-gha-metrics
-        uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-        with:
-          id: e2e_tests_${{ env.TEST_ID }}
-          org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
-          basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-          hostname: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-          this-job-name: ${{ inputs.workflow_name }} / ${{ matrix.tests.id }}
-        continue-on-error: true
-
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
       - name: Install jq
