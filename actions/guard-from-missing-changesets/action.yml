@@ -16,7 +16,7 @@ runs:
   steps:
     - name: Checkout full repo
       if: inputs.checkout == 'true'
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      uses: actions/checkout@v4.2.1
     - name: Install changesets
       shell: bash
       run: ${{ github.action_path }}/scripts/install-changesets.sh

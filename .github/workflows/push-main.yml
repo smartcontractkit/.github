@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
 
       - name: ci-lint
         uses: ./actions/ci-lint-ts
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
 
       - name: ci-prettier
         uses: ./actions/ci-prettier
@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
 
       - name: ci-test
         uses: ./actions/ci-test-ts
@@ -56,7 +56,7 @@ jobs:
       actions: read
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
         with:
           fetch-depth: 0
 
@@ -74,7 +74,7 @@ jobs:
       actions: read
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
         with:
           fetch-depth: 0
 
