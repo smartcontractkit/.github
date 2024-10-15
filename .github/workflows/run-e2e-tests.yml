@@ -828,7 +828,7 @@ jobs:
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
       - name: Build Test Runner Image
         id: build-test-runner-image
-        uses: smartcontractkit/.github/actions/ctf-build-test-image@e878fd7520e979d131b5539be0f44839e61a0c0d # ctf-build-test-image@ DEBUG:
+        uses: smartcontractkit/.github/actions/ctf-build-test-image@main
         if: ${{ inputs.with_existing_remote_runner_version == '' }}
         with:
           QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
