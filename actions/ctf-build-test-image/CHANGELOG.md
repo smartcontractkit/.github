@@ -1,5 +1,13 @@
 # ctf-build-test-image
 
+## 0.2.0
+
+### Major Changes
+
+- The sha that determines if a new image should be built now includes
+  `inputs.suites`, as this changes what binaries are actually included in the
+  test image.
+
 ## 0.1.0
 
 ### Minor Changes
