@@ -8,31 +8,6 @@ inputs:
   namespace:
     description: "The CRIB namespace that should be destroyed."
     required: true
-  # Grafana inputs (optional)
-  metrics-job-name:
-    description:
-      "The name of the Grafana metrics job. Required if other Grafana metrics
-      inputs are provided."
-    required: false
-  metrics-id:
-    description:
-      "The Grafana metrics ID used for continuity of metrics during job name
-      changes. Required if `metrics-job-name` is provided."
-    required: false
-  gc-host:
-    description:
-      "The Grafana hostname. Required if `metrics-job-name` is provided."
-    required: false
-  gc-basic-auth:
-    description:
-      "The basic authentication credentials for Grafana. Required if
-      `metrics-job-name` is provided."
-    required: false
-  gc-org-id:
-    description:
-      "The Grafana organization or tenant ID. Required if `metrics-job-name` is
-      provided."
-    required: false
 
 runs:
   using: composite
@@ -52,15 +27,3 @@ runs:
         else
           echo "Namespace $NAMESPACE does not exist. Skipping deletion."
         fi
-
-    - name: Collect metrics
-      if: always() && inputs.metrics-job-name != ''
-      id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-      with:
-        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
-        basic-auth: ${{ inputs.gc-basic-auth }}
-        hostname: ${{ inputs.gc-host }}
-        org-id: ${{ inputs.gc-org-id}}
-        this-job-name: ${{ inputs.metrics-job-name }}
-      continue-on-error: true

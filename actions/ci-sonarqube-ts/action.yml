@@ -19,9 +19,8 @@ inputs:
     description: "sonarqube host url"
     required: false
   test-report-workflow:
-    description:
-      "workflow file name from where test report artifact was uploaded"
-    required: false
+    description: "workflow file name which uploaded test report artifacts"
+    required: true
     default: ${{ github.run_id }}
   test-report-artifact:
     description: "Name of artifact containing junit test and coverage results"
@@ -36,9 +35,8 @@ inputs:
     requried: false
     default: "lcov.info"
   lint-report-workflow:
-    description:
-      "workflow file name from where lint report artifact was uploaded"
-    required: false
+    description: "workflow file name which uploaded lint report artifacts"
+    required: true
     default: ${{ github.run_id }}
   lint-report-artifact:
     description: "Name of artifact containing eslint report"
@@ -52,32 +50,13 @@ inputs:
     description: "enable linting"
     required: false
     default: "false"
-  # grafana inputs (optional)
-  metrics-job-name:
-    description: "grafana metrics job name"
-    required: false
-  metrics-id:
-    description:
-      "grafana metrics id, used for continuity of metrics during job name
-      changes - required if metrics-job-name is passed"
-    required: false
-  gc-host:
-    description: "grafana hostname - required if metrics-job-name is passed"
-    required: false
-  gc-basic-auth:
-    description: "grafana basic auth - required if metrics-job-name is passed"
-    required: false
-  gc-org-id:
-    description:
-      "grafana org/tenant id - required if metrics-job-name is passed"
-    required: false
 
 runs:
   using: composite
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      uses: actions/checkout@v4.2.1
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
@@ -87,12 +66,16 @@ runs:
       with:
         workflow: ${{ inputs.test-report-workflow }}
         name: ${{ inputs.test-report-artifact }}
+        workflow_conclusion: "" # ignore workflow status to let the latest artifact be downloaded
+        if_no_artifact_found: warn
 
     - name: Download test-report artifact from current workflow
       if: inputs.test-report-workflow == ''
       uses: dawidd6/action-download-artifact@bf251b5aa9c2f7eeb574a96ee720e24f801b7c11 # v6
       with:
         name: ${{ inputs.test-report-artifact }}
+        workflow_conclusion: ""
+        if_no_artifact_found: warn
 
     - name: Download lint-report artifact using workflow file name
       if: inputs.lint-report-workflow != ''
@@ -100,22 +83,26 @@ runs:
       with:
         workflow: ${{ inputs.lint-report-workflow }}
         name: ${{ inputs.lint-report-artifact }}
+        workflow_conclusion: ""
+        if_no_artifact_found: warn
 
     - name: Download lint-report artifact from current workflow
       if: inputs.lint-report-workflow == ''
       uses: dawidd6/action-download-artifact@bf251b5aa9c2f7eeb574a96ee720e24f801b7c11 # v6
       with:
         name: ${{ inputs.lint-report-artifact }}
+        workflow_conclusion: ""
+        if_no_artifact_found: warn
 
     - name: SonarQube scan without lint
       if: inputs.include-lint == 'false'
       uses: sonarsource/sonarqube-scan-action@aecaf43ae57e412bd97d70ef9ce6076e672fe0a9 # v2.3.0
       with:
         args: >
-          -Dsonar.junit.reportPaths=${{ 
-            inputs.junit-xml-report-path 
+          -Dsonar.junit.reportPaths=${{
+            inputs.junit-xml-report-path
           }} -Dsonar.typescript.lcov.reportPaths=${{
-            inputs.typescript-lcov-report-path 
+            inputs.typescript-lcov-report-path
           }}
       env:
         SONAR_TOKEN: ${{ inputs.sonar-token }}
@@ -126,25 +113,13 @@ runs:
       uses: sonarsource/sonarqube-scan-action@aecaf43ae57e412bd97d70ef9ce6076e672fe0a9 # v2.3.0
       with:
         args: >
-          -Dsonar.junit.reportPaths=${{ 
-            inputs.junit-xml-report-path 
+          -Dsonar.junit.reportPaths=${{
+            inputs.junit-xml-report-path
           }} -Dsonar.typescript.lcov.reportPaths=${{
-            inputs.typescript-lcov-report-path 
+            inputs.typescript-lcov-report-path
           }} -Dsonar.eslint.reportPaths=${{
-            inputs.eslint-json-report-path 
+            inputs.eslint-json-report-path
           }}
       env:
         SONAR_TOKEN: ${{ inputs.sonar-token }}
         SONAR_HOST_URL: ${{ inputs.sonar-host-url }}
-
-    - name: Collect metrics
-      if: always() && inputs.metrics-job-name != ''
-      id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-      with:
-        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
-        basic-auth: ${{ inputs.gc-basic-auth }}
-        hostname: ${{ inputs.gc-host }}
-        org-id: ${{ inputs.gc-org-id}}
-        this-job-name: ${{ inputs.metrics-job-name }}
-      continue-on-error: true

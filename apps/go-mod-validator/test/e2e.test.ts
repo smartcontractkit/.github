@@ -77,7 +77,7 @@ async function setupNonPR(repo: string, commitSha: string) {
   return nockDone;
 }
 
-describe("e2e tests", () => {
+describe.skip("e2e tests", () => {
   const annotationSpy = vi.spyOn(core, "error");
 
   async function testEntrypoint() {

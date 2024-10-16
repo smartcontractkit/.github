@@ -284,13 +284,13 @@ jobs:
               image_versions="${{ github.sha }}"
             else
               image_versions+=",${{ github.sha }}"
-            fi            
+            fi
           fi
 
           # Convert the comma-separated string to a JSON array
           image_versions=$(echo "$image_versions" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
 
-          echo "Required Chainlink image versions: $image_versions"   
+          echo "Required Chainlink image versions: $image_versions"
           echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
 
       - name: Create matrix for required Chainlink plugin versions
@@ -298,7 +298,7 @@ jobs:
         shell: bash
         run: |
           image_versions=$(echo "${{ inputs.require_chainlink_plugin_versions_in_qa_ecr }}" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
-          echo "Required Chainlink plugin image versions: $image_versions"   
+          echo "Required Chainlink plugin image versions: $image_versions"
           echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
 
   check-test-configurations:
@@ -308,7 +308,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        uses: actions/checkout@v4.2.1
       - name: Install citool
         shell: bash
         run: go install
@@ -352,9 +352,9 @@ jobs:
       workflow_id: ${{ steps.gen_id.outputs.workflow_id }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        uses: actions/checkout@v4.2.1
       - name: Setup Go
-        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        uses: actions/setup-go@v5.0.2
         with:
           go-version: "1.22.6"
           check-latest: true
@@ -456,7 +456,7 @@ jobs:
             echo "::error::Error: Some of the tests require custom test secrets to run. Please see workflow logs and set 'test_secrets_override_key' to run these tests."
             exit 1
           else
-            echo "No tests require secrets. Proceeding without additional secret setup."          
+            echo "No tests require secrets. Proceeding without additional secret setup."
           fi
 
       - name: Generate random workflow id
@@ -489,7 +489,7 @@ jobs:
           }}
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        uses: actions/checkout@v4.2.1
 
       - name: Get Chainlink image
         uses: ./.github/actions/build-chainlink-image
@@ -526,7 +526,7 @@ jobs:
           }}
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        uses: actions/checkout@v4.2.1
 
       - name: Get Chainlink plugins image
         uses: ./.github/actions/build-chainlink-image
@@ -573,21 +573,8 @@ jobs:
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
     steps:
-      - name: Collect Metrics
-        if: always()
-        id: collect-gha-metrics
-        uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-        with:
-          id: e2e_tests_${{ env.TEST_ID }}
-          org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
-          basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-          hostname: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-          this-job-name: ${{ inputs.workflow_name }} / ${{ matrix.tests.id }}
-          test-results-file: '{"testType":"go","filePath":"/tmp/gotest.log"}'
-        continue-on-error: true
-
       - name: Checkout repository
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        uses: actions/checkout@v4.2.1
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -744,13 +731,13 @@ jobs:
         if:
           inputs.enable_otel_traces_for_ocr2_plugins &&
           matrix.tests.test_env_vars.ENABLE_OTEL_TRACES == 'true'
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        uses: actions/upload-artifact@v4.4.3
         with:
           name: trace-data
           path: ./integration-tests/smoke/traces/trace-data.json
 
       - name: Upload test log as artifact
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        uses: actions/upload-artifact@v4.4.3
         if: inputs.test_log_upload_on_failure && failure()
         with:
           name: test_log_${{ env.TEST_ID }}
@@ -760,7 +747,7 @@ jobs:
 
       - name: Upload cl node coverage data as artifact
         if: inputs.upload_cl_node_coverage_artifact
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        uses: actions/upload-artifact@v4.4.3
         timeout-minutes: 2
         continue-on-error: true
         with:
@@ -778,7 +765,7 @@ jobs:
           echo "{\"id\": \"$id\", \"result\": \"$result\"}" > test_result.json
 
       - name: Upload test result as artifact
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        uses: actions/upload-artifact@v4.4.3
         with:
           name:
             test_result_${{ needs.load-test-configurations.outputs.workflow_id
@@ -788,7 +775,7 @@ jobs:
 
       - name: Upload custom test artifacts
         if: failure() && matrix.tests.test_artifacts_on_failure != ''
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        uses: actions/upload-artifact@v4.4.3
         with:
           name:
             custom_test_artifacts_${{ env.TEST_ID }}_${{
@@ -825,7 +812,7 @@ jobs:
         }}.amazonaws.com/chainlink-tests
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        uses: actions/checkout@v4.2.1
       - name: Build Test Runner Image
         id: build-test-runner-image
         uses: smartcontractkit/.github/actions/ctf-build-test-image@main # main branch
@@ -881,20 +868,8 @@ jobs:
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
     steps:
-      - name: Collect Metrics
-        if: always()
-        id: collect-gha-metrics
-        uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-        with:
-          id: e2e_tests_${{ env.TEST_ID }}
-          org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
-          basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-          hostname: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-          this-job-name: ${{ inputs.workflow_name }} / ${{ matrix.tests.id }}
-        continue-on-error: true
-
       - name: Checkout repository
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        uses: actions/checkout@v4.2.1
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -999,7 +974,7 @@ jobs:
           QA_KUBECONFIG: ${{ secrets.QA_KUBECONFIG }}
 
       - name: Upload test log as artifact
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        uses: actions/upload-artifact@v4.4.3
         if: inputs.test_log_upload_on_failure && failure()
         with:
           name: test_log_${{ env.TEST_ID }}
@@ -1009,7 +984,7 @@ jobs:
 
       - name: Upload custom test artifacts
         if: failure() && matrix.tests.test_artifacts_on_failure != ''
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        uses: actions/upload-artifact@v4.4.3
         with:
           name:
             custom_test_artifacts_${{ env.TEST_ID }}_${{
@@ -1032,7 +1007,7 @@ jobs:
       test_results: ${{ steps.set_test_results.outputs.results }}
     steps:
       - name: Download all test result artifacts
-        uses: actions/download-artifact@9c19ed7fe5d278cd354c7dfd5d3b88589c7e2395 # v4.1.6
+        uses: actions/download-artifact@v4.1.8
         with:
           path: test_results
           pattern:
