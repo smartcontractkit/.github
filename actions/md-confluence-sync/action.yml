@@ -16,7 +16,7 @@ inputs:
       space"
     required: true
   token:
-    description: "Service account token for the user above"
+    description: "Dummy change to test changeset workflow"
     required: true
   space:
     description: "Space to which articles will be synced to"
