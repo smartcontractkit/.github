@@ -1,5 +1,14 @@
 # ctf-build-test-image
 
+## 0.2.0
+
+### Minor Changes
+
+- [#662](https://github.com/smartcontractkit/.github/pull/662)
+  [`f1f2dac`](https://github.com/smartcontractkit/.github/commit/f1f2dac0a20f0e02408eb7f528c768fe95c39229)
+  Thanks [@kalverra](https://github.com/kalverra)! - Adds `suites` input to
+  image sha
+
 ## 0.1.1
 
 ### Patch Changes
