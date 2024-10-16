@@ -16,8 +16,10 @@ sonarqube:
       with:
         # sonarqube inputs
         include-lint: "true"
-        test-report-workflow: "ci-core.yaml"
-        lint-report-workflow: "golingci-lint.yaml"
+        # if workflow names are not used, artifacts will be downloaded
+        # from a workflow this action is added to
+        test-report-workflow: "ci-core.yaml" # optional
+        lint-report-workflow: "golingci-lint.yaml" # optional
         sonar-token: ${{ secrets.SONAR_TOKEN }}
         sonar-host-url: ${{ secrets.SONAR_HOST_URL }}
 ```
