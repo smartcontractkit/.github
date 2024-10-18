@@ -359,7 +359,7 @@ jobs:
             chainlink_image_tag=${{ inputs.chainlink_version }}
           else
             echo "determining chainlink image tag based on workflow event"
-            chainlink_image_tag=${{ steps.get-chainlink-image-tag.outputs.base-image-tag }}-${{ inputs.test_chainlink_image_type }}
+            chainlink_image_tag=${{ steps.get-chainlink-image-tag.outputs.image-tag }}-${{ inputs.test_chainlink_image_type }}
           fi
 
           echo "chainlink_image_tag=$chainlink_image_tag"
