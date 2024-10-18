@@ -24,13 +24,9 @@ inputs:
   test-report-artifact:
     description: "Name of artifact containing junit test and coverage results"
     required: false
-    default: "go-test-results"
-  test-result-report-path:
-    description: "paths to Go test results in txt format"
-    requried: false
-    default: "output.txt"
-  test-coverage-report-path:
-    description: "paths to Go test coverage report in txt format"
+    default: go-test-results
+  test-report-name:
+    description: "Go coverage report name with extension"
     requried: false
     default: "coverage.txt"
   lint-report-workflow:
@@ -39,9 +35,9 @@ inputs:
   lint-report-artifact:
     description: "Name of artifact containing golangci-lint report"
     requried: false
-    default: "golangci-lint-report"
-  lint-report-path:
-    description: "paths to golangci-lint report in xml format"
+    default: golangci-lint-report
+  lint-report-name:
+    description: "Golangci-lint report name with extension"
     requried: false
     default: "golangci-lint-report.xml"
   include-lint:
@@ -58,8 +54,13 @@ runs:
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
-    - name: Download all reports (no report-workflow name is specified)
-      if: inputs.test-report-workflow == '' || inputs.lint-report-workflow == ''
+    - name: Download all reports (no test-report-workflow)
+      id: all
+      if: inputs.test-report-workflow == ''
+      uses: actions/download-artifact@v4.1.8 # v4.1.8
+
+    - name: Download all reports (no lint-report-workflow)
+      if: steps.all.outcome != 'success' && inputs.lint-report-workflow == ''
       uses: actions/download-artifact@v4.1.8 # v4.1.8
 
     - name: Download test-report artifact using workflow file name
@@ -68,6 +69,7 @@ runs:
       with:
         workflow: ${{ inputs.test-report-workflow }}
         name: ${{ inputs.test-report-artifact }}
+        search_artifacts: true
         workflow_conclusion: "" # ignore workflow status to let the latest artifact be downloaded
         if_no_artifact_found: warn
 
@@ -77,35 +79,24 @@ runs:
       with:
         workflow: ${{ inputs.lint-report-workflow }}
         name: ${{ inputs.lint-report-artifact }}
+        search_artifacts: true
         workflow_conclusion: ""
         if_no_artifact_found: warn
 
-    - name: SonarQube scan without lint
-      if: inputs.include-lint == 'false'
-      uses: sonarsource/sonarqube-scan-action@aecaf43ae57e412bd97d70ef9ce6076e672fe0a9 # v2.3.0
-      with:
-        args: >
-          -Dsonar.go.tests.reportPaths=${{
-            inputs.test-result-report-path
-          }} -Dsonar.go.coverage.reportPaths=${{
-            inputs.test-coverage-report-path
-          }}
-      env:
-        SONAR_TOKEN: ${{ inputs.sonar-token }}
-        SONAR_HOST_URL: ${{ inputs.sonar-host-url }}
+    - name: Set SonarQube Report Paths
+      shell: bash
+      run: |
+        sonarqube_coverage_report_paths=$(find -type f -name '${{ inputs.test-report-name }}' -printf "%p,")
+        sonarqube_golangci_report_paths=$(find -type f -name '${{ inputs.lint-report-name }}' -printf "%p,")
+        ARGS=""
+        ARGS="$ARGS -Dsonar.go.coverage.reportPaths=$sonarqube_coverage_report_paths"
+        ARGS="$ARGS -Dsonar.go.golangci-lint.reportPaths=$sonarqube_golangci_report_paths"
+        echo "SONARQUBE_ARGS=$ARGS" >> $GITHUB_ENV
 
-    - name: SonarQube scan with lint
-      if: inputs.include-lint == 'true'
+    - name: SonarQube Scan
       uses: sonarsource/sonarqube-scan-action@aecaf43ae57e412bd97d70ef9ce6076e672fe0a9 # v2.3.0
       with:
-        args: >
-          -Dsonar.go.tests.reportPaths=${{
-            inputs.test-result-report-path
-          }} -Dsonar.go.coverage.reportPaths=${{
-            inputs.test-coverage-report-path
-          }} -Dsonar.go.golangci-lint.reportPaths=${{
-            inputs.lint-report-path
-          }}
+        args: ${{ env.SONARQUBE_ARGS }}
       env:
         SONAR_TOKEN: ${{ inputs.sonar-token }}
         SONAR_HOST_URL: ${{ inputs.sonar-host-url }}
