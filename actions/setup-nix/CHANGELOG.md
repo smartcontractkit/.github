@@ -1,5 +1,14 @@
 # setup-nix
 
+## 0.5.0
+
+### Minor Changes
+
+- [#502](https://github.com/smartcontractkit/.github/pull/502)
+  [`47894c1`](https://github.com/smartcontractkit/.github/commit/47894c190bf2073b9effb1c121747403df9b555d)
+  Thanks [@ecPablo](https://github.com/ecPablo)! - Adds support for reading and
+  pushing Artifacts to the S3 cache.
+
 ## 0.4.0
 
 ### Minor Changes

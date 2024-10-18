@@ -1,32 +1,37 @@
-# setup-nix
+# Setup Nix Action
 
-`setup-nix` installs a nix environment and configures it with the specified
-caches
+`setup-nix` installs a nix environment using the
+https://github.com/DeterminateSystems/nix-installer-action
 
-## Configuration
+## Inputs
+
+### install-url (optional)
+
+- **Description**: Custom URL for the Nix installer.
+- **Required**: No
+- **Default**: (If not provided, the action will use the default
+  DeterminateSystems installer).
+- **Usage**: If you need to install Nix using a different installer URL, provide
+  it through this input.
+
+### extra-conf (optional)
+
+- **Description**: Additional Nix configuration options.
+- **Required**: No
+- **Default**: ""
+- **Usage**: Use this input to provide extra configuration options that will be
+  appended to /etc/nix/nix.conf.
+
+- ## Usage
 
 ```yaml
-inputs:
-  # custom cache inputs ----------------------------------
-  # these can point to any public or private cache
-  cache-url: https://, s3://, etc
-  cache-pubkey: corresponding cache key
-
-  # AWS inputs ------------------------------------
-  # enable to read/write for private caches hosted using s3 buckets
-  # note: does not push to cache but environment is setup for pushing
-  enable-aws: bool, true/false
-  aws-region: credential location
-  role-to-assume: credential
-  role-duration-seconds: credential TTL
-
-  # cachix inputs --------------------------------
-  # enable to use private caches hosted on cachix
-  # enable to push to caches hosted on cachix
-  enable-cachix: bool, true/false
-  cachix-name: cache name
-  cachix-token: token for cachix account
-
-  # github inputs ---------------------------------
-  github-token: token to enable reading private repositories
+jobs:
+  setup_nix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Nix
+        uses: smartcontractkit/.github/actions/setup-nix@7a7de5813c702b2e9d042903a1e9cffd2c0b40c5 # make sure to use the latest commit hash for version
+        with:
+          extra-conf: |
+            sandbox = relaxed
 ```

@@ -1,0 +1,74 @@
+name: md-confluence-sync
+description: "Sync Markdown documentation to Confluence"
+
+inputs:
+  files:
+    description:
+      "use specified markdown file(s) for converting to html. Supports file
+      globbing patterns"
+    required: true
+  base-url:
+    description: "Confluence base url e.g: https://example.com/wiki/"
+    required: true
+  user:
+    description:
+      "Service account email address, should have write access to the given
+      space"
+    required: true
+  token:
+    description: "Service account token for the user above"
+    required: true
+  space:
+    description: "Space to which articles will be synced to"
+    required: true
+  parent:
+    description: "Parent article under which articles will be synced"
+    required: true
+  dry-run:
+    required: false
+    description: "Enable dry-run mode"
+    default: "false"
+  debug:
+    required: false
+    description: "Enabled debug mode"
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@v4.2.1
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Lint MD files using Prettier
+      uses: smartcontractkit/.github/actions/ci-prettier@a738d4cfa4826d6f44dbebcc3724385f6de58d42 # ci-prettier@0.1.1
+      with:
+        basic-auth: ${{ inputs.gc-basic-auth }}
+        checkout-repo: "false"
+        gc-host: ${{ inputs.gc-host }}
+        gc-org-id: ${{ inputs.gc-org-id}}
+        prettier-command: pnpm prettier --check ${{ inputs.files }}/**/*.md
+        this-job-name: ${{ inputs.metrics-job-name }}
+
+    - name: Set up Go
+      uses: actions/setup-go@v5.0.2
+
+    - name: Setup tools
+      shell: bash
+      run: |
+        go install github.com/kovetskiy/mark@11.1.0
+
+    - name: Sync docs
+      env:
+        FILES: ${{ inputs.files }}
+        BASE_URL: ${{ inputs.base-url }}
+        USER: ${{ inputs.user }}
+        TOKEN: ${{ inputs.token }}
+        SPACE: ${{ inputs.space }}
+        PARENT: ${{ inputs.parent }}
+        MARK_DEBUG: ${{ inputs.debug }}
+        MARK_DRY_RUN: ${{ inputs.dry-run }}
+      shell: bash
+      run: ${{ github.action_path }}/mark-sync.sh

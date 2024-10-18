@@ -227,7 +227,7 @@ export function extractActionReferenceFromLine(
   }
 
   // example line:
-  // - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+  // - uses: actions/checkout@v4.2.1
   const trimSubString = "uses:";
   const usesIndex = trimmedLine.indexOf(trimSubString);
 
@@ -236,17 +236,38 @@ export function extractActionReferenceFromLine(
     return;
   }
 
-  // trim past the "uses:" substring to get "<owner>/<repo><optional path>@<ref> # <optional comment>""
+  // trim past the "uses:" substring to get "<owner>/<repo><optional path>@<ref> # <optional comment>"
   const trimmedUses = line
     .substring(line.indexOf(trimSubString) + trimSubString.length)
     .trim();
 
-  if (trimmedUses.startsWith("./")) {
+  let [actionIdentifier, ...comment] = trimmedUses.split("#");
+
+  // Check if the action reference is quoted
+  const isDoubleQuoted = actionIdentifier.startsWith(`"`);
+  const isSingleQuoted = actionIdentifier.startsWith(`'`);
+  if (isDoubleQuoted || isSingleQuoted) {
+    actionIdentifier = actionIdentifier.substring(1).trim();
+
+    const searchQuote = isDoubleQuoted ? `"` : `'`;
+    const indexOfQuote = actionIdentifier.indexOf(`${searchQuote}`);
+
+    if (indexOfQuote === -1 || indexOfQuote !== actionIdentifier.length - 1) {
+      core.warning(
+        "Invalid action reference - unmatched/misplaced quote (skipping): " +
+          line,
+      );
+      return;
+    } else {
+      actionIdentifier = actionIdentifier.substring(0, indexOfQuote);
+    }
+  }
+
+  if (actionIdentifier.startsWith("./")) {
     // Local action reference - do not extract or validate these.
     return;
   }
 
-  const [actionIdentifier, ...comment] = trimmedUses.split("#");
   const [identifier, gitRef] = actionIdentifier.trim().split("@");
   const [owner, repo, ...path] = identifier.split("/");
   const repoPath = (path.length > 0 ? "/" : "") + path.join("/");

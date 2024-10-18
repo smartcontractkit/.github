@@ -1,5 +1,21 @@
 # crib-deploy-environment
 
+## 2.1.0
+
+### Minor Changes
+
+- [#667](https://github.com/smartcontractkit/.github/pull/667)
+  [`a405822`](https://github.com/smartcontractkit/.github/commit/a4058228b4b9b6e30bb0e2b883e3b4f0cd447970)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - exposing
+  DEVSPACE_NAMESPACE variable to the crib CLI running inside the nix shell
+
+### Patch Changes
+
+- [#664](https://github.com/smartcontractkit/.github/pull/664)
+  [`c4705bf`](https://github.com/smartcontractkit/.github/commit/c4705bfdbf6c8e57c080d82a3c4f013aa96a2dfb)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump actions/\*
+  references to latest version
+
 ## 2.0.0
 
 ### Major Changes
