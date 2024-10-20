@@ -72,6 +72,12 @@ inputs:
     default: "main"
     required: false
     description: Useful for testing updates in CRIB
+  host-header:
+    required: true
+    description: "Host header temporary"
+  k8s-api-endpoint:
+    required: true
+    description: "Endpoint"
 outputs:
   devspace-namespace:
     description: "Kubernetes namespace used to provision a CRIB environment."
@@ -81,7 +87,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup GAP
-      uses: smartcontractkit/.github/actions/setup-gap@d316f66b2990ea4daa479daa3de6fc92b00f863e # setup-gap@0.3.2
+      uses: smartcontractkit/.github/actions/setup-gap@gapv2-proxy # setup-gap@0.3.2
       with:
         checkout-repo: false
         aws-role-arn: ${{ inputs.aws-role-arn }}
@@ -97,6 +103,9 @@ runs:
         gc-basic-auth: ${{ inputs.gc-basic-auth }}
         gc-host: ${{ inputs.gc-host }}
         gc-org-id: ${{ inputs.gc-org-id }}
+        host-header: ${{ inputs.host-header }}
+        k8s-api-endpoint: ${{ inputs.k8s-api-endpoint }}
+        use-gap-v2: true
 
     - name: Checkout crib repo
       uses: actions/checkout@v4.2.1

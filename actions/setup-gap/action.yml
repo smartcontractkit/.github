@@ -115,6 +115,23 @@ inputs:
     description:
       "The region for the EKS cluster, if different from aws-region input."
     required: false
+  envoy-proxy-image:
+    description: "Envoy Proxy image used to run Envoy proxy for GAP"
+    required: false
+    default: "envoyproxy/envoy:v1.31.0"
+  use-gap-v2:
+    description:
+      "Whether to setup GAP V2 for communicating with K8s. Defaults to false."
+    required: false
+    default: "false"
+
+  host-header:
+    required: true
+    description: "Host header temporary"
+
+  k8s-api-endpoint:
+    required: true
+    description: "Endpoint"
 
 runs:
   using: composite
@@ -213,7 +230,9 @@ runs:
         registry-type: public
 
     - name: Run aws sig4 proxy container (public ecr only)
-      if: inputs.use-private-ecr-registry != 'true'
+      if:
+        inputs.use-private-ecr-registry != 'true' && inputs.use-gap-v2 ==
+        'false'
       shell: bash
       env:
         AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
@@ -236,6 +255,38 @@ runs:
           --host "${{ inputs.api-gateway-host }}" \
           --log-failed-requests $DUPLICATE_AUTH_HEADER_FLAG
 
+    - name: Run Envoy proxy
+      if: inputs.use-k8s == 'true' || inputs.use-gap-v2 == 'true'
+      shell: sh
+      env:
+        PROXY_PORT: ${{ inputs.proxy-port }}
+        HOST_HEADER: ${{ inputs.host-header }}
+        K8S_API_ENDPOINT: ${{ inputs.k8s-api-endpoint}}
+        JWT_TOKEN: ${{ inputs.jwt-token }}
+        ENVOY_PROXY_IMAGE: ${{ inputs.envoy-proxy-image }}
+      run: |
+        # Generate Envoy config from template
+        ls -l
+        envsubst < "${GITHUB_ACTION_PATH}/envoy.yaml.template" > "${GITHUB_ACTION_PATH}/envoy.yaml"
+
+        # Copy AWS CA certs
+        #cp ${{ github.action_path }}/aws-ca.crt "${PATH_CERTS_DIR}"
+        chmod 644 "${PATH_CERTS_DIR}/server.key"
+
+        docker run --rm \
+          --name "gap-v2" \
+          -p "${PROXY_PORT}:${PROXY_PORT}" \
+          -v "${PATH_CERTS_DIR}":/tls \
+          -v "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
+          "${ENVOY_PROXY_IMAGE}" \
+          /usr/local/bin/envoy -c /etc/envoy/envoy.yaml
+
+    - name: Test kubectl
+      if: inputs.use-gap-v2 == 'true'
+      shell: bash
+      run: |
+        kubectl get pod -n crib-test
+
     - name: Login to AWS ECR (private ecr only)
       if: inputs.use-private-ecr-registry == 'true'
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
@@ -245,13 +296,17 @@ runs:
         registries: ${{ inputs.ecr-private-registry }}
 
     - name: Pull from custom proxy image (private ecr only)
-      if: inputs.use-private-ecr-registry == 'true'
+      if:
+        inputs.use-private-ecr-registry == 'true' && inputs.use-gap-v2 ==
+        'false'
       shell: bash
       run: |
         docker pull ${{ inputs.ecr-private-registry }}.dkr.ecr.${{ inputs.ecr-private-aws-region || inputs.aws-region }}.amazonaws.com/aws-sigv4-proxy:${{ inputs.ecr-private-image-tag }}
 
     - name: Run aws sig4 proxy container (private ecr only)
-      if: inputs.use-private-ecr-registry == 'true'
+      if:
+        inputs.use-private-ecr-registry == 'true' && inputs.use-gap-v2 ==
+        'false'
       shell: bash
       env:
         AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
