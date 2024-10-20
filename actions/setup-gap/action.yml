@@ -266,12 +266,18 @@ runs:
         PROXY_PORT: ${{ inputs.proxy-port }}
         HOST_HEADER: ${{ inputs.host-header }}
         K8S_API_ENDPOINT: ${{ inputs.k8s-api-endpoint}}
-        JWT_TOKEN: ${{ inputs.jwt-token }}
         ENVOY_PROXY_IMAGE: ${{ inputs.envoy-proxy-image }}
       run: |
         # Generate Envoy config from template
         ls -l
         envsubst < "${GITHUB_ACTION_PATH}/envoy.yaml.template" > "${GITHUB_ACTION_PATH}/envoy.yaml"
+
+        echo "Requesting OIDC token..."
+        JWT_TOKEN=$(curl -s --request POST \
+          --url "https://api.github.com/actions/oidc/token" \
+          --header "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          --header "Accept: application/json" \
+          --data '{"audience": "https://${{ inputs.envoy-proxy-image }}"}')
 
         # Copy AWS CA certs
         #cp ${{ github.action_path }}/aws-ca.crt "${PATH_CERTS_DIR}"
