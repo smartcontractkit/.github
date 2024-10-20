@@ -213,7 +213,11 @@ runs:
         echo "::debug::Setting up kubeconfig for localhost proxy"
 
         # Update the server to use the localhost proxy
-        kubectl config set clusters."$CLUSTER_ARN".server "https://localhost:${{ inputs.proxy-port }}${{ inputs.use-gap-v2 == 'true' ? '' : '/' }}${{ inputs.api-gateway-stage-name }}"
+        if [[ "${{ inputs.use-gap-v2 }}" == "true" ]]; then
+            kubectl config set clusters."$CLUSTER_ARN".server "https://localhost:${{ inputs.proxy-port }}"
+        else
+            kubectl config set clusters."$CLUSTER_ARN".server "https://localhost:${{ inputs.proxy-port }}/${{ inputs.        api-gateway-stage-name }}"
+        fi
 
         # Set the certificate-authority to the ephemeral certificate authority configured above
         kubectl config set clusters.$CLUSTER_ARN.certificate-authority "${PATH_CERTS_DIR}/ca.crt"
