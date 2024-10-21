@@ -347,10 +347,10 @@ jobs:
       - name: Install jq
         run: sudo apt-get install jq
 
-      - name: Get Chainlink Image Tag
+      - name: Get Chainlink Image Tag # Get the base image tag, e.g. pr-1234-sha
         id: get-chainlink-image-tag
         uses: ./.github/actions/get-chainlink-image-tag
-      - name: Determine Chainlink Image Tag
+      - name: Determine Chainlink Image Tag # Get the full image tag based on image type, e.g. pr-1234-sha-arm64
         id: determine-chainlink-image-tag
         run: |
           chainlink_image_tag=""
@@ -484,6 +484,7 @@ jobs:
           role-session-name: e2e-tests-wait-for-chainlink-image
       - name: Wait for Chainlink Image
         run: |
+          aws sts get-caller-identity # DEBUG: Check identity
           START_TIME=$(date +%s)
           echo "Checking for '${{ env.CHAINLINK_IMAGE }}:${{ needs.build-test-configurations.outputs.chainlink_image_tag }}' in ECR..."
           while true; do
