@@ -259,12 +259,23 @@ runs:
           --host "${{ inputs.api-gateway-host }}" \
           --log-failed-requests $DUPLICATE_AUTH_HEADER_FLAG
 
+    - name: Get GH JWT Token
+      if: inputs.use-k8s == 'true' || inputs.use-gap-v2 == 'true'
+      id: get-jwt-token
+      uses: actions/github-script@v7.0.1
+      with:
+        script: |
+          const const audience = 'gap';
+          const id_token = await core.getIDToken(audience);
+          core.setOutput('token', id_token);
+
     - name: Run Envoy proxy
       if: inputs.use-k8s == 'true' || inputs.use-gap-v2 == 'true'
       shell: sh
       env:
         PROXY_PORT: ${{ inputs.proxy-port }}
         HOST_HEADER: ${{ inputs.host-header }}
+        JWT_TOKEN: ${{ steps.get-jwt-token.outputs.token }}
         K8S_API_ENDPOINT: ${{ inputs.k8s-api-endpoint}}
         ENVOY_PROXY_IMAGE: ${{ inputs.envoy-proxy-image }}
       run: |
