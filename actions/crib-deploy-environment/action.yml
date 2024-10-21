@@ -4,9 +4,6 @@ description:
   an ephemeral environment."
 
 inputs:
-  api-gateway-host:
-    description: "API Gateway host for GAP, used to access the Kubernetes API."
-    required: true
   aws-region:
     description: "AWS region."
     required: true
@@ -16,11 +13,6 @@ inputs:
   devspace-ingress-cidrs:
     default: "0.0.0.0/0"
     description: "DevSpace ingress CIDRs."
-    required: false
-  ecr-private-registry:
-    default: ""
-    description:
-      "ECR private registry account ID in Production, needed for GAP."
     required: false
   github-token:
     description:
@@ -87,15 +79,12 @@ runs:
   using: "composite"
   steps:
     - name: Setup GAP
-      uses: smartcontractkit/.github/actions/setup-gap@gapv2-proxy # setup-gap@0.3.2
+      uses: smartcontractkit/.github/actions/setup-gap@1.0.0 # setup-gap@0.3.2
       with:
         checkout-repo: false
         aws-role-arn: ${{ inputs.aws-role-arn }}
-        api-gateway-host: ${{ inputs.api-gateway-host }}
         aws-region: ${{ inputs.aws-region }}
-        ecr-private-registry: ${{ inputs.ecr-private-registry }}
         k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
-        use-private-ecr-registry: true
         use-k8s: true
         # Choose port that is less likely to be conflicting with other GAP
         # instances that runs in the same workflow
@@ -105,7 +94,6 @@ runs:
         gc-org-id: ${{ inputs.gc-org-id }}
         host-header: ${{ inputs.host-header }}
         k8s-api-endpoint: ${{ inputs.k8s-api-endpoint }}
-        use-gap-v2: true
 
     - name: Checkout crib repo
       uses: actions/checkout@v4.2.1
