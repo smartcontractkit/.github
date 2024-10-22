@@ -9,15 +9,21 @@ set -euo pipefail
 # - SKIP_ON_SUCCESS
 
 # Fetch the comments on the pull request and filter for comments by github.actor
-author_comments=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments | map(select(.author.login == "github-actions" and (.body | contains("## AER Report:")))) | length')
+author_comments=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments | map(select(.author.login == "github-actions" and (.body | contains("## AER Report:"))))')
 
 # Get the latest comment body
-latest_comment_body=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments
-| map(select(.author.login == "github-actions" and (.body | contains("## AER Report:"))))
-| sort_by(.createdAt) | reverse | .[0].body')
+latest_comment_body=$(gh pr view "$PR_NUMBER" --json comments --jq '(
+    .comments
+    | sort_by(.createdAt)
+    | last
+    | select(.author.login == "github-actions" and (.body | contains("## AER Report:")))
+    | .body
+  )
+  // ""
+  ')
 
 # Check if comment exists and contains <$WORKFLOW_ID>...</$WORKFLOW_ID>
-if [[ "$author_comments" -gt 0 && "$latest_comment_body" == *"<$WORKFLOW_ID>"* && "$latest_comment_body" == *"</$WORKFLOW_ID>"* ]]; then
+if [[ "$latest_comment_body" == *"<$WORKFLOW_ID>"* && "$latest_comment_body" == *"</$WORKFLOW_ID>"* ]]; then
   # Create a temporary sed script file
   sed_script=$(mktemp)
 
@@ -39,20 +45,12 @@ if [[ "$author_comments" -gt 0 && "$latest_comment_body" == *"<$WORKFLOW_ID>"* &
 
   gh pr comment $PR_NUMBER -b "$PR_MESSAGE" --edit-last
 else
-  if [ "$author_comments" -gt 0 ]; then
-    PR_MESSAGE="${latest_comment_body}
-    
-    ${PR_MESSAGE}"
-
-    gh pr comment $PR_NUMBER -b "$PR_MESSAGE" --edit-last
+  # if no prior error(s) then don't clutter the PR with success message
+  if [ "${SKIP_ON_SUCCESS:-false}" == "false" ] && [[ "{{ inputs.parent-workflow-conclusion }}" != "failure" ]]; then
+    gh pr comment $PR_NUMBER -b "$PR_MESSAGE"
   else
-    # if no prior error(s) then don't clutter the PR with success message
-    if [ "${SKIP_ON_SUCCESS:-false}" == "false" ] && [[ "{{ inputs.parent-workflow-conclusion }}" != "failure" ]]; then
-      gh pr comment $PR_NUMBER -b "$PR_MESSAGE"
-    else
-      gh pr comment $PR_NUMBER -b "**Below is an analysis created by an LLM ($OPENAI_MODEL). Be mindful of hallucinations and verify accuracy.**
-      
-      $PR_MESSAGE"
-    fi
+    gh pr comment $PR_NUMBER -b "**Below is an analysis created by an LLM ($OPENAI_MODEL). Be mindful of hallucinations and verify accuracy.**
+    
+    $PR_MESSAGE"
   fi
 fi
