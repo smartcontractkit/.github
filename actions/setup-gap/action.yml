@@ -62,6 +62,10 @@ inputs:
   k8s-api-endpoint:
     required: true
     description: "Endpoint"
+outputs:
+  gh-jwt-token:
+    description: "GitHub JWT token to be used for GAP requests"
+    value: ${{ steps.get-jwt-token.outputs.token }}
 
 runs:
   using: composite
