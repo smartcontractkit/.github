@@ -120,7 +120,7 @@ on:
           repository root)"
         type: string
         required: false
-        default: "./github/actions/gha-no-op-action"
+        default: "smartcontractkit/.github/.github/actions/gha-no-op-action@0bec71b098f3eb6a1a1f2dcbf5885b33fd55f103"
     secrets:
       jira_username:
         required: false
