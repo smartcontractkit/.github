@@ -525,7 +525,10 @@ jobs:
     if:
       ${{ needs.build-test-configurations.outputs.run-docker-tests == 'true' &&
       always() && !failure() && !cancelled() }}
-    runs-on: ${{ matrix.tests.runs_on }}
+    # Check if the test is to be run on arm64, if so, run on the specified arm64 runner
+    runs-on:
+      ${{ inputs.test_chainlink_image_type == 'arm64' &&
+      matrix.tests.runs_on_arm64 || matrix.tests.runs_on }}
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.build-test-configurations.outputs.docker-matrix)}}
