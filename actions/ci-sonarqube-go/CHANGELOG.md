@@ -1,5 +1,27 @@
 # ci-sonarqube-go
 
+## 0.3.0
+
+### Minor Changes
+
+- [#672](https://github.com/smartcontractkit/.github/pull/672)
+  [`3d0601b`](https://github.com/smartcontractkit/.github/commit/3d0601bfa1378668aed23dd24017187dd40946e2)
+  Thanks [@chudilka1](https://github.com/chudilka1)! - Let SonarQube actions to
+  fetch reports from a default workflow (the workflow the action is specified)
+  if names of the workflows that produce reports are not mentioned
+
+- [#674](https://github.com/smartcontractkit/.github/pull/674)
+  [`5f4a9c9`](https://github.com/smartcontractkit/.github/commit/5f4a9c9c3407dd499a1ebbc658a45b9beb9bf675)
+  Thanks [@chudilka1](https://github.com/chudilka1)! - Enable SonarQube actions
+  to set multiple paths to reports
+
+### Patch Changes
+
+- [#675](https://github.com/smartcontractkit/.github/pull/675)
+  [`18ffb0e`](https://github.com/smartcontractkit/.github/commit/18ffb0ed0ab2f53d3fdcb2170284763503e75880)
+  Thanks [@erikburt](https://github.com/erikburt)! - update
+  sonarsource/sonarqube-scan-action to v3.0.0
+
 ## 0.2.0
 
 ### Minor Changes
