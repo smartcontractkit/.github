@@ -114,6 +114,12 @@ on:
         type: boolean
         required: false
         default: true
+      code_coverage_setup_script_path:
+        description:
+          "path to optional code coverage bash setup script (relative to your
+          repository root)"
+        type: string
+        required: false
     secrets:
       jira_username:
         required: false
@@ -198,6 +204,13 @@ jobs:
         uses: actions/checkout@v4.2.1
         with:
           ref: ${{ env.head_ref }}
+
+      - name: Execute code coverage setup script
+        if: ${{ inputs.code_coverage_setup_script_path != '' }}
+        shell: bash
+        run: |
+          chmod +x "${{ inputs.code_coverage_setup_script_path }}"
+          ./"${{ inputs.code_coverage_setup_script_path }}"
 
       - name: Setup NodeJS
         uses: smartcontractkit/.github/actions/setup-nodejs@bff23e98280a3f60233e7ab2d5675a006843732c # v0.0.0
