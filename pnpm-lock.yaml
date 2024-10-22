@@ -211,6 +211,8 @@ importers:
 
   actions/manifest-build: {}
 
+  actions/md-confluence-sync: {}
+
   actions/nops-upgrade-checker: {}
 
   actions/policy-bot-config-validator: {}
@@ -224,6 +226,8 @@ importers:
   actions/setup-golang: {}
 
   actions/setup-nix: {}
+
+  actions/setup-nix-cache: {}
 
   actions/setup-nix-gati: {}
 

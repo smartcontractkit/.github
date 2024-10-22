@@ -1,0 +1,53 @@
+name: ci-beholder-schema-validate
+description: "Action to validate beholder schemas"
+
+inputs:
+  beholder-config-file:
+    description:
+      "Path to the beholder config yaml file relative to the repository root"
+    required: true
+  aws-role-arn:
+    description: ARN of role capable of getting token from GATI
+    required: true
+  aws-lambda-url:
+    description: URL of GATI lambda function
+    required: true
+  aws-region:
+    description: AWS region
+    required: true
+    default: "us-west-2"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup GitHub Token
+      id: setup-github-token
+      uses: smartcontractkit/.github/actions/setup-github-token@7ac9af09dda8c553593d2153a975b43b6958fa9f # setup-github-token@0.1.2
+      with:
+        aws-role-arn: ${{ inputs.aws-role-arn }}
+        aws-lambda-url: ${{ inputs.aws-lambda-url }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Checkout rtsp-tookit Repository
+      uses: actions/checkout@v3
+      with:
+        repository: smartcontractkit/rtsp-toolkit
+        ref: main
+        token: ${{ steps.setup-github-token.outputs.access-token }}
+        path: rtsp-toolkit
+
+    - name: Setup go
+      uses: smartcontractkit/.github/actions/setup-golang@7ac9af09dda8c553593d2153a975b43b6958fa9f
+
+    - name: Build Beholder CI Binary
+      shell: bash
+      working-directory: rtsp-toolkit
+      run: |
+        cd ./beholder
+        go build -o ../beholder-ci
+
+    - name: Run Beholder CI
+      shell: bash
+      working-directory: rtsp-toolkit
+      run: |
+        ./beholder-ci schema-validate -f ${{ inputs.beholder-config-file }}
