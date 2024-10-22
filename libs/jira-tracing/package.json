@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@actions/core": "^1.10.1",
+    "gray-matter": "^4.0.3",
     "jira.js": "^4.0.1",
     "tsx": "^4.16.2"
   },

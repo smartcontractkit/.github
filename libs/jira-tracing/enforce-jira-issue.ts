@@ -16,7 +16,8 @@ async function main() {
   const commitMessage = process.env.COMMIT_MESSAGE;
   const branchName = process.env.BRANCH_NAME;
   const dryRun = !!process.env.DRY_RUN;
-  const changesetFile = extractChangesetFile();
+  const changesetKey = process.env.CHANGESET_KEY;
+  const changesetFile = await extractChangesetFile(changesetKey);
   const client = createJiraClient();
 
   // Checks for the Jira issue number and exit if it can't find it
