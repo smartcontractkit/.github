@@ -82,7 +82,6 @@ runs:
       # TODO: change the git ref to the next version before merging.
       uses: smartcontractkit/.github/actions/setup-gap@gapv2-proxy # setup-gap@0.3.2
       with:
-        checkout-repo: false
         aws-role-arn: ${{ inputs.aws-role-arn }}
         aws-region: ${{ inputs.aws-region }}
         k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
@@ -90,9 +89,6 @@ runs:
         # Choose port that is less likely to be conflicting with other GAP
         # instances that runs in the same workflow
         proxy-port: 8888
-        gc-basic-auth: ${{ inputs.gc-basic-auth }}
-        gc-host: ${{ inputs.gc-host }}
-        gc-org-id: ${{ inputs.gc-org-id }}
         host-header: ${{ inputs.host-header }}
         k8s-api-endpoint: ${{ inputs.k8s-api-endpoint }}
 
