@@ -114,12 +114,13 @@ on:
         type: boolean
         required: false
         default: true
-      code_coverage_setup_script_path:
+      code_coverage_setup_action_path:
         description:
-          "path to optional code coverage bash setup script (relative to your
+          "path to optional code coverage GHA setup action (relative to your
           repository root)"
         type: string
         required: false
+        default: "./github/actions/gha-no-op-action"
     secrets:
       jira_username:
         required: false
@@ -205,12 +206,8 @@ jobs:
         with:
           ref: ${{ env.head_ref }}
 
-      - name: Execute code coverage setup script
-        if: ${{ inputs.code_coverage_setup_script_path != '' }}
-        shell: bash
-        run: |
-          chmod +x "${{ inputs.code_coverage_setup_script_path }}"
-          ./"${{ inputs.code_coverage_setup_script_path }}"
+      - name: Execute code coverage setup action
+        uses: ${{ inputs.code_coverage_setup_action_path }}
 
       - name: Setup NodeJS
         uses: smartcontractkit/.github/actions/setup-nodejs@bff23e98280a3f60233e7ab2d5675a006843732c # v0.0.0

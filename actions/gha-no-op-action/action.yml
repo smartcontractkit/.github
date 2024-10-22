@@ -1,0 +1,9 @@
+name: gha-no-op-action
+description: "This action does nothing."
+
+runs:
+  using: "composite"
+  steps:
+    - name: "No-op"
+      shell: bash
+      run: echo "This action does nothing."
