@@ -292,7 +292,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@c2b6620f9743b326f3fcb82829c760d01b742306 # DEBUG: Testing version
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@c012a63734d3b2475a621470d920a0d9da91ba98 # DEBUG: Testing version
       - name: Run Check Tests Command
         run: |
           if ! citool check-tests ${{ github.workspace }}/${{ inputs.check_test_path }} ${{ github.workspace }}/${{ inputs.test_path }}; then
@@ -343,7 +343,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@c2b6620f9743b326f3fcb82829c760d01b742306 # DEBUG: Testing version
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@c012a63734d3b2475a621470d920a0d9da91ba98 # DEBUG: Testing version
       - name: Install jq
         run: sudo apt-get install jq
 
