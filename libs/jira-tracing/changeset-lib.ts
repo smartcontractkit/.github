@@ -57,7 +57,9 @@ export function extractChangesetFiles(): string[] {
  * @throws {Error} If more than one changeset file exists.
  * @throws {Error} If the changeset file does not contain the key passed in.
  */
-export async function extractChangesetFile(changesetKey: string|undefined): Promise<string> {
+export async function extractChangesetFile(
+  changesetKey: string | undefined,
+): Promise<string> {
   const changesetFiles = extractChangesetFiles();
   if (changesetFiles.length > 1) {
     throw new Error(
@@ -76,7 +78,7 @@ export async function extractChangesetFile(changesetKey: string|undefined): Prom
   if (!(changesetKey in parsed.data)) {
     throw new Error(
       `Changeset file ${changesetFiles[0]} does not contain the key: ${changesetKey}`,
-    )
+    );
   }
 
   return changesetFiles[0];
