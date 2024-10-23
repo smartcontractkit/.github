@@ -194,4 +194,4 @@ runs:
       if: inputs.use-k8s == 'true'
       shell: bash
       run: |
-        kubectl get pod -n crib-test
+        kubectl get pod -n crib-test -v=10
