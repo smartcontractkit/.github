@@ -38,7 +38,7 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4.2.1
+      uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
@@ -53,7 +53,7 @@ runs:
         this-job-name: ${{ inputs.metrics-job-name }}
 
     - name: Set up Go
-      uses: actions/setup-go@v5.0.2
+      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
 
     - name: Setup tools
       shell: bash
