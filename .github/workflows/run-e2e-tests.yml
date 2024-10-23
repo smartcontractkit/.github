@@ -484,7 +484,6 @@ jobs:
           role-session-name: e2e-tests-wait-for-chainlink-image
       - name: Wait for Chainlink Image
         run: |
-          aws sts get-caller-identity # DEBUG: Check identity
           START_TIME=$(date +%s)
           echo "Checking for '${{ env.CHAINLINK_IMAGE }}:${{ needs.build-test-configurations.outputs.chainlink_image_tag }}' in ECR..."
           while true; do
@@ -514,7 +513,7 @@ jobs:
 
   # Run Docker tests
   run-docker-tests:
-    name: ${{ matrix.tests.name || matrix.tests.id }}
+    name: ${{ matrix.tests.name || matrix.tests.id_sanitized }}
     needs:
       [
         build-test-configurations,
