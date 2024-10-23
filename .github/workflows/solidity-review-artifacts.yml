@@ -114,13 +114,10 @@ on:
         type: boolean
         required: false
         default: true
-      code_coverage_setup_action_path:
-        description:
-          "path to optional code coverage GHA setup action (relative to your
-          repository root)"
+      code_coverage_secrets_to_export:
+        description: "fill me in later"
         type: string
         required: false
-        default: "smartcontractkit/.github/.github/actions/gha-no-op-action@0bec71b098f3eb6a1a1f2dcbf5885b33fd55f103"
     secrets:
       jira_username:
         required: false
@@ -206,8 +203,18 @@ jobs:
         with:
           ref: ${{ env.head_ref }}
 
-      - name: Execute code coverage setup action
-        uses: ${{ inputs.code_coverage_setup_action_path }}
+      - name: Export secrets as environment variables
+        if: ${{ inputs.code_coverage_secrets_to_export != '' }}
+        run: |
+          # Split the comma-separated list of secret names
+          IFS=',' read -ra SECRETS <<< "${{ inputs.code_coverage_secrets_to_export }}"
+
+          # Loop through each secret name and export it as an environment variable
+          for secret_name in "${SECRETS[@]}"; do
+            secret_value=$(eval echo \${{ secrets.$secret_name }})
+            echo "$secret_name=$secret_value" >> $GITHUB_ENV
+            echo "Exported $secret_name as environment variable."
+          done
 
       - name: Setup NodeJS
         uses: smartcontractkit/.github/actions/setup-nodejs@bff23e98280a3f60233e7ab2d5675a006843732c # v0.0.0
