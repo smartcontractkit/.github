@@ -205,14 +205,14 @@ jobs:
 
       - name: Export secrets as environment variables
         if: ${{ inputs.code_coverage_secrets_to_export != '' }}
+        env:
+          SECRETS: "${{ toJson(secrets) }}"
         run: |
-          # Split the comma-separated list of secret names
-          IFS=',' read -ra SECRETS <<< "${{ inputs.code_coverage_secrets_to_export }}"
+          IFS=',' read -ra SECRETS_TO_EXPORT <<< "${{ inputs.code_coverage_secrets_to_export }}"
 
           # Loop through each secret name and export it as an environment variable
-          for secret_name in "${SECRETS[@]}"; do
-            echo "${{ secrets[format('{0}_A', $secret_name)] }}"
-            # secret_value=$(eval echo \${{ secrets[$secret_name] }})
+          for secret_name in "${SECRETS_TO_EXPORT[@]}"; do
+            secret_value="$(jq -r --arg key "$secret_name" '.[$key]' <<< "$SECRETS" | sed 's|.|& |g')"
             echo "$secret_name=$secret_value" >> $GITHUB_ENV
             echo "Exported $secret_name as environment variable."
           done
