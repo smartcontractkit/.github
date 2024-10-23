@@ -211,7 +211,7 @@ jobs:
 
           # Loop through each secret name and export it as an environment variable
           for secret_name in "${SECRETS[@]}"; do
-            secret_value=$(eval echo \${{ secrets.$secret_name }})
+            secret_value=$(eval echo \${{ secrets[$secret_name] }})
             echo "$secret_name=$secret_value" >> $GITHUB_ENV
             echo "Exported $secret_name as environment variable."
           done
