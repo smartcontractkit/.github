@@ -135,7 +135,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout the caller repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
 
@@ -195,7 +195,7 @@ jobs:
     needs: [gather-basic-info]
     steps:
       - name: Checkout the caller repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ env.head_ref }}
 
@@ -220,7 +220,7 @@ jobs:
       # required for code coverage report generation
       - name: Setup LCOV
         if: ${{ inputs.generate_code_coverage == true }}
-        uses: hrishikesh-kadam/setup-lcov@f5da1b26b0dcf5d893077a3c4f29cf78079c841d # v1.0.0
+        uses: hrishikesh-kadam/setup-lcov@6c1aa0cc9e1c02f9f58f01ac599f1064ccc83470 # v1.1.0
 
       - name: Run Forge build for product contracts
         run: |
@@ -291,13 +291,13 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout caller repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
           ref: ${{ env.head_ref }}
 
       - name: Checkout .github repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: smartcontractkit/.github
           ref: 65249c7eae628aad6e70a0c0850d981cd0074bf9
@@ -446,13 +446,13 @@ jobs:
 
       - name: Checkout caller repository
         if: ${{ inputs.link_with_jira == true }}
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ env.head_ref }}
 
       - name: Checkout chainlink-github-actions repository
         if: ${{ inputs.link_with_jira == true }}
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: smartcontractkit/.github
           ref: 65249c7eae628aad6e70a0c0850d981cd0074bf9

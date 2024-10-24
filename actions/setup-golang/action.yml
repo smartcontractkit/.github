@@ -44,7 +44,7 @@ runs:
         echo "gomodcache=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
         echo "gobuildcache=$(go env GOCACHE)" >> $GITHUB_OUTPUT
 
-    - uses: actions/cache@v4.1.1
+    - uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4.1.2
       name: Cache Go Modules
       with:
         path: |
@@ -57,7 +57,7 @@ runs:
         restore-keys: |
           ${{ runner.os }}-gomod-${{ inputs.cache-version }}-
 
-    - uses: actions/cache@v4.1.1
+    - uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4.1.2
       if: ${{ inputs.only-modules == 'false' }}
       name: Cache Go Build Outputs
       with:

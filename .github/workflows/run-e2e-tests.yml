@@ -308,7 +308,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Install citool
         shell: bash
         run: go install
@@ -352,7 +352,7 @@ jobs:
       workflow_id: ${{ steps.gen_id.outputs.workflow_id }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Setup Go
         uses: actions/setup-go@v5.0.2
         with:
@@ -489,7 +489,7 @@ jobs:
           }}
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Get Chainlink image
         uses: ./.github/actions/build-chainlink-image
@@ -526,7 +526,7 @@ jobs:
           }}
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Get Chainlink plugins image
         uses: ./.github/actions/build-chainlink-image
@@ -574,7 +574,7 @@ jobs:
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -812,7 +812,7 @@ jobs:
         }}.amazonaws.com/chainlink-tests
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Build Test Runner Image
         id: build-test-runner-image
         uses: smartcontractkit/.github/actions/ctf-build-test-image@main # main branch
@@ -869,7 +869,7 @@ jobs:
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -1039,7 +1039,7 @@ jobs:
           "$GITHUB_OUTPUT"
 
       - name: Send Slack notification
-        uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # v1.25.0
+        uses: slackapi/slack-github-action@37ebaef184d7626c5f204ab8d3baff4262dd30f0 # v1.27.0
         if:
           ${{ inputs.slack_notification_after_tests == 'true' ||
           inputs.slack_notification_after_tests == 'always' ||
@@ -1083,7 +1083,7 @@ jobs:
           contains(join(needs.*.result, ','), 'failure') &&
           inputs.slack_notification_after_tests_notify_user_id_on_failure != ''
           }}
-        uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # v1.25.0
+        uses: slackapi/slack-github-action@37ebaef184d7626c5f204ab8d3baff4262dd30f0 # v1.27.0
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         with:
