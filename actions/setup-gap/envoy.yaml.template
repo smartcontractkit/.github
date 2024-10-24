@@ -33,8 +33,8 @@ static_resources:
                             request_handle:headers():remove("authorization")
                           end
                           request_handle:headers():remove("host")
-                          request_handle:headers():add("host", "${HOST_HEADER}")
-                          request_handle:headers():add("authorization", "Basic ${JWT_TOKEN}")
+                          request_handle:headers():add("host", "${K8S_API_ENDPOINT}")
+                          request_handle:headers():add("authorization", "Bearer ${JWT_TOKEN}")
                         end
                   - name: envoy.filters.http.router
                     typed_config:
@@ -92,5 +92,4 @@ static_resources:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
           common_tls_context:
             validation_context:
-              trusted_ca:
-                filename: "/tls/aws-ca.crt"
+              trust_chain_verification: ACCEPT_UNTRUSTED
