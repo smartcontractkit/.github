@@ -753,10 +753,6 @@ jobs:
           path: ${{ matrix.tests.test_artifacts_on_failure }}
           retention-days: 1
 
-      - name: Show Grafana url in test summary
-        if: always()
-        uses: smartcontractkit/.github/actions/ctf-show-grafana-in-test-summary@b6e37806737eef87e8c9137ceeb23ef0bff8b1db # ctf-show-grafana-in-test-summary@0.1.0
-
   # Run K8s tests using old remote runner
 
   prepare-remote-runner-test-image:
