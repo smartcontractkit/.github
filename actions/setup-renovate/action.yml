@@ -48,7 +48,7 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4.2.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
@@ -62,7 +62,7 @@ runs:
         aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
 
     - name: Run renovate
-      uses: renovatebot/github-action@76d49712364696a06b60e8647df46b288fff0ddc # v40.2.4
+      uses: renovatebot/github-action@80eaf969abf68ad62aa94d9ab392421b31621634 # v40.3.4
       with:
         renovate-version: ${{ inputs.renovate-version }}
         token: ${{ steps.get-access-token.outputs.access-token }}

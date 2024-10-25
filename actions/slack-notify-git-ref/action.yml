@@ -47,7 +47,7 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4.2.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
     - name: Validate inputs
@@ -109,7 +109,7 @@ runs:
         } >> $GITHUB_ENV
 
     - name: Notify slack
-      uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+      uses: slackapi/slack-github-action@37ebaef184d7626c5f204ab8d3baff4262dd30f0 # v1.27.0
       with:
         payload: ${{ env.payload }}
         channel-id: ${{ inputs.slack-channel-id }}
