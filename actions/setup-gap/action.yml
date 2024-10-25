@@ -55,10 +55,6 @@ inputs:
     description: "Envoy Proxy image used to run Envoy proxy for GAP"
     required: false
     default: "envoyproxy/envoy:v1.31.0"
-  host-header:
-    required: true
-    description: "Host header temporary"
-
   k8s-api-endpoint:
     required: true
     description: "Endpoint"
@@ -169,7 +165,6 @@ runs:
       shell: sh
       env:
         PROXY_PORT: ${{ inputs.proxy-port }}
-        HOST_HEADER: ${{ inputs.host-header }}
         JWT_TOKEN: ${{ steps.get-jwt-token.outputs.token }}
         K8S_API_ENDPOINT: ${{ inputs.k8s-api-endpoint}}
         ENVOY_PROXY_IMAGE: ${{ inputs.envoy-proxy-image }}
