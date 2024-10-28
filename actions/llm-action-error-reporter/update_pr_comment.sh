@@ -9,15 +9,22 @@ set -euo pipefail
 # - SKIP_ON_SUCCESS
 
 # Fetch the comments on the pull request and filter for comments by github.actor
-author_comments=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments | map(select(.author.login == "github-actions" and (.body | contains("## AER Report:")))) | length')
+last_author_comment=$(gh pr view "$PR_NUMBER" --json comments --jq '(
+    .comments 
+    | map(select(.author.login == "github-actions" and (.body | contains("## AER Report:"))))
+    | sort_by(.createdAt)
+    | reverse
+    | .[0]
+  )')
 
 # Get the latest comment body
-latest_comment_body=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments
-| map(select(.author.login == "github-actions" and (.body | contains("## AER Report:"))))
-| sort_by(.createdAt) | reverse | .[0].body')
+last_comment_body=$(echo "$last_author_comment" | jq -r '.body // ""')
+comment_id=$(echo "$last_author_comment" | jq -r '.url // ""' | perl -nle 'print $1 if /#issuecomment-(\d+)/')
+
+echo "found existing comment: $comment_id"
 
 # Check if comment exists and contains <$WORKFLOW_ID>...</$WORKFLOW_ID>
-if [[ "$author_comments" -gt 0 && "$latest_comment_body" == *"<$WORKFLOW_ID>"* && "$latest_comment_body" == *"</$WORKFLOW_ID>"* ]]; then
+if [[ "$last_comment_body" == *"<$WORKFLOW_ID>"* && "$last_comment_body" == *"</$WORKFLOW_ID>"* ]]; then
   # Create a temporary sed script file
   sed_script=$(mktemp)
 
@@ -32,27 +39,25 @@ if [[ "$author_comments" -gt 0 && "$latest_comment_body" == *"<$WORKFLOW_ID>"* &
   echo "${PR_MESSAGE}" >> "$sed_script"
 
   # Perform the replacement using sed with the temporary script
-  PR_MESSAGE=$(echo "$latest_comment_body" | sed -f "$sed_script")
+  PR_MESSAGE=$(echo "$last_comment_body" | sed -f "$sed_script")
 
   # Remove the temporary sed script
   rm "$sed_script"
-
-  gh pr comment $PR_NUMBER -b "$PR_MESSAGE" --edit-last
 else
-  if [ "$author_comments" -gt 0 ]; then
-    PR_MESSAGE="${latest_comment_body}
-    
+  if [[ "$last_comment_body" != "" ]]; then
+    # AER comment already exists, edit the existing comment
+    PR_MESSAGE="${last_comment_body}
+  
     ${PR_MESSAGE}"
-
-    gh pr comment $PR_NUMBER -b "$PR_MESSAGE" --edit-last
   else
-    # if no prior error(s) then don't clutter the PR with success message
-    if [ "${SKIP_ON_SUCCESS:-false}" == "false" ] && [[ "{{ inputs.parent-workflow-conclusion }}" != "failure" ]]; then
-      gh pr comment $PR_NUMBER -b "$PR_MESSAGE"
-    else
-      gh pr comment $PR_NUMBER -b "**Below is an analysis created by an LLM ($OPENAI_MODEL). Be mindful of hallucinations and verify accuracy.**
+    if [[ "{{ inputs.parent-workflow-conclusion }}" == "failure" ]]; then
+      # AER comment does not exist, create a new comment
+      PR_MESSAGE="**Below is an analysis created by an LLM ($OPENAI_MODEL). Be mindful of hallucinations and verify accuracy.**
       
       $PR_MESSAGE"
     fi
   fi
 fi
+
+echo "$PR_MESSAGE" > pr_message.md
+echo "comment_id=$comment_id" >> "$GITHUB_OUTPUT"

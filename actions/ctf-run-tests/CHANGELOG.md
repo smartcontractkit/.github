@@ -1,5 +1,14 @@
 # ctf-run-tests
 
+## 0.1.2
+
+### Patch Changes
+
+- [#683](https://github.com/smartcontractkit/.github/pull/683)
+  [`d2ea79a`](https://github.com/smartcontractkit/.github/commit/d2ea79aa78dfe33f4d3ab4d8ede8cd28980467cf)
+  Thanks [@Tofel](https://github.com/Tofel)! - use internal docker repository
+  also for Docker-based tests that run in the CI
+
 ## 0.1.1
 
 ### Patch Changes

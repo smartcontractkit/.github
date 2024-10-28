@@ -1,4 +1,5 @@
 import * as core from "@actions/core";
+import matter from "gray-matter";
 import { join } from "path";
 import { getGitTopLevel } from "./lib";
 import { promises as fs } from "fs";
@@ -49,16 +50,34 @@ export function extractChangesetFiles(): string[] {
  * Extracts a single changeset file. Intended to be used with https://github.com/dorny/paths-filter with
  * the 'csv' output format.
  *
+ * @param changesetKey The key to check for in the changeset file.
  * @returns A single changeset file path.
  * @throws {Error} If the required environment variable CHANGESET_FILES is missing.
  * @throws {Error} If no changeset file exists.
  * @throws {Error} If more than one changeset file exists.
+ * @throws {Error} If the changeset file does not contain the key passed in.
  */
-export function extractChangesetFile(): string {
+export async function extractChangesetFile(
+  changesetKey: string | undefined,
+): Promise<string> {
   const changesetFiles = extractChangesetFiles();
   if (changesetFiles.length > 1) {
     throw new Error(
       `Found ${changesetFiles.length} changeset files, but only 1 was expected.`,
+    );
+  }
+  const gitTopLevel = await getGitTopLevel();
+  const fullChangesetPath = join(gitTopLevel, changesetFiles[0]);
+  const changesetContents = await fs.readFile(fullChangesetPath, "utf-8");
+  const parsed = matter(changesetContents);
+
+  if (!changesetKey) {
+    return changesetFiles[0];
+  }
+
+  if (!(changesetKey in parsed.data)) {
+    throw new Error(
+      `Changeset file ${changesetFiles[0]} does not contain the key: ${changesetKey}`,
     );
   }
 
