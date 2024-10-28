@@ -29,8 +29,8 @@ inputs:
     description: "paths to junit test results in xml format"
     requried: false
     default: "junit.xml"
-  typescript-lcov-report-path:
-    description: "paths to lcov test coverage report in lcov format"
+  typescript-lcov-report-name:
+    description: "lcov test coverage report name with extension"
     requried: false
     default: "lcov.info"
   lint-report-workflow:
@@ -40,8 +40,8 @@ inputs:
     description: "Name of artifact containing eslint report"
     requried: false
     default: "ts-lint-results"
-  eslint-json-report-path:
-    description: "paths to eslint report in json format"
+  eslint-json-report:
+    description: "Eslint report name in json format"
     requried: false
     default: "eslint-report.json"
   include-lint:
@@ -58,8 +58,13 @@ runs:
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
-    - name: Download all reports (no report-workflow name is specified)
-      if: inputs.test-report-workflow == '' || inputs.lint-report-workflow == ''
+    - name: Download all reports (no test-report-workflow)
+      id: all
+      if: inputs.test-report-workflow == ''
+      uses: actions/download-artifact@v4.1.8 # v4.1.8
+
+    - name: Download all reports (no lint-report-workflow)
+      if: steps.all.outcome != 'success' && inputs.lint-report-workflow == ''
       uses: actions/download-artifact@v4.1.8 # v4.1.8
 
     - name: Download test-report artifact using workflow file name
@@ -68,6 +73,7 @@ runs:
       with:
         workflow: ${{ inputs.test-report-workflow }}
         name: ${{ inputs.test-report-artifact }}
+        search_artifacts: true
         workflow_conclusion: "" # ignore workflow status to let the latest artifact be downloaded
         if_no_artifact_found: warn
 
@@ -77,35 +83,36 @@ runs:
       with:
         workflow: ${{ inputs.lint-report-workflow }}
         name: ${{ inputs.lint-report-artifact }}
+        search_artifacts: true
         workflow_conclusion: ""
         if_no_artifact_found: warn
 
-    - name: SonarQube scan without lint
-      if: inputs.include-lint == 'false'
-      uses: sonarsource/sonarqube-scan-action@aecaf43ae57e412bd97d70ef9ce6076e672fe0a9 # v2.3.0
-      with:
-        args: >
-          -Dsonar.junit.reportPaths=${{
-            inputs.junit-xml-report-path
-          }} -Dsonar.typescript.lcov.reportPaths=${{
-            inputs.typescript-lcov-report-path
-          }}
-      env:
-        SONAR_TOKEN: ${{ inputs.sonar-token }}
-        SONAR_HOST_URL: ${{ inputs.sonar-host-url }}
+    - name: Set SonarQube Report Paths
+      id: sonarqube_report_paths
+      shell: bash
+      run: |
+        sonarqube_coverage_report_paths=$(find -type f -name '*${{ inputs.typescript-lcov-report-name }}' -printf "%p,")
+        echo "sonarqube_coverage_report_paths=$sonarqube_coverage_report_paths"
+        sonarqube_lint_report_paths=$(find -type f -name '*${{ inputs.eslint-json-report }}' -printf "%p,") >> GITHUB_OUTPUT
+        echo "sonarqube_lint_report_paths=$sonarqube_lint_report_paths"
+        ARGS=""
+        ARGS="$ARGS -Dsonar.typescript.lcov.reportPaths=$sonarqube_coverage_report_paths"
+        ARGS="$ARGS -Dsonar.eslint.reportPaths=$sonarqube_lint_report_paths"
+        echo "Final SONARQUBE_ARGS: $ARGS"
+        echo "SONARQUBE_ARGS=$ARGS" >> $GITHUB_ENV
 
-    - name: SonarQube scan with lint
-      if: inputs.include-lint == 'true'
-      uses: sonarsource/sonarqube-scan-action@aecaf43ae57e412bd97d70ef9ce6076e672fe0a9 # v2.3.0
+    - name: Update ESLint report symlinks
+      continue-on-error: true
+      shell: bash
+      run:
+        sed -i 's+/home/runner/work/${{ github.event.repository.name }}/${{
+        github.event.repository.name }}/+/github/workspace/+g' ${{
+        steps.sonarqube_report_paths.outputs.sonarqube_lint_report_paths }}
+
+    - name: SonarQube Scan
+      uses: sonarsource/sonarqube-scan-action@0c0f3958d90fc466625f1d1af1f47bddd4cc6bd1 # v3.0.0
       with:
-        args: >
-          -Dsonar.junit.reportPaths=${{
-            inputs.junit-xml-report-path
-          }} -Dsonar.typescript.lcov.reportPaths=${{
-            inputs.typescript-lcov-report-path
-          }} -Dsonar.eslint.reportPaths=${{
-            inputs.eslint-json-report-path
-          }}
+        args: ${{ env.SONARQUBE_ARGS }}
       env:
         SONAR_TOKEN: ${{ inputs.sonar-token }}
         SONAR_HOST_URL: ${{ inputs.sonar-host-url }}

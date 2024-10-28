@@ -646,6 +646,9 @@ jobs:
           E2E_TEST_PYROSCOPE_KEY:
             ${{ matrix.tests.pyroscope_env != '' && secrets.QA_PYROSCOPE_KEY ||
             '' }}
+          INTERNAL_DOCKER_REPO:
+            ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
+            secrets.QA_AWS_REGION }}.amazonaws.com
         with:
           test_command_to_run:
             ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1

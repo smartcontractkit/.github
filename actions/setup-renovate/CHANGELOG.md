@@ -1,5 +1,14 @@
 # setup-renovate
 
+## 0.1.3
+
+### Patch Changes
+
+- [#675](https://github.com/smartcontractkit/.github/pull/675)
+  [`18ffb0e`](https://github.com/smartcontractkit/.github/commit/18ffb0ed0ab2f53d3fdcb2170284763503e75880)
+  Thanks [@erikburt](https://github.com/erikburt)! - bump
+  renovatebot/github-action dependency
+
 ## 0.1.2
 
 ### Patch Changes
