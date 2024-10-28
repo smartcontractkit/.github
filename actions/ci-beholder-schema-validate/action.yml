@@ -12,4 +12,4 @@ runs:
   args:
     - validate
     - "-f"
-    - ${{ inputs.who-to-greet }}
+    - ${{ inputs.beholder-config-file-path }}
