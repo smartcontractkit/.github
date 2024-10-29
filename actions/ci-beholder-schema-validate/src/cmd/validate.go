@@ -29,7 +29,7 @@ func runValidateCmd(cmd *cobra.Command, args []string) {
 
 	fmt.Printf("Current working directory: %s\n", cwd)
 
-	// show all files in current working directory
+	// show all files and directories in the current working directory
 	files, err := os.ReadDir(cwd)
 	if err != nil {
 		log.Panic(err)

@@ -16,7 +16,6 @@ RUN go build -a -tags musl -o beholder-ci
 # PACKAGE step
 FROM alpine:latest
 RUN apk add --no-cache ca-certificates
-RUN adduser -u 1000 -D beholder-ci
 
 WORKDIR /app
 
