@@ -15,9 +15,6 @@ RUN go build -a -tags musl -o beholder-ci
 
 # PACKAGE step
 FROM alpine:latest
-RUN apk add --no-cache ca-certificates
-
-WORKDIR /app
 
 COPY --from=builder /app/beholder-ci /app/beholder-ci
-ENTRYPOINT ["ls"]
+ENTRYPOINT ["/app/beholder-ci"]
