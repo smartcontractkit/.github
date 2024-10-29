@@ -35,6 +35,10 @@ func runValidateCmd(cmd *cobra.Command, args []string) {
 		log.Panic(err)
 	}
 
+	
+	fmt.Printf("Files and directories %s\n", files)
+	
+
 	for _, file := range files {
 		fmt.Printf("File: %s\n", file.Name())
 	}
