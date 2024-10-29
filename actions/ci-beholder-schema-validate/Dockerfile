@@ -20,4 +20,4 @@ RUN apk add --no-cache ca-certificates
 WORKDIR /app
 
 COPY --from=builder /app/beholder-ci /app/beholder-ci
-ENTRYPOINT ["/app/beholder-ci"]
+ENTRYPOINT ["ls"]
