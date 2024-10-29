@@ -10,4 +10,6 @@ runs:
   using: "docker"
   image: "Dockerfile"
   args:
-    - validate -f ${{ inputs.beholder-config-file-path }}
+    - validate
+    - -f
+    - ${{ inputs.beholder-config-file-path }}
