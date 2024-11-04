@@ -184,3 +184,9 @@ runs:
           -v "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
           "${ENVOY_PROXY_IMAGE}" \
           /usr/local/bin/envoy -c /etc/envoy/envoy.yaml
+
+    - name: Test kubectl
+      if: inputs.use-k8s == 'true'
+      shell: bash
+      run: |
+        kubectl get pod -n crib-test -v=10
