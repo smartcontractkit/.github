@@ -93,5 +93,5 @@ static_resources:
           common_tls_context:
             validation_context:
               trusted_ca:
-                filename: "/tls/aws-ca.crt"
+                filename: "/tls"
               trust_chain_verification: VERIFY_TRUST_CHAIN
