@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 3.0.0
+
+### Major Changes
+
+- [#689](https://github.com/smartcontractkit/.github/pull/689)
+  [`e20e5fe`](https://github.com/smartcontractkit/.github/commit/e20e5fe5646c4a4091f8492b91e93db36b676399)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding additional
+  inputs for labeling resources in the composite CRIB GHA
+
 ## 2.1.0
 
 ### Minor Changes
