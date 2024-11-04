@@ -92,4 +92,4 @@ static_resources:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
           common_tls_context:
             validation_context:
-              trust_chain_verification: VERIFY_TRUST_CHAIN
+              trust_chain_verification: ACCEPT_UNTRUSTED
