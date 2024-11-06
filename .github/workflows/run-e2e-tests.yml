@@ -127,7 +127,7 @@ on:
           'Set to "true" to upload the test log on failure as Github artifact'
         required: false
         type: boolean
-        default: false
+        default: true
       test_log_upload_retention_days:
         description: "Number of days to retain the test log. Default is 3 days"
         required: false
