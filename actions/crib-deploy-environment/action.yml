@@ -64,9 +64,6 @@ inputs:
     default: "main"
     required: false
     description: Useful for testing updates in CRIB
-  host-header:
-    required: true
-    description: "Host header temporary"
   k8s-api-endpoint:
     required: true
     description: "Endpoint"
@@ -89,7 +86,6 @@ runs:
         # Choose port that is less likely to be conflicting with other GAP
         # instances that runs in the same workflow
         proxy-port: 8888
-        host-header: ${{ inputs.host-header }}
         k8s-api-endpoint: ${{ inputs.k8s-api-endpoint }}
 
     - name: Checkout crib repo
