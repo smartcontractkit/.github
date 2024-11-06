@@ -4,9 +4,6 @@ description:
   an ephemeral environment."
 
 inputs:
-  api-gateway-host:
-    description: "API Gateway host for GAP, used to access the Kubernetes API."
-    required: true
   aws-region:
     description: "AWS region."
     required: true
@@ -16,11 +13,6 @@ inputs:
   devspace-ingress-cidrs:
     default: "0.0.0.0/0"
     description: "DevSpace ingress CIDRs."
-    required: false
-  ecr-private-registry:
-    default: ""
-    description:
-      "ECR private registry account ID in Production, needed for GAP."
     required: false
   github-token:
     description:
@@ -72,18 +64,9 @@ inputs:
     default: "main"
     required: false
     description: Useful for testing updates in CRIB
-  chainlink-team:
-    default: ""
+  k8s-api-endpoint:
     required: true
-    description: |
-      Specify a relevant value for tagging resources and attributing
-      costs to the correct team.
-  chainlink-product:
-    default: ""
-    required: true
-    description: |
-      Specify a relevant value for tagging resources and attributing
-      costs to the correct product.
+    description: "Endpoint"
 outputs:
   devspace-namespace:
     description: "Kubernetes namespace used to provision a CRIB environment."
@@ -93,22 +76,17 @@ runs:
   using: "composite"
   steps:
     - name: Setup GAP
-      uses: smartcontractkit/.github/actions/setup-gap@d316f66b2990ea4daa479daa3de6fc92b00f863e # setup-gap@0.3.2
+      # TODO: change the git ref to the next version before merging.
+      uses: smartcontractkit/.github/actions/setup-gap@TODO # setup-gap@1.0.0
       with:
-        checkout-repo: false
         aws-role-arn: ${{ inputs.aws-role-arn }}
-        api-gateway-host: ${{ inputs.api-gateway-host }}
         aws-region: ${{ inputs.aws-region }}
-        ecr-private-registry: ${{ inputs.ecr-private-registry }}
         k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
-        use-private-ecr-registry: true
         use-k8s: true
         # Choose port that is less likely to be conflicting with other GAP
         # instances that runs in the same workflow
         proxy-port: 8888
-        gc-basic-auth: ${{ inputs.gc-basic-auth }}
-        gc-host: ${{ inputs.gc-host }}
-        gc-org-id: ${{ inputs.gc-org-id }}
+        k8s-api-endpoint: ${{ inputs.k8s-api-endpoint }}
 
     - name: Checkout crib repo
       uses: actions/checkout@v4.2.1
@@ -148,28 +126,15 @@ runs:
         sanitized_branch=$(echo "${{ steps.generate-ns-name.outputs.branch-name }}" \
           | sed 's/[^a-zA-Z0-9._-]/_/g' | cut -c1-63 | sed 's/[._-]$//')
 
-        # Validate that chainlink-team and chainlink-product inputs adhere to the Kubernetes label format.
-        if [[ ! "${{ inputs.chainlink-team }}" =~ ^[a-zA-Z0-9_.-]+$ ]] || [[ "${{ inputs.chainlink-team }}" -gt 63 ]] || [[ "${{ inputs.chainlink-team }}" =~ ^\. ]] || [[ "${{ inputs.chainlink-team }}" =~ \.$ ]]; then
-          echo "Invalid value for chainlink-team label: ${{ inputs.chainlink-team }}. Must be up to 63 characters, contain only letters, numbers, hyphens, underscores, and dots, and cannot start or end with a dot."
-          exit 1
-        fi
-
-        if [[ ! "${{ inputs.chainlink-product }}" =~ ^[a-zA-Z0-9_.-]+$ ]] || [[ "${{ inputs.chainlink-product }}" -gt 63 ]] || [[ "${{ inputs.chainlink-product }}" =~ ^\. ]] || [[ "${{ inputs.chainlink-product }}" =~ \.$ ]]; then
-          echo "Invalid value for chainlink-product label: ${{ inputs.chainlink-product }}. Must be up to 63 characters, contain only letters, numbers, hyphens, underscores, and dots, and cannot start or end with a dot."
-          exit 1
-        fi
-
         NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
         echo "Creating $NAMESPACE Kubernetes namespace.."
         kubectl create ns "$NAMESPACE"
 
         kubectl label namespace $NAMESPACE \
+          repo=${{ steps.generate-ns-name.outputs.repo-name }} \
           branch="${sanitized_branch}" \
-          chain.link/product=${{ inputs.chainlink-product }} \
-          chain.link/team=${{ inputs.chainlink-team }} \
           commit=${{ steps.generate-ns-name.outputs.commit-sha }} \
           pr-number=${{ steps.generate-ns-name.outputs.pr-number || 'none' }} \
-          repo=${{ steps.generate-ns-name.outputs.repo-name }} \
           workflow-job=${{ steps.generate-ns-name.outputs.workflow-job }} \
           workflow-run-number=${{ steps.generate-ns-name.outputs.workflow-run-number }}
 
@@ -208,7 +173,6 @@ runs:
         nix develop -c ./cribbit.sh "$DEVSPACE_NAMESPACE"
 
         nix develop -c devspace run ${{ inputs.command }} ${{ inputs.command-args }}
-
     - name: Render notification template
       uses: actions/github-script@v7.0.1
       id: render-slack-template
