@@ -1,13 +1,23 @@
 name: crib-purge-environment
 description: |
-  Action to destroy CRIB epehemeral environment.
-  It requires to run crib-deployment-environment beforehand
+  Action to destroy CRIB ephemeral environment.
+  It requires running crib-deployment-environment beforehand
   and depends on the environment setup from a dependent composite action.
 
 inputs:
   namespace:
     description: "The CRIB namespace that should be destroyed."
     required: true
+  gracefully-terminate:
+    description: "Whether to gracefully terminate the namespace."
+    required: false
+    default: "false"
+  gracefully-terminate-period:
+    description:
+      "The grace period (in seconds) for gracefully terminating the namespace.
+      Default is 60 seconds."
+    required: false
+    default: "60"
 
 runs:
   using: composite
@@ -19,11 +29,21 @@ runs:
         KUBECACHEDIR: /dev/null
       run: |
         NAMESPACE="${{ inputs.namespace }}"
+        GRACEFULLY_TERMINATE="${{ inputs.gracefully-terminate }}"
+        GRACEFULLY_TERMINATE_PERIOD="${{ inputs.gracefully-terminate-period }}"
 
         # Check if the namespace exists
         if kubectl get ns "$NAMESPACE" > /dev/null 2>&1; then
           echo "Namespace $NAMESPACE exists. Proceeding with deletion.."
-          kubectl delete ns "$NAMESPACE" --grace-period=0 --wait=false
+
+          # Check if graceful termination is enabled
+          if [ "$GRACEFULLY_TERMINATE" == "true" ]; then
+            echo "Gracefully terminating the namespace respecting the grace period."
+            kubectl delete ns "$NAMESPACE" --grace-period="$GRACEFULLY_TERMINATE_PERIOD" --wait=true
+          else
+            echo "Forcefully terminating the namespace without grace period."
+            kubectl delete ns "$NAMESPACE" --grace-period=0 --wait=false
+          fi
         else
           echo "Namespace $NAMESPACE does not exist. Skipping deletion."
         fi
