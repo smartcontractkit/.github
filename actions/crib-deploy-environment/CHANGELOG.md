@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 4.0.0
+
+### Major Changes
+
+- [#694](https://github.com/smartcontractkit/.github/pull/694)
+  [`7c903fb`](https://github.com/smartcontractkit/.github/commit/7c903fb5d6b845fb67fe8bf472f4b974449c75bc)
+  Thanks [@chainchad](https://github.com/chainchad)! - Update major setup-gap
+  dep
+
 ## 3.0.0
 
 ### Major Changes
