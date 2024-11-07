@@ -64,6 +64,18 @@ inputs:
     default: "main"
     required: false
     description: Useful for testing updates in CRIB
+  chainlink-team:
+    default: ""
+    required: true
+    description: |
+      Specify a relevant value for tagging resources and attributing
+      costs to the correct team.
+  chainlink-product:
+    default: ""
+    required: true
+    description: |
+      Specify a relevant value for tagging resources and attributing
+      costs to the correct product.
   k8s-api-endpoint:
     required: true
     description: "Endpoint"
