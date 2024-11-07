@@ -165,6 +165,11 @@ on:
           "SLACK_USER env used to send Slack notifications from test code"
         required: false
         type: string
+      setup_gap:
+        description: 'Set to "true" to setup GAP for Grafana.'
+        required: false
+        type: boolean
+        default: false
     outputs:
       test_results:
         description: "Test results from all executed tests"
@@ -601,6 +606,7 @@ jobs:
         uses: smartcontractkit/.github/actions/setup-gap@d316f66b2990ea4daa479daa3de6fc92b00f863e # setup-gap@0.3.2
         id: setup-gap
         timeout-minutes: 3
+        if: inputs.setup_gap
         with:
           aws-region: ${{ secrets.AWS_REGION }}
           aws-role-arn: ${{ secrets.AWS_OIDC_IAM_ROLE_VALIDATION_PROD_ARN }}
