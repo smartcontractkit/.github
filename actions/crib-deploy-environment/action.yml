@@ -125,15 +125,27 @@ runs:
         sanitized_branch=$(echo "${{ steps.generate-ns-name.outputs.branch-name }}" \
           | sed 's/[^a-zA-Z0-9._-]/_/g' | cut -c1-63 | sed 's/[._-]$//')
 
+        # Validate that chainlink-team and chainlink-product inputs adhere to the Kubernetes label format.
+        if [[ ! "${{ inputs.chainlink-team }}" =~ ^[a-zA-Z0-9_.-]+$ ]] || [[ "${{ inputs.chainlink-team }}" -gt 63 ]] || [[ "${{ inputs.chainlink-team }}" =~ ^\. ]] || [[ "${{ inputs.chainlink-team }}" =~ \.$ ]]; then
+          echo "Invalid value for chainlink-team label: ${{ inputs.chainlink-team }}. Must be up to 63 characters, contain only letters, numbers, hyphens, underscores, and dots, and cannot start or end with a dot."
+          exit 1
+        fi
+        if [[ ! "${{ inputs.chainlink-product }}" =~ ^[a-zA-Z0-9_.-]+$ ]] || [[ "${{ inputs.chainlink-product }}" -gt 63 ]] || [[ "${{ inputs.chainlink-product }}" =~ ^\. ]] || [[ "${{ inputs.chainlink-product }}" =~ \.$ ]]; then
+          echo "Invalid value for chainlink-product label: ${{ inputs.chainlink-product }}. Must be up to 63 characters, contain only letters, numbers, hyphens, underscores, and dots, and cannot start or end with a dot."
+          exit 1
+        fi
+
         NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
         echo "Creating $NAMESPACE Kubernetes namespace.."
         kubectl create ns "$NAMESPACE"
 
         kubectl label namespace $NAMESPACE \
-          repo=${{ steps.generate-ns-name.outputs.repo-name }} \
           branch="${sanitized_branch}" \
+          chain.link/product=${{ inputs.chainlink-product }} \
+          chain.link/team=${{ inputs.chainlink-team }} \
           commit=${{ steps.generate-ns-name.outputs.commit-sha }} \
           pr-number=${{ steps.generate-ns-name.outputs.pr-number || 'none' }} \
+          repo=${{ steps.generate-ns-name.outputs.repo-name }} \
           workflow-job=${{ steps.generate-ns-name.outputs.workflow-job }} \
           workflow-run-number=${{ steps.generate-ns-name.outputs.workflow-run-number }}
 
