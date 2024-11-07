@@ -76,8 +76,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup GAP
-      # TODO: change the git ref to the next version before merging.
-      uses: smartcontractkit/.github/actions/setup-gap@TODO # setup-gap@1.0.0
+      uses: smartcontractkit/.github/actions/setup-gap@47a3b0cf4e87a031049eef2d951982c94db04cae # setup-gap@1.0.0
       with:
         aws-role-arn: ${{ inputs.aws-role-arn }}
         aws-region: ${{ inputs.aws-region }}
