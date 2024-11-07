@@ -1,5 +1,14 @@
 # crib-purge-environment
 
+## 0.3.0
+
+### Minor Changes
+
+- [#692](https://github.com/smartcontractkit/.github/pull/692)
+  [`3bb9ad4`](https://github.com/smartcontractkit/.github/commit/3bb9ad43053a6319386d171d63c8680ee8ef6148)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding support for
+  gracefully terminating Kubernetes namespace
+
 ## 0.2.1
 
 ### Patch Changes
