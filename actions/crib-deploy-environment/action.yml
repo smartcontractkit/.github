@@ -114,6 +114,14 @@ runs:
         enable-aws: true
         aws-region: ${{ inputs.aws-region }}
 
+    - name: Setup gobin for nix
+      shell: bash
+      run: |
+        GOBIN="$HOME/.nix-go/bin"
+        echo "GOBIN=$GOBIN" >> $GITHUB_ENV
+        mkdir -p "$GOBIN"
+        echo "PATH=$GOBIN:$PATH" >> $GITHUB_ENV
+
     - name: Generate CRIB Namespace Name and labels
       id: generate-ns-name
       shell: bash
