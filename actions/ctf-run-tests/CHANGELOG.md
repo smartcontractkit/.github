@@ -1,5 +1,14 @@
 # ctf-run-tests
 
+## 0.2.0
+
+### Minor Changes
+
+- [#699](https://github.com/smartcontractkit/.github/pull/699)
+  [`da9458e`](https://github.com/smartcontractkit/.github/commit/da9458ee8cdd77c0d1143b69b9d3cc4df7cd7d71)
+  Thanks [@kalverra](https://github.com/kalverra)! - Added setup_gap input,
+  default to false
+
 ## 0.1.2
 
 ### Patch Changes
