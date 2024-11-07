@@ -1,5 +1,14 @@
 # setup-gap
 
+## 1.0.0
+
+### Major Changes
+
+- [#693](https://github.com/smartcontractkit/.github/pull/693)
+  [`cd10ac2`](https://github.com/smartcontractkit/.github/commit/cd10ac239d5332f3a5333940dfa449b953157cb4)
+  Thanks [@chainchad](https://github.com/chainchad)! - Switch over to GAP v2
+  compatibility
+
 ## 0.6.1
 
 ### Patch Changes
