@@ -60,6 +60,18 @@ runs:
       run: |
         go install github.com/kovetskiy/mark@11.1.0
 
+    - name: Get default branch
+      id: get_default_branch
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const repo = await github.repos.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo
+          });
+          return repo.data.default_branch;
+        result-encoding: string
+
     - name: Sync docs
       env:
         FILES: ${{ inputs.files }}
@@ -70,5 +82,6 @@ runs:
         PARENT: ${{ inputs.parent }}
         MARK_DEBUG: ${{ inputs.debug }}
         MARK_DRY_RUN: ${{ inputs.dry-run }}
+        DEFAULT_BRANCH: ${{ steps.get_default_branch.outputs.result }}
       shell: bash
       run: ${{ github.action_path }}/mark-sync.sh
