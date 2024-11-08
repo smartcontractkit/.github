@@ -1,0 +1,62 @@
+name: go-test-caching
+description: "Cache go tests"
+inputs:
+  module-directory:
+    description: "Directory containing the go module"
+    required: true
+    default: "."
+
+  update-index:
+    description: |
+      Update the test index file after running tests.
+      Will only update if the current branch is the default branch.
+    default: "false"
+  force-update-index:
+    description: |
+      Force update the test index file, even when not on the default branch.
+    default: "false"
+
+  run-all-tests:
+    description: |
+      Ignore the difference between the current test indexes, and run all tests.
+    default: "false"
+
+  tag-filter:
+    description: |
+      Filter tests by a specific gobuild flag. Only tests with the specified tags will be built and run.
+      If you'd rather run all tests, then pass -tags <tag> into the build-flags input.
+      Will look for // gobuild: <tag> in the test files.
+    default: ""
+
+  build-flags:
+    description: "Flags to pass when running go test -c"
+    default: ""
+
+  hashes-branch:
+    description: |
+      Branch which contains the test-hashes.json file used for
+      comparing test hashes
+    default: "test-hashes"
+
+  test-suite:
+    description: |
+      The name of the test suite, used to scope the test binary hash index.
+      Has no effect otherwise.
+    required: true
+
+  build-concurrency:
+    description: "Number of concurrent builds to run"
+    default: "8"
+
+  run-concurrency:
+    description: "Number of concurrent test runs to run"
+    default: "8"
+
+  github-token:
+    description:
+      "Github token with read permissions on all smartcontractkit repos"
+    default: ${{ github.token }}
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
