@@ -1,5 +1,23 @@
 # crib-deploy-environment
 
+## 4.0.0
+
+### Major Changes
+
+- [#694](https://github.com/smartcontractkit/.github/pull/694)
+  [`7c903fb`](https://github.com/smartcontractkit/.github/commit/7c903fb5d6b845fb67fe8bf472f4b974449c75bc)
+  Thanks [@chainchad](https://github.com/chainchad)! - Update major setup-gap
+  dep
+
+## 3.0.0
+
+### Major Changes
+
+- [#689](https://github.com/smartcontractkit/.github/pull/689)
+  [`e20e5fe`](https://github.com/smartcontractkit/.github/commit/e20e5fe5646c4a4091f8492b91e93db36b676399)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding additional
+  inputs for labeling resources in the composite CRIB GHA
+
 ## 2.1.0
 
 ### Minor Changes
