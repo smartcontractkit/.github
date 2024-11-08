@@ -127,7 +127,7 @@ on:
           'Set to "true" to upload the test log on failure as Github artifact'
         required: false
         type: boolean
-        default: false
+        default: true
       test_log_upload_retention_days:
         description: "Number of days to retain the test log. Default is 3 days"
         required: false
@@ -165,6 +165,11 @@ on:
           "SLACK_USER env used to send Slack notifications from test code"
         required: false
         type: string
+      setup_gap:
+        description: 'Set to "true" to setup GAP for Grafana.'
+        required: false
+        type: boolean
+        default: false
     outputs:
       test_results:
         description: "Test results from all executed tests"
@@ -601,6 +606,7 @@ jobs:
         uses: smartcontractkit/.github/actions/setup-gap@d316f66b2990ea4daa479daa3de6fc92b00f863e # setup-gap@0.3.2
         id: setup-gap
         timeout-minutes: 3
+        if: inputs.setup_gap
         with:
           aws-region: ${{ secrets.AWS_REGION }}
           aws-role-arn: ${{ secrets.AWS_OIDC_IAM_ROLE_VALIDATION_PROD_ARN }}
@@ -675,6 +681,9 @@ jobs:
           E2E_TEST_PYROSCOPE_KEY:
             ${{ matrix.tests.pyroscope_env != '' && secrets.QA_PYROSCOPE_KEY ||
             '' }}
+          INTERNAL_DOCKER_REPO:
+            ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
+            secrets.QA_AWS_REGION }}.amazonaws.com
         with:
           test_command_to_run:
             ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1

@@ -134,6 +134,7 @@ runs:
         echo "$response_content" | sed -e 's/^ -/  -/g' > chatgpt_output.txt
 
     - name: Generate Error Report
+      id: generate_error_comment
       if:
         ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion ==
         'failure' }}
@@ -160,10 +161,11 @@ runs:
         $(cat chatgpt_output.txt)
         </$WORKFLOW_ID>"
 
-        # post the error report to the PR
+        # prepare the report message
         ${{ github.action_path }}/update_pr_comment.sh
 
     - name: Generate Success Report
+      id: generate_success_comment
       if:
         ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion !=
         'failure' }}
@@ -189,5 +191,49 @@ runs:
 
         </$WORKFLOW_ID>"
 
-        # post the error report to the PR
+        # prepare the report message
         ${{ github.action_path }}/update_pr_comment.sh
+
+    - name: post pr comment
+      if: ${{ env.SKIP_ACTION == 'false' }}
+      uses: actions/github-script@v7
+      env:
+        GH_TOKEN: ${{ inputs.gh-token }}
+        PR_NUMBER: ${{ steps.get_pr_number.outputs.pr_number }}
+        COMMENT_ID:
+          ${{ steps.generate_error_comment.outputs.comment_id ||
+          steps.generate_success_comment.outputs.comment_id }}
+        WORKFLOW_STATUS: ${{ inputs.parent-workflow-conclusion }}
+      with:
+        script: |
+          const prNumber = process.env.PR_NUMBER;
+          const fs = require('fs');
+          const message = fs.readFileSync('pr_message.md', 'utf8');
+          const commentId = process.env.COMMENT_ID;
+
+          // Create new comment if COMMENT_ID is empty
+          if ((!commentId || commentId.trim() === '')) {
+            // but only if the parent workflow failed or if the parent workflow succeeded and skip-on-success is false
+            if (process.env.WORKFLOW_STATUS === 'failure' 
+              || (process.env.WORKFLOW_STATUS === 'success' && process.env.SKIP_ON_SUCCESS === 'false')) {
+              const newComment = await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: message
+              });
+              console.log(`Created new comment with ID: ${newComment.data.id}`);
+              return newComment.data.id;
+            }
+            return '';
+          } else {
+            // Edit existing comment if COMMENT_ID is present
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: commentId,
+              body: message
+            });
+            console.log(`Updated existing comment with ID: ${commentId}`);
+            return commentId;
+          }

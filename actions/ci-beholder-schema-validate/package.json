@@ -1,10 +1,10 @@
 {
-  "name": "setup-gap",
-  "version": "1.0.0",
-  "description": "setup github actions proxy",
+  "name": "ci-beholder-schema-validate",
+  "version": "0.1.0",
+  "description": "",
   "private": true,
   "scripts": {},
-  "author": "@smartcontractkit",
+  "author": "@hendoxc",
   "license": "MIT",
   "dependencies": {},
   "repository": "https://github.com/smartcontractkit/.github"
