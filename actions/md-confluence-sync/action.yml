@@ -3,9 +3,10 @@ description: "Sync Markdown documentation to Confluence"
 
 inputs:
   files:
-    description:
-      "use specified markdown file(s) for converting to html. Supports file
-      globbing patterns"
+    description: |
+      Use specified markdown file(s) for converting to html. Supports file
+      globbing patterns. GLOB pattern is used for linting as well, so make 
+      sure to filter files with .md extension.
     required: true
   base-url:
     description: "Confluence base url e.g: https://example.com/wiki/"
@@ -45,12 +46,8 @@ runs:
     - name: Lint MD files using Prettier
       uses: smartcontractkit/.github/actions/ci-prettier@a738d4cfa4826d6f44dbebcc3724385f6de58d42 # ci-prettier@0.1.1
       with:
-        basic-auth: ${{ inputs.gc-basic-auth }}
         checkout-repo: "false"
-        gc-host: ${{ inputs.gc-host }}
-        gc-org-id: ${{ inputs.gc-org-id}}
-        prettier-command: pnpm prettier --check ${{ inputs.files }}/**/*.md
-        this-job-name: ${{ inputs.metrics-job-name }}
+        prettier-command: pnpm prettier --check ${{ inputs.files }}
 
     - name: Set up Go
       uses: actions/setup-go@v5.0.2
@@ -59,6 +56,18 @@ runs:
       shell: bash
       run: |
         go install github.com/kovetskiy/mark@11.1.0
+
+    - name: Get default branch
+      id: get_default_branch
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const repo = await github.rest.repos.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo
+          });
+          return repo.data.default_branch;
+        result-encoding: string
 
     - name: Sync docs
       env:
@@ -70,5 +79,6 @@ runs:
         PARENT: ${{ inputs.parent }}
         MARK_DEBUG: ${{ inputs.debug }}
         MARK_DRY_RUN: ${{ inputs.dry-run }}
+        DEFAULT_BRANCH: ${{ steps.get_default_branch.outputs.result }}
       shell: bash
       run: ${{ github.action_path }}/mark-sync.sh
