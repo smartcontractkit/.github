@@ -2,11 +2,7 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "username": "app-token-issuer-releng-renovate[bot]",
   "gitAuthor": "App Token Issuer Releng Renovate Bot <376532+app-token-issuer-releng-renovate[bot]@users.noreply.github.com>",
-  "extends": [
-    "config:base",
-    "helpers:pinGitHubActionDigests",
-    ":dependencyDashboard"
-  ],
+  "extends": ["config:base", ":dependencyDashboard"],
   "repositories": ["smartcontractkit/.github"],
   "onboarding": false,
   "requireConfig": "optional",
