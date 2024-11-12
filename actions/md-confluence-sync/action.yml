@@ -62,7 +62,7 @@ runs:
       uses: actions/github-script@v7
       with:
         script: |
-          const repo = await github.repos.get({
+          const repo = await github.rest.repos.get({
             owner: context.repo.owner,
             repo: context.repo.repo
           });
