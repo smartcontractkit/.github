@@ -62,7 +62,7 @@ runs:
 
     - name: Get default branch
       id: get_default_branch
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         script: |
           const repo = await github.repos.get({
