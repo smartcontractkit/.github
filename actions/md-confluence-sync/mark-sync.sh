@@ -37,7 +37,7 @@ if [[ -z "${PARENT:-}" ]]; then
 fi
 
 if [[ -z "${DEFAULT_BRANCH:-}" ]]; then
-  echo "DEFAULT_BRANCH is not set. Exiting."
+  echo "::error::DEFAULT_BRANCH is not set. Exiting."
   exit 1
 fi
 
