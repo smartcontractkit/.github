@@ -1,5 +1,16 @@
 # md-confluence-sync
 
+## 0.1.0
+
+### Minor Changes
+
+- [#701](https://github.com/smartcontractkit/.github/pull/701)
+  [`4d7a500`](https://github.com/smartcontractkit/.github/commit/4d7a50021f8876fd3a8ba04ace228cf00087d959)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - \* Prepend Disclaimer
+  banner to prevent manual edits.
+  - Remove lock from the article, so they can be labeled for deletion.
+  - Update prettier path to use the same glob pattern as mark
+
 ## 0.0.4
 
 ### Patch Changes

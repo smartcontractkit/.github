@@ -1,5 +1,14 @@
 # setup-gap
 
+## 1.1.0
+
+### Minor Changes
+
+- [#707](https://github.com/smartcontractkit/.github/pull/707)
+  [`acf60c4`](https://github.com/smartcontractkit/.github/commit/acf60c433f412c1a671ddd014e1d699379b8292f)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding a check to
+  ensure that Envoy proxy is up and running.
+
 ## 1.0.0
 
 ### Major Changes
