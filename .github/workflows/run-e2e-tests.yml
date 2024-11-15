@@ -257,7 +257,6 @@ env:
     ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
     secrets.AWS_REGION}}.amazonaws.com/afn2proxy
 
-
 jobs:
   validate-inputs:
     name: Validate workflow inputs
