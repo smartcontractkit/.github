@@ -159,13 +159,13 @@ runs:
           pr-number=${{ steps.generate-ns-name.outputs.pr-number || 'none' }} \
           repo=${{ steps.generate-ns-name.outputs.repo-name }} \
           workflow-job=${{ steps.generate-ns-name.outputs.workflow-job }} \
-          workflow-run-number=${{ steps.generate-ns-name.outputs.workflow-run-number }}
+          workflow-run-number=${{ steps.generate-ns-name.outputs.workflow-run-number }} -v=10
 
         kubectl label namespace --overwrite=true $NAMESPACE \
-          cleanup.kyverno.io/ttl=${{ inputs.ns-ttl }}
+          cleanup.kyverno.io/ttl=${{ inputs.ns-ttl }} -v=10
 
         echo "Kubernetes namespace [$NAMESPACE] successfully labeled:"
-        kubectl get namespace $NAMESPACE --show-labels
+        kubectl get namespace $NAMESPACE --show-labels -v=10
 
     - name: Deploy to CRIB ephemeral environment
       working-directory: ${{ github.workspace }}/crib/deployments/chainlink
@@ -196,6 +196,14 @@ runs:
         nix develop -c ./cribbit.sh "$DEVSPACE_NAMESPACE"
 
         nix develop -c devspace run ${{ inputs.command }} ${{ inputs.command-args }}
+
+    - name: Dump envoy logs
+      uses: jwalton/gh-docker-logs@v2
+      if: failure()
+      with:
+        images: "envoyproxy/envoy,envoy"
+        tail: "10000"
+
     - name: Render notification template
       uses: actions/github-script@v7.0.1
       id: render-slack-template

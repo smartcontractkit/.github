@@ -3,7 +3,7 @@ static_resources:
     - name: https
       address:
         socket_address:
-          address: 0.0.0.0
+          address: 0.0.0.0  # Consider restricting if needed
           port_value: "${PROXY_PORT}"
       filter_chains:
         - filters:
@@ -11,6 +11,14 @@ static_resources:
               typed_config:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
                 stat_prefix: http
+                http_protocol_options:
+                  max_headers_count: 100
+                  max_headers_size: 65536  # 64 KiB
+                http2_protocol_options: {}
+                common_http_protocol_options:
+                  idle_timeout: 120s
+                  max_stream_duration:
+                    grpc_timeout_header_max: 0s
                 route_config:
                   name: http
                   virtual_hosts:
@@ -21,6 +29,11 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: k8s_api_cluster
+                            timeout: 15s
+                            retry_policy:
+                              retry_on: "5xx,connect-failure"
+                              num_retries: 3
+                              per_try_timeout: 5s
                 http_filters:
                   - name: envoy.filters.http.lua
                     typed_config:
@@ -43,12 +56,14 @@ static_resources:
                   - name: envoy.access_loggers.file
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog
-                      path: "/dev/stdout" # Log to stdout, can be a file path
+                      path: "/dev/stdout"  # Log to stdout, can be a file path
                       log_format:
                         json_format:
                           start_time: "%START_TIME%"
+                          timestamp: "%START_TIME(%s)%"
                           request_method: "%REQ(:METHOD)%"
                           request_path: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"
+                          original_host: "%REQ(:HOST)%"
                           response_code: "%RESPONSE_CODE%"
                           duration: "%DURATION%"
                           bytes_sent: "%BYTES_SENT%"
@@ -56,9 +71,19 @@ static_resources:
                           user_agent: "%REQ(User-Agent)%"
                           client_ip: "%REQ(X-Forwarded-For)%"
                           request_size: "%REQ(:CONTENT_LENGTH)%"
-                          upstream_host: "%UPSTREAM_HOST%"
-                          trace_id: "%REQ(X-B3-TraceId)%"
                           response_size: "%RESP(:CONTENT_LENGTH)%"
+                          upstream_host: "%UPSTREAM_HOST%"
+                          upstream_cluster: "%UPSTREAM_CLUSTER%"
+                          upstream_local_address: "%UPSTREAM_LOCAL_ADDRESS%"
+                          trace_id: "%REQ(X-B3-TraceId)%"
+                          failure_reason: "%UPSTREAM_TRANSPORT_FAILURE_REASON%"
+                          protocol: "%PROTOCOL%"
+                          request_flags: "%RESPONSE_FLAGS%"
+                          retries: "%RESP(X-Envoy-Retry-Count)%"
+                          tls_version: "%UPSTREAM_TLS_VERSION%"
+                          tls_cipher: "%UPSTREAM_TLS_CIPHER%"
+
+
           transport_socket:
             name: envoy.transport_sockets.tls
             typed_config:
@@ -74,8 +99,10 @@ static_resources:
                     filename: "/tls/ca.crt"
   clusters:
     - name: k8s_api_cluster
-      connect_timeout: 10s
-      type: STRICT_DNS
+      connect_timeout: 10s  # Reduced from 25s for quicker failover
+      type: LOGICAL_DNS
+      dns_lookup_family: V4_ONLY
+      dns_refresh_rate: 30s  # Ensure periodic DNS resolution updates
       lb_policy: ROUND_ROBIN
       load_assignment:
         cluster_name: k8s_api_cluster
@@ -95,3 +122,38 @@ static_resources:
               trusted_ca:
                 filename: "/tls/aws-ca.crt"
               trust_chain_verification: VERIFY_TRUST_CHAIN
+            alpn_protocols: ["h2", "http/1.1"]  # Explicitly specify HTTP versions
+      typed_extension_protocol_options:
+        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+          explicit_http_config:
+            http2_protocol_options:
+              initial_stream_window_size: 131072  # Increased for higher throughput
+              initial_connection_window_size: 2097152  # Increased to 2 MiB
+          common_http_protocol_options:
+            idle_timeout: 30s  # Avoid holding stale connections longer
+            retry_policy:
+              retry_on: "5xx,connect-failure,refused-stream"
+              num_retries: 3
+              per_try_timeout: 3s  # Short retry timeout to recover quickly
+      health_checks:  # Ensure upstream health before routing traffic
+        - timeout: 1s
+          interval: 5s
+          unhealthy_threshold: 3
+          healthy_threshold: 2
+          http_health_check:
+            path: "/healthz"
+            host: "${K8S_API_ENDPOINT}"
+            codec_client_type: HTTP2
+
+layered_runtime:
+  layers:
+  - name: static_layer_0
+    static_layer:
+      envoy:
+        resource_limits:
+          listener:
+            example_listener_name:
+              connection_limit: 10000
+      overload:
+        global_downstream_max_connections: 50000
