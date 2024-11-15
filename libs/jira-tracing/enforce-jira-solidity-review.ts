@@ -17,9 +17,10 @@ import {
 import fs from "fs";
 
 async function main() {
+  const changesetKey = process.env.CHANGESET_KEY;
   core.info("Started linking PR to a Solidity Review issue");
   const solidityReviewTemplateKey = readSolidityReviewTemplateKey();
-  const changesetFile = extractChangesetFile();
+  const changesetFile = await extractChangesetFile(changesetKey);
 
   const jiraPRIssueKeys = await extractJiraIssueNumbersFrom(PR_PREFIX, [
     changesetFile,

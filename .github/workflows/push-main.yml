@@ -10,54 +10,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
 
       - name: ci-lint
         uses: ./actions/ci-lint-ts
         with:
           # general inputs
           checkout-repo: "false"
-          # grafana inputs
-          metrics-job-name: ci-lint
-          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
           pnpm-version: "^9.0.0"
 
   ci-prettier:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
 
       - name: ci-prettier
         uses: ./actions/ci-prettier
         with:
           # general inputs
           checkout-repo: "false"
-          # grafana inputs
-          metrics-job-name: ci-prettier
-          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
           pnpm-version: "^9.0.0"
 
   ci-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
 
       - name: ci-test
         uses: ./actions/ci-test-ts
         with:
           # general inputs
           checkout-repo: "false"
-          # grafana inputs
-          metrics-job-name: ci-test
-          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
           pnpm-version: "^9.0.0"
 
   cicd-build-publish-artifacts-dev:
@@ -71,20 +56,14 @@ jobs:
       actions: read
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
         with:
           fetch-depth: 0
 
       - name: cicd-build-publish-artifacts-dev
         uses: ./actions/cicd-build-publish-artifacts-ts
         with:
-          # general inputs
           checkout-repo: "false"
-          # grafana inputs
-          metrics-job-name: cicd-build-publish-artifacts-dev
-          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
           pnpm-version: "^9.0.0"
 
   cd-release:
@@ -95,7 +74,7 @@ jobs:
       actions: read
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
         with:
           fetch-depth: 0
 
@@ -103,15 +82,10 @@ jobs:
         uses: ./actions/cicd-changesets
         with:
           # general inputs
+          pnpm-version: "^9.0.0"
           git-user: app-token-issuer-releng-renovate[bot]
           git-email: app-token-issuer-releng-renovate[bot]@users.noreply.github.com
           # aws inputs
           aws-region: ${{ secrets.AWS_REGION }}
           aws-role-arn: ${{ secrets.AWS_OIDC_IAM_ROLE_ARN_GATI }}
           aws-lambda-url: ${{ secrets.AWS_LAMBDA_URL_GATI }}
-          # grafana inputs
-          metrics-job-name: cd-release
-          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
-          pnpm-version: "^9.0.0"

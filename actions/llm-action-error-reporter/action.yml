@@ -1,4 +1,8 @@
 name: LLM Action Error Reporter
+description: |
+  Action Error Reporter is designed to report errors from a parent workflow.
+  It uses ChatGPT to analyze the logs and generate a report that is posted as a
+  comment on the PR that triggered the parent workflow.
 # workaround while waiting for https://github.com/actions/runner/issues/886 (gh run view can't run in currently running workflow)
 inputs:
   parent-workflow-conclusion:
@@ -7,18 +11,20 @@ inputs:
       'failure'"
     type: string
     required: true
-  edit-comment:
-    description: "Whether to edit the last comment or create a new one"
+  skip-on-success:
+    description:
+      "Whether to skip the action if the parent workflow is successful"
     required: false
     type: boolean
+    default: false
   gh-token:
     description: "github token to make a comment with"
     type: string
     required: true
   openai-model:
-    description: "openai model. defaults to 'gpt-4-turbo-2024-04-09'"
+    description: "openai model. defaults to 'gpt-4o-2024-05-13'"
     required: false
-    default: "gpt-4-turbo-2024-04-09"
+    default: "gpt-4o-2024-05-13"
     type: string
   openai-api-key:
     description: "openai api key"
@@ -28,31 +34,16 @@ inputs:
     description: "ref of the workflow to checkout"
     required: false
     default: "main"
-  # grafana inputs (optional)
-  metrics-job-name:
-    description: "grafana metrics job name"
+  log-lines-limit:
+    description: "The maximum number of log lines to process per group"
     required: false
-  metrics-id:
-    description:
-      "grafana metrics id, used for continuity of metrics during job name
-      changes - required if metrics-job-name is passed"
-    required: false
-  gc-host:
-    description: "grafana hostname - required if metrics-job-name is passed"
-    required: false
-  gc-basic-auth:
-    description: "grafana basic auth - required if metrics-job-name is passed"
-    required: false
-  gc-org-id:
-    description:
-      "grafana org/tenant id - required if metrics-job-name is passed"
-    required: false
+    default: "500"
 
 runs:
   using: "composite"
   steps:
     - name: Checkout calling repo
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      uses: actions/checkout@v4.2.1
 
     - name: Check if this run is invoked from a pull request event
       shell: bash
@@ -72,22 +63,12 @@ runs:
 
         # Convert pull_requests array to JSON string and get pr_number from the first object
         pull_requests_json='${{ toJson(github.event.workflow_run.pull_requests) }}'
-        echo "pr_number="$(echo "$pull_requests_json" | jq '.[0].number')"" >> "$GITHUB_OUTPUT"
-
-    - name: Prepare logs
-      if:
-        ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion ==
-        'failure' }}
-      shell: bash
-      env:
-        GH_TOKEN: ${{ inputs.gh-token }}
-      run: |
-        echo "Analyzing run ${{ github.event.workflow_run.id }}"
-        gh run view ${{ github.event.workflow_run.id }} --log-failed | jq -Rs . | sed 's/^"//;s/"$//' > runlog.log
+        pr_number=$(echo "$pull_requests_json" | jq -r '.[0].number')
+        echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
 
     - name: Checkout action repo
       if: ${{ env.SKIP_ACTION == 'false' }}
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      uses: actions/checkout@v4.2.1
       with:
         repository: smartcontractkit/.github
         ref: ${{ inputs.workflow-ref }}
@@ -98,13 +79,31 @@ runs:
         sparse-checkout-cone-mode: false
         fetch-depth: 1
 
+    - name: Prepare logs
+      if:
+        ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion ==
+        'failure' }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh-token }}
+        LINE_LIMIT: ${{ inputs.log-lines-limit }}
+      run: |
+        echo "Analyzing run ${{ github.event.workflow_run.id }}"
+        LOG_RAW=$(gh run view ${{ github.event.workflow_run.id }} --log-failed)
+        echo "$LOG_RAW" > rawlog.log
+
+        # trim logs and outputs to runlog.log
+        ${{ github.action_path }}/trim_logs.sh
+
     - name: Call ChatGPT
       if:
         ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion ==
         'failure' }}
       shell: bash
       run: |
-        log_output=$(cat runlog.log | sed -e 's/\\ No newline at end of file//g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
+        # processes the contents of runlog.log  and prompt: converts to raw string, removes leading and trailing quotes, and cleans up known problematic patterns.
+        # this helps prepare both prompt and log content for the OpenAI API call
+        log_output=$(cat runlog.log | jq -Rs . | sed 's/^"//;s/"$//' | sed -e 's/\\ No newline at end of file//g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
         openai_prompt=$(cat error_reporter_actions/actions/llm-action-error-reporter/log-analyze-prompt.md | sed 's/"/\\"/g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
         openai_model=${{ inputs.openai-model }}
         openai_result=$(echo '{
@@ -125,7 +124,7 @@ runs:
         )
 
         # throw error openai_result when is not 200
-        if [ "$openai_result" != '200' ]; then
+        if [[ "$openai_result" != '200' ]]; then
           echo "::error::OpenAI API call failed with status $openai_result: $(cat prompt_response.json)"
           exit 1
         fi
@@ -135,6 +134,7 @@ runs:
         echo "$response_content" | sed -e 's/^ -/  -/g' > chatgpt_output.txt
 
     - name: Generate Error Report
+      id: generate_error_comment
       if:
         ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion ==
         'failure' }}
@@ -142,30 +142,30 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
         PR_NUMBER: ${{ steps.get_pr_number.outputs.pr_number }}
-        edit_comment: ${{ inputs.edit-comment }}
+        OPENAI_MODEL: ${{ inputs.openai-model }}
       run: |
-        workflow_name=$(gh run view ${{ github.event.workflow_run.id }} --json workflowName --jq '.workflowName')
-        head_sha=$(gh run view ${{ github.event.workflow_run.id }} --json headSha --jq '.headSha')
-        short_sha=$(echo $head_sha | cut -c1-7)
-        repo_url=$(gh repo view --json url --jq '.url')
+        export WORKFLOW_NAME=$(gh run view ${{ github.event.workflow_run.id }} --json workflowName --jq '.workflowName')
+        export HEAD_SHA=$(gh run view ${{ github.event.workflow_run.id }} --json headSha --jq '.headSha')
+        export REPO_URL=$(gh repo view --json url --jq '.url')
+        export WF_JOB_URLS=$(gh run view ${{ github.event.workflow_run.id }} --json jobs --jq '.jobs | map("[\(.name)](\(.url))") | join(" , ")')
+        export AER_JOB_URLS=$(gh run view $GITHUB_RUN_ID --json jobs --jq '.jobs | map("[aer_workflow](\(.url))") | join(" , ")')
+        export WORKFLOW_ID=$(echo "$WORKFLOW_NAME" | tr -d ' ' | tr '[:upper:]' '[:lower:]')
 
-        pr_message="**Below is an analysis created by an LLM. Be mindful of hallucinations and verify accuracy.**
+        export PR_MESSAGE="
+        <$WORKFLOW_ID>
 
-        ## WF: $workflow_name[#$short_sha]($repo_url/commit/$head_sha)
+        ## AER Report: [$WORKFLOW_NAME]($REPO_URL/actions/runs/${{ github.event.workflow_run.id }})
 
-        $(cat chatgpt_output.txt)"
+        $AER_JOB_URLS , [commit]($REPO_URL/commit/$HEAD_SHA) , $WF_JOB_URLS
 
-        # Fetch the comments on the pull request and filter for comments by github.actor
-        author_comments=$(gh pr view $PR_NUMBER --json comments --jq ".comments | map(select(.author.login == \"github-actions\")) | length")
+        $(cat chatgpt_output.txt)
+        </$WORKFLOW_ID>"
 
-        # Check if edit-comment is true and there are prior comments from github.actor
-        if [ "$edit_comment" = "true" ] && [ "$author_comments" -gt 0 ]; then
-          gh pr comment $PR_NUMBER -b "$pr_message" --edit-last
-        else
-          gh pr comment $PR_NUMBER -b "$pr_message"
-        fi
+        # prepare the report message
+        ${{ github.action_path }}/update_pr_comment.sh
 
     - name: Generate Success Report
+      id: generate_success_comment
       if:
         ${{ env.SKIP_ACTION == 'false' && inputs.parent-workflow-conclusion !=
         'failure' }}
@@ -173,35 +173,67 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
         PR_NUMBER: ${{ steps.get_pr_number.outputs.pr_number }}
-        edit_comment: ${{ inputs.edit-comment }}
+        SKIP_ON_SUCCESS: ${{ inputs.skip-on-success }}
       run: |
-        workflow_name=$(gh run view ${{ github.event.workflow_run.id }} --json workflowName --jq '.workflowName')
-        head_sha=$(gh run view ${{ github.event.workflow_run.id }} --json headSha --jq '.headSha')
-        short_sha=$(echo $head_sha | cut -c1-7)
-        repo_url=$(gh repo view --json url --jq '.url')
+        export WORKFLOW_NAME=$(gh run view ${{ github.event.workflow_run.id }} --json workflowName --jq '.workflowName')
+        export HEAD_SHA=$(gh run view ${{ github.event.workflow_run.id }} --json headSha --jq '.headSha')
+        export REPO_URL=$(gh repo view --json url --jq '.url')
+        export WF_JOB_URLS=$(gh run view ${{ github.event.workflow_run.id }} --json jobs --jq '.jobs | map("[\(.name)](\(.url))") | join(" , ")')
+        export AER_JOB_URLS=$(gh run view $GITHUB_RUN_ID --json jobs --jq '.jobs | map("[aer_workflow](\(.url))") | join(" , ")')
+        export WORKFLOW_ID=$(echo "$WORKFLOW_NAME" | tr -d ' ' | tr '[:upper:]' '[:lower:]')
 
-        pr_message="## WF: $workflow_name[#$short_sha]($repo_url/commit/$head_sha)
+        export PR_MESSAGE="
+        <$WORKFLOW_ID>
 
-        No errors found in this run. 🎉"
+        ## AER Report: [$WORKFLOW_NAME]($REPO_URL/actions/runs/${{ github.event.workflow_run.id }}) ran successfully :white_check_mark:
 
-        # Fetch the comments on the pull request and filter for comments by github.actor
-        author_comments=$(gh pr view $PR_NUMBER --json comments --jq ".comments | map(select(.author.login == \"github-actions\")) | length")
+        $AER_JOB_URLS , [commit]($REPO_URL/commit/$HEAD_SHA)
 
-        # Check if edit-comment is true and there are prior comments from github.actor
-        if [ "$edit_comment" = "true" ] && [ "$author_comments" -gt 0 ]; then
-          gh pr comment $PR_NUMBER -b "$pr_message" --edit-last
-        else
-          gh pr comment $PR_NUMBER -b "$pr_message"
-        fi
+        </$WORKFLOW_ID>"
 
-    - name: Collect metrics
-      if: always() && inputs.metrics-job-name != ''
-      id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
+        # prepare the report message
+        ${{ github.action_path }}/update_pr_comment.sh
+
+    - name: post pr comment
+      if: ${{ env.SKIP_ACTION == 'false' }}
+      uses: actions/github-script@v7
+      env:
+        GH_TOKEN: ${{ inputs.gh-token }}
+        PR_NUMBER: ${{ steps.get_pr_number.outputs.pr_number }}
+        COMMENT_ID:
+          ${{ steps.generate_error_comment.outputs.comment_id ||
+          steps.generate_success_comment.outputs.comment_id }}
+        WORKFLOW_STATUS: ${{ inputs.parent-workflow-conclusion }}
       with:
-        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
-        basic-auth: ${{ inputs.gc-basic-auth }}
-        hostname: ${{ inputs.gc-host }}
-        org-id: ${{ inputs.gc-org-id}}
-        this-job-name: ${{ inputs.metrics-job-name }}
-      continue-on-error: true
+        script: |
+          const prNumber = process.env.PR_NUMBER;
+          const fs = require('fs');
+          const message = fs.readFileSync('pr_message.md', 'utf8');
+          const commentId = process.env.COMMENT_ID;
+
+          // Create new comment if COMMENT_ID is empty
+          if ((!commentId || commentId.trim() === '')) {
+            // but only if the parent workflow failed or if the parent workflow succeeded and skip-on-success is false
+            if (process.env.WORKFLOW_STATUS === 'failure' 
+              || (process.env.WORKFLOW_STATUS === 'success' && process.env.SKIP_ON_SUCCESS === 'false')) {
+              const newComment = await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: message
+              });
+              console.log(`Created new comment with ID: ${newComment.data.id}`);
+              return newComment.data.id;
+            }
+            return '';
+          } else {
+            // Edit existing comment if COMMENT_ID is present
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: commentId,
+              body: message
+            });
+            console.log(`Updated existing comment with ID: ${commentId}`);
+            return commentId;
+          }

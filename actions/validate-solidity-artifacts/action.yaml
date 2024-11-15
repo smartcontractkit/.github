@@ -6,10 +6,10 @@ description:
 inputs:
   slither_reports_path:
     description: Path to the Slither reports directory (without trailing slash)
-    required: true
+    required: false
   uml_diagrams_path:
     description: Path to the UML diagrams directory  (without trailing slash)
-    required: true
+    required: false
   validate_slither_reports:
     description: Whether Slither reports should be validated
     required: true

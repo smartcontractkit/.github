@@ -1,0 +1,15 @@
+# action.yml
+name: "Beholder Schema Validation"
+description: "Validate schemas for Beholder usage"
+inputs:
+  beholder-config-file-path: # id of input
+    description: "path to beholder configuration yaml file"
+    required: true
+outputs: {}
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  args:
+    - validate
+    - -f
+    - ${{ inputs.beholder-config-file-path }}

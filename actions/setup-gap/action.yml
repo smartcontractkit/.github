@@ -3,10 +3,6 @@ description: "setup github actions proxy"
 
 inputs:
   # general inputs
-  api-gateway-stage-name:
-    description: "The stage name for the target service on the AWS API GW."
-    required: false
-    default: "primary"
   gap-name:
     description:
       "The name of the GAP. Used in the dir name for self-signed certs and the
@@ -16,55 +12,14 @@ inputs:
     default: execute-api
   use-tls:
     description:
-      "Enable TLS for the local sigv4 proxy container. Ignored if `use-k8s:
+      "Enable TLS for the local envoy proxy container. Ignored if `use-k8s:
       true` as that input will automatically use TLS."
     required: false
     default: "false"
-  # aws sig4 proxy inputs
-  api-gateway-host:
-    description: |
-      The AWS API Gateway host for the target service.
-      Usually of the form <gateway id>.execute-api.<region>.amazonaws.com.
-    required: true
-  proxy-version:
-    description:
-      "The aws-sigv4-proxy image version / tag, if using the public ecr."
-    required: false
-    default: "1.8"
   proxy-port:
     description: "The port the proxy will listen on. Defaults to 8080."
     required: false
     default: "8080"
-  duplicate-authorization-header:
-    description:
-      "Whether to duplicate the Authorization header to
-      X-Original-Authorization. Note this is only used by the public image, it
-      is on by default for the private image. Defaults to false."
-    required: false
-    default: "false"
-  # ecr inputs
-  use-private-ecr-registry:
-    description:
-      "Whether to use a private ECR registry to pull the aws-sigv4-proxy image.
-      Defaults to false."
-    required: false
-    default: "false"
-  ecr-private-registry:
-    description:
-      "The ECR registry (account id) for the aws-sigv4-proxy. Required if
-      use-private-ecr-registry is true."
-    required: false
-  ecr-private-image-tag:
-    description:
-      "The aws-sigv4-proxy image tag for the private ECR registry. Defaults to a
-      known tag."
-    required: false
-    default: "6cc1e6d2bce23c04aace47d26511ad65205975b8"
-  ecr-private-aws-region:
-    description:
-      "The region for the private ECR registry, if different from aws-region
-      input."
-    required: false
   # aws role inputs
   aws-role-duration-seconds:
     description:
@@ -82,25 +37,6 @@ inputs:
       "The AWS role with API Gateway invoke permissions, ECR pull permissions
       for aws-sigv4-proxy, and if for k8s then EKS describe permissions"
     required: false
-  # argocd inputs
-  use-argocd:
-    description:
-      "Whether to setup GAP for communicating with argocd. Cannot be used with
-      use-k8s. Defaults to false."
-    required: false
-    default: "false"
-  argocd-version:
-    description: "The version of argocd to install. Defaults to 2.8.2."
-    required: false
-    default: "2.8.2"
-  argocd-user:
-    description:
-      "The username for argocd login. Required if use-argocd is true."
-    required: false
-  argocd-pass:
-    description:
-      "The password for argocd login. Required if use-argocd is true."
-    required: false
   # k8s inputs
   use-k8s:
     description:
@@ -115,25 +51,17 @@ inputs:
     description:
       "The region for the EKS cluster, if different from aws-region input."
     required: false
-  # grafana inputs (optional)
-  metrics-job-name:
-    description: "grafana metrics job name"
+  envoy-proxy-image:
+    description: "Envoy Proxy image used to run Envoy proxy for GAP"
     required: false
-  metrics-id:
-    description:
-      "grafana metrics id, used for continuity of metrics during job name
-      changes - required if metrics-job-name is passed"
-    required: false
-  gc-host:
-    description: "grafana hostname - required if metrics-job-name is passed"
-    required: false
-  gc-basic-auth:
-    description: "grafana basic auth - required if metrics-job-name is passed"
-    required: false
-  gc-org-id:
-    description:
-      "grafana org/tenant id - required if metrics-job-name is passed"
-    required: false
+    default: "envoyproxy/envoy:v1.31.0"
+  k8s-api-endpoint:
+    required: true
+    description: "Endpoint"
+outputs:
+  gh-jwt-token:
+    description: "GitHub JWT token to be used for GAP requests"
+    value: ${{ steps.get-jwt-token.outputs.token }}
 
 runs:
   using: composite
@@ -151,7 +79,7 @@ runs:
       # ---
       # Kubectl requires a TLS connection to it's configured endpoint, and performs certificate
       # validation through the CA configured in the kubeconfig.
-      # The local aws-sigv4-proxy container will act as the k8s endpoint for kubectl, and therefore requires a
+      # The local envoy container will act as the k8s endpoint for kubectl, and therefore requires a
       # certificate signed by a trusted CA. Because this is for local TLS we can generate a CA, generate a server
       # certificate, sign the server certificate with the CA, and update the CA in the kubeconfig to trust it.
       # Also useful for other use-cases where a local TLS connection is required.
@@ -214,8 +142,7 @@ runs:
 
         echo "::debug::Setting up kubeconfig for localhost proxy"
 
-        # Update the server to use the localhost proxy
-        kubectl config set clusters.$CLUSTER_ARN.server https://localhost:${{ inputs.proxy-port }}/${{ inputs.api-gateway-stage-name }}
+        kubectl config set clusters."$CLUSTER_ARN".server "https://localhost:${{ inputs.proxy-port }}"
 
         # Set the certificate-authority to the ephemeral certificate authority configured above
         kubectl config set clusters.$CLUSTER_ARN.certificate-authority "${PATH_CERTS_DIR}/ca.crt"
@@ -223,103 +150,57 @@ runs:
         # Remove certificate-authority-data populated from `aws eks update-kubeconfig` which is for the endpoint which is not publicly accessible
         kubectl config unset clusters.$CLUSTER_ARN.certificate-authority-data
 
-    - name: Login to AWS ECR (public ecr only)
-      if: inputs.use-private-ecr-registry != 'true'
-      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
-      env:
-        AWS_REGION: us-east-1
+    - name: Get GH JWT Token
+      if: inputs.use-k8s == 'true'
+      id: get-jwt-token
+      uses: actions/github-script@v7
       with:
-        registry-type: public
+        script: |
+          const audience = 'gap';
+          const id_token = await core.getIDToken(audience);
+          core.setOutput('token', id_token);
 
-    - name: Run aws sig4 proxy container (public ecr only)
-      if: inputs.use-private-ecr-registry != 'true'
-      shell: bash
+    - name: Run Envoy proxy
+      if: inputs.use-k8s == 'true'
+      shell: sh
       env:
-        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-        AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-        GAP_NAME: ${{ inputs.gap-name }}
+        PROXY_PORT: ${{ inputs.proxy-port }}
+        JWT_TOKEN: ${{ steps.get-jwt-token.outputs.token }}
+        K8S_API_ENDPOINT: ${{ inputs.k8s-api-endpoint}}
+        ENVOY_PROXY_IMAGE: ${{ inputs.envoy-proxy-image }}
       run: |
-        DUPLICATE_AUTH_HEADER_FLAG=""
-        if [ "${{ inputs.duplicate-authorization-header }}" == "true" ]; then
-          DUPLICATE_AUTH_HEADER_FLAG="--duplicate-headers Authorization"
-        fi
+        # Generate Envoy config from template
+        ls -l
+        envsubst < "${GITHUB_ACTION_PATH}/envoy.yaml.template" > "${GITHUB_ACTION_PATH}/envoy.yaml"
+
+        # Copy AWS CA certs
+        cp ${{ github.action_path }}/aws-ca.crt "${PATH_CERTS_DIR}"
+        chmod 644 "${PATH_CERTS_DIR}/server.key"
 
         docker run --rm -d \
-          -e AWS_ACCESS_KEY_ID \
-          -e AWS_SECRET_ACCESS_KEY \
-          -e AWS_SESSION_TOKEN \
-          -p "${{ inputs.proxy-port }}":"${{ inputs.proxy-port }}" \
-          public.ecr.aws/aws-observability/aws-sigv4-proxy:${{ inputs.proxy-version }} \
-          --name "${GAP_NAME}" --region ${{ inputs.aws-region }} \
-          --host "${{ inputs.api-gateway-host }}" \
-          --log-failed-requests $DUPLICATE_AUTH_HEADER_FLAG
-
-    - name: Login to AWS ECR (private ecr only)
-      if: inputs.use-private-ecr-registry == 'true'
-      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
-      env:
-        AWS_REGION: ${{ inputs.ecr-private-aws-region || inputs.aws-region }}
-      with:
-        registries: ${{ inputs.ecr-private-registry }}
-
-    - name: Pull from custom proxy image (private ecr only)
-      if: inputs.use-private-ecr-registry == 'true'
-      shell: bash
-      run: |
-        docker pull ${{ inputs.ecr-private-registry }}.dkr.ecr.${{ inputs.ecr-private-aws-region || inputs.aws-region }}.amazonaws.com/aws-sigv4-proxy:${{ inputs.ecr-private-image-tag }}
-
-    - name: Run aws sig4 proxy container (private ecr only)
-      if: inputs.use-private-ecr-registry == 'true'
-      shell: bash
-      env:
-        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-        AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-      run: |
-        docker run --rm -d \
-          -e AWS_ACCESS_KEY_ID \
-          -e AWS_SECRET_ACCESS_KEY \
-          -e AWS_SESSION_TOKEN \
-          -p ${{ inputs.proxy-port }}:${{ inputs.proxy-port }} \
+          --name "gap-v2" \
+          -p "${PROXY_PORT}:${PROXY_PORT}" \
           -v "${PATH_CERTS_DIR}":/tls \
-          ${{ inputs.ecr-private-registry }}.dkr.ecr.${{ inputs.ecr-private-aws-region || inputs.aws-region }}.amazonaws.com/aws-sigv4-proxy:${{ inputs.ecr-private-image-tag }} \
-            --name execute-api \
-            --region ${{ inputs.aws-region }} \
-            --host "${{ inputs.api-gateway-host }}" \
-            --log-failed-requests \
-            --port :${{ inputs.proxy-port }} \
-            --enable-tls --tls-key-file /tls/server.key --tls-cert-file /tls/server.crt \
-            --duplicate-headers Authorization
+          -v "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
+          "${ENVOY_PROXY_IMAGE}" \
+          /usr/local/bin/envoy -c /etc/envoy/envoy.yaml
 
-    - name: Setup argocd
-      if: inputs.use-argocd == 'true'
-      uses: clowdhaus/argo-cd-action@c38276b240079e18653fef3ea63e0a1ef3b00a1d # v2.2.0
-      with:
-        command: version
-        options: --client
-        version: ${{ inputs.argocd-version }}
-
-    - name: Argocd login
-      if: inputs.use-argocd == 'true'
+    - name: Verify Envoy Proxy
+      if: inputs.use-k8s == 'true'
       shell: bash
+      env:
+        PROXY_PORT: ${{ inputs.proxy-port }}
       run: |
-        argocd login \
-          localhost:${{ inputs.proxy-port }}/${{ inputs.api-gateway-stage-name }} \
-          --skip-test-tls \
-          --plaintext \
-          --grpc-web
-          --username ${{ inputs.argocd-user }} \
-          --password ${{ inputs.argocd-pass }}
+        # Check if the Envoy proxy is up and running on HTTPS port
+        for attempt in {1..10}; do
+          if curl --cacert "${PATH_CERTS_DIR}/ca.crt" https://localhost:${PROXY_PORT} > /dev/null 2>&1; then
+            echo "Envoy proxy is up, and the HTTPS connection is successful."
+            exit 0
+          else
+            echo "Waiting for the Envoy proxy to start... Attempt ${attempt}/10"
+            sleep 3
+          fi
+        done
 
-    - name: Collect metrics
-      if: always() && inputs.metrics-job-name != ''
-      id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-      with:
-        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
-        basic-auth: ${{ inputs.gc-basic-auth }}
-        hostname: ${{ inputs.gc-host }}
-        org-id: ${{ inputs.gc-org-id}}
-        this-job-name: ${{ inputs.metrics-job-name }}
-      continue-on-error: true
+        echo "Timed out waiting for the Envoy proxy to start."
+        exit 1

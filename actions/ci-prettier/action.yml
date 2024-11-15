@@ -21,38 +21,31 @@ inputs:
     description: ""
     required: false
     default: ".tool-versions"
+  nodejs-version:
+    description:
+      "NodeJS version used only if the node-version-file isn't provided"
+    required: false
+    default: "^20.16.0"
   pnpm-version:
     description: ""
     required: false
     default: "^9.0.0"
-  # grafana inputs (optional)
-  metrics-job-name:
-    description: "grafana metrics job name"
-    required: false
-  metrics-id:
-    description:
-      "grafana metrics id, used for continuity of metrics during job name
-      changes - required if metrics-job-name is passed"
-    required: false
-  gc-host:
-    description: "grafana hostname - required if metrics-job-name is passed"
-    required: false
-  gc-basic-auth:
-    description: "grafana basic auth - required if metrics-job-name is passed"
-    required: false
-  gc-org-id:
-    description:
-      "grafana org/tenant id - required if metrics-job-name is passed"
-    required: false
 
 runs:
   using: composite
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      uses: actions/checkout@v4.2.1
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Create .tool-versions file if it doesn't exist
+      shell: bash
+      run: |
+        if [ ! -f "${{ inputs.node-version-file }}" ]; then
+          echo "nodejs ${{ inputs.nodejs-version }}" > ${{ inputs.node-version-file }}
+        fi
 
     - name: Setup nodejs
       uses: smartcontractkit/.github/actions/setup-nodejs@5b1046c28343660ecb84844c6fa95a66d1cdb52e # setup-nodejs@0.2.1
@@ -67,15 +60,3 @@ runs:
     - name: Run Prettier Check
       shell: bash
       run: ${{ inputs.prettier-command }}
-
-    - name: Collect metrics
-      if: always() && inputs.metrics-job-name != ''
-      id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-      with:
-        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
-        basic-auth: ${{ inputs.gc-basic-auth }}
-        hostname: ${{ inputs.gc-host }}
-        org-id: ${{ inputs.gc-org-id}}
-        this-job-name: ${{ inputs.metrics-job-name }}
-      continue-on-error: true

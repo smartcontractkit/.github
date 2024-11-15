@@ -1,5 +1,32 @@
 # setup-gap
 
+## 1.1.0
+
+### Minor Changes
+
+- [#707](https://github.com/smartcontractkit/.github/pull/707)
+  [`acf60c4`](https://github.com/smartcontractkit/.github/commit/acf60c433f412c1a671ddd014e1d699379b8292f)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding a check to
+  ensure that Envoy proxy is up and running.
+
+## 1.0.0
+
+### Major Changes
+
+- [#693](https://github.com/smartcontractkit/.github/pull/693)
+  [`cd10ac2`](https://github.com/smartcontractkit/.github/commit/cd10ac239d5332f3a5333940dfa449b953157cb4)
+  Thanks [@chainchad](https://github.com/chainchad)! - Switch over to GAP v2
+  compatibility
+
+## 0.6.1
+
+### Patch Changes
+
+- [#663](https://github.com/smartcontractkit/.github/pull/663)
+  [`dca9ab8`](https://github.com/smartcontractkit/.github/commit/dca9ab89d734e82738b8aa52bd25d09b205ec6ee)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: remove metrics
+  inputs and step (push-gha-metrics-action)
+
 ## 0.6.0
 
 ### Minor Changes

@@ -1,0 +1,84 @@
+name: md-confluence-sync
+description: "Sync Markdown documentation to Confluence"
+
+inputs:
+  files:
+    description: |
+      Use specified markdown file(s) for converting to html. Supports file
+      globbing patterns. GLOB pattern is used for linting as well, so make 
+      sure to filter files with .md extension.
+    required: true
+  base-url:
+    description: "Confluence base url e.g: https://example.com/wiki/"
+    required: true
+  user:
+    description:
+      "Service account email address, should have write access to the given
+      space"
+    required: true
+  token:
+    description: "Service account token for the user above"
+    required: true
+  space:
+    description: "Space to which articles will be synced to"
+    required: true
+  parent:
+    description: "Parent article under which articles will be synced"
+    required: true
+  dry-run:
+    required: false
+    description: "Enable dry-run mode"
+    default: "false"
+  debug:
+    required: false
+    description: "Enabled debug mode"
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@v4.2.1
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Lint MD files using Prettier
+      uses: smartcontractkit/.github/actions/ci-prettier@a738d4cfa4826d6f44dbebcc3724385f6de58d42 # ci-prettier@0.1.1
+      with:
+        checkout-repo: "false"
+        prettier-command: pnpm prettier --check ${{ inputs.files }}
+
+    - name: Set up Go
+      uses: actions/setup-go@v5.0.2
+
+    - name: Setup tools
+      shell: bash
+      run: |
+        go install github.com/kovetskiy/mark@11.1.0
+
+    - name: Get default branch
+      id: get_default_branch
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const repo = await github.rest.repos.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo
+          });
+          return repo.data.default_branch;
+        result-encoding: string
+
+    - name: Sync docs
+      env:
+        FILES: ${{ inputs.files }}
+        BASE_URL: ${{ inputs.base-url }}
+        USER: ${{ inputs.user }}
+        TOKEN: ${{ inputs.token }}
+        SPACE: ${{ inputs.space }}
+        PARENT: ${{ inputs.parent }}
+        MARK_DEBUG: ${{ inputs.debug }}
+        MARK_DRY_RUN: ${{ inputs.dry-run }}
+        DEFAULT_BRANCH: ${{ steps.get_default_branch.outputs.result }}
+      shell: bash
+      run: ${{ github.action_path }}/mark-sync.sh

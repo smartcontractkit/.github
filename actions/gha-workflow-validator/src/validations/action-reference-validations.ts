@@ -22,6 +22,7 @@ interface ActionReference {
   ref: string;
   comment?: string;
   isWorkflowFile?: boolean;
+  trusted: boolean;
 }
 
 interface ActionReferenceValidationOptions {
@@ -98,6 +99,13 @@ async function validateActionReference(
     return [];
   }
 
+  if (actionRef.isWorkflowFile) {
+    core.debug(
+      `Skipping validation for workflow reference: ${actionRef.owner}/${actionRef.repo}/${actionRef.repoPath}`,
+    );
+    return [];
+  }
+
   const validationErrors: ValidationMessage[] = [];
 
   const shaRefValidation = validateShaRef(actionRef);
@@ -106,13 +114,23 @@ async function validateActionReference(
     ? await validateNodeActionVersion(octokit, actionRef)
     : undefined;
 
-  if (shaRefValidation) {
+  if (!actionRef.trusted && shaRefValidation) {
+    core.debug(
+      `SHA Ref Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${shaRefValidation.message}`,
+    );
     validationErrors.push(shaRefValidation);
   }
-  if (versionCommentValidation) {
+  if (versionCommentValidation && !(actionRef.trusted && shaRefValidation)) {
+    // Don't error on trusted actions that are using tags
+    core.debug(
+      `Version Comment Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${versionCommentValidation.message}`,
+    );
     validationErrors.push(versionCommentValidation);
   }
   if (node20ActionValidation) {
+    core.debug(
+      `Node 20 Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${node20ActionValidation.message}`,
+    );
     validationErrors.push(node20ActionValidation);
   }
 
@@ -151,13 +169,6 @@ async function validateNodeActionVersion(
   octokit: Octokit,
   actionRef: ActionReference,
 ): Promise<ValidationMessage | undefined> {
-  if (actionRef.isWorkflowFile) {
-    core.debug(
-      `Skipping node version validation for ${actionRef.owner}/${actionRef.repo}/${actionRef.repoPath}`,
-    );
-    return;
-  }
-
   const actionFile = await getActionFileFromGithub(
     octokit,
     actionRef.owner,
@@ -173,7 +184,7 @@ async function validateNodeActionVersion(
     return;
   }
 
-  const nodeVersionRegex = /^\s+using:\s*"?node(\d{2})"?/gm;
+  const nodeVersionRegex = /^\s+using:\s*["']?node(\d{2})["']?/gm;
   const matches = nodeVersionRegex.exec(actionFile);
   if (matches && matches[1] !== `${CURRENT_NODE_VERSION}`) {
     return {
@@ -216,7 +227,7 @@ export function extractActionReferenceFromLine(
   }
 
   // example line:
-  // - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+  // - uses: actions/checkout@v4.2.1
   const trimSubString = "uses:";
   const usesIndex = trimmedLine.indexOf(trimSubString);
 
@@ -225,17 +236,38 @@ export function extractActionReferenceFromLine(
     return;
   }
 
-  // trim past the "uses:" substring to get "<owner>/<repo><optional path>@<ref> # <optional comment>""
+  // trim past the "uses:" substring to get "<owner>/<repo><optional path>@<ref> # <optional comment>"
   const trimmedUses = line
     .substring(line.indexOf(trimSubString) + trimSubString.length)
     .trim();
 
-  if (trimmedUses.startsWith("./")) {
+  let [actionIdentifier, ...comment] = trimmedUses.split("#");
+
+  // Check if the action reference is quoted
+  const isDoubleQuoted = actionIdentifier.startsWith(`"`);
+  const isSingleQuoted = actionIdentifier.startsWith(`'`);
+  if (isDoubleQuoted || isSingleQuoted) {
+    actionIdentifier = actionIdentifier.substring(1).trim();
+
+    const searchQuote = isDoubleQuoted ? `"` : `'`;
+    const indexOfQuote = actionIdentifier.indexOf(`${searchQuote}`);
+
+    if (indexOfQuote === -1 || indexOfQuote !== actionIdentifier.length - 1) {
+      core.warning(
+        "Invalid action reference - unmatched/misplaced quote (skipping): " +
+          line,
+      );
+      return;
+    } else {
+      actionIdentifier = actionIdentifier.substring(0, indexOfQuote);
+    }
+  }
+
+  if (actionIdentifier.startsWith("./")) {
     // Local action reference - do not extract or validate these.
     return;
   }
 
-  const [actionIdentifier, ...comment] = trimmedUses.split("#");
   const [identifier, gitRef] = actionIdentifier.trim().split("@");
   const [owner, repo, ...path] = identifier.split("/");
   const repoPath = (path.length > 0 ? "/" : "") + path.join("/");
@@ -247,5 +279,6 @@ export function extractActionReferenceFromLine(
     ref: gitRef,
     comment: comment.join().trim(),
     isWorkflowFile: repoPath.endsWith(".yml") || repoPath.endsWith(".yaml"),
+    trusted: owner === "actions" || owner === "smartcontractkit",
   };
 }

@@ -10,7 +10,7 @@ import {
 } from "./validations/validation-check.js";
 import { FIXING_ERRORS, htmlLink } from "./strings";
 
-export function logErrors(
+export function logValidationMessages(
   validationResults: FileValidationResult[],
   annotatePR: boolean = false,
 ) {

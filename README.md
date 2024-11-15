@@ -1,107 +1,129 @@
-# .github
+# .github <!-- omit in toc -->
 
 This repository contains reusable Github Actions to be used across our extensive
 network of repositories.
 
-## Table of contents
+- [Using Actions](#using-actions)
+  - [Action Versions](#action-versions)
+  - [Automated Updates](#automated-updates)
+- [Contributing](#contributing)
+  - [Setup](#setup)
+  - [New Actions](#new-actions)
+  - [Existing Actions](#existing-actions)
+  - [Versioning](#versioning)
+- [Example Usage](#example-usage)
 
-- [.github](#github)
-  - [Table of contents](#table-of-contents)
-  - [Actions updates](#actions-updates)
-    - [Action package updates within .github monorepo](#action-package-updates-within-github-monorepo)
-    - [Action package updates within application repos](#action-package-updates-within-application-repos)
-  - [Example Usage](#example-usage)
-    - [Golden path example repositories](#golden-path-example-repositories)
-  - [Development](#development)
-    - [Creating a new action](#creating-a-new-action)
-    - [Git Hooks](#git-hooks)
+## Using Actions
 
-## Actions updates
-
-### Action package updates within .github monorepo
-
-```mermaid
-sequenceDiagram
-    participant Dev as Developer
-    participant R as RenovateBot
-    participant MonoRepo as Monorepo
-    participant CS as Changeset
-    participant RP as Release Plan
-
-    Dev->>MonoRepo: 1a: Modify package
-    R->>MonoRepo: 1b: Create PR for dependency updates
-    MonoRepo->>Dev: 2. Notify about PR
-    Dev->>MonoRepo: 3. Review & merge PR
-    Dev->>CS: 4. Add/Modify Changeset file based on changes
-    MonoRepo->>CS: 5. Identify impacted packages
-    CS->>RP: 6. Generate Release Plan
-    RP->>Dev: 7. Notify about generated plan
-    Dev->>RP: 8. Review Plan
-    RP->>MonoRepo: 9. Publish updated package(s) if plan is approved
+To use the actions in this repo you should will place the action reference in
+the `uses` field of a Job step
+([docs](https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses)).
 
 ```
-
-- **1a:** The `Developer` creates a PR for manual package updates.
-- **1b:** The `RenovateBot` creates a PR for dependency updates.
-- **2:** The `Monorepo` system notifies the `Developer` about the PR w/
-  PolicyBot.
-- **3:** The `Developer` reviews and merges the PR.
-- **4:** The `Developer` adds or modifies the changeset file based on the
-  changes made.
-- **5:** The `Monorepo` identifies the impacted packages.
-- **6:** A `Changeset` is used to generate a `Release Plan`.
-- **7:** The `Release Plan` system notifies the `Developer` about the generated
-  plan.
-- **8:** The `Developer` reviews the plan.
-- **9:** If the plan is approved, the `Release Plan` instructs the Monorepo to
-  publish the updated package(s).
-
-### Action package updates within application repos
-
-Github actions updater uses a pull mechanism to update custom github actions.
-The schedule workflow lives in the application repo and requires the following
-permissions (see example
-[here](https://github.com/smartcontractkit/releng-go-app/blob/main/.github/workflows/schedule-update-actions.yml)):
-
-- contents: write (make updates to app repo / read tags for .github)
-- pull_requests: write (create pull requests in app repo)
-- workflows: write (update workflows in app repo)
-
-There are a few ways to reference actions:
-
-- locally: `./actions/ci-lint-go`
-- ref (branch/tag): `smartcontractkit/.github/actions/ci-lint-go@main`
-- ref (shasum) + comment:
-  `smartcontractkit/.github/actions/ci-lint-go@<shasum> # vx.x.x`
-
-If a custom action referenced from this repo includes a comment with a monorepo
-tag and valid semver version, it will update to the latest semver version. The
-comment should be in this format: `# <action-name>@<action-version>`. (see
-monorepo tags [here](https://github.com/smartcontractkit/.github/tags)) Any
-other non-semver reference is ignored. For example:
-
-- action used in workflow (before):
-
-```yaml
-uses: smartcontractkit/.github/actions/ci-lint-go@<shasum-before> # ci-lint-go@x.x.x
+  - uses: smartcontractkit/.github/actions/<action>@<commit> # <action>@<version>
 ```
 
-- action used in workflow (after):
+### Action Versions
 
-```yaml
-uses: smartcontractkit/.github/actions/ci-lint-go@<shasum-after> # ci-lint-go@x.x.y
+This is a monorepo and all actions are versioned and tagged with the format
+`<action>@<version>`. To find the available versions, and corresponding commit
+for an action:
+
+- Look at the repo's tags through Github UI:
+  https://github.com/smartcontractkit/.github/tags
+- Query the tags through CLI
+  ```
+  git for-each-ref --format="%(objectname) %(refname:short)" refs/tags | grep "<action name>"
+  ```
+
+### Automated Updates
+
+Updating these actions automatically requires a custom workflow, as Dependabot
+doesn't support updates for actions contained in monorepos.
+
+<details>
+<summary>Example Workflow</summary>
+
+```
+name: Update Actions
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  update-actions:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Update custom actions
+        uses: smartcontractkit/.github/actions/update-actions@5f5ebd52cb13f4b8530cd3005ec7ec3180840219 # update-actions@0.1.5
+        with:
+          aws-role-arn: ${{ secrets.AWS_OIDC_IAM_ROLE_ARN_GATI }}
+          aws-lambda-url: ${{ secrets.AWS_LAMBDA_URL_GATI }}
+          aws-role-arn-updater: ${{ secrets.AWS_OIDC_IAM_ROLE_ARN_GATI_UPDATER }}
+          aws-lambda-url-updater: ${{ secrets.AWS_LAMBDA_URL_GATI_UPDATER }}
+          aws-region: ${{ secrets.AWS_REGION }}
 ```
 
-To bootstrap an action to accept action updates, add `# @0.0.0` with any valid
-reference and the action updater will update at the next scheduled run.
+</details>
 
-```yaml
-uses: smartcontractkit/.github/actions/ci-lint-go@<any-valid-ref> # @0.0.0
-```
+## Contributing
+
+### Setup
+
+#### Dependencies <!-- omit in toc -->
+
+- [`asdf`](https://asdf-vm.com/)
+- [`pnpm`](https://pnpm.io/)
+- `nodejs`
+
+#### Post-Install <!-- omit in toc -->
+
+- `asdf install` - will install versions as per the `.tool-versions` file
+- `pnpm install` - install all npm dependencies as required
+- `pnpm lefthook install` - install the git pre-commit hook for formatting
+  - `pnpm lefthook run pre-commit` - to run the pre-commit hook manually
+
+### New Actions
+
+1. Generate the Action boilerplate
+   ```sh
+   pnpm nx generate nx-chainlink:create-gh-action
+   ```
+2. Make your changes
+3. Add a changeset for your new action (`pnpm changeset`)
+4. Commit and open a PR
+
+### Existing Actions
+
+1. Modify the action as needed
+2. Build the action if it is written in JS/TS
+3. Add a changeset (`pnpm changeset`)
+4. Commit and open a PR
+
+### Versioning
+
+Actions are versioned through an automated process managed by
+[`changesets`](https://github.com/changesets/changesets). The process is as
+follows:
+
+1. You merge a change with a changeset file (in the `.changeset` directory)
+   1. Created through invoking `pnpm changeset`
+2. A "Version packages" pull request will open or update
+   ([ex](https://github.com/smartcontractkit/.github/pull/540)). This PR will
+   "consume" the changesets present in the default branch by:
+   1. Deleting the changeset files
+   2. Adding the changeset content to the respective changelogs
+   3. Bump the versions in the `package.json` according to the changeset
+      (patch/minor/major)
+3. The "Version packages" PR gets merged, and the git tags for the actions'
+   versions will be created during CICD.
 
 ## Example Usage
-
-### Golden path example repositories
 
 Below are example "Golden Path" repositories that utilize these reuseable
 actions.
@@ -114,84 +136,3 @@ actions.
   [`smartcontractkit/releng-ts-app`](https://github.com/smartcontractkit/releng-ts-app)
 - Solidity contracts:
   [`smartcontractkit/releng-sol-contracts`](https://github.com/smartcontractkit/releng-sol-contracts)
-
-## Development
-
-### Creating a new action
-
-To create a new action within this repository, use the nx plugin generator to
-bootstrap by running and following the prompts:
-
-```sh
-# install dependencies
-➜ pnpm install
-
-# generate a new github action
-➜ pnpm nx generate nx-chainlink:create-gh-action
-
->  NX  Generating nx-chainlink:create-gh-action
-
-✔ What name would you like to use? · name-of-your-action
-✔ What description would you like to use? · some description of your action
-✔ Would you like to include a debug bash script? (y/N) · false
-CREATE actions/name-of-your-action/project.json
-CREATE actions/name-of-your-action/README.md
-CREATE actions/name-of-your-action/action.yml
-CREATE actions/name-of-your-action/package.json
-UPDATE tsconfig.base.json
-```
-
-**Note**: This will bootstrap a new composite action within the `actions/` with
-the minimum required files.
-
-Once ready to release this new action, run `pnpm changeset` to create the
-initial changeset file and bump the minor version.
-
-### Contributing
-
-#### Filing a PR
-
-Before creating a PR with your change, you should generate a "changeset" file.
-
-Let's assume that you've made some local changes in one of the reusable actions.
-Before filing a PR you need to generate a "changeset" description required for
-the automated release process. Follow the steps below:
-
-- Run `pnpm changset` in the git top level directory.
-- This repo contains multiple packages, so it will ask you for which package it
-  should generate changeset update.
-- Answer remaining questions. At the end, you will have a new
-  `.changeset/<random-name>.md` file generated.
-- Now you need to commit and push your changes
-- Create a Pull request which includes your code change and generated
-  "changeset" file.
-
-#### Preparing a release
-
-After merging your PR, a changesets CI job will create or update a "Version
-Packages" PR like
-[this one](https://github.com/smartcontractkit/.github/pull/540) which contains
-a release bump.
-
-#### Merging Version Packages PR
-
-Now you can Approve/Request approval and Merge the PR from the previous step.
-After merging, it will kick off the push-main.yml workflow and that will release
-a new versions and push tags automatically. You can navigate to the
-[tags view](https://github.com/smartcontractkit/.github/tags), to check if the
-latest tag is available.
-
-### Git Hooks
-
-We use lefthook to manage git hooks. The hooks should be installed after running
-`pnpm install` from the root of this repo. To install the hooks manually, run:
-
-```sh
-pnpm lefthook install
-```
-
-To run the e.g. pre-commit hooks manually, run:
-
-```sh
-pnpm lefthook run pre-commit
-```
