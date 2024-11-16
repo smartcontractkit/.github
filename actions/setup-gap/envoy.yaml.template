@@ -12,13 +12,13 @@ static_resources:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
                 stat_prefix: http
                 http_protocol_options:
-                  max_headers_count: 100
+                  max_headers_count: 500
                   max_headers_size: 65536  # 64 KiB
                 http2_protocol_options: {}
                 common_http_protocol_options:
-                  idle_timeout: 120s
+                  idle_timeout: 800s
                   max_stream_duration:
-                    grpc_timeout_header_max: 0s
+                    grpc_timeout_header_max: 20s
                 route_config:
                   name: http
                   virtual_hosts:
@@ -29,11 +29,11 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: k8s_api_cluster
-                            timeout: 15s
+                            timeout: 500s
                             retry_policy:
                               retry_on: "5xx,connect-failure"
-                              num_retries: 3
-                              per_try_timeout: 5s
+                              num_retries: 50
+                              per_try_timeout: 20s
                 http_filters:
                   - name: envoy.filters.http.lua
                     typed_config:
@@ -99,7 +99,7 @@ static_resources:
                     filename: "/tls/ca.crt"
   clusters:
     - name: k8s_api_cluster
-      connect_timeout: 10s  # Reduced from 25s for quicker failover
+      connect_timeout: 20s  # Reduced from 25s for quicker failover
       type: LOGICAL_DNS
       dns_lookup_family: V4_ONLY
       dns_refresh_rate: 30s  # Ensure periodic DNS resolution updates
@@ -131,10 +131,10 @@ static_resources:
               initial_stream_window_size: 131072  # Increased for higher throughput
               initial_connection_window_size: 2097152  # Increased to 2 MiB
           common_http_protocol_options:
-            idle_timeout: 30s  # Avoid holding stale connections longer
+            idle_timeout: 300s  # Avoid holding stale connections longer
             retry_policy:
               retry_on: "5xx,connect-failure,refused-stream"
-              num_retries: 3
+              num_retries: 50
               per_try_timeout: 3s  # Short retry timeout to recover quickly
       health_checks:  # Ensure upstream health before routing traffic
         - timeout: 1s
