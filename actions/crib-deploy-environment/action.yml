@@ -129,8 +129,6 @@ runs:
 
     - name: Create and label CRIB namespace
       shell: bash
-      env:
-        KUBECACHEDIR: "/dev/null"
       run: |
         # a valid label must be an empty string or consist of alphanumeric characters,
         # ‘-’, ‘_’ or ‘.’, and must start and end with an alphanumeric character
@@ -161,13 +159,13 @@ runs:
           pr-number=${{ steps.generate-ns-name.outputs.pr-number || 'none' }} \
           repo=${{ steps.generate-ns-name.outputs.repo-name }} \
           workflow-job=${{ steps.generate-ns-name.outputs.workflow-job }} \
-          workflow-run-number=${{ steps.generate-ns-name.outputs.workflow-run-number }} -v=10
+          workflow-run-number=${{ steps.generate-ns-name.outputs.workflow-run-number }}
 
         kubectl label namespace --overwrite=true $NAMESPACE \
-          cleanup.kyverno.io/ttl=${{ inputs.ns-ttl }} -v=10
+          cleanup.kyverno.io/ttl=${{ inputs.ns-ttl }}
 
         echo "Kubernetes namespace [$NAMESPACE] successfully labeled:"
-        kubectl get namespace $NAMESPACE --show-labels -v=10
+        kubectl get namespace $NAMESPACE --show-labels
 
     - name: Debug
       id: debug
