@@ -183,7 +183,7 @@ runs:
           -v "${PATH_CERTS_DIR}":/tls \
           -v "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
           "${ENVOY_PROXY_IMAGE}" \
-          /usr/local/bin/envoy -c /etc/envoy/envoy.yaml
+          /usr/local/bin/envoy -c /etc/envoy/envoy.yaml --log-level debug
 
         docker ps
 
