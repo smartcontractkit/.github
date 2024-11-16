@@ -129,6 +129,8 @@ runs:
 
     - name: Create and label CRIB namespace
       shell: bash
+      env:
+        KUBECACHEDIR: "/dev/null"
       run: |
         # a valid label must be an empty string or consist of alphanumeric characters,
         # ‘-’, ‘_’ or ‘.’, and must start and end with an alphanumeric character
@@ -180,7 +182,6 @@ runs:
         DEVSPACE_INGRESS_BASE_DOMAIN: ${{ inputs.ingress-base-domain }}
         DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
         PROFILES: ${{ inputs.devspace-profiles }}
-        KUBECACHEDIR: /dev/null
         SETUP_AWS_PROFILE: false
         SETUP_EKS_CONFIG: false
       run: |
