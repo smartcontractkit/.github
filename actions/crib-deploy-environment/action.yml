@@ -169,6 +169,13 @@ runs:
         echo "Kubernetes namespace [$NAMESPACE] successfully labeled:"
         kubectl get namespace $NAMESPACE --show-labels -v=10
 
+    - name: Debug
+      id: debug
+      if: always()
+      shell: bash
+      run: |
+        kubectl get pod $NAMESPACE
+
     - name: Deploy to CRIB ephemeral environment
       working-directory: ${{ github.workspace }}/crib/deployments/chainlink
       shell: bash
@@ -198,9 +205,16 @@ runs:
 
         nix develop -c devspace run ${{ inputs.command }} ${{ inputs.command-args }}
 
+    - name: Debug1
+      id: debug1
+      if: always()
+      shell: bash
+      run: |
+        kubectl get pod $NAMESPACE
+
     - name: Dump envoy logs
       uses: jwalton/gh-docker-logs@v2
-      if: failure()
+      if: always()
       with:
         images: "envoyproxy/envoy,envoy"
         tail: "10000"
