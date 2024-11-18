@@ -99,11 +99,11 @@ static_resources:
                     filename: "/tls/ca.crt"
   clusters:
     - name: k8s_api_cluster
-      connect_timeout: 20s  # Reduced from 25s for quicker failover
+      connect_timeout: 0.25s
       type: LOGICAL_DNS
       dns_lookup_family: V4_ONLY
-      dns_refresh_rate: 30s  # Ensure periodic DNS resolution updates
       lb_policy: ROUND_ROBIN
+      http2_protocol_options: {}
       load_assignment:
         cluster_name: k8s_api_cluster
         endpoints:
@@ -111,7 +111,7 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: 35.86.29.188
+                      address: "${K8S_API_ENDPOINT}"
                       port_value: 443
       transport_socket:
         name: envoy.transport_sockets.tls
