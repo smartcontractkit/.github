@@ -111,7 +111,7 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: "${K8S_API_ENDPOINT}"
+                      address: 35.86.29.188
                       port_value: 443
       transport_socket:
         name: envoy.transport_sockets.tls
