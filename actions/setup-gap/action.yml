@@ -177,6 +177,8 @@ runs:
         cp ${{ github.action_path }}/aws-ca.crt "${PATH_CERTS_DIR}"
         chmod 644 "${PATH_CERTS_DIR}/server.key"
 
+        cat "${GITHUB_ACTION_PATH}/envoy.yaml"
+
         docker run --rm -d \
           --name "gap-v2" \
           -p "${PROXY_PORT}:${PROXY_PORT}" \
