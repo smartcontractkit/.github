@@ -104,6 +104,9 @@ static_resources:
       dns_lookup_family: V4_ONLY
       lb_policy: ROUND_ROBIN
       http2_protocol_options: {}
+      common_http_protocol_options:
+        idle_timeout: 200s
+        max_connection_duration: 300s
       load_assignment:
         cluster_name: k8s_api_cluster
         endpoints:
