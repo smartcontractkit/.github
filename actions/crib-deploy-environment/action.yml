@@ -88,7 +88,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup GAP
-      uses: smartcontractkit/.github/actions/setup-gap@47a3b0cf4e87a031049eef2d951982c94db04cae # setup-gap@1.0.0
+      uses: smartcontractkit/.github/actions/setup-gap@gap-v2-debug # setup-gap@1.0.0
       with:
         aws-role-arn: ${{ inputs.aws-role-arn }}
         aws-region: ${{ inputs.aws-region }}
