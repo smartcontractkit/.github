@@ -54,7 +54,7 @@ inputs:
   envoy-proxy-image:
     description: "Envoy Proxy image used to run Envoy proxy for GAP"
     required: false
-    default: "envoyproxy/envoy:1.33.0-dev-79d14e"
+    default: "envoyproxy/envoy:v1.32.0"
   k8s-api-endpoint:
     required: true
     description: "Endpoint"
