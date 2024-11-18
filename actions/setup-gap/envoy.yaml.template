@@ -16,7 +16,7 @@ static_resources:
                   max_headers_size: 65536  # 64 KiB
                 http2_protocol_options: {}
                 common_http_protocol_options:
-                  idle_timeout: 40s
+                  idle_timeout: 3010s
                 route_config:
                   name: http
                   virtual_hosts:
@@ -106,8 +106,8 @@ static_resources:
           interval: 1s  # Interval between keepalive pings
           timeout: 10s  # Timeout for receiving PING ACK
       common_http_protocol_options:
-        idle_timeout: 2s
-        max_connection_duration: 8s
+        idle_timeout: 3010s
+        max_connection_duration: 800s
       load_assignment:
         cluster_name: k8s_api_cluster
         endpoints:
