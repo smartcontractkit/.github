@@ -4,6 +4,9 @@ description:
   an ephemeral environment."
 
 inputs:
+  aws-ecr-private-registry:
+    description: "AWS ECR private registry."
+    required: true
   aws-region:
     description: "AWS region."
     required: true
@@ -106,6 +109,13 @@ runs:
         ref: ${{ inputs.crib-repo-ref }}
         path: "${{ github.workspace }}/crib"
         token: ${{ inputs.github-token }}
+
+    - name: Login to AWS ECR for Helm
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
+      with:
+        registries: ${{ inputs.ecr-private-registry }}
 
     - name: Setup Nix
       uses: smartcontractkit/.github/actions/setup-nix@4df907a307d91761c15cdff65e508145bdbcfca3 # setup-nix@0.3.0
