@@ -203,12 +203,12 @@ runs:
       run: |
         kubectl get pod $NAMESPACE
 
-    - name: Dump envoy logs
-      uses: jwalton/gh-docker-logs@v2
-      if: always()
-      with:
-        images: "envoyproxy/envoy,envoy"
-        tail: "10000"
+    # - name: Dump envoy logs
+    #   uses: jwalton/gh-docker-logs@v2
+    #   if: always()
+    #   with:
+    #     images: "envoyproxy/envoy,envoy"
+    #     tail: "10000"
 
     - name: Render notification template
       uses: actions/github-script@v7.0.1
