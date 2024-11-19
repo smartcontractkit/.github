@@ -47,7 +47,7 @@ runs:
         go-version-file: ${{ inputs.go_mod_path }}
         check-latest: true
         cache: false
-        
+
     - name: Setup Go with private repo access
       shell: bash
       if: ${{ inputs.gati_token != '' }}
