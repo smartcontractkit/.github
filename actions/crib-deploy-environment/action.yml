@@ -115,7 +115,7 @@ runs:
       env:
         AWS_REGION: ${{ inputs.aws-region }}
       with:
-        registries: ${{ inputs.ecr-private-registry }}
+        registries: ${{ inputs.aws-ecr-private-registry }}
 
     - name: Setup Nix
       uses: smartcontractkit/.github/actions/setup-nix@4df907a307d91761c15cdff65e508145bdbcfca3 # setup-nix@0.3.0
