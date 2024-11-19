@@ -167,13 +167,6 @@ runs:
         echo "Kubernetes namespace [$NAMESPACE] successfully labeled:"
         kubectl get namespace $NAMESPACE --show-labels
 
-    - name: Debug
-      id: debug
-      if: always()
-      shell: bash
-      run: |
-        kubectl get pod $NAMESPACE
-
     - name: Deploy to CRIB ephemeral environment
       working-directory: ${{ github.workspace }}/crib/deployments/chainlink
       shell: bash

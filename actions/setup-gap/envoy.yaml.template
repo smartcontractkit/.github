@@ -75,16 +75,15 @@ static_resources:
   clusters:
     - name: k8s_api_cluster
       connect_timeout: 10s
-      type: STRICT_DNS
+      type: LOGICAL_DNS
       lb_policy: ROUND_ROBIN
-      dns_refresh_rate: 300s  # Refresh DNS every 30 seconds
+      common_http_protocol_options:
+        idle_timeout: 60s
+        max_connection_duration: 900s
       http2_protocol_options:
         connection_keepalive:
           interval: 1s  # Interval between keepalive pings
           timeout: 10s  # Timeout for receiving PING ACK
-      common_http_protocol_options:
-        idle_timeout: 2s
-        max_connection_duration: 8s
       load_assignment:
         cluster_name: k8s_api_cluster
         endpoints:
