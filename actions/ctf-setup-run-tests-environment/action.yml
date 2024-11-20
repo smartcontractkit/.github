@@ -50,6 +50,15 @@ inputs:
   QA_AWS_ROLE_TO_ASSUME:
     required: true
     description: The AWS role to assume
+  QA_PROD_REGION:
+    required: false
+    description: The AWS region to use for prod ECR
+  QA_PROD_ROLE_TO_ASSUME:
+    required: false
+    description: The AWS role to assume for prod ECR
+  QA_KUBECONFIG:
+    required: false
+    description: The kubernetes configuration to use
   should_tidy:
     required: false
     description: Should we check go mod tidy
@@ -61,6 +70,9 @@ inputs:
   gauntlet-plus-plus-image:
     required: false
     description: Gauntlet-plus-plus image link
+  prod_aws_account_number:
+    required: false
+    description: AWS Account number that holds the gauntlet_plus_plus 
   gati_token:
     required: false
     description: Token provided by GATI to pull from private repos
@@ -120,7 +132,16 @@ runs:
 
     # Setup Gauntlet plus plus
     - name: Setup gauntlet plus plus
-      if: inputs.
+      if: inputs.gauntlet-plus-plus-image
+      uses: smartcontractkit/.github/actions/ctf-setup-gauntlet-plus-plus@4e65fe3bff04025815b53ba96e20447e386420f6 # ctf-setup-gauntlet-plus-plus@0.0.1
+      with:
+        docker_username: ${{ inputs.docker_username }}
+        docker_password: ${{ inputs.docker_password }}
+        PROD_AWS_REGION: ${{ inputs.PROD_AWS_REGION }}
+        PROD_AWS_ROLE_TO_ASSUME: ${{ inputs.PROD_AWS_ROLE_TO_ASSUME }}
+        gauntlet_plus_plus_image: ${{ inputs.gauntlet-plus-plus-image }}
+        aws_account_number: ${{ prod_aws_account_number }}
+        
     # Setup AWS cred and K8s context
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
