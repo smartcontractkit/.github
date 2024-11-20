@@ -591,11 +591,11 @@ jobs:
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4.2.1
       - name: Collect Test Telemetry
         if: inputs.collect_test_telemetry
         uses: catchpoint/workflow-telemetry-action@v2.0.0
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.1
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -892,11 +892,11 @@ jobs:
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4.2.1
       - name: Collect Test Telemetry
         if: inputs.collect_test_telemetry
         uses: catchpoint/workflow-telemetry-action@v2.0.0
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.1
       - name: Install jq
         run: sudo apt-get install -y jq
 
