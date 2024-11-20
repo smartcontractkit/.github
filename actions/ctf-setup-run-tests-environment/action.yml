@@ -58,6 +58,9 @@ inputs:
     required: false
     description: Do not use a go cache
     default: "false"
+  gauntlet-plus-plus-image:
+    required: false
+    description: Gauntlet-plus-plus image link
   gati_token:
     required: false
     description: Token provided by GATI to pull from private repos
@@ -115,6 +118,9 @@ runs:
           ${{ inputs.test_download_vendor_packages_command }}
         gati_token: ${{ inputs.gati_token }}
 
+    # Setup Gauntlet plus plus
+    - name: Setup gauntlet plus plus
+      if: inputs.
     # Setup AWS cred and K8s context
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
