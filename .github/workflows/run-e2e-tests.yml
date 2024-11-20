@@ -593,7 +593,7 @@ jobs:
     steps:
       - name: Collect Test Telemetry
         if: inputs.collect_test_telemetry
-        uses: catchpoint/workflow-telemetry-action@v2.0.0
+        uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
       - name: Install jq
@@ -894,7 +894,7 @@ jobs:
     steps:
       - name: Collect Test Telemetry
         if: inputs.collect_test_telemetry
-        uses: catchpoint/workflow-telemetry-action@v2.0.0
+        uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
       - name: Install jq
