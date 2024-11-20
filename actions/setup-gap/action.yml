@@ -229,7 +229,7 @@ runs:
         exit 1
 
     - name: Collect Envoy proxy logs when debug is enabled
-      uses: jwalton/gh-docker-logs@v2
+      uses: jwalton/gh-docker-logs@2741064ab9d7af54b0b1ffb6076cf64c16f0220e # v2.2.2
       if:
         inputs.use-k8s == 'true' && (inputs.enable-proxy-debug == 'true' ||
         failure())
