@@ -170,6 +170,13 @@ on:
         required: false
         type: boolean
         default: false
+      collect_test_telemetry:
+        description:
+          'Set to "true" to collect telemetry data for E2E tests, helpful for
+          debugging resource issues.'
+        required: false
+        type: boolean
+        default: false
     outputs:
       test_results:
         description: "Test results from all executed tests"
@@ -586,6 +593,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
+      - name: Collect Test Telemetry
+        if: inputs.collect_test_telemetry
+        uses: catchpoint/workflow-telemetry-action@v2.0.0
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -663,7 +673,6 @@ jobs:
               echo "$key=$value" >> "$GITHUB_ENV"
             done
           fi
-
       - name: Run tests
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@b8731364b119e88983e94b0c4da87fc27ddb41b8 # ctf-run-tests@0.0.0
@@ -885,6 +894,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
+      - name: Collect Test Telemetry
+        if: inputs.collect_test_telemetry
+        uses: catchpoint/workflow-telemetry-action@v2.0.0
       - name: Install jq
         run: sudo apt-get install -y jq
 
