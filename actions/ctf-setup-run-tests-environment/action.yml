@@ -132,7 +132,7 @@ runs:
 
     # Setup Gauntlet plus plus
     - name: Setup gauntlet plus plus
-      if: inputs.gauntlet-plus-plus-image
+      if: inputs.gauntlet_plus_plus_image
       uses: smartcontractkit/.github/actions/ctf-setup-gauntlet-plus-plus@c5420f0c8a0386c0ce7af20c09381384fb5fa1ca # ctf-setup-gauntlet-plus-plus@0.0.1
       with:
         docker_username: ${{ inputs.docker_username }}
