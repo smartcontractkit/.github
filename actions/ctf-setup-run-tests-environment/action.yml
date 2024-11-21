@@ -50,7 +50,7 @@ inputs:
   QA_AWS_ROLE_TO_ASSUME:
     required: true
     description: The AWS role to assume
-  PROD_REGION:
+  PROD_AWS_REGION:
     required: false
     description: The AWS region to use for prod ECR
   PROD_AWS_ROLE_TO_ASSUME:
@@ -67,7 +67,7 @@ inputs:
     required: false
     description: Do not use a go cache
     default: "false"
-  gauntlet-plus-plus-image:
+  gauntlet_plus_plus_image:
     required: false
     description: Gauntlet-plus-plus image link
   prod_aws_account_number:
@@ -139,7 +139,7 @@ runs:
         docker_password: ${{ inputs.docker_password }}
         PROD_AWS_REGION: ${{ inputs.PROD_AWS_REGION }}
         PROD_AWS_ROLE_TO_ASSUME: ${{ inputs.PROD_AWS_ROLE_TO_ASSUME }}
-        gauntlet_plus_plus_image: ${{ inputs.gauntlet-plus-plus-image }}
+        gauntlet_plus_plus_image: ${{ inputs.gauntlet_plus_plus_image }}
         aws_account_number: ${{ inputs.prod_aws_account_number }}
 
     # Setup AWS cred and K8s context
