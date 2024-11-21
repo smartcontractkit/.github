@@ -47,6 +47,7 @@ runs:
         role-duration-seconds: ${{ inputs.aws_role_duration_seconds }}
         mask-aws-account-id: true
     - name: Pull Gauntlet Plus Plus Image
+      shell: bash  # Specify the shell to be used
       run: |
         docker pull ${{ inputs.gauntlet_plus_plus_image }}
     
