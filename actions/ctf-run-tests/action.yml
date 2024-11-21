@@ -218,6 +218,7 @@ runs:
       if: inputs.run_setup == 'true'
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@ec165ce3098a51462f2bb6713cdc38eb58e89df2 # ctf-setup-run-tests-environment@v0.5.1
 =======
       uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@6108e14f4e03b1567dac59ca78120d9d167f3b53 # ctf-setup-run-tests-environment@0.0.0
@@ -225,6 +226,9 @@ runs:
 =======
       uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@540ca25cc965449220180c96df6350c344f6c2d6 # ctf-setup-run-tests-environment@0.0.0
 >>>>>>> cd2ee12 (bump)
+=======
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@f1517ccb75e9192bcae9689b19606e16f85d0cfe # ctf-setup-run-tests-environment@0.0.0
+>>>>>>> b140c2c (bump)
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
