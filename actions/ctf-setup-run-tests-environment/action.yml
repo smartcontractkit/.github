@@ -61,6 +61,9 @@ inputs:
     required: false
     description: Do not use a go cache
     default: "false"
+  gati_token:
+    required: false
+    description: Token provided by GATI to pull from private repos
 
 runs:
   using: composite
@@ -68,7 +71,7 @@ runs:
     # Go setup and caching
     - name: Setup Go
       if: inputs.go_necessary == 'true'
-      uses: smartcontractkit/.github/actions/ctf-setup-go@b0d756c57fcdbcff187e74166562a029fdd5d1b9 # ctf-setup-go@0.0.0
+      uses: smartcontractkit/.github/actions/ctf-setup-go@5a90069d860edbaddc296a139b13e2e97bf463ab # ctf-setup-go@0.0.0
       with:
         go_version: ${{ inputs.go_version }}
         go_mod_path: ${{ inputs.go_mod_path }}
@@ -78,6 +81,7 @@ runs:
         no_cache: ${{ inputs.no_cache }}
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
+        gati_token: ${{ inputs.gati_token }}
 
     # Setup AWS cred and K8s context
     - name: Configure AWS Credentials
