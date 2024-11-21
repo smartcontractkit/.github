@@ -137,10 +137,10 @@ inputs:
   QA_AWS_ROLE_TO_ASSUME:
     required: true
     description: The AWS role to assume
-  QA_PROD_REGION:
+  PROD_AWS_REGION:
     required: false
     description: The AWS region to use for prod ECR
-  QA_PROD_ROLE_TO_ASSUME:
+  PROD_AWS_ROLE_TO_ASSUME:
     required: false
     description: The AWS role to assume for prod ECR
   PROD_AWS_ACCOUNT_NUMBER:
@@ -216,7 +216,11 @@ runs:
     # Setup Tools and libraries
     - name: Setup environment
       if: inputs.run_setup == 'true'
+<<<<<<< HEAD
       uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@ec165ce3098a51462f2bb6713cdc38eb58e89df2 # ctf-setup-run-tests-environment@v0.5.1
+=======
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@6108e14f4e03b1567dac59ca78120d9d167f3b53 # ctf-setup-run-tests-environment@0.0.0
+>>>>>>> 6aeeedd (Version bump and input naming)
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
