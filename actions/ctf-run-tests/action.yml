@@ -222,6 +222,7 @@ runs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@ec165ce3098a51462f2bb6713cdc38eb58e89df2 # ctf-setup-run-tests-environment@v0.5.1
 =======
       uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@6108e14f4e03b1567dac59ca78120d9d167f3b53 # ctf-setup-run-tests-environment@0.0.0
@@ -241,6 +242,9 @@ runs:
 =======
       uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@d4931fff2d0c0b97470136ad414e6a1823cf5535 # ctf-setup-run-tests-environment@0.0.0
 >>>>>>> 1b944d8 (bump run env setup)
+=======
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@7eb75e8cf85f9d6237080b62668114cc00aaecfc # ctf-setup-run-tests-environment@0.0.0
+>>>>>>> 4229fea (Bump)
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
