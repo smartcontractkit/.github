@@ -133,7 +133,7 @@ runs:
     # Setup Gauntlet plus plus
     - name: Setup gauntlet plus plus
       if: inputs.gauntlet_plus_plus_image
-      uses: smartcontractkit/.github/actions/ctf-setup-gauntlet-plus-plus@c5420f0c8a0386c0ce7af20c09381384fb5fa1ca # ctf-setup-gauntlet-plus-plus@0.0.1
+      uses: smartcontractkit/.github/actions/ctf-setup-gauntlet-plus-plus@11b8e8eda31ec2711f0b9f4ee71547c6b740d2ff # ctf-setup-gauntlet-plus-plus@0.0.1
       with:
         dockerhub_username: ${{ inputs.docker_username }}
         dockerhub_password: ${{ inputs.docker_password }}
@@ -141,6 +141,7 @@ runs:
         PROD_AWS_ROLE_TO_ASSUME: ${{ inputs.PROD_AWS_ROLE_TO_ASSUME }}
         gauntlet_plus_plus_image: ${{ inputs.gauntlet_plus_plus_image }}
         aws_account_number: ${{ inputs.prod_aws_account_number }}
+
 
     # Setup AWS cred and K8s context
     - name: Configure AWS Credentials
