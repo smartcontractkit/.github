@@ -260,7 +260,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       run-tests: ${{ steps.check-matrices.outputs.run-tests }}
-      test-matrix: ${{ steps.set-docker-matrix.outputs.matrix }}
+      test-matrix: ${{ steps.set-matrix.outputs.matrix }}
       workflow_id: ${{ steps.gen_id.outputs.workflow_id }}
     steps:
       - name: Checkout code
@@ -284,10 +284,10 @@ jobs:
           # Check if custom_test_list_json is provided and non-empty
           if [[ -n '${{ inputs.custom_test_list_json }}' ]]; then
             echo "Using custom test list JSON"
-            MATRIX_JSON=$(echo '${{ inputs.custom_test_list_json }}' | jq -c '{tests: [.tests[] | select(.test_env_type == "docker")]}')
+            MATRIX_JSON=$(echo '${{ inputs.custom_test_list_json }}' | jq -c '{tests: [.tests[] | select(.test_env_type == "in-memory")]}')
           else
             echo "Using default test list"
-            MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'docker' --test-list '${{ inputs.test_list }}' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}')
+            MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'in-memory' --test-list '${{ inputs.test_list }}' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}')
           fi
 
           echo "Tests:"
@@ -297,7 +297,7 @@ jobs:
       - name: Check Test Matrices
         id: check-matrices
         run: |
-          TEST_MATRIX_EMPTY=$(echo '${{ steps.set-docker-matrix.outputs.matrix }}' | jq '.tests == null or .tests == []')
+          TEST_MATRIX_EMPTY=$(echo '${{ steps.set-matrix.outputs.matrix }}' | jq '.tests == null or .tests == []')
 
           # Check if jq commands succeeded
           # shellcheck disable=SC2181
@@ -322,7 +322,7 @@ jobs:
             exit 0
           fi
 
-          # Parse the JSON to check for test_secrets_required in Docker matrix
+          # Parse the JSON to check for test_secrets_required in test matrix
           TESTS_REQUIRING_SECRETS=$(echo '${{ steps.set-matrix.outputs.matrix }}' | jq 'if .tests then .tests[] | select(has("test_secrets_required") and .test_secrets_required) | .id else empty end' -r)
 
           # Determine if any tests require secrets
@@ -432,7 +432,7 @@ jobs:
     runs-on: ${{ matrix.tests.runs_on }}
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.load-test-configurations.outputs.docker-matrix)}}
+      matrix: ${{fromJson(needs.load-test-configurations.outputs.test-matrix)}}
     environment: integration
     permissions:
       actions: read
