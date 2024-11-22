@@ -1,0 +1,11 @@
+{
+  "name": "ctf-setup-gauntlet-plus-plus",
+  "version": "0.1.1",
+  "description": "Action that pulls the gauntlet-plus-plus image",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}

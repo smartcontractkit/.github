@@ -25,12 +25,12 @@ inputs:
     description: The duration to be logged into the aws role for
   aws_account_number:
     required: true
-    description: AWS Account number that holds the gauntlet_plus_plus 
+    description: AWS Account number that holds the gauntlet_plus_plus
 
 runs:
   using: composite
   steps:
-   # Setup AWS cred and K8s context
+    # Setup AWS cred and K8s context
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
       with:
@@ -47,7 +47,6 @@ runs:
       env:
         AWS_REGION: ${{ inputs.PROD_AWS_REGION }}
     - name: Pull Gauntlet Plus Plus Image
-      shell: bash  # Specify the shell to be used
+      shell: bash # Specify the shell to be used
       run: |
         docker pull ${{ inputs.gauntlet_plus_plus_image }}
-    

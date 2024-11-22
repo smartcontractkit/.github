@@ -72,7 +72,7 @@ inputs:
     description: Gauntlet-plus-plus image link
   prod_aws_account_number:
     required: false
-    description: AWS Account number that holds the gauntlet_plus_plus 
+    description: AWS Account number that holds the gauntlet_plus_plus
   gati_token:
     required: false
     description: Token provided by GATI to pull from private repos
@@ -141,7 +141,6 @@ runs:
         PROD_AWS_ROLE_TO_ASSUME: ${{ inputs.PROD_AWS_ROLE_TO_ASSUME }}
         gauntlet_plus_plus_image: ${{ inputs.gauntlet_plus_plus_image }}
         aws_account_number: ${{ inputs.prod_aws_account_number }}
-
 
     # Setup AWS cred and K8s context
     - name: Configure AWS Credentials
