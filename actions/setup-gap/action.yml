@@ -54,10 +54,22 @@ inputs:
   envoy-proxy-image:
     description: "Envoy Proxy image used to run Envoy proxy for GAP"
     required: false
-    default: "envoyproxy/envoy:v1.31.0"
+    default: "envoyproxy/envoy:v1.32.0"
   k8s-api-endpoint:
     required: true
-    description: "Endpoint"
+    description: "The Kubernetes API server's endpoint hostname."
+  k8s-api-endpoint-port:
+    required: false
+    default: "443"
+    description: "The port number for accessing the Kubernetes API server."
+  enable-proxy-debug:
+    required: false
+    default: "false"
+    description:
+      "Enable or disable detailed Envoy proxy logs used for K8s API access. When
+      enabled, debug logs are generated locally, and container logs are streamed
+      to the console for troubleshooting."
+
 outputs:
   gh-jwt-token:
     description: "GitHub JWT token to be used for GAP requests"
@@ -166,8 +178,11 @@ runs:
       env:
         PROXY_PORT: ${{ inputs.proxy-port }}
         JWT_TOKEN: ${{ steps.get-jwt-token.outputs.token }}
-        K8S_API_ENDPOINT: ${{ inputs.k8s-api-endpoint}}
+        K8S_API_ENDPOINT: ${{ inputs.k8s-api-endpoint }}
+        K8S_API_ENDPOINT_PORT: ${{ inputs.k8s-api-endpoint-port }}
         ENVOY_PROXY_IMAGE: ${{ inputs.envoy-proxy-image }}
+        ENABLE_PROXY_DEBUG: ${{ inputs.enable-proxy-debug }}
+        ENVOY_LOG_LEVEL: "info"
       run: |
         # Generate Envoy config from template
         ls -l
@@ -177,13 +192,21 @@ runs:
         cp ${{ github.action_path }}/aws-ca.crt "${PATH_CERTS_DIR}"
         chmod 644 "${PATH_CERTS_DIR}/server.key"
 
+        # If debug is enabled, adjust log level and print config
+        if [ "$ENABLE_PROXY_DEBUG" = "true" ]; then
+          export ENVOY_LOG_LEVEL="debug"
+          echo "Envoy log level set to DEBUG. Configuration:"
+          cat "${GITHUB_ACTION_PATH}/envoy.yaml"
+        fi
+
         docker run --rm -d \
           --name "gap-v2" \
           -p "${PROXY_PORT}:${PROXY_PORT}" \
           -v "${PATH_CERTS_DIR}":/tls \
           -v "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
           "${ENVOY_PROXY_IMAGE}" \
-          /usr/local/bin/envoy -c /etc/envoy/envoy.yaml
+          /usr/local/bin/envoy -c /etc/envoy/envoy.yaml \
+          --log-level "${ENVOY_LOG_LEVEL}"
 
     - name: Verify Envoy Proxy
       if: inputs.use-k8s == 'true'
@@ -191,7 +214,7 @@ runs:
       env:
         PROXY_PORT: ${{ inputs.proxy-port }}
       run: |
-        # Check if the Envoy proxy is up and running on HTTPS port
+        echo "Checking if the Envoy proxy is up and running on https://localhost:${PROXY_PORT} address..."
         for attempt in {1..10}; do
           if curl --cacert "${PATH_CERTS_DIR}/ca.crt" https://localhost:${PROXY_PORT} > /dev/null 2>&1; then
             echo "Envoy proxy is up, and the HTTPS connection is successful."
@@ -204,3 +227,9 @@ runs:
 
         echo "Timed out waiting for the Envoy proxy to start."
         exit 1
+
+    - name: Collect Envoy proxy logs when debug is enabled
+      uses: jwalton/gh-docker-logs@2741064ab9d7af54b0b1ffb6076cf64c16f0220e # v2.2.2
+      if:
+        inputs.use-k8s == 'true' && (inputs.enable-proxy-debug == 'true' ||
+        failure())

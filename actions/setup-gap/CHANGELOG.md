@@ -1,5 +1,14 @@
 # setup-gap
 
+## 1.2.0
+
+### Minor Changes
+
+- [#711](https://github.com/smartcontractkit/.github/pull/711)
+  [`9f8d357`](https://github.com/smartcontractkit/.github/commit/9f8d357c514dbcb16a1c2cbac592d540c419d861)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Improving Envoy
+  config and add support for debugging
+
 ## 1.1.0
 
 ### Minor Changes
