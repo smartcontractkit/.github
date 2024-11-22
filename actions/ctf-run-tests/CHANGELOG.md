@@ -1,5 +1,14 @@
 # ctf-run-tests
 
+## 0.3.0
+
+### Minor Changes
+
+- [#714](https://github.com/smartcontractkit/.github/pull/714)
+  [`eb27629`](https://github.com/smartcontractkit/.github/commit/eb27629a61be158e182f3d078846f28d0c71bd69)
+  Thanks [@kalverra](https://github.com/kalverra)! - Enables toggling on
+  telemetry analysis for GitHub runners
+
 ## 0.2.0
 
 ### Minor Changes
