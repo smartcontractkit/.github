@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 5.0.0
+
+### Major Changes
+
+- [#717](https://github.com/smartcontractkit/.github/pull/717)
+  [`1ac3bb8`](https://github.com/smartcontractkit/.github/commit/1ac3bb81767c9ec1a9bab98e9bf4ae49e5379ff8)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding ECR login
+  required for Helm.
+
 ## 4.0.0
 
 ### Major Changes
