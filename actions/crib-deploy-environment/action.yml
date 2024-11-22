@@ -264,3 +264,7 @@ runs:
       env:
         SLACK_WEBHOOK_URL: ${{ inputs.crib-alert-slack-webhook }}
         SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+    - name: Collect Envoy proxy logs when debug is enabled
+      uses: jwalton/gh-docker-logs@2741064ab9d7af54b0b1ffb6076cf64c16f0220e # v2.2.2
+      if: inputs.enable-proxy-debug == 'true' || failure()
