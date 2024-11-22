@@ -1,5 +1,7 @@
 name: Setup Postgresql
-description: Setup postgres docker container via docker-compose, allowing usage of a custom command, see https://github.com/orgs/community/discussions/26688
+description:
+  Setup postgres docker container via docker-compose, allowing usage of a custom
+  command, see https://github.com/orgs/community/discussions/26688
 inputs:
   base-path:
     description: Path to the base of the repo

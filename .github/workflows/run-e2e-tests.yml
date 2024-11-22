@@ -337,7 +337,6 @@ jobs:
             echo "::error::Some E2E test configurations have to be added to ${{ inputs.test_path }}. This file defines Github CI configuration for each E2E test or set of E2E tests." && exit 1
           fi
 
-
   get_latest_chainlink_release_version:
     name: Get latest Chainlink release version
     runs-on: ubuntu-latest
