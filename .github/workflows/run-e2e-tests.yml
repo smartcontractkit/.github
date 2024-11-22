@@ -337,6 +337,7 @@ jobs:
             echo "::error::Some E2E test configurations have to be added to ${{ inputs.test_path }}. This file defines Github CI configuration for each E2E test or set of E2E tests." && exit 1
           fi
 
+
   get_latest_chainlink_release_version:
     name: Get latest Chainlink release version
     runs-on: ubuntu-latest
@@ -590,12 +591,21 @@ jobs:
         ${{ matrix.tests.test_config_override_path ||
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
+      DB_URL: postgresql://postgres:postgres@localhost:5432/chainlink_test?sslmode=disable
     steps:
       - name: Collect Test Telemetry
         if: inputs.collect_test_telemetry
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
+      - name: Setup postgres
+        if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
+        uses: ./.github/actions/setup-postgres
+      - name: Setup DB
+        if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
+        run: go run . local db preparetest
+        env:
+          CL_DATABASE_URL: ${{ env.DB_URL }}
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -678,6 +688,7 @@ jobs:
         uses: smartcontractkit/.github/actions/ctf-run-tests@b8731364b119e88983e94b0c4da87fc27ddb41b8 # ctf-run-tests@0.0.0
         env:
           DETACH_RUNNER: true
+          CL_DATABASE_URL: ${{ env.DB_URL }}
           E2E_TEST_CHAINLINK_VERSION:
             ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
             env.DEFAULT_CHAINLINK_VERSION }}
@@ -726,7 +737,7 @@ jobs:
             /tmp/gotest.log
           publish_check_name: ${{ env.TEST_ID }}
           token: ${{ secrets.GH_TOKEN }}
-          cache_key_id: e2e-tests
+          cache_key_id: ${{matrix.tests.test_env_vars.PG_INSTANCE}}e2e-tests # if PG_INSTANCE is set, add it to cache key to make the id unique
           go_mod_path: ./integration-tests/go.mod
           QA_AWS_REGION: ${{ secrets.QA_AWS_REGION }}
           QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
