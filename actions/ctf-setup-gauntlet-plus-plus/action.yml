@@ -30,15 +30,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Login to Amazon ECR
-      if: inputs.aws_registries && inputs.PROD_AWS_REGION
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
-      with:
-        registries: ${{ inputs.aws_account_number }}
-      env:
-        AWS_REGION: ${{ inputs.PROD_AWS_REGION }}
-  # Setup AWS cred and K8s context
+   # Setup AWS cred and K8s context
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
       with:
@@ -46,6 +38,14 @@ runs:
         role-to-assume: ${{ inputs.PROD_AWS_ROLE_TO_ASSUME }}
         role-duration-seconds: ${{ inputs.aws_role_duration_seconds }}
         mask-aws-account-id: true
+    - name: Login to Amazon ECR
+      if: inputs.aws_account_number && inputs.PROD_AWS_REGION
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      with:
+        registries: ${{ inputs.aws_account_number }}
+      env:
+        AWS_REGION: ${{ inputs.PROD_AWS_REGION }}
     - name: Pull Gauntlet Plus Plus Image
       shell: bash  # Specify the shell to be used
       run: |
