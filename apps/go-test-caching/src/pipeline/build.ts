@@ -8,7 +8,7 @@ import { GoPackage, CompiledPackages, FilteredPackages } from "./index.js";
 import { insertWithoutDuplicates } from "../utils.js";
 
 type CompilationResult = CompilationSuccess | CompilationFailure;
-type CompilationSuccess = {
+export type CompilationSuccess = {
   output: {
     binary: string;
     log: string;
@@ -16,6 +16,8 @@ type CompilationSuccess = {
   pkg: GoPackage;
   execution: Awaited<ReturnType<typeof execCommand>>;
 };
+
+new ExecaError();
 
 type CompilationFailure = {
   output: {
@@ -72,7 +74,8 @@ function setupStdoutDebugPipe(
   }
 }
 
-async function compileTestBinary(
+// Exported for testing only
+export async function compileTestBinary(
   workingDir: string,
   outputDir: string,
   pkg: GoPackage,
@@ -252,7 +255,7 @@ function filterForBuiltBinaries(
   return compiledPackages;
 }
 
-function verifyBinaryExistsOrThrow(
+export function verifyBinaryExistsOrThrow(
   binaryPath: string,
   importPath: string,
   stdout: string,
