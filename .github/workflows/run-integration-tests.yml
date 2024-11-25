@@ -187,7 +187,6 @@ jobs:
   run-tests:
     name: ${{ matrix.tests.id }}
     services:
-      name: Setup postgres
       postgres:
         image: postgres:13
         ports:
