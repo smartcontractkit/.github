@@ -313,30 +313,6 @@ jobs:
           fi
         shell: bash
 
-      - name: Check if test secrets are required for any test
-        shell: bash
-        run: |
-          # Check if the test secret key is provided and skip the checks if it is non-empty
-          if [ -n "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" ]; then
-            echo "Test secret key provided. Skipping checks for tests requiring secrets."
-            exit 0
-          fi
-
-          # Parse the JSON to check for test_secrets_required in test matrix
-          TESTS_REQUIRING_SECRETS=$(echo '${{ steps.set-matrix.outputs.matrix }}' | jq 'if .tests then .tests[] | select(has("test_secrets_required") and .test_secrets_required) | .id else empty end' -r)
-
-          # Determine if any tests require secrets
-          if [ -n "TESTS_REQUIRING_SECRETS" ]; then
-            echo "Tests in ${{ github.workspace }}/${{ inputs.test_path }} requiring custom test secrets:"
-            if [ -n "TESTS_REQUIRING_SECRETS" ]; then
-              echo "TESTS_REQUIRING_SECRETS"
-            fi
-            echo "::error::Error: Some of the tests require custom test secrets to run. Please see workflow logs and set 'test_secrets_override_key' to run these tests."
-            exit 1
-          else
-            echo "No tests require secrets. Proceeding without additional secret setup."
-          fi
-
       - name: Generate random workflow id
         id: gen_id
         shell: bash
