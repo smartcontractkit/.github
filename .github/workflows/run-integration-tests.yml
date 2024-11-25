@@ -306,7 +306,7 @@ jobs:
             exit 1
           fi
 
-          if [[ "TEST_MATRIX_EMPTY" == "true" ]]; then
+          if [[ "$TEST_MATRIX_EMPTY" == "true" ]]; then
             echo "run-tests=false" >> "$GITHUB_OUTPUT"
           else
             echo "run-tests=true" >> "$GITHUB_OUTPUT"
