@@ -254,6 +254,26 @@ jobs:
           echo "Required Chainlink plugin image versions: $image_versions"
           echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
 
+  setup-db:
+    name: Setup postgres
+    needs: [validate-inputs]
+    runs-on: ubuntu-latest
+    outputs:
+      CL_DATABASE_URL: ${{ env.DB_URL }}
+    env:
+      DB_URL: postgresql://postgres:postgres@localhost:5432/chainlink_test?sslmode=disable
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4.2.1
+    - name: Setup postgres
+      if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
+      uses: ./.github/actions/setup-postgres
+    - name: Setup DB
+      if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
+      run: go run . local db preparetest
+      env:
+        CL_DATABASE_URL: ${{ env.DB_URL }}
+
   load-test-configurations:
     name: Load test configurations
     needs: [validate-inputs]
@@ -421,18 +441,9 @@ jobs:
         ${{ matrix.tests.test_config_override_path ||
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
-      DB_URL: postgresql://postgres:postgres@localhost:5432/chainlink_test?sslmode=disable
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
-      - name: Setup postgres
-        if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
-        uses: ./.github/actions/setup-postgres
-      - name: Setup DB
-        if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
-        run: go run . local db preparetest
-        env:
-          CL_DATABASE_URL: ${{ env.DB_URL }}
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -475,7 +486,7 @@ jobs:
         uses: smartcontractkit/.github/actions/ctf-run-tests@b8731364b119e88983e94b0c4da87fc27ddb41b8 # ctf-run-tests@0.0.0
         env:
           DETACH_RUNNER: true
-          CL_DATABASE_URL: ${{ env.DB_URL }}
+          CL_DATABASE_URL: ${{ needs.setup-db.outputs.CL_DATABASE_URL}}
           E2E_TEST_CHAINLINK_VERSION:
             ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
             env.DEFAULT_CHAINLINK_VERSION }}
