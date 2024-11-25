@@ -13,12 +13,6 @@ on:
         required: false
         type: string
         default: "Run Integration Tests"
-      chainlink_version:
-        description:
-          "Enter Chainlink version to use for the tests. Example: v2.10.0,
-          develop or commit sha"
-        required: false
-        type: string
       test_path:
         description:
           "Path to the YAML test configuration file. Example:
@@ -47,36 +41,10 @@ on:
           'Run tests by trigger name. Example: "PR Integration CCIP Tests"'
         required: false
         type: string
-      test_config_override_path:
-        description:
-          "Path to a test config file used to override the default test config"
-        required: false
-        type: string
       check_test_path:
         description:
           "Path to the test folder to check for tests missing definition in
           .github/integration-tests.yml"
-        required: false
-        type: string
-      test_image_suites:
-        description: "Suites to build in the test image. Space separated"
-        required: false
-        type: string
-        default: chaos migration reorg smoke soak benchmark load ccip-load
-      require_chainlink_image_versions_in_qa_ecr:
-        description:
-          'Check Chainlink image versions to be present in QA ECR. If not, build
-          and push the image to QA ECR. Takes comma separated list of Chainlink
-          image versions. Example:
-          "5733cdcda9a9fc6da6343798b119b2ae136146cd,0b7d2c497a508efa5a827714780d908b7b8eda19"'
-        required: false
-        type: string
-      require_chainlink_plugin_versions_in_qa_ecr:
-        description:
-          'Check Chainlink plugins versions to be present in QA ECR. If not,
-          build and push the image to QA ECR. Takes comma separated list of
-          Chainlink image versions. Example:
-          "5733cdcda9a9fc6da6343798b119b2ae136146cd,0b7d2c497a508efa5a827714780d908b7b8eda19"'
         required: false
         type: string
       slack_notification_after_tests:
@@ -113,17 +81,6 @@ on:
         required: false
         type: string
         default: debug
-      upload_cl_node_coverage_artifact:
-        description:
-          'Set to "true" to upload Chainlink node coverage artifact to as Github
-          artifact'
-        required: false
-        type: boolean
-        default: false
-      upload_cl_node_coverage_artifact_prefix:
-        description: "Prefix for the Chainlink node coverage artifact"
-        required: false
-        type: string
       SLACK_CHANNEL:
         description:
           "SLACK_CHANNEL env used to send Slack notifications from test code"
@@ -139,21 +96,7 @@ on:
         description: "Test results from all executed tests"
         value: ${{ jobs.after_tests.outputs.test_results }}
     secrets:
-      TEST_SECRETS_OVERRIDE_BASE64:
-        required: false
-      QA_AWS_REGION:
-        required: true
-      QA_AWS_ROLE_TO_ASSUME:
-        required: true
-      QA_AWS_ACCOUNT_NUMBER:
-        required: true
-      PROD_AWS_ACCOUNT_NUMBER:
-        required: true
       GH_TOKEN:
-        required: true
-      AWS_REGION:
-        required: true
-      AWS_OIDC_IAM_ROLE_VALIDATION_PROD_ARN:
         required: true
       SLACK_BOT_TOKEN:
         required: false
@@ -168,19 +111,6 @@ on:
         required: false
 
 env:
-  CHAINLINK_IMAGE:
-    ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
-    }}.amazonaws.com/chainlink
-  QA_CHAINLINK_IMAGE:
-    ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
-    }}.amazonaws.com/chainlink
-  DEFAULT_CHAINLINK_VERSION: ${{ inputs.chainlink_version }}
-  DEFAULT_CHAINLINK_PLUGINS_VERSION:
-    ${{ inputs.chainlink_version != '' && format('{0}-plugins',
-    inputs.chainlink_version) }}
-  DEFAULT_CHAINLINK_UPGRADE_VERSION: ${{ inputs.chainlink_version }}
-  CHAINLINK_ENV_USER: ${{ github.actor }}
-  CHAINLINK_COMMIT_SHA: ${{ github.sha }}
   MOD_CACHE_VERSION: 1
   TEST_LOG_LEVEL: ${{ inputs.test_log_level }}
   METRICS_COLLECTION_ID: chainlink-integration-tests
@@ -189,74 +119,19 @@ env:
     ${{ inputs.slack_notification_after_tests_channel_id || inputs.SLACK_CHANNEL
     || secrets.SLACK_CHANNEL }}
   SLACK_USER: ${{ inputs.SLACK_USER }}
-  E2E_JD_IMAGE:
-    ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
-    secrets.AWS_REGION}}.amazonaws.com/job-distributor
-  E2E_RMN_RAGEPROXY_IMAGE:
-    ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
-    secrets.AWS_REGION}}.amazonaws.com/rageproxy
-  E2E_RMN_AFN2PROXY_IMAGE:
-    ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
-    secrets.AWS_REGION}}.amazonaws.com/afn2proxy
+#  E2E_JD_IMAGE:
+#    ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
+#    secrets.AWS_REGION}}.amazonaws.com/job-distributor
+#  E2E_RMN_RAGEPROXY_IMAGE:
+#    ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
+#    secrets.AWS_REGION}}.amazonaws.com/rageproxy
+#  E2E_RMN_AFN2PROXY_IMAGE:
+#    ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
+#    secrets.AWS_REGION}}.amazonaws.com/afn2proxy
 
 jobs:
-  validate-inputs:
-    name: Validate workflow inputs
-    runs-on: ubuntu-latest
-    outputs:
-      require_chainlink_image_versions_in_qa_ecr_matrix:
-        ${{ steps.set-required-chainlink-image-versions-matrix.outputs.versions
-        }}
-      require_chainlink_plugin_versions_in_qa_ecr_matrix:
-        ${{ steps.set-required-chainlink-plugin-versions-matrix.outputs.versions
-        }}
-    steps:
-      - name: Check input conditions
-        run: |
-          if [[ "${{ inputs.test_ids }}" != "" && "${{ inputs.test_trigger }}" != "" ]]; then
-            echo "::error::Error: Both 'test_ids' and 'test_trigger' are provided. Please specify only one."
-            exit 1
-          fi
-          if [[ "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" != "" ]]; then
-            echo "Will run tests with custom test secrets"
-          fi
-      - name: Install jq
-        run: sudo apt-get install jq
-
-      - name: Create matrix for required Chainlink image versions
-        id: set-required-chainlink-image-versions-matrix
-        shell: bash
-        run: |
-          image_versions="${{ inputs.require_chainlink_image_versions_in_qa_ecr }}"
-          default_version="${{ env.DEFAULT_CHAINLINK_VERSION }}"
-          current_sha="${{ github.sha }}"
-
-          if [[ "$default_version" == "$current_sha" ]]; then
-            # Append the current SHA to required image versions
-            if [[ -z "$image_versions" ]]; then
-              image_versions="${{ github.sha }}"
-            else
-              image_versions+=",${{ github.sha }}"
-            fi
-          fi
-
-          # Convert the comma-separated string to a JSON array
-          image_versions=$(echo "$image_versions" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
-
-          echo "Required Chainlink image versions: $image_versions"
-          echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
-
-      - name: Create matrix for required Chainlink plugin versions
-        id: set-required-chainlink-plugin-versions-matrix
-        shell: bash
-        run: |
-          image_versions=$(echo "${{ inputs.require_chainlink_plugin_versions_in_qa_ecr }}" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
-          echo "Required Chainlink plugin image versions: $image_versions"
-          echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
-
   load-test-configurations:
     name: Load test configurations
-    needs: [validate-inputs]
     runs-on: ubuntu-latest
     outputs:
       run-tests: ${{ steps.check-matrices.outputs.run-tests }}
@@ -318,89 +193,10 @@ jobs:
         shell: bash
         run: echo "workflow_id=$(uuidgen)" >> "$GITHUB_OUTPUT"
 
-  # Check if Chainlink images required for the tests exist. If not, build and push the images to QA ECR
-  require-chainlink-image-versions-in-qa-ecr:
-    name: Get Chainlink image
-    needs: [validate-inputs, load-test-configurations]
-    if:
-      ${{
-      fromJson(needs.validate-inputs.outputs.require_chainlink_image_versions_in_qa_ecr_matrix)
-      != '' }}
-    runs-on: ubuntu-latest
-    environment: integration
-    permissions:
-      id-token: write
-      contents: read
-    env:
-      CHAINLINK_IMAGE:
-        ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
-        }}.amazonaws.com/chainlink
-    strategy:
-      matrix:
-        version:
-          ${{
-          fromJson(needs.validate-inputs.outputs.require_chainlink_image_versions_in_qa_ecr_matrix)
-          }}
-    steps:
-      - name: Checkout the repo
-        uses: actions/checkout@v4.2.1
-
-      - name: Get Chainlink image
-        uses: ./.github/actions/build-chainlink-image
-        with:
-          dockerfile: core/chainlink.Dockerfile
-          git_commit_sha: ${{ matrix.version }}
-          tag_suffix: ""
-          check_image_exists: "true"
-          AWS_REGION: ${{ secrets.QA_AWS_REGION }}
-          AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
-
-  # Check if Chainlink plugins required for the tests exist. If not, build and push the images to QA ECR
-  require-chainlink-plugin-versions-in-qa-ecr:
-    name: Get Chainlink plugins image
-    needs: [validate-inputs, load-test-configurations]
-    if:
-      ${{
-      fromJson(needs.validate-inputs.outputs.require_chainlink_plugin_versions_in_qa_ecr_matrix)
-      != '' }}
-    runs-on: ubuntu-latest
-    environment: integration
-    permissions:
-      id-token: write
-      contents: read
-    env:
-      CHAINLINK_IMAGE:
-        ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
-        }}.amazonaws.com/chainlink
-    strategy:
-      matrix:
-        version:
-          ${{
-          fromJson(needs.validate-inputs.outputs.require_chainlink_plugin_versions_in_qa_ecr_matrix)
-          }}
-    steps:
-      - name: Checkout the repo
-        uses: actions/checkout@v4.2.1
-
-      - name: Get Chainlink plugins image
-        uses: ./.github/actions/build-chainlink-image
-        with:
-          dockerfile: plugins/chainlink.Dockerfile
-          git_commit_sha: ${{ matrix.version }}
-          tag_suffix: "-plugins"
-          check_image_exists: "true"
-          AWS_REGION: ${{ secrets.QA_AWS_REGION }}
-          AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
-
   # Run in-memory tests
   run-tests:
     name: ${{ matrix.tests.id }}
-    needs:
-      [
-        load-test-configurations,
-        require-chainlink-image-versions-in-qa-ecr,
-        require-chainlink-plugin-versions-in-qa-ecr,
-      ]
+    needs: load-test-configurations
     # Run when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok)
     if:
       ${{ needs.load-test-configurations.outputs.run-tests == 'true' && always()
@@ -417,9 +213,6 @@ jobs:
       id-token: write
       contents: read
     env:
-      TEST_CONFIG_OVERRIDE_PATH:
-        ${{ matrix.tests.test_config_override_path ||
-        inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
       DB_URL: postgresql://postgres:postgres@localhost:5432/chainlink_test?sslmode=disable
     steps:
@@ -435,25 +228,6 @@ jobs:
           CL_DATABASE_URL: ${{ env.DB_URL }}
       - name: Install jq
         run: sudo apt-get install -y jq
-
-      - name: Show test config override path in summary
-        if: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
-        shell: bash
-        run: |
-          echo "### Test config override path" >> "$GITHUB_STEP_SUMMARY"
-          echo "[${{ env.TEST_CONFIG_OVERRIDE_PATH }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/${{ github.sha }}/${{ env.TEST_CONFIG_OVERRIDE_PATH }})" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Show chainlink version in summary
-        if:
-          ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
-          env.DEFAULT_CHAINLINK_VERSION }}
-        shell: bash
-        run: |
-          echo "### Chainlink version" >> "$GITHUB_STEP_SUMMARY"
-          echo "${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION || env.DEFAULT_CHAINLINK_VERSION }}" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Show test configuration in logs
-        run: echo '${{ toJson(matrix.tests) }}' | jq .
 
       - name: Set dynamic env vars for tests
         shell: bash
@@ -476,9 +250,6 @@ jobs:
         env:
           DETACH_RUNNER: true
           CL_DATABASE_URL: ${{ env.DB_URL }}
-          E2E_TEST_CHAINLINK_VERSION:
-            ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
-            env.DEFAULT_CHAINLINK_VERSION }}
           E2E_TEST_LOGGING_RUN_ID: ${{ github.run_id }}
           E2E_TEST_LOG_STREAM_LOG_TARGETS: ${{ vars.LOGSTREAM_LOG_TARGETS }}
           E2E_TEST_LOG_COLLECT: ${{ vars.TEST_LOG_COLLECT }}
@@ -492,19 +263,8 @@ jobs:
             -hidepassingtests=false' }}
           test_download_vendor_packages_command:
             cd $(dirname ${{ matrix.tests.path }}) && go mod download
-          test_secrets_override_base64:
-            ${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
-          test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
-          default_e2e_test_chainlink_image:
-            ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_IMAGE ||
-            env.CHAINLINK_IMAGE }}
-          default_e2e_test_chainlink_upgrade_image:
-            ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_UPGRADE_IMAGE }}
-          aws_registries:
-            ${{ secrets.QA_AWS_ACCOUNT_NUMBER }},${{
-            secrets.PROD_AWS_ACCOUNT_NUMBER }}
           artifacts_name: ${{ env.TEST_ID }}-test-logs
           artifacts_location: |
             ./integration-tests/smoke/logs/
