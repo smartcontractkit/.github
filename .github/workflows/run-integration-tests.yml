@@ -44,7 +44,7 @@ on:
         type: string
       test_trigger:
         description:
-          'Run tests by trigger name. Example: "PR Integration Core Tests"'
+          'Run tests by trigger name. Example: "PR Integration CCIP Tests"'
         required: false
         type: string
       test_config_override_path:
@@ -262,17 +262,17 @@ jobs:
       CL_DATABASE_URL: ${{ env.DB_URL }}
     env:
       DB_URL: postgresql://postgres:postgres@localhost:5432/chainlink_test?sslmode=disable
-  steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4.2.1
-    - name: Setup postgres
-      if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
-      uses: ./.github/actions/setup-postgres
-    - name: Setup DB
-      if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
-      run: go run . local db preparetest
-      env:
-        CL_DATABASE_URL: ${{ env.DB_URL }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.1
+      - name: Setup postgres
+        # if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
+        uses: ./.github/actions/setup-postgres
+      - name: Setup DB
+        # if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
+        run: go run . local db preparetest
+        env:
+          CL_DATABASE_URL: ${{ env.DB_URL }}
 
   load-test-configurations:
     name: Load test configurations
