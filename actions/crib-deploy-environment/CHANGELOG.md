@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 6.0.0
+
+### Major Changes
+
+- [#723](https://github.com/smartcontractkit/.github/pull/723)
+  [`e86aeef`](https://github.com/smartcontractkit/.github/commit/e86aeef93b978dc61c6c7606f7d0fd93be5a0611)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding support for
+  using a custom header for passing Github OIDC JWT Auth token.
+
 ## 5.0.0
 
 ### Major Changes
