@@ -4,7 +4,7 @@ import * as path from "path";
 import * as core from "@actions/core";
 import { execa, ExecaError } from "execa";
 
-import { GoPackage, CompiledPackages, FilteredPackages } from "./index.js";
+import { GoPackage, CompiledPackages, LocalPackages } from "./index.js";
 import { insertWithoutDuplicates } from "../utils.js";
 
 type CompilationResult = CompilationSuccess | CompilationFailure;
@@ -123,7 +123,7 @@ export async function compileTestBinary(
 export async function compileConcurrent(
   workingDir: string,
   outputDir: string,
-  packages: FilteredPackages,
+  packages: LocalPackages,
   maxConcurrency: number,
 ) {
   const values = Object.values(packages);

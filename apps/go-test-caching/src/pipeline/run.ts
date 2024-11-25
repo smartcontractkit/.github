@@ -2,15 +2,21 @@ import { createWriteStream } from "fs";
 import * as path from "path";
 
 import * as core from "@actions/core";
-import { execa, ExecaError } from "execa";
+import { execa, ExecaError, Result } from "execa";
 
 import { insertWithoutDuplicates } from "../utils.js";
 import {
   GoPackage,
-  ExecutedPackages,
+  MaybeExecutedPackages,
   HashedCompiledPackages,
 } from "./index.js";
 
+type ExecaOptions = {
+  cwd: string;
+  all: true;
+  stdout: "pipe";
+  stderr: "pipe";
+};
 type RunResult = RunSuccess | RunFailure;
 type RunSuccess = {
   output: {
@@ -19,14 +25,13 @@ type RunSuccess = {
   pkg: GoPackage;
   execution: Awaited<ReturnType<typeof execCommand>>;
 };
-
 type RunFailure = {
   output: {
     binary: string;
     log: string;
   };
   pkg: GoPackage;
-  error: ExecaError;
+  error: ExecaError<ExecaOptions>;
 };
 
 function isRunSuccess(result: RunResult): result is RunSuccess {
@@ -52,25 +57,8 @@ function execCommand(cmd: string, flags: string[], cwd: string) {
     all: true,
     stdout: "pipe",
     stderr: "pipe",
-  });
+  } satisfies ExecaOptions);
 }
-
-function setupStderrDebugPipe(
-  subprocess: ReturnType<typeof execCommand>,
-  importPath: string,
-) {
-  if (core.isDebug()) {
-    subprocess.stderr.on("data", (chunk) => {
-      const lines: string[] = chunk.toString().split("\n"); // Split into lines
-      for (const line of lines) {
-        if (line.trim()) {
-          process.stdout.write(`stderr: [${importPath}] ${line}\n`);
-        }
-      }
-    });
-  }
-}
-
 async function runTestBinary(
   outputDir: string,
   pkg: GoPackage,
@@ -83,7 +71,6 @@ async function runTestBinary(
   try {
     const subprocess = execCommand(binaryPath, runFlags, pkg.directory);
     subprocess.all?.pipe(outputStream);
-    setupStderrDebugPipe(subprocess, pkg.importPath);
 
     const execution = await subprocess;
 
@@ -95,20 +82,65 @@ async function runTestBinary(
       },
     };
   } catch (error) {
-    core.setFailed(`Failed to run test for package ${pkg.importPath}`);
-
     if (!(error instanceof ExecaError)) {
+      core.error(`Failed to run test for package ${pkg.importPath}`);
       throw error;
     }
-
+    const execaError = error as ExecaError<ExecaOptions>;
+    core.error(`Failed to run test for package ${pkg.importPath}: ${execaError.message}`);
+    core.info("----------------------------------------");
+    core.info(
+      `Logs: ${pkg.importPath} ---\n${filterOutputLogs(execaError.stdout)}`,
+    );
+    core.info("----------------------------------------");
     return {
       output: {
         log: logPath,
       },
       pkg,
-      error,
+      error: execaError,
     } as RunFailure;
   }
+}
+
+/**
+ * Takes in the run logs from a test run, and filters the logs depending on the current job execution log level.
+ * If the job is in debug mode, all logs are returned. Otherwise only ERROR logs and higher are returned.
+ */
+export function filterOutputLogs(logs: string) {
+  const lines = logs.split("\n");
+
+  // Don't filter logs
+  if (core.isDebug() || !core.isDebug()) {
+    // TODO: This is a temporary workaround to only show the first 500 lines of logs
+    return lines.slice(0, 500).join("\n");
+  }
+
+  const debugLogLevels = ["DEBUG", "INFO", "WARN"];
+  const errorLogLevels = ["ERROR", "CRIT", "PANIC", "FATAL"];
+  const filteredLines = [];
+  let shouldLog = false;
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+
+    if (trimmedLine.startsWith("--- FAIL")) {
+      shouldLog = true;
+      filteredLines.push(line);
+      continue;
+    }
+
+    const [_, maybeLevel] = trimmedLine.split("\t");
+    if (errorLogLevels.includes(maybeLevel)) {
+      shouldLog = true;
+    } else if (debugLogLevels.includes(maybeLevel)) {
+      shouldLog = false;
+    }
+
+    if (shouldLog) {
+      filteredLines.push(line);
+    }
+  }
+  return filteredLines.join("\n");
 }
 
 export async function runConcurrent(
@@ -142,14 +174,16 @@ export async function runConcurrent(
     if (executingPromises.length >= maxConcurrency) {
       const finishedTask = await Promise.race(executingPromises);
       finished.push(finishedTask);
+      const { importPath } = finishedTask.pkg;
 
       if (!executing.has(finishedTask.pkg.importPath)) {
-        core.warning("Task not found in executing list");
+        core.warning(`Task (${importPath}) not found in executing list`);
         continue;
       }
 
-      core.debug(`Finished Task: ${finishedTask.pkg.importPath}`);
-      executing.delete(finishedTask.pkg.importPath);
+      core.debug(`Finished Task: ${importPath}`);
+      executing.delete(importPath);
+
 
       if (finished.length % 5 === 0) {
         core.info(
@@ -159,37 +193,78 @@ export async function runConcurrent(
     }
   }
 
-  const results = await Promise.all(executing.values());
-  return [...finished, ...results];
+  core.info(`Waiting for ${executing.size} remaining tasks to complete`);
+  core.info(`Remaining tasks:\n   -${Array.from(executing.keys()).join("\n   -")}`);
+
+  while (executing.size > 0) {
+    const executingPromises = Array.from(executing.values());
+    const finishedTask = await Promise.race(executingPromises);
+    finished.push(finishedTask);
+
+    const { importPath } = finishedTask.pkg;
+    if (!executing.has(finishedTask.pkg.importPath)) {
+      core.warning(`Task (${importPath}) not found in executing list`);
+      continue;
+    }
+    executing.delete(importPath);
+
+    core.info(
+      `Finished: ${importPath}, Remaining: ${executingPromises.length}`,
+    );
+  };
+  return [...finished ];
 }
 
 export function validateRunResultsOrThrow(
   packages: HashedCompiledPackages,
   results: RunResult[],
-): ExecutedPackages {
+): MaybeExecutedPackages {
+  outputTop5SlowestTests(results);
+
   const failures = results.filter(isRunFailure);
   if (failures.length > 0) {
-    failures.forEach((failure) => {
-      core.error(
-        `Failed to run test for package ${failure.pkg.importPath}: ${failure.error.message}`,
-      );
-    });
+    core.setFailed(
+      `Test Package Failures: ${failures.map((f) => f.pkg.importPath).join(", ")}`,
+    );
     throw new Error(
-      "At least one test binary completed with an error, or failed to run.",
+      `${failures.length} tests completed with an error, or failed to run. See output for details.`,
     );
   }
-  const successes = results.filter(isRunSuccess);
 
+  const successes = results.filter(isRunSuccess);
   return flattenRunResults(packages, successes);
+}
+
+function outputTop5SlowestTests(results: RunResult[]) {
+  const sorted = results
+    .map((result) => {
+      if (isRunFailure(result)) {
+        return {
+          importPath: result.pkg.importPath,
+          durationMs: result.error.durationMs,
+        };
+      }
+      return {
+        importPath: result.pkg.importPath,
+        durationMs: result.execution.durationMs,
+      };
+    })
+    .sort((a, b) => b.durationMs - a.durationMs)
+    .slice(0, 5);
+
+  core.info("Top 5 slowest tests:");
+  for (const { importPath, durationMs } of sorted) {
+    core.info(`  ${importPath} (${formatDuration(durationMs)})`);
+  }
 }
 
 function flattenRunResults(
   packages: HashedCompiledPackages,
   successes: RunSuccess[],
-): ExecutedPackages {
+): MaybeExecutedPackages {
   core.debug(`Flattening ${successes.length} run results`);
 
-  const executedPackages: ExecutedPackages = {};
+  const executedPackages: MaybeExecutedPackages = {};
   for (const success of successes) {
     const { importPath } = success.pkg;
     const { log } = success.output;
@@ -208,7 +283,7 @@ function flattenRunResults(
       },
     };
 
-    insertWithoutDuplicates(success.pkg.importPath, value, packages);
+    insertWithoutDuplicates(success.pkg.importPath, value, executedPackages);
   }
 
   return executedPackages;

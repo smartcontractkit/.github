@@ -3,6 +3,7 @@ import * as path from "path";
 
 import { DefaultArtifactClient } from "@actions/artifact";
 import * as core from "@actions/core";
+import * as github from "@actions/github";
 
 export function logSection(title: string) {
   const separator = "=".repeat(title.length);
@@ -20,8 +21,8 @@ export function uploadBuildLogs(directory: string, key: string) {
   core.info("Uploading build logs");
 
   const buildLogs = getLogFiles(directory, ".compile.log");
-
-  const artifactName = `build-logs-${key}`;
+  const runId = github.context.runId;
+  const artifactName = `build-logs-${key}-${runId}`;
   core.debug(`Uploading build logs to ${artifactName}`);
   core.debug(`Build log files: ${buildLogs.join(", ")}`);
 
@@ -44,8 +45,8 @@ export function uploadRunLogs(directory: string, key: string) {
   core.info("Uploading run logs");
 
   const runLogs: string[] = getLogFiles(directory, ".run.log");
-
-  const artifactName = `run-logs-${key}`;
+  const runId = github.context.runId;
+  const artifactName = `run-logs-${key}-${runId}`;
   core.debug(`Uploading run logs to ${artifactName}`);
   core.debug(`Run log files: ${runLogs.join(", ")}`);
 

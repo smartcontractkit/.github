@@ -1,16 +1,19 @@
 name: go-test-caching
-description: "Cache go tests"
+description: "Filter, build, run affected Go tests"
 inputs:
+  pipeline-step:
+    description: |
+      The step of the pipeline to run. Can be one of:
+      - build: Build then hash all test binaries
+      - run: Compare test hashes and run affected tests ('build' must have been run first)
+      - update: Update the test index file ('run' must have been run first)
+    required: true
+
   module-directory:
     description: "Directory containing the go module"
     required: true
     default: "."
 
-  update-index:
-    description: |
-      Update the test index file after running tests.
-      Will only update if the current branch is the default branch.
-    default: "false"
   force-update-index:
     description: |
       Force update the test index file, even when not on the default branch.

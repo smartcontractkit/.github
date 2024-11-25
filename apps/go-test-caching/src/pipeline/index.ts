@@ -36,17 +36,15 @@ export type GoPackage = { importPath: string; directory: string };
  *
  * This is the first step in the processing pipeline.
  */
-export interface FilteredPackages {
+export interface LocalPackages {
   [packageName: string]: GoPackage;
 }
 
 /**
  * STEP 1: Filter Tests
  */
-export async function getTestPackages(
-  inputs: Inputs,
-): Promise<FilteredPackages> {
-  logSection("Filter Tests");
+export async function getTestPackages(inputs: Inputs): Promise<LocalPackages> {
+  logSection("Locating Packages");
   if (inputs.tagFilter) {
     return findTaggedTestPackages(inputs.moduleDirectory, inputs.tagFilter);
   }
@@ -67,7 +65,7 @@ interface CompileInfo {
   execution: ExecInfo;
 }
 export interface CompiledPackages {
-  [packageName: string]: FilteredPackages[string] & {
+  [packageName: string]: LocalPackages[string] & {
     compile: CompileInfo;
   };
 }
@@ -77,7 +75,7 @@ export interface CompiledPackages {
  */
 export async function buildTestBinaries(
   inputs: Inputs,
-  packages: FilteredPackages,
+  packages: LocalPackages,
 ): Promise<CompiledPackages> {
   logSection("Build Tests");
 
@@ -139,12 +137,24 @@ export async function generateHashes(
 }
 
 /**
+ * The result of comparing the hashed test binaries to the hash stored in the index.
+ *
+ * This is the fourth step in the processing pipeline.
+ */
+export interface DiffedHashedCompiledPackages {
+  [packageName: string]: HashedCompiledPackages[string] & {
+    indexHash?: string;
+    shouldRun: boolean;
+  };
+}
+
+/**
  * STEP 4: Compare/Filter Test Binaries
  */
-export async function filterChangedHashes(
+export async function processChangedPackages(
   inputs: Inputs,
   packages: HashedCompiledPackages,
-) {
+): Promise<DiffedHashedCompiledPackages> {
   logSection("Comparing Hashes");
 
   const hashIndex = await getHashFile(
@@ -155,21 +165,20 @@ export async function filterChangedHashes(
   );
   core.debug("remote hash index: \n" + JSON.stringify(hashIndex, null, 2));
 
-  const changedOrNewPackages = comparePackagesToIndex(packages, hashIndex);
-
-  core.info(
-    `Found ${Object.keys(changedOrNewPackages).length} differences in test packages.`,
-  );
-  core.debug(
-    "package diffs: \n" + Object.keys(changedOrNewPackages).join(", "),
+  const diffedHashedCompiledPackages = comparePackagesToIndex(
+    inputs.runAllTests,
+    packages,
+    hashIndex,
   );
 
-  if (inputs.runAllTests) {
-    core.info("Run all tests flag set, skipping result of hash comparison.");
-    return packages;
-  }
+  // core.info(
+  //   `Found ${Object.keys(changedOrNewPackages).length} differences in test packages.`,
+  // );
+  // core.debug(
+  //   "package diffs: \n" + Object.keys(changedOrNewPackages).join(", "),
+  // );
 
-  return changedOrNewPackages;
+  return diffedHashedCompiledPackages;
 }
 
 /**
@@ -183,9 +192,9 @@ interface RunInfo {
   log: string;
   execution: ExecInfo;
 }
-export interface ExecutedPackages {
+export interface MaybeExecutedPackages {
   [packageName: string]: HashedCompiledPackages[string] & {
-    run: RunInfo;
+    run?: RunInfo;
   };
 }
 
@@ -195,7 +204,8 @@ export interface ExecutedPackages {
 export async function runTestBinaries(
   inputs: Inputs,
   packages: HashedCompiledPackages,
-): Promise<ExecutedPackages> {
+): Promise<MaybeExecutedPackages> {
+  logSection("Run Tests");
   const maxRunConcurrency = parseInt(core.getInput("run-concurrency")) || 4;
 
   const runResults = await runConcurrent(
@@ -213,12 +223,8 @@ export async function runTestBinaries(
  */
 export async function maybeUpdateHashIndex(
   inputs: Inputs,
-  hashedPackages: HashedCompiledPackages,
+  hashedPackages: MaybeExecutedPackages,
 ) {
-  if (!inputs.updateIndex) {
-    return;
-  }
-
   logSection("Updating Hash Index");
 
   if (inputs.forceUpdateIndex) {

@@ -3,7 +3,7 @@ import * as path from "path";
 import * as core from "@actions/core";
 import { execa } from "execa";
 
-import { FilteredPackages } from "./index.js";
+import { LocalPackages } from "./index.js";
 
 /**
  * Lists all packages in the given path. Defaults to the current directory (./).
@@ -43,7 +43,7 @@ export async function listPackages(moduleDirectory: string) {
           directory,
         },
       };
-    }, {} as FilteredPackages);
+    }, {} as LocalPackages);
 }
 
 /**
@@ -94,6 +94,6 @@ export async function findTaggedTestPackages(
   const packages = await Promise.all(packagePromises);
   return flatten(packages);
 }
-function flatten(packages: FilteredPackages[]) {
+function flatten(packages: LocalPackages[]) {
   return packages.reduce((acc, obj) => ({ ...acc, ...obj }), {});
 }

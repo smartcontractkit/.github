@@ -5,7 +5,11 @@ import { pipeline } from "stream/promises";
 import * as core from "@actions/core";
 
 import { getHashFile } from "../github.js";
-import { HashedCompiledPackages } from "./index.js";
+import {
+  HashedCompiledPackages,
+  DiffedHashedCompiledPackages,
+} from "./index.js";
+import { insertWithoutDuplicates } from "../utils.js";
 
 export async function hashFile(filePath: string): Promise<string> {
   const hash = createHash("sha256");
@@ -15,33 +19,23 @@ export async function hashFile(filePath: string): Promise<string> {
 }
 
 export function comparePackagesToIndex(
+  runAllTests: boolean,
   packages: HashedCompiledPackages,
   hashIndex: Awaited<ReturnType<typeof getHashFile>>,
-): HashedCompiledPackages {
-  const filteredCompiledTestPackages: HashedCompiledPackages = {};
+): DiffedHashedCompiledPackages {
+  const diffedHashedCompiledPkgs: DiffedHashedCompiledPackages = {};
   for (const [importPath, pkg] of Object.entries(packages)) {
     const existingHash = hashIndex[importPath];
+    const shouldRun = runAllTests || !existingHash || existingHash !== pkg.hash;
 
-    if (!existingHash) {
-      core.debug(`Found new test package ${importPath}`);
-      filteredCompiledTestPackages[importPath] = pkg;
-    } else if (existingHash !== pkg.hash) {
-      core.debug(
-        `Found change in ${importPath} (${existingHash} -> ${pkg.hash})`,
-      );
-      filteredCompiledTestPackages[importPath] = pkg;
-    } else {
-      core.debug(`Skipping ${importPath} - no changes`);
-    }
+    const value = {
+      ...pkg,
+      indexHash: existingHash,
+      shouldRun,
+    };
+
+    insertWithoutDuplicates(importPath, value, diffedHashedCompiledPkgs);
   }
 
-  if (core.isDebug()) {
-    for (const [importPath, hash] of Object.entries(hashIndex)) {
-      if (!packages[importPath]) {
-        core.debug(`Found deleted test package ${importPath}`);
-      }
-    }
-  }
-
-  return filteredCompiledTestPackages;
+  return diffedHashedCompiledPkgs;
 }

@@ -1,0 +1,144 @@
+[INFO] freeport: detected ephemeral port range of [32768, 60999]
+[INFO] freeport: reducing max blocks from 30 to 15 to avoid the ephemeral port range
+--- FAIL: TestScripts (0.01s)
+    --- FAIL: TestScripts/nodes/evm/list (0.00s)
+        --- FAIL: TestScripts/nodes/evm/list/list (2.71s)
+            main_test.go:82: test port requested: PORT
+            main_test.go:98: test database requested: CL_DATABASE_URL
+            testscript.go:584: # start node (0.058s)
+                # initialize client (2.349s)
+                > env NODEURL=http://localhost:$PORT
+                > exec curl --retry 10 --retry-max-time 60 --retry-connrefused $NODEURL
+                [stdout]
+                404 page not found
+                [stderr]
+                  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+                curl: (7) Failed to connect to localhost port 25004 after 0 ms: Connection refused
+                Warning: Problem : connection refused. Will retry in 1 seconds. 10 retries
+                Warning: left.
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100    19  100    19    0     0  21372      0 --:--:-- --:--:-- --:--:-- 19000
+                > exec chainlink --remote-node-url $NODEURL admin login -file creds --bypass-version-check
+                [stderr]
+                Post "http://localhost:25004/sessions": dial tcp [::1]:25004: connect: connection refused
+                [exit status 1]
+                FAIL: testdata/scripts/nodes/evm/list/list.txtar:8: unexpected command failure
+                > exec chainlink --remote-node-url $NODEURL nodes evm list
+                [stderr]
+                Get "http://localhost:25004/v2/nodes/evm": dial tcp [::1]:25004: connect: connection refused
+                [exit status 1]
+                FAIL: testdata/scripts/nodes/evm/list/list.txtar:10: unexpected command failure
+                > cmp stdout out.txt
+                diff stdout out.txt
+                --- stdout
+                +++ out.txt
+                @@ -0,0 +1,21 @@
+                +
+                +-----------------------------------
+                +Name:     Blue
+                +Chain ID: 68472
+                +State:    Unreachable
+                +Config:   Name = 'Blue'
+                +WSURL = 'wss://primaryfoo.bar/ws'
+                +HTTPURL = 'https://primaryfoo.bar'
+                +Order = 100
+                +
+                +-----------------------------------
+                +Name:     Yellow
+                +Chain ID: 68472
+                +State:    Unreachable
+                +Config:   Name = 'Yellow'
+                +WSURL = 'wss://sendonlyfoo.bar/ws'
+                +HTTPURL = 'https://sendonlyfoo.bar'
+                +SendOnly = true
+                +Order = 100
+                +
+                +-----------------------------------
+
+                FAIL: testdata/scripts/nodes/evm/list/list.txtar:11: stdout and out.txt differ
+                [background] chainlink node -c config.toml start -p password -a creds: exit status 1
+                [stderr]
+                2024-11-25T21:47:10.453Z [INFO]  Starting Chainlink Node unset at commit unset      cmd/shell_local.go:324           SHA=unset Version=unset logger=RunNode version=unset@unset
+                2024-11-25T21:47:10.607Z [INFO]  Starting StartUpHealthReport                       services/health.go:55            version=unset@unset
+                2024-11-25T21:47:10.661Z [INFO]  StartUpHealthReport shutdown complete              services/health.go:47            version=unset@unset
+                2024-11-25T21:47:10.725Z [INFO]  Created CSA key with ID fa89ae85f017a5e3ce05a28876227b9f9b25379ecabb192f8ec2ce86b181673a keystore/csa.go:153              logger=KeyStore version=unset@unset
+                2024-11-25T21:47:11.823Z [INFO]  Shutting down due to interrupt signal received...  cmd/shell_local.go:351           logger=RunNode version=unset@unset
+                time=2024-11-25T21:47:11.939Z level=INFO msg="Graceful shutdown time: 115.672614ms"
+                fatal error instantiating application: failed to ensure CSA key: context canceled
+
+    --- FAIL: TestScripts/nodes/solana/list (0.00s)
+        --- FAIL: TestScripts/nodes/solana/list/list (4.12s)
+            main_test.go:82: test port requested: PORT
+            main_test.go:98: test database requested: CL_DATABASE_URL
+            testscript.go:584: # start node (0.019s)
+                # initialize client (3.647s)
+                > env NODEURL=http://localhost:$PORT
+                > exec curl --retry 10 --retry-max-time 60 --retry-connrefused $NODEURL
+                [stdout]
+                404 page not found
+                [stderr]
+                  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+                curl: (7) Failed to connect to localhost port 25008 after 0 ms: Connection refused
+                Warning: Problem : connection refused. Will retry in 1 seconds. 10 retries
+                Warning: left.
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100    19  100    19    0     0  29141      0 --:--:-- --:--:-- --:--:-- 19000
+                > exec chainlink --remote-node-url $NODEURL admin login -file creds --bypass-version-check
+                [stderr]
+                Post "http://localhost:25008/sessions": dial tcp [::1]:25008: connect: connection refused
+                [exit status 1]
+                FAIL: testdata/scripts/nodes/solana/list/list.txtar:8: unexpected command failure
+                > exec chainlink --remote-node-url $NODEURL nodes solana list
+                [stderr]
+                Get "http://localhost:25008/v2/nodes/solana": dial tcp [::1]:25008: connect: connection refused
+                [exit status 1]
+                FAIL: testdata/scripts/nodes/solana/list/list.txtar:10: unexpected command failure
+                > cmp stdout out.txt
+                diff stdout out.txt
+                --- stdout
+                +++ out.txt
+                @@ -0,0 +1,18 @@
+                +
+                +-----------------------------
+                +Name:     Blue
+                +Chain ID: 68472
+                +State:
+                +Config:   Name = 'Blue'
+                +URL = 'wss://primaryfoo.bar'
+                +SendOnly = false
+                +
+                +-----------------------------
+                +Name:     Yellow
+                +Chain ID: 68472
+                +State:
+                +Config:   Name = 'Yellow'
+                +URL = 'wss://sendonlyfoo.bar'
+                +SendOnly = false
+                +
+                +-----------------------------
+
+                FAIL: testdata/scripts/nodes/solana/list/list.txtar:11: stdout and out.txt differ
+                [background] chainlink node -c config.toml start -p password -a creds: exit status 1
+                [stderr]
+                2024-11-25T21:47:11.597Z [INFO]  Starting Chainlink Node unset at commit unset      cmd/shell_local.go:324           SHA=unset Version=unset logger=RunNode version=unset@unset
+                2024-11-25T21:47:11.687Z [INFO]  Starting StartUpHealthReport                       services/health.go:55            version=unset@unset
+                2024-11-25T21:47:11.707Z [INFO]  StartUpHealthReport shutdown complete              services/health.go:47            version=unset@unset
+                2024-11-25T21:47:11.716Z [INFO]  Created CSA key with ID cf0ee685709321ffd195c5d7de9aa72c628714807e625cf722c88decfe0ce472 keystore/csa.go:153              logger=KeyStore version=unset@unset
+                2024-11-25T21:47:12.904Z [INFO]  Nurse service (automatic pprof profiling) is disabled chainlink/application.go:326     version=unset@unset
+                2024-11-25T21:47:12.904Z [INFO]  DatabaseBackup: periodic database backups are disabled. To enable automatic backups, set Database.Backup.Mode=lite or Database.Backup.Mode=full chainlink/application.go:342     version=unset@unset
+                2024-11-25T21:47:12.904Z [INFO]  Created P2P key with ID 12D3KooWLtNzMbTKzMCiALLMzPaSWMMmUzAV3kHsZo6gCTrJBqGg keystore/p2p.go:147              logger=KeyStore version=unset@unset
+                2024-11-25T21:47:13.167Z [INFO]  Shutting down due to interrupt signal received...  cmd/shell_local.go:351           logger=RunNode version=unset@unset
+                time=2024-11-25T21:47:14.302Z level=INFO msg="Graceful shutdown time: 1.134310106s"
+                failed to ensure p2p key: context canceled
+
+FAIL

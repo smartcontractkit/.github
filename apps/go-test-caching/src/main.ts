@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import * as path from "path";
 
 import * as core from "@actions/core";
 import { ExecaError } from "execa";
@@ -18,9 +19,8 @@ export type Inputs = Readonly<ReturnType<typeof setup>>;
  * @returns {Inputs}
  */
 function setup() {
-  logSection("Setup");
+  const pipelineStep = core.getInput("pipeline-step");
   const moduleDirectory = core.getInput("module-directory") || ".";
-  const updateIndex = core.getInput("update-index") || "false";
   const forceUpdateIndex = core.getInput("force-update-index") || "false";
   const runAllTests = core.getInput("run-all-tests") || "false";
   const tagFilter = core.getInput("tag-filter");
@@ -28,9 +28,15 @@ function setup() {
   const hashesBranch = core.getInput("hashes-branch");
   const testSuite = core.getInput("test-suite") || "placeholder-test-suite";
   const buildDirectory = process.env.RUNNER_TEMP || `/tmp/cl/${testSuite}`;
+  const stepsDirectory = path.join(buildDirectory, "steps");
 
-  if (!fs.existsSync(buildDirectory)) {
-    fs.mkdirSync(buildDirectory, { recursive: true });
+  if (pipelineStep !== "build" && pipelineStep !== "run" && pipelineStep !== "update" && pipelineStep !== "e2e") {
+    core.setFailed("Invalid pipeline step. Must be 'build','run', or 'update'.");
+    process.exit(1);
+  }
+
+  if (!fs.existsSync(stepsDirectory)) {
+    fs.mkdirSync(stepsDirectory, { recursive: true });
   }
 
   if (tagFilter) {
@@ -41,11 +47,12 @@ function setup() {
   }
 
   return {
+    pipelineStep,
     moduleDirectory,
     buildDirectory,
+    stepsDirectory,
     tagFilter,
     buildFlags,
-    updateIndex: updateIndex === "true",
     forceUpdateIndex: forceUpdateIndex === "true",
     hashesBranch,
     hashesFile: `${testSuite}.json`,
@@ -57,36 +64,92 @@ export async function run() {
   const inputs = setup();
 
   try {
-    const pkgs = await pipeline.getTestPackages(inputs);
-    logObject("Packages", pkgs);
-
-    const compiledPkgs = await pipeline.buildTestBinaries(inputs, pkgs);
-    logObject("Compiled Test Packages", compiledPkgs);
-
-    const hashedPkgs = await pipeline.generateHashes(compiledPkgs);
-    logObject("Hashed Test Packages", hashedPkgs);
-
-    const changedPkgs = await pipeline.filterChangedHashes(inputs, hashedPkgs);
-    logObject("Changed Test Packages", changedPkgs);
-
-    const execdPkgs = await pipeline.runTestBinaries(inputs, changedPkgs);
-    logObject("Executed Test Packages", execdPkgs);
-
-    // pass hashPkgs here instead of execdPkgs, as the latter is a subset of the former
-    await pipeline.maybeUpdateHashIndex(inputs, hashedPkgs);
+    if (inputs.pipelineStep === "build") {
+      const hashedPkgs = await buildStep(inputs);
+      persistProcessState(inputs, hashedPkgs);
+    } else if (inputs.pipelineStep === "run") {
+      const hashedPkgs = loadBuildState(inputs);
+      const execdPkgs = await runStep(inputs, hashedPkgs);
+      persistProcessState(inputs, execdPkgs);
+    } else if (inputs.pipelineStep === "update") {
+      const execdPkgs = loadRunState(inputs);
+      await pipeline.maybeUpdateHashIndex(inputs, execdPkgs);
+    } else if (inputs.pipelineStep === "e2e") {
+      const hashedPkgs = await buildStep(inputs);
+      const execdPkgs = await runStep(inputs, hashedPkgs);
+      await pipeline.maybeUpdateHashIndex(inputs, execdPkgs);
+    }
   } catch (error) {
     if (error instanceof ExecaError) {
       core.setFailed(
-        `Error: ${error.command}, ${error.shortMessage}. exit code: ${error.exitCode}. cause: ${error.cause}. ${error.stack}`,
+        `${error.command}, ${error.shortMessage}. exit code: ${error.exitCode}. cause: ${error.cause}. ${error.stack}`,
       );
     } else if (error instanceof Error) {
-      core.setFailed(`Error: ${error.name}, ${error.message}. ${error.stack}`);
+      core.setFailed(`${error.name}, ${error.message}. ${error.stack}`);
     }
   } finally {
     logSection("Upload Logs");
     const artifactKey = `${inputs.testSuite}`;
-    await uploadBuildLogs(inputs.buildDirectory, artifactKey);
-    await uploadRunLogs(inputs.buildDirectory, artifactKey);
-    logSection("Done");
+    if (inputs.pipelineStep === "build") {
+      await uploadBuildLogs(inputs.buildDirectory, artifactKey);
+    } else if (inputs.pipelineStep === "run") {
+      await uploadRunLogs(inputs.buildDirectory, artifactKey);
+    }
   }
+}
+
+async function buildStep(inputs: Inputs) {
+  const pkgs = await pipeline.getTestPackages(inputs);
+  logObject("Packages", pkgs);
+  const compiledPkgs = await pipeline.buildTestBinaries(inputs, pkgs);
+  logObject("Compiled Test Packages", compiledPkgs);
+
+  const hashedPkgs = await pipeline.generateHashes(compiledPkgs);
+  logObject("Hashed Test Packages", hashedPkgs);
+
+  return hashedPkgs
+}
+
+async function runStep(inputs: Inputs, pkgs: Awaited<ReturnType<typeof buildStep>>) {
+  const changedPkgs = await pipeline.processChangedPackages(
+    inputs,
+    pkgs,
+  );
+  logObject("Changed Test Packages", changedPkgs);
+
+  const execdPkgs = await pipeline.runTestBinaries(inputs, changedPkgs);
+  logObject("Executed Test Packages", execdPkgs);
+
+  return execdPkgs;
+}
+
+type BuildState = Awaited<ReturnType<typeof pipeline.generateHashes>>;
+
+type RunState = Awaited<ReturnType<typeof pipeline.runTestBinaries>>;
+
+function persistProcessState(inputs: Inputs, state: BuildState | RunState) {
+  const stateFile = path.join(
+    inputs.stepsDirectory,
+    `${inputs.pipelineStep}.json`,
+  );
+  core.debug(`Writing state to ${stateFile}`);
+  fs.writeFileSync(stateFile, JSON.stringify(state));
+}
+
+function loadBuildState(inputs: Inputs): BuildState {
+  const buildState = path.join(inputs.stepsDirectory, `build.json`);
+  if (fs.existsSync(buildState)) {
+    core.debug(`Loading state from ${buildState}`);
+    return JSON.parse(fs.readFileSync(buildState, "utf8"));
+  }
+  throw new Error(`No state file found. ${buildState}`);
+}
+
+function loadRunState(inputs: Inputs): RunState {
+  const stateFile = path.join(inputs.stepsDirectory, `run.json`);
+  if (fs.existsSync(stateFile)) {
+    core.debug(`Loading state from ${stateFile}`);
+    return JSON.parse(fs.readFileSync(stateFile, "utf8"));
+  }
+  throw new Error(`No state file found. ${stateFile}`);
 }

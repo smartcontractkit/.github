@@ -1,6 +1,6 @@
 // test/pipeline/build.test.ts
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
-import { FilteredPackages, GoPackage } from "../../src/pipeline/index.js";
+import { LocalPackages, GoPackage } from "../../src/pipeline/index.js";
 import {
   CompilationSuccess,
   compileTestBinary,
@@ -9,7 +9,7 @@ import {
   verifyBinaryExistsOrThrow,
 } from "../../src/pipeline/build.js";
 import * as buildModule from "../../src/pipeline/build.js";
-import {execa } from "execa";
+import { execa } from "execa";
 import { ExecaErrorMock } from "../helper/execa-error-mock.js";
 import * as fs from "fs";
 import * as core from "@actions/core";
@@ -51,7 +51,7 @@ const existsSyncMock = fs.existsSync as unknown as Mock;
 const readdirSyncMock = fs.readdirSync as unknown as Mock;
 // No need to assign createWriteStreamMock as we don't use it directly
 // const createWriteStreamMock = fs.createWriteStream as unknown as vi.Mock;
-const coreMock = core as any;
+const coreMock = core as any as Mock;
 
 describe("compileTestBinary", () => {
   beforeEach(() => {
@@ -261,4 +261,3 @@ describe("verifyBinaryExistsOrThrow", () => {
     );
   });
 });
-

@@ -54,7 +54,7 @@ describe("comparePackagesToIndex", () => {
     vi.resetAllMocks();
   });
 
-  it("should include new packages not present in hashIndex", () => {
+  it("should run new packages not present in hashIndex", () => {
     // Arrange
     const packages: HashedCompiledPackages = {
       "package/new": createPackageEntry("abc123"),
@@ -65,17 +65,18 @@ describe("comparePackagesToIndex", () => {
     };
 
     // Act
-    const result = comparePackagesToIndex(packages, hashIndex);
+    const result = comparePackagesToIndex(false, packages, hashIndex);
 
     // Assert
-    expect(result).toHaveProperty("package/new");
-    expect(Object.keys(result)).toHaveLength(1);
+    expect(result["package/new"].hash).toBe("abc123");
+    expect(result["package/new"].indexHash).toBeUndefined();
+    expect(result["package/new"].shouldRun).toBe(true);
   });
 
-  it("should include packages with changed hash", () => {
+  it("should run packages with changed hash", () => {
     // Arrange
     const packages: HashedCompiledPackages = {
-      "package/changed": createPackageEntry("hashNew")
+      "package/changed": createPackageEntry("hashNew"),
     };
 
     const hashIndex = {
@@ -83,17 +84,18 @@ describe("comparePackagesToIndex", () => {
     };
 
     // Act
-    const result = comparePackagesToIndex(packages, hashIndex);
+    const result = comparePackagesToIndex(false, packages, hashIndex);
 
     // Assert
-    expect(result).toHaveProperty("package/changed");
-    expect(Object.keys(result)).toHaveLength(1);
+    expect(result["package/changed"].hash).toBe("hashNew");
+    expect(result["package/changed"].indexHash).toBe("hashOld");
+    expect(result["package/changed"].shouldRun).toBe(true);
   });
 
-  it("should not include packages with unchanged hash", () => {
+  it("should not run packages with unchanged hash", () => {
     // Arrange
     const packages: HashedCompiledPackages = {
-      "package/unchanged": createPackageEntry("hashSame")
+      "package/unchanged": createPackageEntry("hashSame"),
     };
 
     const hashIndex = {
@@ -101,14 +103,15 @@ describe("comparePackagesToIndex", () => {
     };
 
     // Act
-    const result = comparePackagesToIndex(packages, hashIndex);
+    const result = comparePackagesToIndex(false, packages, hashIndex);
 
     // Assert
-    expect(result).not.toHaveProperty("package/unchanged");
-    expect(Object.keys(result)).toHaveLength(0);
+    expect(result["package/unchanged"].hash).toBe("hashSame");
+    expect(result["package/unchanged"].indexHash).toBe("hashSame");
+    expect(result["package/unchanged"].shouldRun).toBe(false);
   });
 
-  it("should include new and changed packages, and exclude unchanged ones", () => {
+  it("should run new and changed packages, and not run unchanged ones", () => {
     // Arrange
     const packages: HashedCompiledPackages = {
       "package/new": createPackageEntry("hashNew"),
@@ -121,33 +124,57 @@ describe("comparePackagesToIndex", () => {
       "package/unchanged": "hashSame",
       "package/deleted": "hashDeleted",
     };
-
-    const debugSpy = vi.spyOn(core, "debug");
-    vi.spyOn(core, "isDebug").mockReturnValue(true);
-
     // Act
-    const result = comparePackagesToIndex(packages, hashIndex);
+    const result = comparePackagesToIndex(false, packages, hashIndex);
 
     // Assert
-    expect(result).toHaveProperty("package/new");
-    expect(result).toHaveProperty("package/changed");
-    expect(result).not.toHaveProperty("package/unchanged");
-    expect(Object.keys(result)).toHaveLength(2);
+    expect(result["package/new"].hash).toBe("hashNew");
+    expect(result["package/new"].indexHash).toBeUndefined();
+    expect(result["package/new"].shouldRun).toBe(true);
 
-    expect(debugSpy).toHaveBeenCalledWith("Found new test package package/new");
-    expect(debugSpy).toHaveBeenCalledWith(
-      "Found change in package/changed (hashChangedOld -> hashChangedNew)",
-    );
-    expect(debugSpy).toHaveBeenCalledWith(
-      "Skipping package/unchanged - no changes",
-    );
-    expect(debugSpy).toHaveBeenCalledWith(
-      "Found deleted test package package/deleted",
-    );
+    expect(result["package/changed"].hash).toBe("hashChangedNew");
+    expect(result["package/changed"].indexHash).toBe("hashChangedOld");
+    expect(result["package/changed"].shouldRun).toBe(true);
+
+    expect(result["package/unchanged"].hash).toBe("hashSame");
+    expect(result["package/unchanged"].indexHash).toBe("hashSame");
+    expect(result["package/unchanged"].shouldRun).toBe(false);
+  });
+
+  it("should run all packages when run-all-tests is true", () => {
+    // Arrange
+    const packages: HashedCompiledPackages = {
+      "package/new": createPackageEntry("hashNew"),
+      "package/changed": createPackageEntry("hashChangedNew"),
+      "package/unchanged": createPackageEntry("hashSame"),
+    };
+
+    const hashIndex = {
+      "package/changed": "hashChangedOld",
+      "package/unchanged": "hashSame",
+      "package/deleted": "hashDeleted",
+    };
+    // Act
+    const result = comparePackagesToIndex(true, packages, hashIndex);
+
+    // Assert
+    expect(result["package/new"].hash).toBe("hashNew");
+    expect(result["package/new"].indexHash).toBeUndefined();
+    expect(result["package/new"].shouldRun).toBe(true);
+
+    expect(result["package/changed"].hash).toBe("hashChangedNew");
+    expect(result["package/changed"].indexHash).toBe("hashChangedOld");
+    expect(result["package/changed"].shouldRun).toBe(true);
+
+    expect(result["package/unchanged"].hash).toBe("hashSame");
+    expect(result["package/unchanged"].indexHash).toBe("hashSame");
+    expect(result["package/unchanged"].shouldRun).toBe(true);
   });
 });
 
-function createPackageEntry(hash: string): HashedCompiledPackages[keyof HashedCompiledPackages] {
+function createPackageEntry(
+  hash: string,
+): HashedCompiledPackages[keyof HashedCompiledPackages] {
   return {
     importPath: "foo.com/bar/baz/v2/qux",
     directory: "baz/qux",
