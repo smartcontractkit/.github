@@ -27,24 +27,9 @@ on:
           all test IDs in .github/integration-tests.yml'
         required: false
         type: string
-      test_list:
-        description:
-          "Base64-encoded list (YML objects) specifying the tests to run"
-        required: false
-        type: string
-      custom_test_list_json:
-        description: "Custom JSON list of tests to run"
-        required: false
-        type: string
       test_trigger:
         description:
           'Run tests by trigger name. Example: "PR Integration CCIP Tests"'
-        required: false
-        type: string
-      check_test_path:
-        description:
-          "Path to the test folder to check for tests missing definition in
-          .github/integration-tests.yml"
         required: false
         type: string
       slack_notification_after_tests:
@@ -168,15 +153,8 @@ jobs:
         id: set-matrix
         shell: bash
         run: |
-          # Check if custom_test_list_json is provided and non-empty
-          if [[ -n '${{ inputs.custom_test_list_json }}' ]]; then
-            echo "Using custom test list JSON"
-            MATRIX_JSON=$(echo '${{ inputs.custom_test_list_json }}' | jq -c '{tests: [.tests[] | select(.test_env_type == "in-memory")]}')
-          else
-            echo "Using default test list"
-            MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'in-memory' --test-list '${{ inputs.test_list }}' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}')
-          fi
-
+          echo "Using default test list"
+          MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'in-memory' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}')
           echo "Tests:"
           echo "$MATRIX_JSON" | jq
           echo "matrix=$MATRIX_JSON" >> "$GITHUB_OUTPUT"
@@ -208,6 +186,18 @@ jobs:
   # Run in-memory tests
   run-tests:
     name: ${{ matrix.tests.id }}
+    services:
+      postgres:
+        image: postgres:13
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: chainlink_test
+        options: >-
+          --health-cmd pg_isready -U postgres -d chainlink_test
+          --health-interval 2s --health-timeout 5s --health-retries 5
     needs: load-test-configurations
     # Run when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok)
     if:
@@ -226,18 +216,24 @@ jobs:
       contents: read
     env:
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
-      DB_URL: postgresql://postgres:postgres@localhost:5432/chainlink_test?sslmode=disable
+      CL_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/chainlink_test?sslmode=disable
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
-      - name: Setup postgres
-        if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
-        uses: ./.github/actions/setup-postgres
-      - name: Setup DB
-        if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
-        run: go run . local db preparetest
-        env:
-          CL_DATABASE_URL: ${{ env.DB_URL }}
+      - name: Wait for postgres to be ready
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for postgres to be ready..."
+            sleep 1
+          done
+      #      - name: Setup postgres
+      #        if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
+      #        uses: ./.github/actions/setup-postgres
+      #      - name: Setup DB
+      #        if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
+      #        run: go run . local db preparetest
+      #        env:
+      #          CL_DATABASE_URL: ${{ env.DB_URL }}
       - name: Install jq
         run: sudo apt-get install -y jq
 
