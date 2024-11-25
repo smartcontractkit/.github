@@ -1,5 +1,14 @@
 # setup-gap
 
+## 2.0.0
+
+### Major Changes
+
+- [#721](https://github.com/smartcontractkit/.github/pull/721)
+  [`28c5937`](https://github.com/smartcontractkit/.github/commit/28c593733260ac5e607d8bdeef8aedb2d0f273dc)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding support for
+  using a custom header for passing Github OIDC JWT token.
+
 ## 1.2.0
 
 ### Minor Changes
