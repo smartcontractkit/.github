@@ -255,7 +255,7 @@ jobs:
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@b8731364b119e88983e94b0c4da87fc27ddb41b8 # ctf-run-tests@0.0.0
         env:
-          CL_DATABASE_URL: ${{ env.DB_URL }}
+          CL_DATABASE_URL: ${{ env.CL_DATABASE_URL }}
           E2E_TEST_LOGGING_RUN_ID: ${{ github.run_id }}
           E2E_TEST_LOG_STREAM_LOG_TARGETS: ${{ vars.LOGSTREAM_LOG_TARGETS }}
           E2E_TEST_LOG_COLLECT: ${{ vars.TEST_LOG_COLLECT }}
@@ -281,8 +281,7 @@ jobs:
             /tmp/gotest.log
           publish_check_name: ${{ env.TEST_ID }}
           token: ${{ secrets.GH_TOKEN }}
-          #          cache_key_id: integration-tests
-          cache_restore_only: "true"
+          #          cache_key_id: integration-tests_{{env.workflow_id}}
           go_mod_path: ./integration-tests/go.mod
           QA_AWS_REGION: ${{ secrets.QA_AWS_REGION }}
           QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
