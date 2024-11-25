@@ -27,14 +27,9 @@ static_resources:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
                       inline_code: |
                         function envoy_on_request(request_handle)
-                          local auth_header = request_handle:headers():get("authorization")
-                          if auth_header then
-                            request_handle:headers():add("x-original-authorization", auth_header)
-                            request_handle:headers():remove("authorization")
-                          end
                           request_handle:headers():remove("host")
                           request_handle:headers():add("host", "${K8S_API_ENDPOINT}")
-                          request_handle:headers():add("authorization", "Bearer ${JWT_TOKEN}")
+                          request_handle:headers():add("${ENVOY_GITHUB_OIDC_TOKEN_HEDER_NAME}", "Bearer ${JWT_TOKEN}")
                         end
                   - name: envoy.filters.http.router
                     typed_config:
