@@ -188,16 +188,12 @@ jobs:
     name: ${{ matrix.tests.id }}
     services:
       postgres:
-        image: postgres:13
+        image: postgres:14-alpine
         ports:
           - 5432:5432
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: chainlink_test
         options: >-
-          --health-cmd "pg_isready -U postgres -d chainlink_test"
-          --health-interval 2s --health-timeout 5s --health-retries 5
+          --health-cmd pg_isready --health-interval 2s --health-timeout 5s
+          --health-retries 5
     needs: load-test-configurations
     # Run when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok)
     if:
