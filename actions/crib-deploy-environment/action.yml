@@ -93,6 +93,13 @@ inputs:
       "Enable or disable detailed Envoy proxy logs used for K8s API access. When
       enabled, debug logs are generated locally, and container logs are streamed
       to the console for troubleshooting."
+  envoy-github-oidc-token-header-name:
+    required: false
+    default: "x-authorization-github-jwt"
+    description:
+      "Specifies the name of the HTTP header used to pass the GitHub OIDC JWT
+      token. This header is automatically injected by the local proxy and must
+      not be the same as the default 'Authorization' header."
 outputs:
   devspace-namespace:
     description: "Kubernetes namespace used to provision a CRIB environment."
@@ -107,6 +114,8 @@ runs:
         aws-region: ${{ inputs.aws-region }}
         aws-role-arn: ${{ inputs.aws-role-arn }}
         enable-proxy-debug: ${{ inputs.enable-proxy-debug }}
+        envoy-github-oidc-token-header-name:
+          ${{ inputs.envoy-github-oidc-token-header-name }}
         k8s-api-endpoint-port: ${{ inputs.k8s-api-endpoint-port }}
         k8s-api-endpoint: ${{ inputs.k8s-api-endpoint }}
         k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
