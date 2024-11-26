@@ -1,5 +1,19 @@
 # crib-deploy-environment
 
+## 6.1.0
+
+### Minor Changes
+
+- [#729](https://github.com/smartcontractkit/.github/pull/729)
+  [`f078457`](https://github.com/smartcontractkit/.github/commit/f078457057e0915659ba192e4987fbc4d53ec893)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Bumping setup-gap
+  action version to support dynamically pulling Github OIDC JWT dynamically
+
+- [#725](https://github.com/smartcontractkit/.github/pull/725)
+  [`3c3b871`](https://github.com/smartcontractkit/.github/commit/3c3b871713d8771352bd48ecbb36fe7c3e4b4d98)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - setting up go before
+  running CRIB to ensure GOBIN is properly set
+
 ## 6.0.0
 
 ### Major Changes
