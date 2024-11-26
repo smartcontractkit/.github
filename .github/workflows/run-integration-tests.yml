@@ -184,9 +184,10 @@ jobs:
         shell: bash
         run: echo "workflow_id=$(uuidgen)" >> "$GITHUB_OUTPUT"
 
-  setup-db:
-    name: Setup DB
-    runs-on: ubuntu-latest
+  # Run in-memory tests
+  run-tests:
+    name: ${{ matrix.tests.id }}
+    needs: load-test-configurations
     services:
       postgres:
         image: postgres:14-alpine
@@ -198,22 +199,6 @@ jobs:
         options: >-
           --health-cmd pg_isready --health-interval 2s --health-timeout 5s
           --health-retries 5
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4.2.1
-      - name: Setup Go
-        uses: actions/setup-go@v5.0.2
-        with:
-          go-version: "1.22.6"
-          check-latest: true
-      - name: Setup DB
-        run: go run . local db preparetest
-        env:
-          CL_DATABASE_URL: ${{  env.DB_URL }}
-  # Run in-memory tests
-  run-tests:
-    name: ${{ matrix.tests.id }}
-    needs: load-test-configurations
     # Run when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok)
     if:
       ${{ needs.load-test-configurations.outputs.run-tests == 'true' && always()
@@ -240,14 +225,10 @@ jobs:
             echo "Waiting for postgres to be ready..."
             sleep 1
           done
-      #      - name: Setup postgres
-      #        if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
-      #        uses: ./.github/actions/setup-postgres
-      #      - name: Setup DB
-      #        if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
-      #        run: go run . local db preparetest
-      #        env:
-      #          CL_DATABASE_URL: ${{ env.DB_URL }}
+      - name: Setup DB
+        run: go run . local db preparetest
+        env:
+          CL_DATABASE_URL: ${{  env.DB_URL }}
       - name: Install jq
         run: sudo apt-get install -y jq
 
