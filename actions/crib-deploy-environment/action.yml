@@ -93,6 +93,13 @@ inputs:
       "Enable or disable detailed Envoy proxy logs used for K8s API access. When
       enabled, debug logs are generated locally, and container logs are streamed
       to the console for troubleshooting."
+  envoy-github-oidc-token-header-name:
+    required: false
+    default: "x-authorization-github-jwt"
+    description:
+      "Specifies the name of the HTTP header used to pass the GitHub OIDC JWT
+      token. This header is automatically injected by the local proxy and must
+      not be the same as the default 'Authorization' header."
 outputs:
   devspace-namespace:
     description: "Kubernetes namespace used to provision a CRIB environment."
@@ -102,11 +109,13 @@ runs:
   using: "composite"
   steps:
     - name: Setup GAP
-      uses: smartcontractkit/.github/actions/setup-gap@eb0af287aedae819d71eed8eb3171d4ffb4a9587 # setup-gap@1.2.0
+      uses: smartcontractkit/.github/actions/setup-gap@a1c64ab26eaac82da84581788f33029f5ae6cc02 # setup-gap@3.0.0
       with:
         aws-region: ${{ inputs.aws-region }}
         aws-role-arn: ${{ inputs.aws-role-arn }}
         enable-proxy-debug: ${{ inputs.enable-proxy-debug }}
+        envoy-github-oidc-token-header-name:
+          ${{ inputs.envoy-github-oidc-token-header-name }}
         k8s-api-endpoint-port: ${{ inputs.k8s-api-endpoint-port }}
         k8s-api-endpoint: ${{ inputs.k8s-api-endpoint }}
         k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
@@ -129,6 +138,11 @@ runs:
         AWS_REGION: ${{ inputs.aws-region }}
       with:
         registries: ${{ inputs.aws-ecr-private-registry }}
+
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: "${{ github.workspace }}/crib/go.work"
+        cache-dependency-path: "${{ github.workspace }}/crib/**/*.sum"
 
     - name: Setup Nix
       uses: smartcontractkit/.github/actions/setup-nix@4df907a307d91761c15cdff65e508145bdbcfca3 # setup-nix@0.3.0

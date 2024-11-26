@@ -95,6 +95,8 @@ importers:
 
   actions/check-git-tag-for-monorepo: {}
 
+  actions/ci-beholder-schema-validate: {}
+
   actions/ci-benchmarking: {}
 
   actions/ci-kubeconform: {}
