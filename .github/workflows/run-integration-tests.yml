@@ -82,8 +82,6 @@ on:
         required: true
       QA_AWS_ROLE_TO_ASSUME:
         required: true
-      QA_AWS_ACCOUNT_NUMBER:
-        required: true
       GH_TOKEN:
         required: true
       SLACK_BOT_TOKEN:
@@ -249,9 +247,6 @@ jobs:
             cd $(dirname ${{ matrix.tests.path }}) && go mod download
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
-          aws_registries:
-            ${{ secrets.QA_AWS_ACCOUNT_NUMBER }},${{
-            secrets.PROD_AWS_ACCOUNT_NUMBER }}
           artifacts_name: ${{ env.TEST_ID }}-test-logs
           artifacts_location: |
             ./integration-tests/smoke/logs/
