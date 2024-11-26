@@ -1,5 +1,14 @@
 # setup-gap
 
+## 3.0.0
+
+### Major Changes
+
+- [#727](https://github.com/smartcontractkit/.github/pull/727)
+  [`7c8f5e3`](https://github.com/smartcontractkit/.github/commit/7c8f5e3be69447676751d2dc1af0704b340c1186)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding support for
+  dynamically fetching the JWT token for Kubernetes API access
+
 ## 2.0.0
 
 ### Major Changes
