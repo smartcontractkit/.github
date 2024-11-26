@@ -170,16 +170,6 @@ runs:
         # Remove certificate-authority-data populated from `aws eks update-kubeconfig` which is for the endpoint which is not publicly accessible
         kubectl config unset clusters.$CLUSTER_ARN.certificate-authority-data
 
-    - name: Get GH JWT Token
-      if: inputs.use-k8s == 'true'
-      id: get-jwt-token
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const audience = 'gap';
-          const id_token = await core.getIDToken(audience);
-          core.setOutput('token', id_token);
-
     - name: Run Envoy proxy
       if: inputs.use-k8s == 'true'
       shell: sh
@@ -194,6 +184,15 @@ runs:
         K8S_API_ENDPOINT: ${{ inputs.k8s-api-endpoint }}
         PROXY_PORT: ${{ inputs.proxy-port }}
       run: |
+        # Get the Github OIDC hostname
+        export GITHUB_OIDC_HOSTNAME=$(echo $ACTIONS_ID_TOKEN_REQUEST_URL | awk -F[/:] '{print $4}')
+        if [ -z "$GITHUB_OIDC_HOSTNAME" ]; then
+          echo "Error: Github OIDC hostname is empty!"
+          exit 1
+        else
+          echo "Github OIDC hostname: $GITHUB_OIDC_HOSTNAME"
+        fi
+
         # Generate Envoy config from template
         ls -l
         envsubst < "${GITHUB_ACTION_PATH}/envoy.yaml.template" > "${GITHUB_ACTION_PATH}/envoy.yaml"
@@ -214,6 +213,7 @@ runs:
           -p "${PROXY_PORT}:${PROXY_PORT}" \
           -v "${PATH_CERTS_DIR}":/tls \
           -v "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
+          -v "${GITHUB_ACTION_PATH}/json.lua":/etc/envoy/json.lua \
           "${ENVOY_PROXY_IMAGE}" \
           /usr/local/bin/envoy -c /etc/envoy/envoy.yaml \
           --log-level "${ENVOY_LOG_LEVEL}"
