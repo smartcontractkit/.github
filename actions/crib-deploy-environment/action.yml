@@ -106,6 +106,11 @@ runs:
         path: "${{ github.workspace }}/crib"
         token: ${{ inputs.github-token }}
 
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: "${{ github.workspace }}/crib/go.work"
+        cache-dependency-path: "${{ github.workspace }}/crib/**/*.sum"
+
     - name: Setup Nix
       uses: smartcontractkit/.github/actions/setup-nix@4df907a307d91761c15cdff65e508145bdbcfca3 # setup-nix@0.3.0
       with:
