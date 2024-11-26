@@ -128,8 +128,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: |
-          go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@83100a879006dde55ace09a5dfd99b37e62f5a3f # v1.34.4
+          go install github.com/smartcontractkit/chainlink-testing-framework/tools/citool@83100a879006dde55ace09a5dfd99b37e62f5a3f # v1.34.4
 
       - name: Generate Tests Matrix
         id: set-matrix
