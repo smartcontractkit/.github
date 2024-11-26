@@ -1,9 +1,6 @@
 # This is a reusable workflow that runs Integration tests for Chainlink.
 # It is not meant to be run on its own.
 #
-# IMPORTANT NOTE: All workflow_call inputs appear as plain text in GitHub Logs (see https://github.com/actions/runner/issues/2988).
-# Do not include any sensitive information in these inputs. Instead, for handling test secrets, refer to https://github.com/smartcontractkit/chainlink-testing-framework/blob/main/lib/config/README.md#test-secrets
-#
 name: Run Integration Tests
 on:
   workflow_call:
@@ -27,24 +24,9 @@ on:
           all test IDs in .github/integration-tests.yml'
         required: false
         type: string
-      test_list:
-        description:
-          "Base64-encoded list (YML objects) specifying the tests to run"
-        required: false
-        type: string
-      custom_test_list_json:
-        description: "Custom JSON list of tests to run"
-        required: false
-        type: string
       test_trigger:
         description:
           'Run tests by trigger name. Example: "PR Integration CCIP Tests"'
-        required: false
-        type: string
-      check_test_path:
-        description:
-          "Path to the test folder to check for tests missing definition in
-          .github/integration-tests.yml"
         required: false
         type: string
       slack_notification_after_tests:
@@ -96,6 +78,12 @@ on:
         description: "Test results from all executed tests"
         value: ${{ jobs.after_tests.outputs.test_results }}
     secrets:
+      QA_AWS_REGION:
+        required: true
+      QA_AWS_ROLE_TO_ASSUME:
+        required: true
+      QA_AWS_ACCOUNT_NUMBER:
+        required: true
       GH_TOKEN:
         required: true
       SLACK_BOT_TOKEN:
@@ -119,15 +107,7 @@ env:
     ${{ inputs.slack_notification_after_tests_channel_id || inputs.SLACK_CHANNEL
     || secrets.SLACK_CHANNEL }}
   SLACK_USER: ${{ inputs.SLACK_USER }}
-#  E2E_JD_IMAGE:
-#    ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
-#    secrets.AWS_REGION}}.amazonaws.com/job-distributor
-#  E2E_RMN_RAGEPROXY_IMAGE:
-#    ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
-#    secrets.AWS_REGION}}.amazonaws.com/rageproxy
-#  E2E_RMN_AFN2PROXY_IMAGE:
-#    ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
-#    secrets.AWS_REGION}}.amazonaws.com/afn2proxy
+  DB_URL: postgresql://postgres:postgres@localhost:5432/chainlink_test?sslmode=disable
 
 jobs:
   load-test-configurations:
@@ -156,15 +136,8 @@ jobs:
         id: set-matrix
         shell: bash
         run: |
-          # Check if custom_test_list_json is provided and non-empty
-          if [[ -n '${{ inputs.custom_test_list_json }}' ]]; then
-            echo "Using custom test list JSON"
-            MATRIX_JSON=$(echo '${{ inputs.custom_test_list_json }}' | jq -c '{tests: [.tests[] | select(.test_env_type == "in-memory")]}')
-          else
-            echo "Using default test list"
-            MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'in-memory' --test-list '${{ inputs.test_list }}' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}')
-          fi
-
+          echo "Using default test list"
+          MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'in-memory' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}')
           echo "Tests:"
           echo "$MATRIX_JSON" | jq
           echo "matrix=$MATRIX_JSON" >> "$GITHUB_OUTPUT"
@@ -197,6 +170,17 @@ jobs:
   run-tests:
     name: ${{ matrix.tests.id }}
     needs: load-test-configurations
+    services:
+      postgres:
+        image: postgres:14-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready --health-interval 2s --health-timeout 5s
+          --health-retries 5
     # Run when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok)
     if:
       ${{ needs.load-test-configurations.outputs.run-tests == 'true' && always()
@@ -214,18 +198,19 @@ jobs:
       contents: read
     env:
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
-      DB_URL: postgresql://postgres:postgres@localhost:5432/chainlink_test?sslmode=disable
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
-      - name: Setup postgres
-        if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
-        uses: ./.github/actions/setup-postgres
+      - name: Wait for postgres to be ready
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for postgres to be ready..."
+            sleep 1
+          done
       - name: Setup DB
-        if: ${{ matrix.tests.test_env_vars.PG_INSTANCE }}
         run: go run . local db preparetest
         env:
-          CL_DATABASE_URL: ${{ env.DB_URL }}
+          CL_DATABASE_URL: ${{  env.DB_URL }}
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -248,7 +233,6 @@ jobs:
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@b8731364b119e88983e94b0c4da87fc27ddb41b8 # ctf-run-tests@0.0.0
         env:
-          DETACH_RUNNER: true
           CL_DATABASE_URL: ${{ env.DB_URL }}
           E2E_TEST_LOGGING_RUN_ID: ${{ github.run_id }}
           E2E_TEST_LOG_STREAM_LOG_TARGETS: ${{ vars.LOGSTREAM_LOG_TARGETS }}
@@ -265,14 +249,15 @@ jobs:
             cd $(dirname ${{ matrix.tests.path }}) && go mod download
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
+          aws_registries:
+            ${{ secrets.QA_AWS_ACCOUNT_NUMBER }},${{
+            secrets.PROD_AWS_ACCOUNT_NUMBER }}
           artifacts_name: ${{ env.TEST_ID }}-test-logs
           artifacts_location: |
             ./integration-tests/smoke/logs/
             ./integration-tests/smoke/db_dumps/
             /tmp/gotest.log
-          publish_check_name: ${{ env.TEST_ID }}
           token: ${{ secrets.GH_TOKEN }}
-          cache_key_id: integration-tests
           go_mod_path: ./integration-tests/go.mod
           QA_AWS_REGION: ${{ secrets.QA_AWS_REGION }}
           QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
@@ -288,18 +273,6 @@ jobs:
           path: /tmp/gotest.log
           retention-days: ${{ inputs.test_log_upload_retention_days }}
         continue-on-error: true
-
-      - name: Upload cl node coverage data as artifact
-        if: inputs.upload_cl_node_coverage_artifact
-        uses: actions/upload-artifact@v4.4.3
-        timeout-minutes: 2
-        continue-on-error: true
-        with:
-          name:
-            ${{ inputs.upload_cl_node_coverage_artifact_prefix }}${{ env.TEST_ID
-            }}
-          path: .covdata
-          retention-days: 1
 
       - name: Record test result
         if: ${{ always() }}
