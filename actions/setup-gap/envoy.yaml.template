@@ -26,16 +26,71 @@ static_resources:
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
                       inline_code: |
-                        function envoy_on_request(request_handle)
-                          local auth_header = request_handle:headers():get("authorization")
-                          if auth_header then
-                            request_handle:headers():add("x-original-authorization", auth_header)
-                            request_handle:headers():remove("authorization")
-                          end
-                          request_handle:headers():remove("host")
-                          request_handle:headers():add("host", "${K8S_API_ENDPOINT}")
-                          request_handle:headers():add("authorization", "Bearer ${JWT_TOKEN}")
+                        JSON = (loadfile "/etc/envoy/json.lua")() -- one-time load of the routines
+                        local jwt_expiration = 0
+                        local jwt_token = nil
+                        local refreshing = false
+                        local request_options = {["asynchronous"] = true}
+
+                        -- Function to fetch GitHub OIDC token
+                        function fetch_github_oidc_token(request_handle)
+                            if refreshing then
+                                return -- Prevent multiple concurrent refreshes
+                            end
+                            refreshing = true
+
+                            -- Set the audience and the GitHub OIDC token URL
+                            local audience = "gap"
+                            local oidc_url = "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=" .. audience
+
+                            -- Prepare headers
+                            local headers = {
+                                [":method"] = "GET",
+                                [":path"] = oidc_url,
+                                [":authority"] = "${GITHUB_OIDC_HOSTNAME}",
+                                ["Authorization"] = "Bearer " .. "${ACTIONS_ID_TOKEN_REQUEST_TOKEN}", -- Use environment variable
+                                ["accept"] = "application/json",
+                            }
+
+                            -- Make the HTTP call
+                            local response_headers, response_body = request_handle:httpCall(
+                                "github_oidc_endpoint",
+                                headers,
+                                nil, -- No body for GET requests
+                                3000 -- Timeout in milliseconds
+                            )
+
+                            if response_headers[":status"] == "200" then
+                                request_handle:logInfo("GitHub OIDC token fetched successfully.")
+                                request_handle:logInfo(response_body)
+                                local data = JSON.decode(response_body)
+                                jwt_token = data.value -- Assign the token value
+                                jwt_expiration = os.time() + 300 -- Tokens are valid for 5 minutes
+                            else
+                                request_handle:logErr("Failed to fetch GitHub OIDC token. Status: " .. response_headers[":status"])
+                            end
+
+                            refreshing = false
                         end
+
+                        -- Function to refresh the token if needed
+                        function refresh_token_if_needed(request_handle)
+                            local current_time = os.time()
+                            if not jwt_token or jwt_expiration - current_time < 60 then
+                                fetch_github_oidc_token(request_handle)
+                            end
+                        end
+
+                        -- Main function for Envoy request interception
+                        function envoy_on_request(request_handle)
+                            refresh_token_if_needed(request_handle)
+                            if jwt_token then
+                                request_handle:headers():add("x-authorization-github-jwt", "Bearer " .. jwt_token)
+                            end
+                            request_handle:headers():remove("host")
+                            request_handle:headers():add("host", "${K8S_API_ENDPOINT}")
+                        end
+
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
@@ -75,8 +130,15 @@ static_resources:
   clusters:
     - name: k8s_api_cluster
       connect_timeout: 10s
-      type: STRICT_DNS
+      type: LOGICAL_DNS
       lb_policy: ROUND_ROBIN
+      common_http_protocol_options:
+        idle_timeout: 60s
+        max_connection_duration: 900s
+      http2_protocol_options:
+        connection_keepalive:
+          interval: 1s
+          timeout: 10s
       load_assignment:
         cluster_name: k8s_api_cluster
         endpoints:
@@ -85,7 +147,7 @@ static_resources:
                   address:
                     socket_address:
                       address: "${K8S_API_ENDPOINT}"
-                      port_value: 443
+                      port_value: "${K8S_API_ENDPOINT_PORT}"
       transport_socket:
         name: envoy.transport_sockets.tls
         typed_config:
@@ -95,3 +157,21 @@ static_resources:
               trusted_ca:
                 filename: "/tls/aws-ca.crt"
               trust_chain_verification: VERIFY_TRUST_CHAIN
+
+    - name: github_oidc_endpoint
+      connect_timeout: 5s
+      type: LOGICAL_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: github_oidc_endpoint
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: "${GITHUB_OIDC_HOSTNAME}"
+                      port_value: 443
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext

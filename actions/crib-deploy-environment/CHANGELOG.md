@@ -1,5 +1,37 @@
 # crib-deploy-environment
 
+## 6.1.0
+
+### Minor Changes
+
+- [#729](https://github.com/smartcontractkit/.github/pull/729)
+  [`f078457`](https://github.com/smartcontractkit/.github/commit/f078457057e0915659ba192e4987fbc4d53ec893)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Bumping setup-gap
+  action version to support dynamically pulling Github OIDC JWT dynamically
+
+- [#725](https://github.com/smartcontractkit/.github/pull/725)
+  [`3c3b871`](https://github.com/smartcontractkit/.github/commit/3c3b871713d8771352bd48ecbb36fe7c3e4b4d98)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - setting up go before
+  running CRIB to ensure GOBIN is properly set
+
+## 6.0.0
+
+### Major Changes
+
+- [#723](https://github.com/smartcontractkit/.github/pull/723)
+  [`e86aeef`](https://github.com/smartcontractkit/.github/commit/e86aeef93b978dc61c6c7606f7d0fd93be5a0611)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding support for
+  using a custom header for passing Github OIDC JWT Auth token.
+
+## 5.0.0
+
+### Major Changes
+
+- [#717](https://github.com/smartcontractkit/.github/pull/717)
+  [`1ac3bb8`](https://github.com/smartcontractkit/.github/commit/1ac3bb81767c9ec1a9bab98e9bf4ae49e5379ff8)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding ECR login
+  required for Helm.
+
 ## 4.0.0
 
 ### Major Changes

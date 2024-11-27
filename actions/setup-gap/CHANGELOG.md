@@ -1,5 +1,32 @@
 # setup-gap
 
+## 3.0.0
+
+### Major Changes
+
+- [#727](https://github.com/smartcontractkit/.github/pull/727)
+  [`7c8f5e3`](https://github.com/smartcontractkit/.github/commit/7c8f5e3be69447676751d2dc1af0704b340c1186)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding support for
+  dynamically fetching the JWT token for Kubernetes API access
+
+## 2.0.0
+
+### Major Changes
+
+- [#721](https://github.com/smartcontractkit/.github/pull/721)
+  [`28c5937`](https://github.com/smartcontractkit/.github/commit/28c593733260ac5e607d8bdeef8aedb2d0f273dc)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding support for
+  using a custom header for passing Github OIDC JWT token.
+
+## 1.2.0
+
+### Minor Changes
+
+- [#711](https://github.com/smartcontractkit/.github/pull/711)
+  [`9f8d357`](https://github.com/smartcontractkit/.github/commit/9f8d357c514dbcb16a1c2cbac592d540c419d861)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Improving Envoy
+  config and add support for debugging
+
 ## 1.1.0
 
 ### Minor Changes
