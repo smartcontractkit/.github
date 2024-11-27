@@ -1,14 +1,12 @@
 // test/pipeline/build.test.ts
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
-import { LocalPackages, GoPackage } from "../../src/pipeline/index.js";
+import { GoPackage } from "../../src/pipeline/index.js";
 import {
   CompilationSuccess,
   compileTestBinary,
-  compileConcurrent,
   validateCompilationResultsOrThrow,
   verifyBinaryExistsOrThrow,
 } from "../../src/pipeline/build.js";
-import * as buildModule from "../../src/pipeline/build.js";
 import { execa } from "execa";
 import { ExecaErrorMock } from "../helper/execa-error-mock.js";
 import * as fs from "fs";
@@ -67,7 +65,7 @@ describe("compileTestBinary", () => {
     const workingDir = "/working/dir";
     const outputDir = "/output/dir";
     const executionResult = {
-      command: "go test -c -o binary -vet=off github.com/example/pkg",
+      command: "go test -c -o binary -tags foo github.com/example/pkg",
       exitCode: 0,
       stdout: "some stdout",
       stderr: "",
@@ -82,12 +80,15 @@ describe("compileTestBinary", () => {
     execaMock.mockResolvedValue(executionResult);
 
     // Act
-    const result = await compileTestBinary(workingDir, outputDir, pkg);
+    const result = await compileTestBinary(workingDir, outputDir, pkg, [
+      "-tags",
+      "foo",
+    ]);
 
     // Assert
     expect(execaMock).toHaveBeenCalledWith(
       "go",
-      ["test", "-c", "-o", expect.any(String), "-vet=off", pkg.importPath],
+      ["test", "-c", "-o", expect.any(String), "-tags", "foo", pkg.importPath],
       {
         cwd: workingDir,
         stdout: "pipe",
@@ -111,7 +112,7 @@ describe("compileTestBinary", () => {
     execaMock.mockRejectedValue(execaErrorMock);
 
     // Act
-    const result = await compileTestBinary(workingDir, outputDir, pkg);
+    const result = await compileTestBinary(workingDir, outputDir, pkg, []);
 
     // Assert
     expect(core.setFailed).toHaveBeenCalledWith(
@@ -133,9 +134,9 @@ describe("compileTestBinary", () => {
     execaMock.mockRejectedValue(testError);
 
     // Act & Assert
-    await expect(compileTestBinary(workingDir, outputDir, pkg)).rejects.toThrow(
-      "Unexpected error",
-    );
+    await expect(
+      compileTestBinary(workingDir, outputDir, pkg, []),
+    ).rejects.toThrow("Unexpected error");
   });
 });
 
@@ -183,8 +184,7 @@ describe("validateCompilationResultsOrThrow", () => {
         directory: "/path/to/pkg",
       },
       execution: {
-        command:
-          "go test -c -o /path/to/binary -vet=off github.com/example/pkg",
+        command: "go test -c -o /path/to/binary github.com/example/pkg",
         exitCode: 0,
         durationMs: 123,
         cwd: "/working/dir",

@@ -65,6 +65,21 @@ export function uploadRunLogs(directory: string, key: string) {
   }
 }
 
+export function uploadStateFile(filePath: string) {
+  core.debug("Uploading state object");
+
+  try {
+    const artifactName = `state-${path.basename(filePath).replace(".json", "")}-${github.context.runId}`;
+    const directory = path.dirname(filePath);
+    const client = new DefaultArtifactClient();
+    return client.uploadArtifact(artifactName, [filePath], directory, {
+      retentionDays: 3,
+    });
+  } catch (error) {
+    core.warning("Error uploading state object: " + error);
+  }
+}
+
 function getLogFiles(directory: string, extension: string): string[] {
   const files: string[] = readdirSync(directory);
   return files

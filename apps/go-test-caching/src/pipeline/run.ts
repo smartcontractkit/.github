@@ -2,11 +2,13 @@ import { createWriteStream } from "fs";
 import * as path from "path";
 
 import * as core from "@actions/core";
-import { execa, ExecaError, Result } from "execa";
+import { execa, ExecaError } from "execa";
+import pLimit from "p-limit";
 
 import { insertWithoutDuplicates } from "../utils.js";
 import {
   GoPackage,
+  DiffedHashedCompiledPackages,
   MaybeExecutedPackages,
   HashedCompiledPackages,
 } from "./index.js";
@@ -87,7 +89,9 @@ async function runTestBinary(
       throw error;
     }
     const execaError = error as ExecaError<ExecaOptions>;
-    core.error(`Failed to run test for package ${pkg.importPath}: ${execaError.message}`);
+    core.error(
+      `Failed to run test for package ${pkg.importPath}: ${execaError.message}`,
+    );
     core.info("----------------------------------------");
     core.info(
       `Logs: ${pkg.importPath} ---\n${filterOutputLogs(execaError.stdout)}`,
@@ -145,78 +149,50 @@ export function filterOutputLogs(logs: string) {
 
 export async function runConcurrent(
   buildDir: string,
-  packages: HashedCompiledPackages,
+  packages: DiffedHashedCompiledPackages,
   flags: string[],
   maxConcurrency: number,
 ) {
-  const values = Object.values(packages);
+  const limit = pLimit(maxConcurrency);
+  const allPackages = Object.values(packages);
+  const pkgsToRun = Object.values(allPackages).filter((pkg) => pkg.shouldRun);
   core.info(
-    `Executing ${values.length} packages (concurrency: ${maxConcurrency})`,
+    `Running ${pkgsToRun.length} with changes out of ${allPackages.length} total packages`,
   );
 
-  const seen = new Set<string>();
-  const finished: RunResult[] = [];
-  const executing = new Map<string, Promise<RunResult>>();
+  const executing = new Set<string>();
+  const tasks = pkgsToRun.map((pkg) =>
+    limit(() => {
+      executing.add(pkg.importPath);
+      return runTestBinary(buildDir, pkg, pkg.compile.binary, flags).finally(
+        () => executing.delete(pkg.importPath),
+      );
+    }),
+  );
 
-  for (const pkg of values) {
-    const { importPath } = pkg;
-
-    if (seen.has(importPath)) {
-      core.warning(`Duplicate package found: ${importPath}`);
-      continue; // Skip adding the duplicate task
-    }
-    seen.add(importPath);
-
-    const task = runTestBinary(buildDir, pkg, pkg.compile.binary, flags);
-    executing.set(importPath, task);
-
-    const executingPromises = Array.from(executing.values());
-    if (executingPromises.length >= maxConcurrency) {
-      const finishedTask = await Promise.race(executingPromises);
-      finished.push(finishedTask);
-      const { importPath } = finishedTask.pkg;
-
-      if (!executing.has(finishedTask.pkg.importPath)) {
-        core.warning(`Task (${importPath}) not found in executing list`);
-        continue;
-      }
-
-      core.debug(`Finished Task: ${importPath}`);
-      executing.delete(importPath);
-
-
-      if (finished.length % 5 === 0) {
-        core.info(
-          `Finished: ${finished.length}, In Progress: ${executingPromises.length}`,
-        );
-      }
-    }
-  }
-
-  core.info(`Waiting for ${executing.size} remaining tasks to complete`);
-  core.info(`Remaining tasks:\n   -${Array.from(executing.keys()).join("\n   -")}`);
-
-  while (executing.size > 0) {
-    const executingPromises = Array.from(executing.values());
-    const finishedTask = await Promise.race(executingPromises);
-    finished.push(finishedTask);
-
-    const { importPath } = finishedTask.pkg;
-    if (!executing.has(finishedTask.pkg.importPath)) {
-      core.warning(`Task (${importPath}) not found in executing list`);
-      continue;
-    }
-    executing.delete(importPath);
-
+  const interval = setInterval(() => {
+    const remaining = limit.pendingCount + limit.activeCount;
+    const completed = pkgsToRun.length - remaining;
     core.info(
-      `Finished: ${importPath}, Remaining: ${executingPromises.length}`,
+      `${completed}/${pkgsToRun.length} tests completed. Active: ${limit.activeCount}, Pending: ${limit.pendingCount}`,
     );
-  };
-  return [...finished ];
+    if (remaining < 10) {
+      core.info(
+        `Remaining tasks:\n   - ${Array.from(executing).join("\n   - ")}`,
+      );
+    }
+  }, 30000);
+
+  try {
+    return await Promise.all(tasks);
+  } finally {
+    clearInterval(interval);
+    core.info("All tasks have been completed.");
+  }
 }
 
 export function validateRunResultsOrThrow(
-  packages: HashedCompiledPackages,
+  packages: DiffedHashedCompiledPackages,
   results: RunResult[],
 ): MaybeExecutedPackages {
   outputTop5SlowestTests(results);
@@ -236,6 +212,10 @@ export function validateRunResultsOrThrow(
 }
 
 function outputTop5SlowestTests(results: RunResult[]) {
+  if (results.length === 0) {
+    return;
+  }
+
   const sorted = results
     .map((result) => {
       if (isRunFailure(result)) {
@@ -259,31 +239,32 @@ function outputTop5SlowestTests(results: RunResult[]) {
 }
 
 function flattenRunResults(
-  packages: HashedCompiledPackages,
+  packages: DiffedHashedCompiledPackages,
   successes: RunSuccess[],
 ): MaybeExecutedPackages {
   core.debug(`Flattening ${successes.length} run results`);
 
-  const executedPackages: MaybeExecutedPackages = {};
+  const executedPackages: MaybeExecutedPackages = packages;
   for (const success of successes) {
     const { importPath } = success.pkg;
+
+    if (!executedPackages[importPath]) {
+      core.warning(`Package ${importPath} not found in packages.`);
+      continue;
+    }
+
     const { log } = success.output;
     const { command, exitCode, cwd, durationMs } = success.execution;
 
-    const value = {
-      ...packages[importPath],
-      run: {
-        log,
-        execution: {
-          command,
-          exitCode: exitCode !== undefined ? exitCode : -1,
-          cwd,
-          durationMs,
-        },
+    executedPackages[importPath].run = {
+      log,
+      execution: {
+        command,
+        exitCode: exitCode !== undefined ? exitCode : -1,
+        cwd,
+        durationMs,
       },
     };
-
-    insertWithoutDuplicates(success.pkg.importPath, value, executedPackages);
   }
 
   return executedPackages;

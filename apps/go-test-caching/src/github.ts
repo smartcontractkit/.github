@@ -171,38 +171,61 @@ export async function getChangedFiles(): Promise<string[]> {
   const context = github.context;
   const eventName = context.eventName;
 
-  if (eventName === 'schedule') {
-    core.info('Scheduled event detected. Skipping changed files logic.');
+  if (eventName === "schedule") {
+    core.info("Scheduled event detected. Skipping changed files logic.");
     return [];
   }
 
-  const token = core.getInput('github_token', { required: true });
+  const token = core.getInput("github_token", { required: true });
   const octokit = github.getOctokit(token);
   const { owner, repo } = context.repo;
 
   switch (eventName) {
-    case 'pull_request':
+    case "pull_request":
       if (!context.payload.pull_request?.number) {
-        throw new Error(`Malformed event context? No PR number found for event ${eventName}. Can't properly evaluate changed files.`);
+        throw new Error(
+          `Malformed event context? No PR number found for event ${eventName}. Can't properly evaluate changed files.`,
+        );
       }
       const prNumber = context.payload.pull_request.number;
-      return await getChangedFilesFromPullRequest(octokit, owner, repo, prNumber);
+      return await getChangedFilesFromPullRequest(
+        octokit,
+        owner,
+        repo,
+        prNumber,
+      );
 
-    case 'push':
+    case "push":
       const beforeSha = context.payload.before;
       const afterSha = context.payload.after;
       if (beforeSha && afterSha) {
-        return await getChangedFilesBetweenCommits(octokit, owner, repo, beforeSha, afterSha);
+        return await getChangedFilesBetweenCommits(
+          octokit,
+          owner,
+          repo,
+          beforeSha,
+          afterSha,
+        );
       }
-      throw new Error(`Malformed event context? Can't properly evaluate changed files for event ${eventName}.`);
+      throw new Error(
+        `Malformed event context? Can't properly evaluate changed files for event ${eventName}.`,
+      );
 
-    case 'merge_group':
+    case "merge_group":
       const baseSha = context.payload.merge_group?.base_sha;
       const headSha = context.payload.merge_group?.head_sha;
       if (baseSha && headSha) {
-        return await getChangedFilesBetweenCommits(octokit, owner, repo, baseSha, headSha);
+        return await getChangedFilesBetweenCommits(
+          octokit,
+          owner,
+          repo,
+          baseSha,
+          headSha,
+        );
       }
-      throw new Error(`Malformed event context? Can't properly evaluate changed files for event ${eventName}.`);
+      throw new Error(
+        `Malformed event context? Can't properly evaluate changed files for event ${eventName}.`,
+      );
 
     default:
       core.info(`Unhandled event type: ${eventName}`);
@@ -214,7 +237,7 @@ async function getChangedFilesFromPullRequest(
   octokit: Octokit,
   owner: string,
   repo: string,
-  prNumber: number
+  prNumber: number,
 ): Promise<string[]> {
   const perPage = 100;
   let page = 1;
@@ -242,7 +265,7 @@ async function getChangedFilesBetweenCommits(
   owner: string,
   repo: string,
   baseSha: string,
-  headSha: string
+  headSha: string,
 ): Promise<string[]> {
   const response = await octokit.rest.repos.compareCommitsWithBasehead({
     owner,

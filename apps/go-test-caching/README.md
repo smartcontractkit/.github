@@ -54,57 +54,61 @@ sequenceDiagram
 
 #### Behavioral Inputs
 
-- `update-index`, true / **false**
-  - Will update the test index after building, hashing, and successfully running
-    all new tests. Only if on the repo's default branch
-- `force-update-index`, true / **false**
-  - Requires `update-index` to also be true. Allows you to force an update even
-    if not on the default branch. Still requires successful execution of all new
-    tests.
-- `tag-filter`: string (`""`)
-  - limits the tests to packages/files with the `//go:build <tag>` directive
-  - performs a find on all `*_test.go` files, and will limit builds and runs to
-    those.
-- `run-all-tests`: true / **false**
-  - Runs every test binary built, ignoring the normal behaviour of conditional
-    execution based on the different hashes.
+- `pipeline-step`, `build / run / update / e2e`
+  - Describes which step of the pipeline to perform. This allows you to separate
+    the action into multiple steps of a job.
+  - `build` - finds all the packages and builds the test binary for each
+  - `run` - given the output from `build`, will hash the binaries, compare those
+    to the hash index, then run those that have changed.
+  - `update` - given the output from `run`, it will update the hash index with
+    the new indexes
+  - `e2e` - performs all of the above as a single step.
 
 ### General Inputs
 
+- `test-suite`
+  - The name of the test suite, used to scope artifacts and the test indexes
 - `module-directory`, path (`./`)
   - The path to the root module for the tests. Similar to setting
     `working-directory`.
-- `test-suite`
-  - The name of the test suite, used to scope artifacts and the test indexes
-- `build-flags`: string (`""`)
-  - CLI build flags to pass to the `go test -c ...` command when building the
-    test binaries
-  - `-tags <tag>` is added implicitly when `tag-filter` is passed.
 - `hashes-branch`, string (`test-hashes`)
   - The (ideally orphaned) git branch to store the test hash index json files
-    on.
+    on. Used by `run` and `update`.
 
-### Other Inputs
+#### `build` inputs
 
 - `build-concurrency`, number (`8`)
   - The amount of concurrent builds when building the test binaries. Recommended
     to be the number of available CPU cores.
+- `build-flags`: string (`""`)
+  - CLI build flags to pass to the `go test -c ...` command when building the
+    test binaries
+
+#### `run` inputs
+
+- `run-all-tests`: true / **false**
+  - Runs every test binary built, ignoring the normal behaviour of conditional
+    execution based on the different hashes.
 - `run-concurrency`, number (`8`)
-  - The amount of concurrent running tests. Recommended to be the number of
-    available CPU cores.
+  - The amount of concurrent running tests.
+
+#### `update` inputs
+
+- `force-update-index`, true / **false**
+  - Allows you to force an update even if not on the default branch.
+
+### Other Inputs
+
+- `github-token`
+  - Used by `run` and `update` steps to authenticate to github to fetch/update
+    the test hash index.
 
 ### TODO
 
 - Support for config files so not everything has to be passed directly to the
-  action
+  action?
 - Run flags
   - Code coverage
 - Ignore certain directories?
 - Scrub logs?
-
-### Features
-
-- Stderr logs
-- Build / Run logging artifacts uploaded
-  - Scoped to each individual build/run
--
+- Update the hash index of only successful tests?

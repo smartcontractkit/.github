@@ -2,9 +2,9 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 import { Inputs } from "../main.js";
-import { logSection } from "../log.js";
+import { logSection, logObject } from "../log.js";
 import { getHashFile, commitTestHashIndex } from "../github.js";
-import { findTaggedTestPackages, listPackages } from "./filter.js";
+import { listPackages } from "./filter.js";
 import {
   compileConcurrent,
   validateCompilationResultsOrThrow,
@@ -45,9 +45,9 @@ export interface LocalPackages {
  */
 export async function getTestPackages(inputs: Inputs): Promise<LocalPackages> {
   logSection("Locating Packages");
-  if (inputs.tagFilter) {
-    return findTaggedTestPackages(inputs.moduleDirectory, inputs.tagFilter);
-  }
+  // if (inputs.tagFilter) {
+  //   return findTaggedTestPackages(inputs.moduleDirectory, inputs.tagFilter);
+  // }
 
   return listPackages(inputs.moduleDirectory);
 }
@@ -85,6 +85,8 @@ export async function buildTestBinaries(
     inputs.moduleDirectory,
     inputs.buildDirectory,
     packages,
+    inputs.buildFlags,
+    inputs.collectCoverage,
     maxBuildConcurrency,
   );
 
@@ -163,20 +165,13 @@ export async function processChangedPackages(
     inputs.hashesBranch,
     inputs.hashesFile,
   );
-  core.debug("remote hash index: \n" + JSON.stringify(hashIndex, null, 2));
+  logObject("Remote Hash Index", hashIndex);
 
   const diffedHashedCompiledPackages = comparePackagesToIndex(
     inputs.runAllTests,
     packages,
     hashIndex,
   );
-
-  // core.info(
-  //   `Found ${Object.keys(changedOrNewPackages).length} differences in test packages.`,
-  // );
-  // core.debug(
-  //   "package diffs: \n" + Object.keys(changedOrNewPackages).join(", "),
-  // );
 
   return diffedHashedCompiledPackages;
 }
@@ -203,7 +198,7 @@ export interface MaybeExecutedPackages {
  */
 export async function runTestBinaries(
   inputs: Inputs,
-  packages: HashedCompiledPackages,
+  packages: DiffedHashedCompiledPackages,
 ): Promise<MaybeExecutedPackages> {
   logSection("Run Tests");
   const maxRunConcurrency = parseInt(core.getInput("run-concurrency")) || 4;

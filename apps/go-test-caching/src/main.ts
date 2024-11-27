@@ -9,6 +9,7 @@ import {
   logObject,
   uploadBuildLogs,
   uploadRunLogs,
+  uploadStateFile,
 } from "./log.js";
 import * as pipeline from "./pipeline/index.js";
 
@@ -23,15 +24,22 @@ function setup() {
   const moduleDirectory = core.getInput("module-directory") || ".";
   const forceUpdateIndex = core.getInput("force-update-index") || "false";
   const runAllTests = core.getInput("run-all-tests") || "false";
-  const tagFilter = core.getInput("tag-filter");
-  const buildFlags = core.getInput("build-flags").split(" ");
+  const buildFlagsString = core.getInput("build-flags");
   const hashesBranch = core.getInput("hashes-branch");
   const testSuite = core.getInput("test-suite") || "placeholder-test-suite";
   const buildDirectory = process.env.RUNNER_TEMP || `/tmp/cl/${testSuite}`;
   const stepsDirectory = path.join(buildDirectory, "steps");
+  const collectCoverage = core.getInput("collect-coverage") || "false";
 
-  if (pipelineStep !== "build" && pipelineStep !== "run" && pipelineStep !== "update" && pipelineStep !== "e2e") {
-    core.setFailed("Invalid pipeline step. Must be 'build','run', or 'update'.");
+  if (
+    pipelineStep !== "build" &&
+    pipelineStep !== "run" &&
+    pipelineStep !== "update" &&
+    pipelineStep !== "e2e"
+  ) {
+    core.setFailed(
+      "Invalid pipeline step. Must be 'build','run', or 'update'.",
+    );
     process.exit(1);
   }
 
@@ -39,11 +47,9 @@ function setup() {
     fs.mkdirSync(stepsDirectory, { recursive: true });
   }
 
-  if (tagFilter) {
-    core.debug(
-      `Found gobuild tag filter, adding -tags ${tagFilter} to build flags`,
-    );
-    buildFlags.push(`-tags=${tagFilter}`);
+  let buildFlags: string[] = [];
+  if (buildFlagsString) {
+    buildFlags = buildFlagsString.split(" ");
   }
 
   return {
@@ -51,13 +57,13 @@ function setup() {
     moduleDirectory,
     buildDirectory,
     stepsDirectory,
-    tagFilter,
     buildFlags,
     forceUpdateIndex: forceUpdateIndex === "true",
     hashesBranch,
     hashesFile: `${testSuite}.json`,
     testSuite,
     runAllTests: runAllTests === "true",
+    collectCoverage: collectCoverage === "true",
   };
 }
 export async function run() {
@@ -107,33 +113,47 @@ async function buildStep(inputs: Inputs) {
   const hashedPkgs = await pipeline.generateHashes(compiledPkgs);
   logObject("Hashed Test Packages", hashedPkgs);
 
-  return hashedPkgs
+  return hashedPkgs;
 }
 
-async function runStep(inputs: Inputs, pkgs: Awaited<ReturnType<typeof buildStep>>) {
-  const changedPkgs = await pipeline.processChangedPackages(
-    inputs,
-    pkgs,
+async function runStep(
+  inputs: Inputs,
+  pkgs: Awaited<ReturnType<typeof buildStep>>,
+) {
+  const packages = await pipeline.processChangedPackages(inputs, pkgs);
+
+  const changedPkgs = Object.fromEntries(
+    Object.entries(packages).filter(([_, pkg]) => pkg.shouldRun),
   );
   logObject("Changed Test Packages", changedPkgs);
 
-  const execdPkgs = await pipeline.runTestBinaries(inputs, changedPkgs);
+  const maybeExecdPkgs = await pipeline.runTestBinaries(inputs, packages);
+  const execdPkgs = Object.fromEntries(
+    Object.entries(maybeExecdPkgs).filter(([_, pkg]) => !!pkg.run),
+  );
   logObject("Executed Test Packages", execdPkgs);
 
-  return execdPkgs;
+  return maybeExecdPkgs;
 }
 
 type BuildState = Awaited<ReturnType<typeof pipeline.generateHashes>>;
 
 type RunState = Awaited<ReturnType<typeof pipeline.runTestBinaries>>;
 
-function persistProcessState(inputs: Inputs, state: BuildState | RunState) {
+async function persistProcessState(
+  inputs: Inputs,
+  state: BuildState | RunState,
+) {
   const stateFile = path.join(
     inputs.stepsDirectory,
     `${inputs.pipelineStep}.json`,
   );
   core.debug(`Writing state to ${stateFile}`);
   fs.writeFileSync(stateFile, JSON.stringify(state));
+
+  if (core.isDebug()) {
+    await uploadStateFile(stateFile);
+  }
 }
 
 function loadBuildState(inputs: Inputs): BuildState {

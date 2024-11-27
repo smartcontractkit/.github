@@ -3,10 +3,24 @@ import * as path from "path";
 
 import * as core from "@actions/core";
 import { execa, ExecaError } from "execa";
+import pLimit from "p-limit";
 
 import { GoPackage, CompiledPackages, LocalPackages } from "./index.js";
 import { insertWithoutDuplicates } from "../utils.js";
 
+const defaultExecaOptions = {
+  cwd: "",
+  all: true,
+  stdout: "pipe",
+  stderr: "pipe",
+} satisfies ExecaOptions;
+export type ExecaOptions = {
+  cwd: string;
+  all: true;
+  stdout: "pipe";
+  stderr: "pipe";
+};
+export type ExecaReturn = Awaited<ReturnType<typeof execa<ExecaOptions>>>;
 type CompilationResult = CompilationSuccess | CompilationFailure;
 export type CompilationSuccess = {
   output: {
@@ -14,7 +28,7 @@ export type CompilationSuccess = {
     log: string;
   };
   pkg: GoPackage;
-  execution: Awaited<ReturnType<typeof execCommand>>;
+  execution: ExecaReturn;
 };
 
 new ExecaError();
@@ -49,132 +63,103 @@ function isCompilationFailure(
  * @returns The ResultPromise of the command execution
  */
 function execCommand(cmd: string, flags: string[], cwd: string) {
-  core.debug(`Exec: ${cmd} ${flags.join(" ")} (cwd: ${cwd})`);
   return execa(cmd, flags, {
     cwd,
     stdout: "pipe",
     stderr: "pipe",
     all: true,
-  });
+  } satisfies ExecaOptions);
 }
-
-function setupStdoutDebugPipe(
-  subprocess: ReturnType<typeof execCommand>,
-  importPath: string,
-) {
-  if (core.isDebug()) {
-    subprocess.stdout.on("data", (chunk) => {
-      const lines: string[] = chunk.toString().split("\n"); // Split into lines
-      for (const line of lines) {
-        if (line.trim()) {
-          process.stdout.write(`stdout: [${importPath}] ${line}\n`);
-        }
-      }
-    });
-  }
-}
-
-// Exported for testing only
 export async function compileTestBinary(
-  workingDir: string,
+  cwd: string,
   outputDir: string,
-  pkg: GoPackage,
+  { importPath, directory }: GoPackage,
+  buildFlags: string[],
 ): Promise<CompilationResult> {
-  const filename = pkg.importPath.replace(/\//g, "-") + "-test";
-  const binaryPath = path.join(outputDir, filename);
+  const filename = importPath.replace(/\//g, "-") + "-test";
+  const binPath = path.join(outputDir, filename);
 
   const logPath = path.join(outputDir, filename + ".compile.log");
   const outputStream = createWriteStream(logPath);
 
   try {
-    const flags = ["test", "-c", "-o", binaryPath, "-vet=off", pkg.importPath];
-    const subprocess = execCommand("go", flags, workingDir);
+    const cmd = "go";
+    const flags = ["test", "-c", "-o", binPath, ...buildFlags, importPath];
+    core.debug(`Exec: ${cmd} ${flags.join(" ")} (cwd: ${cwd})`);
+
+    const subprocess = execa(cmd, flags, {
+      ...defaultExecaOptions,
+      cwd,
+    } satisfies ExecaOptions);
     core.debug(`Logging output to ${logPath}`);
 
     subprocess.all?.pipe(outputStream);
-    setupStdoutDebugPipe(subprocess, pkg.importPath);
 
     const execution = await subprocess;
     return {
       output: {
-        binary: binaryPath,
+        binary: binPath,
         log: logPath,
       },
-      pkg,
+      pkg: { importPath, directory },
       execution,
     } as CompilationSuccess;
   } catch (error) {
-    core.setFailed(`Failed to compile test for package ${pkg.importPath}`);
+    core.setFailed(`Failed to compile test for package ${importPath}`);
     if (!(error instanceof ExecaError)) {
       throw error;
     }
 
     return {
       output: {
-        binary: binaryPath,
+        binary: binPath,
         log: logPath,
       },
-      pkg,
+      pkg: { importPath, directory },
       error,
     } as CompilationFailure;
   }
 }
-
 export async function compileConcurrent(
   workingDir: string,
   outputDir: string,
   packages: LocalPackages,
+  buildFlags: string[],
+  collectCoverage: boolean,
   maxConcurrency: number,
 ) {
+  const limit = pLimit(maxConcurrency);
+
   const values = Object.values(packages);
-  core.info(
-    `Building ${values.length} packages (concurrency: ${maxConcurrency})`,
+  const building = new Set<string>();
+  const tasks = values.map((pkg) =>
+    limit(() => {
+      building.add(pkg.importPath);
+      return compileTestBinary(workingDir, outputDir, pkg, buildFlags).finally(
+        () => building.delete(pkg.importPath),
+      );
+    }),
   );
 
-  const fivePercent = Math.floor(values.length * 0.05);
-
-  const seen = new Set<string>();
-  const finished: CompilationResult[] = [];
-  const executing = new Map<string, Promise<CompilationResult>>();
-
-  for (const pkg of values) {
-    const { importPath } = pkg;
-
-    if (seen.has(importPath)) {
-      core.setFailed(
-        `Duplicate package found when dispatching compiles: ${importPath}`,
+  const interval = setInterval(() => {
+    const remaining = limit.pendingCount + limit.activeCount;
+    const completed = values.length - remaining;
+    core.info(
+      `${completed}/${values.length} builds completed. Active: ${limit.activeCount}, Pending: ${limit.pendingCount}`,
+    );
+    if (remaining < 10) {
+      core.info(
+        `Remaining builds:\n   - ${Array.from(building).join("\n   - ")}`,
       );
-      continue;
     }
-    seen.add(importPath);
+  }, 30000);
 
-    const task = compileTestBinary(workingDir, outputDir, pkg);
-    executing.set(importPath, task);
-
-    const executingPromises = Array.from(executing.values());
-    if (executingPromises.length >= maxConcurrency) {
-      const finishedTask = await Promise.race(executingPromises);
-      finished.push(finishedTask);
-
-      if (!executing.has(finishedTask.pkg.importPath)) {
-        core.warning("Task not found in executing list");
-        continue;
-      }
-
-      core.debug(`Finished Task: ${finishedTask.pkg.importPath}`);
-      executing.delete(finishedTask.pkg.importPath);
-
-      if (finished.length % fivePercent === 0) {
-        core.info(
-          `Finished: ${finished.length}/${values.length}, In Progress: ${executingPromises.length}`,
-        );
-      }
-    }
+  try {
+    return await Promise.all(tasks);
+  } finally {
+    clearInterval(interval);
+    core.info("All tasks have been completed.");
   }
-
-  // Wait for all remaining tasks to complete
-  const remainingResults = await Promise.all(executing.values());
-  return [...finished, ...remainingResults];
 }
 
 export function validateCompilationResultsOrThrow(
