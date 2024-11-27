@@ -31,8 +31,6 @@ export type CompilationSuccess = {
   execution: ExecaReturn;
 };
 
-new ExecaError();
-
 type CompilationFailure = {
   output: {
     binary: string;
@@ -54,22 +52,6 @@ function isCompilationFailure(
   return "error" in result;
 }
 
-/**
- * Execute a command with flags in a given directory. With standardized options.
- * This mostly exists to properly type the output of execa.
- * @param cmd The command to execute
- * @param flags The flags to pass to the command
- * @param cwd The directory to execute the command in
- * @returns The ResultPromise of the command execution
- */
-function execCommand(cmd: string, flags: string[], cwd: string) {
-  return execa(cmd, flags, {
-    cwd,
-    stdout: "pipe",
-    stderr: "pipe",
-    all: true,
-  } satisfies ExecaOptions);
-}
 export async function compileTestBinary(
   cwd: string,
   outputDir: string,
@@ -91,8 +73,8 @@ export async function compileTestBinary(
       ...defaultExecaOptions,
       cwd,
     } satisfies ExecaOptions);
-    core.debug(`Logging output to ${logPath}`);
 
+    core.debug(`Logging output to ${logPath}`);
     subprocess.all?.pipe(outputStream);
 
     const execution = await subprocess;
@@ -120,6 +102,20 @@ export async function compileTestBinary(
     } as CompilationFailure;
   }
 }
+
+/**
+ * This is the main entry point for the build/compile step.
+ *
+ * This function compiles all test binaries with a max concurrency.
+ *
+ * @param workingDir
+ * @param outputDir
+ * @param packages
+ * @param buildFlags
+ * @param collectCoverage
+ * @param maxConcurrency
+ * @returns
+ */
 export async function compileConcurrent(
   workingDir: string,
   outputDir: string,
@@ -129,6 +125,11 @@ export async function compileConcurrent(
   maxConcurrency: number,
 ) {
   const limit = pLimit(maxConcurrency);
+
+  if (collectCoverage) {
+    core.info("collect-coverage is true - adding coverage flags to builds.");
+    buildFlags.push("-cover", "-coverpkg=./...", "-covermode=atomic");
+  }
 
   const values = Object.values(packages);
   const building = new Set<string>();
@@ -203,13 +204,7 @@ function filterForBuiltBinaries(
   // This occurs if the package has no tests.
   const compiledPackages: CompiledPackages = {};
   for (const success of successes) {
-    if (
-      verifyBinaryExistsOrThrow(
-        success.output.binary,
-        success.pkg.importPath,
-        success.execution.stdout,
-      )
-    ) {
+    if (existsSync(success.output.binary)) {
       const value = {
         importPath: success.pkg.importPath,
         directory: success.pkg.directory,
@@ -234,31 +229,10 @@ function filterForBuiltBinaries(
 
   const keys = Object.keys(compiledPackages);
   if (keys.length !== binaries.length) {
-    core.error(`Expected ${binaries.length} binaries, found ${keys.length}`);
+    core.warning(
+      `Found ${binaries.length} in the output directory, but only found ${keys.length} packages in the results.`,
+    );
   }
 
   return compiledPackages;
-}
-
-export function verifyBinaryExistsOrThrow(
-  binaryPath: string,
-  importPath: string,
-  stdout: string,
-) {
-  core.debug(`Verifying Package: ${importPath}, Binary: ${binaryPath}`);
-
-  if (existsSync(binaryPath)) {
-    return true;
-  }
-
-  // If the binary doesn't exist, check if the package has no tests.
-  if (stdout.startsWith("?") && stdout.includes("[no test files]")) {
-    core.debug(`No tests for package ${importPath}`);
-    return false;
-  }
-
-  // If the binary doesn't exist and the package has tests, throw an error.
-  throw new Error(
-    `Binary not found when expected. Package: ${importPath} , Binary: ${binaryPath}`,
-  );
 }

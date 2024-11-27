@@ -8,6 +8,7 @@ import {
   logSection,
   logObject,
   uploadBuildLogs,
+  uploadCoverage,
   uploadRunLogs,
   uploadStateFile,
 } from "./log.js";
@@ -22,14 +23,17 @@ export type Inputs = Readonly<ReturnType<typeof setup>>;
 function setup() {
   const pipelineStep = core.getInput("pipeline-step");
   const moduleDirectory = core.getInput("module-directory") || ".";
-  const forceUpdateIndex = core.getInput("force-update-index") || "false";
-  const runAllTests = core.getInput("run-all-tests") || "false";
   const buildFlagsString = core.getInput("build-flags");
   const hashesBranch = core.getInput("hashes-branch");
   const testSuite = core.getInput("test-suite") || "placeholder-test-suite";
   const buildDirectory = process.env.RUNNER_TEMP || `/tmp/cl/${testSuite}`;
+
+  const forceUpdateIndexString = core.getInput("force-update-index") || "false";
+  const runAllTestsString = core.getInput("run-all-tests") || "false";
+  const collectCoverageString = core.getInput("collect-coverage") || "false";
+
   const stepsDirectory = path.join(buildDirectory, "steps");
-  const collectCoverage = core.getInput("collect-coverage") || "false";
+  const coverageDirectory = path.join(buildDirectory, "coverage");
 
   if (
     pipelineStep !== "build" &&
@@ -46,24 +50,32 @@ function setup() {
   if (!fs.existsSync(stepsDirectory)) {
     fs.mkdirSync(stepsDirectory, { recursive: true });
   }
+  if (!fs.existsSync(coverageDirectory)) {
+    fs.mkdirSync(coverageDirectory, { recursive: true });
+  }
 
   let buildFlags: string[] = [];
   if (buildFlagsString) {
     buildFlags = buildFlagsString.split(" ");
   }
 
+  const collectCoverage = collectCoverageString === "true";
+  const forceUpdateIndex = forceUpdateIndexString === "true";
+  const runAllTests = runAllTestsString === "true" || collectCoverage;
+
   return {
     pipelineStep,
     moduleDirectory,
     buildDirectory,
     stepsDirectory,
+    coverageDirectory,
     buildFlags,
-    forceUpdateIndex: forceUpdateIndex === "true",
     hashesBranch,
     hashesFile: `${testSuite}.json`,
     testSuite,
-    runAllTests: runAllTests === "true",
-    collectCoverage: collectCoverage === "true",
+    runAllTests,
+    collectCoverage,
+    forceUpdateIndex,
   };
 }
 export async function run() {
@@ -100,6 +112,7 @@ export async function run() {
       await uploadBuildLogs(inputs.buildDirectory, artifactKey);
     } else if (inputs.pipelineStep === "run") {
       await uploadRunLogs(inputs.buildDirectory, artifactKey);
+      await uploadCoverage(inputs.coverageDirectory, artifactKey);
     }
   }
 }

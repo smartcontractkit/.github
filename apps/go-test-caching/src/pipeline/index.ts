@@ -152,6 +152,20 @@ export interface DiffedHashedCompiledPackages {
 
 /**
  * STEP 4: Compare/Filter Test Binaries
+ *
+ * This step will compare the hashes of the compiled binaries to the index.
+ * It pulls the hash index from the repository, then compares the hashes, and sets the 'shouldRun' property.
+ *
+ * If:
+ *   - hash is different from the index, or
+ *   - index doesn't have the package, or
+ *   - run all tests input is true
+ * Then:
+ *   - the 'shouldRun' property is set to true, and the package will be run.
+ *
+ * @param inputs The inputs from the workflow.
+ * @param packages The hashed compiled packages to compare, from step 3.
+ * @returns DiffedHashedCompiledPackages
  */
 export async function processChangedPackages(
   inputs: Inputs,
@@ -178,13 +192,12 @@ export async function processChangedPackages(
 
 /**
  * The result of running the compiled packages.
- * Only successful runs should be included in the final result.
- * Failed runs should will be filtered out and cause the entire process to fail.
- *
- * This is the final step in the processing pipeline.
+ * The 'run' property is only present if the test binary was executed,
+ * which is determined by the 'shouldRun' property, added in the previous step.
  */
 interface RunInfo {
   log: string;
+  coverage?: string;
   execution: ExecInfo;
 }
 export interface MaybeExecutedPackages {
@@ -195,6 +208,11 @@ export interface MaybeExecutedPackages {
 
 /**
  * STEP 5: Run Test Binaries
+ * Takes in the compared/diffed compiled packages and runs the test binaries.
+ * It will run the tests, then validate the results. If any failures are found, it will throw an error.
+ * @param inputs The inputs from the workflow.
+ * @param packages The diffed compiled packages to run, from step 4.
+ * @returns
  */
 export async function runTestBinaries(
   inputs: Inputs,
@@ -207,6 +225,8 @@ export async function runTestBinaries(
     inputs.buildDirectory,
     packages,
     [],
+    inputs.collectCoverage,
+    inputs.coverageDirectory,
     maxRunConcurrency,
   );
 
@@ -214,14 +234,29 @@ export async function runTestBinaries(
 }
 
 /**
- * STEP 6: Update Hash Index
+ * STEP 6: Update Hash Index.
+ * This step will potentially update the hash index with the new hashes of the compiled binaries.
+ * It will only update the index if the current branch is the default branch. Unless, force update index is enabled.
+ * It will also skip updating the index if coverage collection is enabled, as that effects the hash of the binaries.
+ * @param inputs The inputs from the workflow.
+ * @param hashedPackages The hashed packages to potentially update the index with.
+ * @returns Promise<void>
  */
 export async function maybeUpdateHashIndex(
   inputs: Inputs,
   hashedPackages: MaybeExecutedPackages,
 ) {
-  logSection("Updating Hash Index");
+  // check if coverage was enabled by checking the packages object
+  // if it was, we should skip updating the hash index
+  const wasCoverageEnabled = Object.values(hashedPackages).some(
+    (pkg) => pkg?.run?.coverage,
+  );
+  if (inputs.collectCoverage || wasCoverageEnabled) {
+    core.warning("Coverage collection is enabled. Skipping hash index update.");
+    return;
+  }
 
+  logSection("Updating Hash Index");
   if (inputs.forceUpdateIndex) {
     core.warning("Force update index is enabled. Skipping branch check.");
   } else {

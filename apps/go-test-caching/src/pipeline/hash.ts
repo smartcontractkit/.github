@@ -2,8 +2,6 @@ import { createReadStream } from "fs";
 import { createHash } from "crypto";
 import { pipeline } from "stream/promises";
 
-import * as core from "@actions/core";
-
 import { getHashFile } from "../github.js";
 import {
   HashedCompiledPackages,

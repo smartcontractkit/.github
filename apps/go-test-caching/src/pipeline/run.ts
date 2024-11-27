@@ -1,16 +1,14 @@
-import { createWriteStream } from "fs";
+import { mkdirSync, createWriteStream } from "fs";
 import * as path from "path";
 
 import * as core from "@actions/core";
 import { execa, ExecaError } from "execa";
 import pLimit from "p-limit";
 
-import { insertWithoutDuplicates } from "../utils.js";
 import {
   GoPackage,
   DiffedHashedCompiledPackages,
   MaybeExecutedPackages,
-  HashedCompiledPackages,
 } from "./index.js";
 
 type ExecaOptions = {
@@ -18,14 +16,31 @@ type ExecaOptions = {
   all: true;
   stdout: "pipe";
   stderr: "pipe";
+  env: {
+    GOCOVERDIR: string;
+  }
 };
+
+const defaultExecaOptions = {
+  cwd: "",
+  all: true,
+  stdout: "pipe",
+  stderr: "pipe",
+  env: {
+    GOCOVERDIR: "",
+  }
+} satisfies ExecaOptions;
+
+export type ExecaReturn = Awaited<ReturnType<typeof execa<ExecaOptions>>>;
+
 type RunResult = RunSuccess | RunFailure;
 type RunSuccess = {
   output: {
     log: string;
+    coverage?: string;
   };
   pkg: GoPackage;
-  execution: Awaited<ReturnType<typeof execCommand>>;
+  execution: ExecaReturn;
 };
 type RunFailure = {
   output: {
@@ -43,44 +58,51 @@ function isRunSuccess(result: RunResult): result is RunSuccess {
 function isRunFailure(result: RunResult): result is RunFailure {
   return "error" in result;
 }
-
-/**
- * Execute a command with flags in a given directory. With standardized options.
- * This mostly exists to properly type the output of execa.
- * @param cmd The command to execute
- * @param flags The flags to pass to the command
- * @param cwd The directory to execute the command in
- * @returns The ResultPromise of the command execution
- */
-function execCommand(cmd: string, flags: string[], cwd: string) {
-  core.debug(`Exec: ${cmd} ${flags.join(" ")} (cwd: ${cwd})`);
-  return execa(cmd, flags, {
-    cwd,
-    all: true,
-    stdout: "pipe",
-    stderr: "pipe",
-  } satisfies ExecaOptions);
-}
 async function runTestBinary(
   outputDir: string,
   pkg: GoPackage,
   binaryPath: string,
   runFlags: string[],
+  coverage: boolean,
+  coverageDir: string,
 ): Promise<RunResult> {
+
+  // GOCOVERDIR is used to store intermediate coverage files. This needs to be unique for each test run.
+  const goCoverDir = path.join(pkg.directory, `go-cover-${path.basename(binaryPath)}`);
+  mkdirSync(goCoverDir, { recursive: true });
+
+  const coveragePath = path.join(coverageDir, `${path.basename(binaryPath)}.cover.out`);
   const logPath = path.join(outputDir, path.basename(binaryPath) + ".run.log");
   const outputStream = createWriteStream(logPath);
 
   try {
-    const subprocess = execCommand(binaryPath, runFlags, pkg.directory);
+    let localFlags = [...runFlags];
+    if (coverage) {
+      core.debug(`Collecting coverage for ${pkg.importPath} at ${coveragePath}`);
+      localFlags.push(`-test.coverprofile=${coveragePath}`);
+    }
+
+    core.debug(
+      `Exec: ${binaryPath} ${localFlags.join(" ")} (cwd: ${pkg.directory})`,
+    );
+    const subprocess = execa(binaryPath, localFlags, {
+      ...defaultExecaOptions,
+      cwd: pkg.directory,
+      env: {
+        GOCOVERDIR: goCoverDir,
+      }
+    } satisfies ExecaOptions);
+
+    core.debug(`Logging output to ${logPath}`);
     subprocess.all?.pipe(outputStream);
 
     const execution = await subprocess;
-
     return {
       pkg,
       execution,
       output: {
         log: logPath,
+        coverage: coverage ? coveragePath : undefined,
       },
     };
   } catch (error) {
@@ -151,6 +173,8 @@ export async function runConcurrent(
   buildDir: string,
   packages: DiffedHashedCompiledPackages,
   flags: string[],
+  coverage: boolean,
+  coverageDir: string,
   maxConcurrency: number,
 ) {
   const limit = pLimit(maxConcurrency);
@@ -164,7 +188,7 @@ export async function runConcurrent(
   const tasks = pkgsToRun.map((pkg) =>
     limit(() => {
       executing.add(pkg.importPath);
-      return runTestBinary(buildDir, pkg, pkg.compile.binary, flags).finally(
+      return runTestBinary(buildDir, pkg, pkg.compile.binary, flags, coverage, coverageDir).finally(
         () => executing.delete(pkg.importPath),
       );
     }),
@@ -253,11 +277,12 @@ function flattenRunResults(
       continue;
     }
 
-    const { log } = success.output;
+    const { log, coverage } = success.output;
     const { command, exitCode, cwd, durationMs } = success.execution;
 
     executedPackages[importPath].run = {
       log,
+      coverage,
       execution: {
         command,
         exitCode: exitCode !== undefined ? exitCode : -1,

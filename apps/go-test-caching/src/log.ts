@@ -20,7 +20,7 @@ export function logObject(title: string, obj: Record<string, unknown>) {
 export function uploadBuildLogs(directory: string, key: string) {
   core.info("Uploading build logs");
 
-  const buildLogs = getLogFiles(directory, ".compile.log");
+  const buildLogs = getFilesInDir(directory, ".compile.log");
   const runId = github.context.runId;
   const artifactName = `build-logs-${key}-${runId}`;
   core.debug(`Uploading build logs to ${artifactName}`);
@@ -44,7 +44,7 @@ export function uploadBuildLogs(directory: string, key: string) {
 export function uploadRunLogs(directory: string, key: string) {
   core.info("Uploading run logs");
 
-  const runLogs: string[] = getLogFiles(directory, ".run.log");
+  const runLogs: string[] = getFilesInDir(directory, ".run.log");
   const runId = github.context.runId;
   const artifactName = `run-logs-${key}-${runId}`;
   core.debug(`Uploading run logs to ${artifactName}`);
@@ -65,6 +65,30 @@ export function uploadRunLogs(directory: string, key: string) {
   }
 }
 
+export function uploadCoverage(directory: string, key: string) {
+  core.info("Uploading coverage");
+
+  const coverageFiles: string[] = getFilesInDir(directory, ".cover.out");
+  const runId = github.context.runId;
+  const artifactName = `coverage-${key}-${runId}`;
+  core.debug(`Uploading coverage to ${artifactName}`);
+  core.debug(`Coverage files: ${coverageFiles.join(", ")}`);
+
+  if (coverageFiles.length === 0) {
+    core.debug("No coverage files found, skipping upload.");
+    return;
+  }
+
+  try {
+    const client = new DefaultArtifactClient();
+    return client.uploadArtifact(artifactName, coverageFiles, directory, {
+      retentionDays: 3,
+    });
+  } catch (error) {
+    core.error("Error uploading coverage logs: " + error);
+  }
+}
+
 export function uploadStateFile(filePath: string) {
   core.debug("Uploading state object");
 
@@ -80,7 +104,7 @@ export function uploadStateFile(filePath: string) {
   }
 }
 
-function getLogFiles(directory: string, extension: string): string[] {
+function getFilesInDir(directory: string, extension: string): string[] {
   const files: string[] = readdirSync(directory);
   return files
     .filter((file) => file.endsWith(extension))
