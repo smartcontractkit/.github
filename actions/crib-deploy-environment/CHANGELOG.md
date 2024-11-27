@@ -50,6 +50,15 @@
   Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding additional
   inputs for labeling resources in the composite CRIB GHA
 
+## 2.1.1
+
+### Patch Changes
+
+- [#726](https://github.com/smartcontractkit/.github/pull/726)
+  [`189034e`](https://github.com/smartcontractkit/.github/commit/189034ee792fe6e55e6043b284a8c607e876a74d)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - setting up go before
+  running CRIB to ensure GOBIN is properly set
+
 ## 2.1.0
 
 ### Minor Changes
