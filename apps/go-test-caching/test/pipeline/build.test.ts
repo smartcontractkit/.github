@@ -5,7 +5,6 @@ import {
   CompilationSuccess,
   compileTestBinary,
   validateCompilationResultsOrThrow,
-  verifyBinaryExistsOrThrow,
 } from "../../src/pipeline/build.js";
 import { execa } from "execa";
 import { ExecaErrorMock } from "../helper/execa-error-mock.js";
@@ -210,54 +209,5 @@ describe("validateCompilationResultsOrThrow", () => {
     // Assert
     expect(Object.keys(compiledPackages)).toHaveLength(1);
     expect(compiledPackages).toHaveProperty("github.com/example/pkg");
-  });
-});
-
-describe("verifyBinaryExistsOrThrow", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("should return true when binary exists", () => {
-    // Arrange
-    existsSyncMock.mockReturnValue(true);
-    const binaryPath = "/path/to/binary";
-    const importPath = "github.com/example/pkg";
-    const stdout = "";
-
-    // Act
-    const result = verifyBinaryExistsOrThrow(binaryPath, importPath, stdout);
-
-    // Assert
-    expect(result).toBe(true);
-  });
-
-  it("should return false when binary does not exist but stdout indicates no test files", () => {
-    // Arrange
-    existsSyncMock.mockReturnValue(false);
-    const binaryPath = "/path/to/binary";
-    const importPath = "github.com/example/pkg";
-    const stdout = "?       github.com/example/pkg   [no test files]";
-
-    // Act
-    const result = verifyBinaryExistsOrThrow(binaryPath, importPath, stdout);
-
-    // Assert
-    expect(result).toBe(false);
-  });
-
-  it("should throw error when binary does not exist and stdout does not indicate no test files", () => {
-    // Arrange
-    existsSyncMock.mockReturnValue(false);
-    const binaryPath = "/path/to/binary";
-    const importPath = "github.com/example/pkg";
-    const stdout = "";
-
-    // Act & Assert
-    expect(() =>
-      verifyBinaryExistsOrThrow(binaryPath, importPath, stdout),
-    ).toThrow(
-      `Binary not found when expected. Package: ${importPath} , Binary: ${binaryPath}`,
-    );
   });
 });

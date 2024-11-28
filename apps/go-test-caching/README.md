@@ -3,49 +3,109 @@
 An action that maintains an index of golang unit test binaries, and can
 conditionally execute those binaries when changed.
 
-It has two major modes of operation
-
-- Update index
-- Run tests
-
-### Update index
-
-Should only be run on a push to the default branch.
-
 ```mermaid
 sequenceDiagram
+  participant Workflow
+  participant Action
+  participant Pipeline
+  participant Github
+
+  box Go-Test-Caching
+    participant Action
+    participant Pipeline
+  end
+
   Workflow->>Github: Checkout repository
-  Workflow->>Github: Setup Go...
-  Workflow->>Action: Update Test Binaries
-  Action->>Action: List Go Packages
-  Action->>Action: Build Test Binaries
-  Action->>Action: Hash Test Binaries
-  Action->>Github: Commit test-hashes.json
-  Action->>Workflow: Done
+  Workflow->>Workflow: Setup...
+
+  Workflow->>Action: 'Build'
+  activate Action
+  Action-->>Pipeline: Start Build Process
+
+  Pipeline->>Pipeline: Filter/List Packages
+  Pipeline->>Pipeline: Build Package Test Binaries
+  Pipeline-->>Action: Done Build
+
+  Action-->>Github: Upload Build Logs
+  Action->>Workflow: Done Build
+  deactivate Action
+
+  Workflow->>Action: 'Run'
+  activate Action
+  Action-->>Pipeline: Start Run Process
+
+  Pipeline->>Github: Get Test Hash Index
+  Github->>Pipeline: Returned
+  Pipeline->>Pipeline: Hash Test Binaries
+  Pipeline->>Pipeline: Compare Hashes
+  Pipeline->>Pipeline: Run Changed Tests
+  Pipeline-->>Action: Done Execution
+
+  Action-->>Github: Upload Build Logs
+  Action-->>Github: Upload Coverage (if enabled)
+  Action->>Workflow: Done Execution
+  deactivate Action
+
+  Workflow->>Action: 'Update'
+  activate Action
+  Action-->>Pipeline: Start Update Process
+  Pipeline->>Pipeline: Check Update Criteria
+
+  opt Criteria Met
+    Pipeline->>Github: Update Hash Index
+    Github->>Pipeline: Updated
+  end
+  Pipeline-->>Action: Done Update
+  Action->>Workflow: Done Execution
+  deactivate Action
 ```
 
-### Run modified tests
+## Usage
 
-Can be run on pull-requests, or push events.
+Example workflow job:
 
-The caveat that on the push to the default branch, it should be run concurrently
-or before the update index job. As if the index is updated prior to the
-comparison, then nothing would ever run.
+```
+run-unit-tests:
+  name: Unit Tests
+  needs: filter
+  runs-on: ubuntu-latest
+  permissions:
+    id-token: write
+    contents: write
+  steps:
+    - name: Checkout the repo
+      uses: actions/checkout@v4.2.1
 
-```mermaid
-sequenceDiagram
-  Workflow->>Github: Checkout repository
-  Workflow->>Github: Setup Go...
-  Workflow->>Action: Run Modified Tests
-  Action->>Action: List Go Packages
-  Action->>Action: Build Test Binaries
-  Action->>Action: Hash Test Binaries
-  Action->>Github: Get test-hashes.json
-  Github->>Action: Return test-hashes.json
-  Action->>Action: Compare/Diff hashes
-  Action->>Action: Execute diff'd packages
-  Action->>Action: Output errors
-  Action->>Workflow: Done / Exit
+    - name: Setup
+      ...
+
+    - name: Build Tests
+      uses: smartcontractkit/.github/apps/go-test-caching@<version>
+      timeout-minutes: 10
+      with:
+        pipeline-step: "build"
+        test-suite: "unit"
+        module-directory: "./module"
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Run Tests
+      uses: smartcontractkit/.github/apps/go-test-caching@<version>
+      timeout-minutes: 15
+      env:
+        CL_DATABASE_URL: ${{ env.DB_URL }}
+      with:
+        pipeline-step: "run"
+        test-suite: "unit"
+        module-directory: "./module"
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Update Test Index
+      uses: smartcontractkit/.github/apps/go-test-caching@<version>
+      timeout-minutes: 2
+      with:
+        pipeline-step: "update"
+        test-suite: "unit"
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ## Action
@@ -61,7 +121,7 @@ sequenceDiagram
   - `run` - given the output from `build`, will hash the binaries, compare those
     to the hash index, then run those that have changed.
   - `update` - given the output from `run`, it will update the hash index with
-    the new indexes
+    the new indexes, if on the repo's main branch.
   - `e2e` - performs all of the above as a single step.
 
 ### General Inputs
@@ -74,6 +134,11 @@ sequenceDiagram
 - `hashes-branch`, string (`test-hashes`)
   - The (ideally orphaned) git branch to store the test hash index json files
     on. Used by `run` and `update`.
+- `collect-coverage`, true / **false**
+  - Enables the `build`, and `run` flags for collecting coverage. Then uploads
+    the coverage files. This will also enable `run-all-tests` and should skip
+    the update step. This is because the update step should not use hashes from
+    binaries built with the coverage parameters.
 
 #### `build` inputs
 
@@ -107,8 +172,6 @@ sequenceDiagram
 
 - Support for config files so not everything has to be passed directly to the
   action?
-- Run flags
-  - Code coverage
 - Ignore certain directories?
 - Scrub logs?
 - Update the hash index of only successful tests?

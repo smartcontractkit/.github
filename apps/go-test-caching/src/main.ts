@@ -64,7 +64,7 @@ function setup() {
   const runAllTests = runAllTestsString === "true" || collectCoverage;
 
   return {
-    pipelineStep,
+    pipelineStep: pipelineStep as "build" | "run" | "update" | "e2e",
     moduleDirectory,
     buildDirectory,
     stepsDirectory,
@@ -108,11 +108,14 @@ export async function run() {
   } finally {
     logSection("Upload Logs");
     const artifactKey = `${inputs.testSuite}`;
-    if (inputs.pipelineStep === "build") {
+    if (inputs.pipelineStep === "build" || inputs.pipelineStep === "e2e") {
       await uploadBuildLogs(inputs.buildDirectory, artifactKey);
-    } else if (inputs.pipelineStep === "run") {
+    }
+    if (inputs.pipelineStep === "run" || inputs.pipelineStep === "e2e") {
       await uploadRunLogs(inputs.buildDirectory, artifactKey);
-      await uploadCoverage(inputs.coverageDirectory, artifactKey);
+      if (inputs.collectCoverage) {
+        await uploadCoverage(inputs.coverageDirectory, artifactKey);
+      }
     }
   }
 }

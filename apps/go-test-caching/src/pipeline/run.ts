@@ -18,7 +18,7 @@ type ExecaOptions = {
   stderr: "pipe";
   env: {
     GOCOVERDIR: string;
-  }
+  };
 };
 
 const defaultExecaOptions = {
@@ -28,7 +28,7 @@ const defaultExecaOptions = {
   stderr: "pipe",
   env: {
     GOCOVERDIR: "",
-  }
+  },
 } satisfies ExecaOptions;
 
 export type ExecaReturn = Awaited<ReturnType<typeof execa<ExecaOptions>>>;
@@ -66,19 +66,26 @@ async function runTestBinary(
   coverage: boolean,
   coverageDir: string,
 ): Promise<RunResult> {
-
   // GOCOVERDIR is used to store intermediate coverage files. This needs to be unique for each test run.
-  const goCoverDir = path.join(pkg.directory, `go-cover-${path.basename(binaryPath)}`);
+  const goCoverDir = path.join(
+    pkg.directory,
+    `go-cover-${path.basename(binaryPath)}`,
+  );
   mkdirSync(goCoverDir, { recursive: true });
 
-  const coveragePath = path.join(coverageDir, `${path.basename(binaryPath)}.cover.out`);
+  const coveragePath = path.join(
+    coverageDir,
+    `${path.basename(binaryPath)}.cover.out`,
+  );
   const logPath = path.join(outputDir, path.basename(binaryPath) + ".run.log");
   const outputStream = createWriteStream(logPath);
 
   try {
-    let localFlags = [...runFlags];
+    const localFlags = [...runFlags];
     if (coverage) {
-      core.debug(`Collecting coverage for ${pkg.importPath} at ${coveragePath}`);
+      core.debug(
+        `Collecting coverage for ${pkg.importPath} at ${coveragePath}`,
+      );
       localFlags.push(`-test.coverprofile=${coveragePath}`);
     }
 
@@ -90,7 +97,7 @@ async function runTestBinary(
       cwd: pkg.directory,
       env: {
         GOCOVERDIR: goCoverDir,
-      }
+      },
     } satisfies ExecaOptions);
 
     core.debug(`Logging output to ${logPath}`);
@@ -188,9 +195,14 @@ export async function runConcurrent(
   const tasks = pkgsToRun.map((pkg) =>
     limit(() => {
       executing.add(pkg.importPath);
-      return runTestBinary(buildDir, pkg, pkg.compile.binary, flags, coverage, coverageDir).finally(
-        () => executing.delete(pkg.importPath),
-      );
+      return runTestBinary(
+        buildDir,
+        pkg,
+        pkg.compile.binary,
+        flags,
+        coverage,
+        coverageDir,
+      ).finally(() => executing.delete(pkg.importPath));
     }),
   );
 

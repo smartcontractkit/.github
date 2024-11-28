@@ -55,7 +55,7 @@ describe("runConcurrent", () => {
         indexHash: "hash/1",
       },
     };
-    const results = await runConcurrent("./", packages, [], 1);
+    const results = await runConcurrent("./", packages, [], false, "", 1);
 
     expect(results).toEqual([]);
   });
