@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 6.2.0
+
+### Minor Changes
+
+- [#734](https://github.com/smartcontractkit/.github/pull/734)
+  [`90997b8`](https://github.com/smartcontractkit/.github/commit/90997b882963f46e146a54456019c8cb8ec87abf)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - added GH_TOKEN env
+  var so the github CLI can be used when spinning up CRIB in CI
+
 ## 6.1.0
 
 ### Minor Changes
