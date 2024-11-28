@@ -216,6 +216,7 @@ runs:
         DEVSPACE_IMAGE_TAG: "${{inputs.product-image-tag}}"
         DEVSPACE_INGRESS_BASE_DOMAIN: ${{ inputs.ingress-base-domain }}
         DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
+        GH_TOKEN: ${{ inputs.github-token }}
         PROFILES: ${{ inputs.devspace-profiles }}
         SETUP_AWS_PROFILE: false
         SETUP_EKS_CONFIG: false
