@@ -1,5 +1,15 @@
 # crib-deploy-environment
 
+## 6.3.0
+
+### Minor Changes
+
+- [#732](https://github.com/smartcontractkit/.github/pull/732)
+  [`ecc5564`](https://github.com/smartcontractkit/.github/commit/ecc5564baaf9413db0a2ad7c5ea2c3f12778b04f)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - removing unnecessary
+  call to `cribbit.sh` (deprecated as of
+  https://github.com/smartcontractkit/crib/pull/267)
+
 ## 6.2.0
 
 ### Minor Changes
