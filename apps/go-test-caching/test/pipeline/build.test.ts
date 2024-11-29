@@ -1,13 +1,13 @@
 // test/pipeline/build.test.ts
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
-import { GoPackage } from "../../src/pipeline/index.js";
+import { GoPackage } from "../../src/pipeline.js";
 import {
   CompilationSuccess,
   compileTestBinary,
   validateCompilationResultsOrThrow,
 } from "../../src/pipeline/build.js";
 import { execa } from "execa";
-import { ExecaErrorMock } from "../helper/execa-error-mock.js";
+import { ExecaErrorMockBuild } from "../helper/execa-error-mock.js";
 import * as fs from "fs";
 import * as core from "@actions/core";
 
@@ -107,7 +107,10 @@ describe("compileTestBinary", () => {
     };
     const workingDir = "/working/dir";
     const outputDir = "/output/dir";
-    const execaErrorMock = new ExecaErrorMock("error stdout", "error stderr");
+    const execaErrorMock = new ExecaErrorMockBuild(
+      "error stdout",
+      "error stderr",
+    );
     execaMock.mockRejectedValue(execaErrorMock);
 
     // Act
@@ -157,7 +160,7 @@ describe("validateCompilationResultsOrThrow", () => {
           importPath: "github.com/example/pkg",
           directory: "/path/to/pkg",
         },
-        error: new ExecaErrorMock("error stdout", "error stderr"),
+        error: new ExecaErrorMockBuild("error stdout", "error stderr"),
       },
     ];
 

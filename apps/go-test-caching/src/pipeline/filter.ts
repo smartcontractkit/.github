@@ -3,7 +3,7 @@ import * as path from "path";
 import * as core from "@actions/core";
 import { execa } from "execa";
 
-import { LocalPackages } from "./index.js";
+import { LocalPackages } from "../pipeline.js";
 
 /**
  * Lists all packages in the given path. Defaults to the current directory (./).

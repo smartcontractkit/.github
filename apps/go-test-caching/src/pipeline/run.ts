@@ -9,15 +9,15 @@ import {
   GoPackage,
   DiffedHashedCompiledPackages,
   MaybeExecutedPackages,
-} from "./index.js";
+} from "../pipeline.js";
 
-type ExecaOptions = {
+export type RunExecaOptions = {
   cwd: string;
   all: true;
   stdout: "pipe";
   stderr: "pipe";
   env: {
-    GOCOVERDIR: string;
+    GOCOVERDIR?: string;
   };
 };
 
@@ -29,11 +29,10 @@ const defaultExecaOptions = {
   env: {
     GOCOVERDIR: "",
   },
-} satisfies ExecaOptions;
+} satisfies RunExecaOptions;
 
-export type ExecaReturn = Awaited<ReturnType<typeof execa<ExecaOptions>>>;
-
-type RunResult = RunSuccess | RunFailure;
+type ExecaReturn = Awaited<ReturnType<typeof execa<RunExecaOptions>>>;
+export type RunResult = RunSuccess | RunFailure;
 type RunSuccess = {
   output: {
     log: string;
@@ -48,7 +47,7 @@ type RunFailure = {
     log: string;
   };
   pkg: GoPackage;
-  error: ExecaError<ExecaOptions>;
+  error: ExecaError<RunExecaOptions>;
 };
 
 function isRunSuccess(result: RunResult): result is RunSuccess {
@@ -58,17 +57,18 @@ function isRunSuccess(result: RunResult): result is RunSuccess {
 function isRunFailure(result: RunResult): result is RunFailure {
   return "error" in result;
 }
-async function runTestBinary(
-  outputDir: string,
-  pkg: GoPackage,
-  binaryPath: string,
+
+function handleCoverage(
   runFlags: string[],
-  coverage: boolean,
   coverageDir: string,
-): Promise<RunResult> {
-  // GOCOVERDIR is used to store intermediate coverage files. This needs to be unique for each test run.
+  binaryPath: string,
+) {
+  if (!coverageDir) {
+    return { flags: runFlags };
+  }
+
   const goCoverDir = path.join(
-    pkg.directory,
+    coverageDir,
     `go-cover-${path.basename(binaryPath)}`,
   );
   mkdirSync(goCoverDir, { recursive: true });
@@ -77,28 +77,47 @@ async function runTestBinary(
     coverageDir,
     `${path.basename(binaryPath)}.cover.out`,
   );
+  const newFlags = [...runFlags, `-test.coverprofile=${coveragePath}`];
+
+  return { flags: newFlags, coveragePath, goCoverDir };
+}
+
+/**
+ * Runs the test binary for a given package.
+ * @param outputDir The directory to store the output logs
+ * @param pkg The package to run the test binary for
+ * @param binaryPath The path to the test binary
+ * @param runFlags The flags to pass to the test binary
+ * @param coverageDir The directory to store the coverage files. If an empty string, coverage is disabled.
+ * @returns The result of the test run
+ */
+export async function runTestBinary(
+  outputDir: string,
+  pkg: GoPackage,
+  binaryPath: string,
+  runFlags: string[],
+  coverageDir: string,
+): Promise<RunResult> {
   const logPath = path.join(outputDir, path.basename(binaryPath) + ".run.log");
   const outputStream = createWriteStream(logPath);
 
   try {
-    const localFlags = [...runFlags];
-    if (coverage) {
-      core.debug(
-        `Collecting coverage for ${pkg.importPath} at ${coveragePath}`,
-      );
-      localFlags.push(`-test.coverprofile=${coveragePath}`);
-    }
+    const { flags, coveragePath, goCoverDir } = await handleCoverage(
+      runFlags,
+      coverageDir,
+      binaryPath,
+    );
 
     core.debug(
-      `Exec: ${binaryPath} ${localFlags.join(" ")} (cwd: ${pkg.directory})`,
+      `Exec: ${binaryPath} ${flags.join(" ")} (cwd: ${pkg.directory})`,
     );
-    const subprocess = execa(binaryPath, localFlags, {
+    const subprocess = execa(binaryPath, flags, {
       ...defaultExecaOptions,
       cwd: pkg.directory,
       env: {
         GOCOVERDIR: goCoverDir,
       },
-    } satisfies ExecaOptions);
+    } satisfies RunExecaOptions);
 
     core.debug(`Logging output to ${logPath}`);
     subprocess.all?.pipe(outputStream);
@@ -109,7 +128,7 @@ async function runTestBinary(
       execution,
       output: {
         log: logPath,
-        coverage: coverage ? coveragePath : undefined,
+        coverage: coveragePath,
       },
     };
   } catch (error) {
@@ -117,7 +136,7 @@ async function runTestBinary(
       core.error(`Failed to run test for package ${pkg.importPath}`);
       throw error;
     }
-    const execaError = error as ExecaError<ExecaOptions>;
+    const execaError = error as ExecaError<RunExecaOptions>;
     core.error(
       `Failed to run test for package ${pkg.importPath}: ${execaError.message}`,
     );
@@ -180,7 +199,6 @@ export async function runConcurrent(
   buildDir: string,
   packages: DiffedHashedCompiledPackages,
   flags: string[],
-  coverage: boolean,
   coverageDir: string,
   maxConcurrency: number,
 ) {
@@ -188,7 +206,7 @@ export async function runConcurrent(
   const allPackages = Object.values(packages);
   const pkgsToRun = Object.values(allPackages).filter((pkg) => pkg.shouldRun);
   core.info(
-    `Running ${pkgsToRun.length} with changes out of ${allPackages.length} total packages`,
+    `Running ${pkgsToRun.length} of ${allPackages.length} total packages.`,
   );
 
   const executing = new Set<string>();
@@ -200,7 +218,6 @@ export async function runConcurrent(
         pkg,
         pkg.compile.binary,
         flags,
-        coverage,
         coverageDir,
       ).finally(() => executing.delete(pkg.importPath));
     }),

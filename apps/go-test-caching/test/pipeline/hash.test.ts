@@ -7,7 +7,7 @@ import * as fs from "fs";
 import * as stream from "stream";
 
 import { hashFile, comparePackagesToIndex } from "../../src/pipeline/hash.js";
-import type { HashedCompiledPackages } from "../../src/pipeline/index.js";
+import type { HashedCompiledPackages } from "../../src/pipeline.js";
 
 // Mock modules
 vi.mock("fs");

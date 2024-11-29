@@ -5,7 +5,7 @@ import * as core from "@actions/core";
 import { execa, ExecaError } from "execa";
 import pLimit from "p-limit";
 
-import { GoPackage, CompiledPackages, LocalPackages } from "./index.js";
+import { GoPackage, CompiledPackages, LocalPackages } from "../pipeline.js";
 import { insertWithoutDuplicates } from "../utils.js";
 
 const defaultExecaOptions = {
@@ -13,14 +13,14 @@ const defaultExecaOptions = {
   all: true,
   stdout: "pipe",
   stderr: "pipe",
-} satisfies ExecaOptions;
-export type ExecaOptions = {
+} satisfies BuildExecaOptions;
+export type BuildExecaOptions = {
   cwd: string;
   all: true;
   stdout: "pipe";
   stderr: "pipe";
 };
-export type ExecaReturn = Awaited<ReturnType<typeof execa<ExecaOptions>>>;
+export type ExecaReturn = Awaited<ReturnType<typeof execa<BuildExecaOptions>>>;
 type CompilationResult = CompilationSuccess | CompilationFailure;
 export type CompilationSuccess = {
   output: {
@@ -72,7 +72,7 @@ export async function compileTestBinary(
     const subprocess = execa(cmd, flags, {
       ...defaultExecaOptions,
       cwd,
-    } satisfies ExecaOptions);
+    } satisfies BuildExecaOptions);
 
     core.debug(`Logging output to ${logPath}`);
     subprocess.all?.pipe(outputStream);
@@ -121,17 +121,11 @@ export async function compileConcurrent(
   outputDir: string,
   packages: LocalPackages,
   buildFlags: string[],
-  collectCoverage: boolean,
   maxConcurrency: number,
 ) {
   const limit = pLimit(maxConcurrency);
-
-  if (collectCoverage) {
-    core.info("collect-coverage is true - adding coverage flags to builds.");
-    buildFlags.push("-cover", "-coverpkg=./...", "-covermode=atomic");
-  }
-
   const values = Object.values(packages);
+
   const building = new Set<string>();
   const tasks = values.map((pkg) =>
     limit(() => {

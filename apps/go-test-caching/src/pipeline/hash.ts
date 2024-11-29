@@ -6,7 +6,7 @@ import { getHashFile } from "../github.js";
 import {
   HashedCompiledPackages,
   DiffedHashedCompiledPackages,
-} from "./index.js";
+} from "../pipeline.js";
 import { insertWithoutDuplicates } from "../utils.js";
 
 export async function hashFile(filePath: string): Promise<string> {

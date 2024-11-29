@@ -12,7 +12,7 @@ import {
   uploadRunLogs,
   uploadStateFile,
 } from "./log.js";
-import * as pipeline from "./pipeline/index.js";
+import * as pipeline from "./pipeline.js";
 
 export type Inputs = Readonly<ReturnType<typeof setup>>;
 

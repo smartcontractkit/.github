@@ -41,14 +41,14 @@ sequenceDiagram
   Pipeline->>Pipeline: Run Changed Tests
   Pipeline-->>Action: Done Execution
 
-  Action-->>Github: Upload Build Logs
+  Action-->>Github: Upload Run Logs
   Action-->>Github: Upload Coverage (if enabled)
   Action->>Workflow: Done Execution
   deactivate Action
 
   Workflow->>Action: 'Update'
   activate Action
-  Action-->>Pipeline: Start Update Process
+  Action-->>Pipeline: Start Update Processqm
   Pipeline->>Pipeline: Check Update Criteria
 
   opt Criteria Met
