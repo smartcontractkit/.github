@@ -272,6 +272,7 @@ describe("buildTestBinaries", () => {
     buildDirectory: "/path/to/build",
     buildFlags: ["-foo"],
     collectCoverage: false,
+    maxBuildConcurrency: 1,
   } as Inputs;
 
   const mockPackages = {
@@ -293,12 +294,16 @@ describe("buildTestBinaries", () => {
       mockInputs.buildDirectory,
       mockPackages,
       ["-foo"],
-      expect.any(Number),
+      mockInputs.maxBuildConcurrency,
     );
   });
 
   it("should add coverage flags when coverage is enabled", async () => {
-    const inputs = { ...mockInputs, collectCoverage: true };
+    const inputs = {
+      ...mockInputs,
+      collectCoverage: true,
+      maxBuildConcurrency: 1,
+    };
 
     await buildTestBinaries(inputs, mockPackages);
 
@@ -307,7 +312,7 @@ describe("buildTestBinaries", () => {
       inputs.buildDirectory,
       mockPackages,
       ["-foo", "-cover", "-coverpkg=./...", "-covermode=atomic"],
-      expect.any(Number),
+      mockInputs.maxBuildConcurrency,
     );
   });
 });
@@ -317,6 +322,7 @@ describe("runTestBinaries", () => {
     buildDirectory: "/path/to/build",
     collectCoverage: false,
     coverageDirectory: "",
+    maxRunConcurrency: 1,
   } as Inputs;
 
   const mockPackages = {
@@ -343,7 +349,7 @@ describe("runTestBinaries", () => {
       mockPackages,
       [],
       "",
-      expect.any(Number),
+      mockInputs.maxRunConcurrency,
     );
   });
 
@@ -361,7 +367,7 @@ describe("runTestBinaries", () => {
       mockPackages,
       [],
       "/path/to/coverage",
-      expect.any(Number),
+      mockInputs.maxRunConcurrency,
     );
   });
 });

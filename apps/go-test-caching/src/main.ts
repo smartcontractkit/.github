@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
+import { cpus } from "os";
 
 import * as core from "@actions/core";
 import { ExecaError } from "execa";
@@ -28,6 +29,8 @@ function setup() {
   const testSuite = core.getInput("test-suite") || "placeholder-test-suite";
   const buildDirectory = process.env.RUNNER_TEMP || `/tmp/cl/${testSuite}`;
 
+  const buildConcurrencyString = core.getInput("build-concurrency");
+  const runConcurrencyString = core.getInput("run-concurrency");
   const forceUpdateIndexString = core.getInput("force-update-index") || "false";
   const runAllTestsString = core.getInput("run-all-tests") || "false";
   const collectCoverageString = core.getInput("collect-coverage") || "false";
@@ -63,6 +66,9 @@ function setup() {
   const forceUpdateIndex = forceUpdateIndexString === "true";
   const runAllTests = runAllTestsString === "true" || collectCoverage;
 
+  const maxBuildConcurrency = parseInt(buildConcurrencyString) || cpus().length;
+  const maxRunConcurrency = parseInt(runConcurrencyString) || cpus().length;
+
   return {
     pipelineStep: pipelineStep as "build" | "run" | "update" | "e2e",
     moduleDirectory,
@@ -70,10 +76,12 @@ function setup() {
     stepsDirectory,
     coverageDirectory,
     buildFlags,
+    maxBuildConcurrency,
     hashesBranch,
     hashesFile: `${testSuite}.json`,
     testSuite,
     runAllTests,
+    maxRunConcurrency,
     collectCoverage,
     forceUpdateIndex,
   };

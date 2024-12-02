@@ -47,12 +47,14 @@ inputs:
     default: "test-hashes"
 
   build-concurrency:
-    description: "Number of concurrent builds to run"
-    default: "8"
+    description: |
+      Number of concurrent builds to run. Defaults to the number of CPU cores.
+    required: false
 
   run-concurrency:
-    description: "Number of concurrent test runs to run"
-    default: "8"
+    description: |
+      Number of concurrent test packages runs to run. Defaults to the number of CPU cores.
+    required: false
 
   github-token:
     description:

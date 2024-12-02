@@ -79,8 +79,6 @@ export async function buildTestBinaries(
 ): Promise<CompiledPackages> {
   logSection("Build Tests");
 
-  const maxBuildConcurrency = parseInt(core.getInput("build-concurrency")) || 4;
-
   const localBuildFlags = [...inputs.buildFlags];
   if (inputs.collectCoverage) {
     core.info("Collect coverage enabled. Adding build flags.");
@@ -92,7 +90,7 @@ export async function buildTestBinaries(
     inputs.buildDirectory,
     packages,
     localBuildFlags,
-    maxBuildConcurrency,
+    inputs.maxBuildConcurrency,
   );
 
   return validateCompilationResultsOrThrow(
@@ -224,7 +222,6 @@ export async function runTestBinaries(
   packages: DiffedHashedCompiledPackages,
 ): Promise<MaybeExecutedPackages> {
   logSection("Run Tests");
-  const maxRunConcurrency = parseInt(core.getInput("run-concurrency")) || 4;
   const coverageDirectory = inputs.collectCoverage
     ? inputs.coverageDirectory
     : "";
@@ -234,7 +231,7 @@ export async function runTestBinaries(
     packages,
     [],
     coverageDirectory,
-    maxRunConcurrency,
+    inputs.maxRunConcurrency,
   );
 
   return validateRunResultsOrThrow(packages, runResults);
