@@ -164,3 +164,16 @@ static_resources:
           dns_cache_config:
             name: dynamic_forward_proxy_cache_config
             dns_lookup_family: ALL
+
+layered_runtime:
+  layers:
+    - name: static-layer
+      static_layer:
+        envoy.reloadable_features.allow_multiple_dns_addresses: true
+        envoy.reloadable_features.conn_pool_new_stream_with_early_data_and_http3: true
+        envoy.reloadable_features.http1_use_balsa_parser: true
+        envoy.reloadable_features.http2_use_oghttp2: true
+        envoy.reloadable_features.http3_sends_early_data: true
+        envoy.reloadable_features.postpone_h3_client_connect_to_next_loop: true
+        envoy.resource_limits.listener.proxy.connection_limit: 1000
+        overload.global_downstream_max_connections: 1000
