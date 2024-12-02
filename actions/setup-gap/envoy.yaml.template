@@ -314,12 +314,3 @@ static_resources:
           dns_cache_config:
             name: dynamic_forward_proxy_cache_config
             dns_lookup_family: V4_ONLY
-
-      transport_socket:
-        name: envoy.transport_sockets.tls
-        typed_config:
-          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
-          common_tls_context:
-            validation_context:
-              trusted_ca:
-                filename: "/tls/aws-ca.crt"
