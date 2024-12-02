@@ -206,6 +206,7 @@ static_resources:
                             end
                         end
 
+                        request_handle:logInfo(request_handle:headers())
                         -- Main function for Envoy request interception
                         function envoy_on_request(request_handle)
                             refresh_token_if_needed(request_handle)
