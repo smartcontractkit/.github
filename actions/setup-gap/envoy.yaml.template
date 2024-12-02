@@ -140,6 +140,72 @@ static_resources:
                 '@type': type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
                 codec_type: AUTO
                 http_filters:
+                  - name: envoy.filters.http.lua
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+                      inline_code: |
+                        JSON = (loadfile "/etc/envoy/json.lua")() -- one-time load of the routines
+                        local jwt_expiration = 0
+                        local jwt_token = nil
+                        local refreshing = false
+                        local request_options = {["asynchronous"] = true}
+
+                        -- Function to fetch GitHub OIDC token
+                        function fetch_github_oidc_token(request_handle)
+                            if refreshing then
+                                return -- Prevent multiple concurrent refreshes
+                            end
+                            refreshing = true
+
+                            -- Set the audience and the GitHub OIDC token URL
+                            local audience = "gap"
+                            local oidc_url = "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=" .. audience
+
+                            -- Prepare headers
+                            local headers = {
+                                [":method"] = "GET",
+                                [":path"] = oidc_url,
+                                [":authority"] = "${GITHUB_OIDC_HOSTNAME}",
+                                ["Authorization"] = "Bearer " .. "${ACTIONS_ID_TOKEN_REQUEST_TOKEN}", -- Use environment variable
+                                ["accept"] = "application/json",
+                            }
+
+                            -- Make the HTTP call
+                            local response_headers, response_body = request_handle:httpCall(
+                                "github_oidc_endpoint",
+                                headers,
+                                nil, -- No body for GET requests
+                                3000 -- Timeout in milliseconds
+                            )
+
+                            if response_headers[":status"] == "200" then
+                                request_handle:logInfo("GitHub OIDC token fetched successfully.")
+                                request_handle:logInfo(response_body)
+                                local data = JSON.decode(response_body)
+                                jwt_token = data.value -- Assign the token value
+                                jwt_expiration = os.time() + 300 -- Tokens are valid for 5 minutes
+                            else
+                                request_handle:logErr("Failed to fetch GitHub OIDC token. Status: " .. response_headers[":status"])
+                            end
+
+                            refreshing = false
+                        end
+
+                        -- Function to refresh the token if needed
+                        function refresh_token_if_needed(request_handle)
+                            local current_time = os.time()
+                            if not jwt_token or jwt_expiration - current_time < 60 then
+                                fetch_github_oidc_token(request_handle)
+                            end
+                        end
+
+                        -- Main function for Envoy request interception
+                        function envoy_on_request(request_handle)
+                            refresh_token_if_needed(request_handle)
+                            if jwt_token then
+                                request_handle:headers():add("x-authorization-github-jwt", "Bearer " .. jwt_token)
+                            end
+                        end
                   - name: envoy.filters.http.dynamic_forward_proxy
                     typed_config:
                       '@type': type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.FilterConfig
