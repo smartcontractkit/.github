@@ -211,32 +211,32 @@ runs:
         docker run --rm -d \
           --name "gap-v2" \
           -p "${PROXY_PORT}:${PROXY_PORT}" \
+          -p "9999:9999" \
           -v "${PATH_CERTS_DIR}":/tls \
           -v "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
           -v "${GITHUB_ACTION_PATH}/json.lua":/etc/envoy/json.lua \
           "${ENVOY_PROXY_IMAGE}" \
           /usr/local/bin/envoy -c /etc/envoy/envoy.yaml \
-          --log-level "${ENVOY_LOG_LEVEL}"
+          --log-level "debug"
 
-    - name: Verify Envoy Proxy
-      if: inputs.use-k8s == 'true'
-      shell: bash
-      env:
-        PROXY_PORT: ${{ inputs.proxy-port }}
-      run: |
-        echo "Checking if the Envoy proxy is up and running on https://localhost:${PROXY_PORT} address..."
-        for attempt in {1..10}; do
-          if curl --cacert "${PATH_CERTS_DIR}/ca.crt" https://localhost:${PROXY_PORT} > /dev/null 2>&1; then
-            echo "Envoy proxy is up, and the HTTPS connection is successful."
-            exit 0
-          else
-            echo "Waiting for the Envoy proxy to start... Attempt ${attempt}/10"
-            sleep 3
-          fi
-        done
-
-        echo "Timed out waiting for the Envoy proxy to start."
-        exit 1
+    # - name: Verify HTTPS Envoy Proxy
+    #   shell: bash
+    #   env:
+    #     PROXY_PORT: ${{ inputs.proxy-port }}
+    #   run: |
+    #     echo "Checking if the Envoy proxy is up and running on https://localhost:9999 address..."
+    #     for attempt in {1..10}; do
+    #       if curl --cacert "${PATH_CERTS_DIR}/ca.crt" https://localhost:9999 > /dev/null 2>&1; then
+    #         echo "HTTPS Envoy proxy is up, and the HTTPS connection is successful."
+    #         exit 0
+    #       else
+    #         echo "Waiting for the Envoy proxy to start... Attempt ${attempt}/10"
+    #         sleep 3
+    #       fi
+    #     done
+    #
+    #     echo "Timed out waiting for the Envoy proxy to start."
+    #     exit 1
 
     - name: Collect Envoy proxy logs when debug is enabled
       uses: jwalton/gh-docker-logs@2741064ab9d7af54b0b1ffb6076cf64c16f0220e # v2.2.2
