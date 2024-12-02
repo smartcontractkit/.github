@@ -323,4 +323,3 @@ static_resources:
             validation_context:
               trusted_ca:
                 filename: "/tls/aws-ca.crt"
-              trust_chain_verification: VERIFY_TRUST_CHAIN
