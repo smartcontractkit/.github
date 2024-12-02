@@ -145,7 +145,7 @@ static_resources:
                       '@type': type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.FilterConfig
                       dns_cache_config:
                         name: dynamic_forward_proxy_cache_config
-                        dns_lookup_family: V4_ONLY
+                        dns_lookup_family: ALL
 
                   - name: envoy.filters.http.lua
                     typed_config:
@@ -304,7 +304,7 @@ static_resources:
 
     - name: dynamic_forward_proxy_cluster
       connect_timeout: 5s
-      dns_lookup_family: V4_ONLY
+      dns_lookup_family: ALL
       lb_policy: CLUSTER_PROVIDED
       cluster_type:
         name: envoy.clusters.dynamic_forward_proxy
@@ -313,4 +313,4 @@ static_resources:
           allow_coalesced_connections: true
           dns_cache_config:
             name: dynamic_forward_proxy_cache_config
-            dns_lookup_family: V4_ONLY
+            dns_lookup_family: ALL
