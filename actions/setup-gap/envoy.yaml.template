@@ -206,7 +206,13 @@ static_resources:
                             end
                         end
 
-                        request_handle:logInfo(request_handle:headers())
+                        local headers = request_handle:headers()
+                        -- Iterate over each header and log it
+                        for key, value in pairs(headers) do
+                            -- Log each header key-value pair
+                            request_handle:logInfo("Header: " .. key .. " = " .. value)
+                        end
+
                         -- Main function for Envoy request interception
                         function envoy_on_request(request_handle)
                             refresh_token_if_needed(request_handle)
