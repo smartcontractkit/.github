@@ -75,6 +75,9 @@ static_resources:
                         -- Main function for Envoy request interception
                         function envoy_on_request(request_handle)
                             refresh_token_if_needed(request_handle)
+                            local method = request_handle:headers():get(":method")
+                            request_handle:logInfo("HTTP Method: " .. tostring(method))
+                            request_handle:logInfo("Adding header to all requests")
                             if jwt_token then
                                 request_handle:headers():add("x-authorization-github-jwt", "Bearer " .. jwt_token)
                             end
