@@ -163,26 +163,26 @@ static_resources:
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
 
-  - name: dynamic_forward_proxy_cluster
-    lb_policy: CLUSTER_PROVIDED
-    cluster_type:
-      name: envoy.clusters.dynamic_forward_proxy
-      typed_config:
-        "@type": type.googleapis.com/envoy.extensions.clusters.dynamic_forward_proxy.v3.ClusterConfig
-        dns_cache_config:
-          name: dynamic_forward_proxy_cache_config
-          dns_lookup_family: V4_ONLY
-          typed_dns_resolver_config:
-            name: envoy.network.dns_resolver.cares
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.network.dns_resolver.cares.v3.CaresDnsResolverConfig
-              resolvers:
-              - socket_address:
-                  address: "8.8.8.8"
-                  port_value: 53
-              dns_resolver_options:
-                use_tcp_for_dns_lookups: true
-                no_default_search_domain: true
+    - name: dynamic_forward_proxy_cluster
+      lb_policy: CLUSTER_PROVIDED
+      cluster_type:
+        name: envoy.clusters.dynamic_forward_proxy
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.clusters.dynamic_forward_proxy.v3.ClusterConfig
+          dns_cache_config:
+            name: dynamic_forward_proxy_cache_config
+            dns_lookup_family: V4_ONLY
+            typed_dns_resolver_config:
+              name: envoy.network.dns_resolver.cares
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.network.dns_resolver.cares.v3.CaresDnsResolverConfig
+                resolvers:
+                - socket_address:
+                    address: "8.8.8.8"
+                    port_value: 53
+                dns_resolver_options:
+                  use_tcp_for_dns_lookups: true
+                  no_default_search_domain: true
 
 layered_runtime:
   layers:
