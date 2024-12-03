@@ -1,5 +1,15 @@
 # crib-deploy-environment
 
+## 6.4.0
+
+### Minor Changes
+
+- [#737](https://github.com/smartcontractkit/.github/pull/737)
+  [`d51c1d4`](https://github.com/smartcontractkit/.github/commit/d51c1d470e6a4964c86f8dd590eeac906cf0106f)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Derive go version
+  from cli/go.mod instead of go.work, as go.work is being deleted from crib
+  project
+
 ## 6.3.0
 
 ### Minor Changes
