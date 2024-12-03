@@ -141,7 +141,7 @@ runs:
 
     - uses: actions/setup-go@v5
       with:
-        go-version-file: "${{ github.workspace }}/crib/go.work"
+        go-version-file: "${{ github.workspace }}/crib/cli/go.mod"
         cache-dependency-path: "${{ github.workspace }}/crib/**/*.sum"
 
     - name: Setup Nix
