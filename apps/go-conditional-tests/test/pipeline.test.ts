@@ -28,6 +28,7 @@ vi.mock("@actions/core", () => ({
   error: vi.fn(),
   setFailed: vi.fn(),
   getInput: vi.fn(),
+  isDebug: vi.fn(() => false), // Set default return value to false
 }));
 
 // Change the github mock to use a getter/setter
@@ -339,6 +340,7 @@ describe("runTestBinaries", () => {
     vi.clearAllMocks();
     (runConcurrent as Mock).mockResolvedValue({});
     (validateRunResultsOrThrow as Mock).mockReturnValue({});
+    (core.isDebug as Mock).mockReturnValue(false); // Reset isDebug to false before each test
   });
 
   it("should call run without coverage directory when coverage is disabled", async () => {
@@ -367,6 +369,34 @@ describe("runTestBinaries", () => {
       mockPackages,
       [],
       "/path/to/coverage",
+      mockInputs.maxRunConcurrency,
+    );
+  });
+
+  it("should call run without -test.v flag when debug is disabled", async () => {
+    (core.isDebug as Mock).mockReturnValue(false);
+
+    await runTestBinaries(mockInputs, mockPackages);
+
+    expect(runConcurrent).toHaveBeenCalledWith(
+      mockInputs.buildDirectory,
+      mockPackages,
+      [],
+      "",
+      mockInputs.maxRunConcurrency,
+    );
+  });
+
+  it("should add -test.v flag when debug is enabled", async () => {
+    (core.isDebug as Mock).mockReturnValue(true);
+
+    await runTestBinaries(mockInputs, mockPackages);
+
+    expect(runConcurrent).toHaveBeenCalledWith(
+      mockInputs.buildDirectory,
+      mockPackages,
+      ["-test.v"],
+      "",
       mockInputs.maxRunConcurrency,
     );
   });

@@ -46,9 +46,6 @@ vi.mock("@actions/core", () => ({
 const execaMock = execa as unknown as Mock;
 const existsSyncMock = fs.existsSync as unknown as Mock;
 const readdirSyncMock = fs.readdirSync as unknown as Mock;
-// No need to assign createWriteStreamMock as we don't use it directly
-// const createWriteStreamMock = fs.createWriteStream as unknown as vi.Mock;
-const coreMock = core as any as Mock;
 
 describe("compileTestBinary", () => {
   beforeEach(() => {

@@ -8,7 +8,7 @@ import * as core from "@actions/core";
 
 import { ExecaErrorMockRun } from "../helper/execa-error-mock.js";
 import {
-  filterOutputLogs,
+  trimOutputLogs,
   runConcurrent,
   runTestBinary,
   validateRunResultsOrThrow,
@@ -49,21 +49,6 @@ vi.mock("@actions/core", () => ({
 // Import the mocked modules
 const execaMock = execa as unknown as Mock;
 const mkdirSyncMock = fs.mkdirSync as unknown as Mock;
-
-describe.skip("filterOutputLogs", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("should filter out logs", () => {
-    // get mock data from reading file data/error.run.log
-    const dataPath = path.join(__dirname, "data/error-2.run.log");
-    const logData = fs.readFileSync(dataPath, "utf-8");
-
-    const output = filterOutputLogs(logData);
-    console.log(output);
-  });
-});
 
 describe("runConcurrent", () => {
   beforeEach(() => {
@@ -374,5 +359,33 @@ describe("validateRunResultsOrThrow", () => {
         cwd: "/path/to/pkg",
       },
     });
+  });
+});
+
+describe("trimOutputLogs", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should not trim logs under 1000 lines", () => {
+    const lines = Array.from({ length: 999 }, (_, i) => `Line ${i + 1}`);
+    const input = lines.join("\n");
+    const result = trimOutputLogs(input);
+    expect(result).toBe(input);
+  });
+
+  it("should trim logs over 1000 lines", () => {
+    const lines = Array.from({ length: 1500 }, (_, i) => `Line ${i + 1}`);
+    const input = lines.join("\n");
+    const result = trimOutputLogs(input);
+    const resultLines = result.split("\n");
+
+    // Check the structure of the trimmed output
+    expect(resultLines.length).toBe(1001); // 300 + 1 + 700 lines
+    expect(resultLines[0]).toBe("Line 1"); // First line
+    expect(resultLines[299]).toBe("Line 300"); // Last line of first section
+    expect(resultLines[300]).toBe("... 500 lines ..."); // Separator with count
+    expect(resultLines[301]).toBe("Line 801"); // First line of last section
+    expect(resultLines[1000]).toBe("Line 1500"); // Last line
   });
 });

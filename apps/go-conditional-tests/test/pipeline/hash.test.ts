@@ -2,7 +2,6 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createHash } from "crypto";
-import * as core from "@actions/core";
 import * as fs from "fs";
 import * as stream from "stream";
 

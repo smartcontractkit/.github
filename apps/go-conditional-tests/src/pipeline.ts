@@ -45,10 +45,6 @@ export interface LocalPackages {
  */
 export async function getTestPackages(inputs: Inputs): Promise<LocalPackages> {
   logSection("Locating Packages");
-  // if (inputs.tagFilter) {
-  //   return findTaggedTestPackages(inputs.moduleDirectory, inputs.tagFilter);
-  // }
-
   return listPackages(inputs.moduleDirectory);
 }
 
@@ -226,10 +222,15 @@ export async function runTestBinaries(
     ? inputs.coverageDirectory
     : "";
 
+  const localFlags = [];
+  if (core.isDebug()) {
+    localFlags.push("-test.v");
+  }
+
   const runResults = await runConcurrent(
     inputs.buildDirectory,
     packages,
-    [],
+    localFlags,
     coverageDirectory,
     inputs.maxRunConcurrency,
   );

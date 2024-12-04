@@ -21,11 +21,6 @@ inputs:
     required: true
     default: "."
 
-  force-update-index:
-    description: |
-      Force update the test index file, even when not on the default branch.
-    default: "false"
-
   run-all-tests:
     description: |
       Ignore the difference between the current test indexes, and run all tests.

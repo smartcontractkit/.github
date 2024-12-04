@@ -48,7 +48,7 @@ sequenceDiagram
 
   Workflow->>Action: 'Update'
   activate Action
-  Action-->>Pipeline: Start Update Processqm
+  Action-->>Pipeline: Start Update Process
   Pipeline->>Pipeline: Check Update Criteria
 
   opt Criteria Met
@@ -108,6 +108,16 @@ run-unit-tests:
         github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+### Setup
+
+This action requires an orphaned branch to store the test hash indexes in.
+
+1. `git switch --orphan test-hashes`
+2. `printf '*\n!.gitignore\n!README.md\n!*.json' > .gitignore`
+3. `git add .gitignore`
+4. `git commit -m "test-hashes: initial commit"`
+5. `git push --set-upstream origin test-hashes`
+
 ## Action
 
 ### Inputs
@@ -156,11 +166,6 @@ run-unit-tests:
     execution based on the different hashes.
 - `run-concurrency`, number (`8`)
   - The amount of concurrent running tests.
-
-#### `update` inputs
-
-- `force-update-index`, true / **false**
-  - Allows you to force an update even if not on the default branch.
 
 ### Other Inputs
 

@@ -140,9 +140,8 @@ export async function runTestBinary(
     core.error(
       `Failed to run test for package ${pkg.importPath}: ${execaError.message}`,
     );
-    core.info("----------------------------------------");
     core.info(
-      `Logs: ${pkg.importPath} ---\n${filterOutputLogs(execaError.stdout)}`,
+      `Logs: ${pkg.importPath} ---\n${trimOutputLogs(execaError.stdout)}`,
     );
     core.info("----------------------------------------");
     return {
@@ -155,44 +154,20 @@ export async function runTestBinary(
   }
 }
 
-/**
- * Takes in the run logs from a test run, and filters the logs depending on the current job execution log level.
- * If the job is in debug mode, all logs are returned. Otherwise only ERROR logs and higher are returned.
- */
-export function filterOutputLogs(logs: string) {
+export function trimOutputLogs(logs: string) {
   const lines = logs.split("\n");
-
-  // Don't filter logs
-  if (core.isDebug() || !core.isDebug()) {
-    // TODO: This is a temporary workaround to only show the first 500 lines of logs
-    return lines.slice(0, 500).join("\n");
+  if (lines.length >= 1000) {
+    core.info(`Trimming logs to first 300 and last 700 lines`);
+    const first = lines.slice(0, 300);
+    const last = lines.slice(-700);
+    const trimmedCount = lines.length - 1000;
+    return first
+      .concat([`... ${trimmedCount} lines ...`])
+      .concat(last)
+      .join("\n");
   }
 
-  const debugLogLevels = ["DEBUG", "INFO", "WARN"];
-  const errorLogLevels = ["ERROR", "CRIT", "PANIC", "FATAL"];
-  const filteredLines = [];
-  let shouldLog = false;
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-
-    if (trimmedLine.startsWith("--- FAIL")) {
-      shouldLog = true;
-      filteredLines.push(line);
-      continue;
-    }
-
-    const [_, maybeLevel] = trimmedLine.split("\t");
-    if (errorLogLevels.includes(maybeLevel)) {
-      shouldLog = true;
-    } else if (debugLogLevels.includes(maybeLevel)) {
-      shouldLog = false;
-    }
-
-    if (shouldLog) {
-      filteredLines.push(line);
-    }
-  }
-  return filteredLines.join("\n");
+  return logs;
 }
 
 export async function runConcurrent(

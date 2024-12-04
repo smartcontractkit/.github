@@ -22,3 +22,6 @@ yarn.lock
 # Don't LLM format prompt files
 /actions/llm-pr-writer/pr-writer-prompt.md
 /actions/llm-action-error-reporter/log-analyze-prompt.md
+
+# GQL generated type files
+**/src/generated/graphql.ts
