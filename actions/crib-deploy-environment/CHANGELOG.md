@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 7.0.1
+
+### Patch Changes
+
+- [#745](https://github.com/smartcontractkit/.github/pull/745)
+  [`959260d`](https://github.com/smartcontractkit/.github/commit/959260d212f092bf629094a4729d893dbddcef8f)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - setting
+  `working-directory` correctly for dorny/paths-filter
+
 ## 7.0.0
 
 ### Major Changes
