@@ -349,7 +349,7 @@ describe("runTestBinaries", () => {
     expect(runConcurrent).toHaveBeenCalledWith(
       mockInputs.buildDirectory,
       mockPackages,
-      [],
+      expect.not.arrayContaining(["-test.v"]),
       "",
       mockInputs.maxRunConcurrency,
     );
@@ -367,7 +367,7 @@ describe("runTestBinaries", () => {
     expect(runConcurrent).toHaveBeenCalledWith(
       inputs.buildDirectory,
       mockPackages,
-      [],
+      expect.not.arrayContaining(["-test.v"]),
       "/path/to/coverage",
       mockInputs.maxRunConcurrency,
     );
@@ -381,7 +381,7 @@ describe("runTestBinaries", () => {
     expect(runConcurrent).toHaveBeenCalledWith(
       mockInputs.buildDirectory,
       mockPackages,
-      [],
+      expect.not.arrayContaining(["-test.v"]),
       "",
       mockInputs.maxRunConcurrency,
     );
@@ -395,7 +395,7 @@ describe("runTestBinaries", () => {
     expect(runConcurrent).toHaveBeenCalledWith(
       mockInputs.buildDirectory,
       mockPackages,
-      ["-test.v"],
+      expect.arrayContaining(["-test.v"]),
       "",
       mockInputs.maxRunConcurrency,
     );

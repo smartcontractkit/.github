@@ -1,3 +1,4 @@
+import * as os from "os";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
@@ -222,7 +223,8 @@ export async function runTestBinaries(
     ? inputs.coverageDirectory
     : "";
 
-  const localFlags = [];
+  // Default run flags
+  const localFlags = ["-test.timeout=10m"];
   if (core.isDebug()) {
     localFlags.push("-test.v");
   }
