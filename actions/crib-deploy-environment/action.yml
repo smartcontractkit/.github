@@ -190,8 +190,6 @@ runs:
 
         kubectl label namespace $NAMESPACE \
           branch="${sanitized_branch}" \
-          chain.link/product=${{ inputs.chainlink-product }} \
-          chain.link/team=${{ inputs.chainlink-team }} \
           commit=${{ steps.generate-ns-name.outputs.commit-sha }} \
           pr-number=${{ steps.generate-ns-name.outputs.pr-number || 'none' }} \
           repo=${{ steps.generate-ns-name.outputs.repo-name }} \
@@ -209,11 +207,13 @@ runs:
       shell: bash
       env:
         CHAINLINK_CODE_DIR: "../"
+        CHAINLINK_PRODUCT: ${{ inputs.chainlink-product }}
+        CHAINLINK_TEAM: ${{ inputs.chainlink-team }}
         CRIB_CI_ENV: true
         CRIB_SKIP_DOCKER_ECR_LOGIN: true
         CRIB_SKIP_HELM_ECR_LOGIN: true
-        DEVSPACE_IMAGE: "${{inputs.product-image}}"
         DEVSPACE_IMAGE_TAG: "${{inputs.product-image-tag}}"
+        DEVSPACE_IMAGE: "${{inputs.product-image}}"
         DEVSPACE_INGRESS_BASE_DOMAIN: ${{ inputs.ingress-base-domain }}
         DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
         GH_TOKEN: ${{ inputs.github-token }}
