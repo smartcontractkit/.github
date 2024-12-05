@@ -1,5 +1,23 @@
 # crib-deploy-environment
 
+## 7.0.0
+
+### Major Changes
+
+- [#742](https://github.com/smartcontractkit/.github/pull/742)
+  [`52fd032`](https://github.com/smartcontractkit/.github/commit/52fd0320ed98a13560e1870b995de72530a04e00)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - WHAT: Building CLI
+  only when changes are detected. WHY: This is required so we can push new
+  changes to the CLI and have them tested against the version we're actually
+  pushing. This is backwards-incompatible because it requires the
+  `pull-requests: read` permission
+
+  ### Action required
+
+  When upgrading, make sure you add: `pull-requests: read` to your permission
+  set. Otherwise you should see an error like
+  `Error: Resource not accessible by integration`.
+
 ## 6.4.0
 
 ### Minor Changes
