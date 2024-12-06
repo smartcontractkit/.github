@@ -91,6 +91,10 @@ inputs:
   goreleaser-key:
     description: ""
     required: false
+  goreleaser-workdir:
+    description: ""
+    required: false
+    default: "."
   # zig inputs
   use-zig:
     description: ""
@@ -201,6 +205,7 @@ runs:
         version: ${{ inputs.goreleaser-version }}
         distribution: ${{ inputs.goreleaser-dist }}
         args: release ${{ inputs.goreleaser-args }} --clean
+        workdir: ${{ inputs.goreleaser-workdir }}
       env:
         IMAGE_REPO: ${{ steps.process-params.outputs.image-repo }}
         IMAGE_TAG: ${{ inputs.docker-image-tag }}

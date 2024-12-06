@@ -1,5 +1,42 @@
 # crib-deploy-environment
 
+## 7.0.1
+
+### Patch Changes
+
+- [#745](https://github.com/smartcontractkit/.github/pull/745)
+  [`959260d`](https://github.com/smartcontractkit/.github/commit/959260d212f092bf629094a4729d893dbddcef8f)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - setting
+  `working-directory` correctly for dorny/paths-filter
+
+## 7.0.0
+
+### Major Changes
+
+- [#742](https://github.com/smartcontractkit/.github/pull/742)
+  [`52fd032`](https://github.com/smartcontractkit/.github/commit/52fd0320ed98a13560e1870b995de72530a04e00)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - WHAT: Building CLI
+  only when changes are detected. WHY: This is required so we can push new
+  changes to the CLI and have them tested against the version we're actually
+  pushing. This is backwards-incompatible because it requires the
+  `pull-requests: read` permission
+
+  ### Action required
+
+  When upgrading, make sure you add: `pull-requests: read` to your permission
+  set. Otherwise you should see an error like
+  `Error: Resource not accessible by integration`.
+
+## 6.4.0
+
+### Minor Changes
+
+- [#737](https://github.com/smartcontractkit/.github/pull/737)
+  [`d51c1d4`](https://github.com/smartcontractkit/.github/commit/d51c1d470e6a4964c86f8dd590eeac906cf0106f)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Derive go version
+  from cli/go.mod instead of go.work, as go.work is being deleted from crib
+  project
+
 ## 6.3.0
 
 ### Minor Changes

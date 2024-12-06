@@ -132,6 +132,14 @@ runs:
         path: "${{ github.workspace }}/crib"
         token: ${{ inputs.github-token }}
 
+    - name: Detect if the CLI was changed, only build if needed
+      uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        working-directory: "${{ github.workspace }}/crib"
+        filters: |
+          cli: './cli/**'
+
     - name: Login to AWS ECR for Helm
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
       env:
@@ -141,7 +149,7 @@ runs:
 
     - uses: actions/setup-go@v5
       with:
-        go-version-file: "${{ github.workspace }}/crib/go.work"
+        go-version-file: "${{ github.workspace }}/crib/cli/go.mod"
         cache-dependency-path: "${{ github.workspace }}/crib/**/*.sum"
 
     - name: Setup Nix
@@ -210,6 +218,7 @@ runs:
       env:
         CHAINLINK_CODE_DIR: "../"
         CRIB_CI_ENV: true
+        CLI_CHANGED: ${{ steps.filter.outputs.cli == 'true' }}
         CRIB_SKIP_DOCKER_ECR_LOGIN: true
         CRIB_SKIP_HELM_ECR_LOGIN: true
         DEVSPACE_IMAGE: "${{inputs.product-image}}"
