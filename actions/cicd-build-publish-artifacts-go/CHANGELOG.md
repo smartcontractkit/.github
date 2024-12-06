@@ -1,5 +1,14 @@
 # cicd-build-publish-artifacts-go
 
+## 0.3.0
+
+### Minor Changes
+
+- [#738](https://github.com/smartcontractkit/.github/pull/738)
+  [`f83d2ae`](https://github.com/smartcontractkit/.github/commit/f83d2aeb7dc8dc9ca4f38a93fa1792463bda5fb9)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - Allow passing
+  `workdir` to goreleaser action (backwards-compatible, defaults to `.`)
+
 ## 0.2.5
 
 ### Patch Changes

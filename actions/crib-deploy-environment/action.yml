@@ -4,6 +4,9 @@ description:
   an ephemeral environment."
 
 inputs:
+  aws-ecr-private-registry:
+    description: "AWS ECR private registry."
+    required: true
   aws-region:
     description: "AWS region."
     required: true
@@ -61,7 +64,7 @@ inputs:
       for example: https://hooks.slack.com/services/aaa/bbb
     required: false
   crib-repo-ref:
-    default: "main"
+    default: "v1.0.0"
     required: false
     description: Useful for testing updates in CRIB
   chainlink-team:
@@ -78,7 +81,25 @@ inputs:
       costs to the correct product.
   k8s-api-endpoint:
     required: true
-    description: "Endpoint"
+    description: "The Kubernetes API server's endpoint hostname."
+  k8s-api-endpoint-port:
+    required: false
+    default: "443"
+    description: "The port number for accessing the Kubernetes API server."
+  enable-proxy-debug:
+    required: false
+    default: "false"
+    description:
+      "Enable or disable detailed Envoy proxy logs used for K8s API access. When
+      enabled, debug logs are generated locally, and container logs are streamed
+      to the console for troubleshooting."
+  envoy-github-oidc-token-header-name:
+    required: false
+    default: "x-authorization-github-jwt"
+    description:
+      "Specifies the name of the HTTP header used to pass the GitHub OIDC JWT
+      token. This header is automatically injected by the local proxy and must
+      not be the same as the default 'Authorization' header."
 outputs:
   devspace-namespace:
     description: "Kubernetes namespace used to provision a CRIB environment."
@@ -88,16 +109,20 @@ runs:
   using: "composite"
   steps:
     - name: Setup GAP
-      uses: smartcontractkit/.github/actions/setup-gap@47a3b0cf4e87a031049eef2d951982c94db04cae # setup-gap@1.0.0
+      uses: smartcontractkit/.github/actions/setup-gap@a1c64ab26eaac82da84581788f33029f5ae6cc02 # setup-gap@3.0.0
       with:
-        aws-role-arn: ${{ inputs.aws-role-arn }}
         aws-region: ${{ inputs.aws-region }}
+        aws-role-arn: ${{ inputs.aws-role-arn }}
+        enable-proxy-debug: ${{ inputs.enable-proxy-debug }}
+        envoy-github-oidc-token-header-name:
+          ${{ inputs.envoy-github-oidc-token-header-name }}
+        k8s-api-endpoint-port: ${{ inputs.k8s-api-endpoint-port }}
+        k8s-api-endpoint: ${{ inputs.k8s-api-endpoint }}
         k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
         use-k8s: true
         # Choose port that is less likely to be conflicting with other GAP
         # instances that runs in the same workflow
         proxy-port: 8888
-        k8s-api-endpoint: ${{ inputs.k8s-api-endpoint }}
 
     - name: Checkout crib repo
       uses: actions/checkout@v4.2.1
@@ -106,6 +131,26 @@ runs:
         ref: ${{ inputs.crib-repo-ref }}
         path: "${{ github.workspace }}/crib"
         token: ${{ inputs.github-token }}
+
+    - name: Detect if the CLI was changed, only build if needed
+      uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        working-directory: "${{ github.workspace }}/crib"
+        filters: |
+          cli: './cli/**'
+
+    - name: Login to AWS ECR for Helm
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
+      with:
+        registries: ${{ inputs.aws-ecr-private-registry }}
+
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: "${{ github.workspace }}/crib/cli/go.mod"
+        cache-dependency-path: "${{ github.workspace }}/crib/**/*.sum"
 
     - name: Setup Nix
       uses: smartcontractkit/.github/actions/setup-nix@4df907a307d91761c15cdff65e508145bdbcfca3 # setup-nix@0.3.0
@@ -173,14 +218,15 @@ runs:
       env:
         CHAINLINK_CODE_DIR: "../"
         CRIB_CI_ENV: true
+        CLI_CHANGED: ${{ steps.filter.outputs.cli == 'true' }}
         CRIB_SKIP_DOCKER_ECR_LOGIN: true
         CRIB_SKIP_HELM_ECR_LOGIN: true
         DEVSPACE_IMAGE: "${{inputs.product-image}}"
         DEVSPACE_IMAGE_TAG: "${{inputs.product-image-tag}}"
         DEVSPACE_INGRESS_BASE_DOMAIN: ${{ inputs.ingress-base-domain }}
         DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
+        GH_TOKEN: ${{ inputs.github-token }}
         PROFILES: ${{ inputs.devspace-profiles }}
-        KUBECACHEDIR: /dev/null
         SETUP_AWS_PROFILE: false
         SETUP_EKS_CONFIG: false
       run: |
@@ -190,12 +236,8 @@ runs:
         export DEVSPACE_NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
         echo "Using $DEVSPACE_NAMESPACE Kubernetes namespace"
 
-        # Kyverno needs some time to inject the RoleBinding
-        sleep 3
+        nix develop -c /bin/bash -c "devspace use namespace ${DEVSPACE_NAMESPACE} && devspace run ${{ inputs.command }} ${{ inputs.command-args }}"
 
-        nix develop -c ./cribbit.sh "$DEVSPACE_NAMESPACE"
-
-        nix develop -c devspace run ${{ inputs.command }} ${{ inputs.command-args }}
     - name: Render notification template
       uses: actions/github-script@v7.0.1
       id: render-slack-template
@@ -241,3 +283,7 @@ runs:
       env:
         SLACK_WEBHOOK_URL: ${{ inputs.crib-alert-slack-webhook }}
         SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+    - name: Collect Envoy proxy logs when debug is enabled
+      uses: jwalton/gh-docker-logs@2741064ab9d7af54b0b1ffb6076cf64c16f0220e # v2.2.2
+      if: inputs.enable-proxy-debug == 'true' || failure()

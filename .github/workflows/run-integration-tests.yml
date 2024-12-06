@@ -1,0 +1,398 @@
+# This is a reusable workflow that runs Integration tests for Chainlink.
+# It is not meant to be run on its own.
+#
+name: Run Integration Tests
+on:
+  workflow_call:
+    inputs:
+      workflow_name:
+        description: "Custom name for the workflow run"
+        required: false
+        type: string
+        default: "Run Integration Tests"
+      test_path:
+        description:
+          "Path to the YAML test configuration file. Example:
+          .github/integration-tests.yml. Not required when custom_test_list_json
+          is provided"
+        required: false
+        type: string
+      test_ids:
+        description:
+          'Run tests by test ids separated by commas. Example:
+          "run_all_in_ocr_tests_go,run_TestOCRv2Request_in_ocr2_test_go". Check
+          all test IDs in .github/integration-tests.yml'
+        required: false
+        type: string
+      test_trigger:
+        description:
+          'Run tests by trigger name. Example: "PR Integration CCIP Tests"'
+        required: false
+        type: string
+      slack_notification_after_tests:
+        description:
+          'Set to "always" to always send a slack notification after the tests.
+          Set "on_failure" to send a notification only on test failure'
+        required: false
+        type: string
+      slack_notification_after_tests_channel_id:
+        description: "Slack channel ID to send the notification to"
+        required: false
+        type: string
+      slack_notification_after_tests_name:
+        description: "Name of the slack notification"
+        required: false
+        type: string
+      slack_notification_after_tests_notify_user_id_on_failure:
+        description: "Set Slack user id to notify on test failure"
+        required: false
+        type: string
+      test_log_upload_on_failure:
+        description:
+          'Set to "true" to upload the test log on failure as Github artifact'
+        required: false
+        type: boolean
+        default: true
+      test_log_upload_retention_days:
+        description: "Number of days to retain the test log. Default is 3 days"
+        required: false
+        type: number
+        default: 5
+      test_log_level:
+        description: 'Set the log level for the tests. Default is "debug"'
+        required: false
+        type: string
+        default: debug
+      SLACK_CHANNEL:
+        description:
+          "SLACK_CHANNEL env used to send Slack notifications from test code"
+        required: false
+        type: string
+      SLACK_USER:
+        description:
+          "SLACK_USER env used to send Slack notifications from test code"
+        required: false
+        type: string
+    outputs:
+      test_results:
+        description: "Test results from all executed tests"
+        value: ${{ jobs.after_tests.outputs.test_results }}
+    secrets:
+      QA_AWS_REGION:
+        required: true
+      QA_AWS_ROLE_TO_ASSUME:
+        required: true
+      QA_AWS_ACCOUNT_NUMBER:
+        required: true
+      GH_TOKEN:
+        required: true
+      SLACK_BOT_TOKEN:
+        required: false
+      # Use instead of slack_notification_after_tests_channel_id if channel id is secret
+      SLACK_NOTIFICATION_AFTER_TESTS_CHANNEL_ID:
+        required: false
+      # Used in some tests to send slack notifications
+      SLACK_API_KEY:
+        required: false
+      # Used in some tests to send slack notifications
+      SLACK_CHANNEL:
+        required: false
+
+env:
+  MOD_CACHE_VERSION: 1
+  TEST_LOG_LEVEL: ${{ inputs.test_log_level }}
+  METRICS_COLLECTION_ID: chainlink-integration-tests
+  SLACK_API_KEY: ${{ secrets.SLACK_API_KEY }}
+  SLACK_CHANNEL:
+    ${{ inputs.slack_notification_after_tests_channel_id || inputs.SLACK_CHANNEL
+    || secrets.SLACK_CHANNEL }}
+  SLACK_USER: ${{ inputs.SLACK_USER }}
+  DB_URL: postgresql://postgres:postgres@localhost:5432/chainlink_test?sslmode=disable
+
+jobs:
+  load-test-configurations:
+    name: Load test configurations
+    runs-on: ubuntu-latest
+    outputs:
+      run-tests: ${{ steps.check-matrices.outputs.run-tests }}
+      test-matrix: ${{ steps.set-matrix.outputs.matrix }}
+      workflow_id: ${{ steps.gen_id.outputs.workflow_id }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.1
+      - name: Setup Go
+        uses: actions/setup-go@v5.0.2
+        with:
+          go-version: "1.22.6"
+          check-latest: true
+      - name: Install citool
+        shell: bash
+        run: |
+          go install github.com/smartcontractkit/chainlink-testing-framework/tools/citool@83100a879006dde55ace09a5dfd99b37e62f5a3f # v1.34.4
+
+      - name: Generate Tests Matrix
+        id: set-matrix
+        shell: bash
+        run: |
+          echo "Using default test list"
+          MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'in-memory' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}')
+          echo "Tests:"
+          echo "$MATRIX_JSON" | jq
+          echo "matrix=$MATRIX_JSON" >> "$GITHUB_OUTPUT"
+
+      - name: Check Test Matrices
+        id: check-matrices
+        run: |
+          TEST_MATRIX_EMPTY=$(echo '${{ steps.set-matrix.outputs.matrix }}' | jq '.tests == null or .tests == []')
+
+          # Check if jq commands succeeded
+          # shellcheck disable=SC2181
+          if [ $? -ne 0 ]; then
+            echo "JSON parse error occurred."
+            exit 1
+          fi
+
+          if [[ "$TEST_MATRIX_EMPTY" == "true" ]]; then
+            echo "run-tests=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run-tests=true" >> "$GITHUB_OUTPUT"
+          fi
+        shell: bash
+
+      - name: Generate random workflow id
+        id: gen_id
+        shell: bash
+        run: echo "workflow_id=$(uuidgen)" >> "$GITHUB_OUTPUT"
+
+  # Run in-memory tests
+  run-tests:
+    name: ${{ matrix.tests.id }}
+    needs: load-test-configurations
+    services:
+      postgres:
+        image: postgres:14-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready  --health-interval 2s  --health-timeout 5s
+          --health-retries 5
+    # Run when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok)
+    if:
+      ${{ needs.load-test-configurations.outputs.run-tests == 'true' && always()
+      && !failure() && !cancelled() }}
+    runs-on: ${{ matrix.tests.runs_on }}
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.load-test-configurations.outputs.test-matrix)}}
+    environment: integration
+    permissions:
+      actions: read
+      checks: write
+      pull-requests: write
+      id-token: write
+      contents: read
+    env:
+      TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.1
+      - name: Wait for postgres to be ready
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for postgres to be ready..."
+            sleep 1
+          done
+      - name: Setup DB
+        run: go run . local db preparetest
+        env:
+          CL_DATABASE_URL: ${{  env.DB_URL }}
+      - name: Set dynamic env vars for tests
+        shell: bash
+        run: |
+          json_content='${{ toJson(matrix.tests.test_env_vars) }}'
+          test_id='${{ matrix.tests.id }}'
+
+          # Check if json_content is non-empty and is a valid JSON object that is not null
+          if [ -z "$json_content" ] || [ "$json_content" = 'null' ] || ! echo "$json_content" | jq -e .; then
+            echo "No dynamic environment variables for $test_id."
+          else
+            echo "$json_content" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' | while IFS='=' read -r key value; do
+              echo "Setting $key=$value for $test_id"
+              echo "$key=$value" >> "$GITHUB_ENV"
+            done
+          fi
+      - name: Run tests
+        id: run_tests
+        uses: smartcontractkit/.github/actions/ctf-run-tests@b8731364b119e88983e94b0c4da87fc27ddb41b8 # ctf-run-tests@0.0.0
+        env:
+          CL_DATABASE_URL: ${{ env.DB_URL }}
+        with:
+          test_command_to_run:
+            ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1
+            | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage
+            -hidepassingtests=false' }}
+          test_download_vendor_packages_command:
+            cd $(dirname ${{ matrix.tests.path }}) && go mod download
+          test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
+          test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
+          aws_registries: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}
+          artifacts_name: ${{ env.TEST_ID }}-test-logs
+          artifacts_location: |
+            ./integration-tests/smoke/logs/
+            ./integration-tests/smoke/db_dumps/
+            ./integration-tests/smoke/ccip/logs/
+            ./integration-tests/smoke/ccip/db_dumps/
+            /tmp/gotest.log
+          token: ${{ secrets.GH_TOKEN }}
+          go_mod_path: ./integration-tests/go.mod
+          QA_AWS_REGION: ${{ secrets.QA_AWS_REGION }}
+          QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
+          should_tidy: "false"
+          go_coverage_src_dir: /var/tmp/go-coverage
+          go_coverage_dest_dir: ${{ github.workspace }}/.covdata
+
+      - name: Upload test log as artifact
+        uses: actions/upload-artifact@v4.4.3
+        if: inputs.test_log_upload_on_failure && failure()
+        with:
+          name: test_log_${{ env.TEST_ID }}
+          path: /tmp/gotest.log
+          retention-days: ${{ inputs.test_log_upload_retention_days }}
+        continue-on-error: true
+
+      - name: Record test result
+        if: ${{ always() }}
+        run: |
+          id="${{ matrix.tests.id }}"
+          result="${{ steps.run_tests.outcome }}"
+          echo "{\"id\": \"$id\", \"result\": \"$result\"}" > test_result.json
+
+      - name: Upload test result as artifact
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name:
+            test_result_${{ needs.load-test-configurations.outputs.workflow_id
+            }}_${{ env.TEST_ID }}
+          path: test_result.json
+          retention-days: 1
+
+      - name: Upload custom test artifacts
+        if: failure() && matrix.tests.test_artifacts_on_failure != ''
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name:
+            custom_test_artifacts_${{ env.TEST_ID }}_${{
+            needs.load-test-configurations.outputs.workflow_id }}
+          path: ${{ matrix.tests.test_artifacts_on_failure }}
+          retention-days: 1
+
+  after_tests:
+    needs: [load-test-configurations, run-tests]
+    if: always()
+    name: After tests
+    runs-on: ubuntu-latest
+    # Set to access secrets like secrets.QA_SLACK_API_KEY that are set in the "integration" environment
+    environment: integration
+    outputs:
+      test_results: ${{ steps.set_test_results.outputs.results }}
+    steps:
+      - name: Download all test result artifacts
+        uses: actions/download-artifact@v4.1.8
+        with:
+          path: test_results
+          pattern:
+            test_result_${{ needs.load-test-configurations.outputs.workflow_id
+            }}_*
+
+      - name: Set detailed test results
+        id: set_test_results
+        run: |
+          if [ -d "test_results" ]; then
+            cd test_results
+            ls -R .
+            # Combine JSON files into one
+            find . -name '*.json' -exec cat {} + | jq -s '.' > test_results.json
+            # Display the combined JSON
+            jq . test_results.json
+            # Set the combined results as an output
+            echo "results=$(jq -c . test_results.json)" >> "$GITHUB_OUTPUT"
+          else
+            echo "No test results directory found."
+            echo "results=[]" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set short SHA
+        id: set_short_sha
+        shell: bash
+        run:
+          echo "short_sha=$(echo ${{ github.sha }} | cut -c1-7)" >>
+          "$GITHUB_OUTPUT"
+
+      - name: Send Slack notification
+        uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # v1.25.0
+        if:
+          ${{ inputs.slack_notification_after_tests == 'true' ||
+          inputs.slack_notification_after_tests == 'always' ||
+          (inputs.slack_notification_after_tests == 'on_failure' &&
+          contains(join(needs.*.result, ','), 'failure')) }}
+        id: slack
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        with:
+          channel-id:
+            ${{ inputs.slack_notification_after_tests_channel_id ||
+            secrets.SLACK_NOTIFICATION_AFTER_TESTS_CHANNEL_ID }}
+          payload: |
+            {
+              "attachments": [
+                {
+                  "color": "${{ contains(join(needs.*.result, ','), 'failure') && '#C62828' || contains(join(needs.*.result, ','), 'cancelled') && '#FFA000' || '2E7D32' }}",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "${{ inputs.slack_notification_after_tests_name }} - ${{ contains(join(needs.*.result, ','), 'failure') && 'Failed :x:' || contains(join(needs.*.result, ','), 'cancelled') && 'Cancelled :warning:' || 'Passed :white_check_mark:' }}"
+                      }
+                    },
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "${{ github.ref_name }} | <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ steps.set_short_sha.outputs.short_sha }}> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+
+      - name: Notify user in Slack message if tests failed
+        if:
+          ${{ inputs.slack_notification_after_tests != '' &&
+          contains(join(needs.*.result, ','), 'failure') &&
+          inputs.slack_notification_after_tests_notify_user_id_on_failure != ''
+          }}
+        uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # v1.25.0
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        with:
+          channel-id:
+            ${{ inputs.slack_notification_after_tests_channel_id ||
+            secrets.SLACK_NOTIFICATION_AFTER_TESTS_CHANNEL_ID }}
+          payload: |
+            {
+              "thread_ts": "${{ steps.slack.outputs.thread_ts }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Notifying <@${{ inputs.slack_notification_after_tests_notify_user_id_on_failure }}>, please check the test results."
+                  }
+                }
+              ]
+            }

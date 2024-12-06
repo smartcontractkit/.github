@@ -1,5 +1,103 @@
 # crib-deploy-environment
 
+## 7.1.0
+
+### Minor Changes
+
+- [#747](https://github.com/smartcontractkit/.github/pull/747)
+  [`b0cccb8`](https://github.com/smartcontractkit/.github/commit/b0cccb8d6a7a3280a7ae583c61b236c63a6b531d)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Lock the CRIB repo
+  version, to allow releasing breaking changes in CRIB without impacting end
+  user workflows.
+
+## 7.0.1
+
+### Patch Changes
+
+- [#745](https://github.com/smartcontractkit/.github/pull/745)
+  [`959260d`](https://github.com/smartcontractkit/.github/commit/959260d212f092bf629094a4729d893dbddcef8f)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - setting
+  `working-directory` correctly for dorny/paths-filter
+
+## 7.0.0
+
+### Major Changes
+
+- [#742](https://github.com/smartcontractkit/.github/pull/742)
+  [`52fd032`](https://github.com/smartcontractkit/.github/commit/52fd0320ed98a13560e1870b995de72530a04e00)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - WHAT: Building CLI
+  only when changes are detected. WHY: This is required so we can push new
+  changes to the CLI and have them tested against the version we're actually
+  pushing. This is backwards-incompatible because it requires the
+  `pull-requests: read` permission
+
+  ### Action required
+
+  When upgrading, make sure you add: `pull-requests: read` to your permission
+  set. Otherwise you should see an error like
+  `Error: Resource not accessible by integration`.
+
+## 6.4.0
+
+### Minor Changes
+
+- [#737](https://github.com/smartcontractkit/.github/pull/737)
+  [`d51c1d4`](https://github.com/smartcontractkit/.github/commit/d51c1d470e6a4964c86f8dd590eeac906cf0106f)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Derive go version
+  from cli/go.mod instead of go.work, as go.work is being deleted from crib
+  project
+
+## 6.3.0
+
+### Minor Changes
+
+- [#732](https://github.com/smartcontractkit/.github/pull/732)
+  [`ecc5564`](https://github.com/smartcontractkit/.github/commit/ecc5564baaf9413db0a2ad7c5ea2c3f12778b04f)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - removing unnecessary
+  call to `cribbit.sh` (deprecated as of
+  https://github.com/smartcontractkit/crib/pull/267)
+
+## 6.2.0
+
+### Minor Changes
+
+- [#734](https://github.com/smartcontractkit/.github/pull/734)
+  [`90997b8`](https://github.com/smartcontractkit/.github/commit/90997b882963f46e146a54456019c8cb8ec87abf)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - added GH_TOKEN env
+  var so the github CLI can be used when spinning up CRIB in CI
+
+## 6.1.0
+
+### Minor Changes
+
+- [#729](https://github.com/smartcontractkit/.github/pull/729)
+  [`f078457`](https://github.com/smartcontractkit/.github/commit/f078457057e0915659ba192e4987fbc4d53ec893)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Bumping setup-gap
+  action version to support dynamically pulling Github OIDC JWT dynamically
+
+- [#725](https://github.com/smartcontractkit/.github/pull/725)
+  [`3c3b871`](https://github.com/smartcontractkit/.github/commit/3c3b871713d8771352bd48ecbb36fe7c3e4b4d98)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - setting up go before
+  running CRIB to ensure GOBIN is properly set
+
+## 6.0.0
+
+### Major Changes
+
+- [#723](https://github.com/smartcontractkit/.github/pull/723)
+  [`e86aeef`](https://github.com/smartcontractkit/.github/commit/e86aeef93b978dc61c6c7606f7d0fd93be5a0611)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding support for
+  using a custom header for passing Github OIDC JWT Auth token.
+
+## 5.0.0
+
+### Major Changes
+
+- [#717](https://github.com/smartcontractkit/.github/pull/717)
+  [`1ac3bb8`](https://github.com/smartcontractkit/.github/commit/1ac3bb81767c9ec1a9bab98e9bf4ae49e5379ff8)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding ECR login
+  required for Helm.
+
 ## 4.0.0
 
 ### Major Changes
