@@ -229,9 +229,6 @@ jobs:
         uses: smartcontractkit/.github/actions/ctf-run-tests@b8731364b119e88983e94b0c4da87fc27ddb41b8 # ctf-run-tests@0.0.0
         env:
           CL_DATABASE_URL: ${{ env.DB_URL }}
-          E2E_TEST_LOGGING_RUN_ID: ${{ github.run_id }}
-          E2E_TEST_LOG_STREAM_LOG_TARGETS: ${{ vars.LOGSTREAM_LOG_TARGETS }}
-          E2E_TEST_LOG_COLLECT: ${{ vars.TEST_LOG_COLLECT }}
         with:
           test_command_to_run:
             ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1
@@ -246,6 +243,8 @@ jobs:
           artifacts_location: |
             ./integration-tests/smoke/logs/
             ./integration-tests/smoke/db_dumps/
+            ./integration-tests/smoke/ccip/logs/
+            ./integration-tests/smoke/ccip/db_dumps/
             /tmp/gotest.log
           token: ${{ secrets.GH_TOKEN }}
           go_mod_path: ./integration-tests/go.mod
