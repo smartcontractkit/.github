@@ -64,7 +64,7 @@ inputs:
       for example: https://hooks.slack.com/services/aaa/bbb
     required: false
   crib-repo-ref:
-    default: "main"
+    default: "v1.0.0"
     required: false
     description: Useful for testing updates in CRIB
   chainlink-team:
