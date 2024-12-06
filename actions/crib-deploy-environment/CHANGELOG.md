@@ -1,5 +1,15 @@
 # crib-deploy-environment
 
+## 7.1.0
+
+### Minor Changes
+
+- [#747](https://github.com/smartcontractkit/.github/pull/747)
+  [`b0cccb8`](https://github.com/smartcontractkit/.github/commit/b0cccb8d6a7a3280a7ae583c61b236c63a6b531d)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Lock the CRIB repo
+  version, to allow releasing breaking changes in CRIB without impacting end
+  user workflows.
+
 ## 7.0.1
 
 ### Patch Changes
