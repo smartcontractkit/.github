@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: ci-lint
         uses: ./actions/ci-lint-ts
@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: ci-prettier
         uses: ./actions/ci-prettier
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: ci-lint-misc
         uses: ./actions/ci-lint-misc
@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
         with:
           # Commit back any changes based on the commit that triggered this action
           # rather than merge commit of main into the PR branch
@@ -68,7 +68,7 @@ jobs:
         run: pnpm nx run signed-commits:build
 
       - name: Commit back any changes
-        uses: planetscale/ghcommit-action@b68767a2e130a71926b365322e62b583404a5e09 # v0.1.43
+        uses: planetscale/ghcommit-action@d4176bfacef926cc2db351eab20398dfc2f593b5 # v0.2.0
         with:
           commit_message: "🤖 Update build"
           repo: ${{ github.repository }}
@@ -80,7 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
@@ -94,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: ci-test
         uses: ./actions/ci-test-ts
@@ -107,7 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: ci-build-artifacts
         uses: ./actions/cicd-build-publish-artifacts-ts
@@ -120,7 +120,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
@@ -139,7 +139,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: Setup pnpm
         uses: ./actions/setup-nodejs

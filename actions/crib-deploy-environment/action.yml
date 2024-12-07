@@ -125,7 +125,7 @@ runs:
         proxy-port: 8888
 
     - name: Checkout crib repo
-      uses: actions/checkout@v4.2.1
+      uses: actions/checkout@v4.2.2
       with:
         repository: "smartcontractkit/crib"
         ref: ${{ inputs.crib-repo-ref }}
@@ -276,7 +276,7 @@ runs:
         failure() && inputs.crib-alert-slack-webhook != '' && inputs.send-alerts
         == 'true'
       id: slack
-      uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+      uses: slackapi/slack-github-action@fcfb566f8b0aab22203f066d80ca1d7e4b5d05b3 # v1.27.1
       with:
         # For posting a rich message using Block Kit
         payload: ${{ steps.render-slack-template.outputs.result }}
