@@ -99,7 +99,7 @@ runs:
         url: ${{ inputs.aws-lambda-url }}
 
     - name: Checkout repo
-      uses: actions/checkout@v4.2.1
+      uses: actions/checkout@v4.2.2
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
         token: ${{ steps.get-gh-token.outputs.access-token }}

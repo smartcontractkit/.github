@@ -59,7 +59,7 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4.2.1
+      uses: actions/checkout@v4.2.2
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
@@ -82,7 +82,7 @@ runs:
 
     - name: Docker meta
       id: docker_meta
-      uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+      uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
       env:
         aliasSegment:
           ${{ inputs.registry-type=='public' && format('{0}/',
@@ -99,7 +99,7 @@ runs:
 
     - name: Build and push
       id: build-push
-      uses: docker/build-push-action@5cd11c3a4ced054e52742c5fd54dca954e0edd85 # v6.7.0
+      uses: docker/build-push-action@48aba3b46d1b1fec4febb7c5d0c644b249a11355 # v6.10.0
       with:
         push: ${{ inputs.publish }}
         file: ${{ inputs.dockerfile }}

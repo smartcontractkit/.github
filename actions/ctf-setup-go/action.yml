@@ -41,7 +41,7 @@ runs:
   using: composite
   steps:
     - name: Setup Go
-      uses: actions/setup-go@v5.0.2
+      uses: actions/setup-go@v5.1.0
       with:
         go-version: ${{ inputs.go_version }}
         go-version-file: ${{ inputs.go_mod_path }}
@@ -64,7 +64,7 @@ runs:
 
     - name: Cache Go Modules
       if: inputs.cache_restore_only == 'false' && inputs.no_cache == 'false'
-      uses: actions/cache@v4.1.1
+      uses: actions/cache@v4.2.0
       id: cache-packages
       with:
         path: ${{ steps.go-cache-dir.outputs.gomodcache }}
@@ -74,7 +74,7 @@ runs:
         restore-keys: |
           ${{ runner.os }}-${{ inputs.cache_key_id }}-gomod-
 
-    - uses: actions/cache@v4.1.1
+    - uses: actions/cache@v4.2.0
       if: inputs.cache_restore_only == 'false' && inputs.cache_builds == 'true'
       name: Cache Go Builds
       with:
@@ -88,7 +88,7 @@ runs:
 
     - name: Restore Go Modules
       if: inputs.cache_restore_only != 'false' && inputs.no_cache == 'false'
-      uses: actions/cache/restore@v4.1.1
+      uses: actions/cache/restore@v4.2.0
       id: restore-cache-packages
       with:
         path: |

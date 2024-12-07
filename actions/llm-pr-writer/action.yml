@@ -53,13 +53,13 @@ runs:
 
     - name: Checkout calling repo
       if: ${{ env.SKIP_ACTION == 'false' }}
-      uses: actions/checkout@v4.2.1
+      uses: actions/checkout@v4.2.2
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
     - name: Checkout action repo
       if: ${{ env.SKIP_ACTION == 'false' }}
-      uses: actions/checkout@v4.2.1
+      uses: actions/checkout@v4.2.2
       with:
         repository: smartcontractkit/.github
         ref: ${{ inputs.workflow-ref }}
