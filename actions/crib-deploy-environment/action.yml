@@ -64,7 +64,7 @@ inputs:
       for example: https://hooks.slack.com/services/aaa/bbb
     required: false
   crib-repo-ref:
-    default: "main"
+    default: "v1.0.0"
     required: false
     description: Useful for testing updates in CRIB
   chainlink-team:
@@ -131,6 +131,16 @@ runs:
         ref: ${{ inputs.crib-repo-ref }}
         path: "${{ github.workspace }}/crib"
         token: ${{ inputs.github-token }}
+
+    # This step is useful only in the context of crib repo
+    - name: Detect if the CLI was changed, only build if needed
+      if: github.repository  == 'smartcontractkit/crib'
+      uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        working-directory: "${{ github.workspace }}/crib"
+        filters: |
+          cli: './cli/**'
 
     - name: Login to AWS ECR for Helm
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
@@ -210,6 +220,7 @@ runs:
         CHAINLINK_PRODUCT: ${{ inputs.chainlink-product }}
         CHAINLINK_TEAM: ${{ inputs.chainlink-team }}
         CRIB_CI_ENV: true
+        CLI_CHANGED: ${{ steps.filter.outputs.cli == 'true' }}
         CRIB_SKIP_DOCKER_ECR_LOGIN: true
         CRIB_SKIP_HELM_ECR_LOGIN: true
         DEVSPACE_IMAGE_TAG: "${{inputs.product-image-tag}}"

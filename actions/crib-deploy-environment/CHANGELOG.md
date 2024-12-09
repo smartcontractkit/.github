@@ -1,5 +1,51 @@
 # crib-deploy-environment
 
+## 7.1.1
+
+### Patch Changes
+
+- [#752](https://github.com/smartcontractkit/.github/pull/752)
+  [`b1e576f`](https://github.com/smartcontractkit/.github/commit/b1e576f6a632c921806840523ca0561ad4a3fef0)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Fix breaking
+  dorny/path-filter step, by skipping it in other repos than crib.
+
+## 7.1.0
+
+### Minor Changes
+
+- [#747](https://github.com/smartcontractkit/.github/pull/747)
+  [`b0cccb8`](https://github.com/smartcontractkit/.github/commit/b0cccb8d6a7a3280a7ae583c61b236c63a6b531d)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Lock the CRIB repo
+  version, to allow releasing breaking changes in CRIB without impacting end
+  user workflows.
+
+## 7.0.1
+
+### Patch Changes
+
+- [#745](https://github.com/smartcontractkit/.github/pull/745)
+  [`959260d`](https://github.com/smartcontractkit/.github/commit/959260d212f092bf629094a4729d893dbddcef8f)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - setting
+  `working-directory` correctly for dorny/paths-filter
+
+## 7.0.0
+
+### Major Changes
+
+- [#742](https://github.com/smartcontractkit/.github/pull/742)
+  [`52fd032`](https://github.com/smartcontractkit/.github/commit/52fd0320ed98a13560e1870b995de72530a04e00)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - WHAT: Building CLI
+  only when changes are detected. WHY: This is required so we can push new
+  changes to the CLI and have them tested against the version we're actually
+  pushing. This is backwards-incompatible because it requires the
+  `pull-requests: read` permission
+
+  ### Action required
+
+  When upgrading, make sure you add: `pull-requests: read` to your permission
+  set. Otherwise you should see an error like
+  `Error: Resource not accessible by integration`.
+
 ## 6.4.0
 
 ### Minor Changes
