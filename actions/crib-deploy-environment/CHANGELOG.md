@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 7.1.1
+
+### Patch Changes
+
+- [#752](https://github.com/smartcontractkit/.github/pull/752)
+  [`b1e576f`](https://github.com/smartcontractkit/.github/commit/b1e576f6a632c921806840523ca0561ad4a3fef0)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Fix breaking
+  dorny/path-filter step, by skipping it in other repos than crib.
+
 ## 7.1.0
 
 ### Minor Changes
