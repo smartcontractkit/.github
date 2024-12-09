@@ -132,7 +132,9 @@ runs:
         path: "${{ github.workspace }}/crib"
         token: ${{ inputs.github-token }}
 
+    # This step is useful only in the context of crib repo
     - name: Detect if the CLI was changed, only build if needed
+      if: github.repository  == 'smartcontractkit/crib'
       uses: dorny/paths-filter@v3
       id: filter
       with:
