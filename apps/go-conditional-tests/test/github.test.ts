@@ -123,13 +123,46 @@ describe("saveTestHashIndex", () => {
     vi.clearAllMocks();
   });
 
-  it("should save cache with commit SHA", async () => {
+  it("should save cache with commit SHA for push", async () => {
     const hashes = { pkg1: "hash1" };
     vi.mocked(github, { partial: true }).context = {
-      ref: "refs/heads/feature",
+      ref: "refs/heads/main",
       sha: "abcdef1234567890",
       payload: {
         pull_request: undefined,
+        // @ts-expect-error - mock partial payload
+        repository: {
+          default_branch: "main",
+        },
+      },
+    };
+
+    await saveTestHashIndex("unit", hashes);
+
+    // Check file was written
+    expect(fs.promises.writeFile).toHaveBeenCalledWith(
+      "unit.json",
+      JSON.stringify(hashes, null, 2),
+    );
+
+    // Check cache was saved with correct key
+    expect(cache.saveCache).toHaveBeenCalledWith(
+      ["unit.json"],
+      "go-test-hashes-unit-main-abcdef1",
+    );
+  });
+
+  it("should save cache with commit SHA for pull_request ", async () => {
+    const hashes = { pkg1: "hash1" };
+    vi.mocked(github, { partial: true }).context = {
+      ref: "refs/pulls/1/merge",
+      sha: "1234567890abcdef",
+      payload: {
+        // @ts-expect-error - mock partial payload
+        pull_request: {
+          base: { ref: "main" },
+          head: { ref: "feature", sha: "abcdef1" },
+        },
         // @ts-expect-error - mock partial payload
         repository: {
           default_branch: "main",
