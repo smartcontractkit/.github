@@ -127,6 +127,12 @@ export async function run() {
         await uploadCoverage(inputs.coverageDirectory, artifactKey);
       }
     }
+    if (inputs.pipelineStep === "update" || inputs.pipelineStep === "e2e") {
+      // Force exit update step, as the cache save doesn't close TCPSocket connections properly.
+      // This is causing the action to hang until the connections are closed, likely due to a timeout.
+      // See: https://github.com/actions/toolkit/issues/1578
+      process.exit();
+    }
   }
 }
 

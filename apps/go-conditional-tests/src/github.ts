@@ -78,7 +78,7 @@ export async function getTestHashIndex(
 export async function saveTestHashIndex(
   testSuite: string,
   hashes: Record<string, string>,
-): Promise<void> {
+) {
   const hashFile = `${testSuite}.json`;
   const { branch, sha } = getCacheKeyInfo();
 
@@ -89,7 +89,7 @@ export async function saveTestHashIndex(
 
   core.info(`Saving test hashes to cache. Key: ${key}`);
   try {
-    await cache.saveCache([hashFile], key);
+    return await cache.saveCache([hashFile], key);
   } catch (error) {
     if (error instanceof cache.ReserveCacheError) {
       core.info("Cache already reserved or being saved by another job");

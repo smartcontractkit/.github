@@ -267,5 +267,6 @@ export async function maybeUpdateHashIndex(
     {} as Record<string, string>,
   );
 
-  await saveTestHashIndex(inputs.testSuite, hashes);
+  const cacheId = await saveTestHashIndex(inputs.testSuite, hashes);
+  core.info(`Hash index updated. Cache ID: ${cacheId}`);
 }
