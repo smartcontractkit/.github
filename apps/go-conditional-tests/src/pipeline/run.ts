@@ -223,7 +223,7 @@ export function validateRunResultsOrThrow(
   packages: DiffedHashedCompiledPackages,
   results: RunResult[],
 ): MaybeExecutedPackages {
-  outputTop5SlowestTests(results);
+  outputTestsAndRuntime(results);
 
   const failures = results.filter(isRunFailure);
   if (failures.length > 0) {
@@ -239,31 +239,45 @@ export function validateRunResultsOrThrow(
   return flattenRunResults(packages, successes);
 }
 
-function outputTop5SlowestTests(results: RunResult[]) {
+function outputTestsAndRuntime(results: RunResult[]) {
   if (results.length === 0) {
     return;
   }
 
-  const sorted = results
+  const sortedByNameResults = results
     .map((result) => {
       if (isRunFailure(result)) {
         return {
+          success: false,
           importPath: result.pkg.importPath,
           durationMs: result.error.durationMs,
         };
       }
       return {
+        success: true,
         importPath: result.pkg.importPath,
         durationMs: result.execution.durationMs,
       };
     })
-    .sort((a, b) => b.durationMs - a.durationMs)
-    .slice(0, 5);
+    .sort((a, b) => a.importPath.localeCompare(b.importPath));
 
-  core.info("Top 5 slowest tests:");
-  for (const { importPath, durationMs } of sorted) {
-    core.info(`  ${importPath} (${formatDuration(durationMs)})`);
-  }
+  const resultToFormattedString = (result: {
+    success: boolean;
+    importPath: string;
+    durationMs: number;
+  }): string =>
+    `  ${result.importPath} (${formatDuration(result.durationMs)}) ${result.success ? "" : "(fail)"}`;
+
+  const formattedResults = sortedByNameResults.map(resultToFormattedString);
+  core.info("Tests Packages Ran:");
+  core.info(formattedResults.join("\n"));
+
+  const slowest10Results = sortedByNameResults
+    .sort((a, b) => b.durationMs - a.durationMs)
+    .slice(0, 10)
+    .map(resultToFormattedString);
+  core.info("Slowest 10 Packages:");
+  core.info(slowest10Results.join("\n"));
 }
 
 function flattenRunResults(

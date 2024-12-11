@@ -1,10 +1,8 @@
-import * as os from "os";
 import * as core from "@actions/core";
-import * as github from "@actions/github";
 
 import { Inputs } from "./main.js";
 import { logSection, logObject } from "./log.js";
-import { getHashFile, commitTestHashIndex } from "./github.js";
+import { getTestHashIndex, saveTestHashIndex } from "./github.js";
 import { listPackages } from "./pipeline/filter.js";
 import {
   compileConcurrent,
@@ -173,12 +171,7 @@ export async function processChangedPackages(
 ): Promise<DiffedHashedCompiledPackages> {
   logSection("Comparing Hashes");
 
-  const hashIndex = await getHashFile(
-    github.context.repo.owner,
-    github.context.repo.repo,
-    inputs.hashesBranch,
-    inputs.hashesFile,
-  );
+  const hashIndex = await getTestHashIndex(inputs.testSuite);
   logObject("Remote Hash Index", hashIndex);
 
   const diffedHashedCompiledPackages = comparePackagesToIndex(
@@ -253,52 +246,26 @@ export async function maybeUpdateHashIndex(
   inputs: Inputs,
   hashedPackages: MaybeExecutedPackages,
 ) {
-  // check if coverage was enabled by checking the packages object
-  // if it was, we should skip updating the hash index
+  // Skip if coverage was enabled
   const isCoverageEnabled =
     inputs.collectCoverage ||
     Object.values(hashedPackages).some((pkg) => pkg?.run?.coverage);
   if (isCoverageEnabled) {
     core.warning(
-      "Coverage collection was enabled. Skipping hash index update.",
+      "Coverage collection was enabled. Skipping test hash index update.",
     );
     return;
   }
 
   logSection("Updating Hash Index");
-  if (inputs.forceUpdateIndex) {
-    core.warning("Force update index is enabled. Skipping branch check.");
-  } else {
-    const defaultBranch = github.context.payload.repository?.default_branch;
-    const currentBranch = github.context.ref.replace("refs/heads/", "");
-    core.info(
-      `Default branch: ${defaultBranch}, Current branch: ${currentBranch}`,
-    );
-
-    if (currentBranch !== defaultBranch) {
-      core.warning(
-        `Current branch (${currentBranch}) is not the default branch (${defaultBranch}). Will not update index.`,
-      );
-      return;
-    }
-  }
 
   const hashes = Object.entries(hashedPackages).reduce(
     (acc, [importPath, pkg]) => {
-      if (acc[importPath]) {
-        core.warning(`Duplicate hash package found: ${importPath}`);
-      }
       acc[importPath] = pkg.hash;
       return acc;
     },
     {} as Record<string, string>,
   );
 
-  await commitTestHashIndex(
-    github.context.repo.owner,
-    github.context.repo.repo,
-    inputs.hashesBranch,
-    inputs.hashesFile,
-    hashes,
-  );
+  await saveTestHashIndex(inputs.testSuite, hashes);
 }

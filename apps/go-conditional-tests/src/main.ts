@@ -3,6 +3,7 @@ import * as path from "path";
 import { cpus } from "os";
 
 import * as core from "@actions/core";
+import * as github from "@actions/github";
 import { ExecaError } from "execa";
 
 import {
@@ -25,7 +26,6 @@ function setup() {
   const pipelineStep = core.getInput("pipeline-step");
   const moduleDirectory = core.getInput("module-directory") || ".";
   const buildFlagsString = core.getInput("build-flags");
-  const hashesBranch = core.getInput("hashes-branch");
   const testSuite = core.getInput("test-suite") || "placeholder-test-suite";
   const buildDirectory = process.env.RUNNER_TEMP || `/tmp/cl/${testSuite}`;
 
@@ -34,6 +34,8 @@ function setup() {
   const forceUpdateIndexString = core.getInput("force-update-index") || "false";
   const runAllTestsString = core.getInput("run-all-tests") || "false";
   const collectCoverageString = core.getInput("collect-coverage") || "false";
+
+  const defaultBranch = github.context.payload.repository?.default_branch;
 
   const stepsDirectory = path.join(buildDirectory, "steps");
   const coverageDirectory = path.join(buildDirectory, "coverage");
@@ -77,12 +79,12 @@ function setup() {
     coverageDirectory,
     buildFlags,
     maxBuildConcurrency,
-    hashesBranch,
     hashesFile: `${testSuite}.json`,
     testSuite,
     runAllTests,
     maxRunConcurrency,
     collectCoverage,
+    defaultBranch,
     forceUpdateIndex,
   };
 }
