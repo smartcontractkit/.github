@@ -60,6 +60,7 @@ describe("getTestHashIndex", () => {
     // @ts-expect-error - mock partial payload
     vi.mocked(github.context.payload, { partial: true }).pull_request = {
       base: { ref: "main" },
+      head: { ref: "feature", sha: "abcdef1" },
     };
     (cache.restoreCache as any).mockResolvedValue("some-cache-key");
     (fs.promises.readFile as any).mockResolvedValue('{"pkg1": "hash1"}');
@@ -71,6 +72,33 @@ describe("getTestHashIndex", () => {
       expect.stringContaining("go-test-hashes-unit-feature"),
       expect.arrayContaining([
         "go-test-hashes-unit-feature",
+        "go-test-hashes-unit-main",
+        "go-test-hashes-unit-main",
+      ]),
+    );
+  });
+
+  it("should handle push event", async () => {
+    vi.mocked(github, { partial: true }).context = {
+      ref: "refs/heads/main",
+      sha: "abcdef1234567890",
+      payload: {
+        pull_request: undefined,
+        // @ts-expect-error - mock partial payload
+        repository: {
+          default_branch: "main",
+        },
+      },
+    };
+    (cache.restoreCache as any).mockResolvedValue("some-cache-key");
+    (fs.promises.readFile as any).mockResolvedValue('{"pkg1": "hash1"}');
+
+    await getTestHashIndex("unit");
+
+    expect(cache.restoreCache).toHaveBeenCalledWith(
+      ["unit.json"],
+      expect.stringContaining("go-test-hashes-unit-main"),
+      expect.arrayContaining([
         "go-test-hashes-unit-main",
         "go-test-hashes-unit-main",
       ]),
@@ -97,6 +125,17 @@ describe("saveTestHashIndex", () => {
 
   it("should save cache with commit SHA", async () => {
     const hashes = { pkg1: "hash1" };
+    vi.mocked(github, { partial: true }).context = {
+      ref: "refs/heads/feature",
+      sha: "abcdef1234567890",
+      payload: {
+        pull_request: undefined,
+        // @ts-expect-error - mock partial payload
+        repository: {
+          default_branch: "main",
+        },
+      },
+    };
 
     await saveTestHashIndex("unit", hashes);
 

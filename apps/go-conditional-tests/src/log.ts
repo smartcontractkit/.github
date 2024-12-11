@@ -47,6 +47,7 @@ export function uploadRunLogs(directory: string, key: string) {
   const runLogs: string[] = getFilesInDir(directory, ".run.log");
   const runId = github.context.runId;
   const artifactName = `run-logs-${key}-${runId}`;
+  core.info(`Found ${runLogs.length} run logs`);
   core.debug(`Uploading run logs to ${artifactName}`);
   core.debug(`Run log files: ${runLogs.join(", ")}`);
 

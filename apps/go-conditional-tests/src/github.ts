@@ -34,22 +34,34 @@ function getRestoreKeys(
   return keys;
 }
 
+function getCacheKeyInfo() {
+  let branch = github.context.ref.replace("refs/heads/", "");
+  let sha = github.context.sha;
+  if (github.context.payload.pull_request) {
+    const targetBranch = github.context.payload.pull_request?.base
+      .ref as string;
+    branch = github.context.payload.pull_request.head.ref;
+    sha = github.context.payload.pull_request.head.sha;
+
+    return { branch, sha, targetBranch };
+  }
+
+  return { branch, sha };
+}
+
 export async function getTestHashIndex(
   testSuite: string,
 ): Promise<{ [importPath: string]: string }> {
   const hashFile = `${testSuite}.json`;
-  const branch = github.context.ref.replace("refs/heads/", "");
-  const targetBranch = github.context.payload.pull_request?.base.ref;
+  const { branch, targetBranch } = getCacheKeyInfo();
 
-  // Primary key is exact match for current branch
   const primaryKey = getCacheKey(testSuite, branch);
-  // Fallback keys in order of precedence
   const restoreKeys = getRestoreKeys(testSuite, branch, targetBranch);
 
   const hitKey = await cache.restoreCache([hashFile], primaryKey, restoreKeys);
   if (!hitKey) {
     core.info("No cache hit. Primary key: " + primaryKey);
-    core.debug("Restore keys: " + JSON.stringify(restoreKeys));
+    core.info("Restore keys: " + restoreKeys.join(", "));
     return {};
   }
 
@@ -68,12 +80,12 @@ export async function saveTestHashIndex(
   hashes: Record<string, string>,
 ): Promise<void> {
   const hashFile = `${testSuite}.json`;
-  const branch = github.context.ref.replace("refs/heads/", "");
+  const { branch, sha } = getCacheKeyInfo();
 
   await fs.promises.writeFile(hashFile, JSON.stringify(hashes, null, 2));
 
   // Use short SHA of current commit to force a new cache entry
-  const key = getCacheKey(testSuite, branch, github.context.sha);
+  const key = getCacheKey(testSuite, branch, sha);
 
   core.info(`Saving test hashes to cache. Key: ${key}`);
   try {
