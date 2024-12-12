@@ -52,6 +52,10 @@ inputs:
     default: "latest"
     description: "Docker image tag for the product."
     required: false
+  product-dir:
+    default: "chainlink"
+    description: "Product directory under deployments folder"
+    required: false
   send-alerts:
     default: "true"
     description: |
@@ -215,7 +219,8 @@ runs:
         kubectl get namespace $NAMESPACE --show-labels
 
     - name: Deploy to CRIB ephemeral environment
-      working-directory: ${{ github.workspace }}/crib/deployments/chainlink
+      working-directory:
+        ${{ github.workspace }}/crib/deployments/${{ inputs.product-dir }}
       shell: bash
       env:
         CHAINLINK_CODE_DIR: "../"
