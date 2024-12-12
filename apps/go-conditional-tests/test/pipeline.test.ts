@@ -3,7 +3,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 import { Inputs } from "../src/main.js";
-import { commitTestHashIndex } from "../src/github.js";
+import { saveTestHashIndex } from "../src/github.js";
 import {
   MaybeExecutedPackages,
   runTestBinaries,
@@ -60,6 +60,7 @@ vi.mock("@actions/github", () => ({
 // Mock commitTestHashIndex
 vi.mock("../src/github.js", () => ({
   commitTestHashIndex: vi.fn(),
+  saveTestHashIndex: vi.fn(),
 }));
 
 // Add new mocks at the top with other mocks
@@ -77,8 +78,7 @@ describe("maybeUpdateHashIndex", () => {
   const mockInputs = {
     collectCoverage: false,
     forceUpdateIndex: false,
-    hashesBranch: "test-hashes",
-    hashesFile: "test-suite.json",
+    testSuite: "unit",
   } as Inputs;
 
   beforeEach(() => {
@@ -86,22 +86,18 @@ describe("maybeUpdateHashIndex", () => {
   });
 
   it("should skip update when coverage is enabled in inputs", async () => {
-    // Arrange
     const packages = {} as MaybeExecutedPackages;
     const inputs = { ...mockInputs, collectCoverage: true };
 
-    // Act
     await maybeUpdateHashIndex(inputs, packages);
 
-    // Assert
     expect(core.warning).toHaveBeenCalledWith(
-      "Coverage collection was enabled. Skipping hash index update.",
+      "Coverage collection was enabled. Skipping test hash index update.",
     );
-    expect(commitTestHashIndex).not.toHaveBeenCalled();
+    expect(saveTestHashIndex).not.toHaveBeenCalled();
   });
 
   it("should skip update when packages have coverage results", async () => {
-    // Arrange
     const packages: MaybeExecutedPackages = {
       "github.com/example/pkg": {
         importPath: "github.com/example/pkg",
@@ -130,15 +126,11 @@ describe("maybeUpdateHashIndex", () => {
       },
     };
 
-    // Act
     await maybeUpdateHashIndex(mockInputs, packages);
-    expect(commitTestHashIndex).not.toHaveBeenCalled();
+    expect(saveTestHashIndex).not.toHaveBeenCalled();
   });
 
-  it("should skip update when not on default branch", async () => {
-    // Arrange
-    github.context.ref = "refs/heads/feature";
-
+  it("should update cache with hashes when no coverage was collected", async () => {
     const packages: MaybeExecutedPackages = {
       "github.com/example/pkg": {
         importPath: "github.com/example/pkg",
@@ -154,87 +146,19 @@ describe("maybeUpdateHashIndex", () => {
             durationMs: 100,
           },
         },
-      },
-    };
-
-    // Act
-    await maybeUpdateHashIndex(mockInputs, packages);
-
-    expect(commitTestHashIndex).not.toHaveBeenCalled();
-  });
-
-  it("should update index when force update is enabled, and on feature branch", async () => {
-    github.context.ref = "refs/heads/feature";
-
-    // Arrange
-    const packages: MaybeExecutedPackages = {
-      "github.com/example/pkg": {
-        importPath: "github.com/example/pkg",
-        directory: "/path/to/pkg",
-        hash: "hash1",
-        compile: {
-          binary: "binary1",
-          log: "log1",
-          execution: {
-            command: "cmd1",
-            exitCode: 0,
-            cwd: "/path/to/pkg",
-            durationMs: 100,
-          },
-        },
-      },
-    };
-    const inputs = { ...mockInputs, forceUpdateIndex: true };
-
-    // Act
-    await maybeUpdateHashIndex(inputs, packages);
-
-    // Assert
-    expect(core.warning).toHaveBeenCalledWith(
-      "Force update index is enabled. Skipping branch check.",
-    );
-    expect(commitTestHashIndex).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.any(String),
-      inputs.hashesBranch,
-      inputs.hashesFile,
-      { "github.com/example/pkg": "hash1" },
-    );
-  });
-
-  it("should update hash index when on default branch", async () => {
-    // Arrange
-    github.context.ref = "refs/heads/main";
-
-    const packages: MaybeExecutedPackages = {
-      "github.com/example/pkg": {
-        importPath: "github.com/example/pkg",
-        directory: "/path/to/pkg",
-        hash: "hash1",
         run: {
           log: "run1",
-          coverage: "",
           execution: {
             command: "cmd1",
             exitCode: 0,
-            cwd: "/path/to/pkg",
-            durationMs: 100,
-          },
-        },
-        compile: {
-          binary: "binary1",
-          log: "log1",
-          execution: {
-            command: "cmd1",
-            exitCode: 0,
-            cwd: "/path/to/pkg",
+            cwd: "/path/to/pkg1",
             durationMs: 100,
           },
         },
       },
-      "github.com/example/pkg/duplicate": {
-        importPath: "github.com/example/pkg", // Duplicate importPath
-        directory: "/path/to/pkg/duplicate",
+      "github.com/example/pkg-2": {
+        importPath: "github.com/example/pkg-2",
+        directory: "/path/to/pkg-2",
         hash: "hash2",
         compile: {
           binary: "binary2",
@@ -242,28 +166,28 @@ describe("maybeUpdateHashIndex", () => {
           execution: {
             command: "cmd2",
             exitCode: 0,
-            cwd: "/path/to/pkg/duplicate",
+            cwd: "/path/to/pkg-2",
+            durationMs: 100,
+          },
+        },
+        run: {
+          log: "run2",
+          execution: {
+            command: "cmd2",
+            exitCode: 0,
+            cwd: "/path/to/pkg-2",
             durationMs: 100,
           },
         },
       },
     };
-    const inputs = { ...mockInputs };
 
-    // Act
-    await maybeUpdateHashIndex(inputs, packages);
+    await maybeUpdateHashIndex(mockInputs, packages);
 
-    // Assert
-    expect(commitTestHashIndex).toHaveBeenCalledWith(
-      "example-owner",
-      "example-repo",
-      inputs.hashesBranch,
-      inputs.hashesFile,
-      {
-        "github.com/example/pkg": "hash1",
-        "github.com/example/pkg/duplicate": "hash2",
-      },
-    );
+    expect(saveTestHashIndex).toHaveBeenCalledWith("unit", {
+      "github.com/example/pkg": "hash1",
+      "github.com/example/pkg-2": "hash2",
+    });
   });
 });
 
