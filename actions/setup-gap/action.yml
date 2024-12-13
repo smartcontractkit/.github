@@ -185,21 +185,22 @@ runs:
         PROXY_PORT: ${{ inputs.proxy-port }}
       run: |
         # Validate required ENVs
-        required_envs=(
-          "ENABLE_PROXY_DEBUG"
-          "ENVOY_GITHUB_OIDC_TOKEN_HEDER_NAME"
-          "ENVOY_LOG_LEVEL"
-          "ENVOY_PROXY_IMAGE"
-          "GITHUB_ACTION_PATH"
-          "JWT_TOKEN"
-          "K8S_API_ENDPOINT_PORT"
-          "K8S_API_ENDPOINT"
-          "PATH_CERTS_DIR"
-          "PROXY_PORT"
-        )
+        required_envs="
+          ENABLE_PROXY_DEBUG
+          ENVOY_GITHUB_OIDC_TOKEN_HEDER_NAME
+          ENVOY_LOG_LEVEL
+          ENVOY_PROXY_IMAGE
+          GITHUB_ACTION_PATH
+          JWT_TOKEN
+          K8S_API_ENDPOINT_PORT
+          K8S_API_ENDPOINT
+          PATH_CERTS_DIR
+          PROXY_PORT
+        "
 
-        for env in "${required_envs[@]}"; do
-          if [ -z "${!env}" ]; then
+        for env in $required_envs; do
+          eval "value=\$$env"
+          if [ -z "$value" ]; then
             echo "Error: Environment variable $env is not set or is empty."
             exit 1
           fi
