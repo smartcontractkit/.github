@@ -31,13 +31,18 @@ describe(ActionReferenceValidation.name, () => {
     expect(result).toEqual({ filename: "foo.yml", lineValidations: [] });
   });
 
-  it("should validate no action references", async () => {
+  it("should validate no action references (statuses:write) ", async () => {
     const octokit = getTestOctokit(nockBack.currentMode);
     const subject = new ActionReferenceValidation(octokit);
     const noWorkflowChanges: ParsedFile = {
       filename: ".github/workflows/test.yml",
       lines: [
-        { lineNumber: 1, content: "line 1", operation: "add", ignored: false },
+        {
+          lineNumber: 1,
+          content: "        statuses: write",
+          operation: "add",
+          ignored: false,
+        },
         { lineNumber: 2, content: "line 2", operation: "add", ignored: false },
       ],
     };
