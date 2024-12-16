@@ -113,6 +113,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup GAP
+      id: setup-gap-k8s
       uses: smartcontractkit/.github/actions/setup-gap@a1c64ab26eaac82da84581788f33029f5ae6cc02 # setup-gap@3.0.0
       with:
         aws-region: ${{ inputs.aws-region }}
@@ -236,6 +237,7 @@ runs:
         PROFILES: ${{ inputs.devspace-profiles }}
         SETUP_AWS_PROFILE: false
         SETUP_EKS_CONFIG: false
+        GAP_GH_JWT_TOKEN: ${{ steps.setup-gap-k8s.outputs.gh-jwt-token }}
       run: |
         echo "Working directory: $(pwd)"
 
