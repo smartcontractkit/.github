@@ -1,5 +1,14 @@
 # setup-gap
 
+## 3.0.1
+
+### Patch Changes
+
+- [#761](https://github.com/smartcontractkit/.github/pull/761)
+  [`3923445`](https://github.com/smartcontractkit/.github/commit/3923445e3a872cb7ec0ba4a93910217662122f24)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Removing unused JWT
+  ENV and output parameter
+
 ## 3.0.0
 
 ### Major Changes
