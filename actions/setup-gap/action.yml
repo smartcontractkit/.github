@@ -78,11 +78,6 @@ inputs:
     required: false
     default: "envoyproxy/envoy:v1.32.0"
 
-outputs:
-  gh-jwt-token:
-    description: "GitHub JWT token to be used for GAP requests"
-    value: ${{ steps.get-jwt-token.outputs.token }}
-
 runs:
   using: composite
   steps:
@@ -179,7 +174,6 @@ runs:
         ENVOY_PROXY_IMAGE: ${{ inputs.envoy-proxy-image }}
         ENVOY_GITHUB_OIDC_TOKEN_HEDER_NAME:
           ${{ inputs.envoy-github-oidc-token-header-name }}
-        JWT_TOKEN: ${{ steps.get-jwt-token.outputs.token }}
         K8S_API_ENDPOINT_PORT: ${{ inputs.k8s-api-endpoint-port }}
         K8S_API_ENDPOINT: ${{ inputs.k8s-api-endpoint }}
         PROXY_PORT: ${{ inputs.proxy-port }}
