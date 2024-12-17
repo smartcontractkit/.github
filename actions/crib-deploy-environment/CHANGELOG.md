@@ -1,5 +1,21 @@
 # crib-deploy-environment
 
+## 7.3.0
+
+### Minor Changes
+
+- [#743](https://github.com/smartcontractkit/.github/pull/743)
+  [`f5fbc93`](https://github.com/smartcontractkit/.github/commit/f5fbc93a367af8b8cd16093fd0edd92b9ba756ea)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Switch the cost
+  stributtion NS labeling to crib CLI
+
+### Patch Changes
+
+- [#759](https://github.com/smartcontractkit/.github/pull/759)
+  [`7f3916b`](https://github.com/smartcontractkit/.github/commit/7f3916b1177db2b3e9c6af8e1d92bc7004f4b046)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Removing default
+  empty values for cost atributtion labels
+
 ## 7.2.0
 
 ### Minor Changes
