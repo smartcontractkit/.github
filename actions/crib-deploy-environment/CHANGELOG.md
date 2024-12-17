@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 7.2.0
+
+### Minor Changes
+
+- [#755](https://github.com/smartcontractkit/.github/pull/755)
+  [`080a444`](https://github.com/smartcontractkit/.github/commit/080a444ef384c43c860a5430b1a5f0b2f0bd9386)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Add product-dir
+  option to enable multiple product directories.
+
 ## 7.1.1
 
 ### Patch Changes

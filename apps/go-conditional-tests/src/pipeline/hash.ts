@@ -2,7 +2,7 @@ import { createReadStream } from "fs";
 import { createHash } from "crypto";
 import { pipeline } from "stream/promises";
 
-import { getHashFile } from "../github.js";
+import { getTestHashIndex } from "../github.js";
 import {
   HashedCompiledPackages,
   DiffedHashedCompiledPackages,
@@ -19,7 +19,7 @@ export async function hashFile(filePath: string): Promise<string> {
 export function comparePackagesToIndex(
   runAllTests: boolean,
   packages: HashedCompiledPackages,
-  hashIndex: Awaited<ReturnType<typeof getHashFile>>,
+  hashIndex: Awaited<ReturnType<typeof getTestHashIndex>>,
 ): DiffedHashedCompiledPackages {
   const diffedHashedCompiledPkgs: DiffedHashedCompiledPackages = {};
   for (const [importPath, pkg] of Object.entries(packages)) {

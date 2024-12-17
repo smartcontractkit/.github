@@ -3,6 +3,7 @@ import * as path from "path";
 import { cpus } from "os";
 
 import * as core from "@actions/core";
+import * as github from "@actions/github";
 import { ExecaError } from "execa";
 
 import {
@@ -25,7 +26,6 @@ function setup() {
   const pipelineStep = core.getInput("pipeline-step");
   const moduleDirectory = core.getInput("module-directory") || ".";
   const buildFlagsString = core.getInput("build-flags");
-  const hashesBranch = core.getInput("hashes-branch");
   const testSuite = core.getInput("test-suite") || "placeholder-test-suite";
   const buildDirectory = process.env.RUNNER_TEMP || `/tmp/cl/${testSuite}`;
 
@@ -34,6 +34,8 @@ function setup() {
   const forceUpdateIndexString = core.getInput("force-update-index") || "false";
   const runAllTestsString = core.getInput("run-all-tests") || "false";
   const collectCoverageString = core.getInput("collect-coverage") || "false";
+
+  const defaultBranch = github.context.payload.repository?.default_branch;
 
   const stepsDirectory = path.join(buildDirectory, "steps");
   const coverageDirectory = path.join(buildDirectory, "coverage");
@@ -77,12 +79,12 @@ function setup() {
     coverageDirectory,
     buildFlags,
     maxBuildConcurrency,
-    hashesBranch,
     hashesFile: `${testSuite}.json`,
     testSuite,
     runAllTests,
     maxRunConcurrency,
     collectCoverage,
+    defaultBranch,
     forceUpdateIndex,
   };
 }
@@ -124,6 +126,12 @@ export async function run() {
       if (inputs.collectCoverage) {
         await uploadCoverage(inputs.coverageDirectory, artifactKey);
       }
+    }
+    if (inputs.pipelineStep === "update" || inputs.pipelineStep === "e2e") {
+      // Force exit update step, as the cache save doesn't close TCPSocket connections properly.
+      // This is causing the action to hang until the connections are closed, likely due to a timeout.
+      // See: https://github.com/actions/toolkit/issues/1578
+      process.exit();
     }
   }
 }
