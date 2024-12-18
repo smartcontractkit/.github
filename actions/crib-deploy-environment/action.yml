@@ -151,10 +151,23 @@ runs:
       with:
         registries: ${{ inputs.aws-ecr-private-registry }}
 
+    - name: Debug go paths
+      shell: bash
+      run: |
+        echo "go.mod path: ${{ github.workspace }}/crib/cli/go.mod"
+        echo "cache-dependency-path: ${{ github.workspace }}/crib/**/*.sum"
+
+        shopt -s globstar
+        echo "try without crib dir"
+        ls -la ${{ github.workspace }}/**/*.sum
+
+        echo "try with crib dir"
+        ls -la ${{ github.workspace }}/crib/**/*.sum
+
     - uses: actions/setup-go@v5
       with:
-        go-version-file: "${{ github.workspace }}/crib/cli/go.mod"
-        cache-dependency-path: "${{ github.workspace }}/crib/**/*.sum"
+        go-version-file: "${{ github.workspace }}/cli/go.mod"
+        cache-dependency-path: "${{ github.workspace }}/**/*.sum"
 
     - name: Setup Nix
       uses: smartcontractkit/.github/actions/setup-nix@4df907a307d91761c15cdff65e508145bdbcfca3 # setup-nix@0.3.0
