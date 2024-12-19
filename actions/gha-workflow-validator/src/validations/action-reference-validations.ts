@@ -226,12 +226,16 @@ export function extractActionReferenceFromLine(
     return;
   }
 
-  // example line:
+  // example line (after trimming):
   // - uses: actions/checkout@v4.2.1
-  const trimSubString = "uses:";
-  const usesIndex = trimmedLine.indexOf(trimSubString);
+  // or
+  // uses: actions/checkout@v4.2.1
+  const possibleTrimmedPrefixes = ["- uses: ", "uses: "];
+  const trimSubString = possibleTrimmedPrefixes.find((prefix) =>
+    trimmedLine.startsWith(prefix),
+  );
 
-  if (usesIndex === -1) {
+  if (!trimSubString) {
     // Not an action reference
     return;
   }
