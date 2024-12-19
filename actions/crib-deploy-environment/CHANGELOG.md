@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 7.4.0
+
+### Minor Changes
+
+- [#764](https://github.com/smartcontractkit/.github/pull/764)
+  [`b1a69d8`](https://github.com/smartcontractkit/.github/commit/b1a69d84985fdef78dce563fdc69b840e7cf0e1a)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - upgraded default
+  crib-repo-ref to v1.2.0
+
 ## 7.3.0
 
 ### Minor Changes
