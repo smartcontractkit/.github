@@ -43,7 +43,6 @@ type RunSuccess = {
 };
 type RunFailure = {
   output: {
-    binary: string;
     log: string;
   };
   pkg: GoPackage;
@@ -133,13 +132,13 @@ export async function runTestBinary(
     };
   } catch (error) {
     if (!(error instanceof ExecaError)) {
-      core.error(`Failed to run test for package ${pkg.importPath}`);
+      core.error(
+        `Unknown error encountered while running test for package ${pkg.importPath}`,
+      );
       throw error;
     }
     const execaError = error as ExecaError<RunExecaOptions>;
-    core.error(
-      `Failed to run test for package ${pkg.importPath}: ${execaError.message}`,
-    );
+    core.setFailed(`Failed to run test for package ${pkg.importPath}`);
     core.info(
       `Logs: ${pkg.importPath} ---\n${trimOutputLogs(execaError.stdout)}`,
     );
@@ -150,7 +149,7 @@ export async function runTestBinary(
       },
       pkg,
       error: execaError,
-    } as RunFailure;
+    };
   }
 }
 
@@ -223,80 +222,64 @@ export function validateRunResultsOrThrow(
   packages: DiffedHashedCompiledPackages,
   results: RunResult[],
 ): MaybeExecutedPackages {
-  outputTestsAndRuntime(results);
+  const flattenedResults = flattenRunResults(packages, results);
+  outputTestsAndRuntime(flattenedResults);
 
   const failures = results.filter(isRunFailure);
   if (failures.length > 0) {
-    core.setFailed(
-      `Test Package Failures: ${failures.map((f) => f.pkg.importPath).join(", ")}`,
-    );
-    throw new Error(
-      `${failures.length} tests completed with an error, or failed to run. See output for details.`,
-    );
+    core.info(`FAIL`);
+    throw new Error(`${failures.length} packages encountered errors.`);
   }
 
-  const successes = results.filter(isRunSuccess);
-  return flattenRunResults(packages, successes);
+  return flattenedResults;
 }
 
-function outputTestsAndRuntime(results: RunResult[]) {
-  if (results.length === 0) {
-    return;
-  }
+function outputTestsAndRuntime(packages: MaybeExecutedPackages) {
+  const values = Object.values(packages);
 
-  const sortedByNameResults = results
-    .map((result) => {
-      if (isRunFailure(result)) {
-        return {
-          success: false,
-          importPath: result.pkg.importPath,
-          durationMs: result.error.durationMs,
-        };
-      }
-      return {
-        success: true,
-        importPath: result.pkg.importPath,
-        durationMs: result.execution.durationMs,
-      };
-    })
-    .sort((a, b) => a.importPath.localeCompare(b.importPath));
+  const resultsSortedByName = values
+    .sort((a, b) => a.importPath.localeCompare(b.importPath))
+    .map(formatRunEntry);
 
-  const resultToFormattedString = (result: {
-    success: boolean;
-    importPath: string;
-    durationMs: number;
-  }): string =>
-    `  ${result.importPath} (${formatDuration(result.durationMs)}) ${result.success ? "" : "(fail)"}`;
+  core.info(resultsSortedByName.join("\n"));
 
-  const formattedResults = sortedByNameResults.map(resultToFormattedString);
-  core.info("Tests Packages Ran:");
-  core.info(formattedResults.join("\n"));
+  const resultsSortedByDuration = values
+    .filter((r) => r.run)
+    .sort((a, b) => b.run!.execution.durationMs - a.run!.execution.durationMs)
+    .map(formatRunEntry);
 
-  const slowest10Results = sortedByNameResults
-    .sort((a, b) => b.durationMs - a.durationMs)
-    .slice(0, 10)
-    .map(resultToFormattedString);
-  core.info("Slowest 10 Packages:");
-  core.info(slowest10Results.join("\n"));
+  core.info(
+    `\n\nSlowest 10 Packages:\n${resultsSortedByDuration.slice(0, 10).join("\n")}`,
+  );
 }
 
 function flattenRunResults(
   packages: DiffedHashedCompiledPackages,
-  successes: RunSuccess[],
+  results: RunResult[],
 ): MaybeExecutedPackages {
-  core.debug(`Flattening ${successes.length} run results`);
+  core.debug(`Flattening ${results.length} run results`);
 
   const executedPackages: MaybeExecutedPackages = packages;
-  for (const success of successes) {
-    const { importPath } = success.pkg;
+  for (const result of results) {
+    const { importPath } = result.pkg;
 
     if (!executedPackages[importPath]) {
       core.warning(`Package ${importPath} not found in packages.`);
       continue;
     }
 
-    const { log, coverage } = success.output;
-    const { command, exitCode, cwd, durationMs } = success.execution;
+    const log = result.output.log;
+    const coverage = isRunSuccess(result) ? result.output.coverage : undefined;
+    const command = isRunSuccess(result)
+      ? result.execution.command
+      : result.error.command;
+    const exitCode = isRunSuccess(result)
+      ? result.execution.exitCode
+      : result.error.exitCode;
+    const cwd = isRunSuccess(result) ? result.execution.cwd : result.error.cwd;
+    const durationMs = isRunSuccess(result)
+      ? result.execution.durationMs
+      : result.error.durationMs;
 
     executedPackages[importPath].run = {
       log,
@@ -311,6 +294,18 @@ function flattenRunResults(
   }
 
   return executedPackages;
+}
+
+function formatRunEntry(
+  entry: MaybeExecutedPackages[keyof MaybeExecutedPackages],
+) {
+  if (entry.run) {
+    if (entry.run.execution.exitCode === 0) {
+      return `ok  \t${entry.importPath}\t${formatDuration(entry.run.execution.durationMs)}`;
+    }
+    return `FAIL\t${entry.importPath}\t[test failed]`;
+  }
+  return `ok  \t${entry.importPath}\t(cached)`;
 }
 
 function formatDuration(durationMs: number) {

@@ -92,6 +92,10 @@ export async function compileTestBinary(
       throw error;
     }
 
+    if (error.stdout) {
+      core.info(`${error.stdout}`);
+    }
+
     return {
       output: {
         binary: binPath,
@@ -161,22 +165,30 @@ export function validateCompilationResultsOrThrow(
   buildDir: string,
   results: CompilationResult[],
 ): CompiledPackages {
-  const failures = results.filter(isCompilationFailure);
-  if (failures.length > 0) {
-    failures.forEach((failure) => {
-      core.error(
-        `Failed to compile test for package ${failure.pkg.importPath}: ${failure.error.message}`,
-      );
-      if (core.isDebug()) {
-        const { stdout, stderr } = failure.error;
-        if (stdout) core.debug(`stdout (${failure.pkg.importPath}): ${stdout}`);
-        if (stderr) core.debug(`stderr (${failure.pkg.importPath}): ${stderr}`);
-      }
-    });
-    throw new Error("Failed to compile test binaries");
+  const sortedResults = results.sort((a, b) =>
+    a.pkg.importPath.localeCompare(b.pkg.importPath),
+  );
+
+  const successes: CompilationSuccess[] = [];
+  const failures: CompilationFailure[] = [];
+  for (const result of sortedResults) {
+    if (isCompilationSuccess(result)) {
+      successes.push(result);
+      // output similar to go test
+      core.info(`ok  \t${result.pkg.importPath}\t[build successful]`);
+    } else {
+      failures.push(result);
+      core.info(`FAIL\t${result.pkg.importPath}\t[build failed]`);
+    }
   }
 
-  const successes = results.filter(isCompilationSuccess);
+  if (failures.length > 0) {
+    core.info(`FAIL`);
+    throw new Error(`${failures.length} packages failed to compile.`);
+  } else {
+    core.info(`ok`);
+  }
+
   return filterForBuiltBinaries(buildDir, successes);
 }
 
@@ -184,14 +196,14 @@ function filterForBuiltBinaries(
   buildDir: string,
   successes: CompilationSuccess[],
 ) {
-  core.info(`Filtering ${successes.length} compilations for binaries.`);
+  core.debug(`Filtering ${successes.length} compilations for binaries.`);
 
   core.debug(`Reading binaries from ${buildDir}`);
   const binaries = readdirSync(buildDir).filter((file) =>
     file.endsWith("-test"),
   );
 
-  core.info(`Found ${binaries.length} binaries in output directory.`);
+  core.debug(`Found ${binaries.length} binaries in output directory.`);
   core.debug(`Binaries: ${binaries.join("\n")}`);
 
   // Filter out any successes where the binary doesn't exist.
