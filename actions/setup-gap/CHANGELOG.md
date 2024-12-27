@@ -1,5 +1,14 @@
 # setup-gap
 
+## 3.1.0
+
+### Minor Changes
+
+- [#769](https://github.com/smartcontractkit/.github/pull/769)
+  [`93ed59c`](https://github.com/smartcontractkit/.github/commit/93ed59c177312a15a4aef08057c891f4c6bc7c12)
+  Thanks [@chainchad](https://github.com/chainchad)! - Add self-signed CA to
+  system store
+
 ## 3.0.1
 
 ### Patch Changes
