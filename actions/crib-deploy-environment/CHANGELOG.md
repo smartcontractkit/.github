@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 7.5.0
+
+### Minor Changes
+
+- [#770](https://github.com/smartcontractkit/.github/pull/770)
+  [`d448849`](https://github.com/smartcontractkit/.github/commit/d44884987b855e6085bcf5e6a02a43e00057bef3)
+  Thanks [@chainchad](https://github.com/chainchad)! - Make local proxy port
+  configurable via input
+
 ## 7.4.0
 
 ### Minor Changes
