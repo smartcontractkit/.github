@@ -17,6 +17,10 @@ inputs:
     default: "0.0.0.0/0"
     description: "DevSpace ingress CIDRs."
     required: false
+  gap-local-proxy-port:
+    description: "The port the local GAP proxy will listen on."
+    required: false
+    default: "8888"
   github-token:
     description:
       "The `GITHUB_TOKEN` issued for the workflow. It is required unless the
@@ -106,12 +110,15 @@ outputs:
   devspace-namespace:
     description: "Kubernetes namespace used to provision a CRIB environment."
     value: ${{ steps.generate-ns-name.outputs.devspace-namespace }}
+  gap-local-proxy-port:
+    description: "The port the local proxy will listen on."
+    value: ${{ inputs.proxy-port }}
 
 runs:
   using: "composite"
   steps:
     - name: Setup GAP
-      uses: smartcontractkit/.github/actions/setup-gap@a1c64ab26eaac82da84581788f33029f5ae6cc02 # setup-gap@3.0.0
+      uses: smartcontractkit/.github/actions/setup-gap@1bb35eaa8308e0a780afe4945596a6482e13f320 # setup-gap@3.1.0
       with:
         aws-region: ${{ inputs.aws-region }}
         aws-role-arn: ${{ inputs.aws-role-arn }}
@@ -124,7 +131,7 @@ runs:
         use-k8s: true
         # Choose port that is less likely to be conflicting with other GAP
         # instances that runs in the same workflow
-        proxy-port: 8888
+        proxy-port: ${{ inputs.gap-local-proxy-port }}
 
     - name: Checkout crib repo
       uses: actions/checkout@v4.2.1
