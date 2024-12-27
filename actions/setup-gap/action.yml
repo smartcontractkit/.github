@@ -9,7 +9,7 @@ inputs:
       docker container name. Required if using multiple invocations of this in
       the same job."
     required: false
-    default: execute-api
+    default: "default"
   use-tls:
     description:
       "Enable TLS for the local envoy proxy container. Ignored if `use-k8s:
@@ -20,6 +20,16 @@ inputs:
     description: "The port the proxy will listen on. Defaults to 8080."
     required: false
     default: "8080"
+  ca-cert-validity-days:
+    description:
+      "The number of days the CA certificate is valid for. Defaults to 1."
+    required: false
+    default: "1"
+  cert-validity-days:
+    description:
+      "The number of days the server certificate is valid for. Defaults to 1."
+    required: false
+    default: "1"
   # aws role inputs
   aws-role-duration-seconds:
     description:
@@ -28,9 +38,7 @@ inputs:
     required: false
     default: "900"
   aws-region:
-    description:
-      "The AWS region for the api gateway and other resources unless specified
-      in other inputs"
+    description: "The AWS region resources unless specified in other inputs"
     required: false
   aws-role-arn:
     description:
@@ -77,6 +85,10 @@ inputs:
     description: "Envoy Proxy image used to run Envoy proxy for GAP"
     required: false
     default: "envoyproxy/envoy:v1.32.0"
+outputs:
+  local-proxy-port:
+    description: "The port the local proxy will listen on."
+    value: ${{ inputs.proxy-port }}
 
 runs:
   using: composite
@@ -101,9 +113,11 @@ runs:
       if: inputs.use-k8s == 'true' || inputs.use-tls == 'true'
       shell: bash
       env:
+        GAP_NAME: ${{ inputs.gap-name }}
         PATH_CERTS_DIR_PREFIX: /tmp/setup-gap
+        CA_CERT_VALIDITY_DAYS: ${{ inputs.ca-cert-validity-days}}
       run: |
-        PATH_CERTS_DIR="${PATH_CERTS_DIR_PREFIX}-${{ inputs.gap-name }}"
+        PATH_CERTS_DIR="${PATH_CERTS_DIR_PREFIX}-${GAP_NAME}"
         echo "PATH_CERTS_DIR=${PATH_CERTS_DIR}" | tee -a $GITHUB_ENV
         mkdir -p "${PATH_CERTS_DIR}"
 
@@ -112,13 +126,20 @@ runs:
         openssl req -x509 -new \
           -nodes -key "${PATH_CERTS_DIR}/ca.key" \
           -sha256 \
-          -days 1 \
+          -days "${CA_CERT_VALIDITY_DAYS}" \
           -out "${PATH_CERTS_DIR}/ca.crt" \
           -subj "/CN=My CA"
+
+        echo "::debug::Adding new CA to system trust store"
+        sudo mkdir -p /usr/local/share/ca-certificates/extra
+        sudo cp "${PATH_CERTS_DIR}/ca.crt" "/usr/local/share/ca-certificates/extra/setup-gap-${GAP_NAME}.crt"
+        sudo update-ca-certificates
 
     - name: Generate and Sign Server Certificate
       if: inputs.use-k8s == 'true' || inputs.use-tls == 'true'
       shell: bash
+      env:
+        CERT_VALIDITY_DAYS: ${{ inputs.cert-validity-days}}
       run: |
         echo "::debug::Generating server key and certificate signing request (CSR)"
         openssl ecparam -genkey -name prime256v1 -out "${PATH_CERTS_DIR}/server.key"
@@ -137,7 +158,7 @@ runs:
           -CAkey "${PATH_CERTS_DIR}/ca.key" \
           -CAcreateserial \
           -out "${PATH_CERTS_DIR}/server.crt" \
-          -days 1 \
+          -days "${CERT_VALIDITY_DAYS}" \
           -sha256 \
           -extfile "${PATH_CERTS_DIR}/san.ext"
 
