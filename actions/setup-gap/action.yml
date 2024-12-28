@@ -84,7 +84,7 @@ inputs:
   envoy-proxy-image:
     description: "Envoy Proxy image used to run Envoy proxy for GAP"
     required: false
-    default: "envoyproxy/envoy:v1.32.0"
+    default: "envoyproxy/envoy:v1.32.3"
 outputs:
   local-proxy-port:
     description: "The port the local proxy will listen on."
