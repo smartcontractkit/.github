@@ -60,6 +60,23 @@ sequenceDiagram
   deactivate Action
 ```
 
+### Hash Index
+
+The hash index is a mapping of import path to hash. It allows you to verify if a
+test package has been modified since it's last successful run.
+
+The hash index is saved on a per branch and commit basis, and is saved to the
+Github Actions cache.
+
+1. There should be a source of truth index for each commit the default branch of
+   your repository.
+2. New PRs will restore from the default (or target) branch's most recent cache
+   entry.
+   1. Upon an initial completion of the tests, the PR branch will create it's
+      own cache entry.
+3. As existing PRs are updated, it will restore from that branch's previous
+   cache entry and will add a new cache entry upon a successful completion.
+
 ## Usage
 
 Example workflow job:
@@ -72,6 +89,7 @@ run-unit-tests:
   permissions:
     id-token: write
     contents: write
+    actions: write
   steps:
     - name: Checkout the repo
       uses: actions/checkout@v4.2.1
@@ -108,16 +126,6 @@ run-unit-tests:
         github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-### Setup
-
-This action requires an orphaned branch to store the test hash indexes in.
-
-1. `git switch --orphan test-hashes`
-2. `printf '*\n!.gitignore\n!README.md\n!*.json' > .gitignore`
-3. `git add .gitignore`
-4. `git commit -m "test-hashes: initial commit"`
-5. `git push --set-upstream origin test-hashes`
-
 ## Action
 
 ### Inputs
@@ -131,7 +139,7 @@ This action requires an orphaned branch to store the test hash indexes in.
   - `run` - given the output from `build`, will hash the binaries, compare those
     to the hash index, then run those that have changed.
   - `update` - given the output from `run`, it will update the hash index with
-    the new indexes, if on the repo's main branch.
+    the new indexes.
   - `e2e` - performs all of the above as a single step.
 
 ### General Inputs
@@ -141,9 +149,6 @@ This action requires an orphaned branch to store the test hash indexes in.
 - `module-directory`, path (`./`)
   - The path to the root module for the tests. Similar to setting
     `working-directory`.
-- `hashes-branch`, string (`test-hashes`)
-  - The (ideally orphaned) git branch to store the test hash index json files
-    on. Used by `run` and `update`.
 - `collect-coverage`, true / **false**
   - Enables the `build`, and `run` flags for collecting coverage. Then uploads
     the coverage files. This will also enable `run-all-tests` and should skip
@@ -176,7 +181,6 @@ This action requires an orphaned branch to store the test hash indexes in.
 ### TODO
 
 - Support for config files so not everything has to be passed directly to the
-  action?
-- Ignore certain directories?
-- Scrub logs?
-- Update the hash index of only successful tests?
+  action
+- Scrub logs
+- Update the hash index of only successful tests

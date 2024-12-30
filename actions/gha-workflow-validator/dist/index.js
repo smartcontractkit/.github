@@ -24174,9 +24174,11 @@ function extractActionReferenceFromLine(line) {
   if (trimmedLine.startsWith("#")) {
     return;
   }
-  const trimSubString = "uses:";
-  const usesIndex = trimmedLine.indexOf(trimSubString);
-  if (usesIndex === -1) {
+  const possibleTrimmedPrefixes = ["- uses: ", "uses: "];
+  const trimSubString = possibleTrimmedPrefixes.find(
+    (prefix) => trimmedLine.startsWith(prefix)
+  );
+  if (!trimSubString) {
     return;
   }
   const trimmedUses = line.substring(line.indexOf(trimSubString) + trimSubString.length).trim();

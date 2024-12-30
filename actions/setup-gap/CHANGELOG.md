@@ -1,5 +1,32 @@
 # setup-gap
 
+## 3.1.1
+
+### Patch Changes
+
+- [#773](https://github.com/smartcontractkit/.github/pull/773)
+  [`f5c8523`](https://github.com/smartcontractkit/.github/commit/f5c852359226075141a962b29b859568dcd4746e)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Upgrade local Envoy
+  proxy image for GAP to v1.32.3
+
+## 3.1.0
+
+### Minor Changes
+
+- [#769](https://github.com/smartcontractkit/.github/pull/769)
+  [`93ed59c`](https://github.com/smartcontractkit/.github/commit/93ed59c177312a15a4aef08057c891f4c6bc7c12)
+  Thanks [@chainchad](https://github.com/chainchad)! - Add self-signed CA to
+  system store
+
+## 3.0.1
+
+### Patch Changes
+
+- [#761](https://github.com/smartcontractkit/.github/pull/761)
+  [`3923445`](https://github.com/smartcontractkit/.github/commit/3923445e3a872cb7ec0ba4a93910217662122f24)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Removing unused JWT
+  ENV and output parameter
+
 ## 3.0.0
 
 ### Major Changes
