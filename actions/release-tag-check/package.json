@@ -1,7 +1,7 @@
 {
-  "name": "setup-gap",
-  "version": "3.1.1",
-  "description": "setup github actions proxy",
+  "name": "release-tag-check",
+  "version": "0.1.0",
+  "description": "Indicates whether a GitHub ref is a pre-release or a final release",
   "private": true,
   "scripts": {},
   "author": "@smartcontractkit",

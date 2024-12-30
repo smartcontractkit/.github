@@ -17,6 +17,10 @@ inputs:
     default: "0.0.0.0/0"
     description: "DevSpace ingress CIDRs."
     required: false
+  gap-local-proxy-port:
+    description: "The port the local GAP proxy will listen on."
+    required: false
+    default: "8888"
   github-token:
     description:
       "The `GITHUB_TOKEN` issued for the workflow. It is required unless the
@@ -68,17 +72,15 @@ inputs:
       for example: https://hooks.slack.com/services/aaa/bbb
     required: false
   crib-repo-ref:
-    default: "v1.0.0"
+    default: "v1.2.0"
     required: false
     description: Useful for testing updates in CRIB
   chainlink-team:
-    default: ""
     required: true
     description: |
       Specify a relevant value for tagging resources and attributing
       costs to the correct team.
   chainlink-product:
-    default: ""
     required: true
     description: |
       Specify a relevant value for tagging resources and attributing
@@ -108,12 +110,15 @@ outputs:
   devspace-namespace:
     description: "Kubernetes namespace used to provision a CRIB environment."
     value: ${{ steps.generate-ns-name.outputs.devspace-namespace }}
+  gap-local-proxy-port:
+    description: "The port the local proxy will listen on."
+    value: ${{ inputs.proxy-port }}
 
 runs:
   using: "composite"
   steps:
     - name: Setup GAP
-      uses: smartcontractkit/.github/actions/setup-gap@a1c64ab26eaac82da84581788f33029f5ae6cc02 # setup-gap@3.0.0
+      uses: smartcontractkit/.github/actions/setup-gap@1bb35eaa8308e0a780afe4945596a6482e13f320 # setup-gap@3.1.0
       with:
         aws-region: ${{ inputs.aws-region }}
         aws-role-arn: ${{ inputs.aws-role-arn }}
@@ -126,7 +131,7 @@ runs:
         use-k8s: true
         # Choose port that is less likely to be conflicting with other GAP
         # instances that runs in the same workflow
-        proxy-port: 8888
+        proxy-port: ${{ inputs.gap-local-proxy-port }}
 
     - name: Checkout crib repo
       uses: actions/checkout@v4.2.1
@@ -204,8 +209,6 @@ runs:
 
         kubectl label namespace $NAMESPACE \
           branch="${sanitized_branch}" \
-          chain.link/product=${{ inputs.chainlink-product }} \
-          chain.link/team=${{ inputs.chainlink-team }} \
           commit=${{ steps.generate-ns-name.outputs.commit-sha }} \
           pr-number=${{ steps.generate-ns-name.outputs.pr-number || 'none' }} \
           repo=${{ steps.generate-ns-name.outputs.repo-name }} \
@@ -224,12 +227,14 @@ runs:
       shell: bash
       env:
         CHAINLINK_CODE_DIR: "../"
+        CHAINLINK_PRODUCT: ${{ inputs.chainlink-product }}
+        CHAINLINK_TEAM: ${{ inputs.chainlink-team }}
         CRIB_CI_ENV: true
         CLI_CHANGED: ${{ steps.filter.outputs.cli == 'true' }}
         CRIB_SKIP_DOCKER_ECR_LOGIN: true
         CRIB_SKIP_HELM_ECR_LOGIN: true
-        DEVSPACE_IMAGE: "${{inputs.product-image}}"
         DEVSPACE_IMAGE_TAG: "${{inputs.product-image-tag}}"
+        DEVSPACE_IMAGE: "${{inputs.product-image}}"
         DEVSPACE_INGRESS_BASE_DOMAIN: ${{ inputs.ingress-base-domain }}
         DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
         GH_TOKEN: ${{ inputs.github-token }}

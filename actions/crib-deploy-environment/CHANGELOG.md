@@ -1,5 +1,39 @@
 # crib-deploy-environment
 
+## 7.5.0
+
+### Minor Changes
+
+- [#770](https://github.com/smartcontractkit/.github/pull/770)
+  [`d448849`](https://github.com/smartcontractkit/.github/commit/d44884987b855e6085bcf5e6a02a43e00057bef3)
+  Thanks [@chainchad](https://github.com/chainchad)! - Make local proxy port
+  configurable via input
+
+## 7.4.0
+
+### Minor Changes
+
+- [#764](https://github.com/smartcontractkit/.github/pull/764)
+  [`b1a69d8`](https://github.com/smartcontractkit/.github/commit/b1a69d84985fdef78dce563fdc69b840e7cf0e1a)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - upgraded default
+  crib-repo-ref to v1.2.0
+
+## 7.3.0
+
+### Minor Changes
+
+- [#743](https://github.com/smartcontractkit/.github/pull/743)
+  [`f5fbc93`](https://github.com/smartcontractkit/.github/commit/f5fbc93a367af8b8cd16093fd0edd92b9ba756ea)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Switch the cost
+  stributtion NS labeling to crib CLI
+
+### Patch Changes
+
+- [#759](https://github.com/smartcontractkit/.github/pull/759)
+  [`7f3916b`](https://github.com/smartcontractkit/.github/commit/7f3916b1177db2b3e9c6af8e1d92bc7004f4b046)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Removing default
+  empty values for cost atributtion labels
+
 ## 7.2.0
 
 ### Minor Changes
