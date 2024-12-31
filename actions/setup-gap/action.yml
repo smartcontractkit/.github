@@ -210,7 +210,7 @@ runs:
       env:
         DYNAMIC_PROXY_PORT: ${{ inputs.dynamic-proxy-port }}
         ENABLE_PROXY_DEBUG: ${{ inputs.enable-proxy-debug }}
-        GITHUB_OIDC_TOKEN_HEDER_NAME:
+        GITHUB_OIDC_TOKEN_HEADER_NAME:
           ${{ inputs.github-oidc-token-header-name }}
         PROXY_LOG_LEVEL: ${{ inputs.proxy-log-level }}
         ENVOY_PROXY_IMAGE: ${{ inputs.envoy-proxy-image }}
