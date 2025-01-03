@@ -6,7 +6,7 @@ import { execa, ExecaError } from "execa";
 import pLimit from "p-limit";
 
 import { GoPackage, CompiledPackages, LocalPackages } from "../pipeline.js";
-import { insertWithoutDuplicates } from "../utils.js";
+import { insertWithoutDuplicates, BuildOrRunError } from "../utils.js";
 
 const defaultExecaOptions = {
   cwd: "",
@@ -184,7 +184,8 @@ export function validateCompilationResultsOrThrow(
 
   if (failures.length > 0) {
     core.info(`FAIL`);
-    throw new Error(`${failures.length} packages failed to compile.`);
+    const failedPackages = failures.map((f) => f.pkg.importPath);
+    throw new BuildOrRunError("build", failedPackages);
   } else {
     core.info(`ok`);
   }

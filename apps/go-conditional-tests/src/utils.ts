@@ -13,46 +13,23 @@ export function insertWithoutDuplicates<K extends string, V>(
   return obj;
 }
 
-export async function executeConcurrentTasks<TItem, TResult>(
-  items: TItem[],
-  taskFn: (item: TItem) => Promise<TResult>,
-  getItemKey: (item: TItem) => string,
-  getResultKey: (result: TResult) => string,
-  maxConcurrency: number,
-): Promise<TResult[]> {
-  const seen = new Set<string>();
-  const finished: TResult[] = [];
-  const executing = new Map<string, Promise<TResult>>();
+export class BuildOrRunError extends Error {
+  public readonly reason: "build" | "run";
 
-  for (const item of items) {
-    const key = getItemKey(item);
+  public readonly pkgs: string[];
 
-    if (seen.has(key)) {
-      console.warn(`Duplicate item found: ${key}`);
-      continue; // Skip adding the duplicate task
-    }
-    seen.add(key);
+  constructor(reason: "build" | "run", pkgs: string[]) {
+    const message: string = `Failed to ${reason} ${pkgs.length} packages.`;
+    super(message);
 
-    const taskPromise = taskFn(item);
-    executing.set(key, taskPromise);
-
-    if (executing.size >= maxConcurrency) {
-      const executingPromises = Array.from(executing.values());
-      const finishedTask = await Promise.race(executingPromises);
-      finished.push(finishedTask);
-
-      const resultKey = getResultKey(finishedTask);
-      if (!executing.has(resultKey)) {
-        console.warn("Task not found in executing list");
-        continue;
-      }
-
-      console.debug(`Finished Task: ${resultKey}`);
-      executing.delete(resultKey);
-    }
+    this.name = "BuildOrRunError";
+    this.reason = reason;
+    this.pkgs = pkgs;
   }
 
-  // Wait for all remaining tasks to complete
-  const remainingResults = await Promise.all(executing.values());
-  return [...finished, ...remainingResults];
+  public logPackages(errorLog: (input: string) => void): void {
+    this.pkgs.forEach((pkg) => {
+      errorLog(`Failed to ${this.reason} package: ${pkg}`);
+    });
+  }
 }

@@ -15,6 +15,7 @@ import {
   uploadStateFile,
 } from "./log.js";
 import * as pipeline from "./pipeline.js";
+import { BuildOrRunError } from "./utils.js";
 
 export type Inputs = Readonly<ReturnType<typeof setup>>;
 
@@ -112,6 +113,9 @@ export async function run() {
       core.setFailed(
         `${error.command}, ${error.shortMessage}. exit code: ${error.exitCode}. cause: ${error.cause}. ${error.stack}`,
       );
+    } else if (error instanceof BuildOrRunError) {
+      core.setFailed(`${error.name}, ${error.message}`);
+      error.logPackages(core.error);
     } else if (error instanceof Error) {
       core.setFailed(`${error.name}, ${error.message}. ${error.stack}`);
     }

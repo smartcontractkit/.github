@@ -162,7 +162,7 @@ describe("validateCompilationResultsOrThrow", () => {
     ];
 
     expect(() => validateCompilationResultsOrThrow(buildDir, failures)).toThrow(
-      "1 packages failed to compile.",
+      "Failed to build 1 packages.",
     );
   });
 

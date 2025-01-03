@@ -274,7 +274,7 @@ describe("validateRunResultsOrThrow", () => {
       {
         output: {
           log: "/path/to/log",
-          binary: "/path/to/binary",
+          coverage: "/path/to/coverage",
         },
         pkg: {
           importPath: "github.com/example/pkg",
@@ -286,7 +286,7 @@ describe("validateRunResultsOrThrow", () => {
 
     // Act & Assert
     expect(() => validateRunResultsOrThrow(packages, results)).toThrow(
-      "1 packages encountered errors.",
+      "Failed to run 1 packages.",
     );
   });
 

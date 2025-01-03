@@ -5,6 +5,7 @@ import * as core from "@actions/core";
 import { execa, ExecaError } from "execa";
 import pLimit from "p-limit";
 
+import { BuildOrRunError } from "../utils.js";
 import {
   GoPackage,
   DiffedHashedCompiledPackages,
@@ -228,7 +229,8 @@ export function validateRunResultsOrThrow(
   const failures = results.filter(isRunFailure);
   if (failures.length > 0) {
     core.info(`FAIL`);
-    throw new Error(`${failures.length} packages encountered errors.`);
+    const failedPackages = failures.map((f) => f.pkg.importPath);
+    throw new BuildOrRunError("run", failedPackages);
   }
 
   return flattenedResults;
