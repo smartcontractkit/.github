@@ -99,13 +99,23 @@ inputs:
       "Enable or disable detailed Envoy proxy logs used for K8s API access. When
       enabled, debug logs are generated locally, and container logs are streamed
       to the console for troubleshooting."
-  envoy-github-oidc-token-header-name:
+  github-oidc-token-header-name:
     required: false
     default: "x-authorization-github-jwt"
     description:
       "Specifies the name of the HTTP header used to pass the GitHub OIDC JWT
       token. This header is automatically injected by the local proxy and must
       not be the same as the default 'Authorization' header."
+  dynamic-proxy-port:
+    description: "The port the dynamic proxy will listen on. Defaults to 9090."
+    required: false
+    default: "9090"
+  main-dns-zone:
+    description:
+      "The DNS zone is used for exposing services. It is required when using the
+      dynamic local proxy to prevent sending requests and exposing sensitive
+      information to random external endpoints. This ensures that the dynamic
+      local proxy is used only for the specific DNS zone."
 outputs:
   devspace-namespace:
     description: "Kubernetes namespace used to provision a CRIB environment."
@@ -118,13 +128,13 @@ runs:
   using: "composite"
   steps:
     - name: Setup GAP
-      uses: smartcontractkit/.github/actions/setup-gap@1bb35eaa8308e0a780afe4945596a6482e13f320 # setup-gap@3.1.0
+      uses: smartcontractkit/.github/actions/setup-gap@e28871db8c0a7a12fd2264d645b6a673deab22a3 # setup-gap@3.2.0
       with:
         aws-region: ${{ inputs.aws-region }}
         aws-role-arn: ${{ inputs.aws-role-arn }}
         enable-proxy-debug: ${{ inputs.enable-proxy-debug }}
-        envoy-github-oidc-token-header-name:
-          ${{ inputs.envoy-github-oidc-token-header-name }}
+        github-oidc-token-header-name:
+          ${{ inputs.github-oidc-token-header-name }}
         k8s-api-endpoint-port: ${{ inputs.k8s-api-endpoint-port }}
         k8s-api-endpoint: ${{ inputs.k8s-api-endpoint }}
         k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
@@ -132,6 +142,8 @@ runs:
         # Choose port that is less likely to be conflicting with other GAP
         # instances that runs in the same workflow
         proxy-port: ${{ inputs.gap-local-proxy-port }}
+        dynamic-proxy-port: ${{ inputs.dynamic-proxy-port }}
+        main-dns-zone: ${{ inputs.main-dns-zone }}
 
     - name: Checkout crib repo
       uses: actions/checkout@v4.2.1
