@@ -1,5 +1,24 @@
 # crib-deploy-environment
 
+## 8.1.0
+
+### Minor Changes
+
+- [#783](https://github.com/smartcontractkit/.github/pull/783)
+  [`6db6d21`](https://github.com/smartcontractkit/.github/commit/6db6d21b42b1196099628039a2c00423716b4325)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Use the latest
+  version of setup-gap with local dynamic proxy
+
+  Input parameters changes:
+
+  - Renamed:
+    - `envoy-github-oidc-token-header-name` ->
+      `envoy-github-oidc-token-header-name`
+  - Added (not required):
+    - `dynamic-proxy-port`
+  - Added (required):
+    - `main-dns-zone`
+
 ## 8.0.0
 
 ### Major Changes
