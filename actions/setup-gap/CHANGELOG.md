@@ -1,5 +1,14 @@
 # setup-gap
 
+## 3.2.0
+
+### Minor Changes
+
+- [#781](https://github.com/smartcontractkit/.github/pull/781)
+  [`f6fff64`](https://github.com/smartcontractkit/.github/commit/f6fff64d270165a5a910a34f0edace5bd3747b5c)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding the local
+  dynamic proxy configuration
+
 ## 3.1.1
 
 ### Patch Changes
