@@ -1,5 +1,15 @@
 # crib-deploy-environment
 
+## 8.0.0
+
+### Major Changes
+
+- [#779](https://github.com/smartcontractkit/.github/pull/779)
+  [`b6027b5`](https://github.com/smartcontractkit/.github/commit/b6027b55727b892eca6ae257970e80532c6b7ecc)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - CRIB now spins up all
+  dependencies using the existing `nginx` ingressClass instead of `alb`, for
+  cost-savings
+
 ## 7.5.1
 
 ### Patch Changes
