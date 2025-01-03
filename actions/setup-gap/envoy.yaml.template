@@ -32,6 +32,55 @@ static_resources:
                         local refreshing = false
                         local request_options = {["asynchronous"] = true}
 
+                        -- Function to decode base64 value
+                        local function decode_base64(input)
+                            local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+                            input = input:gsub('[^' .. b .. '=]', '')
+
+                            return (input:gsub('.', function(x)
+                                if x == '=' then
+                                    return ''
+                                end
+                                local r, f = '', (b:find(x) - 1)
+                                for i = 6, 1, -1 do
+                                    r = r .. (f % 2 ^ i - f % 2 ^ (i - 1) > 0 and '1' or '0')
+                                end
+                                return r
+                            end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+                                if #x ~= 8 then
+                                    return ''
+                                end
+                                local c = 0
+                                for i = 1, 8 do
+                                    c = c + (x:sub(i, i) == '1' and 2 ^ (8 - i) or 0)
+                                end
+                                return string.char(c)
+                            end))
+                        end
+
+                        -- Function to get JWT exp time from JWT token
+                        local function get_jwt_exp(jwt)
+                            -- Extract the three parts of the JWT: header, payload, and signature
+                            local header, payload, signature = jwt:match("([^%.]+)%.([^%.]+)%.([^%.]+)")
+                            if not (header and payload and signature) then
+                                return nil
+                            end
+
+                            -- Decode the payload from Base64
+                            local decoded_payload = decode_base64(payload)
+                            if not decoded_payload then
+                                return nil
+                            end
+
+                            -- Parse the decoded payload as JSON
+                            local decoded_json = JSON.decode(decoded_payload)
+                            if not decoded_json or not decoded_json.exp then
+                                return nil
+                            end
+
+                            return decoded_json.exp
+                        end
+
                         -- Function to fetch GitHub OIDC token
                         function fetch_github_oidc_token(request_handle)
                             if refreshing then
@@ -61,13 +110,12 @@ static_resources:
                             )
 
                             if response_headers[":status"] == "200" then
-                                request_handle:logInfo("GitHub OIDC token fetched successfully.")
-                                request_handle:logInfo(response_body)
+                                request_handle:logInfo("k8s-api: GitHub OIDC token fetched successfully.")
                                 local data = JSON.decode(response_body)
                                 jwt_token = data.value -- Assign the token value
-                                jwt_expiration = os.time() + 300 -- Tokens are valid for 5 minutes
+                                jwt_expiration = get_jwt_exp(jwt_token)
                             else
-                                request_handle:logErr("Failed to fetch GitHub OIDC token. Status: " .. response_headers[":status"])
+                                request_handle:logErr("k8s-api: Failed to fetch GitHub OIDC token. Status: " .. response_headers[":status"])
                             end
 
                             refreshing = false
@@ -75,17 +123,19 @@ static_resources:
 
                         -- Function to refresh the token if needed
                         function refresh_token_if_needed(request_handle)
-                            local current_time = os.time()
-                            if not jwt_token or jwt_expiration - current_time < 60 then
+                            if not jwt_token or jwt_expiration - os.time() < 60 then
                                 fetch_github_oidc_token(request_handle)
                             end
                         end
 
-                        -- Main function for Envoy request interception
+                        -- Main function for intercepting Envoy requests
                         function envoy_on_request(request_handle)
                             refresh_token_if_needed(request_handle)
                             if jwt_token then
-                                request_handle:headers():add("${GITHUB_OIDC_TOKEN_HEDER_NAME}", "Bearer " .. jwt_token)
+                                request_handle:headers():add("${GITHUB_OIDC_TOKEN_HEADER_NAME}", "Bearer " .. jwt_token)
+                                request_handle:logInfo("k8s-api: GitHub JWT OIDC token added successfully to the header: ${GITHUB_OIDC_TOKEN_HEADER_NAME}.")
+                            else
+                                request_handle:logErr("k8s-api: GitHub JWT OIDC token is empty. Skipping header append.")
                             end
                             request_handle:headers():remove("host")
                             request_handle:headers():add("host", "${K8S_API_ENDPOINT}")
@@ -126,7 +176,7 @@ static_resources:
                 validation_context:
                   trusted_ca:
                     filename: "/tls/ca.crt"
-    - name: local-dynamic-proxy
+    - name: dynamic-proxy
       address:
         socket_address:
           address: 0.0.0.0
@@ -187,6 +237,55 @@ static_resources:
                         local request_options = {["asynchronous"] = true}
                         local main_dns_zone = "${MAIN_DNS_ZONE}"
 
+                        -- Function to decode base64 value
+                        local function decode_base64(input)
+                            local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+                            input = input:gsub('[^' .. b .. '=]', '')
+
+                            return (input:gsub('.', function(x)
+                                if x == '=' then
+                                    return ''
+                                end
+                                local r, f = '', (b:find(x) - 1)
+                                for i = 6, 1, -1 do
+                                    r = r .. (f % 2 ^ i - f % 2 ^ (i - 1) > 0 and '1' or '0')
+                                end
+                                return r
+                            end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+                                if #x ~= 8 then
+                                    return ''
+                                end
+                                local c = 0
+                                for i = 1, 8 do
+                                    c = c + (x:sub(i, i) == '1' and 2 ^ (8 - i) or 0)
+                                end
+                                return string.char(c)
+                            end))
+                        end
+
+                        -- Function to get JWT exp time from JWT token
+                        local function get_jwt_exp(jwt)
+                            -- Extract the three parts of the JWT: header, payload, and signature
+                            local header, payload, signature = jwt:match("([^%.]+)%.([^%.]+)%.([^%.]+)")
+                            if not (header and payload and signature) then
+                                return nil
+                            end
+
+                            -- Decode the payload from Base64
+                            local decoded_payload = decode_base64(payload)
+                            if not decoded_payload then
+                                return nil
+                            end
+
+                            -- Parse the decoded payload as JSON
+                            local decoded_json = JSON.decode(decoded_payload)
+                            if not decoded_json or not decoded_json.exp then
+                                return nil
+                            end
+
+                            return decoded_json.exp
+                        end
+
                         -- Function to fetch GitHub OIDC token
                         function fetch_github_oidc_token(request_handle)
                             if refreshing then
@@ -216,13 +315,12 @@ static_resources:
                             )
 
                             if response_headers[":status"] == "200" then
-                                request_handle:logInfo("GitHub OIDC token fetched successfully.")
-                                request_handle:logInfo(response_body)
+                                request_handle:logInfo("dynamic-proxy: GitHub OIDC token fetched successfully.")
                                 local data = JSON.decode(response_body)
                                 jwt_token = data.value -- Assign the token value
-                                jwt_expiration = os.time() + 300 -- Tokens are valid for 5 minutes
+                                jwt_expiration = get_jwt_exp(jwt_token)
                             else
-                                request_handle:logErr("Failed to fetch GitHub OIDC token. Status: " .. response_headers[":status"])
+                                request_handle:logErr("dynamic-proxy: Failed to fetch GitHub OIDC token. Status: " .. response_headers[":status"])
                             end
 
                             refreshing = false
@@ -241,10 +339,11 @@ static_resources:
                             refresh_token_if_needed(request_handle)
                             local host = request_handle:headers():get(":authority")
                             if jwt_token and host:match(main_dns_zone .. "$") then
-                                request_handle:headers():add("${GITHUB_OIDC_TOKEN_HEDER_NAME}", "Bearer " .. jwt_token)
+                                request_handle:headers():add("${GITHUB_OIDC_TOKEN_HEADER_NAME}", "Bearer " .. jwt_token)
+                                request_handle:logInfo("dynamic-proxy: GitHub JWT OIDC token added successfully to the header: ${GITHUB_OIDC_TOKEN_HEADER_NAME}.")
                             else
                                 -- Log info if host does not match or jwt_token is not available
-                                request_handle:logInfo("Host does not match DNS zone or JWT token is not available. Skipping JWT addition.")
+                                request_handle:logInfo("dynamic-proxy: Host does not match DNS zone or JWT token is not available. Skipping JWT addition.")
                             end
                         end
                   - name: envoy.filters.http.router
