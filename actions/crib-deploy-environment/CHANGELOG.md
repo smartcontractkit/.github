@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 7.5.1
+
+### Patch Changes
+
+- [#777](https://github.com/smartcontractkit/.github/pull/777)
+  [`6a5bf1b`](https://github.com/smartcontractkit/.github/commit/6a5bf1b5f2600bc7a644479fe9876ae3e3c8e237)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding support for
+  labeling NS for cost attribution
+
 ## 7.5.0
 
 ### Minor Changes
