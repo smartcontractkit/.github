@@ -21,6 +21,12 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: k8s_api_cluster
+                            retry_policy:
+                              retry_on: connect-failure,refused-stream,gateway-error,deadline-exceeded,unavailable,internal,reset
+                              num_retries: 5
+                              retry_back_off:
+                                base_interval: "1s"
+                                max_interval: "5s"
                 http_filters:
                   - name: envoy.filters.http.lua
                     typed_config:
@@ -216,6 +222,13 @@ static_resources:
                             prefix: /
                           route:
                             cluster: dynamic_forward_proxy_cluster
+                            retry_policy:
+                              retry_on: connect-failure,refused-stream,gateway-error,deadline-exceeded,unavailable,internal,reset
+                              num_retries: 5
+                              host_selection_retry_max_attempts: 5
+                              retry_back_off:
+                                base_interval: "1s"
+                                max_interval: "5s"
                           typed_per_filter_config:
                             envoy.filters.http.dynamic_forward_proxy:
                               '@type': type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.PerRouteConfig
