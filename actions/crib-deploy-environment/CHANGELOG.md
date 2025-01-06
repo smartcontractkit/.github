@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 8.2.0
+
+### Minor Changes
+
+- [#789](https://github.com/smartcontractkit/.github/pull/789)
+  [`3bcae62`](https://github.com/smartcontractkit/.github/commit/3bcae62dfad0c5056207e6a53f2ca45dead8adc8)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Bumping the
+  setup-gap GHA version
+
 ## 8.1.0
 
 ### Minor Changes
