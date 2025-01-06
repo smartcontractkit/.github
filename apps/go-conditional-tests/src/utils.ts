@@ -19,7 +19,7 @@ export class BuildOrRunError extends Error {
   public readonly pkgs: string[];
 
   constructor(reason: "build" | "run", pkgs: string[]) {
-    const message: string = `Failed to ${reason} ${pkgs.length} packages.`;
+    const message = `Failed to ${reason} ${pkgs.length} packages.`;
     super(message);
 
     this.name = "BuildOrRunError";
