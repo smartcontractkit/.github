@@ -1,5 +1,14 @@
 # setup-gap
 
+## 3.3.0
+
+### Minor Changes
+
+- [#787](https://github.com/smartcontractkit/.github/pull/787)
+  [`10454c3`](https://github.com/smartcontractkit/.github/commit/10454c3bd43936749f573d2c35eabaf6786722b8)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding the retry
+  configuration for Envoy routes
+
 ## 3.2.0
 
 ### Minor Changes
