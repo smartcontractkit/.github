@@ -1,7 +1,7 @@
 {
-  "name": "ctf-setup-go",
-  "version": "0.1.2",
-  "description": "",
+  "name": "release-tag-check",
+  "version": "0.1.0",
+  "description": "Indicates whether a GitHub ref is a pre-release or a final release",
   "private": true,
   "scripts": {},
   "author": "@smartcontractkit",

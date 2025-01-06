@@ -1,5 +1,61 @@
 # crib-deploy-environment
 
+## 8.2.0
+
+### Minor Changes
+
+- [#789](https://github.com/smartcontractkit/.github/pull/789)
+  [`3bcae62`](https://github.com/smartcontractkit/.github/commit/3bcae62dfad0c5056207e6a53f2ca45dead8adc8)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Bumping the
+  setup-gap GHA version
+
+## 8.1.0
+
+### Minor Changes
+
+- [#783](https://github.com/smartcontractkit/.github/pull/783)
+  [`6db6d21`](https://github.com/smartcontractkit/.github/commit/6db6d21b42b1196099628039a2c00423716b4325)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Use the latest
+  version of setup-gap with local dynamic proxy
+
+  Input parameters changes:
+
+  - Renamed:
+    - `envoy-github-oidc-token-header-name` ->
+      `envoy-github-oidc-token-header-name`
+  - Added (not required):
+    - `dynamic-proxy-port`
+  - Added (required):
+    - `main-dns-zone`
+
+## 8.0.0
+
+### Major Changes
+
+- [#779](https://github.com/smartcontractkit/.github/pull/779)
+  [`b6027b5`](https://github.com/smartcontractkit/.github/commit/b6027b55727b892eca6ae257970e80532c6b7ecc)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - CRIB now spins up all
+  dependencies using the existing `nginx` ingressClass instead of `alb`, for
+  cost-savings
+
+## 7.5.1
+
+### Patch Changes
+
+- [#777](https://github.com/smartcontractkit/.github/pull/777)
+  [`6a5bf1b`](https://github.com/smartcontractkit/.github/commit/6a5bf1b5f2600bc7a644479fe9876ae3e3c8e237)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding support for
+  labeling NS for cost attribution
+
+## 7.5.0
+
+### Minor Changes
+
+- [#770](https://github.com/smartcontractkit/.github/pull/770)
+  [`d448849`](https://github.com/smartcontractkit/.github/commit/d44884987b855e6085bcf5e6a02a43e00057bef3)
+  Thanks [@chainchad](https://github.com/chainchad)! - Make local proxy port
+  configurable via input
+
 ## 7.4.0
 
 ### Minor Changes

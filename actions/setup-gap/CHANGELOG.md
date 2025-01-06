@@ -1,5 +1,41 @@
 # setup-gap
 
+## 3.3.0
+
+### Minor Changes
+
+- [#787](https://github.com/smartcontractkit/.github/pull/787)
+  [`10454c3`](https://github.com/smartcontractkit/.github/commit/10454c3bd43936749f573d2c35eabaf6786722b8)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding the retry
+  configuration for Envoy routes
+
+## 3.2.0
+
+### Minor Changes
+
+- [#781](https://github.com/smartcontractkit/.github/pull/781)
+  [`f6fff64`](https://github.com/smartcontractkit/.github/commit/f6fff64d270165a5a910a34f0edace5bd3747b5c)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding the local
+  dynamic proxy configuration
+
+## 3.1.1
+
+### Patch Changes
+
+- [#773](https://github.com/smartcontractkit/.github/pull/773)
+  [`f5c8523`](https://github.com/smartcontractkit/.github/commit/f5c852359226075141a962b29b859568dcd4746e)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Upgrade local Envoy
+  proxy image for GAP to v1.32.3
+
+## 3.1.0
+
+### Minor Changes
+
+- [#769](https://github.com/smartcontractkit/.github/pull/769)
+  [`93ed59c`](https://github.com/smartcontractkit/.github/commit/93ed59c177312a15a4aef08057c891f4c6bc7c12)
+  Thanks [@chainchad](https://github.com/chainchad)! - Add self-signed CA to
+  system store
+
 ## 3.0.1
 
 ### Patch Changes

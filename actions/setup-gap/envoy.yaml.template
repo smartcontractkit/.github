@@ -1,6 +1,6 @@
 static_resources:
   listeners:
-    - name: https
+    - name: k8s-api
       address:
         socket_address:
           address: 0.0.0.0
@@ -21,6 +21,12 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: k8s_api_cluster
+                            retry_policy:
+                              retry_on: connect-failure,refused-stream,gateway-error,deadline-exceeded,unavailable,internal,reset
+                              num_retries: 5
+                              retry_back_off:
+                                base_interval: "1s"
+                                max_interval: "5s"
                 http_filters:
                   - name: envoy.filters.http.lua
                     typed_config:
@@ -31,6 +37,55 @@ static_resources:
                         local jwt_token = nil
                         local refreshing = false
                         local request_options = {["asynchronous"] = true}
+
+                        -- Function to decode base64 value
+                        local function decode_base64(input)
+                            local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+                            input = input:gsub('[^' .. b .. '=]', '')
+
+                            return (input:gsub('.', function(x)
+                                if x == '=' then
+                                    return ''
+                                end
+                                local r, f = '', (b:find(x) - 1)
+                                for i = 6, 1, -1 do
+                                    r = r .. (f % 2 ^ i - f % 2 ^ (i - 1) > 0 and '1' or '0')
+                                end
+                                return r
+                            end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+                                if #x ~= 8 then
+                                    return ''
+                                end
+                                local c = 0
+                                for i = 1, 8 do
+                                    c = c + (x:sub(i, i) == '1' and 2 ^ (8 - i) or 0)
+                                end
+                                return string.char(c)
+                            end))
+                        end
+
+                        -- Function to get JWT exp time from JWT token
+                        local function get_jwt_exp(jwt)
+                            -- Extract the three parts of the JWT: header, payload, and signature
+                            local header, payload, signature = jwt:match("([^%.]+)%.([^%.]+)%.([^%.]+)")
+                            if not (header and payload and signature) then
+                                return nil
+                            end
+
+                            -- Decode the payload from Base64
+                            local decoded_payload = decode_base64(payload)
+                            if not decoded_payload then
+                                return nil
+                            end
+
+                            -- Parse the decoded payload as JSON
+                            local decoded_json = JSON.decode(decoded_payload)
+                            if not decoded_json or not decoded_json.exp then
+                                return nil
+                            end
+
+                            return decoded_json.exp
+                        end
 
                         -- Function to fetch GitHub OIDC token
                         function fetch_github_oidc_token(request_handle)
@@ -61,13 +116,12 @@ static_resources:
                             )
 
                             if response_headers[":status"] == "200" then
-                                request_handle:logInfo("GitHub OIDC token fetched successfully.")
-                                request_handle:logInfo(response_body)
+                                request_handle:logInfo("k8s-api: GitHub OIDC token fetched successfully.")
                                 local data = JSON.decode(response_body)
                                 jwt_token = data.value -- Assign the token value
-                                jwt_expiration = os.time() + 300 -- Tokens are valid for 5 minutes
+                                jwt_expiration = get_jwt_exp(jwt_token)
                             else
-                                request_handle:logErr("Failed to fetch GitHub OIDC token. Status: " .. response_headers[":status"])
+                                request_handle:logErr("k8s-api: Failed to fetch GitHub OIDC token. Status: " .. response_headers[":status"])
                             end
 
                             refreshing = false
@@ -75,22 +129,23 @@ static_resources:
 
                         -- Function to refresh the token if needed
                         function refresh_token_if_needed(request_handle)
-                            local current_time = os.time()
-                            if not jwt_token or jwt_expiration - current_time < 60 then
+                            if not jwt_token or jwt_expiration - os.time() < 60 then
                                 fetch_github_oidc_token(request_handle)
                             end
                         end
 
-                        -- Main function for Envoy request interception
+                        -- Main function for intercepting Envoy requests
                         function envoy_on_request(request_handle)
                             refresh_token_if_needed(request_handle)
                             if jwt_token then
-                                request_handle:headers():add("x-authorization-github-jwt", "Bearer " .. jwt_token)
+                                request_handle:headers():add("${GITHUB_OIDC_TOKEN_HEADER_NAME}", "Bearer " .. jwt_token)
+                                request_handle:logInfo("k8s-api: GitHub JWT OIDC token added successfully to the header: ${GITHUB_OIDC_TOKEN_HEADER_NAME}.")
+                            else
+                                request_handle:logErr("k8s-api: GitHub JWT OIDC token is empty. Skipping header append.")
                             end
                             request_handle:headers():remove("host")
                             request_handle:headers():add("host", "${K8S_API_ENDPOINT}")
                         end
-
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
@@ -98,7 +153,7 @@ static_resources:
                   - name: envoy.access_loggers.file
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog
-                      path: "/dev/stdout" # Log to stdout, can be a file path
+                      path: "/dev/stdout"
                       log_format:
                         json_format:
                           start_time: "%START_TIME%"
@@ -127,6 +182,206 @@ static_resources:
                 validation_context:
                   trusted_ca:
                     filename: "/tls/ca.crt"
+    - name: dynamic-proxy
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: "${DYNAMIC_PROXY_PORT}"
+      listener_filters:
+        - name: envoy.filters.listener.tls_inspector
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.listener.tls_inspector.v3.TlsInspector
+        - name: envoy.filters.listener.http_inspector
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.listener.http_inspector.v3.HttpInspector
+      filter_chains:
+        - transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+              common_tls_context:
+                tls_certificates:
+                  - certificate_chain:
+                      filename: /tls/server.crt
+                    private_key:
+                      filename: /tls/server.key
+                validation_context:
+                  trusted_ca:
+                    filename: "/tls/ca.crt"
+          filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: ingress_http
+                route_config:
+                  virtual_hosts:
+                    - name: dynamic_forward_host
+                      domains: ["*"]
+                      routes:
+                        - match:
+                            prefix: /
+                          route:
+                            cluster: dynamic_forward_proxy_cluster
+                            retry_policy:
+                              retry_on: connect-failure,refused-stream,gateway-error,deadline-exceeded,unavailable,internal,reset
+                              num_retries: 5
+                              host_selection_retry_max_attempts: 5
+                              retry_back_off:
+                                base_interval: "1s"
+                                max_interval: "5s"
+                          typed_per_filter_config:
+                            envoy.filters.http.dynamic_forward_proxy:
+                              '@type': type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.PerRouteConfig
+                http_filters:
+                  - name: envoy.filters.http.dynamic_forward_proxy
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.FilterConfig
+                      dns_cache_config:
+                        name: dynamic_forward_proxy_cache_config
+                        dns_lookup_family: V4_ONLY
+                  - name: envoy.filters.http.lua
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+                      inline_code: |
+                        JSON = (loadfile "/etc/envoy/json.lua")() -- one-time load of the routines
+                        local jwt_expiration = 0
+                        local jwt_token = nil
+                        local refreshing = false
+                        local request_options = {["asynchronous"] = true}
+                        local main_dns_zone = "${MAIN_DNS_ZONE}"
+
+                        -- Function to decode base64 value
+                        local function decode_base64(input)
+                            local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+                            input = input:gsub('[^' .. b .. '=]', '')
+
+                            return (input:gsub('.', function(x)
+                                if x == '=' then
+                                    return ''
+                                end
+                                local r, f = '', (b:find(x) - 1)
+                                for i = 6, 1, -1 do
+                                    r = r .. (f % 2 ^ i - f % 2 ^ (i - 1) > 0 and '1' or '0')
+                                end
+                                return r
+                            end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+                                if #x ~= 8 then
+                                    return ''
+                                end
+                                local c = 0
+                                for i = 1, 8 do
+                                    c = c + (x:sub(i, i) == '1' and 2 ^ (8 - i) or 0)
+                                end
+                                return string.char(c)
+                            end))
+                        end
+
+                        -- Function to get JWT exp time from JWT token
+                        local function get_jwt_exp(jwt)
+                            -- Extract the three parts of the JWT: header, payload, and signature
+                            local header, payload, signature = jwt:match("([^%.]+)%.([^%.]+)%.([^%.]+)")
+                            if not (header and payload and signature) then
+                                return nil
+                            end
+
+                            -- Decode the payload from Base64
+                            local decoded_payload = decode_base64(payload)
+                            if not decoded_payload then
+                                return nil
+                            end
+
+                            -- Parse the decoded payload as JSON
+                            local decoded_json = JSON.decode(decoded_payload)
+                            if not decoded_json or not decoded_json.exp then
+                                return nil
+                            end
+
+                            return decoded_json.exp
+                        end
+
+                        -- Function to fetch GitHub OIDC token
+                        function fetch_github_oidc_token(request_handle)
+                            if refreshing then
+                                return -- Prevent multiple concurrent refreshes
+                            end
+                            refreshing = true
+
+                            -- Set the audience and the GitHub OIDC token URL
+                            local audience = "gap"
+                            local oidc_url = "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=" .. audience
+
+                            -- Prepare headers
+                            local headers = {
+                                [":method"] = "GET",
+                                [":path"] = oidc_url,
+                                [":authority"] = "${GITHUB_OIDC_HOSTNAME}",
+                                ["Authorization"] = "Bearer " .. "${ACTIONS_ID_TOKEN_REQUEST_TOKEN}", -- Use environment variable
+                                ["accept"] = "application/json",
+                            }
+
+                            -- Make the HTTP call
+                            local response_headers, response_body = request_handle:httpCall(
+                                "github_oidc_endpoint",
+                                headers,
+                                nil, -- No body for GET requests
+                                3000 -- Timeout in milliseconds
+                            )
+
+                            if response_headers[":status"] == "200" then
+                                request_handle:logInfo("dynamic-proxy: GitHub OIDC token fetched successfully.")
+                                local data = JSON.decode(response_body)
+                                jwt_token = data.value -- Assign the token value
+                                jwt_expiration = get_jwt_exp(jwt_token)
+                            else
+                                request_handle:logErr("dynamic-proxy: Failed to fetch GitHub OIDC token. Status: " .. response_headers[":status"])
+                            end
+
+                            refreshing = false
+                        end
+
+                        -- Function to refresh the token if needed
+                        function refresh_token_if_needed(request_handle)
+                            local current_time = os.time()
+                            if not jwt_token or jwt_expiration - current_time < 60 then
+                                fetch_github_oidc_token(request_handle)
+                            end
+                        end
+
+                        -- Main function for Envoy request interception
+                        function envoy_on_request(request_handle)
+                            refresh_token_if_needed(request_handle)
+                            local host = request_handle:headers():get(":authority")
+                            if jwt_token and host:match(main_dns_zone .. "$") then
+                                request_handle:headers():add("${GITHUB_OIDC_TOKEN_HEADER_NAME}", "Bearer " .. jwt_token)
+                                request_handle:logInfo("dynamic-proxy: GitHub JWT OIDC token added successfully to the header: ${GITHUB_OIDC_TOKEN_HEADER_NAME}.")
+                            else
+                                -- Log info if host does not match or jwt_token is not available
+                                request_handle:logInfo("dynamic-proxy: Host does not match DNS zone or JWT token is not available. Skipping JWT addition.")
+                            end
+                        end
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+                access_log:
+                  - name: envoy.access_loggers.file
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog
+                      path: "/dev/stdout"
+                      log_format:
+                        json_format:
+                          start_time: "%START_TIME%"
+                          request_method: "%REQ(:METHOD)%"
+                          request_path: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"
+                          response_code: "%RESPONSE_CODE%"
+                          duration: "%DURATION%"
+                          bytes_sent: "%BYTES_SENT%"
+                          host: "%REQ(:AUTHORITY)%"
+                          user_agent: "%REQ(User-Agent)%"
+                          client_ip: "%REQ(X-Forwarded-For)%"
+                          request_size: "%REQ(:CONTENT_LENGTH)%"
+                          upstream_host: "%UPSTREAM_HOST%"
+                          trace_id: "%REQ(X-B3-TraceId)%"
+                          response_size: "%RESP(:CONTENT_LENGTH)%"
   clusters:
     - name: k8s_api_cluster
       connect_timeout: 10s
@@ -157,7 +412,6 @@ static_resources:
               trusted_ca:
                 filename: "/tls/aws-ca.crt"
               trust_chain_verification: VERIFY_TRUST_CHAIN
-
     - name: github_oidc_endpoint
       connect_timeout: 5s
       type: LOGICAL_DNS
@@ -175,3 +429,22 @@ static_resources:
         name: envoy.transport_sockets.tls
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+    - name: dynamic_forward_proxy_cluster
+      lb_policy: CLUSTER_PROVIDED
+      connect_timeout: 5s
+      http2_protocol_options: {}
+      cluster_type:
+        name: envoy.clusters.dynamic_forward_proxy
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.clusters.dynamic_forward_proxy.v3.ClusterConfig
+          dns_cache_config:
+            name: dynamic_forward_proxy_cache_config
+            dns_lookup_family: V4_ONLY
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+          common_tls_context:
+            validation_context:
+              trusted_ca:
+                filename: /etc/ssl/certs/ca-certificates.crt
