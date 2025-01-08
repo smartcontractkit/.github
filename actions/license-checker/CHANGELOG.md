@@ -1,5 +1,14 @@
 # license-checker
 
+## 0.1.3
+
+### Patch Changes
+
+- [#791](https://github.com/smartcontractkit/.github/pull/791)
+  [`50f027a`](https://github.com/smartcontractkit/.github/commit/50f027aa97f496b947930e2faae2caa94d909cea)
+  Thanks [@afelisatti](https://github.com/afelisatti)! - Chore: add permitted
+  license
+
 ## 0.1.2
 
 ### Patch Changes
