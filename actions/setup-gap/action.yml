@@ -41,13 +41,6 @@ inputs:
       "The AWS role with API Gateway invoke permissions, ECR pull permissions
       for aws-sigv4-proxy, and if for k8s then EKS describe permissions"
     required: false
-  # k8s inputs
-  use-k8s:
-    description:
-      "Whether to setup GAP for communicating with K8s. Cannot be used with
-      use-argocd. Defaults to false."
-    required: false
-    default: "false"
   k8s-cluster-name:
     description: "The EKS cluster name to target. Required if use-k8s is true."
     required: false
