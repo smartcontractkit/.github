@@ -144,7 +144,7 @@ static_resources:
                                 request_handle:logErr("k8s-api: GitHub JWT OIDC token is empty. Skipping header append.")
                             end
                             request_handle:headers():remove("host")
-                            request_handle:headers():add("host", "${K8S_API_ENDPOINT}")
+                            request_handle:headers():add("host", "gap-k8s-api.${MAIN_DNS_ZONE}")
                         end
                   - name: envoy.filters.http.router
                     typed_config:
@@ -401,7 +401,7 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: "${K8S_API_ENDPOINT}"
+                      address: "gap-k8s-api.${MAIN_DNS_ZONE}"
                       port_value: "${K8S_API_ENDPOINT_PORT}"
       transport_socket:
         name: envoy.transport_sockets.tls

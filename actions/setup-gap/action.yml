@@ -10,12 +10,6 @@ inputs:
       the same job."
     required: false
     default: "default"
-  use-tls:
-    description:
-      "Enable TLS for the local envoy proxy container. Ignored if `use-k8s:
-      true` as that input will automatically use TLS."
-    required: false
-    default: "false"
   ca-cert-validity-days:
     description:
       "The number of days the CA certificate is valid for. Defaults to 1."
@@ -55,9 +49,6 @@ inputs:
     description:
       "The region for the EKS cluster, if different from aws-region input."
     required: false
-  k8s-api-endpoint:
-    required: true
-    description: "The Kubernetes API server's endpoint hostname."
   k8s-api-endpoint-port:
     required: false
     default: "443"
@@ -154,7 +145,6 @@ runs:
         sudo update-ca-certificates
 
     - name: Generate and Sign Server Certificate
-      if: inputs.use-k8s == 'true' || inputs.use-tls == 'true'
       shell: bash
       env:
         CERT_VALIDITY_DAYS: ${{ inputs.cert-validity-days}}
@@ -205,7 +195,6 @@ runs:
         kubectl config unset clusters.$CLUSTER_ARN.certificate-authority-data
 
     - name: Run Envoy proxy
-      if: inputs.use-k8s == 'true'
       shell: sh
       env:
         DYNAMIC_PROXY_PORT: ${{ inputs.dynamic-proxy-port }}
@@ -215,7 +204,6 @@ runs:
         PROXY_LOG_LEVEL: ${{ inputs.proxy-log-level }}
         ENVOY_PROXY_IMAGE: ${{ inputs.envoy-proxy-image }}
         K8S_API_ENDPOINT_PORT: ${{ inputs.k8s-api-endpoint-port }}
-        K8S_API_ENDPOINT: ${{ inputs.k8s-api-endpoint }}
         MAIN_DNS_ZONE: ${{ inputs.main-dns-zone }}
         PROXY_PORT: ${{ inputs.proxy-port }}
       run: |
@@ -223,7 +211,7 @@ runs:
         export GITHUB_OIDC_HOSTNAME=$(echo $ACTIONS_ID_TOKEN_REQUEST_URL | awk -F[/:] '{print $4}')
 
         # List of required ENVs to check
-        required_env_vars="DYNAMIC_PROXY_PORT ENABLE_PROXY_DEBUG GITHUB_OIDC_TOKEN_HEADER_NAME ENVOY_PROXY_IMAGE GITHUB_OIDC_HOSTNAME K8S_API_ENDPOINT_PORT K8S_API_ENDPOINT MAIN_DNS_ZONE PROXY_LOG_LEVEL PROXY_PORT"
+        required_env_vars="DYNAMIC_PROXY_PORT ENABLE_PROXY_DEBUG GITHUB_OIDC_TOKEN_HEADER_NAME ENVOY_PROXY_IMAGE GITHUB_OIDC_HOSTNAME K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE PROXY_LOG_LEVEL PROXY_PORT"
 
         # Loop through each variable and check if it's empty
         for var in $required_env_vars; do
