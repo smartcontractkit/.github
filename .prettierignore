@@ -27,3 +27,4 @@ yarn.lock
 **/src/generated/graphql.ts
 
 actions/ctf-run-tests/action.yml
+.github/workflows/run-e2e-tests.yml

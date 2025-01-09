@@ -716,8 +716,7 @@ jobs:
             -hidepassingtests=false' }}
           test_download_vendor_packages_command:
             cd $(dirname ${{ matrix.tests.path }}) && go mod download
-          test_secrets_override_base64:
-            ${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
+          test_secrets_override_base64: ${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
@@ -991,8 +990,7 @@ jobs:
             | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage
             -hidepassingtests=false' }}
           test_download_vendor_packages_command: make gomod
-          test_secrets_override_base64:
-            ${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
+          test_secrets_override_base64: ${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
