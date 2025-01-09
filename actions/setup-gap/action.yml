@@ -144,7 +144,7 @@ runs:
         sudo cp "${PATH_CERTS_DIR}/ca.crt" "/usr/local/share/ca-certificates/extra/setup-gap-${GAP_NAME}.crt"
         sudo update-ca-certificates
 
-    - name: Generate and Sign Server Certificate
+    - name: Generate and Sign Proxy TLS listener certificate
       shell: bash
       env:
         CERT_VALIDITY_DAYS: ${{ inputs.cert-validity-days}}
