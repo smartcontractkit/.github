@@ -245,6 +245,14 @@ runs:
           echo "TEST_TEST_SUITE=${{ inputs.test_suite }}" >> $GITHUB_ENV
         fi
 
+    - name: Show masked test secrets
+      shell: bash
+      run: |
+        echo "Default test secrets base64:"
+        echo ${{ inputs.test_secrets_defaults_base64 }}
+        echo "Custom test secrets base64:"
+        echo ${{ inputs.test_secrets_override_base64 }}
+    
     # If default and/or custom secrets provided, decode them, mask them and set them as env vars to override the default secrets
     - name: Set default test secrets from dotenv file
       if: inputs.test_secrets_defaults_base64 != ''
