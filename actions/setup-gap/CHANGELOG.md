@@ -1,5 +1,14 @@
 # setup-gap
 
+## 3.4.0
+
+### Minor Changes
+
+- [#794](https://github.com/smartcontractkit/.github/pull/794)
+  [`a55cafe`](https://github.com/smartcontractkit/.github/commit/a55cafe1807f8f600b77035cb39200957fcadf1b)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Improve the
+  setup-gap action and ensure the local proxy always runs
+
 ## 3.3.0
 
 ### Minor Changes
