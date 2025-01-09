@@ -686,6 +686,10 @@ jobs:
               echo "$key=$value" >> "$GITHUB_ENV"
             done
           fi
+
+      - name: Echo secrets.TEST_SECRETS_OVERRIDE_BASE64
+        run: echo ${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
+
       - name: Run tests
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@2d494c8a4b9b63f3653a5edde670efd358d85eba # ctf-run-tests@0.0.0
@@ -716,7 +720,7 @@ jobs:
             -hidepassingtests=false' }}
           test_download_vendor_packages_command:
             cd $(dirname ${{ matrix.tests.path }}) && go mod download
-          test_secrets_override_base64: ${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
+          test_secrets_override_base64: "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}"
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
