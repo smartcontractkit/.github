@@ -25,3 +25,5 @@ yarn.lock
 
 # GQL generated type files
 **/src/generated/graphql.ts
+
+actions/ctf-run-tests/action.yml
