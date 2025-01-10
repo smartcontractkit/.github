@@ -137,6 +137,18 @@ inputs:
   QA_AWS_ROLE_TO_ASSUME:
     required: true
     description: The AWS role to assume
+  PROD_AWS_REGION:
+    required: false
+    description: The AWS region to use for prod ECR
+  PROD_AWS_ROLE_TO_ASSUME:
+    required: false
+    description: The AWS role to assume for prod ECR
+  PROD_AWS_ACCOUNT_NUMBER:
+    required: false
+    description: The AWS Account number for the prod AWS account
+  gauntlet_plus_plus_image:
+    required: false
+    description: Gauntlet-plus-plus image link
   QA_KUBECONFIG:
     required: false
     description: The kubernetes configuration to use
@@ -172,7 +184,7 @@ runs:
     # Setup Tools and libraries
     - name: Setup environment
       if: inputs.run_setup == 'true'
-      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@2c41e20994aa9c0ae1af1ab467c64ac4acb15f2d # ctf-setup-run-tests-environment@0.0.0
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@7eb75e8cf85f9d6237080b62668114cc00aaecfc # ctf-setup-run-tests-environment@0.0.0
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
@@ -189,6 +201,10 @@ runs:
         QA_KUBECONFIG: ${{ inputs.QA_KUBECONFIG }}
         should_tidy: ${{ inputs.should_tidy }}
         no_cache: ${{ inputs.no_cache }}
+        PROD_AWS_ROLE_TO_ASSUME: ${{ inputs.PROD_AWS_ROLE_TO_ASSUME }}
+        PROD_AWS_REGION: ${{ inputs.PROD_AWS_REGION }}
+        gauntlet_plus_plus_image: ${{ inputs.gauntlet_plus_plus_image }}
+        prod_aws_account_number: ${{ inputs.PROD_AWS_ACCOUNT_NUMBER }}
         gati_token: ${{ inputs.gati_token }}
 
     - name: Replace chainlink/integration-tests deps
