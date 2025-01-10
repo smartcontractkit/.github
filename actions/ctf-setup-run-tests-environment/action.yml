@@ -110,31 +110,29 @@ runs:
         proxy-port: 8080
         main-dns-zone: ${{ inputs.main-dns-zone }}
 
-    - name: Read kubeconfig and set QA_KUBECONFIG ENV
+    # - name: Read kubeconfig and set QA_KUBECONFIG ENV
+    #   shell: bash
+    #   run: |
+    #     # Check if kubeconfig exists and is not empty
+    #     if [ -s ~/.kube/config ]; then
+    #       export QA_KUBECONFIG=$(cat ~/.kube/config)
+    #       echo "QA_KUBECONFIG=$QA_KUBECONFIG" >> "$GITHUB_ENV"
+    #     else
+    #       echo "Error: ~/.kube/config is missing or empty." >&2
+    #       exit 1
+    #     fi
+    #
+    # - name: Set Kubernetes Context
+    #   if: ${{ env.QA_KUBECONFIG != '' }}
+    #   uses: azure/k8s-set-context@27bfb387305b8f0ab5495d692e4a3304db7d0669 # v4.0.0
+    #   with:
+    #     method: kubeconfig
+    #     kubeconfig: ${{ env.QA_KUBECONFIG }}
+
+    - name: Test Kubectl
       shell: bash
       run: |
-        # Check if the kubeconfig file exists
-        if [ -f ~/.kube/config ]; then
-          # Read the contents of ~/.kube/config
-          QA_KUBECONFIG=$(cat ~/.kube/config)
-          # Validate that QA_KUBECONFIG is not empty
-          if [ -n "$QA_KUBECONFIG" ]; then
-            echo "QA_KUBECONFIG=$QA_KUBECONFIG" >> "$GITHUB_ENV"
-          else
-            echo "Error: ~/.kube/config is empty." >&2
-            exit 1
-          fi
-        else
-          echo "Error: ~/.kube/config does not exist." >&2
-          exit 1
-        fi
-
-    - name: Set Kubernetes Context
-      if: ${{ env.QA_KUBECONFIG != '' }}
-      uses: azure/k8s-set-context@27bfb387305b8f0ab5495d692e4a3304db7d0669 # v4.0.0
-      with:
-        method: kubeconfig
-        kubeconfig: ${{ env.QA_KUBECONFIG }}
+        kubectl get pod -n default
 
     # Login to AWS ECR registries if needed
     - name: Login to Amazon ECR
