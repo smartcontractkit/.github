@@ -64,6 +64,12 @@ inputs:
   gati_token:
     required: false
     description: Token provided by GATI to pull from private repos
+  main-dns-zone:
+    required: true
+    description: Main DNS zone used in K8s API endpoint
+  k8s-cluster-name:
+    required: true
+    description: K8s cluster name
 
 runs:
   using: composite
@@ -92,12 +98,43 @@ runs:
         role-duration-seconds: ${{ inputs.aws_role_duration_seconds }}
         mask-aws-account-id: true
 
+    - name: setup-gap k8s
+      uses: smartcontractkit/.github/actions/setup-gap@main # setup-gap@v3.0.1
+      with:
+        aws-role-duration-seconds: 3600 # 1 hour
+        aws-role-arn: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
+        aws-region: ${{ inputs.QA_AWS_REGION }}
+        k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+        gap-name: k8s
+        use-k8s: true
+        proxy-port: 8080
+        main-dns-zone: ${{ inputs.main-dns-zone }}
+
+    - name: Read kubeconfig and set QA_KUBECONFIG ENV
+      shell: bash
+      run: |
+        # Check if the kubeconfig file exists
+        if [ -f ~/.kube/config ]; then
+          # Read the contents of ~/.kube/config
+          QA_KUBECONFIG=$(cat ~/.kube/config)
+          # Validate that QA_KUBECONFIG is not empty
+          if [ -n "$QA_KUBECONFIG" ]; then
+            echo "QA_KUBECONFIG=$QA_KUBECONFIG" >> "$GITHUB_ENV"
+          else
+            echo "Error: ~/.kube/config is empty." >&2
+            exit 1
+          fi
+        else
+          echo "Error: ~/.kube/config does not exist." >&2
+          exit 1
+        fi
+
     - name: Set Kubernetes Context
-      if: inputs.QA_KUBECONFIG
+      if: ${{ env.QA_KUBECONFIG != '' }}
       uses: azure/k8s-set-context@27bfb387305b8f0ab5495d692e4a3304db7d0669 # v4.0.0
       with:
         method: kubeconfig
-        kubeconfig: ${{ inputs.QA_KUBECONFIG }}
+        kubeconfig: ${{ env.QA_KUBECONFIG }}
 
     # Login to AWS ECR registries if needed
     - name: Login to Amazon ECR

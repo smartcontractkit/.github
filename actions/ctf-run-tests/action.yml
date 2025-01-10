@@ -165,6 +165,12 @@ inputs:
   gati_token:
     required: false
     description: Token provided by GATI to pull from private repos
+  main-dns-zone:
+    required: true
+    description: Main DNS zone used in K8s API endpoint
+  k8s-cluster-name:
+    required: true
+    description: K8s cluster name
 
 runs:
   using: composite
@@ -172,7 +178,7 @@ runs:
     # Setup Tools and libraries
     - name: Setup environment
       if: inputs.run_setup == 'true'
-      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@2c41e20994aa9c0ae1af1ab467c64ac4acb15f2d # ctf-setup-run-tests-environment@0.0.0
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@run-e2e-tests # ctf-setup-run-tests-environment@0.0.0
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
@@ -190,6 +196,8 @@ runs:
         should_tidy: ${{ inputs.should_tidy }}
         no_cache: ${{ inputs.no_cache }}
         gati_token: ${{ inputs.gati_token }}
+        main-dns-zone: ${{ inputs.main-dns-zone }}
+        k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
 
     - name: Replace chainlink/integration-tests deps
       if: ${{ inputs.dep_chainlink_integration_tests }}
