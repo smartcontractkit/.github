@@ -298,7 +298,7 @@ jobs:
         id: get-secret
         shell: bash
         run: |
-          SECRET_NAME="DummySecretForTesting" # Replace with your secret name
+          SECRET_NAME="testsecrets/DummySecretForTesting" # Replace with your secret name
           # Fetch the Base64-encoded secret string
           SECRET_VALUE=$(aws secretsmanager get-secret-value --secret-id "$SECRET_NAME" --query 'SecretString' --output text)
 
