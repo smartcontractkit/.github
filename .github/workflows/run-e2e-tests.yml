@@ -273,6 +273,7 @@ jobs:
   validate-inputs:
     name: Validate workflow inputs
     runs-on: ubuntu-latest
+    environment: integration
     outputs:
       require_chainlink_image_versions_in_qa_ecr_matrix:
         ${{ steps.set-required-chainlink-image-versions-matrix.outputs.versions
