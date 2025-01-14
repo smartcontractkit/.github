@@ -66,6 +66,13 @@ on:
           'Run tests by trigger name. Example: "Run Nightly E2E Tests"'
         required: false
         type: string
+      test_secrets_override_key:
+        description:
+          'Key to use for overriding the default test secrets. Use "aws:" prefix
+          for AWS secrets. Example:
+          "aws:testsecrets/TEST_SECRETS_OVERRIDE_BASE64"'
+        required: false
+        type: string
       test_config_override_path:
         description:
           "Path to a test config file used to override the default test config"
@@ -285,35 +292,6 @@ jobs:
         ${{ steps.set-required-chainlink-plugin-versions-matrix.outputs.versions
         }}
     steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
-        with:
-          aws-region: ${{ secrets.QA_AWS_REGION }}
-          role-to-assume: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
-          role-duration-seconds: "3600"
-          mask-aws-account-id: true
-
-      - name:
-          Get and Decode Base64-Encoded Dummy Secret from AWS Secrets Manager
-        id: get-secret
-        shell: bash
-        run: |
-          SECRET_NAME="testsecrets/DummySecretForTesting" # Replace with your secret name
-          # Fetch the Base64-encoded secret string
-          SECRET_VALUE=$(aws secretsmanager get-secret-value --secret-id "$SECRET_NAME" --query 'SecretString' --output text)
-
-          # Mask the Base64-encoded secret value
-          echo "::add-mask::$SECRET_VALUE"
-
-          # Decode the Base64-encoded string and create a .env file
-          echo "$SECRET_VALUE" | base64 --decode > .env
-
-          # Confirm the .env file was created
-          echo "Created .env file with decoded content."
-
-          LINE_COUNT=$(wc -l < .env)
-          echo "The .env file has $LINE_COUNT lines."
-
       - name: Check input conditions
         run: |
           if [[ "${{ inputs.test_ids }}" != "" && "${{ inputs.test_trigger }}" != "" ]]; then
@@ -719,6 +697,35 @@ jobs:
               echo "$key=$value" >> "$GITHUB_ENV"
             done
           fi
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
+        if: startsWith(inputs.test_secrets_override_key, 'aws:')
+        with:
+          aws-region: ${{ secrets.QA_AWS_REGION }}
+          role-to-assume: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
+          role-duration-seconds: "3600"
+          mask-aws-account-id: true
+
+      - name: Get and Decode Base64-Encoded Secret from AWS Secrets Manager
+        id: get-aws-secret
+        shell: bash
+        if: startsWith(inputs.test_secrets_override_key, 'aws:')
+        run: |
+          # Remove the 'aws:' prefix from the input
+          ORIGINAL_KEY="${{ inputs.test_secrets_override_key }}"
+          SECRET_ID="${ORIGINAL_KEY#aws:}"
+
+          # Fetch the Base64-encoded secret string from AWS Secrets Manager
+          SECRET_VALUE=$(aws secretsmanager get-secret-value --secret-id "$SECRET_ID" --query 'SecretString' --output text)
+
+          # Mask the Base64-encoded secret value
+          echo "::add-mask::$SECRET_VALUE"
+
+          # Output the key and secret value
+          echo "test_secrets_key=$SECRET_ID" >> $GITHUB_OUTPUT
+          echo "test_secrets_base64=$SECRET_VALUE" >> $GITHUB_OUTPUT
+
       - name: Run tests
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@b8731364b119e88983e94b0c4da87fc27ddb41b8 # ctf-run-tests@0.0.0
@@ -750,7 +757,8 @@ jobs:
           test_download_vendor_packages_command:
             cd $(dirname ${{ matrix.tests.path }}) && go mod download
           test_secrets_override_base64:
-            ${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
+            ${{ steps.get-aws-secret.outputs.test_secrets_base64 ||
+            secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
