@@ -19,6 +19,7 @@ inputs:
 outputs:
   secret_value:
     description: "Secret value returned from AWS Secrets Manager."
+    value: ${{ steps.get-aws-secret.outputs.secret_value }}
 
 runs:
   using: "composite"
