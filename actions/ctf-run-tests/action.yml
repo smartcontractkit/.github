@@ -137,9 +137,6 @@ inputs:
   QA_AWS_ROLE_TO_ASSUME:
     required: true
     description: The AWS role to assume
-  QA_KUBECONFIG:
-    required: false
-    description: The kubernetes configuration to use
   CGO_ENABLED:
     required: false
     description: Whether to have cgo enabled, defaults to enabled
@@ -195,7 +192,6 @@ runs:
         dockerhub_password: ${{ inputs.dockerhub_password }}
         QA_AWS_REGION: ${{ inputs.QA_AWS_REGION }}
         QA_AWS_ROLE_TO_ASSUME: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
-        QA_KUBECONFIG: ${{ inputs.QA_KUBECONFIG }}
         should_tidy: ${{ inputs.should_tidy }}
         no_cache: ${{ inputs.no_cache }}
         gati_token: ${{ inputs.gati_token }}
