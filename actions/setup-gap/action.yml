@@ -32,8 +32,9 @@ inputs:
     required: false
   aws-role-arn:
     description:
-      "The AWS role with API Gateway invoke permissions, ECR pull permissions
-      for aws-sigv4-proxy, and if for k8s then EKS describe permissions"
+      "The AWS role that grants the necessary permissions, including ECR pull
+      access for private repositories, and, if for Kubernetes, EKS describe
+      permissions."
     required: false
   # k8s inputs
   use-k8s:
