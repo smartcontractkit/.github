@@ -712,7 +712,7 @@ jobs:
             done
           fi
 
-      - name: Get AWS Secret with Test Secrets
+      - name: Get Test Secrets from AWS Secret Manager
         if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
         id: aws-test-secrets
         uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@921f4b0ca850dd473dcef9082e3169ccbb83cc52 # ctf-fetch-aws-secret@0.0.0
@@ -720,13 +720,6 @@ jobs:
           secret_id: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
           aws_region: ${{ secrets.QA_AWS_REGION }}
           aws_role_to_assume: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
-
-      - name: Check length of secret_value
-        if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
-        run: |
-          SECRET_VAL="${{ steps.aws-test-secrets.outputs.secret_value }}"
-          LEN=${#SECRET_VAL}
-          echo "The secret_value has $LEN characters."
 
       - name: Run tests
         id: run_tests
@@ -995,7 +988,7 @@ jobs:
             done
           fi
 
-      - name: Get AWS Secret with Test Secrets
+      - name: Get Test Secrets from AWS Secret Manager
         if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
         id: aws-test-secrets
         uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@921f4b0ca850dd473dcef9082e3169ccbb83cc52 # ctf-fetch-aws-secret@0.0.0
