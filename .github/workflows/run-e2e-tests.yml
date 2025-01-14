@@ -331,15 +331,24 @@ jobs:
         shell: bash
         if: startsWith(inputs.test_secrets_override_key, 'aws:')
         run: |
+          # Exit immediately if any command fails
+          set -e
+
           # Remove the 'aws:' prefix from the input
           ORIGINAL_KEY="${{ inputs.test_secrets_override_key }}"
           SECRET_ID="${ORIGINAL_KEY#aws:}"
 
-          # Fetch the Base64-encoded secret string from AWS Secrets Manager
+          # Attempt to fetch the Base64-encoded secret string from AWS Secrets Manager
           SECRET_VALUE=$(aws secretsmanager get-secret-value --secret-id "$SECRET_ID" --query 'SecretString' --output text)
 
-          # Mask the Base64-encoded secret value
+          # Mask the secret value
           echo "::add-mask::$SECRET_VALUE"
+
+          # If SECRET_VALUE is empty explicitly fail the step to avoid proceeding with an invalid secret.
+          if [ -z "$SECRET_VALUE" ]; then
+            echo "::error::Failed to retrieve AWS Secret. The secret might not exist or is empty: $SECRET_ID"
+            exit 1
+          fi
 
           # Output the key and secret value
           echo "aws_test_secrets_key=$SECRET_ID" >> $GITHUB_OUTPUT
