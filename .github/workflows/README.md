@@ -164,7 +164,6 @@ follow these simple steps:
          QA_AWS_ACCOUNT_NUMBER: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}
          QA_PYROSCOPE_INSTANCE: ${{ secrets.QA_PYROSCOPE_INSTANCE }}
          QA_PYROSCOPE_KEY: ${{ secrets.QA_PYROSCOPE_KEY }}
-         QA_KUBECONFIG: ${{ secrets.QA_KUBECONFIG }}
          GRAFANA_INTERNAL_TENANT_ID: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
          GRAFANA_INTERNAL_BASIC_AUTH: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
          GRAFANA_INTERNAL_HOST: ${{ secrets.GRAFANA_INTERNAL_HOST }}
@@ -179,6 +178,8 @@ follow these simple steps:
            ${{ secrets.AWS_OIDC_IAM_ROLE_VALIDATION_PROD_ARN }}
          AWS_API_GW_HOST_GRAFANA: ${{ secrets.AWS_API_GW_HOST_GRAFANA }}
          SLACK_BOT_TOKEN: ${{ secrets.QA_SLACK_API_KEY }}
+         main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
+         k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
    ```
 
 3. **See Real Examples**: For practical insights and better understanding, refer

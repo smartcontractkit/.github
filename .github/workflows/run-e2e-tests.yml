@@ -200,8 +200,6 @@ on:
         required: true
       QA_PYROSCOPE_KEY:
         required: true
-      QA_KUBECONFIG:
-        required: true
       LOKI_TENANT_ID:
         required: true
       LOKI_URL:
@@ -235,6 +233,10 @@ on:
       # Used in some tests to send slack notifications
       SLACK_CHANNEL:
         required: false
+      AWS_K8S_CLUSTER_NAME_SDLC:
+        required: true
+      MAIN_DNS_ZONE_PUBLIC_SDLC:
+        required: true
 
 env:
   CHAINLINK_IMAGE:
@@ -688,7 +690,7 @@ jobs:
           fi
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@b8731364b119e88983e94b0c4da87fc27ddb41b8 # ctf-run-tests@0.0.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@e0103d8f2bcb8f9246a67340291b2805aa11c527 # ctf-run-tests@v0.4.0
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION:
@@ -734,7 +736,7 @@ jobs:
             ./integration-tests/smoke/logs/
             ./integration-tests/smoke/db_dumps/
             ./integration-tests/smoke/ccip/logs/
-            ./integration-tests/smoke/ccip/db_dumps/            
+            ./integration-tests/smoke/ccip/db_dumps/
             /tmp/gotest.log
           publish_check_name: ${{ env.TEST_ID }}
           token: ${{ secrets.GH_TOKEN }}
@@ -742,10 +744,11 @@ jobs:
           go_mod_path: ./integration-tests/go.mod
           QA_AWS_REGION: ${{ secrets.QA_AWS_REGION }}
           QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
-          QA_KUBECONFIG: ""
           should_tidy: "false"
           go_coverage_src_dir: /var/tmp/go-coverage
           go_coverage_dest_dir: ${{ github.workspace }}/.covdata
+          main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
+          k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
 
       - name: Show Otel-Collector logs
         if:
@@ -953,7 +956,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@b6e37806737eef87e8c9137ceeb23ef0bff8b1db # ctf-run-tests@0.1.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@e0103d8f2bcb8f9246a67340291b2805aa11c527 # ctf-run-tests@v0.4.0
         env:
           DETACH_RUNNER: true
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
@@ -1007,7 +1010,8 @@ jobs:
           go_mod_path: ./integration-tests/go.mod
           QA_AWS_REGION: ${{ secrets.QA_AWS_REGION }}
           QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
-          QA_KUBECONFIG: ${{ secrets.QA_KUBECONFIG }}
+          main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
+          k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
 
       - name: Upload test log as artifact
         uses: actions/upload-artifact@v4.4.3
