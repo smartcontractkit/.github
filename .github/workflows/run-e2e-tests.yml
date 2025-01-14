@@ -323,10 +323,10 @@ jobs:
         with:
           aws-region: ${{ secrets.QA_AWS_REGION }}
           role-to-assume: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
-          role-duration-seconds: "120"
+          role-duration-seconds: "900"
           mask-aws-account-id: true
 
-      - name: Get and Decode Base64-Encoded Secret from AWS Secrets Manager
+      - name: Get Base64-Encoded Secret from AWS Secrets Manager
         id: get-aws-secret
         shell: bash
         if: startsWith(inputs.test_secrets_override_key, 'aws:')
