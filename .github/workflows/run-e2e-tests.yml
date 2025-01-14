@@ -721,6 +721,13 @@ jobs:
           aws_region: ${{ secrets.QA_AWS_REGION }}
           aws_role_to_assume: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
 
+      - name: Check length of secret_value
+        if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
+        run: |
+          SECRET_VAL="${{ steps.aws-test-secrets.outputs.secret_value }}"
+          LEN=${#SECRET_VAL}
+          echo "The secret_value has $LEN characters."
+
       - name: Run tests
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@b8731364b119e88983e94b0c4da87fc27ddb41b8 # ctf-run-tests@0.0.0
@@ -752,7 +759,7 @@ jobs:
           test_download_vendor_packages_command:
             cd $(dirname ${{ matrix.tests.path }}) && go mod download
           test_secrets_override_base64:
-            ${{ steps.aws-test-secrets.secret_value ||
+            ${{ steps.aws-test-secrets.outputs.secret_value ||
             secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
@@ -1038,7 +1045,7 @@ jobs:
             -hidepassingtests=false' }}
           test_download_vendor_packages_command: make gomod
           test_secrets_override_base64:
-            ${{ steps.aws-test-secrets.secret_value ||
+            ${{ steps.aws-test-secrets.outputs.secret_value ||
             secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
