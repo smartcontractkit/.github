@@ -1,0 +1,60 @@
+name: ctf-fetch-aws-secret
+description: "Fetches a secret from AWS Secrets Manager."
+
+inputs:
+  secret_id:
+    description: "The AWS Secrets Manager Secret ID."
+    required: true
+  aws_region:
+    required: true
+    description: "The AWS region to use."
+  aws_role_to_assume:
+    required: true
+    description: "The AWS role to assume."
+  aws_role_duration_seconds:
+    required: false
+    default: "900"
+    description: "The duration (in seconds) to assume the AWS role."
+
+outputs:
+  secret_value:
+    description: "Secret value returned from AWS Secrets Manager."
+
+runs:
+  using: "composite"
+  steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+      with:
+        aws-region: ${{ inputs.aws_region }}
+        role-to-assume: ${{ inputs.aws_role_to_assume }}
+        role-duration-seconds: ${{ inputs.aws_role_duration_seconds }}
+        mask-aws-account-id: true
+
+    - name: Get Secret from AWS Secrets Manager
+      id: get-aws-secret
+      shell: bash
+      run: |
+        # Exit immediately if any command fails
+        set -e
+
+        # Use secret_id as-is (no prefix removal)
+        SECRET_ID="${{ inputs.secret_id }}"
+
+        # Attempt to fetch the secret string from AWS Secrets Manager
+        SECRET_VALUE=$(aws secretsmanager get-secret-value --secret-id "$SECRET_ID" --query 'SecretString' --output text)
+
+        # Mask the secret value in logs
+        echo "::add-mask::$SECRET_VALUE"
+
+        # Fail if the secret could not be retrieved or is empty
+        if [ -z "$SECRET_VALUE" ]; then
+          echo "::error::Failed to retrieve AWS Secret. The secret might not exist or is empty: $SECRET_ID"
+          exit 1
+        fi
+
+        # Set the action output
+        echo "secret_value=$SECRET_VALUE" >> $GITHUB_OUTPUT
+
+        # Final success message
+        echo "Successfully retrieved AWS Secret: $SECRET_ID"
