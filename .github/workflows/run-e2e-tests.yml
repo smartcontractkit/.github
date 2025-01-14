@@ -715,7 +715,7 @@ jobs:
       - name: Get AWS Secret with Test Secrets
         if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
         id: aws-test-secrets
-        uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@f041fd5f3e6b208ddee34a8caef346b5400f155c # ctf-fetch-aws-secret@0.0.0
+        uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@921f4b0ca850dd473dcef9082e3169ccbb83cc52 # ctf-fetch-aws-secret@0.0.0
         with:
           secret_id: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
           aws_region: ${{ secrets.QA_AWS_REGION }}
@@ -988,6 +988,15 @@ jobs:
             done
           fi
 
+      - name: Get AWS Secret with Test Secrets
+        if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
+        id: aws-test-secrets
+        uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@921f4b0ca850dd473dcef9082e3169ccbb83cc52 # ctf-fetch-aws-secret@0.0.0
+        with:
+          secret_id: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
+          aws_region: ${{ secrets.QA_AWS_REGION }}
+          aws_role_to_assume: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
+
       - name: Run tests
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@b6e37806737eef87e8c9137ceeb23ef0bff8b1db # ctf-run-tests@0.1.0
@@ -1029,7 +1038,8 @@ jobs:
             -hidepassingtests=false' }}
           test_download_vendor_packages_command: make gomod
           test_secrets_override_base64:
-            ${{ needs.validate-inputs.outputs.test_secrets_base64 }}
+            ${{ steps.aws-test-secrets.secret_value ||
+            secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
