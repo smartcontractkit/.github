@@ -280,10 +280,6 @@ jobs:
   validate-inputs:
     name: Validate workflow inputs
     runs-on: ubuntu-latest
-    environment: integration
-    permissions:
-      id-token: write
-      contents: read
     outputs:
       require_chainlink_image_versions_in_qa_ecr_matrix:
         ${{ steps.set-required-chainlink-image-versions-matrix.outputs.versions
@@ -291,13 +287,11 @@ jobs:
       require_chainlink_plugin_versions_in_qa_ecr_matrix:
         ${{ steps.set-required-chainlink-plugin-versions-matrix.outputs.versions
         }}
-      aws_test_secrets_key: ${{ steps.get-aws-secret.outputs.test_secrets_key }}
-      # Use custom test secrets from AWS Secrets Manager or GitHub Secret
-      test_secrets_base64:
-        ${{ steps.get-aws-secret.outputs.test_secrets_base64 ||
-        secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
+      aws_test_secrets_key:
+        ${{ steps.check-inputs.outputs.aws_test_secrets_key }}
     steps:
       - name: Check input conditions
+        id: check-inputs
         run: |
           if [[ "${{ inputs.test_ids }}" != "" && "${{ inputs.test_trigger }}" != "" ]]; then
             echo "::error::Error: Both 'test_ids' and 'test_trigger' are provided. Please specify only one."
@@ -314,45 +308,11 @@ jobs:
           if [[ "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" != "" ]]; then
             echo "Will run tests with custom test secrets from GitHub Secret."
           elif [[ "${{ inputs.test_secrets_override_key }}" == aws:* ]]; then
-            echo "Will run tests with custom test secrets from AWS Secrets Manager."
+            ORIGINAL_KEY="${{ inputs.test_secrets_override_key }}"
+            SECRET_ID="${ORIGINAL_KEY#aws:}"
+            echo "aws_test_secrets_key=$SECRET_ID" >> "$GITHUB_OUTPUT"
+            echo "Will run tests with custom test secrets from AWS Secrets Manager. AWS Secret ID: $SECRET_ID"
           fi
-
-      - name: Configure AWS Credentials to get test secrets
-        uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
-        if: startsWith(inputs.test_secrets_override_key, 'aws:')
-        with:
-          aws-region: ${{ secrets.QA_AWS_REGION }}
-          role-to-assume: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
-          role-duration-seconds: "900"
-          mask-aws-account-id: true
-
-      - name: Get Base64-Encoded Secret from AWS Secrets Manager
-        id: get-aws-secret
-        shell: bash
-        if: startsWith(inputs.test_secrets_override_key, 'aws:')
-        run: |
-          # Exit immediately if any command fails
-          set -e
-
-          # Remove the 'aws:' prefix from the input
-          ORIGINAL_KEY="${{ inputs.test_secrets_override_key }}"
-          SECRET_ID="${ORIGINAL_KEY#aws:}"
-
-          # Attempt to fetch the Base64-encoded secret string from AWS Secrets Manager
-          SECRET_VALUE=$(aws secretsmanager get-secret-value --secret-id "$SECRET_ID" --query 'SecretString' --output text)
-
-          # Mask the secret value
-          echo "::add-mask::$SECRET_VALUE"
-
-          # If SECRET_VALUE is empty explicitly fail the step to avoid proceeding with an invalid secret.
-          if [ -z "$SECRET_VALUE" ]; then
-            echo "::error::Failed to retrieve AWS Secret. The secret might not exist or is empty: $SECRET_ID"
-            exit 1
-          fi
-
-          # Output the key and secret value
-          echo "aws_test_secrets_key=$SECRET_ID" >> $GITHUB_OUTPUT
-          echo "test_secrets_base64=$SECRET_VALUE" >> $GITHUB_OUTPUT
 
       - name: Install jq
         run: sudo apt-get install jq
@@ -752,6 +712,15 @@ jobs:
             done
           fi
 
+      - name: Get AWS Secret with Test Secrets
+        if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
+        id: aws-test-secrets
+        uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@f041fd5f3e6b208ddee34a8caef346b5400f155c # ctf-run-tests@0.0.0
+        with:
+          secret_id: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
+          aws_region: ${{ secrets.QA_AWS_REGION }}
+          role-to-assume: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
+
       - name: Run tests
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@b8731364b119e88983e94b0c4da87fc27ddb41b8 # ctf-run-tests@0.0.0
@@ -783,7 +752,8 @@ jobs:
           test_download_vendor_packages_command:
             cd $(dirname ${{ matrix.tests.path }}) && go mod download
           test_secrets_override_base64:
-            ${{ needs.validate-inputs.outputs.test_secrets_base64 }}
+            ${{ steps.aws-test-secrets.secret_value ||
+            secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
