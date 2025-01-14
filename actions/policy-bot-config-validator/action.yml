@@ -15,13 +15,7 @@ inputs:
   setup-gap:
     description: "setup-gap action"
     required: false
-    default: false
-  api-gateway-host:
-    description: |
-      The AWS API Gateway host for the target service.
-      Usually of the form <gateway id>.execute-api.<region>.amazonaws.com.
-      Required if setup-gap is true.
-    required: false
+    default: "false"
   aws-region:
     description: |
       The AWS region for the api gateway and other resources unless specified
@@ -30,9 +24,33 @@ inputs:
     required: false
   aws-role-arn:
     description: |
-      The AWS role with API Gateway invoke permissions.
+      The AWS role with permissions to run aws eks update-kubeconfig.
       Required if setup-gap is true.
     required: false
+  k8s-cluster-name:
+    description: |
+      The EKS cluster name to target.
+      Required if setup-gap is true.
+    required: false
+  main-dns-zone:
+    description: |
+      The DNS zone is used for exposing services. It is required when using the
+      dynamic local proxy to prevent sending requests and exposing sensitive
+      information to random external endpoints. This ensures that the dynamic
+      local proxy is used only for the specific DNS zone.
+      Required if setup-gap is true.
+    required: false
+  dynamic-proxy-port:
+    description: "The port the dynamic proxy will listen on. Defaults to 9090."
+    default: "9090"
+    required: false
+  enable-proxy-debug:
+    description: |
+      Enable or disable detailed Envoy proxy logs used for K8s API access. When
+      enabled, debug logs are generated locally, and container logs are streamed
+      to the console for troubleshooting.
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -41,16 +59,20 @@ runs:
       shell: bash
       run: |
         if [ ${{ inputs.setup-gap }} == 'true' ]; then
-          if [ -z ${{ inputs.api-gateway-host }} ]; then
-            echo "::error::api-gateway-host is required if setup-gap is true"
-            exit 1
-          fi
           if [ -z ${{ inputs.aws-region }} ]; then
             echo "::error::aws-region is required if setup-gap is true"
             exit 1
           fi
           if [ -z ${{ inputs.aws-role-arn }} ]; then
             echo "::error::aws-role-arn is required if setup-gap is true"
+            exit 1
+          fi
+          if [ -z ${{ inputs.k8s-cluster-name }} ]; then
+            echo "::error::k8s-cluster-name is required if setup-gap is true"
+            exit 1
+          fi
+          if [ -z ${{ inputs.main-dns-zone }} ]; then
+            echo "::error::main-dns-zone is required if setup-gap is true"
             exit 1
           fi
         else
@@ -62,22 +84,30 @@ runs:
 
     - name: Setup GAP
       if: inputs.setup-gap == 'true'
-      uses: smartcontractkit/.github/actions/setup-gap@d316f66b2990ea4daa479daa3de6fc92b00f863e # setup-gap@0.3.2
+      uses: smartcontractkit/.github/actions/setup-gap@62cce85edc60ba1f42ab9851f887f76ecce792df # setup-gap@3.4.0
       with:
-        api-gateway-host: ${{ inputs.api-gateway-host }}
         aws-region: ${{ inputs.aws-region }}
         aws-role-arn: ${{ inputs.aws-role-arn }}
+        use-k8s: true
+        k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+        main-dns-zone: ${{ inputs.main-dns-zone }}
+        dynamic-proxy-port: ${{ inputs.dynamic-proxy-port }}
+        enable-proxy-debug: ${{ inputs.enable-proxy-debug }}
 
     - name: Validate .policy.yml
       shell: bash
+      env:
+        GAP_POLICY_BOT_HOST: "gap-policy-bot.${{ inputs.main-dns-zone }}"
       run: |
-        endpoint="http://localhost:8080/primary"
+        endpoint="https://127.0.0.1:9090"
+        extra_curl_opts=(-H "Host: $GAP_POLICY_BOT_HOST" -k)
 
         if [ ${{ inputs.setup-gap }} == 'false' ]; then
           endpoint=${{ inputs.policy-bot-host }}
+          extra_curl_opts=()
         fi
 
-        http_response=$(curl -s -o body.txt -w "%{response_code}" "$endpoint/api/validate" -XPUT -T ${{ inputs.policy-yml-path }})
+        http_response=$(curl "${extra_curl_opts[@]}" -s -o body.txt -w "%{response_code}" "$endpoint/api/validate" -XPUT -T ${{ inputs.policy-yml-path }})
         message=$(jq --raw-output --join-output .message body.txt | tr -d '\n')
         if [ $http_response != "200" ]; then
           echo "::error file=${{ inputs.policy-yml-path }}::$message"
