@@ -1,5 +1,14 @@
 # ctf-run-tests
 
+## 0.4.0
+
+### Minor Changes
+
+- [#802](https://github.com/smartcontractkit/.github/pull/802)
+  [`5783d6c`](https://github.com/smartcontractkit/.github/commit/5783d6c4356d12b5a12577e86fb57fe261a3e600)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Bumping the
+  ctf-setup-run-tests-environment version in the ctf-run-tests GH action.
+
 ## 0.3.0
 
 ### Minor Changes

@@ -1,5 +1,14 @@
 # setup-gap
 
+## 3.4.1
+
+### Patch Changes
+
+- [#800](https://github.com/smartcontractkit/.github/pull/800)
+  [`3df8e1a`](https://github.com/smartcontractkit/.github/commit/3df8e1a3b2767e85d9032d1dcc4df0545d65b225)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Improve the role
+  input parameter description.
+
 ## 3.4.0
 
 ### Minor Changes
