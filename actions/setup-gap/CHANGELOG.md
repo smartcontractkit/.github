@@ -1,5 +1,14 @@
 # setup-gap
 
+## 3.5.0
+
+### Minor Changes
+
+- [#806](https://github.com/smartcontractkit/.github/pull/806)
+  [`815c244`](https://github.com/smartcontractkit/.github/commit/815c244aa5e805017d3c9e80fa374f5426c3ab47)
+  Thanks [@chainchad](https://github.com/chainchad)! - Add repository header for
+  GAP route matching
+
 ## 3.4.1
 
 ### Patch Changes
