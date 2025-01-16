@@ -72,7 +72,7 @@ inputs:
   envoy-proxy-image:
     description: "Envoy Proxy image used to run Envoy proxy for GAP"
     required: false
-    default: "envoyproxy/envoy:v1.32.3"
+    default: "envoyproxy/envoy:v1.33.0"
   proxy-port:
     description: "The port the proxy will listen on. Defaults to 8080."
     required: false
