@@ -32,8 +32,9 @@ inputs:
     required: false
   aws-role-arn:
     description:
-      "The AWS role with API Gateway invoke permissions, ECR pull permissions
-      for aws-sigv4-proxy, and if for k8s then EKS describe permissions"
+      "The AWS role that grants the necessary permissions, including ECR pull
+      access for private repositories, and, if for Kubernetes, EKS describe
+      permissions."
     required: false
   # k8s inputs
   use-k8s:
@@ -71,7 +72,7 @@ inputs:
   envoy-proxy-image:
     description: "Envoy Proxy image used to run Envoy proxy for GAP"
     required: false
-    default: "envoyproxy/envoy:v1.32.3"
+    default: "envoyproxy/envoy:v1.33.0"
   proxy-port:
     description: "The port the proxy will listen on. Defaults to 8080."
     required: false
@@ -211,7 +212,7 @@ runs:
         export GITHUB_OIDC_HOSTNAME=$(echo $ACTIONS_ID_TOKEN_REQUEST_URL | awk -F[/:] '{print $4}')
 
         # List of required ENVs to check
-        required_env_vars="DYNAMIC_PROXY_PORT ENABLE_PROXY_DEBUG GITHUB_OIDC_TOKEN_HEADER_NAME ENVOY_PROXY_IMAGE GITHUB_OIDC_HOSTNAME K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE PROXY_LOG_LEVEL PROXY_PORT"
+        required_env_vars="DYNAMIC_PROXY_PORT ENABLE_PROXY_DEBUG GITHUB_OIDC_TOKEN_HEADER_NAME ENVOY_PROXY_IMAGE GITHUB_OIDC_HOSTNAME K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE PROXY_LOG_LEVEL PROXY_PORT GITHUB_REPOSITORY"
 
         # Loop through each variable and check if it's empty
         for var in $required_env_vars; do

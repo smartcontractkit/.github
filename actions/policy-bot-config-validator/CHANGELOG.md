@@ -1,5 +1,20 @@
 # policy-bot-config-validator
 
+## 1.0.0
+
+### Major Changes
+
+- [#799](https://github.com/smartcontractkit/.github/pull/799)
+  [`dc02345`](https://github.com/smartcontractkit/.github/commit/dc0234525a553653705b16640ade7a9c9e6ce949)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - Upgraded to work with
+  GAP v2.
+
+  Breaking changes:
+
+  - input `api-gateway-host` was removed
+  - two new inputs `k8s-cluster-name` and `main-dns-zone` were added as required
+    when `setup-gap` is `true`
+
 ## 0.1.1
 
 ### Patch Changes

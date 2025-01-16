@@ -1,5 +1,14 @@
 # ctf-setup-run-tests-environment
 
+## 0.2.0
+
+### Minor Changes
+
+- [#797](https://github.com/smartcontractkit/.github/pull/797)
+  [`7be8321`](https://github.com/smartcontractkit/.github/commit/7be83217875b17e11e57cb500bc6d5af16e5c03e)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Migrating to GAP
+  for Kubernetes Access
+
 ## 0.1.0
 
 ### Minor Changes

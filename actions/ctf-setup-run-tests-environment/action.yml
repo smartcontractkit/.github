@@ -50,9 +50,6 @@ inputs:
   QA_AWS_ROLE_TO_ASSUME:
     required: true
     description: The AWS role to assume
-  QA_KUBECONFIG:
-    required: false
-    description: The kubernetes configuration to use
   should_tidy:
     required: false
     description: Should we check go mod tidy
@@ -64,6 +61,15 @@ inputs:
   gati_token:
     required: false
     description: Token provided by GATI to pull from private repos
+  main-dns-zone:
+    required: true
+    description:
+      The primary DNS zone used in the hostname of the Kubernetes API endpoint.
+  k8s-cluster-name:
+    required: true
+    description:
+      The name of the Kubernetes cluster to be used in the `kubectl`
+      configuration for accessing the desired cluster.
 
 runs:
   using: composite
@@ -92,12 +98,17 @@ runs:
         role-duration-seconds: ${{ inputs.aws_role_duration_seconds }}
         mask-aws-account-id: true
 
-    - name: Set Kubernetes Context
-      if: inputs.QA_KUBECONFIG
-      uses: azure/k8s-set-context@27bfb387305b8f0ab5495d692e4a3304db7d0669 # v4.0.0
+    - name: Configure local GAP proxy for accessing (Kubernetes) services
+      uses: smartcontractkit/.github/actions/setup-gap@62cce85edc60ba1f42ab9851f887f76ecce792df # setup-gap@v3.4.0
       with:
-        method: kubeconfig
-        kubeconfig: ${{ inputs.QA_KUBECONFIG }}
+        aws-role-duration-seconds: 3600 # 1 hour
+        aws-role-arn: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
+        aws-region: ${{ inputs.QA_AWS_REGION }}
+        k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+        gap-name: k8s
+        use-k8s: true
+        proxy-port: 8080
+        main-dns-zone: ${{ inputs.main-dns-zone }}
 
     # Login to AWS ECR registries if needed
     - name: Login to Amazon ECR

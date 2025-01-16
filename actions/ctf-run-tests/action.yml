@@ -137,9 +137,6 @@ inputs:
   QA_AWS_ROLE_TO_ASSUME:
     required: true
     description: The AWS role to assume
-  QA_KUBECONFIG:
-    required: false
-    description: The kubernetes configuration to use
   CGO_ENABLED:
     required: false
     description: Whether to have cgo enabled, defaults to enabled
@@ -165,6 +162,15 @@ inputs:
   gati_token:
     required: false
     description: Token provided by GATI to pull from private repos
+  main-dns-zone:
+    required: true
+    description:
+      The primary DNS zone used in the hostname of the Kubernetes API endpoint.
+  k8s-cluster-name:
+    required: true
+    description:
+      The name of the Kubernetes cluster to be used in the `kubectl`
+      configuration for accessing the desired cluster.
 
 runs:
   using: composite
@@ -172,7 +178,7 @@ runs:
     # Setup Tools and libraries
     - name: Setup environment
       if: inputs.run_setup == 'true'
-      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@2c41e20994aa9c0ae1af1ab467c64ac4acb15f2d # ctf-setup-run-tests-environment@0.0.0
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@f2b2edb1a25dc1272132ea3cc5e226eadc3ddece # ctf-setup-run-tests-environment@v0.2.0
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
@@ -186,10 +192,11 @@ runs:
         dockerhub_password: ${{ inputs.dockerhub_password }}
         QA_AWS_REGION: ${{ inputs.QA_AWS_REGION }}
         QA_AWS_ROLE_TO_ASSUME: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
-        QA_KUBECONFIG: ${{ inputs.QA_KUBECONFIG }}
         should_tidy: ${{ inputs.should_tidy }}
         no_cache: ${{ inputs.no_cache }}
         gati_token: ${{ inputs.gati_token }}
+        main-dns-zone: ${{ inputs.main-dns-zone }}
+        k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
 
     - name: Replace chainlink/integration-tests deps
       if: ${{ inputs.dep_chainlink_integration_tests }}
@@ -312,6 +319,10 @@ runs:
       with:
         name: ${{ inputs.artifacts_name }}
         path: ${{ inputs.artifacts_location }}
+
+    - name: Collect local GAP (Envoy) proxy logs on failure
+      uses: jwalton/gh-docker-logs@2741064ab9d7af54b0b1ffb6076cf64c16f0220e # v2.2.2
+      if: failure()
 
     - name: cleanup
       if: always()
