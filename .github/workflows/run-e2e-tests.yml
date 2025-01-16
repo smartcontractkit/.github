@@ -66,6 +66,13 @@ on:
           'Run tests by trigger name. Example: "Run Nightly E2E Tests"'
         required: false
         type: string
+      test_secrets_override_key:
+        description:
+          'Key to use for overriding the default test secrets. Use "aws:" prefix
+          for AWS secrets. Example:
+          "aws:testsecrets/TEST_SECRETS_OVERRIDE_BASE64"'
+        required: false
+        type: string
       test_config_override_path:
         description:
           "Path to a test config file used to override the default test config"
@@ -282,16 +289,33 @@ jobs:
       require_chainlink_plugin_versions_in_qa_ecr_matrix:
         ${{ steps.set-required-chainlink-plugin-versions-matrix.outputs.versions
         }}
+      aws_test_secrets_key:
+        ${{ steps.check-inputs.outputs.aws_test_secrets_key }}
     steps:
       - name: Check input conditions
+        id: check-inputs
         run: |
           if [[ "${{ inputs.test_ids }}" != "" && "${{ inputs.test_trigger }}" != "" ]]; then
             echo "::error::Error: Both 'test_ids' and 'test_trigger' are provided. Please specify only one."
             exit 1
           fi
-          if [[ "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" != "" ]]; then
-            echo "Will run tests with custom test secrets"
+
+          # Check if both TEST_SECRETS_OVERRIDE_BASE64 and test_secrets_override_key starting with 'aws:' are set
+          if [[ "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" != "" && "${{ inputs.test_secrets_override_key }}" == aws:* ]]; then
+            echo "::error::Error: Both GitHub Secret and AWS Secret ('test_secrets_override_key' starting with 'aws:') are set. Please specify only one."
+            exit 1
           fi
+
+          # Inform if custom secrets are being used
+          if [[ "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" != "" ]]; then
+            echo "Will run tests with custom test secrets from GitHub Secret."
+          elif [[ "${{ inputs.test_secrets_override_key }}" == aws:* ]]; then
+            ORIGINAL_KEY="${{ inputs.test_secrets_override_key }}"
+            SECRET_ID="${ORIGINAL_KEY#aws:}"
+            echo "aws_test_secrets_key=$SECRET_ID" >> "$GITHUB_OUTPUT"
+            echo "Will run tests with custom test secrets from AWS Secrets Manager. AWS Secret ID: $SECRET_ID"
+          fi
+
       - name: Install jq
         run: sudo apt-get install jq
 
@@ -576,6 +600,7 @@ jobs:
     name: ${{ matrix.tests.id }}
     needs:
       [
+        validate-inputs,
         load-test-configurations,
         require-chainlink-image-versions-in-qa-ecr,
         require-chainlink-plugin-versions-in-qa-ecr,
@@ -688,6 +713,16 @@ jobs:
               echo "$key=$value" >> "$GITHUB_ENV"
             done
           fi
+
+      - name: Get Test Secrets from AWS Secret Manager
+        if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
+        id: aws-test-secrets
+        uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@921f4b0ca850dd473dcef9082e3169ccbb83cc52 # ctf-fetch-aws-secret@0.0.0
+        with:
+          secret_id: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
+          aws_region: ${{ secrets.QA_AWS_REGION }}
+          aws_role_to_assume: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
+
       - name: Run tests
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@5a52473d754eb3cfde41449437e320167bbbddf2 # ctf-run-tests@v0.4.1
@@ -719,7 +754,8 @@ jobs:
           test_download_vendor_packages_command:
             cd $(dirname ${{ matrix.tests.path }}) && go mod download
           test_secrets_override_base64:
-            ${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
+            ${{ steps.aws-test-secrets.outputs.secret_value ||
+            secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
@@ -876,6 +912,7 @@ jobs:
   run-k8s-runner-tests:
     needs:
       [
+        validate-inputs,
         load-test-configurations,
         get-remote-runner-test-image,
         require-chainlink-image-versions-in-qa-ecr,
@@ -954,6 +991,15 @@ jobs:
             done
           fi
 
+      - name: Get Test Secrets from AWS Secret Manager
+        if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
+        id: aws-test-secrets
+        uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@921f4b0ca850dd473dcef9082e3169ccbb83cc52 # ctf-fetch-aws-secret@0.0.0
+        with:
+          secret_id: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
+          aws_region: ${{ secrets.QA_AWS_REGION }}
+          aws_role_to_assume: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
+
       - name: Run tests
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@5a52473d754eb3cfde41449437e320167bbbddf2 # ctf-run-tests@v0.4.1
@@ -995,7 +1041,8 @@ jobs:
             -hidepassingtests=false' }}
           test_download_vendor_packages_command: make gomod
           test_secrets_override_base64:
-            ${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
+            ${{ steps.aws-test-secrets.outputs.secret_value ||
+            secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
