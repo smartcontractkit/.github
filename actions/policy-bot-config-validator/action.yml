@@ -84,7 +84,7 @@ runs:
 
     - name: Setup GAP
       if: inputs.setup-gap == 'true'
-      uses: smartcontractkit/.github/actions/setup-gap@62cce85edc60ba1f42ab9851f887f76ecce792df # setup-gap@3.4.0
+      uses: smartcontractkit/.github/actions/setup-gap@495d349ba13c395defc974be85747dae450eb3d7 # setup-gap@3.5.1
       with:
         aws-region: ${{ inputs.aws-region }}
         aws-role-arn: ${{ inputs.aws-role-arn }}
