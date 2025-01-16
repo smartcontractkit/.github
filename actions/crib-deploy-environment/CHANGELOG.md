@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 8.2.1
+
+### Patch Changes
+
+- [#810](https://github.com/smartcontractkit/.github/pull/810)
+  [`f8232f1`](https://github.com/smartcontractkit/.github/commit/f8232f166b39de28e50cdbe6968c13fd8d9251ad)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Use the latest
+  version of setup-gap action
+
 ## 8.2.0
 
 ### Minor Changes
