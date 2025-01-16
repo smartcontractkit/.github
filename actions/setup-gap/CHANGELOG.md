@@ -1,5 +1,14 @@
 # setup-gap
 
+## 3.5.1
+
+### Patch Changes
+
+- [#808](https://github.com/smartcontractkit/.github/pull/808)
+  [`f00a6a6`](https://github.com/smartcontractkit/.github/commit/f00a6a61af9004a16390bfa340ceb9c1277a1468)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Upgrade Envoy image
+  for setup-gap to v1.33.0
+
 ## 3.5.0
 
 ### Minor Changes
