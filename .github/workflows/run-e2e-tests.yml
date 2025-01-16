@@ -295,7 +295,10 @@ jobs:
       - name: Check input conditions
         id: check-inputs
         run: |
-          if [[ "${{ inputs.test_ids }}" != "" && "${{ inputs.test_trigger }}" != "" ]]; then
+          test_ids="${{ inputs.test_ids }}"
+          test_trigger="${{ inputs.test_trigger }}"
+
+          if [[ -n "$test_ids" && -n "$test_trigger" ]]; then
             echo "::error::Error: Both 'test_ids' and 'test_trigger' are provided. Please specify only one."
             exit 1
           fi
