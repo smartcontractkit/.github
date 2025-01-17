@@ -120,7 +120,6 @@ runs:
       # certificate signed by a trusted CA. Because this is for local TLS we can generate a CA, generate a server
       # certificate, sign the server certificate with the CA, and update the CA in the kubeconfig to trust it.
       # Also useful for other use-cases where a local TLS connection is required.
-      if: inputs.use-k8s == 'true' || inputs.use-tls == 'true'
       shell: bash
       env:
         GAP_NAME: ${{ inputs.gap-name }}
