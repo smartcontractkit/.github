@@ -1,5 +1,14 @@
 # setup-gap
 
+## 3.5.2
+
+### Patch Changes
+
+- [#817](https://github.com/smartcontractkit/.github/pull/817)
+  [`f73da48`](https://github.com/smartcontractkit/.github/commit/f73da48a9c58b1711311d97fc0492aaae25420e6)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Make sure we always
+  Generate SSL cert because we need to it for local proxy.
+
 ## 3.5.1
 
 ### Patch Changes
