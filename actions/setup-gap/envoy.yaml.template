@@ -146,7 +146,11 @@ static_resources:
                             request_handle:headers():remove("host")
                             request_handle:headers():add("host", "gap-k8s-api.${MAIN_DNS_ZONE}")
                             -- Used to match with correct Route, ex: smartcontractkit/repo-name-here
-                            request_handle:headers():add("x-repository", "${GITHUB_REPOSITORY}")
+                            if not request_handle:headers():get("x-repository") then
+                                request_handle:headers():add("x-repository", "${GITHUB_REPOSITORY}")
+                            else
+                                request_handle:logInfo("Skipping addition of 'x-repository' header as it is already present")
+                            end
                         end
                   - name: envoy.filters.http.router
                     typed_config:
@@ -361,7 +365,11 @@ static_resources:
                                 request_handle:logInfo("dynamic-proxy: Host does not match DNS zone or JWT token is not available. Skipping JWT addition.")
                             end
                             -- Used to match with correct Route, ex: smartcontractkit/repo-name-here
-                            request_handle:headers():add("x-repository", "${GITHUB_REPOSITORY}")
+                            if not request_handle:headers():get("x-repository") then
+                                request_handle:headers():add("x-repository", "${GITHUB_REPOSITORY}")
+                            else
+                                request_handle:logInfo("Skipping addition of 'x-repository' header as it is already present")
+                            end
                         end
                   - name: envoy.filters.http.router
                     typed_config:
