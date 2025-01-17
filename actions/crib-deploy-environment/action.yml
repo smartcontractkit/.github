@@ -85,9 +85,6 @@ inputs:
     description: |
       Specify a relevant value for tagging resources and attributing
       costs to the correct product.
-  k8s-api-endpoint:
-    required: true
-    description: "The Kubernetes API server's endpoint hostname."
   k8s-api-endpoint-port:
     required: false
     default: "443"
@@ -136,7 +133,6 @@ runs:
         github-oidc-token-header-name:
           ${{ inputs.github-oidc-token-header-name }}
         k8s-api-endpoint-port: ${{ inputs.k8s-api-endpoint-port }}
-        k8s-api-endpoint: ${{ inputs.k8s-api-endpoint }}
         k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
         use-k8s: true
         # Choose port that is less likely to be conflicting with other GAP
