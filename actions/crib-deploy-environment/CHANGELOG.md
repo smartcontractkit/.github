@@ -1,5 +1,15 @@
 # crib-deploy-environment
 
+## 8.3.0
+
+### Minor Changes
+
+- [#815](https://github.com/smartcontractkit/.github/pull/815)
+  [`4caf18b`](https://github.com/smartcontractkit/.github/commit/4caf18bd5e430eed152604c66715719fd453afbb)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Removing
+  k8s-api-endpoint input from crib-deploy-environment GH action. Please use
+  main-dns-zone to pass the DNS zone for the services
+
 ## 8.2.1
 
 ### Patch Changes
