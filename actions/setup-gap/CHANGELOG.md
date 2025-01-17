@@ -1,5 +1,14 @@
 # setup-gap
 
+## 3.5.3
+
+### Patch Changes
+
+- [#819](https://github.com/smartcontractkit/.github/pull/819)
+  [`0c1e820`](https://github.com/smartcontractkit/.github/commit/0c1e8206f6a55aa9304e7ee458889ed68f4f23aa)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Fixing the
+  x-repository header handling to avoid breaking the Lua filter.
+
 ## 3.5.2
 
 ### Patch Changes
