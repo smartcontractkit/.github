@@ -1,5 +1,15 @@
 # setup-gap
 
+## 3.5.4
+
+### Patch Changes
+
+- [#821](https://github.com/smartcontractkit/.github/pull/821)
+  [`7d8eceb`](https://github.com/smartcontractkit/.github/commit/7d8eceb13a564baaeff9d445baf70cd2a9cf5e71)
+  Thanks [@JooKop](https://github.com/JooKop)! - Fix the `setup-gap` action to
+  work without passing an AWS IAM Role ARN argument when no k8s API server
+  access is needed.
+
 ## 3.5.3
 
 ### Patch Changes
