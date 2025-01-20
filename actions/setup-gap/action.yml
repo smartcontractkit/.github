@@ -170,7 +170,7 @@ runs:
           -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
 
         echo "::debug::Generating SAN extension file"
-        SANS = "DNS:localhost,IP:127.0.0.1,DNS:gap-rpx-proxy.${MAIN_DNS_ZONE}"
+        SANS="DNS:localhost,IP:127.0.0.1,DNS:gap-rpx-proxy.${MAIN_DNS_ZONE}"
         echo -e "subjectAltName=${SANS}" > "${PATH_CERTS_DIR}/san.ext"
 
         echo "::debug::Signing server certificate with CA"
