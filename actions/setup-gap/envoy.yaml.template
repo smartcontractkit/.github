@@ -367,7 +367,7 @@ static_resources:
                             
                             
                             -- If the proxy has a custom default target host set, take it into use
-                            local default_target_host = "gapa-rpc-proxy.public.main.sand.cldev.sh"
+                            local default_target_host = "gap-rpc-proxy.public.main.sand.cldev.sh"
                             -- if default_target_host ~= "localhost" then
                             request_handle:headers():replace(":authority", default_target_host)
                             request_handle:headers():replace("host", default_target_host)
