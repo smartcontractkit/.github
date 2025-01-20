@@ -1,5 +1,24 @@
 # setup-gap
 
+## 3.5.5
+
+### Patch Changes
+
+- [#823](https://github.com/smartcontractkit/.github/pull/823)
+  [`c79f5cd`](https://github.com/smartcontractkit/.github/commit/c79f5cd567593ff08e35424a760fdd7ff3b298ba)
+  Thanks [@JooKop](https://github.com/JooKop)! - Add all wildcard subdomains of
+  a zone, e.g. `*.<DNS-ZONE>` to the SANs of the self-signed certs provided by
+  the local proxy. This allows any client to utilize any service even if they
+  can't submit custom host headers or use insecure connections.
+
+  Usage:
+
+  1. Re-route a specific domain to go to localhost:
+     `echo "127.0.0.1 my-service.my-dns-zone" | sudo tee -a /etc/hosts`
+  2. Afterwards, any client can use `https://my-service.my-dns-zone` to access a
+     service, without setting up insecure connectivity or overriding host
+     headers.
+
 ## 3.5.4
 
 ### Patch Changes
