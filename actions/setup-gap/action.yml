@@ -88,6 +88,13 @@ inputs:
     description: "The port the dynamic proxy will listen on. Defaults to 9090."
     required: false
     default: "9090"
+  dynamic-proxy-default-target-host:
+    description:
+      "The default target hostname for requests coming in to the dynamic proxy.
+      This allows connectivity to services from clients that don't allow setting
+      a custom host header"
+    required: false
+    default: "localhost"
   main-dns-zone:
     description:
       "The DNS zone is used for exposing services. It is required when using the
@@ -200,6 +207,7 @@ runs:
       shell: sh
       env:
         DYNAMIC_PROXY_PORT: ${{ inputs.dynamic-proxy-port }}
+        DYNAMIC_PROXY_DEFAULT_TARGET_HOST: ${{ inputs.dynamic-proxy-default-target-host }}
         ENABLE_PROXY_DEBUG: ${{ inputs.enable-proxy-debug }}
         GITHUB_OIDC_TOKEN_HEADER_NAME:
           ${{ inputs.github-oidc-token-header-name }}
@@ -213,7 +221,7 @@ runs:
         export GITHUB_OIDC_HOSTNAME=$(echo $ACTIONS_ID_TOKEN_REQUEST_URL | awk -F[/:] '{print $4}')
 
         # List of required ENVs to check
-        required_env_vars="DYNAMIC_PROXY_PORT ENABLE_PROXY_DEBUG GITHUB_OIDC_TOKEN_HEADER_NAME ENVOY_PROXY_IMAGE GITHUB_OIDC_HOSTNAME K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE PROXY_LOG_LEVEL PROXY_PORT GITHUB_REPOSITORY"
+        required_env_vars="DYNAMIC_PROXY_PORT DYNAMIC_PROXY_DEFAULT_TARGET_HOST ENABLE_PROXY_DEBUG GITHUB_OIDC_TOKEN_HEADER_NAME ENVOY_PROXY_IMAGE GITHUB_OIDC_HOSTNAME K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE PROXY_LOG_LEVEL PROXY_PORT GITHUB_REPOSITORY"
 
         # Loop through each variable and check if it's empty
         for var in $required_env_vars; do

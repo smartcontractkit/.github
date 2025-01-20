@@ -370,6 +370,11 @@ static_resources:
                             else
                                 request_handle:logInfo("Skipping addition of 'x-repository' header as it is already present")
                             end
+                            -- If the proxy has a custom default target host header set, take it into use
+                            local target_host = "${DYNAMIC_PROXY_DEFAULT_TARGET_HOST}"
+                            if target_host ~= "localhost" then
+                                request_handle:headers():replace("host", target_host)
+                            end
                         end
                   - name: envoy.filters.http.router
                     typed_config:
