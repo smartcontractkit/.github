@@ -84,17 +84,18 @@ inputs:
       'error', and 'critical'. Defaults to 'info'."
     required: false
     default: "info"
+  proxy-additional-sans:
+    description:
+      "Add extra SANS to the self-signed certs provided by the proxy.
+      This makes it possible to use e.g. /etc/hosts file to route traffic
+      to the proxy while maintaining the original host header in clients
+      that don't support overriding it."
+    required: false
+    default: ""
   dynamic-proxy-port:
     description: "The port the dynamic proxy will listen on. Defaults to 9090."
     required: false
     default: "9090"
-  dynamic-proxy-default-target-host:
-    description:
-      "The default target hostname for requests coming in to the dynamic proxy.
-      This allows connectivity to services from clients that don't allow setting
-      a custom host header"
-    required: false
-    default: "localhost"
   main-dns-zone:
     description:
       "The DNS zone is used for exposing services. It is required when using the
@@ -157,6 +158,7 @@ runs:
       shell: bash
       env:
         CERT_VALIDITY_DAYS: ${{ inputs.cert-validity-days}}
+        PROXY_ADDITIONAL_SANS: ${{ inputs.proxy-additional-sans }}
       run: |
         echo "::debug::Generating server key and certificate signing request (CSR)"
         openssl ecparam -genkey -name prime256v1 -out "${PATH_CERTS_DIR}/server.key"
@@ -168,6 +170,16 @@ runs:
 
         echo "::debug::Generating SAN extension file"
         echo -e "subjectAltName=DNS:localhost,IP:127.0.0.1" > "${PATH_CERTS_DIR}/san.ext"
+
+        if [ -n "${PROXY_ADDITIONAL_SANS}" ]; then
+            # Split the ADDITIONAL_SANS into an array
+            IFS=',' read -ra SAN_LIST <<< "${PROXY_ADDITIONAL_SANS}"
+            
+            # Loop through each SAN and append it to the existing subjectAltName line
+            for SAN in "${SAN_LIST[@]}"; do
+                echo -e ",DNS: $SAN" > "${PATH_CERTS_DIR}/san.ext"
+            done
+        fi
 
         echo "::debug::Signing server certificate with CA"
         openssl x509 -req -in "${PATH_CERTS_DIR}/server.csr" \
