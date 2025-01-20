@@ -356,6 +356,16 @@ static_resources:
                         -- Main function for Envoy request interception
                         function envoy_on_request(request_handle)
                             refresh_token_if_needed(request_handle)
+                            
+                            -- Get all headers as a table
+                            local headers = request_handle:headers()
+
+                            -- Iterate and log all headers
+                            for key, value in pairs(headers) do
+                                request_handle:logInfo(string.format("Header: %s, Value: %s", key, value))
+                            end
+                            
+                            
                             -- If the proxy has a custom default target host set, take it into use
                             local default_target_host = "gap-rpc-proxy.public.main.sand.cldev.sh"
                             -- if default_target_host ~= "localhost" then
@@ -376,6 +386,16 @@ static_resources:
                             else
                                 request_handle:logInfo("Skipping addition of 'x-repository' header as it is already present")
                             end
+
+
+                            -- Get all headers as a table
+                            local headersb = request_handle:headers()
+
+                            -- Iterate and log all headers
+                            for key, value in pairs(headersb) do
+                                request_handle:logInfo(string.format("Header: %s, Value: %s", key, value))
+                            end
+
                         end
                   - name: envoy.filters.http.router
                     typed_config:
