@@ -356,7 +356,6 @@ static_resources:
                         -- Main function for Envoy request interception
                         function envoy_on_request(request_handle)
                             refresh_token_if_needed(request_handle)
-                            
                             local host = request_handle:headers():get(":authority")
                             if jwt_token and host:match(main_dns_zone .. "$") then
                                 request_handle:headers():add("${GITHUB_OIDC_TOKEN_HEADER_NAME}", "Bearer " .. jwt_token)
