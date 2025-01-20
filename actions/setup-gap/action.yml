@@ -159,6 +159,7 @@ runs:
       env:
         CERT_VALIDITY_DAYS: ${{ inputs.cert-validity-days}}
         PROXY_ADDITIONAL_SANS: ${{ inputs.proxy-additional-sans }}
+        MAIN_DNS_ZONE: ${{ inputs.main-dns-zone }}
       run: |
         echo "::debug::Generating server key and certificate signing request (CSR)"
         openssl ecparam -genkey -name prime256v1 -out "${PATH_CERTS_DIR}/server.key"
@@ -169,17 +170,8 @@ runs:
           -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
 
         echo "::debug::Generating SAN extension file"
-        echo -e "subjectAltName=DNS:localhost,IP:127.0.0.1" > "${PATH_CERTS_DIR}/san.ext"
-
-        if [ -n "${PROXY_ADDITIONAL_SANS}" ]; then
-            # Split the ADDITIONAL_SANS into an array
-            IFS=',' read -ra SAN_LIST <<< "${PROXY_ADDITIONAL_SANS}"
-            
-            # Loop through each SAN and append it to the existing subjectAltName line
-            for SAN in "${SAN_LIST[@]}"; do
-                sed -i "s/$/,DNS:${SAN}/" "${PATH_CERTS_DIR}/san.ext"
-            done
-        fi
+        SANS = "DNS:localhost,IP:127.0.0.1,DNS:gap-rpx-proxy.${MAIN_DNS_ZONE}"
+        echo -e "subjectAltName=${SANS}" > "${PATH_CERTS_DIR}/san.ext"
 
         echo "::debug::Signing server certificate with CA"
         openssl x509 -req -in "${PATH_CERTS_DIR}/server.csr" \
