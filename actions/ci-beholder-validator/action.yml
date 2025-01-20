@@ -1,0 +1,101 @@
+name: "Schema Validator Action"
+description: "Validates schema compatibility with schema registry"
+
+inputs:
+  checkout-repo:
+    description: "Whether to checkout the repository"
+    required: false
+    default: "true"
+  checkout-repo-fetch-depth:
+    description: "Fetch depth for checkout"
+    required: false
+    default: "0"
+  docker-registry:
+    description: "Docker registry to use"
+    required: true
+    default: "aws"
+  # aws inputs
+  aws-role-duration-seconds:
+    description: ""
+    required: false
+    default: "900"
+  aws-region:
+    description: ""
+    required: false
+  aws-account-number:
+    description: ""
+    required: false
+  aws-role-arn:
+    description: ""
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@v4.2.1
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+    - name: Detect changed files
+      id: changes
+      shell: bash
+      run:
+        echo "CHANGED_FILES=$(git diff --name-only origin/master)" >>
+        $GITHUB_ENV
+    - name: Start Redpanda with Docker Compose
+      shell: bash
+      run: |
+        docker compose up -d redpanda-console
+    - name: Configure aws creds
+      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+      if: inputs.docker-registry == 'aws'
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+        aws-region: ${{ inputs.aws-region }}
+        mask-aws-account-id: true
+    - name: Login to aws ecr
+      if: inputs.docker-registry == 'aws'
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      with:
+        registries: ${{ steps.process-params.outputs.aws-account-number }}
+    - name: Pull schema-validator image from ECR
+      shell: bash
+      run: |
+        docker pull ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:latest
+    - name: Run Schema Validator
+      shell: bash
+      run: |
+        docker run -v "$PWD:/app/repo" \
+        --network redpanda_network \
+        -e SCHEMA_REGISTRY_URL=http://redpanda:8081 \
+        <your-ecr-repo-name>:latest \
+        --config-file /app/repo/config.yaml
+    - name: Validate schemas in master branch
+      if: steps.set_mode.outputs.mode == 'pr'
+      shell: bash
+      run: |
+        # Store current branch
+        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+        # Checkout and validate master
+        git checkout master
+        docker run -v "$PWD:/app/repo" \
+        --network redpanda_network \
+        -e SCHEMA_REGISTRY_URL=http://redpanda:8081 \
+        atlas-beholder-schema-validator:latest \
+        validate --phase master
+
+        # Return to original branch
+        git checkout $CURRENT_BRANCH
+
+    - name: Validate schemas in current branch
+      shell: bash
+      run: |
+        docker run -v "$PWD:/app/repo" \
+        --network redpanda_network \
+        -e SCHEMA_REGISTRY_URL=http://redpanda:8081 \
+        -e CHANGED_FILES="$CHANGED_FILES" \
+        atlas-beholder-schema-validator:latest \
+        validate --phase pr
