@@ -177,7 +177,7 @@ runs:
             
             # Loop through each SAN and append it to the existing subjectAltName line
             for SAN in "${SAN_LIST[@]}"; do
-                sed -i "s/$/,${SAN}/" "${PATH_CERTS_DIR}/san.ext"
+                sed -i "s/$/,DNS:${SAN}/" "${PATH_CERTS_DIR}/san.ext"
             done
         fi
 
