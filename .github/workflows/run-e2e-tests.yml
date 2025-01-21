@@ -358,6 +358,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
       - name: Install citool
         shell: bash
         run: go install
@@ -402,6 +404,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
       - name: Setup Go
         uses: actions/setup-go@v5.0.2
         with:
@@ -547,6 +551,8 @@ jobs:
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Get Chainlink image
         uses: ./.github/actions/build-chainlink-image
@@ -584,6 +590,8 @@ jobs:
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Get Chainlink plugins image
         uses: ./.github/actions/build-chainlink-image
@@ -636,6 +644,8 @@ jobs:
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -888,6 +898,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
       - name: Build Test Runner Image
         id: build-test-runner-image
         uses: smartcontractkit/.github/actions/ctf-build-test-image@main # main branch
@@ -949,6 +961,8 @@ jobs:
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
       - name: Install jq
         run: sudo apt-get install -y jq
 

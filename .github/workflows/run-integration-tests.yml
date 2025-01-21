@@ -120,6 +120,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
       - name: Setup Go
         uses: actions/setup-go@v5.0.2
         with:
@@ -199,6 +201,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
       - name: Wait for postgres to be ready
         run: |
           until pg_isready -h localhost -p 5432 -U postgres; do
