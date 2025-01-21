@@ -294,14 +294,18 @@ jobs:
     steps:
       - name: Check input conditions
         id: check-inputs
+        env:
+          TEST_IDS: ${{ inputs.test_ids }}
+          TEST_TRIGGER: ${{ inputs.test_trigger }}
+          TEST_SECRETS_OVERRIDE_KEY: ${{ inputs.test_secrets_override_key }}
         run: |
-          if [[ "${{ inputs.test_ids }}" != "" && "${{ inputs.test_trigger }}" != "" ]]; then
+          if [[ "$TEST_IDS" != "" && "$TEST_TRIGGER" != "" ]]; then
             echo "::error::Error: Both 'test_ids' and 'test_trigger' are provided. Please specify only one."
             exit 1
           fi
 
           # Check if both TEST_SECRETS_OVERRIDE_BASE64 and test_secrets_override_key starting with 'aws:' are set
-          if [[ "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" != "" && "${{ inputs.test_secrets_override_key }}" == aws:* ]]; then
+          if [[ "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" != "" && "$TEST_SECRETS_OVERRIDE_KEY" == aws:* ]]; then
             echo "::error::Error: Both GitHub Secret and AWS Secret ('test_secrets_override_key' starting with 'aws:') are set. Please specify only one."
             exit 1
           fi
@@ -309,8 +313,8 @@ jobs:
           # Inform if custom secrets are being used
           if [[ "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" != "" ]]; then
             echo "Will run tests with custom test secrets from GitHub Secret."
-          elif [[ "${{ inputs.test_secrets_override_key }}" == aws:* ]]; then
-            ORIGINAL_KEY="${{ inputs.test_secrets_override_key }}"
+          elif [[ "$TEST_SECRETS_OVERRIDE_KEY" == aws:* ]]; then
+            ORIGINAL_KEY="$TEST_SECRETS_OVERRIDE_KEY"
             SECRET_ID="${ORIGINAL_KEY#aws:}"
             echo "aws_test_secrets_key=$SECRET_ID" >> "$GITHUB_OUTPUT"
             echo "Will run tests with custom test secrets from AWS Secrets Manager. AWS Secret ID: $SECRET_ID"
@@ -322,8 +326,11 @@ jobs:
       - name: Create matrix for required Chainlink image versions
         id: set-required-chainlink-image-versions-matrix
         shell: bash
+        env:
+          REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR:
+            ${{ inputs.require_chainlink_image_versions_in_qa_ecr }}
         run: |
-          image_versions="${{ inputs.require_chainlink_image_versions_in_qa_ecr }}"
+          image_versions="$REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR"
           default_version="${{ env.DEFAULT_CHAINLINK_VERSION }}"
           current_sha="${{ github.sha }}"
 
@@ -345,8 +352,11 @@ jobs:
       - name: Create matrix for required Chainlink plugin versions
         id: set-required-chainlink-plugin-versions-matrix
         shell: bash
+        env:
+          REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR:
+            ${{ inputs.require_chainlink_image_versions_in_qa_ecr }}
         run: |
-          image_versions=$(echo "${{ inputs.require_chainlink_plugin_versions_in_qa_ecr }}" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
+          image_versions=$(echo "$REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
           echo "Required Chainlink plugin image versions: $image_versions"
           echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
 
@@ -365,9 +375,12 @@ jobs:
         run: go install
           github.com/smartcontractkit/chainlink-testing-framework/tools/citool@83100a879006dde55ace09a5dfd99b37e62f5a3f # v1.34.4
       - name: Run Check Tests Command
+        env:
+          TEST_PATH: ${{ inputs.test_path }}
+          CHECK_TEST_PATH: ${{ inputs.check_test_path }}
         run: |
-          if ! citool check-tests ${{ github.workspace }}/${{ inputs.check_test_path }} ${{ github.workspace }}/${{ inputs.test_path }}; then
-            echo "::error::Some E2E test configurations have to be added to ${{ inputs.test_path }}. This file defines Github CI configuration for each E2E test or set of E2E tests." && exit 1
+          if ! citool check-tests "${{ github.workspace }}/$CHECK_TEST_PATH" "${{ github.workspace }}/$TEST_PATH"; then
+            echo "::error::Some E2E test configurations have to be added to $TEST_PATH. This file defines Github CI configuration for each E2E test or set of E2E tests." && exit 1
           fi
 
   get_latest_chainlink_release_version:
@@ -421,14 +434,20 @@ jobs:
       - name: Generate Docker Tests Matrix
         id: set-docker-matrix
         shell: bash
+        env:
+          CUSTOM_TEST_LIST_JSON: ${{ inputs.custom_test_list_json }}
+          TEST_PATH: ${{ inputs.test_path }}
+          TEST_LIST: ${{ inputs.test_list }}
+          TEST_IDS: ${{ inputs.test_ids }}
+          TEST_TRIGGER: ${{ inputs.test_trigger }}
         run: |
           # Check if custom_test_list_json is provided and non-empty
-          if [[ -n '${{ inputs.custom_test_list_json }}' ]]; then
+          if [[ -n '$CUSTOM_TEST_LIST_JSON' ]]; then
             echo "Using custom test list JSON"
-            MATRIX_JSON=$(echo '${{ inputs.custom_test_list_json }}' | jq -c '{tests: [.tests[] | select(.test_env_type == "docker")]}')
+            MATRIX_JSON=$(echo '$CUSTOM_TEST_LIST_JSON' | jq -c '{tests: [.tests[] | select(.test_env_type == "docker")]}')
           else
             echo "Using default test list"
-            MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'docker' --test-list '${{ inputs.test_list }}' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}')
+            MATRIX_JSON=$(citool filter --file "${{ github.workspace }}/$TEST_PATH" --test-env-type 'docker' --test-list "$TEST_LIST" --test-ids "$TEST_IDS" --workflow "$TEST_TRIGGER")
           fi
 
           echo "Docker tests:"
@@ -438,14 +457,20 @@ jobs:
       - name: Generate K8s Tests Matrix
         id: set-k8s-runner-matrix
         shell: bash
+        env:
+          CUSTOM_TEST_LIST_JSON: ${{ inputs.custom_test_list_json }}
+          TEST_PATH: ${{ inputs.test_path }}
+          TEST_LIST: ${{ inputs.test_list }}
+          TEST_IDS: ${{ inputs.test_ids }}
+          TEST_TRIGGER: ${{ inputs.test_trigger }}
         run: |
           # Check if custom_test_list_json is provided and non-empty
-          if [[ -n '${{ inputs.custom_test_list_json }}' ]]; then
+          if [[ -n "$CUSTOM_TEST_LIST_JSON" ]]; then
             echo "Using custom test list JSON"
-            MATRIX_JSON=$(echo '${{ inputs.custom_test_list_json }}' | jq -c '{tests: [.tests[] | select(.test_env_type == "k8s-remote-runner")]}')
+            MATRIX_JSON=$(echo "$CUSTOM_TEST_LIST_JSON" | jq -c '{tests: [.tests[] | select(.test_env_type == "k8s-remote-runner")]}')
           else
             echo "Using default test list"
-            MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'k8s-remote-runner' --test-list '${{ inputs.test_list }}' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}')
+            MATRIX_JSON=$(citool filter --file "${{ github.workspace }}/$TEST_PATH" --test-env-type 'k8s-remote-runner' --test-list "$TEST_LIST" --test-ids "$TEST_IDS" --workflow "$TEST_TRIGGER")
           fi
 
           echo "K8s tests:"
@@ -485,14 +510,18 @@ jobs:
 
       - name: Check if team is required
         if: ${{ steps.check-matrices.outputs.run-k8s-tests == 'true' }}
+        env:
+          TEAM: ${{ inputs.team }}
         run: |
-          if [[ -z "${{ inputs.team }}" ]]; then
+          if [[ -z "$TEAM" ]]; then
             echo "Team is required for k8s tests"
             exit 1
           fi
 
       - name: Check if test secrets are required for any test
         shell: bash
+        env:
+          TEST_PATH: ${{ inputs.test_path }}
         run: |
           # Check if the test secret key is provided and skip the checks if it is non-empty
           if [ -n "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" ]; then
@@ -507,7 +536,7 @@ jobs:
 
           # Determine if any tests require secrets
           if [ -n "$DOCKER_TESTS_REQUIRING_SECRETS" ] || [ -n "$K8S_TESTS_REQUIRING_SECRETS" ]; then
-            echo "Tests in ${{ github.workspace }}/${{ inputs.test_path }} requiring custom test secrets:"
+            echo "Tests in ${{ github.workspace }}/$TEST_PATH requiring custom test secrets:"
             if [ -n "$DOCKER_TESTS_REQUIRING_SECRETS" ]; then
               echo "$DOCKER_TESTS_REQUIRING_SECRETS"
             fi
@@ -911,14 +940,17 @@ jobs:
           suites: ${{ inputs.test_image_suites }}
       - name: Set Remote Runner Version
         id: set-remote-runner-version
+        env:
+          WITH_EXISTING_REMOTE_RUNNER_VERSION:
+            ${{ inputs.with_existing_remote_runner_version }}
         run: |
           # shellcheck disable=SC2129
-          if [[ -z "${{ inputs.with_existing_remote_runner_version }}" ]]; then
+          if [[ -z "$WITH_EXISTING_REMOTE_RUNNER_VERSION" ]]; then
             echo "remote-runner-image=${{ steps.build-test-runner-image.outputs.test_image }}" >> "$GITHUB_OUTPUT"
             echo "remote-runner-repository=${{ steps.build-test-runner-image.outputs.test_image_repository }}" >> "$GITHUB_OUTPUT"
             echo "remote-runner-version=${{ steps.build-test-runner-image.outputs.test_image_tag }}" >> "$GITHUB_OUTPUT"
           else
-            echo "remote-runner-version=${{ inputs.with_existing_remote_runner_version }}" >> "$GITHUB_OUTPUT"
+            echo "remote-runner-version=$WITH_EXISTING_REMOTE_RUNNER_VERSION" >> "$GITHUB_OUTPUT"
           fi
 
   run-k8s-runner-tests:

@@ -135,9 +135,13 @@ jobs:
       - name: Generate Tests Matrix
         id: set-matrix
         shell: bash
+        env:
+          TEST_PATH: ${{ inputs.test_path }}
+          TEST_IDS: ${{ inputs.test_ids }}
+          TEST_TRIGGER: ${{ inputs.test_trigger }}
         run: |
           echo "Using default test list"
-          MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'in-memory' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}')
+          MATRIX_JSON=$(citool filter --file "${{ github.workspace }}/$TEST_PATH" --test-env-type 'in-memory' --test-ids "$TEST_IDS" --workflow "$TEST_TRIGGER")
           echo "Tests:"
           echo "$MATRIX_JSON" | jq
           echo "matrix=$MATRIX_JSON" >> "$GITHUB_OUTPUT"
