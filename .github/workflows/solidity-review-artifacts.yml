@@ -255,7 +255,7 @@ jobs:
           product: ${{ inputs.product }}
           LCOV_PRUNE_SCRIPT_PATH: ${{ inputs.lcov_prune_script_path }}
         run: |
-          $LCOV_PRUNE_SCRIPT_PATH  $PRODUCT code-coverage/lcov.info code-coverage/lcov.info.pruned
+          "$LCOV_PRUNE_SCRIPT_PATH" "$PRODUCT" code-coverage/lcov.info code-coverage/lcov.info.pruned
 
       - name: Generate Code Coverage HTML report for product contracts
         if: ${{ inputs.generate_code_coverage == true }}

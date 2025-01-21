@@ -442,9 +442,9 @@ jobs:
           TEST_TRIGGER: ${{ inputs.test_trigger }}
         run: |
           # Check if custom_test_list_json is provided and non-empty
-          if [[ -n '$CUSTOM_TEST_LIST_JSON' ]]; then
+          if [[ -n "$CUSTOM_TEST_LIST_JSON" ]]; then
             echo "Using custom test list JSON"
-            MATRIX_JSON=$(echo '$CUSTOM_TEST_LIST_JSON' | jq -c '{tests: [.tests[] | select(.test_env_type == "docker")]}')
+            MATRIX_JSON=$(echo "$CUSTOM_TEST_LIST_JSON" | jq -c '{tests: [.tests[] | select(.test_env_type == "docker")]}')
           else
             echo "Using default test list"
             MATRIX_JSON=$(citool filter --file "${{ github.workspace }}/$TEST_PATH" --test-env-type 'docker' --test-list "$TEST_LIST" --test-ids "$TEST_IDS" --workflow "$TEST_TRIGGER")
