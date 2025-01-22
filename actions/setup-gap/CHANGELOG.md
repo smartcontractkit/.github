@@ -1,5 +1,14 @@
 # setup-gap
 
+## 3.5.6
+
+### Patch Changes
+
+- [#827](https://github.com/smartcontractkit/.github/pull/827)
+  [`b900b78`](https://github.com/smartcontractkit/.github/commit/b900b78853c33c55bcb0b3f6bbafd95f124fe97e)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Ensure the local
+  proxy always sets the JWT header even if it's provided by the client
+
 ## 3.5.5
 
 ### Patch Changes
