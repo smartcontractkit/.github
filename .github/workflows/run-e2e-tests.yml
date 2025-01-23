@@ -277,6 +277,7 @@ env:
   E2E_RMN_AFN2PROXY_IMAGE:
     ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
     secrets.AWS_REGION}}.amazonaws.com/afn2proxy
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
 jobs:
   validate-inputs:
