@@ -490,9 +490,15 @@ jobs:
       - name: Check if test secrets are required for any test
         shell: bash
         run: |
-          # Check if the test secret key is provided and skip the checks if it is non-empty
+          # Check if the test secret key is provided from Github Secrets and skip the checks if it is non-empty
           if [ -n "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" ]; then
             echo "Test secret key provided. Skipping checks for tests requiring secrets."
+            exit 0
+          fi
+
+          # Check if the test secret key is provided from AWS Secrets and skip the checks if it is non-empty
+          if [[ "${{ inputs.test_secrets_override_key }}" == aws:* ]]; then
+            echo "Test secrets from AWS Secrets Manager provided. Skipping checks for tests requiring secrets."
             exit 0
           fi
 
