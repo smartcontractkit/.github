@@ -767,7 +767,7 @@ jobs:
           INTERNAL_DOCKER_REPO:
             ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
             secrets.QA_AWS_REGION }}.amazonaws.com
-          GATI_TOKEN:
+          GITHUB_TOKEN:
             ${{ steps.setup-optional-gati-token.outputs.access-token || ''}}
         with:
           test_command_to_run:
