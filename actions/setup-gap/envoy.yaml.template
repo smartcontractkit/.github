@@ -240,6 +240,7 @@ static_resources:
                           typed_per_filter_config:
                             envoy.filters.http.dynamic_forward_proxy:
                               '@type': type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.PerRouteConfig
+                upgrade_configs: []  # Disables all upgrades
                 http_filters:
                   - name: envoy.filters.http.dynamic_forward_proxy
                     typed_config:
