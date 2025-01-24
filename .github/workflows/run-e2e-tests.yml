@@ -223,8 +223,6 @@ on:
         required: true
       GH_TOKEN:
         required: true
-      GATI_GH_TOKEN:
-        required: false
       AWS_REGION:
         required: true
       AWS_OIDC_IAM_ROLE_VALIDATION_PROD_ARN:
