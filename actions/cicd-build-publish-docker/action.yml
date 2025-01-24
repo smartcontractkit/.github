@@ -40,6 +40,10 @@ inputs:
     description: Path to dockerfile
     required: false
     default: "Dockerfile"
+  context:
+    description:
+      "Build's context is the set of files located in the specified PATH or URL"
+    required: false
   multi-platform:
     description: Whether to build for multiple platforms
     required: false
@@ -118,6 +122,7 @@ runs:
       with:
         push: ${{ inputs.publish }}
         file: ${{ inputs.dockerfile }}
+        context: ${{ inputs.context }}
         tags: ${{ steps.docker_meta.outputs.tags }}
         labels: ${{ steps.docker_meta.outputs.labels }}
         platforms: ${{ inputs.platforms }}
