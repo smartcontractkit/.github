@@ -27,7 +27,7 @@ runs:
   steps:
     - name: Setup tar default options
       shell: bash
-      # Do not overwrite existing files when extracting files from an cache archive.
+      # Do not overwrite existing files when extracting files from a cache archive.
       # Since actions/cache does not support this option, we set it here as a default.
       run: echo "TAR_OPTIONS=--skip-old-files" >> $GITHUB_ENV
 
