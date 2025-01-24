@@ -742,7 +742,7 @@ jobs:
           aws-role-arn: ${{ secrets.OPTIONAL_GATI_AWS_ROLE_ARN }}
           aws-lambda-url: ${{ secrets.OPTIONAL_GATI_LAMBDA_URL }}
           aws-region: ${{ secrets.AWS_REGION }}
-          aws-role-duration-seconds: "720"
+          aws-role-duration-seconds: "1800"
 
       - name: Run tests
         id: run_tests
