@@ -1,5 +1,13 @@
 # crib-deploy-environment
 
+## 8.4.0
+
+### Minor Changes
+
+- [#832](https://github.com/smartcontractkit/.github/pull/832)
+  [`63bc25d`](https://github.com/smartcontractkit/.github/commit/63bc25dbdcdf6c9953ae4676ea7f3ddaef8d457e)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Bump crib repo ref
+
 ## 8.3.1
 
 ### Patch Changes

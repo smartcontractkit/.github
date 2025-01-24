@@ -1,5 +1,14 @@
 # setup-golang
 
+## 0.2.3
+
+### Patch Changes
+
+- [#839](https://github.com/smartcontractkit/.github/pull/839)
+  [`e11dad2`](https://github.com/smartcontractkit/.github/commit/e11dad26e54b45a6db2dd400c300f8d221965dac)
+  Thanks [@DimitriosNaikopoulos](https://github.com/DimitriosNaikopoulos)! -
+  Remove caching errors because of tar
+
 ## 0.2.2
 
 ### Patch Changes
