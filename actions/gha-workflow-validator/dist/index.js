@@ -728,7 +728,7 @@ var require_tunnel = __commonJS({
         connectOptions.headers = connectOptions.headers || {};
         connectOptions.headers["Proxy-Authorization"] = "Basic " + new Buffer(connectOptions.proxyAuth).toString("base64");
       }
-      debug7("making CONNECT request");
+      debug8("making CONNECT request");
       var connectReq = self.request(connectOptions);
       connectReq.useChunkedEncodingByDefault = false;
       connectReq.once("response", onResponse);
@@ -748,7 +748,7 @@ var require_tunnel = __commonJS({
         connectReq.removeAllListeners();
         socket.removeAllListeners();
         if (res.statusCode !== 200) {
-          debug7(
+          debug8(
             "tunneling socket could not be established, statusCode=%d",
             res.statusCode
           );
@@ -760,7 +760,7 @@ var require_tunnel = __commonJS({
           return;
         }
         if (head.length > 0) {
-          debug7("got illegal response body from proxy");
+          debug8("got illegal response body from proxy");
           socket.destroy();
           var error3 = new Error("got illegal response body from proxy");
           error3.code = "ECONNRESET";
@@ -768,13 +768,13 @@ var require_tunnel = __commonJS({
           self.removeSocket(placeholder);
           return;
         }
-        debug7("tunneling connection has established");
+        debug8("tunneling connection has established");
         self.sockets[self.sockets.indexOf(placeholder)] = socket;
         return cb(socket);
       }
       function onError(cause) {
         connectReq.removeAllListeners();
-        debug7(
+        debug8(
           "tunneling socket could not be established, cause=%s\n",
           cause.message,
           cause.stack
@@ -836,9 +836,9 @@ var require_tunnel = __commonJS({
       }
       return target;
     }
-    var debug7;
+    var debug8;
     if (process.env.NODE_DEBUG && /\btunnel\b/.test(process.env.NODE_DEBUG)) {
-      debug7 = function() {
+      debug8 = function() {
         var args = Array.prototype.slice.call(arguments);
         if (typeof args[0] === "string") {
           args[0] = "TUNNEL: " + args[0];
@@ -848,10 +848,10 @@ var require_tunnel = __commonJS({
         console.error.apply(console, args);
       };
     } else {
-      debug7 = function() {
+      debug8 = function() {
       };
     }
-    exports2.debug = debug7;
+    exports2.debug = debug8;
   }
 });
 
@@ -16797,12 +16797,12 @@ var require_lib = __commonJS({
             throw new Error("Client has already been disposed.");
           }
           const parsedUrl = new URL(requestUrl);
-          let info3 = this._prepareRequest(verb, parsedUrl, headers);
+          let info4 = this._prepareRequest(verb, parsedUrl, headers);
           const maxTries = this._allowRetries && RetryableHttpVerbs.includes(verb) ? this._maxRetries + 1 : 1;
           let numTries = 0;
           let response;
           do {
-            response = yield this.requestRaw(info3, data);
+            response = yield this.requestRaw(info4, data);
             if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
               let authenticationHandler;
               for (const handler of this.handlers) {
@@ -16812,7 +16812,7 @@ var require_lib = __commonJS({
                 }
               }
               if (authenticationHandler) {
-                return authenticationHandler.handleAuthentication(this, info3, data);
+                return authenticationHandler.handleAuthentication(this, info4, data);
               } else {
                 return response;
               }
@@ -16835,8 +16835,8 @@ var require_lib = __commonJS({
                   }
                 }
               }
-              info3 = this._prepareRequest(verb, parsedRedirectUrl, headers);
-              response = yield this.requestRaw(info3, data);
+              info4 = this._prepareRequest(verb, parsedRedirectUrl, headers);
+              response = yield this.requestRaw(info4, data);
               redirectsRemaining--;
             }
             if (!response.message.statusCode || !HttpResponseRetryCodes.includes(response.message.statusCode)) {
@@ -16865,7 +16865,7 @@ var require_lib = __commonJS({
        * @param info
        * @param data
        */
-      requestRaw(info3, data) {
+      requestRaw(info4, data) {
         return __awaiter(this, void 0, void 0, function* () {
           return new Promise((resolve, reject) => {
             function callbackForResult(err, res) {
@@ -16877,7 +16877,7 @@ var require_lib = __commonJS({
                 resolve(res);
               }
             }
-            this.requestRawWithCallback(info3, data, callbackForResult);
+            this.requestRawWithCallback(info4, data, callbackForResult);
           });
         });
       }
@@ -16887,12 +16887,12 @@ var require_lib = __commonJS({
        * @param data
        * @param onResult
        */
-      requestRawWithCallback(info3, data, onResult) {
+      requestRawWithCallback(info4, data, onResult) {
         if (typeof data === "string") {
-          if (!info3.options.headers) {
-            info3.options.headers = {};
+          if (!info4.options.headers) {
+            info4.options.headers = {};
           }
-          info3.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
+          info4.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
         }
         let callbackCalled = false;
         function handleResult(err, res) {
@@ -16901,7 +16901,7 @@ var require_lib = __commonJS({
             onResult(err, res);
           }
         }
-        const req = info3.httpModule.request(info3.options, (msg) => {
+        const req = info4.httpModule.request(info4.options, (msg) => {
           const res = new HttpClientResponse(msg);
           handleResult(void 0, res);
         });
@@ -16913,7 +16913,7 @@ var require_lib = __commonJS({
           if (socket) {
             socket.end();
           }
-          handleResult(new Error(`Request timeout: ${info3.options.path}`));
+          handleResult(new Error(`Request timeout: ${info4.options.path}`));
         });
         req.on("error", function(err) {
           handleResult(err);
@@ -16949,27 +16949,27 @@ var require_lib = __commonJS({
         return this._getProxyAgentDispatcher(parsedUrl, proxyUrl);
       }
       _prepareRequest(method, requestUrl, headers) {
-        const info3 = {};
-        info3.parsedUrl = requestUrl;
-        const usingSsl = info3.parsedUrl.protocol === "https:";
-        info3.httpModule = usingSsl ? https : http;
+        const info4 = {};
+        info4.parsedUrl = requestUrl;
+        const usingSsl = info4.parsedUrl.protocol === "https:";
+        info4.httpModule = usingSsl ? https : http;
         const defaultPort = usingSsl ? 443 : 80;
-        info3.options = {};
-        info3.options.host = info3.parsedUrl.hostname;
-        info3.options.port = info3.parsedUrl.port ? parseInt(info3.parsedUrl.port) : defaultPort;
-        info3.options.path = (info3.parsedUrl.pathname || "") + (info3.parsedUrl.search || "");
-        info3.options.method = method;
-        info3.options.headers = this._mergeHeaders(headers);
+        info4.options = {};
+        info4.options.host = info4.parsedUrl.hostname;
+        info4.options.port = info4.parsedUrl.port ? parseInt(info4.parsedUrl.port) : defaultPort;
+        info4.options.path = (info4.parsedUrl.pathname || "") + (info4.parsedUrl.search || "");
+        info4.options.method = method;
+        info4.options.headers = this._mergeHeaders(headers);
         if (this.userAgent != null) {
-          info3.options.headers["user-agent"] = this.userAgent;
+          info4.options.headers["user-agent"] = this.userAgent;
         }
-        info3.options.agent = this._getAgent(info3.parsedUrl);
+        info4.options.agent = this._getAgent(info4.parsedUrl);
         if (this.handlers) {
           for (const handler of this.handlers) {
-            handler.prepareRequest(info3.options);
+            handler.prepareRequest(info4.options);
           }
         }
-        return info3;
+        return info4;
       }
       _mergeHeaders(headers) {
         if (this.requestOptions && this.requestOptions.headers) {
@@ -17807,26 +17807,26 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       return process.env["RUNNER_DEBUG"] === "1";
     }
     exports2.isDebug = isDebug;
-    function debug7(message) {
+    function debug8(message) {
       command_1.issueCommand("debug", {}, message);
     }
-    exports2.debug = debug7;
+    exports2.debug = debug8;
     function error3(message, properties = {}) {
       command_1.issueCommand("error", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
     exports2.error = error3;
-    function warning6(message, properties = {}) {
+    function warning7(message, properties = {}) {
       command_1.issueCommand("warning", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
-    exports2.warning = warning6;
+    exports2.warning = warning7;
     function notice(message, properties = {}) {
       command_1.issueCommand("notice", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
     exports2.notice = notice;
-    function info3(message) {
+    function info4(message) {
       process.stdout.write(message + os.EOL);
     }
-    exports2.info = info3;
+    exports2.info = info4;
     function startGroup(name) {
       command_1.issue("group", name);
     }
@@ -21923,7 +21923,7 @@ var require_internal_glob_options_helper = __commonJS({
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getOptions = void 0;
-    var core8 = __importStar(require_core());
+    var core9 = __importStar(require_core());
     function getOptions(copy) {
       const result = {
         followSymbolicLinks: true,
@@ -21934,19 +21934,19 @@ var require_internal_glob_options_helper = __commonJS({
       if (copy) {
         if (typeof copy.followSymbolicLinks === "boolean") {
           result.followSymbolicLinks = copy.followSymbolicLinks;
-          core8.debug(`followSymbolicLinks '${result.followSymbolicLinks}'`);
+          core9.debug(`followSymbolicLinks '${result.followSymbolicLinks}'`);
         }
         if (typeof copy.implicitDescendants === "boolean") {
           result.implicitDescendants = copy.implicitDescendants;
-          core8.debug(`implicitDescendants '${result.implicitDescendants}'`);
+          core9.debug(`implicitDescendants '${result.implicitDescendants}'`);
         }
         if (typeof copy.matchDirectories === "boolean") {
           result.matchDirectories = copy.matchDirectories;
-          core8.debug(`matchDirectories '${result.matchDirectories}'`);
+          core9.debug(`matchDirectories '${result.matchDirectories}'`);
         }
         if (typeof copy.omitBrokenSymbolicLinks === "boolean") {
           result.omitBrokenSymbolicLinks = copy.omitBrokenSymbolicLinks;
-          core8.debug(`omitBrokenSymbolicLinks '${result.omitBrokenSymbolicLinks}'`);
+          core9.debug(`omitBrokenSymbolicLinks '${result.omitBrokenSymbolicLinks}'`);
         }
       }
       return result;
@@ -22539,7 +22539,7 @@ var require_minimatch = __commonJS({
       }
       this.parseNegate();
       var set = this.globSet = this.braceExpand();
-      if (options.debug) this.debug = function debug7() {
+      if (options.debug) this.debug = function debug8() {
         console.error.apply(console, arguments);
       };
       this.debug(this.pattern, set);
@@ -23402,7 +23402,7 @@ var require_internal_globber = __commonJS({
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.DefaultGlobber = void 0;
-    var core8 = __importStar(require_core());
+    var core9 = __importStar(require_core());
     var fs = __importStar(require("fs"));
     var globOptionsHelper = __importStar(require_internal_glob_options_helper());
     var path = __importStar(require("path"));
@@ -23453,7 +23453,7 @@ var require_internal_globber = __commonJS({
           }
           const stack = [];
           for (const searchPath of patternHelper.getSearchPaths(patterns)) {
-            core8.debug(`Search path '${searchPath}'`);
+            core9.debug(`Search path '${searchPath}'`);
             try {
               yield __await(fs.promises.lstat(searchPath));
             } catch (err) {
@@ -23525,7 +23525,7 @@ var require_internal_globber = __commonJS({
             } catch (err) {
               if (err.code === "ENOENT") {
                 if (options.omitBrokenSymbolicLinks) {
-                  core8.debug(`Broken symlink '${item.path}'`);
+                  core9.debug(`Broken symlink '${item.path}'`);
                   return void 0;
                 }
                 throw new Error(`No information found for the path '${item.path}'. This may indicate a broken symbolic link.`);
@@ -23541,7 +23541,7 @@ var require_internal_globber = __commonJS({
               traversalChain.pop();
             }
             if (traversalChain.some((x) => x === realPath)) {
-              core8.debug(`Symlink cycle detected for path '${item.path}' and realpath '${realPath}'`);
+              core9.debug(`Symlink cycle detected for path '${item.path}' and realpath '${realPath}'`);
               return void 0;
             }
             traversalChain.push(realPath);
@@ -23630,7 +23630,7 @@ var require_internal_hash_files = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.hashFiles = void 0;
     var crypto4 = __importStar(require("crypto"));
-    var core8 = __importStar(require_core());
+    var core9 = __importStar(require_core());
     var fs = __importStar(require("fs"));
     var stream = __importStar(require("stream"));
     var util = __importStar(require("util"));
@@ -23639,7 +23639,7 @@ var require_internal_hash_files = __commonJS({
       var e_1, _a;
       var _b;
       return __awaiter(this, void 0, void 0, function* () {
-        const writeDelegate = verbose ? core8.info : core8.debug;
+        const writeDelegate = verbose ? core9.info : core9.debug;
         let hasMatch = false;
         const githubWorkspace = currentWorkspace ? currentWorkspace : (_b = process.env["GITHUB_WORKSPACE"]) !== null && _b !== void 0 ? _b : process.cwd();
         const result = crypto4.createHash("sha256");
@@ -23744,62 +23744,11 @@ var require_glob = __commonJS({
 });
 
 // actions/gha-workflow-validator/src/run.ts
-var core7 = __toESM(require_core());
+var core8 = __toESM(require_core());
 var github = __toESM(require_github());
 
-// actions/gha-workflow-validator/src/github.ts
-var core = __toESM(require_core());
-var import_node_path = require("node:path");
-async function getComparison(octokit, owner, repo, base, head) {
-  core.debug(`Comparing ${owner}/${repo} commits ${base}...${head}`);
-  const diff = await octokit.rest.repos.compareCommitsWithBasehead({
-    owner,
-    repo,
-    basehead: `${base}...${head}`
-    // <before>...<after> or <earlier>...<later>
-  });
-  return diff.data.files;
-}
-async function getActionFileFromGithub(octokit, owner, repo, repoPath, ref) {
-  const ymlPath = (0, import_node_path.join)(repoPath, "action.yml");
-  const yamlPath = (0, import_node_path.join)(repoPath, "action.yaml");
-  let actionFile = await getFileFromGithub(octokit, owner, repo, ymlPath, ref);
-  if (!actionFile) {
-    actionFile = await getFileFromGithub(octokit, owner, repo, yamlPath, ref);
-  }
-  return actionFile;
-}
-async function getFileFromGithub(octokit, owner, repo, path, ref) {
-  try {
-    core.debug(`Getting file through Github - ${owner}/${repo}${path}@${ref}`);
-    const response = await octokit.rest.repos.getContent({
-      owner,
-      repo,
-      path,
-      ref
-    });
-    if ("content" in response.data) {
-      return Buffer.from(response.data.content, "base64").toString();
-    }
-    throw Error("No content found in getContent response");
-  } catch (error3) {
-    const requestPath = `${owner}/${repo}${path}@${ref}`;
-    if (error3.status) {
-      core.warning(
-        `Encountered Github Request Error while getting file - ${requestPath}. (${error3.status} - ${error3.message})`
-      );
-    } else {
-      core.warning(
-        `Encountered Unknown Error while getting file - ${requestPath} - ${error3}`
-      );
-    }
-  }
-}
-
-// actions/gha-workflow-validator/src/utils.ts
-var core2 = __toESM(require_core());
-var glob = __toESM(require_glob());
-var import_path = require("path");
+// actions/gha-workflow-validator/src/parse-files.ts
+var core3 = __toESM(require_core());
 var import_fs = require("fs");
 
 // actions/gha-workflow-validator/src/strings.ts
@@ -23888,7 +23837,59 @@ function htmlLink(text, url) {
   return `<a href="${url}">${text}</a>`;
 }
 
+// actions/gha-workflow-validator/src/github.ts
+var core = __toESM(require_core());
+var import_node_path = require("node:path");
+async function getComparison(octokit, owner, repo, base, head) {
+  core.debug(`Comparing ${owner}/${repo} commits ${base}...${head}`);
+  const diff = await octokit.rest.repos.compareCommitsWithBasehead({
+    owner,
+    repo,
+    basehead: `${base}...${head}`
+    // <before>...<after> or <earlier>...<later>
+  });
+  return diff.data.files;
+}
+async function getActionFileFromGithub(octokit, owner, repo, repoPath, ref) {
+  const ymlPath = (0, import_node_path.join)(repoPath, "action.yml");
+  const yamlPath = (0, import_node_path.join)(repoPath, "action.yaml");
+  let actionFile = await getFileFromGithub(octokit, owner, repo, ymlPath, ref);
+  if (!actionFile) {
+    actionFile = await getFileFromGithub(octokit, owner, repo, yamlPath, ref);
+  }
+  return actionFile;
+}
+async function getFileFromGithub(octokit, owner, repo, path, ref) {
+  try {
+    core.debug(`Getting file through Github - ${owner}/${repo}${path}@${ref}`);
+    const response = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path,
+      ref
+    });
+    if ("content" in response.data) {
+      return Buffer.from(response.data.content, "base64").toString();
+    }
+    throw Error("No content found in getContent response");
+  } catch (error3) {
+    const requestPath = `${owner}/${repo}${path}@${ref}`;
+    if (error3.status) {
+      core.warning(
+        `Encountered Github Request Error while getting file - ${requestPath}. (${error3.status} - ${error3.message})`
+      );
+    } else {
+      core.warning(
+        `Encountered Unknown Error while getting file - ${requestPath} - ${error3}`
+      );
+    }
+  }
+}
+
 // actions/gha-workflow-validator/src/utils.ts
+var core2 = __toESM(require_core());
+var glob = __toESM(require_glob());
+var import_path = require("path");
 async function getAllWorkflowAndActionFiles(directory, allActionDefinitions) {
   core2.debug(`Getting all workflow and action files in ${directory}`);
   const workflowPatterns = [
@@ -23926,6 +23927,43 @@ async function globFiles(patterns) {
   }
   return [];
 }
+
+// actions/gha-workflow-validator/src/parse-files.ts
+async function getParsedFilesForValidation(context2, inputs, octokit) {
+  const diff = await getPRChanges(context2, inputs, octokit);
+  const existing = await getExistingFiles(inputs);
+  const combined = combineParsedFiles(existing, diff);
+  return combined;
+}
+async function getPRChanges(context2, inputs, octokit) {
+  if (!!context2.prNumber || !context2.base || !context2.head) {
+    core3.warning(
+      `Missing one of base or head commit SHA. Base: ${context2.base}, Head: ${context2.head}`
+    );
+    return [];
+  }
+  core3.debug(`Getting diff workflow/actions files for PR: ${context2.prNumber}`);
+  const allFiles = await getComparison(
+    octokit,
+    context2.owner,
+    context2.repo,
+    context2.base,
+    context2.head
+  );
+  const ghaWorkflowFiles = filterForRelevantChanges(
+    allFiles,
+    inputs.validateAllActionDefinitions
+  );
+  return parseGithubDiff(ghaWorkflowFiles);
+}
+async function getExistingFiles(inputs) {
+  core3.debug("Getting all workflow/action files in the repository.");
+  const filePaths = await getAllWorkflowAndActionFiles(
+    inputs.rootDir,
+    inputs.validateAllActionDefinitions
+  );
+  return await parseFiles(filePaths);
+}
 function filterForRelevantChanges(files, includeAllActionDefinitions) {
   return files?.filter(({ filename }) => {
     return includeAllActionDefinitions && (filename.endsWith("/action.yml") || filename.endsWith("/action.yaml")) || isGithubWorkflowOrActionFile(filename);
@@ -23934,22 +23972,36 @@ function filterForRelevantChanges(files, includeAllActionDefinitions) {
 function isGithubWorkflowOrActionFile(filename) {
   return (filename.startsWith(".github/workflows") || filename.startsWith(".github/actions")) && (filename.endsWith(".yml") || filename.endsWith(".yaml"));
 }
-async function parseFiles(paths) {
-  const parsedFiles = [];
-  for (const path of paths) {
-    const content = (0, import_fs.readFileSync)(path, "utf-8");
-    const lines = content.split("\n").map((line, index) => {
-      const ignored = line.includes(VALIDATOR_IGNORE_LINE);
-      return {
-        lineNumber: index + 1,
-        content: line,
-        operation: "unchanged",
-        ignored
-      };
+function combineParsedFiles(existing, diff) {
+  const combined = [];
+  for (const existingFile of existing) {
+    const diffFile = diff.find((f) => f.filename === existingFile.filename);
+    if (!diffFile) {
+      combined.push(existingFile);
+      continue;
+    }
+    const combinedFileLines = combineFileLines(
+      existingFile.lines,
+      diffFile.lines
+    );
+    combined.push({
+      filename: existingFile.filename,
+      lines: combinedFileLines
     });
-    parsedFiles.push({ filename: path, lines });
   }
-  return parsedFiles;
+  return combined;
+}
+function combineFileLines(existing, diff) {
+  const combined = [];
+  for (const existingLine of existing) {
+    const diffLine = diff.find((l) => l.lineNumber === existingLine.lineNumber);
+    if (diffLine) {
+      combined.push(diffLine);
+      continue;
+    }
+    combined.push(existingLine);
+  }
+  return combined;
 }
 function parseGithubDiff(githubFiles) {
   if (!githubFiles) return [];
@@ -23989,442 +24041,26 @@ function parsePatchChanges(patch) {
   }
   return additions;
 }
-function processLineValidationResults(results) {
-  const combinedResults = results.reduce((acc, current) => {
-    const existingEntry = acc.find(
-      (item) => item.line.lineNumber === current.line.lineNumber
-    );
-    const processedMessages = current.messages.map((message) => {
-      if (current.line.ignored && message.type !== "ignore-comment" /* IGNORE_COMMENT */) {
-        return {
-          ...message,
-          severity: "ignored"
-        };
-      }
-      return message;
+async function parseFiles(paths) {
+  const parsedFiles = [];
+  for (const path of paths) {
+    const content = (0, import_fs.readFileSync)(path, "utf-8");
+    const lines = content.split("\n").map((line, index) => {
+      const ignored = line.includes(VALIDATOR_IGNORE_LINE);
+      return {
+        lineNumber: index + 1,
+        content: line,
+        operation: "unchanged",
+        ignored
+      };
     });
-    if (existingEntry) {
-      existingEntry.messages = [
-        ...existingEntry.messages,
-        ...processedMessages
-      ];
-    } else {
-      acc.push({ ...current, messages: processedMessages });
-    }
-    return acc;
-  }, []);
-  return combinedResults.sort((a, b) => a.line.lineNumber - b.line.lineNumber);
-}
-function doValidationErrorsExist(files) {
-  return files.some(
-    (file) => file.lineValidations.some(
-      (lv) => lv.messages.some((m) => m.severity === "error")
-    )
-  );
-}
-function mapAndFilterUndefined(arr, mapFn) {
-  if (!arr) return [];
-  return arr.reduce((acc, curr) => {
-    const result = mapFn(curr);
-    if (result !== void 0) {
-      acc.push(result);
-    }
-    return acc;
-  }, []);
-}
-
-// actions/gha-workflow-validator/src/validations/action-reference-validations.ts
-var core3 = __toESM(require_core());
-var CURRENT_NODE_VERSION = 20;
-var ActionReferenceValidation = class {
-  constructor(octokit, options) {
-    this.octokit = octokit;
-    this.options = options ?? { validateNodeVersion: true };
+    parsedFiles.push({ filename: path, lines });
   }
-  async validate(parsedFile) {
-    core3.debug(`Validating action references in ${parsedFile.filename}`);
-    const { filename } = parsedFile;
-    const lineActionRefs = mapAndFilterUndefined(
-      parsedFile.lines,
-      extractActionReference
-    );
-    const lineValidations = await validateActionReferences(
-      this.octokit,
-      filename,
-      this.options,
-      lineActionRefs
-    );
-    return {
-      filename,
-      lineValidations
-    };
-  }
-};
-async function validateActionReferences(octokit, filename, options, lines) {
-  const lineValidationResults = [];
-  for (const line of lines) {
-    const validationErrors = await validateActionReference(
-      octokit,
-      options,
-      line.actionReference
-    );
-    if (validationErrors.length > 0) {
-      lineValidationResults.push({
-        filename,
-        line,
-        messages: validationErrors
-      });
-    }
-  }
-  return lineValidationResults;
-}
-async function validateActionReference(octokit, options, actionRef) {
-  if (!actionRef) {
-    return [];
-  }
-  if (actionRef.isWorkflowFile) {
-    core3.debug(
-      `Skipping validation for workflow reference: ${actionRef.owner}/${actionRef.repo}/${actionRef.repoPath}`
-    );
-    return [];
-  }
-  const validationErrors = [];
-  const shaRefValidation = validateShaRef(actionRef);
-  const versionCommentValidation = validateVersionCommentExists(actionRef);
-  const node20ActionValidation = options.validateNodeVersion ? await validateNodeActionVersion(octokit, actionRef) : void 0;
-  if (!actionRef.trusted && shaRefValidation) {
-    core3.debug(
-      `SHA Ref Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${shaRefValidation.message}`
-    );
-    validationErrors.push(shaRefValidation);
-  }
-  if (versionCommentValidation && !(actionRef.trusted && shaRefValidation)) {
-    core3.debug(
-      `Version Comment Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${versionCommentValidation.message}`
-    );
-    validationErrors.push(versionCommentValidation);
-  }
-  if (node20ActionValidation) {
-    core3.debug(
-      `Node 20 Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${node20ActionValidation.message}`
-    );
-    validationErrors.push(node20ActionValidation);
-  }
-  return validationErrors;
-}
-function validateShaRef(actionReference) {
-  const sha1Regex = /^[0-9a-f]{40}$/;
-  if (sha1Regex.test(actionReference.ref)) return;
-  const sha256Regex = /^[0-9a-f]{256}$/;
-  if (sha256Regex.test(actionReference.ref)) return;
-  return {
-    message: `${actionReference.ref} is not a valid SHA reference`,
-    type: "sha-ref" /* SHA_REF */,
-    severity: "error"
-  };
-}
-function validateVersionCommentExists(actionReference) {
-  if (actionReference.comment) return;
-  return {
-    message: `No version comment found`,
-    type: "version-comment" /* VERSION_COMMENT */,
-    severity: "warning"
-  };
-}
-async function validateNodeActionVersion(octokit, actionRef) {
-  const actionFile = await getActionFileFromGithub(
-    octokit,
-    actionRef.owner,
-    actionRef.repo,
-    actionRef.repoPath,
-    actionRef.ref
-  );
-  if (!actionFile) {
-    core3.warning(
-      `No action file found for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref}`
-    );
-    return;
-  }
-  const nodeVersionRegex = /^\s+using:\s*["']?node(\d{2})["']?/gm;
-  const matches = nodeVersionRegex.exec(actionFile);
-  if (matches && matches[1] !== `${CURRENT_NODE_VERSION}`) {
-    return {
-      message: `Action is using node${matches[1]}`,
-      type: "node-version" /* NODE_VERSION */,
-      severity: "warning"
-    };
-  }
-  return;
-}
-function extractActionReference(fileLine) {
-  const actionReference = extractActionReferenceFromLine(fileLine.content);
-  if (!actionReference) {
-    return;
-  }
-  if (actionReference.isWorkflowFile) {
-    core3.debug(`Found workflow file reference: ${fileLine.content}`);
-  }
-  return {
-    ...fileLine,
-    actionReference
-  };
-}
-function extractActionReferenceFromLine(line) {
-  const trimmedLine = line.trim();
-  if (trimmedLine.startsWith("#")) {
-    return;
-  }
-  const possibleTrimmedPrefixes = ["- uses: ", "uses: "];
-  const trimSubString = possibleTrimmedPrefixes.find(
-    (prefix) => trimmedLine.startsWith(prefix)
-  );
-  if (!trimSubString) {
-    return;
-  }
-  const trimmedUses = line.substring(line.indexOf(trimSubString) + trimSubString.length).trim();
-  let [actionIdentifier, ...comment] = trimmedUses.split("#");
-  const isDoubleQuoted = actionIdentifier.startsWith(`"`);
-  const isSingleQuoted = actionIdentifier.startsWith(`'`);
-  if (isDoubleQuoted || isSingleQuoted) {
-    actionIdentifier = actionIdentifier.substring(1).trim();
-    const searchQuote = isDoubleQuoted ? `"` : `'`;
-    const indexOfQuote = actionIdentifier.indexOf(`${searchQuote}`);
-    if (indexOfQuote === -1 || indexOfQuote !== actionIdentifier.length - 1) {
-      core3.warning(
-        "Invalid action reference - unmatched/misplaced quote (skipping): " + line
-      );
-      return;
-    } else {
-      actionIdentifier = actionIdentifier.substring(0, indexOfQuote);
-    }
-  }
-  if (actionIdentifier.startsWith("./")) {
-    return;
-  }
-  const [identifier, gitRef] = actionIdentifier.trim().split("@");
-  const [owner, repo, ...path] = identifier.split("/");
-  const repoPath = (path.length > 0 ? "/" : "") + path.join("/");
-  return {
-    owner,
-    repo,
-    repoPath,
-    ref: gitRef,
-    comment: comment.join().trim(),
-    isWorkflowFile: repoPath.endsWith(".yml") || repoPath.endsWith(".yaml"),
-    trusted: owner === "actions" || owner === "smartcontractkit"
-  };
-}
-
-// actions/gha-workflow-validator/src/validations/actions-runner-validations.ts
-var core4 = __toESM(require_core());
-var ActionsRunnerValidation = class {
-  constructor(options) {
-    this.options = options ?? {};
-  }
-  async validate(parsedFile) {
-    core4.debug(`Validating gha runners in ${parsedFile.filename}`);
-    const { filename } = parsedFile;
-    const lineActionsRunners = mapAndFilterUndefined(
-      parsedFile.lines,
-      extractActionsRunner
-    );
-    const lineValidations = await validateActionsRunners(filename, lineActionsRunners);
-    return {
-      filename,
-      lineValidations
-    };
-  }
-};
-async function validateActionsRunners(filename, lines) {
-  const lineValidationResults = [];
-  for (const line of lines) {
-    const validationErrors = await validateActionsRunner(line.actionsRunner);
-    if (validationErrors.length > 0) {
-      lineValidationResults.push({
-        filename,
-        line,
-        messages: validationErrors
-      });
-    }
-  }
-  return lineValidationResults;
-}
-async function validateActionsRunner(actionsRunner) {
-  if (!actionsRunner) {
-    return [];
-  }
-  if (actionsRunner.os === "macos" && actionsRunner.cores >= 8) {
-    return [
-      {
-        type: "runner-macos" /* RUNNER_MACOS */,
-        severity: "error",
-        message: `MacOS actions runner can be up to 10x more expensive than Ubuntu runners. Consider using an Ubuntu runner or the base macOS runner.`
-      }
-    ];
-  }
-  if (actionsRunner.os === "ubuntu" && actionsRunner.cores >= 16) {
-    const costFactorMax = actionsRunner.cores / 2;
-    const costFactorMin = actionsRunner.cores / 4;
-    return [
-      {
-        type: "runner-ubuntu" /* RUNNER_UBUNTU */,
-        severity: "error",
-        message: `This Ubuntu runner is ${costFactorMin}-${costFactorMax} more expensive than a base Ubuntu runner. Consider using a smaller Ubuntu runner.`
-      }
-    ];
-  }
-  return [];
-}
-function extractActionsRunner(fileLine) {
-  const actionsRunner = extractActionRunnerFromLine(fileLine.content);
-  if (!actionsRunner) {
-    return;
-  }
-  core4.debug(
-    `Extracted actions runner: ${actionsRunner.os}-${actionsRunner.osVersion}-${actionsRunner.cores}cores-${actionsRunner.memoryGb}GB (${fileLine.content})`
-  );
-  return {
-    ...fileLine,
-    actionsRunner
-  };
-}
-var RUNNER_PREFIXES = [
-  "ubuntu-latest-",
-  // upgraded ubuntu runners
-  "ubuntu24.04-",
-  "ubuntu22.04-",
-  "ubuntu20.04-",
-  "ubuntu18.04-",
-  "ubuntu-latest",
-  // base ubuntu runners
-  "ubuntu-24.04",
-  "ubuntu-22.04",
-  "ubuntu-20.04",
-  "ubuntu-18.04",
-  "macos-",
-  // macos runners
-  "macos-latest",
-  "macos-12",
-  "macos-11",
-  "windows-latest"
-];
-function extractActionRunnerFromLine(line) {
-  const trimmedLine = line.trim();
-  if (trimmedLine.startsWith("#")) {
-    core4.debug(`Skipping commented line.`);
-    return;
-  }
-  let runnerIdentifierIndex = ["", -1];
-  for (const prefix of RUNNER_PREFIXES) {
-    const index = trimmedLine.indexOf(prefix);
-    if (index !== -1) {
-      runnerIdentifierIndex = [prefix, index];
-      break;
-    }
-  }
-  if (runnerIdentifierIndex[1] === -1) {
-    return;
-  }
-  core4.debug(`Found runner identifier: ${runnerIdentifierIndex[0]}`);
-  const restOfLine = trimmedLine.substring(runnerIdentifierIndex[1]).trim().toLocaleLowerCase();
-  const [runnerString] = restOfLine.split(" ");
-  if (runnerString.startsWith("ubuntu")) {
-    core4.debug(`Parsing ubuntu runner: ${runnerString}`);
-    const regex = /^ubuntu-?(latest|\d{2}.\d{2})-?((\d{1,2})cores)?-?((\d{1,3})gb)?$/;
-    const match = runnerString.match(regex);
-    if (!match) {
-      return;
-    }
-    const [, osVersion, , numCores, , memoryGb] = match;
-    return {
-      os: "ubuntu",
-      osVersion,
-      cores: numCores ? parseInt(numCores) : 0,
-      memoryGb: memoryGb ? parseInt(memoryGb) : 0,
-      identifier: runnerString
-    };
-  } else if (runnerString.startsWith("macos")) {
-    core4.debug(`Parsing macos runner: ${runnerString}`);
-    const regex = /^macos-(latest|\d{2}|\d{2}.\d{2})-?(large|xl|xlarge)?$/;
-    const match = runnerString.match(regex);
-    if (!match) {
-      return;
-    }
-    const [, osVersion, size] = match;
-    let cores = 4;
-    let memoryGb = 0;
-    if (size === "large") {
-      cores = 12;
-      memoryGb = 30;
-    } else if (size === "xl" || size === "xlarge") {
-      cores = 8;
-      memoryGb = 14;
-    }
-    return {
-      os: "macos",
-      osVersion,
-      cores,
-      memoryGb,
-      identifier: runnerString
-    };
-  } else if (runnerString.startsWith("windows")) {
-    return {
-      os: "windows",
-      osVersion: "latest",
-      cores: 0,
-      memoryGb: 0,
-      identifier: runnerString
-    };
-  }
-  core4.warning(`Failed to parse runner from line: ${line}`);
-}
-
-// actions/gha-workflow-validator/src/validations/ignores-comment-validation.ts
-var core5 = __toESM(require_core());
-var IgnoresCommentValidation = class {
-  constructor(options) {
-    this.options = options ?? {};
-  }
-  async validate(parsedFile) {
-    core5.debug(`Validating ignores comments in ${parsedFile.filename}`);
-    const { filename } = parsedFile;
-    const ignoreComments = mapAndFilterUndefined(
-      parsedFile.lines,
-      extractIgnoresComment
-    );
-    const lineValidations = ignoreComments.map(
-      (line) => {
-        return {
-          filename,
-          line,
-          messages: [
-            {
-              type: "ignore-comment" /* IGNORE_COMMENT */,
-              severity: "error",
-              message: "new ignore comment found"
-            }
-          ]
-        };
-      }
-    );
-    return {
-      filename,
-      lineValidations
-    };
-  }
-};
-function extractIgnoresComment(fileLine) {
-  if (fileLine.operation !== "add" || !fileLine.content.includes(VALIDATOR_IGNORE_LINE)) {
-    return;
-  }
-  return {
-    ...fileLine,
-    containsIgnoreComment: true
-  };
+  return parsedFiles;
 }
 
 // actions/gha-workflow-validator/src/output.ts
-var core6 = __toESM(require_core());
+var core4 = __toESM(require_core());
 function logValidationMessages(validationResults, annotatePR = false) {
   for (const fileResults of validationResults) {
     for (const lineResults of fileResults.lineValidations) {
@@ -24437,10 +24073,10 @@ function logValidationMessages(validationResults, annotatePR = false) {
       const maxSeverity = getMaxSeverityForLine(lineResults);
       const logLine = `file: ${fileResults.filename} @ line: ${lineResults.line.lineNumber} - ${validationMessages.join(",")}`;
       if (maxSeverity === "ignored") {
-        core6.info(`(ignored) ${logLine}`);
+        core4.info(`(ignored) ${logLine}`);
         continue;
       }
-      const loggingMethod = maxSeverity === "warning" ? core6.warning : core6.error;
+      const loggingMethod = maxSeverity === "warning" ? core4.warning : core4.error;
       loggingMethod(logLine);
       if (annotatePR) {
         loggingMethod(validationMessages.join("\n"), {
@@ -24491,7 +24127,7 @@ async function setSummary(validationResults, fileUrlPrefix) {
       (row, index) => index === 0 ? [filenameCell, ...row] : row
     );
   });
-  await core6.summary.addTable([headerRow, ...errorRows]).addSeparator().addRaw(FIXING_ERRORS).write();
+  await core4.summary.addTable([headerRow, ...errorRows]).addSeparator().addRaw(FIXING_ERRORS).write();
 }
 function getMaxSeverityForLine(lvr) {
   const maxSeverity = lvr.messages.reduce((acc, curr) => {
@@ -24501,12 +24137,478 @@ function getMaxSeverityForLine(lvr) {
     return "";
   }, "");
   if (maxSeverity === "") {
-    core6.warning(
+    core4.warning(
       `Invalid validation severity found. Defaulting to "error" for ${lvr.filename} @ ${lvr.line.lineNumber}`
     );
     return "error";
   }
   return maxSeverity;
+}
+
+// actions/gha-workflow-validator/src/validations/validate.ts
+var core7 = __toESM(require_core());
+
+// actions/gha-workflow-validator/src/validations/action-reference-validations.ts
+var core5 = __toESM(require_core());
+var CURRENT_NODE_VERSION = 20;
+var ActionRefValidation = class {
+  constructor(octokit, options) {
+    this.octokit = octokit;
+    this.options = options ?? { validateNodeVersion: true };
+  }
+  async validateLine(line) {
+    if (line.operation === "unchanged") {
+      return [];
+    }
+    const fileLineActionReference = extractActionReference(line);
+    return validateActionReference(
+      this.octokit,
+      this.options,
+      fileLineActionReference.actionReference
+    );
+  }
+};
+async function validateActionReference(octokit, options, actionRef) {
+  if (!actionRef) {
+    return [];
+  }
+  if (actionRef.isWorkflowFile) {
+    core5.debug(
+      `Skipping validation for workflow reference: ${actionRef.owner}/${actionRef.repo}/${actionRef.repoPath}`
+    );
+    return [];
+  }
+  const validationErrors = [];
+  const shaRefValidation = validateShaRef(actionRef);
+  const versionCommentValidation = validateVersionCommentExists(actionRef);
+  const node20ActionValidation = options.validateNodeVersion ? await validateNodeActionVersion(octokit, actionRef) : void 0;
+  if (!actionRef.trusted && shaRefValidation) {
+    core5.debug(
+      `SHA Ref Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${shaRefValidation.message}`
+    );
+    validationErrors.push(shaRefValidation);
+  }
+  if (versionCommentValidation && !(actionRef.trusted && shaRefValidation)) {
+    core5.debug(
+      `Version Comment Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${versionCommentValidation.message}`
+    );
+    validationErrors.push(versionCommentValidation);
+  }
+  if (node20ActionValidation) {
+    core5.debug(
+      `Node 20 Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${node20ActionValidation.message}`
+    );
+    validationErrors.push(node20ActionValidation);
+  }
+  return validationErrors;
+}
+function validateShaRef(actionReference) {
+  const sha1Regex = /^[0-9a-f]{40}$/;
+  if (sha1Regex.test(actionReference.ref)) return;
+  const sha256Regex = /^[0-9a-f]{256}$/;
+  if (sha256Regex.test(actionReference.ref)) return;
+  return {
+    message: `${actionReference.ref} is not a valid SHA reference`,
+    type: "sha-ref" /* SHA_REF */,
+    severity: "error"
+  };
+}
+function validateVersionCommentExists(actionReference) {
+  if (actionReference.comment) return;
+  return {
+    message: `No version comment found`,
+    type: "version-comment" /* VERSION_COMMENT */,
+    severity: "warning"
+  };
+}
+async function validateNodeActionVersion(octokit, actionRef) {
+  const actionFile = await getActionFileFromGithub(
+    octokit,
+    actionRef.owner,
+    actionRef.repo,
+    actionRef.repoPath,
+    actionRef.ref
+  );
+  if (!actionFile) {
+    core5.warning(
+      `No action file found for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref}`
+    );
+    return;
+  }
+  const nodeVersionRegex = /^\s+using:\s*["']?node(\d{2})["']?/gm;
+  const matches = nodeVersionRegex.exec(actionFile);
+  if (matches && matches[1] !== `${CURRENT_NODE_VERSION}`) {
+    return {
+      message: `Action is using node${matches[1]}`,
+      type: "node-version" /* NODE_VERSION */,
+      severity: "warning"
+    };
+  }
+  return;
+}
+function extractActionReference(fileLine) {
+  const actionReference = extractActionReferenceFromLine(fileLine.content);
+  if (!actionReference) {
+    return fileLine;
+  }
+  if (actionReference.isWorkflowFile) {
+    core5.debug(`Found workflow file reference: ${fileLine.content}`);
+  }
+  return {
+    ...fileLine,
+    actionReference
+  };
+}
+function extractActionReferenceFromLine(line) {
+  const trimmedLine = line.trim();
+  if (trimmedLine.startsWith("#")) {
+    return;
+  }
+  const possibleTrimmedPrefixes = ["- uses: ", "uses: "];
+  const trimSubString = possibleTrimmedPrefixes.find(
+    (prefix) => trimmedLine.startsWith(prefix)
+  );
+  if (!trimSubString) {
+    return;
+  }
+  const trimmedUses = line.substring(line.indexOf(trimSubString) + trimSubString.length).trim();
+  let [actionIdentifier, ...comment] = trimmedUses.split("#");
+  const isDoubleQuoted = actionIdentifier.startsWith(`"`);
+  const isSingleQuoted = actionIdentifier.startsWith(`'`);
+  if (isDoubleQuoted || isSingleQuoted) {
+    actionIdentifier = actionIdentifier.substring(1).trim();
+    const searchQuote = isDoubleQuoted ? `"` : `'`;
+    const indexOfQuote = actionIdentifier.indexOf(`${searchQuote}`);
+    if (indexOfQuote === -1 || indexOfQuote !== actionIdentifier.length - 1) {
+      core5.warning(
+        "Invalid action reference - unmatched/misplaced quote (skipping): " + line
+      );
+      return;
+    } else {
+      actionIdentifier = actionIdentifier.substring(0, indexOfQuote);
+    }
+  }
+  if (actionIdentifier.startsWith("./")) {
+    return;
+  }
+  const [identifier, gitRef] = actionIdentifier.trim().split("@");
+  const [owner, repo, ...path] = identifier.split("/");
+  const repoPath = (path.length > 0 ? "/" : "") + path.join("/");
+  return {
+    owner,
+    repo,
+    repoPath,
+    ref: gitRef,
+    comment: comment.join().trim(),
+    isWorkflowFile: repoPath.endsWith(".yml") || repoPath.endsWith(".yaml"),
+    trusted: owner === "actions" || owner === "smartcontractkit"
+  };
+}
+
+// actions/gha-workflow-validator/src/validations/actions-runner-validations.ts
+var core6 = __toESM(require_core());
+var ActionsRunnerValidation = class {
+  constructor(options) {
+    this.options = options ?? {};
+  }
+  async validateLine(line) {
+    if (line.operation === "unchanged") {
+      return [];
+    }
+    const fileLineActionsRunner = extractActionsRunner(line);
+    return validateActionsRunner(fileLineActionsRunner.actionsRunner);
+  }
+};
+async function validateActionsRunner(actionsRunner) {
+  if (!actionsRunner) {
+    return [];
+  }
+  if (actionsRunner.os === "macos" && actionsRunner.cores >= 8) {
+    return [
+      {
+        type: "runner-macos" /* RUNNER_MACOS */,
+        severity: "error",
+        message: `MacOS actions runner can be up to 10x more expensive than Ubuntu runners. Consider using an Ubuntu runner or the base macOS runner.`
+      }
+    ];
+  }
+  if (actionsRunner.os === "ubuntu" && actionsRunner.cores >= 16) {
+    const costFactorMax = actionsRunner.cores / 2;
+    const costFactorMin = actionsRunner.cores / 4;
+    return [
+      {
+        type: "runner-ubuntu" /* RUNNER_UBUNTU */,
+        severity: "error",
+        message: `This Ubuntu runner is ${costFactorMin}-${costFactorMax} more expensive than a base Ubuntu runner. Consider using a smaller Ubuntu runner.`
+      }
+    ];
+  }
+  return [];
+}
+function extractActionsRunner(fileLine) {
+  const actionsRunner = extractActionRunnerFromLine(fileLine.content);
+  if (!actionsRunner) {
+    return fileLine;
+  }
+  core6.debug(
+    `Extracted actions runner: ${actionsRunner.os}-${actionsRunner.osVersion}-${actionsRunner.cores}cores-${actionsRunner.memoryGb}GB (${fileLine.content})`
+  );
+  return {
+    ...fileLine,
+    actionsRunner
+  };
+}
+var RUNNER_PREFIXES = [
+  "ubuntu-latest-",
+  // upgraded ubuntu runners
+  "ubuntu24.04-",
+  "ubuntu22.04-",
+  "ubuntu20.04-",
+  "ubuntu18.04-",
+  "ubuntu-latest",
+  // base ubuntu runners
+  "ubuntu-24.04",
+  "ubuntu-22.04",
+  "ubuntu-20.04",
+  "ubuntu-18.04",
+  "macos-",
+  // macos runners
+  "macos-latest",
+  "macos-12",
+  "macos-11",
+  "windows-latest"
+];
+function extractActionRunnerFromLine(line) {
+  const trimmedLine = line.trim();
+  if (trimmedLine.startsWith("#")) {
+    core6.debug(`Skipping commented line.`);
+    return;
+  }
+  let runnerIdentifierIndex = ["", -1];
+  for (const prefix of RUNNER_PREFIXES) {
+    const index = trimmedLine.indexOf(prefix);
+    if (index !== -1) {
+      runnerIdentifierIndex = [prefix, index];
+      break;
+    }
+  }
+  if (runnerIdentifierIndex[1] === -1) {
+    return;
+  }
+  core6.debug(`Found runner identifier: ${runnerIdentifierIndex[0]}`);
+  const restOfLine = trimmedLine.substring(runnerIdentifierIndex[1]).trim().toLocaleLowerCase();
+  const [runnerString] = restOfLine.split(" ");
+  if (runnerString.startsWith("ubuntu")) {
+    core6.debug(`Parsing ubuntu runner: ${runnerString}`);
+    const regex = /^ubuntu-?(latest|\d{2}.\d{2})-?((\d{1,2})cores)?-?((\d{1,3})gb)?$/;
+    const match = runnerString.match(regex);
+    if (!match) {
+      return;
+    }
+    const [, osVersion, , numCores, , memoryGb] = match;
+    return {
+      os: "ubuntu",
+      osVersion,
+      cores: numCores ? parseInt(numCores) : 0,
+      memoryGb: memoryGb ? parseInt(memoryGb) : 0,
+      identifier: runnerString
+    };
+  } else if (runnerString.startsWith("macos")) {
+    core6.debug(`Parsing macos runner: ${runnerString}`);
+    const regex = /^macos-(latest|\d{2}|\d{2}.\d{2})-?(large|xl|xlarge)?$/;
+    const match = runnerString.match(regex);
+    if (!match) {
+      return;
+    }
+    const [, osVersion, size] = match;
+    let cores = 4;
+    let memoryGb = 0;
+    if (size === "large") {
+      cores = 12;
+      memoryGb = 30;
+    } else if (size === "xl" || size === "xlarge") {
+      cores = 8;
+      memoryGb = 14;
+    }
+    return {
+      os: "macos",
+      osVersion,
+      cores,
+      memoryGb,
+      identifier: runnerString
+    };
+  } else if (runnerString.startsWith("windows")) {
+    return {
+      os: "windows",
+      osVersion: "latest",
+      cores: 0,
+      memoryGb: 0,
+      identifier: runnerString
+    };
+  }
+  core6.warning(`Failed to parse runner from line: ${line}`);
+}
+
+// actions/gha-workflow-validator/src/validations/ignores-comment-validation.ts
+var IgnoresCommentValidation = class {
+  constructor(options) {
+    this.options = options ?? {};
+  }
+  async validateLine(line) {
+    if (line.operation === "unchanged") {
+      return [];
+    }
+    const fileLineActionsRunner = extractIgnoresComment(line);
+    if (!fileLineActionsRunner.containsIgnoreComment) {
+      return [];
+    }
+    return [
+      {
+        type: "ignore-comment" /* IGNORE_COMMENT */,
+        severity: "error",
+        message: "new ignore comment found"
+      }
+    ];
+  }
+};
+function extractIgnoresComment(fileLine) {
+  const containsIgnoreComment = fileLine.content.includes(
+    VALIDATOR_IGNORE_LINE
+  );
+  return {
+    ...fileLine,
+    containsIgnoreComment
+  };
+}
+
+// actions/gha-workflow-validator/src/validations/actions-cache-validation.ts
+var ActionsCacheVersionValidation = class {
+  constructor(options) {
+    this.options = options ?? {};
+  }
+  async validateLine(line) {
+    const { ref } = extractActionsCacheVersion(line);
+    if (!ref) {
+      return [];
+    }
+    const isRefUpToDate = ref === "v4" || ref === "v3" || ref === "v4.2.0" || ref === "v3.4.0";
+    if (isRefUpToDate) {
+      return [];
+    }
+    return [
+      {
+        type: "actions-cache" /* ACTIONS_CACHE */,
+        severity: "error",
+        message: `This version (${ref}) of actions/cache is being deprecated. Please update to @v4 (or @v3).`
+      }
+    ];
+  }
+};
+function extractActionsCacheVersion(fileLine) {
+  const actionsCacheVersion = extractActionsCacheFromLine(fileLine.content);
+  if (!actionsCacheVersion) {
+    return fileLine;
+  }
+  return {
+    ...fileLine,
+    ref: actionsCacheVersion
+  };
+}
+function extractActionsCacheFromLine(line) {
+  const actionReference = extractActionReferenceFromLine(line);
+  if (!actionReference) {
+    return;
+  }
+  const { owner, repo, ref } = actionReference;
+  if (owner === "actions" && repo === "cache") {
+    return ref;
+  }
+}
+
+// actions/gha-workflow-validator/src/validations/validate.ts
+function getValidators({ validateActionNodeVersion, validateActionRefs, validateRunners }, octokit) {
+  const validators = [
+    new IgnoresCommentValidation(),
+    new ActionsCacheVersionValidation()
+  ];
+  if (validateActionRefs)
+    validators.push(
+      new ActionRefValidation(octokit, {
+        validateNodeVersion: validateActionNodeVersion
+      })
+    );
+  if (validateRunners) validators.push(new ActionsRunnerValidation());
+  return validators;
+}
+async function validate2(inputs, parsedFiles, octokit) {
+  core7.debug(`Validating ${parsedFiles.length} files`);
+  const validators = getValidators(inputs, octokit);
+  const fileValidationResults = [];
+  for (const file of parsedFiles) {
+    core7.info(`Validating: ${file.filename}`);
+    const fileValidationResult = await validateFile(
+      file.filename,
+      file,
+      validators
+    );
+    fileValidationResults.push(fileValidationResult);
+  }
+  core7.debug("Validation complete.");
+  return fileValidationResults;
+}
+async function validateFile(filename, file, validators) {
+  core7.info(`Validating ${filename}`);
+  const lineValidationResults = [];
+  for (const line of file.lines) {
+    core7.debug(`Validating: ${file.filename}#${line.lineNumber}`);
+    const lineValidationResult = await validateLine(
+      file.filename,
+      line,
+      validators
+    );
+    lineValidationResults.push(lineValidationResult);
+  }
+  lineValidationResults.sort((a, b) => a.line.lineNumber - b.line.lineNumber);
+  core7.info(
+    `Found ${lineValidationResults.length} total problems in ${file.filename}`
+  );
+  return {
+    filename,
+    lineValidations: lineValidationResults
+  };
+}
+async function validateLine(filename, line, validators) {
+  if (line.ignored && line.operation === "unchanged") {
+    return {
+      filename,
+      line,
+      messages: []
+    };
+  }
+  const messages = (await Promise.all(
+    validators.map(async (validator) => {
+      return validator.validateLine(line);
+    })
+  )).flat();
+  const processedMessages = messages.map((message) => {
+    const shouldIgnore = line.ignored && message.type !== "ignore-comment" /* IGNORE_COMMENT */;
+    return {
+      ...message,
+      severity: shouldIgnore ? "ignored" : message.severity
+    };
+  });
+  return {
+    filename,
+    line,
+    messages: processedMessages
+  };
+}
+function doValidationErrorsExist(files) {
+  return files.some(
+    (file) => file.lineValidations.some(
+      (lv) => lv.messages.some((m) => m.severity === "error")
+    )
+  );
 }
 
 // actions/gha-workflow-validator/src/run.ts
@@ -24520,114 +24622,35 @@ async function run() {
     octokit
   );
   if (parsedFiles.length === 0) {
-    core7.info("No workflow files found in the changeset.");
+    core8.info("No workflow files found in the changeset.");
     process.exit(0);
   }
-  const fileValidations = await validate2(context2, inputs, parsedFiles, octokit);
+  const fileValidations = await validate2(inputs, parsedFiles, octokit);
   const invokedThroughPr = !!context2.prNumber;
   const urlPrefix = `https://github.com/${context2.owner}/${context2.repo}/blob/${context2.head}`;
   logValidationMessages(fileValidations, invokedThroughPr);
   await setSummary(fileValidations, urlPrefix);
   const validationFailed = doValidationErrorsExist(fileValidations);
-  core7.info(
+  core8.info(
     `Summary: https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/actions/runs/${github.context.runId}`
   );
   if (!validationFailed) {
-    return core7.info("No errors found in workflow files.");
+    return core8.info("No errors found in workflow files.");
   }
   if (inputs.evaluateMode) {
-    core7.warning(
+    core8.warning(
       "Errors found in workflow files. Evaluate mode enabled, not failing the workflow."
     );
     return;
   }
-  core7.setFailed(
+  core8.setFailed(
     "Errors found in workflow files. See inlined annotations on PR changes, or workflow summary for details."
   );
-}
-async function getParsedFilesForValidation(context2, inputs, octokit) {
-  if (!!context2.prNumber) {
-    if (!context2.base || !context2.head) {
-      core7.setFailed(
-        `Missing one of base or head commit SHA. Base: ${context2.base}, Head: ${context2.head}`
-      );
-      return process.exit(1);
-    }
-    core7.debug(
-      `Getting diff workflow/actions files for PR: ${context2.prNumber}`
-    );
-    const allFiles = await getComparison(
-      octokit,
-      context2.owner,
-      context2.repo,
-      context2.base,
-      context2.head
-    );
-    const ghaWorkflowFiles = filterForRelevantChanges(
-      allFiles,
-      inputs.validateAllActionDefinitions
-    );
-    return parseGithubDiff(ghaWorkflowFiles);
-  } else {
-    core7.debug("Getting all workflow/action files in the repository.");
-    const filePaths = await getAllWorkflowAndActionFiles(
-      inputs.rootDir,
-      inputs.validateAllActionDefinitions
-    );
-    return parseFiles(filePaths);
-  }
-}
-async function validate2({ prNumber }, inputs, parsedFiles, octokit) {
-  core7.debug(`Validating ${parseFiles.length} files`);
-  const actionReferenceValidator = new ActionReferenceValidation(octokit, {
-    validateNodeVersion: inputs.validateActionNodeVersion
-  });
-  const actionsRunnerValidator = new ActionsRunnerValidation();
-  const ignoresCommentsValidator = new IgnoresCommentValidation();
-  const validationResults = [];
-  for (const file of parsedFiles) {
-    core7.info(`Processing: ${file.filename}`);
-    if (!!prNumber) {
-      file.lines = file.lines.filter((line) => line.operation === "add");
-    }
-    const ignoresCommentsResults = await ignoresCommentsValidator.validate(file);
-    const actionReferenceResults = inputs.validateActionRefs ? await actionReferenceValidator.validate(file) : void 0;
-    const actionsRunnerResults = inputs.validateRunners ? await actionsRunnerValidator.validate(file) : void 0;
-    const combinedLineValidations = [
-      ignoresCommentsResults,
-      actionReferenceResults,
-      actionsRunnerResults
-    ].filter((result) => !!result).flatMap((result) => result.lineValidations);
-    const processedLineValidations = processLineValidationResults(
-      combinedLineValidations
-    );
-    core7.info(
-      `Found ${processedLineValidations.length} total problems in ${file.filename}`
-    );
-    if (processedLineValidations.length === 0) {
-      continue;
-    }
-    core7.info(
-      `Found ${ignoresCommentsResults?.lineValidations.length ?? 0} problems w/ ignore comments`
-    );
-    core7.info(
-      `Found ${actionReferenceResults?.lineValidations.length ?? 0} problems w/ action references`
-    );
-    core7.info(
-      `Found ${actionsRunnerResults?.lineValidations.length ?? 0} problems w/ actions runners`
-    );
-    validationResults.push({
-      filename: file.filename,
-      lineValidations: processedLineValidations
-    });
-  }
-  core7.debug("Validation complete.");
-  return validationResults;
 }
 function getInvokeContext() {
   const token = process.env.GITHUB_TOKEN;
   if (!token) {
-    core7.setFailed("GitHub token is not set.");
+    core8.setFailed("GitHub token is not set.");
     return process.exit(1);
   }
   const { context: context2 } = github;
@@ -24636,28 +24659,28 @@ function getInvokeContext() {
   const base = pull_request?.base.sha;
   const head = pull_request?.head.sha;
   const prNumber = pull_request?.number;
-  core7.debug(`Event name: ${context2.eventName}`);
-  core7.debug(
+  core8.debug(`Event name: ${context2.eventName}`);
+  core8.debug(
     `Owner: ${owner}, Repo: ${repo}, Base: ${base}, Head: ${head}, PR: ${prNumber ?? "N/A"}`
   );
   return { token, owner, repo, base, head, prNumber };
 }
 function getInputs() {
-  core7.debug("Getting inputs for run.");
+  core8.debug("Getting inputs for run.");
   const isLocalDebug = process.env.CL_LOCAL_DEBUG;
   const inputKeys = {
-    evaluateMode: ["evaluate-mode", core7.getBooleanInput],
-    validateRunners: ["validate-runners", core7.getBooleanInput],
-    validateActionRefs: ["validate-action-refs", core7.getBooleanInput],
+    evaluateMode: ["evaluate-mode", core8.getBooleanInput],
+    validateRunners: ["validate-runners", core8.getBooleanInput],
+    validateActionRefs: ["validate-action-refs", core8.getBooleanInput],
     validateActionNodeVersions: [
       "validate-action-node-versions",
-      core7.getBooleanInput
+      core8.getBooleanInput
     ],
     includeAllActionDefinitions: [
       "include-all-action-definitions",
-      core7.getBooleanInput
+      core8.getBooleanInput
     ],
-    rootDir: ["root-directory", core7.getInput]
+    rootDir: ["root-directory", core8.getInput]
   };
   if (isLocalDebug) {
     for (const [key, value] of Object.entries(inputKeys)) {
@@ -24678,7 +24701,7 @@ function getInputs() {
     ),
     rootDir: inputKeys.rootDir[1](inputKeys.rootDir[0])
   };
-  core7.debug(`Inputs: ${JSON.stringify(inputs)}`);
+  core8.debug(`Inputs: ${JSON.stringify(inputs)}`);
   return inputs;
 }
 
