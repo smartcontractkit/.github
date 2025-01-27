@@ -25,6 +25,12 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Setup tar default options
+      shell: bash
+      # Do not overwrite existing files when extracting files from a cache archive.
+      # Since actions/cache does not support this option, we set it here as a default.
+      run: echo "TAR_OPTIONS=--skip-old-files" >> $GITHUB_ENV
+
     - name: Set up Go
       uses: actions/setup-go@v5.0.2
       with:
