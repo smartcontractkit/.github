@@ -24,6 +24,7 @@ export enum ValidationType {
   RUNNER_UBUNTU = "runner-ubuntu",
   RUNNER_MACOS = "runner-macos",
   IGNORE_COMMENT = "ignore-comment",
+  ACTIONS_CACHE = "actions-cache",
 }
 
 export interface ValidationCheck {
