@@ -1,26 +1,5 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`getAllWorkflowAndActionFiles > should return all relevant files in .github directory 1`] = `
-[
-  "./src/__tests__/fake-repo/.github/workflows/bar.yml",
-  "./src/__tests__/fake-repo/.github/workflows/foo.yaml",
-  "./src/__tests__/fake-repo/.github/actions/test-yml/action.yml",
-  "./src/__tests__/fake-repo/.github/actions/test-yaml/action.yaml",
-]
-`;
-
-exports[`getAllWorkflowAndActionFiles > should return all relevant files in repo 1`] = `
-[
-  "./src/__tests__/fake-repo/.github/workflows/bar.yml",
-  "./src/__tests__/fake-repo/.github/workflows/foo.yaml",
-  "./src/__tests__/fake-repo/.github/actions/test-yml/action.yml",
-  "./src/__tests__/fake-repo/action.yml",
-  "./src/__tests__/fake-repo/directory/action.yml",
-  "./src/__tests__/fake-repo/.github/actions/test-yaml/action.yaml",
-  "./src/__tests__/fake-repo/action.yml",
-]
-`;
-
 exports[`parseGithubDiff > parses all additions (complex) 1`] = `
 [
   {

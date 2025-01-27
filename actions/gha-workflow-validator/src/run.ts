@@ -1,19 +1,7 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { getComparison, Octokit } from "./github.js";
-import { ActionReferenceValidation } from "./validations/action-reference-validations.js";
-import { ActionsRunnerValidation } from "./validations/actions-runner-validations.js";
-import { IgnoresCommentValidation } from "./validations/ignores-comment-validation.js";
-import { FileValidationResult } from "./validations/validation-check.js";
-import {
-  doValidationErrorsExist,
-  processLineValidationResults,
-  getAllWorkflowAndActionFiles,
-  filterForRelevantChanges,
-  parseGithubDiff,
-  parseFiles,
-  ParsedFile,
-} from "./utils.js";
+
+import { getParsedFilesForValidation } from "./parse-files.js";
 import { logValidationMessages, setSummary } from "./output.js";
 
 export interface RunInputs {
@@ -67,113 +55,6 @@ export async function run() {
   core.setFailed(
     "Errors found in workflow files. See inlined annotations on PR changes, or workflow summary for details.",
   );
-}
-
-// Exported for testing only
-export async function getParsedFilesForValidation(
-  context: InvokeContext,
-  inputs: RunInputs,
-  octokit: Octokit,
-): Promise<ParsedFile[]> {
-  if (!!context.prNumber) {
-    if (!context.base || !context.head) {
-      core.setFailed(
-        `Missing one of base or head commit SHA. Base: ${context.base}, Head: ${context.head}`,
-      );
-      return process.exit(1);
-    }
-    core.debug(
-      `Getting diff workflow/actions files for PR: ${context.prNumber}`,
-    );
-    const allFiles = await getComparison(
-      octokit,
-      context.owner,
-      context.repo,
-      context.base,
-      context.head,
-    );
-    const ghaWorkflowFiles = filterForRelevantChanges(
-      allFiles,
-      inputs.validateAllActionDefinitions,
-    );
-    return parseGithubDiff(ghaWorkflowFiles);
-  } else {
-    core.debug("Getting all workflow/action files in the repository.");
-    const filePaths = await getAllWorkflowAndActionFiles(
-      inputs.rootDir,
-      inputs.validateAllActionDefinitions,
-    );
-    return parseFiles(filePaths);
-  }
-}
-
-async function validate(
-  { prNumber }: InvokeContext,
-  inputs: RunInputs,
-  parsedFiles: ParsedFile[],
-  octokit: Octokit,
-): Promise<FileValidationResult[]> {
-  core.debug(`Validating ${parseFiles.length} files`);
-
-  const actionReferenceValidator = new ActionReferenceValidation(octokit, {
-    validateNodeVersion: inputs.validateActionNodeVersion,
-  });
-  const actionsRunnerValidator = new ActionsRunnerValidation();
-  const ignoresCommentsValidator = new IgnoresCommentValidation();
-
-  const validationResults = [];
-  for (const file of parsedFiles) {
-    core.info(`Processing: ${file.filename}`);
-    if (!!prNumber) {
-      file.lines = file.lines.filter((line) => line.operation === "add");
-    }
-
-    const ignoresCommentsResults =
-      await ignoresCommentsValidator.validate(file);
-    const actionReferenceResults = inputs.validateActionRefs
-      ? await actionReferenceValidator.validate(file)
-      : undefined;
-    const actionsRunnerResults = inputs.validateRunners
-      ? await actionsRunnerValidator.validate(file)
-      : undefined;
-    const combinedLineValidations = [
-      ignoresCommentsResults,
-      actionReferenceResults,
-      actionsRunnerResults,
-    ]
-      .filter((result) => !!result)
-      .flatMap((result) => result.lineValidations);
-
-    const processedLineValidations = processLineValidationResults(
-      combinedLineValidations,
-    );
-
-    core.info(
-      `Found ${processedLineValidations.length} total problems in ${file.filename}`,
-    );
-
-    if (processedLineValidations.length === 0) {
-      continue;
-    }
-
-    core.info(
-      `Found ${ignoresCommentsResults?.lineValidations.length ?? 0} problems w/ ignore comments`,
-    );
-    core.info(
-      `Found ${actionReferenceResults?.lineValidations.length ?? 0} problems w/ action references`,
-    );
-    core.info(
-      `Found ${actionsRunnerResults?.lineValidations.length ?? 0} problems w/ actions runners`,
-    );
-
-    validationResults.push({
-      filename: file.filename,
-      lineValidations: processedLineValidations,
-    });
-  }
-
-  core.debug("Validation complete.");
-  return validationResults;
 }
 
 export function getInvokeContext() {
