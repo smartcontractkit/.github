@@ -1,4 +1,4 @@
-import { mapAndFilterUndefined, ParsedFile, FileLine } from "../utils.js";
+import { ParsedFile, FileLine } from "../parse-files.js";
 import * as core from "@actions/core";
 import {
   ValidationCheck,
@@ -29,44 +29,14 @@ export class ActionsRunnerValidation implements ValidationCheck {
     this.options = options ?? {};
   }
 
-  async validate(parsedFile: ParsedFile): Promise<FileValidationResult> {
-    core.debug(`Validating gha runners in ${parsedFile.filename}`);
-    const { filename } = parsedFile;
-
-    const lineActionsRunners = mapAndFilterUndefined(
-      parsedFile.lines,
-      extractActionsRunner,
-    );
-
-    const lineValidations: LineValidationResult[] =
-      await validateActionsRunners(filename, lineActionsRunners);
-
-    return {
-      filename,
-      lineValidations,
-    };
-  }
-}
-
-async function validateActionsRunners(
-  filename: string,
-  lines: FileLineActionsRunner[],
-): Promise<LineValidationResult[]> {
-  const lineValidationResults: LineValidationResult[] = [];
-
-  for (const line of lines) {
-    const validationErrors = await validateActionsRunner(line.actionsRunner);
-
-    if (validationErrors.length > 0) {
-      lineValidationResults.push({
-        filename,
-        line,
-        messages: validationErrors,
-      });
+  async validateLine(line: FileLine): Promise<ValidationMessage[]> {
+    if (line.operation === "unchanged") {
+      return [];
     }
-  }
 
-  return lineValidationResults;
+    const fileLineActionsRunner = extractActionsRunner(line);
+    return validateActionsRunner(fileLineActionsRunner.actionsRunner);
+  }
 }
 
 async function validateActionsRunner(
@@ -104,10 +74,10 @@ async function validateActionsRunner(
 
 function extractActionsRunner(
   fileLine: FileLine,
-): FileLineActionsRunner | undefined {
+): FileLineActionsRunner {
   const actionsRunner = extractActionRunnerFromLine(fileLine.content);
   if (!actionsRunner) {
-    return;
+    return fileLine;
   }
 
   core.debug(

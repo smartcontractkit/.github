@@ -27,5 +27,5 @@ export enum ValidationType {
 }
 
 export interface ValidationCheck {
-  validate(file: ParsedFile): Promise<FileValidationResult>;
+  validateLine(line: FileLine): Promise<ValidationMessage[]>;
 }

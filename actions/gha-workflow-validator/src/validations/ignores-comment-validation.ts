@@ -1,9 +1,7 @@
-import { mapAndFilterUndefined, ParsedFile, FileLine } from "../utils.js";
-import * as core from "@actions/core";
+import { FileLine } from "../parse-files.js";
 import {
   ValidationCheck,
-  FileValidationResult,
-  LineValidationResult,
+  ValidationMessage,
   ValidationType,
 } from "./validation-check.js";
 import { VALIDATOR_IGNORE_LINE } from "../strings.js";
@@ -21,49 +19,36 @@ export class IgnoresCommentValidation implements ValidationCheck {
     this.options = options ?? {};
   }
 
-  async validate(parsedFile: ParsedFile): Promise<FileValidationResult> {
-    core.debug(`Validating ignores comments in ${parsedFile.filename}`);
-    const { filename } = parsedFile;
+  async validateLine(
+    line: FileLine,
+  ): Promise<ValidationMessage[]> {
+    if (line.operation === "unchanged") {
+      return [];
+    }
 
-    const ignoreComments = mapAndFilterUndefined(
-      parsedFile.lines,
-      extractIgnoresComment,
-    );
+    const fileLineActionsRunner = extractIgnoresComment(line);
 
-    const lineValidations: LineValidationResult[] = ignoreComments.map(
-      (line) => {
-        return {
-          filename,
-          line: line,
-          messages: [
-            {
-              type: ValidationType.IGNORE_COMMENT,
-              severity: "error",
-              message: "new ignore comment found",
-            },
-          ],
-        } as LineValidationResult;
+    if (!fileLineActionsRunner.containsIgnoreComment) {
+      return [];
+    }
+
+    return [
+      {
+        type: ValidationType.IGNORE_COMMENT,
+        severity: "error",
+        message: "new ignore comment found",
       },
-    );
-
-    return {
-      filename,
-      lineValidations,
-    };
+    ] as ValidationMessage[];
   }
 }
 
-function extractIgnoresComment(
-  fileLine: FileLine,
-): FileLineIgnoresComment | undefined {
-  if (
-    fileLine.operation !== "add" ||
-    !fileLine.content.includes(VALIDATOR_IGNORE_LINE)
-  ) {
-    return;
-  }
+function extractIgnoresComment(fileLine: FileLine): FileLineIgnoresComment {
+  // ensure only added lines are subject to this validation
+  // to avoid retriggering errors for previously ignored (and unchanged) lines
+  const containsIgnoreComment = fileLine.content.includes(VALIDATOR_IGNORE_LINE);
+
   return {
     ...fileLine,
-    containsIgnoreComment: true,
+    containsIgnoreComment,
   };
 }
