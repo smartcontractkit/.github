@@ -3,6 +3,7 @@ import * as github from "@actions/github";
 
 import { getParsedFilesForValidation } from "./parse-files.js";
 import { logValidationMessages, setSummary } from "./output.js";
+import { validate, doValidationErrorsExist } from "./validations/validate.js";
 
 export interface RunInputs {
   evaluateMode: boolean;
@@ -30,7 +31,7 @@ export async function run() {
     process.exit(0);
   }
 
-  const fileValidations = await validate(context, inputs, parsedFiles, octokit);
+  const fileValidations = await validate(inputs, parsedFiles, octokit);
 
   const invokedThroughPr = !!context.prNumber;
   const urlPrefix = `https://github.com/${context.owner}/${context.repo}/blob/${context.head}`;
