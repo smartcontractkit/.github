@@ -97,6 +97,10 @@ on:
       # Used in some tests to send slack notifications
       SLACK_CHANNEL:
         required: false
+      AWS_K8S_CLUSTER_NAME_SDLC:
+        required: true
+      MAIN_DNS_ZONE_PUBLIC_SDLC:
+        required: true
 
 env:
   MOD_CACHE_VERSION: 1
@@ -226,7 +230,7 @@ jobs:
           fi
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@b8731364b119e88983e94b0c4da87fc27ddb41b8 # ctf-run-tests@0.0.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@5a52473d754eb3cfde41449437e320167bbbddf2 # ctf-run-tests@v0.4.1
         env:
           CL_DATABASE_URL: ${{ env.DB_URL }}
         with:
@@ -253,6 +257,8 @@ jobs:
           should_tidy: "false"
           go_coverage_src_dir: /var/tmp/go-coverage
           go_coverage_dest_dir: ${{ github.workspace }}/.covdata
+          main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
+          k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
 
       - name: Upload test log as artifact
         uses: actions/upload-artifact@v4.4.3
