@@ -72,9 +72,7 @@ async function validateActionsRunner(
   return [];
 }
 
-function extractActionsRunner(
-  fileLine: FileLine,
-): FileLineActionsRunner {
+function extractActionsRunner(fileLine: FileLine): FileLineActionsRunner {
   const actionsRunner = extractActionRunnerFromLine(fileLine.content);
   if (!actionsRunner) {
     return fileLine;

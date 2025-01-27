@@ -1,5 +1,8 @@
 import { doValidationErrorsExist } from "../validations/validate";
-import { FileValidationResult, ValidationType } from "../validations/validation-check";
+import {
+  FileValidationResult,
+  ValidationType,
+} from "../validations/validation-check";
 
 import { describe, it, expect } from "vitest";
 

@@ -45,7 +45,11 @@ export class ActionRefValidation implements ValidationCheck {
     }
 
     const fileLineActionReference = extractActionReference(line);
-    return validateActionReference(this.octokit, this.options, fileLineActionReference.actionReference);
+    return validateActionReference(
+      this.octokit,
+      this.options,
+      fileLineActionReference.actionReference,
+    );
   }
 }
 
@@ -183,9 +187,7 @@ async function validateNodeActionVersion(
   return;
 }
 
-function extractActionReference(
-  fileLine: FileLine,
-): FileLineActionRef {
+function extractActionReference(fileLine: FileLine): FileLineActionRef {
   const actionReference = extractActionReferenceFromLine(fileLine.content);
   if (!actionReference) {
     return fileLine;

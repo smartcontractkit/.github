@@ -19,28 +19,31 @@ export class ActionsCacheVersionValidation implements ValidationCheck {
     this.options = options ?? {};
   }
 
-  async validateLine(
-    line: FileLine,
-  ): Promise<ValidationMessage[]> {
+  async validateLine(line: FileLine): Promise<ValidationMessage[]> {
     const { ref } = extractActionsCacheVersion(line);
     if (!ref) {
       return [];
     }
 
-    const isRefUpToDate = ref === "v4" || ref === "v3" || ref === "v4.2.0" || ref === "v3.4.0";
+    const isRefUpToDate =
+      ref === "v4" || ref === "v3" || ref === "v4.2.0" || ref === "v3.4.0";
     if (isRefUpToDate) {
       return [];
     }
 
-    return [{
-      type: ValidationType.ACTIONS_CACHE,
-      severity: "error",
-      message: `This version (${ref}) of actions/cache is being deprecated. Please update to @v4 (or @v3).`,
-    }];
+    return [
+      {
+        type: ValidationType.ACTIONS_CACHE,
+        severity: "error",
+        message: `This version (${ref}) of actions/cache is being deprecated. Please update to @v4 (or @v3).`,
+      },
+    ];
   }
 }
 
-function extractActionsCacheVersion(fileLine: FileLine): FileLineActionsCacheVersion {
+function extractActionsCacheVersion(
+  fileLine: FileLine,
+): FileLineActionsCacheVersion {
   const actionsCacheVersion = extractActionsCacheFromLine(fileLine.content);
   if (!actionsCacheVersion) {
     return fileLine;
@@ -63,5 +66,3 @@ export function extractActionsCacheFromLine(line: string): string | undefined {
     return ref;
   }
 }
-
-

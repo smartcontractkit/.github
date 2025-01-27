@@ -1,5 +1,9 @@
-
-import { combineParsedFiles, filterForRelevantChanges, parseGithubDiff, ParsedFiles } from "../parse-files.js";
+import {
+  combineParsedFiles,
+  filterForRelevantChanges,
+  parseGithubDiff,
+  ParsedFiles,
+} from "../parse-files.js";
 import { getComparison, GithubFiles } from "../github.js";
 
 import { getNock, getTestOctokit } from "./__helpers__/test-utils.js";
@@ -9,12 +13,8 @@ import { describe, it, expect } from "vitest";
 
 describe(combineParsedFiles.name, () => {
   it("should return existing files if no diff matches any filename", () => {
-    const existing: ParsedFiles = [
-      { filename: "file1.yml", lines: [] },
-    ];
-    const diff: ParsedFiles = [
-      { filename: "file2.yml", lines: [] },
-    ];
+    const existing: ParsedFiles = [{ filename: "file1.yml", lines: [] }];
+    const diff: ParsedFiles = [{ filename: "file2.yml", lines: [] }];
     const result = combineParsedFiles(existing, diff);
     expect(result).toEqual(existing);
   });
@@ -24,7 +24,12 @@ describe(combineParsedFiles.name, () => {
       {
         filename: "file1.yml",
         lines: [
-          { lineNumber: 1, content: "foo", operation: "unchanged", ignored: false },
+          {
+            lineNumber: 1,
+            content: "foo",
+            operation: "unchanged",
+            ignored: false,
+          },
         ],
       },
     ];
@@ -45,9 +50,24 @@ describe(combineParsedFiles.name, () => {
       {
         filename: "file1.yml",
         lines: [
-          { lineNumber: 1, content: "foo", operation: "unchanged", ignored: false },
-          { lineNumber: 2, content: "bar", operation: "unchanged", ignored: false },
-          { lineNumber: 3, content: "baz", operation: "unchanged", ignored: false },
+          {
+            lineNumber: 1,
+            content: "foo",
+            operation: "unchanged",
+            ignored: false,
+          },
+          {
+            lineNumber: 2,
+            content: "bar",
+            operation: "unchanged",
+            ignored: false,
+          },
+          {
+            lineNumber: 3,
+            content: "baz",
+            operation: "unchanged",
+            ignored: false,
+          },
         ],
       },
     ];
@@ -55,9 +75,19 @@ describe(combineParsedFiles.name, () => {
       {
         filename: "file1.yml",
         lines: [
-          { lineNumber: 1, content: "foo", operation: "unchanged", ignored: false },
+          {
+            lineNumber: 1,
+            content: "foo",
+            operation: "unchanged",
+            ignored: false,
+          },
           { lineNumber: 2, content: "bar", operation: "add", ignored: false },
-          { lineNumber: 3, content: "baz", operation: "unchanged", ignored: false },
+          {
+            lineNumber: 3,
+            content: "baz",
+            operation: "unchanged",
+            ignored: false,
+          },
         ],
       },
     ];
@@ -71,7 +101,6 @@ describe(combineParsedFiles.name, () => {
 
     expect(result[0].lines[2].operation).toBe("unchanged");
     expect(result[0].lines[2].content).toBe("baz");
-
   });
 });
 
@@ -184,7 +213,6 @@ describe(filterForRelevantChanges.name, () => {
     expect(filteredFiles).toEqual(files.slice(0, 4));
   });
 });
-
 
 describe(parseGithubDiff.name, () => {
   it("parses all additions (empty)", () => {

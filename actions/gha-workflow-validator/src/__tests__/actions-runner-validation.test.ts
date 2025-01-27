@@ -66,7 +66,9 @@ describe(ActionsRunnerValidation.name, () => {
 
   it("should error on upgraded runner", async () => {
     const subject = new ActionsRunnerValidation();
-    const messages = await subject.validateLine(actionsRunnerLineUbuntuUpgraded);
+    const messages = await subject.validateLine(
+      actionsRunnerLineUbuntuUpgraded,
+    );
     expect(messages.length).toEqual(1);
     expect(
       messages[0].message.startsWith("This Ubuntu runner is"),

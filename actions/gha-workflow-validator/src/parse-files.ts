@@ -61,8 +61,9 @@ export async function getPRChanges(
   return parseGithubDiff(ghaWorkflowFiles);
 }
 
-export async function getExistingFiles(inputs: RunInputs): Promise<ParsedFiles> {
-
+export async function getExistingFiles(
+  inputs: RunInputs,
+): Promise<ParsedFiles> {
   core.debug("Getting all workflow/action files in the repository.");
   const filePaths = await getAllWorkflowAndActionFiles(
     inputs.rootDir,
@@ -120,7 +121,10 @@ export function combineParsedFiles(
       continue;
     }
 
-    const combinedFileLines = combineFileLines(existingFile.lines, diffFile.lines);
+    const combinedFileLines = combineFileLines(
+      existingFile.lines,
+      diffFile.lines,
+    );
 
     combined.push({
       filename: existingFile.filename,
@@ -131,10 +135,7 @@ export function combineParsedFiles(
   return combined;
 }
 
-function combineFileLines(
-  existing: FileLine[],
-  diff: FileLine[],
-): FileLine[] {
+function combineFileLines(existing: FileLine[], diff: FileLine[]): FileLine[] {
   const combined: FileLine[] = [];
 
   for (const existingLine of existing) {
@@ -146,12 +147,10 @@ function combineFileLines(
     }
 
     combined.push(existingLine);
-
   }
 
   return combined;
 }
-
 
 /**
  * Parses the diff files from a GitHub PR diff.
@@ -219,7 +218,6 @@ function parsePatchChanges(patch: string): FileLine[] {
 
   return additions;
 }
-
 
 /**
  * Parses the files from the file system into a ParsedFile object.

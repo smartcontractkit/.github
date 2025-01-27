@@ -49,14 +49,22 @@ describe(IgnoresCommentValidation.name, () => {
 
   it("should validate no ignore comment changes", async () => {
     const subject = new IgnoresCommentValidation();
-    const line: FileLine = { lineNumber: 1, content: "line 1", operation: "add", ignored: false };
+    const line: FileLine = {
+      lineNumber: 1,
+      content: "line 1",
+      operation: "add",
+      ignored: false,
+    };
     const messages = await subject.validateLine(line);
     expect(messages).toEqual([]);
   });
 
   it("should not error with unchanged ignore", async () => {
     const subject = new IgnoresCommentValidation();
-    const line: FileLine = { ...actionsRunnerLineWithIgnore, operation: "unchanged" };
+    const line: FileLine = {
+      ...actionsRunnerLineWithIgnore,
+      operation: "unchanged",
+    };
     const messages = await subject.validateLine(line);
     expect(messages).toEqual([]);
   });
@@ -73,9 +81,7 @@ describe(IgnoresCommentValidation.name, () => {
     const line: FileLine = actionsReferenceLineWithIgnore;
     const messages = await subject.validateLine(line);
     expect(messages.length).toEqual(1);
-    expect(messages[0].message).toEqual(
-      `new ignore comment found`,
-    );
+    expect(messages[0].message).toEqual(`new ignore comment found`);
     expect(messages[0].severity).toEqual("error");
   });
 
@@ -84,9 +90,7 @@ describe(IgnoresCommentValidation.name, () => {
     const line: FileLine = actionsRunnerLineWithIgnore;
     const messages = await subject.validateLine(line);
     expect(messages.length).toEqual(1);
-    expect(messages[0].message).toEqual(
-      `new ignore comment found`,
-    );
+    expect(messages[0].message).toEqual(`new ignore comment found`);
     expect(messages[0].severity).toEqual("error");
   });
 });
