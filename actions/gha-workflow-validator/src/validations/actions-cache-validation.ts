@@ -34,8 +34,8 @@ export class ActionsCacheVersionValidation implements ValidationCheck {
     return [
       {
         type: ValidationType.ACTIONS_CACHE,
-        severity: "error",
-        message: `This version (${ref}) of actions/cache is being deprecated. Please update to @v4 (or @v3).`,
+        severity: line.operation === "add" ? "error" : "warning",
+        message: `This version (${ref}) of actions/cache is being deprecated. Please update to v4.`,
       },
     ];
   }
