@@ -12,6 +12,7 @@ export interface RunInputs {
   validateActionNodeVersion: boolean;
   validateAllActionDefinitions: boolean;
   rootDir: string;
+  diffOnly: boolean;
 }
 
 export type InvokeContext = ReturnType<typeof getInvokeContext>;
@@ -101,6 +102,7 @@ function getInputs(): RunInputs {
       core.getBooleanInput,
     ],
     rootDir: ["root-directory", core.getInput],
+    diffOnly: ["diff-only", core.getBooleanInput],
   };
 
   if (isLocalDebug) {

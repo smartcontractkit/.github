@@ -38,7 +38,7 @@ export async function getPRChanges(
   inputs: RunInputs,
   octokit: Octokit,
 ): Promise<ParsedFiles> {
-  if (!!context.prNumber || !context.base || !context.head) {
+  if (!context.base || !context.head) {
     core.warning(
       `Missing one of base or head commit SHA. Base: ${context.base}, Head: ${context.head}`,
     );
@@ -64,11 +64,21 @@ export async function getPRChanges(
 export async function getExistingFiles(
   inputs: RunInputs,
 ): Promise<ParsedFiles> {
+  if (inputs.diffOnly) {
+    return [];
+  }
   core.debug("Getting all workflow/action files in the repository.");
   const filePaths = await getAllWorkflowAndActionFiles(
     inputs.rootDir,
     inputs.validateAllActionDefinitions,
   );
+
+  if (!filePaths || filePaths.length === 0) {
+    core.warning(
+      "No workflow or action files found in the repository. Was the repository checked out?",
+    );
+    return [];
+  }
 
   return await parseFiles(filePaths);
 }
@@ -111,9 +121,16 @@ export function combineParsedFiles(
   existing: ParsedFiles,
   diff: ParsedFiles,
 ): ParsedFiles {
-  const combined: ParsedFiles = [];
+  if (existing.length === 0) {
+    return diff;
+  } else if (diff.length === 0) {
+    return existing;
+  }
 
+  const filenames = new Set<string>();
+  const combined: ParsedFiles = [];
   for (const existingFile of existing) {
+    filenames.add(existingFile.filename);
     const diffFile = diff.find((f) => f.filename === existingFile.filename);
 
     if (!diffFile) {
@@ -132,20 +149,33 @@ export function combineParsedFiles(
     });
   }
 
+  for (const diffFile of diff) {
+    if (!filenames.has(diffFile.filename)) {
+      combined.push(diffFile);
+    }
+  }
+
   return combined;
 }
 
-function combineFileLines(existing: FileLine[], diff: FileLine[]): FileLine[] {
-  const combined: FileLine[] = [];
+// Exported for testing only
+export function combineFileLines(
+  existing: FileLine[],
+  diff: FileLine[],
+): FileLine[] {
+  if (existing.length === 0) {
+    return diff;
+  } else if (diff.length === 0) {
+    return existing;
+  }
 
+  const combined: FileLine[] = [];
   for (const existingLine of existing) {
     const diffLine = diff.find((l) => l.lineNumber === existingLine.lineNumber);
-
     if (diffLine) {
       combined.push(diffLine);
       continue;
     }
-
     combined.push(existingLine);
   }
 

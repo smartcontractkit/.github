@@ -23936,7 +23936,7 @@ async function getParsedFilesForValidation(context2, inputs, octokit) {
   return combined;
 }
 async function getPRChanges(context2, inputs, octokit) {
-  if (!!context2.prNumber || !context2.base || !context2.head) {
+  if (!context2.base || !context2.head) {
     core3.warning(
       `Missing one of base or head commit SHA. Base: ${context2.base}, Head: ${context2.head}`
     );
@@ -23957,11 +23957,18 @@ async function getPRChanges(context2, inputs, octokit) {
   return parseGithubDiff(ghaWorkflowFiles);
 }
 async function getExistingFiles(inputs) {
+  if (inputs.diffOnly) {
+    return [];
+  }
   core3.debug("Getting all workflow/action files in the repository.");
   const filePaths = await getAllWorkflowAndActionFiles(
     inputs.rootDir,
     inputs.validateAllActionDefinitions
   );
+  if (!filePaths || filePaths.length === 0) {
+    core3.warning("No workflow or action files found in the repository. Was the repository checked out?");
+    return [];
+  }
   return await parseFiles(filePaths);
 }
 function filterForRelevantChanges(files, includeAllActionDefinitions) {
@@ -23973,8 +23980,15 @@ function isGithubWorkflowOrActionFile(filename) {
   return (filename.startsWith(".github/workflows") || filename.startsWith(".github/actions")) && (filename.endsWith(".yml") || filename.endsWith(".yaml"));
 }
 function combineParsedFiles(existing, diff) {
+  if (existing.length === 0) {
+    return diff;
+  } else if (diff.length === 0) {
+    return existing;
+  }
+  const filenames = /* @__PURE__ */ new Set();
   const combined = [];
   for (const existingFile of existing) {
+    filenames.add(existingFile.filename);
     const diffFile = diff.find((f) => f.filename === existingFile.filename);
     if (!diffFile) {
       combined.push(existingFile);
@@ -23989,9 +24003,19 @@ function combineParsedFiles(existing, diff) {
       lines: combinedFileLines
     });
   }
+  for (const diffFile of diff) {
+    if (!filenames.has(diffFile.filename)) {
+      combined.push(diffFile);
+    }
+  }
   return combined;
 }
 function combineFileLines(existing, diff) {
+  if (existing.length === 0) {
+    return diff;
+  } else if (diff.length === 0) {
+    return existing;
+  }
   const combined = [];
   for (const existingLine of existing) {
     const diffLine = diff.find((l) => l.lineNumber === existingLine.lineNumber);
@@ -24680,7 +24704,8 @@ function getInputs() {
       "include-all-action-definitions",
       core8.getBooleanInput
     ],
-    rootDir: ["root-directory", core8.getInput]
+    rootDir: ["root-directory", core8.getInput],
+    diffOnly: ["diff-only", core8.getBooleanInput]
   };
   if (isLocalDebug) {
     for (const [key, value] of Object.entries(inputKeys)) {

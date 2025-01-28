@@ -1,106 +1,167 @@
 import {
   combineParsedFiles,
   filterForRelevantChanges,
+  getParsedFilesForValidation,
   parseGithubDiff,
   ParsedFiles,
+  combineFileLines,
+  FileLine,
 } from "../parse-files.js";
 import { getComparison, GithubFiles } from "../github.js";
-
+import { InvokeContext, RunInputs } from "../run.js";
 import { getNock, getTestOctokit } from "./__helpers__/test-utils.js";
 const nockBack = getNock();
 
+import { join } from "path";
 import { describe, it, expect } from "vitest";
 
-describe(combineParsedFiles.name, () => {
-  it("should return existing files if no diff matches any filename", () => {
-    const existing: ParsedFiles = [{ filename: "file1.yml", lines: [] }];
-    const diff: ParsedFiles = [{ filename: "file2.yml", lines: [] }];
-    const result = combineParsedFiles(existing, diff);
-    expect(result).toEqual(existing);
+const defaultContext: InvokeContext = {
+  token: "token",
+  owner: "owner",
+  repo: "repo",
+  base: undefined,
+  head: undefined,
+  prNumber: -1,
+};
+
+const defaultInputs: RunInputs = {
+  evaluateMode: false,
+  validateRunners: false,
+  validateActionRefs: false,
+  validateActionNodeVersion: false,
+  validateAllActionDefinitions: false,
+  rootDir: __dirname,
+  diffOnly: false,
+};
+
+describe(getParsedFilesForValidation.name, () => {
+  it("should return actions/workflow files for PR", async () => {
+    const { nockDone } = await nockBack(
+      `${getParsedFilesForValidation.name}-pr.json`,
+    );
+    const octokit = getTestOctokit(nockBack.currentMode);
+
+    // https://github.com/smartcontractkit/.github/commit/72a01b25a8d31c8fe3dee5e74eaf936eb42064ec
+    const context = {
+      owner: "smartcontractkit",
+      repo: ".github",
+      prNumber: 1,
+      base: "31e00facdd8f57a2bc7868b5e4c8591bf2aa3727",
+      head: "72a01b25a8d31c8fe3dee5e74eaf936eb42064ec",
+      token: "token",
+    };
+
+    const result = await getParsedFilesForValidation(
+      context,
+      { ...defaultInputs, diffOnly: true },
+      octokit,
+    );
+
+    const files = result.map((f) => f.filename);
+    expect(files).toEqual([
+      `.github/workflows/pull-request-main.yml`,
+      `.github/workflows/push-main.yml`,
+    ]);
+
+    nockDone();
   });
 
-  it("should merge lines for matching filenames", () => {
-    const existing: ParsedFiles = [
-      {
-        filename: "file1.yml",
-        lines: [
-          {
-            lineNumber: 1,
-            content: "foo",
-            operation: "unchanged",
-            ignored: false,
-          },
-        ],
-      },
-    ];
-    const diff: ParsedFiles = [
-      {
-        filename: "file1.yml",
-        lines: [
-          { lineNumber: 1, content: "foo", operation: "add", ignored: false },
-        ],
-      },
-    ];
-    const result = combineParsedFiles(existing, diff);
-    expect(result[0].lines[0].operation).toBe("add");
+  it("should return *all* actions/workflow files for PR", async () => {
+    const { nockDone } = await nockBack(
+      `${getParsedFilesForValidation.name}-pr-all.json`,
+    );
+    const octokit = getTestOctokit(nockBack.currentMode);
+
+    // https://github.com/smartcontractkit/.github/commit/72a01b25a8d31c8fe3dee5e74eaf936eb42064ec
+    const context = {
+      owner: "smartcontractkit",
+      repo: ".github",
+      prNumber: 1,
+      base: "31e00facdd8f57a2bc7868b5e4c8591bf2aa3727",
+      head: "72a01b25a8d31c8fe3dee5e74eaf936eb42064ec",
+      token: "token",
+    };
+
+    const inputs = {
+      ...defaultInputs,
+      validateAllActionDefinitions: true,
+      diffOnly: true,
+    };
+
+    const result = await getParsedFilesForValidation(context, inputs, octokit);
+
+    const files = result.map((f) => f.filename);
+    expect(files).toEqual([
+      `.github/workflows/pull-request-main.yml`,
+      `.github/workflows/push-main.yml`,
+      `actions/ci-test-ts/action.yml`,
+      `apps/go-mod-validator/action.yaml`,
+    ]);
+
+    nockDone();
   });
 
-  it("should merge lines for matching filenames (complex)", () => {
-    const existing: ParsedFiles = [
-      {
-        filename: "file1.yml",
-        lines: [
-          {
-            lineNumber: 1,
-            content: "foo",
-            operation: "unchanged",
-            ignored: false,
-          },
-          {
-            lineNumber: 2,
-            content: "bar",
-            operation: "unchanged",
-            ignored: false,
-          },
-          {
-            lineNumber: 3,
-            content: "baz",
-            operation: "unchanged",
-            ignored: false,
-          },
-        ],
-      },
-    ];
-    const diff: ParsedFiles = [
-      {
-        filename: "file1.yml",
-        lines: [
-          {
-            lineNumber: 1,
-            content: "foo",
-            operation: "unchanged",
-            ignored: false,
-          },
-          { lineNumber: 2, content: "bar", operation: "add", ignored: false },
-          {
-            lineNumber: 3,
-            content: "baz",
-            operation: "unchanged",
-            ignored: false,
-          },
-        ],
-      },
-    ];
-    const result = combineParsedFiles(existing, diff);
+  it("should return actions/workflow files non-pr", async () => {
+    const { nockDone } = await nockBack(
+      `${getParsedFilesForValidation.name}-non-pr-all.json`,
+    );
+    const context: InvokeContext = {
+      ...defaultContext,
+      prNumber: undefined,
+    };
 
-    expect(result[0].lines[0].operation).toBe("unchanged");
-    expect(result[0].lines[0].content).toBe("foo");
+    const inputs = { ...defaultInputs, rootDir: join(__dirname, "/fake-repo") };
 
-    expect(result[0].lines[1].operation).toBe("add");
-    expect(result[0].lines[1].content).toBe("bar");
+    const result = await getParsedFilesForValidation(
+      context,
+      inputs,
+      {} as any,
+    );
 
-    expect(result[0].lines[2].operation).toBe("unchanged");
-    expect(result[0].lines[2].content).toBe("baz");
+    const files = result.map((f) => {
+      const index = f.filename.indexOf("__tests__");
+      return f.filename.slice(index);
+    });
+    expect(files).toEqual([
+      "__tests__/fake-repo/.github/workflows/bar.yml",
+      "__tests__/fake-repo/.github/workflows/foo.yaml",
+      "__tests__/fake-repo/.github/actions/test-yml/action.yml",
+      "__tests__/fake-repo/.github/actions/test-yaml/action.yaml",
+    ]);
+    nockDone();
+  });
+
+  it("should all return actions/workflow files non-pr", async () => {
+    const context: InvokeContext = {
+      ...defaultContext,
+      prNumber: undefined,
+    };
+
+    const inputs = {
+      ...defaultInputs,
+      validateAllActionDefinitions: true,
+      rootDir: join(__dirname, "/fake-repo"),
+    };
+
+    const result = await getParsedFilesForValidation(
+      context,
+      inputs,
+      {} as any,
+    );
+
+    const files = result.map((f) => {
+      const index = f.filename.indexOf("__tests__");
+      return f.filename.slice(index);
+    });
+    expect(files).toEqual([
+      "__tests__/fake-repo/.github/workflows/bar.yml",
+      "__tests__/fake-repo/.github/workflows/foo.yaml",
+      "__tests__/fake-repo/.github/actions/test-yml/action.yml",
+      "__tests__/fake-repo/action.yml",
+      "__tests__/fake-repo/directory/action.yml",
+      "__tests__/fake-repo/.github/actions/test-yaml/action.yaml",
+      "__tests__/fake-repo/action.yml",
+    ]);
   });
 });
 
@@ -241,5 +302,122 @@ describe(parseGithubDiff.name, () => {
     expect(parsedFiles).toMatchSnapshot();
 
     nockDone();
+  });
+});
+
+describe(combineFileLines.name, () => {
+  it("should merge separate files properly", () => {
+    const existingFile: ParsedFiles = [
+      {
+        filename: "file1.yml",
+        lines: [
+          {
+            lineNumber: 1,
+            content: "foo",
+            operation: "unchanged",
+            ignored: false,
+          },
+        ],
+      },
+    ];
+
+    const diffFile: ParsedFiles = [
+      {
+        filename: "file2.yml",
+        lines: [
+          { lineNumber: 1, content: "bar", operation: "add", ignored: false },
+        ],
+      },
+    ];
+
+    const result = combineParsedFiles(existingFile, diffFile);
+
+    expect(result[0]).toEqual(existingFile[0]);
+    expect(result[1]).toEqual(diffFile[0]);
+  });
+
+  it("should merge separate and overlapping files properly", () => {
+    const seperateFileLines: FileLine[] = [
+      { lineNumber: 1, content: "foo", operation: "unchanged", ignored: false },
+    ];
+    const combinedFileLinesExisting: FileLine[] = [
+      { lineNumber: 1, content: "foo", operation: "unchanged", ignored: false },
+      { lineNumber: 2, content: "foo", operation: "unchanged", ignored: false },
+    ];
+    const combinedFileLinesDiff: FileLine[] = [
+      { lineNumber: 2, content: "foo", operation: "add", ignored: false },
+    ];
+
+    const existingFile: ParsedFiles = [
+      {
+        filename: "only-existing.yml",
+        lines: seperateFileLines,
+      },
+      {
+        filename: "combined.yml",
+        lines: combinedFileLinesExisting,
+      },
+    ];
+
+    const diffFile: ParsedFiles = [
+      {
+        filename: "only-diff.yml",
+        lines: seperateFileLines,
+      },
+      {
+        filename: "combined.yml",
+        lines: combinedFileLinesDiff,
+      },
+    ];
+
+    const result = combineParsedFiles(existingFile, diffFile);
+
+    expect(result[0]).toEqual(existingFile[0]);
+    expect(result[1]).toEqual({
+      filename: "combined.yml",
+      lines: [combinedFileLinesExisting[0], combinedFileLinesDiff[0]],
+    });
+    expect(result[2]).toEqual(diffFile[0]);
+  });
+});
+
+describe(combineFileLines.name, () => {
+  it("should use existing lines if diff is empty", () => {
+    const existingLines: FileLine[] = [
+      { lineNumber: 1, content: "foo", operation: "unchanged", ignored: false },
+      { lineNumber: 2, content: "bar", operation: "unchanged", ignored: false },
+      { lineNumber: 3, content: "baz", operation: "unchanged", ignored: false },
+    ];
+
+    const result = combineFileLines(existingLines, []);
+    expect(result).toEqual(existingLines);
+  });
+
+  it("should use diff lines if existing is empty", () => {
+    const diffLines: FileLine[] = [
+      { lineNumber: 1, content: "foo", operation: "unchanged", ignored: false },
+      { lineNumber: 2, content: "bar", operation: "add", ignored: false },
+      { lineNumber: 3, content: "baz", operation: "unchanged", ignored: false },
+    ];
+
+    const result = combineFileLines([], diffLines);
+    expect(result).toEqual(diffLines);
+  });
+
+  it("should merge lines properly", () => {
+    const existingLines: FileLine[] = [
+      { lineNumber: 1, content: "foo", operation: "unchanged", ignored: false },
+      { lineNumber: 2, content: "bar", operation: "unchanged", ignored: false },
+      { lineNumber: 3, content: "baz", operation: "unchanged", ignored: false },
+    ];
+
+    const diffLines: FileLine[] = [
+      { lineNumber: 2, content: "bar", operation: "add", ignored: false },
+    ];
+
+    const result = combineFileLines(existingLines, diffLines);
+    expect(result[0]).toEqual(existingLines[0]);
+    expect(result[1]).toEqual(diffLines[0]);
+    expect(result[2]).toEqual(existingLines[2]);
   });
 });
