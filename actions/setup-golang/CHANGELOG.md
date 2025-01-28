@@ -1,5 +1,14 @@
 # setup-golang
 
+## 0.3.0
+
+### Minor Changes
+
+- [#841](https://github.com/smartcontractkit/.github/pull/841)
+  [`bca1d46`](https://github.com/smartcontractkit/.github/commit/bca1d461d8a970e967f33960e3c5932f0cd74159)
+  Thanks [@DimitriosNaikopoulos](https://github.com/DimitriosNaikopoulos)! -
+  install toolchain version if it exists
+
 ## 0.2.3
 
 ### Patch Changes
