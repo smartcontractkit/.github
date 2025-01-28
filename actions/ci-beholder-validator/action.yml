@@ -2,18 +2,14 @@ name: "Schema Validator Action"
 description: "Validates schema compatibility with schema registry"
 
 inputs:
-  checkout-repo:
-    description: "Whether to checkout the repository"
-    required: false
-    default: "true"
-  checkout-repo-fetch-depth:
-    description: "Fetch depth for checkout"
-    required: false
-    default: "0"
   docker-registry:
     description: "Docker registry to use"
     required: true
     default: "aws"
+  image-tag:
+    description: "Image tag to use"
+    required: false
+    default: "latest"
   # aws inputs
   aws-role-duration-seconds:
     description: ""
@@ -33,7 +29,6 @@ runs:
   using: composite
   steps:
     - name: Checkout repo
-      if: inputs.checkout-repo == 'true'
       uses: actions/checkout@v4.2.1
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
@@ -58,29 +53,26 @@ runs:
     - name: Login to aws ecr
       if: inputs.docker-registry == 'aws'
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
-      with:
-        registries: ${{ steps.process-params.outputs.aws-account-number }}
     - name: Pull schema-validator image from ECR
       shell: bash
       run: |
-        docker pull ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:latest
+        docker pull ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:${{ inputs.image-tag }}
     - name: Run Schema Validator
       shell: bash
       run: |
         docker run -v "$PWD:/app/repo" \
         --network redpanda_network \
         -e SCHEMA_REGISTRY_URL=http://redpanda:8081 \
-        <your-ecr-repo-name>:latest \
+        atlas-beholder-schema-validator:latest \
         --config-file /app/repo/config.yaml
     - name: Validate schemas in master branch
-      if: steps.set_mode.outputs.mode == 'pr'
       shell: bash
       run: |
         # Store current branch
         CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-        # Checkout and validate master
-        git checkout master
+        # Checkout and validate default branch
+        git checkout ${{ github.event.repository.default_branch }}, 
         docker run -v "$PWD:/app/repo" \
         --network redpanda_network \
         -e SCHEMA_REGISTRY_URL=http://redpanda:8081 \

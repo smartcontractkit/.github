@@ -1,54 +1,30 @@
-# Schema Evolution Validator
+# Schema Registry Validator Action
 
-A GitHub Action tool that validates schema evolution by checking compatibility
-with your schema registry when pull requests are created. The tool helps prevent
-breaking changes in your schemas by automatically validating them against the
-existing versions.
+A GitHub Action that validates schema compatibility against your schema registry
+during pull requests. This action helps prevent breaking changes by
+automatically checking schema evolution compatibility before changes are merged.
 
 ## Overview
 
-When you create a pull request containing schema changes, this tool
-automatically:
+The Schema Registry Validator action automatically:
 
-1. Reads schema definitions from your `beholder.yaml` configuration
-2. Makes compatibility checks against your schema registry
-3. Reports any compatibility issues in the GitHub Actions log
+1. Spins up a local Redpanda schema registry for testing
+2. Validates your schemas against it
+3. Ensures schema changes maintain backward compatibility
+4. Reports validation results in your PR
 
-This ensures that schema changes are caught early in the development cycle,
-before they can impact production services.
+## Prerequisites
 
-## Getting Started
-
-### Prerequisites
-
-- A schema registry service with a compatibility check endpoint
 - GitHub repository with Actions enabled
-- Go 1.21 or later
-- Appropriate permissions to configure GitHub Secrets
+- Schema files (.proto, .avsc, etc.) in your repository
+- A `beholder.yaml` configuration file
 
-### Configuration
+## Usage
 
-Create a `beholder.yaml` file in your repository with your schema definitions:
-
-```yaml
-beholder:
-  domain: your_domain
-  schemas:
-    - entity: OnRampSend
-      schema: "./schemas/on_ramp_send.proto"
-    - entity: OffRampSend
-      schema: "./schemas/off_ramp_send.avsc"
-```
-
-Note: Schema paths should be relative to the `beholder.yaml` location.
-
-### A sample setup without using actions folder
-
-1. Create `.github/workflows/schema-check.yml`:
+Add this action to your workflow:
 
 ```yaml
-name: Schema Compatibility Check
-
+name: Validate Schemas
 on:
   pull_request:
     paths:
@@ -57,108 +33,83 @@ on:
       - "**/beholder.yaml"
 
 jobs:
-  check-schemas:
+  validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout PR branch
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: smartcontractkit/ci-beholder-validator@v1
         with:
-          fetch-depth: 0
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: "1.21"
-
-      - name: Process PR branch schemas
-        env:
-          SCHEMA_REGISTRY_URL: ${{ secrets.SCHEMA_REGISTRY_URL }}
-        run: go run cmd/schema-processor/main.go --phase pr
+          docker-registry: "aws" # Required, supports 'aws'
+          aws-region: "us-east-1" # Optional, for AWS ECR
+          aws-role-arn: "arn:aws:iam::123456789:role/schema-validator" # Optional
 ```
 
-2. Add your schema registry URL as a repository secret:
-   - Go to Repository Settings → Secrets and Variables → Actions
-   - Add new secret: `SCHEMA_REGISTRY_URL`
+A detailed README and the source code for the docker image can be found
+[here](https://github.com/smartcontractkit/atlas/tree/master/beholder/schema_validator).
 
-### Project Structure
+## Configuration
 
-```
-your-repo/
-├── .github/
-│   └── workflows/
-│       └── schema-check.yml
-├── cmd/
-│   └── schema-processor/
-│       └── main.go
-├── beholder.yaml
-└── schemas/
-    ├── on_ramp_send.proto
-    └── off_ramp_send.avsc
+### Required Inputs
+
+- `docker-registry`: Registry to pull the validator image from (currently
+  supports 'aws')
+
+### Optional AWS Inputs
+
+When using AWS ECR (`docker-registry: 'aws'`):
+
+- `aws-region`: AWS region for ECR
+- `aws-role-arn`: IAM role ARN for ECR access
+- `aws-role-duration-seconds`: Session duration (default: 900)
+- `aws-account-number`: AWS account number
+
+### Repository Configuration
+
+Create a `beholder.yaml` file in your repository:
+
+```yaml
+beholder:
+  domain: your_domain
+  schemas:
+    - entity: UserEvent
+      schema: "./schemas/user_event.proto"
+    - entity: OnRampEvent
+      schema: "./schemas/on_ramp_event.avsc"
 ```
 
 ## How It Works
 
-The tool integrates with GitHub Actions and runs automatically when:
+When a PR is created or updated, the action:
 
-- A pull request is created or updated
-- Changes are made to schema files (.proto or .avsc)
-- Changes are made to beholder.yaml
-
-For each schema in your configuration, the tool:
-
-1. Reads the schema file content
-2. Makes a compatibility check request to your schema registry
-3. Reports the result in the GitHub Actions log
-
-### Error Handling
-
-The tool handles several scenarios gracefully:
-
-- **Missing Configuration**: Clear error if beholder.yaml is not found
-- **Schema Registry Issues**: Detailed connection error reporting
-- **Invalid Schemas**: Specific compatibility error messages
-- **Configuration Errors**: Environment variable and config validation
-
-## Development
-
-To work on the tool locally:
-
-1. Setup a schema registry using docker compose. Easiest way can be found
-   [here](https://github.com/smartcontractkit/atlas/blob/master/docker-compose.redpanda.yml)
-2. Run the tool with the following command for all schemas after checking out
-   master
-
-```bash
-# Set your schema registry URL
-export SCHEMA_REGISTRY_URL="your-schema-registry-url"
-
-# Run the tool
-go run cmd/schema-processor/main.go --phase master
-```
-
-3. Now make changes to the schema and then run the tool again with the following
-   command
-
-```bash
-# Run the tool
-go run cmd/schema-processor/main.go --phase pr
-```
+1. Checks out your repository
+2. Detects changed schema files
+3. Starts a local Redpanda instance for testing
+4. Pulls the validator image from your registry
+5. Validates schemas in both master and PR branches
+6. Reports results in the github actions log
 
 ## Troubleshooting
 
 Common issues and solutions:
 
-**Schema Registry Connection Failed**
+**AWS Authentication Failed**
 
-- Verify SCHEMA_REGISTRY_URL secret is set correctly
-- Ensure schema registry is accessible from GitHub Actions
+- Verify AWS role ARN is correct
+- Ensure role has proper ECR permissions
+- Check AWS region configuration
 
-**Schema Not Found**
+**Schema Validation Failed**
 
-- Check schema paths in beholder.yaml
-- Verify schema files exist in specified locations
+- Review schema changes for compatibility issues
+- Verify schema files exist in specified paths
+- Check beholder.yaml configuration
 
-**Configuration Not Found**
+**Docker Issues**
 
-- Ensure beholder.yaml exists
-- Check file location and permissions
+- Ensure Docker is running in your workflow
+- Verify registry credentials and permissions
+- Check network connectivity to registry
+
+## Contributing
+
+Contributions are welcome! Please submit PRs with improvements or bug fixes.
