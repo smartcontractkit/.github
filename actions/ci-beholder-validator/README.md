@@ -36,7 +36,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: smartcontractkit/ci-beholder-validator@1.0.0
+      - uses: smartcontractkit/.github/actions/ci-beholder-validator@<sha> # ci-beholder-validator@1.0.0
         with:
           docker-registry: "aws" # Required, supports 'aws'
           aws-region: "us-east-1" # Optional, for AWS ECR
