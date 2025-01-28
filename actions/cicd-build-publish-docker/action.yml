@@ -92,6 +92,12 @@ runs:
         registries:
           ${{ inputs.registry-type == 'private' && inputs.aws-account-number ||
           '' }}
+
+    # Multiplatform support based on https://docs.docker.com/build/ci/github-actions/multi-platform/
+    - name: Set up QEMU
+      if: inputs.multi-platform == 'true'
+      uses: docker/setup-qemu-action@53851d14592bedcffcf25ea515637cff71ef929a # v3.3.0
+
     - name: Set up Docker Buildx
       if: inputs.multi-platform == 'true'
       id: buildx
