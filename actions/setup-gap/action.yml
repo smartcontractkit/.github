@@ -85,9 +85,9 @@ inputs:
     required: false
     default: "info"
   dynamic-proxy-port:
-    description: "The port the dynamic proxy will listen on. Defaults to 9090."
+    description: "The port the dynamic proxy will listen on. Defaults to 443."
     required: false
-    default: "9090"
+    default: "443"
   main-dns-zone:
     description:
       "The DNS zone is used for exposing services. It is required when using the

@@ -1,0 +1,66 @@
+name: Check If Verified Test
+
+on:
+  pull_request:
+
+jobs:
+  check-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: smartcontractkit/.github/actions/check-if-verified@feat/check-if-verified
+        id: check-tag
+        with:
+          commit: ${{ github.event.pull_request.head.sha }}
+          assert: false
+
+      - name: Echo Outputs
+        run: |
+          echo "verified: ${{ steps.check-tag.outputs.verified }}"
+          echo "object_type: ${{ steps.check-tag.outputs.object_type }}"
+          echo "verify_url: ${{ steps.check-tag.outputs.verify_url }}"
+
+  check-lightweight-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: smartcontractkit/.github/actions/check-if-verified@feat/check-if-verified
+        id: check-tag
+        with:
+          tag: "wait-for-workflow-job@0.1.0"
+          assert: false
+
+      - name: Echo Outputs
+        run: |
+          echo "verified: ${{ steps.check-tag.outputs.verified }}"
+          echo "object_type: ${{ steps.check-tag.outputs.object_type }}"
+          echo "verify_url: ${{ steps.check-tag.outputs.verify_url }}"
+
+  check-annotated-tag-unsigned:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: smartcontractkit/.github/actions/check-if-verified@feat/check-if-verified
+        id: check-tag
+        with:
+          tag: "wait-for-workflows@0.1.0"
+          assert: false
+
+      - name: Echo Outputs
+        run: |
+          echo "verified: ${{ steps.check-tag.outputs.verified }}"
+          echo "object_type: ${{ steps.check-tag.outputs.object_type }}"
+          echo "verify_url: ${{ steps.check-tag.outputs.verify_url }}"
+
+  check-annotated-tag-signed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: smartcontractkit/.github/actions/check-if-verified@feat/check-if-verified
+        id: check-tag
+        with:
+          tag: "v2.9.1-vrf-20240227"
+          repository: smartcontractkit/chainlink
+          assert: false
+
+      - name: Echo Outputs
+        run: |
+          echo "verified: ${{ steps.check-tag.outputs.verified }}"
+          echo "object_type: ${{ steps.check-tag.outputs.object_type }}"
+          echo "verify_url: ${{ steps.check-tag.outputs.verify_url }}"
