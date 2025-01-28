@@ -18,13 +18,15 @@ import {
 import { ParsedFiles, ParsedFile, FileLine } from "../parse-files.js";
 
 function getValidators(
-  { validateActionNodeVersion, validateActionRefs, validateRunners }: RunInputs,
+  {
+    validateActionNodeVersion,
+    validateActionRefs,
+    validateRunners,
+    validateActionsCacheVersion,
+  }: RunInputs,
   octokit: Octokit,
 ): ValidationCheck[] {
-  const validators: ValidationCheck[] = [
-    new IgnoresCommentValidation(),
-    new ActionsCacheVersionValidation(),
-  ];
+  const validators: ValidationCheck[] = [new IgnoresCommentValidation()];
   if (validateActionRefs)
     validators.push(
       new ActionRefValidation(octokit, {
@@ -32,6 +34,8 @@ function getValidators(
       }),
     );
   if (validateRunners) validators.push(new ActionsRunnerValidation());
+  if (validateActionsCacheVersion)
+    validators.push(new ActionsCacheVersionValidation());
 
   return validators;
 }

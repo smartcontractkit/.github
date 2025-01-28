@@ -19,7 +19,7 @@ inputs:
     required: false
     default: false
 
-  # validation options
+  # validator options
   validate-runners:
     description: "Validate the runners in the workflow are approved for use."
     required: false
@@ -32,6 +32,12 @@ inputs:
     description: "Validate actions referenced are using node 20."
     required: false
     default: true
+  validate-actions-cache-version:
+    description: "Validate actions/cache is using the proper version."
+    required: false
+    default: true
+
+  # validation behaviour options
   include-all-action-definitions:
     description:
       "Include all action.yml files in the repository, not just the ones in

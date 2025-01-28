@@ -10,6 +10,7 @@ export interface RunInputs {
   validateRunners: boolean;
   validateActionRefs: boolean;
   validateActionNodeVersion: boolean;
+  validateActionsCacheVersion: boolean;
   validateAllActionDefinitions: boolean;
   rootDir: string;
   diffOnly: boolean;
@@ -59,6 +60,10 @@ export async function run() {
   );
 }
 
+/**
+ * Parses the invoke context from Github Actions' context.
+ * @returns The invoke context
+ */
 export function getInvokeContext() {
   const token = process.env.GITHUB_TOKEN;
 
@@ -85,6 +90,12 @@ export function getInvokeContext() {
   return { token, owner, repo, base, head, prNumber };
 }
 
+/**
+ * Handles the inputs as defined in the action.yml file. This has more complex logic to allow for local debugging.
+ * Github expects inputs to be in kebab-case.
+ * This logic allows you to set the input env variables in SNAKE_CASE and have them work as inputs, when CL_LOCAL_DEBUG is set.
+ * @returns The inputs for the run
+ */
 function getInputs(): RunInputs {
   core.debug("Getting inputs for run.");
   const isLocalDebug = process.env.CL_LOCAL_DEBUG;
@@ -95,6 +106,10 @@ function getInputs(): RunInputs {
     validateActionRefs: ["validate-action-refs", core.getBooleanInput],
     validateActionNodeVersions: [
       "validate-action-node-versions",
+      core.getBooleanInput,
+    ],
+    validateActionsCacheVersion: [
+      "validate-actions-cache-version",
       core.getBooleanInput,
     ],
     includeAllActionDefinitions: [
@@ -121,10 +136,14 @@ function getInputs(): RunInputs {
     validateActionNodeVersion: inputKeys.validateActionNodeVersions[1](
       inputKeys.validateActionNodeVersions[0],
     ),
+    validateActionsCacheVersion: inputKeys.validateActionsCacheVersion[1](
+      inputKeys.validateActionsCacheVersion[0],
+    ),
     validateAllActionDefinitions: inputKeys.includeAllActionDefinitions[1](
       inputKeys.includeAllActionDefinitions[0],
     ),
     rootDir: inputKeys.rootDir[1](inputKeys.rootDir[0]),
+    diffOnly: inputKeys.diffOnly[1](inputKeys.diffOnly[0]),
   };
   core.debug(`Inputs: ${JSON.stringify(inputs)}`);
   return inputs;
