@@ -97,9 +97,8 @@ describe(validate.name, () => {
     ]);
   });
 
-
   it("should perform actions/cache version validation when enabled", async () => {
-    const inputs = { ...DEFAULT_RUN_INPUTS, validateActionsCacheVersion: true }; ;
+    const inputs = { ...DEFAULT_RUN_INPUTS, validateActionsCacheVersion: true };
     const parsedFiles: ParsedFiles = [
       {
         filename: ".github/workflows/test.yml",
@@ -124,7 +123,8 @@ describe(validate.name, () => {
             line: parsedFiles[0].lines[0],
             messages: [
               {
-                message: "This version (v2) of actions/cache is being deprecated. Please update to v4.",
+                message:
+                  "This version (v2) of actions/cache is being deprecated. Please update to v4.",
                 type: ValidationType.ACTIONS_CACHE,
                 severity: "error",
               },

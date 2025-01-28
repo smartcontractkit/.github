@@ -23817,6 +23817,25 @@ For specific runner costs see "[What are the per-minute costs of the runners?](h
 
 </details>
 
+</details>
+
+<details>
+<summary>Actions Cache Version (actions-cache)</summary>
+
+This validation is required due to the deprecation of older versions of the actions/cache action. See: https://github.com/actions/cache/releases/tag/v4.2.0
+
+Please use the \`v4\` tag for the actions/cache action. This would like like one of the following:
+
+\`\`\`
+uses: actions/cache@v4
+uses: actions/cache/restore@v4
+uses: actions/cache/save@v4
+\`\`\`
+
+
+</details>
+
+
 ### Ignoring Errors
 
 You can use the following string to ignore a line from validation \`${VALIDATOR_IGNORE_LINE}\` (must be inlined).
@@ -23966,7 +23985,9 @@ async function getExistingFiles(inputs) {
     inputs.validateAllActionDefinitions
   );
   if (!filePaths || filePaths.length === 0) {
-    core3.warning("No workflow or action files found in the repository. Was the repository checked out?");
+    core3.warning(
+      "No workflow or action files found in the repository. Was the repository checked out?"
+    );
     return [];
   }
   return await parseFiles(filePaths);
@@ -24522,8 +24543,8 @@ var ActionsCacheVersionValidation = class {
     return [
       {
         type: "actions-cache" /* ACTIONS_CACHE */,
-        severity: "error",
-        message: `This version (${ref}) of actions/cache is being deprecated. Please update to @v4 (or @v3).`
+        severity: line.operation === "add" ? "error" : "warning",
+        message: `This version (${ref}) of actions/cache is being deprecated. Please update to v4.`
       }
     ];
   }
@@ -24550,11 +24571,13 @@ function extractActionsCacheFromLine(line) {
 }
 
 // actions/gha-workflow-validator/src/validations/validate.ts
-function getValidators({ validateActionNodeVersion, validateActionRefs, validateRunners }, octokit) {
-  const validators = [
-    new IgnoresCommentValidation(),
-    new ActionsCacheVersionValidation()
-  ];
+function getValidators({
+  validateActionNodeVersion,
+  validateActionRefs,
+  validateRunners,
+  validateActionsCacheVersion
+}, octokit) {
+  const validators = [new IgnoresCommentValidation()];
   if (validateActionRefs)
     validators.push(
       new ActionRefValidation(octokit, {
@@ -24562,6 +24585,8 @@ function getValidators({ validateActionNodeVersion, validateActionRefs, validate
       })
     );
   if (validateRunners) validators.push(new ActionsRunnerValidation());
+  if (validateActionsCacheVersion)
+    validators.push(new ActionsCacheVersionValidation());
   return validators;
 }
 async function validate2(inputs, parsedFiles, octokit) {
@@ -24700,6 +24725,10 @@ function getInputs() {
       "validate-action-node-versions",
       core8.getBooleanInput
     ],
+    validateActionsCacheVersion: [
+      "validate-actions-cache-version",
+      core8.getBooleanInput
+    ],
     includeAllActionDefinitions: [
       "include-all-action-definitions",
       core8.getBooleanInput
@@ -24721,10 +24750,14 @@ function getInputs() {
     validateActionNodeVersion: inputKeys.validateActionNodeVersions[1](
       inputKeys.validateActionNodeVersions[0]
     ),
+    validateActionsCacheVersion: inputKeys.validateActionsCacheVersion[1](
+      inputKeys.validateActionsCacheVersion[0]
+    ),
     validateAllActionDefinitions: inputKeys.includeAllActionDefinitions[1](
       inputKeys.includeAllActionDefinitions[0]
     ),
-    rootDir: inputKeys.rootDir[1](inputKeys.rootDir[0])
+    rootDir: inputKeys.rootDir[1](inputKeys.rootDir[0]),
+    diffOnly: inputKeys.diffOnly[1](inputKeys.diffOnly[0])
   };
   core8.debug(`Inputs: ${JSON.stringify(inputs)}`);
   return inputs;
