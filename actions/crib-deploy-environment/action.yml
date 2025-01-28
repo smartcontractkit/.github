@@ -72,7 +72,7 @@ inputs:
       for example: https://hooks.slack.com/services/aaa/bbb
     required: false
   crib-repo-ref:
-    default: "v2.0.0"
+    default: "v2.2.0"
     required: false
     description: Useful for testing updates in CRIB
   chainlink-team:
@@ -125,7 +125,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup GAP
-      uses: smartcontractkit/.github/actions/setup-gap@495d349ba13c395defc974be85747dae450eb3d7 # setup-gap@3.5.1
+      uses: smartcontractkit/.github/actions/setup-gap@4cd62b20cf1e625b8c5ceb23bc30e3c2d8973454 # setup-gap@3.5.5
       with:
         aws-region: ${{ inputs.aws-region }}
         aws-role-arn: ${{ inputs.aws-role-arn }}

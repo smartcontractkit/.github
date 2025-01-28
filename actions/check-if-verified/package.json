@@ -1,10 +1,10 @@
 {
-  "name": "crib-deploy-environment",
-  "version": "8.4.0",
+  "name": "check-if-verified",
+  "version": "1.0.0",
   "description": "",
   "private": true,
   "scripts": {},
-  "author": "@njegosrailic",
+  "author": "@smartcontractkit",
   "license": "MIT",
   "dependencies": {},
   "repository": "https://github.com/smartcontractkit/.github"

@@ -138,6 +138,8 @@ static_resources:
                         function envoy_on_request(request_handle)
                             refresh_token_if_needed(request_handle)
                             if jwt_token then
+                                -- Remove the existing header if it already exists
+                                request_handle:headers():remove("${GITHUB_OIDC_TOKEN_HEADER_NAME}")
                                 request_handle:headers():add("${GITHUB_OIDC_TOKEN_HEADER_NAME}", "Bearer " .. jwt_token)
                                 request_handle:logInfo("k8s-api: GitHub JWT OIDC token added successfully to the header: ${GITHUB_OIDC_TOKEN_HEADER_NAME}.")
                             else
@@ -358,6 +360,8 @@ static_resources:
                             refresh_token_if_needed(request_handle)
                             local host = request_handle:headers():get(":authority")
                             if jwt_token and host:match(main_dns_zone .. "$") then
+                                -- Remove the existing header if it already exists
+                                request_handle:headers():remove("${GITHUB_OIDC_TOKEN_HEADER_NAME}")
                                 request_handle:headers():add("${GITHUB_OIDC_TOKEN_HEADER_NAME}", "Bearer " .. jwt_token)
                                 request_handle:logInfo("dynamic-proxy: GitHub JWT OIDC token added successfully to the header: ${GITHUB_OIDC_TOKEN_HEADER_NAME}.")
                             else
