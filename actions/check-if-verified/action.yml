@@ -1,0 +1,142 @@
+name: check-if-verified
+description: "Checks if a tag or commit has a GPG signature"
+
+inputs:
+  tag:
+    description: "The tag to check"
+    required: false
+  commit:
+    description: "The commit to check"
+    required: false
+  assert:
+    description:
+      "Whether to assert the tag/object is verified. Default is true. Set to any
+      other value to disable."
+    required: false
+    default: true
+  token:
+    description: "GitHub token"
+    required: true
+    default: ${{ github.token }}
+  repository:
+    description: "The repository to check"
+    required: false
+    default: ${{ github.repository }}
+
+outputs:
+  object_type:
+    description: "The type of the object (tag or commit)"
+    value: ${{ steps.get-sha.outputs.object_type }}
+  verified:
+    description: "Whether the object is GPG-verified"
+    value:
+      ${{ steps.check-tag.outputs.verified  ||
+      steps.check-commit.outputs.verified }}
+  verify_url:
+    description: "The Github API link for details for the tag or commit"
+    value:
+      ${{ steps.check-tag.outputs.verify_url ||
+      steps.check-commit.outputs.verify_url }}
+
+runs:
+  using: composite
+  steps:
+    - name: Input Validation
+      id: input-validation
+      shell: bash
+      env:
+        TAG: ${{ inputs.tag }}
+        COMMIT: ${{ inputs.commit }}
+      run: |
+        if [ -z "$TAG" ] && [ -z "$COMMIT" ]; then
+          echo "::error::Either tag or commit must be provided"
+          exit 1
+        fi
+
+    - name: Get Object SHA
+      id: get-sha
+      env:
+        TAG: ${{ inputs.tag }}
+        COMMIT: ${{ inputs.commit }}
+        GH_TOKEN: ${{ inputs.token }}
+        GH_REPO: ${{ inputs.repository }}
+      shell: bash
+      run: |
+        if [ -n "$TAG" ]; then
+          TAG_RESPONSE=$(gh api "repos/$GH_REPO/git/ref/tags/$TAG")
+          OBJECT_SHA=$(echo $TAG_RESPONSE | jq -r '.object.sha')
+          OBJECT_TYPE=$(echo $TAG_RESPONSE | jq -r '.object.type')
+        elif [ -n "$COMMIT" ]; then
+          OBJECT_SHA=$COMMIT
+          OBJECT_TYPE="commit"
+        fi
+
+        echo "::debug::Found object SHA: $OBJECT_SHA"
+        echo "::debug::Found object type: $OBJECT_TYPE"
+
+        echo "object_sha=$OBJECT_SHA" >> $GITHUB_OUTPUT
+        echo "object_type=$OBJECT_TYPE" >> $GITHUB_OUTPUT
+
+    - name: Check Annotated Tag
+      id: check-tag
+      if: steps.get-sha.outputs.object_type == 'tag'
+      env:
+        ASSERT: ${{ inputs.assert }}
+        GH_TOKEN: ${{ inputs.token }}
+        OBJECT_SHA: ${{ steps.get-sha.outputs.object_sha }}
+        GH_REPO: ${{ inputs.repository }}
+      shell: bash
+      run: |
+        echo "Found annotated tag. Checking the tag object's verification..."
+        echo "::debug::Running gh api repos/$GH_REPO/git/tags/$OBJECT_SHA"
+
+        TAG_JSON=$(gh api "repos/$GH_REPO/git/tags/$OBJECT_SHA")
+        TAG_VERIFIED=$(echo "$TAG_JSON" | jq -r '.verification.verified // empty')
+
+        TAG_API_URL=$(echo "$TAG_JSON" | jq -r '.url')
+        echo "::debug::Tag API URL: $TAG_API_URL"
+        echo "verify_url=$TAG_API_URL" >> $GITHUB_OUTPUT
+
+        if [ "$TAG_VERIFIED" = "true" ]; then
+          echo "✅ Annotated tag is GPG-verified."
+          echo "verified=true" >> $GITHUB_OUTPUT
+        else
+          echo "::error::❌ Annotated tag is NOT verified."
+          echo "verified=false" >> $GITHUB_OUTPUT
+
+          if [ "$ASSERT" = "true" ]; then
+            exit 1
+          fi
+        fi
+
+    - name: Check Commit/Lightweight Tag
+      id: check-commit
+      if: steps.get-sha.outputs.object_type == 'commit'
+      env:
+        ASSERT: ${{ inputs.assert }}
+        GH_TOKEN: ${{ inputs.token }}
+        OBJECT_SHA: ${{ steps.get-sha.outputs.object_sha }}
+        GH_REPO: ${{ inputs.repository }}
+      shell: bash
+      run: |
+        echo "Found commit or lightweight tag. Checking commit verification..."
+        echo "::debug::Running gh api repos/$GH_REPO/commits/$OBJECT_SHA"
+
+        COMMIT_JSON=$(gh api "repos/$GH_REPO/commits/$OBJECT_SHA")
+        COMMIT_VERIFIED=$(echo "$COMMIT_JSON" | jq -r '.commit.verification.verified')
+
+        COMMIT_API_URL=$(echo "$COMMIT_JSON" | jq -r '.url')
+        echo "::debug::Commit API URL: $COMMIT_API_URL"
+        echo "verify_url=$COMMIT_API_URL" >> $GITHUB_OUTPUT
+
+        if [ "$COMMIT_VERIFIED" = "true" ]; then
+          echo "✅ Commit is GPG-verified."
+          echo "verified=true" >> $GITHUB_OUTPUT
+        else
+          echo "::error::❌ Commit is NOT verified."
+          echo "verified=false" >> $GITHUB_OUTPUT
+
+          if [ "$ASSERT" = "true" ]; then
+            exit 1
+          fi
+        fi
