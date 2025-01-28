@@ -245,6 +245,7 @@ runs:
           --name "gap-v2" \
           -p "${DYNAMIC_PROXY_PORT}:${DYNAMIC_PROXY_PORT}" \
           -p "${PROXY_PORT}:${PROXY_PORT}" \
+          -p "9999:9999" \
           -v "${PATH_CERTS_DIR}":/tls \
           -v "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
           -v "${GITHUB_ACTION_PATH}/json.lua":/etc/envoy/json.lua \
