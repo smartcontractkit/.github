@@ -110,7 +110,7 @@ runs:
         steps.sonarqube_report_paths.outputs.sonarqube_lint_report_paths }}
 
     - name: SonarQube Scan
-      uses: sonarsource/sonarqube-scan-action@0c0f3958d90fc466625f1d1af1f47bddd4cc6bd1 # v3.0.0
+      uses: sonarsource/sonarqube-scan-action@884b79409bbd464b2a59edc326a4b77dc56b2195 # v3.0.0
       with:
         args: ${{ env.SONARQUBE_ARGS }}
       env:
