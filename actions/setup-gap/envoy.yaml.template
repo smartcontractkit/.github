@@ -143,13 +143,16 @@ static_resources:
                 route_config:
                   name: local_route
                   virtual_hosts:
-                    - name: local_service
+                    - name: gap_ws_echo
+                      # Authority can contain the port wss://service:port -> service:port, we use *
                       domains: ["gap-ws-echo.${MAIN_DNS_ZONE}*"]
                       routes:
                         - match:
                             prefix: "/"
                           route:
-                            cluster: echo_service
+                            cluster: gap_ws_echo
+                    # Here we need to add a loop and add a local service for each service
+                    # $gap-service-name-$ns.$main-dns-zone
           transport_socket:
             name: envoy.transport_sockets.tls
             typed_config:
@@ -625,13 +628,13 @@ static_resources:
               trusted_ca:
                 filename: /etc/ssl/certs/ca-certificates.crt
 
-    - name: echo_service
+    - name: gap_ws_echo
       connect_timeout: 5s
       type: LOGICAL_DNS
       dns_lookup_family: V4_ONLY
       lb_policy: ROUND_ROBIN
       load_assignment:
-        cluster_name: echo_service
+        cluster_name: gap_ws_echo
         endpoints:
           - lb_endpoints:
               - endpoint:
