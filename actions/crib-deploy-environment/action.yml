@@ -39,6 +39,10 @@ inputs:
       "Namespace TTL, which defines how long a namespace will remain alive after
       creation."
     required: false
+  ns-name-prefix:
+    default: "crib-ci"
+    description: "Namespace name prefix for CRIB environment."
+    required: false
   command:
     default: "core"
     description: "The devspace command to run."
@@ -182,7 +186,7 @@ runs:
       id: generate-ns-name
       shell: bash
       run: |
-        echo "devspace-namespace=crib-ci-$(uuidgen | cut -c1-5)" >> $GITHUB_OUTPUT
+        echo "devspace-namespace=${{ inputs.ns-name-prefix }}-$(uuidgen | cut -c1-5)" >> $GITHUB_OUTPUT
         # This will work only for PRs, push event itself does not contain PR information.
         echo "pr-number=${{ github.event.number }}" >> $GITHUB_OUTPUT
         echo "workflow-job=${{ github.job }}" >> $GITHUB_OUTPUT
