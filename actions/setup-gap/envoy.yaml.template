@@ -144,7 +144,7 @@ static_resources:
                   name: local_route
                   virtual_hosts:
                     - name: local_service
-                      domains: ["*"]
+                      domains: ["gap-ws-echo.${MAIN_DNS_ZONE}"]
                       routes:
                         - match:
                             prefix: "/"
