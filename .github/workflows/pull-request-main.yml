@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: ci-lint
         uses: ./actions/ci-lint-ts
@@ -25,6 +27,8 @@ jobs:
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: ci-prettier
         uses: ./actions/ci-prettier
@@ -38,6 +42,8 @@ jobs:
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: ci-lint-misc
         uses: ./actions/ci-lint-misc
@@ -58,6 +64,7 @@ jobs:
           # Commit back any changes based on the commit that triggered this action
           # rather than merge commit of main into the PR branch
           ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
 
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
@@ -81,6 +88,8 @@ jobs:
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
@@ -95,6 +104,8 @@ jobs:
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: ci-test
         uses: ./actions/ci-test-ts
@@ -108,6 +119,8 @@ jobs:
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: ci-build-artifacts
         uses: ./actions/cicd-build-publish-artifacts-ts
@@ -121,6 +134,8 @@ jobs:
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
@@ -140,6 +155,8 @@ jobs:
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
