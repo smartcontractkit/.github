@@ -1,28 +1,19 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { getComparison, Octokit } from "./github.js";
-import { ActionReferenceValidation } from "./validations/action-reference-validations.js";
-import { ActionsRunnerValidation } from "./validations/actions-runner-validations.js";
-import { IgnoresCommentValidation } from "./validations/ignores-comment-validation.js";
-import { FileValidationResult } from "./validations/validation-check.js";
-import {
-  doValidationErrorsExist,
-  processLineValidationResults,
-  getAllWorkflowAndActionFiles,
-  filterForRelevantChanges,
-  parseGithubDiff,
-  parseFiles,
-  ParsedFile,
-} from "./utils.js";
+
+import { getParsedFilesForValidation } from "./parse-files.js";
 import { logValidationMessages, setSummary } from "./output.js";
+import { validate, doValidationErrorsExist } from "./validations/validate.js";
 
 export interface RunInputs {
   evaluateMode: boolean;
   validateRunners: boolean;
   validateActionRefs: boolean;
   validateActionNodeVersion: boolean;
+  validateActionsCacheVersion: boolean;
   validateAllActionDefinitions: boolean;
   rootDir: string;
+  diffOnly: boolean;
 }
 
 export type InvokeContext = ReturnType<typeof getInvokeContext>;
@@ -42,7 +33,7 @@ export async function run() {
     process.exit(0);
   }
 
-  const fileValidations = await validate(context, inputs, parsedFiles, octokit);
+  const fileValidations = await validate(inputs, parsedFiles, octokit);
 
   const invokedThroughPr = !!context.prNumber;
   const urlPrefix = `https://github.com/${context.owner}/${context.repo}/blob/${context.head}`;
@@ -69,113 +60,10 @@ export async function run() {
   );
 }
 
-// Exported for testing only
-export async function getParsedFilesForValidation(
-  context: InvokeContext,
-  inputs: RunInputs,
-  octokit: Octokit,
-): Promise<ParsedFile[]> {
-  if (!!context.prNumber) {
-    if (!context.base || !context.head) {
-      core.setFailed(
-        `Missing one of base or head commit SHA. Base: ${context.base}, Head: ${context.head}`,
-      );
-      return process.exit(1);
-    }
-    core.debug(
-      `Getting diff workflow/actions files for PR: ${context.prNumber}`,
-    );
-    const allFiles = await getComparison(
-      octokit,
-      context.owner,
-      context.repo,
-      context.base,
-      context.head,
-    );
-    const ghaWorkflowFiles = filterForRelevantChanges(
-      allFiles,
-      inputs.validateAllActionDefinitions,
-    );
-    return parseGithubDiff(ghaWorkflowFiles);
-  } else {
-    core.debug("Getting all workflow/action files in the repository.");
-    const filePaths = await getAllWorkflowAndActionFiles(
-      inputs.rootDir,
-      inputs.validateAllActionDefinitions,
-    );
-    return parseFiles(filePaths);
-  }
-}
-
-async function validate(
-  { prNumber }: InvokeContext,
-  inputs: RunInputs,
-  parsedFiles: ParsedFile[],
-  octokit: Octokit,
-): Promise<FileValidationResult[]> {
-  core.debug(`Validating ${parseFiles.length} files`);
-
-  const actionReferenceValidator = new ActionReferenceValidation(octokit, {
-    validateNodeVersion: inputs.validateActionNodeVersion,
-  });
-  const actionsRunnerValidator = new ActionsRunnerValidation();
-  const ignoresCommentsValidator = new IgnoresCommentValidation();
-
-  const validationResults = [];
-  for (const file of parsedFiles) {
-    core.info(`Processing: ${file.filename}`);
-    if (!!prNumber) {
-      file.lines = file.lines.filter((line) => line.operation === "add");
-    }
-
-    const ignoresCommentsResults =
-      await ignoresCommentsValidator.validate(file);
-    const actionReferenceResults = inputs.validateActionRefs
-      ? await actionReferenceValidator.validate(file)
-      : undefined;
-    const actionsRunnerResults = inputs.validateRunners
-      ? await actionsRunnerValidator.validate(file)
-      : undefined;
-    const combinedLineValidations = [
-      ignoresCommentsResults,
-      actionReferenceResults,
-      actionsRunnerResults,
-    ]
-      .filter((result) => !!result)
-      .flatMap((result) => result.lineValidations);
-
-    const processedLineValidations = processLineValidationResults(
-      combinedLineValidations,
-    );
-
-    core.info(
-      `Found ${processedLineValidations.length} total problems in ${file.filename}`,
-    );
-
-    if (processedLineValidations.length === 0) {
-      continue;
-    }
-
-    core.info(
-      `Found ${ignoresCommentsResults?.lineValidations.length ?? 0} problems w/ ignore comments`,
-    );
-    core.info(
-      `Found ${actionReferenceResults?.lineValidations.length ?? 0} problems w/ action references`,
-    );
-    core.info(
-      `Found ${actionsRunnerResults?.lineValidations.length ?? 0} problems w/ actions runners`,
-    );
-
-    validationResults.push({
-      filename: file.filename,
-      lineValidations: processedLineValidations,
-    });
-  }
-
-  core.debug("Validation complete.");
-  return validationResults;
-}
-
+/**
+ * Parses the invoke context from Github Actions' context.
+ * @returns The invoke context
+ */
 export function getInvokeContext() {
   const token = process.env.GITHUB_TOKEN;
 
@@ -202,6 +90,12 @@ export function getInvokeContext() {
   return { token, owner, repo, base, head, prNumber };
 }
 
+/**
+ * Handles the inputs as defined in the action.yml file. This has more complex logic to allow for local debugging.
+ * Github expects inputs to be in kebab-case.
+ * This logic allows you to set the input env variables in SNAKE_CASE and have them work as inputs, when CL_LOCAL_DEBUG is set.
+ * @returns The inputs for the run
+ */
 function getInputs(): RunInputs {
   core.debug("Getting inputs for run.");
   const isLocalDebug = process.env.CL_LOCAL_DEBUG;
@@ -214,11 +108,16 @@ function getInputs(): RunInputs {
       "validate-action-node-versions",
       core.getBooleanInput,
     ],
+    validateActionsCacheVersion: [
+      "validate-actions-cache-version",
+      core.getBooleanInput,
+    ],
     includeAllActionDefinitions: [
       "include-all-action-definitions",
       core.getBooleanInput,
     ],
     rootDir: ["root-directory", core.getInput],
+    diffOnly: ["diff-only", core.getBooleanInput],
   };
 
   if (isLocalDebug) {
@@ -237,10 +136,14 @@ function getInputs(): RunInputs {
     validateActionNodeVersion: inputKeys.validateActionNodeVersions[1](
       inputKeys.validateActionNodeVersions[0],
     ),
+    validateActionsCacheVersion: inputKeys.validateActionsCacheVersion[1](
+      inputKeys.validateActionsCacheVersion[0],
+    ),
     validateAllActionDefinitions: inputKeys.includeAllActionDefinitions[1](
       inputKeys.includeAllActionDefinitions[0],
     ),
     rootDir: inputKeys.rootDir[1](inputKeys.rootDir[0]),
+    diffOnly: inputKeys.diffOnly[1](inputKeys.diffOnly[0]),
   };
   core.debug(`Inputs: ${JSON.stringify(inputs)}`);
   return inputs;
