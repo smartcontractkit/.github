@@ -269,7 +269,7 @@ runs:
         fi
 
         # Validate envoy config
-        docker run --rm -d \
+        docker run --rm \
           --name "gap-v2" \
           -p "${DYNAMIC_PROXY_PORT}:${DYNAMIC_PROXY_PORT}" \
           -p "${PROXY_PORT}:${PROXY_PORT}" \
