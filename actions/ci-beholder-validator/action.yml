@@ -60,14 +60,6 @@ runs:
       shell: bash
       run: |
         docker pull ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:${{ inputs.image-tag }}
-    - name: Run Schema Validator
-      shell: bash
-      run: |
-        docker run -v "$PWD:/app/repo" \
-        --network redpanda_network \
-        -e SCHEMA_REGISTRY_URL=http://redpanda:8081 \
-        atlas-beholder-schema-validator:latest \
-        --config-file /app/repo/config.yaml
     - name: Validate schemas in master branch
       shell: bash
       run: |
@@ -79,7 +71,7 @@ runs:
         docker run -v "$PWD:/app/repo" \
         --network redpanda_network \
         -e SCHEMA_REGISTRY_URL=http://redpanda-0:8081 \
-        atlas-beholder-schema-validator:latest \
+        atlas-beholder-schema-validator:${{ inputs.image-tag }} \
         validate --phase master
 
         # Return to original branch
@@ -92,5 +84,5 @@ runs:
         --network redpanda_network \
         -e SCHEMA_REGISTRY_URL=http://redpanda:8081 \
         -e CHANGED_FILES="$CHANGED_FILES" \
-        atlas-beholder-schema-validator:latest \
+        atlas-beholder-schema-validator:${{ inputs.image-tag }} \
         validate --phase pr
