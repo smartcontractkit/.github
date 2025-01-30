@@ -110,6 +110,17 @@ function envoy_on_request(request_handle)
     request_handle:headers():remove("{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}")
     request_handle:headers():add("{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}", "Bearer " .. jwt_token)
     request_handle:logInfo("dynamic-proxy: GitHub JWT OIDC token added successfully to the header: {{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}.")
+
+    local traffic_type = request_handle:headers():get("x-traffic-type")
+    if traffic_type then
+      -- Print the value of "x-traffic-type" if it exists
+      request_handle:logInfo("x-traffic-type: " .. traffic_type)
+    else
+      -- Print a message if "x-traffic-type" does not exist
+      request_handle:logInfo("x-traffic-type header is not present.")
+    end
+
+
     -- Used to match with correct Route, ex: smartcontractkit/repo-name-here
     if not request_handle:headers():get("x-repository") then
         request_handle:headers():add("x-repository", "{{ getenv "GITHUB_REPOSITORY" }}")

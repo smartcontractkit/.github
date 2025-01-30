@@ -31,6 +31,10 @@ static_resources:
                       routes:
                         - match:
                             prefix: "/"
+                          request_headers_to_add:
+                            - header:
+                                key: "x-traffic-type"
+                                value: "k8s"
                           route:
                             cluster: gap_ws_echo
                     {{- if getenv "SERVICES" }}
