@@ -268,6 +268,21 @@ runs:
           cat "${GITHUB_ACTION_PATH}/envoy.yaml"
         fi
 
+        # Validate envoy config
+        docker run --rm -d \
+          --name "gap-v2" \
+          -p "${DYNAMIC_PROXY_PORT}:${DYNAMIC_PROXY_PORT}" \
+          -p "${PROXY_PORT}:${PROXY_PORT}" \
+          -p "${WEBSOCKETS_PROXY_PORT}:${WEBSOCKETS_PROXY_PORT}" \
+          -v "${PATH_CERTS_DIR}":/tls \
+          -v "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
+          -v "${GITHUB_ACTION_PATH}/json.lua":/etc/envoy/json.lua \
+          -v "${GITHUB_ACTION_PATH}/github_oidc.lua":/etc/envoy/github_oidc.lua \
+          "${ENVOY_PROXY_IMAGE}" \
+          /usr/local/bin/envoy --mode validate -c /etc/envoy/envoy.yaml \
+          --log-level "${PROXY_LOG_LEVEL}"
+
+
         docker run --rm -d \
           --name "gap-v2" \
           -p "${DYNAMIC_PROXY_PORT}:${DYNAMIC_PROXY_PORT}" \
