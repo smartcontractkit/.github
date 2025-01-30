@@ -41,8 +41,7 @@ runs:
     - name: Start Redpanda with Docker Compose
       shell: bash
       run: |
-        docker compose up -d redpanda-console
-      working-directory: ./
+        docker compose -f "${{ github.action_path }}/docker-compose.yml" up -d redpanda-console
     - name: Configure aws creds
       uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
       if: inputs.docker-registry == 'aws'
