@@ -95,6 +95,22 @@ inputs:
       information to random external endpoints. This ensures that the dynamic
       local proxy is used only for the specific DNS zone."
     required: true
+  websockets-proxy-port:
+    description:
+      "Port number used by the listener for the local proxy of WebSocket
+      services."
+    default: "9443"
+    required: false
+  websockets-services:
+    description: >
+      List of service names to be configured in the local proxy for proper
+      handling of all required headers, including the JWT token. It should be a
+      comma-separated list, for example: "gap-ws-echo,gap-ws-hello". Note: If
+      you are using Crib, append the Devspace namespace name as the suffix in
+      the service name, e.g., "gap-geth-${namespace-name},
+      gap-custom-ws-${namespace-name}".
+    default: ""
+    required: false
 outputs:
   local-proxy-port:
     description: "The port the local proxy will listen on."
@@ -209,12 +225,13 @@ runs:
         K8S_API_ENDPOINT_PORT: ${{ inputs.k8s-api-endpoint-port }}
         MAIN_DNS_ZONE: ${{ inputs.main-dns-zone }}
         PROXY_PORT: ${{ inputs.proxy-port }}
+        WEBSOCKETS_PROXY_PORT: ${{ inputs.websockets-proxy-port }}
       run: |
         # Get the Github OIDC hostname
         export GITHUB_OIDC_HOSTNAME=$(echo $ACTIONS_ID_TOKEN_REQUEST_URL | awk -F[/:] '{print $4}')
 
         # List of required ENVs to check
-        required_env_vars="DYNAMIC_PROXY_PORT ENABLE_PROXY_DEBUG GITHUB_OIDC_TOKEN_HEADER_NAME ENVOY_PROXY_IMAGE GITHUB_OIDC_HOSTNAME K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE PROXY_LOG_LEVEL PROXY_PORT GITHUB_REPOSITORY"
+        required_env_vars="DYNAMIC_PROXY_PORT ENABLE_PROXY_DEBUG GITHUB_OIDC_TOKEN_HEADER_NAME ENVOY_PROXY_IMAGE GITHUB_OIDC_HOSTNAME K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE PROXY_LOG_LEVEL PROXY_PORT GITHUB_REPOSITORY WEBSOCKETS_PROXY_PORT"
 
         # Loop through each variable and check if it's empty
         for var in $required_env_vars; do
@@ -228,7 +245,7 @@ runs:
 
         # Generate Envoy config from template
         ls -l
-        envsubst < "${GITHUB_ACTION_PATH}/envoy.yaml.template" > "${GITHUB_ACTION_PATH}/envoy.yaml"
+        gomplate -f "${GITHUB_ACTION_PATH}/envoy.yaml.template" -o "${GITHUB_ACTION_PATH}/envoy.yaml"
 
         # Copy AWS CA certs
         cp ${{ github.action_path }}/aws-ca.crt "${PATH_CERTS_DIR}"
@@ -245,7 +262,7 @@ runs:
           --name "gap-v2" \
           -p "${DYNAMIC_PROXY_PORT}:${DYNAMIC_PROXY_PORT}" \
           -p "${PROXY_PORT}:${PROXY_PORT}" \
-          -p "9999:9999" \
+          -p "${WEBSOCKETS_PROXY_PORT}:${WEBSOCKETS_PROXY_PORT}" \
           -v "${PATH_CERTS_DIR}":/tls \
           -v "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
           -v "${GITHUB_ACTION_PATH}/json.lua":/etc/envoy/json.lua \
