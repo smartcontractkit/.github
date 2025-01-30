@@ -54,7 +54,7 @@ runs:
       if: inputs.docker-registry == 'aws'
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
       with:
-        registries: "123456789012,998877665544"
+        registries: ${{ inputs.aws-account-number }}
     - name: Pull schema-validator image from ECR
       shell: bash
       run: |
