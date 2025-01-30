@@ -82,16 +82,17 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: k8s_api_cluster
+                            host_rewrite_literal: "gap-k8s-api.{{ getenv "MAIN_DNS_ZONE" }}"
                             retry_policy:
                               retry_on: connect-failure,refused-stream,gateway-error,deadline-exceeded,unavailable,internal,reset
                               num_retries: 5
                               retry_back_off:
                                 base_interval: "1s"
                                 max_interval: "5s"
-                      typed_per_filter_config:
-                        envoy.filters.http.lua:
-                          '@type': "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
-                          name: "k8s.lua"
+                      # typed_per_filter_config:
+                      #   envoy.filters.http.lua:
+                      #     '@type': "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
+                      #     name: "k8s.lua"
                 http_filters:
                   - name: envoy.filters.http.lua
                     typed_config:
