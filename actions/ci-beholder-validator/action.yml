@@ -75,7 +75,7 @@ runs:
         validate --phase master
 
         # Return to original branch
-        git checkout $CURRENT_BRANCH
+        git checkout origin $CURRENT_BRANCH
 
     - name: Validate schemas in current branch
       shell: bash
