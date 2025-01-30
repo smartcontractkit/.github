@@ -326,8 +326,9 @@ runs:
           check_proxy "${PROXY_PORT}" "K8s API" || exit 1
         fi
 
-        check_proxy "${DYNAMIC_PROXY_PORT}" "Dynamic local proxy" || exit 1
+        check_proxy "${DYNAMIC_PROXY_PORT}" "Dynamic local proxy listener" || exit 1
+        check_proxy "${WEBSOCKETS_PROXY_PORT}" "Websockets local proxy listener" || exit 1
 
     - name: Collect Envoy proxy logs when debug is enabled
       uses: jwalton/gh-docker-logs@2741064ab9d7af54b0b1ffb6076cf64c16f0220e # v2.2.2
-      if: always()
+      if: inputs.enable-proxy-debug == 'true' || failure()
