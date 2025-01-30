@@ -284,7 +284,7 @@ runs:
 
 
         docker run --rm -d \
-          --name "gap-v2" \
+          --name "gap-v2-test" \
           -p "${DYNAMIC_PROXY_PORT}:${DYNAMIC_PROXY_PORT}" \
           -p "${PROXY_PORT}:${PROXY_PORT}" \
           -p "${WEBSOCKETS_PROXY_PORT}:${WEBSOCKETS_PROXY_PORT}" \
