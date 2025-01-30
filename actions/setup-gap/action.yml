@@ -250,6 +250,12 @@ runs:
           fi
         done
 
+        # Check if any of the listener ports have the same value
+        if [[ "$DYNAMIC_PROXY_PORT" == "$PROXY_PORT" || "$DYNAMIC_PROXY_PORT" == "$WEBSOCKETS_PROXY_PORT" || "$PROXY_PORT" == "$WEBSOCKETS_PROXY_PORT" ]]; then
+          echo "Local proxy listeners must use different values. If unsure, leave the default values and don't override PROXY_PORT, DYNAMIC_PROXY_PORT, or WEBSOCKETS_PROXY_PORT."
+          exit 1
+        fi
+
         # Generate Envoy config from template
         ls -l
         gomplate -f "${GITHUB_ACTION_PATH}/envoy.yaml.gotmpl" -o "${GITHUB_ACTION_PATH}/envoy.yaml"
