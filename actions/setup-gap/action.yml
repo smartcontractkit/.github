@@ -252,7 +252,10 @@ runs:
 
         # Generate Envoy config from template
         ls -l
-        gomplate -f "${GITHUB_ACTION_PATH}/envoy.yaml.template" -o "${GITHUB_ACTION_PATH}/envoy.yaml"
+        gomplate -f "${GITHUB_ACTION_PATH}/envoy.yaml.gotmpl" -o "${GITHUB_ACTION_PATH}/envoy.yaml"
+
+        # Generate LUA script from template
+        gomplate -f "${GITHUB_ACTION_PATH}/github_oidc.lua.gotmpl" -o "${GITHUB_ACTION_PATH}/github_oidc.lua"
 
         # Copy AWS CA certs
         cp ${{ github.action_path }}/aws-ca.crt "${PATH_CERTS_DIR}"
@@ -273,6 +276,7 @@ runs:
           -v "${PATH_CERTS_DIR}":/tls \
           -v "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
           -v "${GITHUB_ACTION_PATH}/json.lua":/etc/envoy/json.lua \
+          -v "${GITHUB_ACTION_PATH}/github_oidc.lua":/etc/envoy/github_oidc.lua \
           "${ENVOY_PROXY_IMAGE}" \
           /usr/local/bin/envoy -c /etc/envoy/envoy.yaml \
           --log-level "${PROXY_LOG_LEVEL}"
