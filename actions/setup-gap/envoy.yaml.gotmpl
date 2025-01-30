@@ -1,5 +1,6 @@
 static_resources:
   listeners:
+
     - name: https_listener
       address:
         socket_address:
@@ -31,13 +32,9 @@ static_resources:
                       routes:
                         - match:
                             prefix: "/"
-                          request_headers_to_add:
-                            - header:
-                                key: "x-traffic-type"
-                                value: "k8s"
                           route:
                             cluster: gap_ws_echo
-                    {{- if getenv "SERVICES" }}
+                  {{- if getenv "SERVICES" }}
                     {{- range ( getenv "SERVICES" | strings.Split ",") }}
                     - name: {{ replaceAll "-" "_" . }}
                       domains: ["gap-ws-echo.{{ getenv "MAIN_DNS_ZONE" }}*"]
@@ -47,7 +44,7 @@ static_resources:
                           route:
                             cluster: {{ replaceAll "-" "_" . }}
                     {{- end }}
-                    {{- end }}
+                  {{- end }}
           transport_socket:
             name: envoy.transport_sockets.tls
             typed_config:
@@ -61,6 +58,7 @@ static_resources:
                 validation_context:
                   trusted_ca:
                     filename: "/tls/ca.crt"
+
     - name: k8s-api
       address:
         socket_address:
@@ -89,22 +87,10 @@ static_resources:
                               retry_back_off:
                                 base_interval: "1s"
                                 max_interval: "5s"
-                      # typed_per_filter_config:
-                      #   envoy.filters.http.lua:
-                      #     '@type': "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
-                      #     name: "k8s.lua"
                 http_filters:
                   - name: envoy.filters.http.lua
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
-                      source_codes:
-                        k8s.lua:
-                          inline_string: |
-                            -- Called on the request path.
-                            function envoy_on_request(request_handle)
-                              request_handle:headers():remove("host")
-                              request_handle:headers():add("host", "gap-k8s-api.{{ getenv "MAIN_DNS_ZONE" }}")
-                            end
                       default_source_code:
                         filename: /etc/envoy/github_oidc.lua
                   - name: envoy.filters.http.router
@@ -143,6 +129,7 @@ static_resources:
                 validation_context:
                   trusted_ca:
                     filename: "/tls/ca.crt"
+
     - name: dynamic-proxy
       address:
         socket_address:
@@ -229,6 +216,7 @@ static_resources:
                           trace_id: "%REQ(X-B3-TraceId)%"
                           response_size: "%RESP(:CONTENT_LENGTH)%"
   clusters:
+
     - name: k8s_api_cluster
       connect_timeout: 10s
       type: LOGICAL_DNS
@@ -258,6 +246,7 @@ static_resources:
               trusted_ca:
                 filename: "/tls/aws-ca.crt"
               trust_chain_verification: VERIFY_TRUST_CHAIN
+
     - name: github_oidc_endpoint
       connect_timeout: 5s
       type: LOGICAL_DNS
@@ -275,6 +264,7 @@ static_resources:
         name: envoy.transport_sockets.tls
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+
     - name: dynamic_forward_proxy_cluster
       lb_policy: CLUSTER_PROVIDED
       connect_timeout: 5s
@@ -314,8 +304,7 @@ static_resources:
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
           sni: "gap-ws-echo.{{ getenv "MAIN_DNS_ZONE" }}"
-
-    {{- if getenv "SERVICES" }}
+  {{- if getenv "SERVICES" }}
     {{- range (getenv "SERVICES" | strings.Split ",") }}
 
     - name: {{ replaceAll "-" "_" . }}
@@ -338,4 +327,4 @@ static_resources:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
           sni: "{{ . }}.{{ getenv "MAIN_DNS_ZONE" }}"
     {{- end }}
-    {{- end }}
+  {{- end }}
