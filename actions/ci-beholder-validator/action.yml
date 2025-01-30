@@ -67,7 +67,7 @@ runs:
         CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
         # Checkout and validate default branch
-        git checkout ${{ github.event.repository.default_branch }}, 
+        git checkout ${{ github.event.repository.default_branch }}
         docker run -v "$PWD:/app/repo" \
         --network redpanda_network \
         -e SCHEMA_REGISTRY_URL=http://redpanda-0:8081 \
@@ -75,7 +75,7 @@ runs:
         validate --phase master
 
         # Return to original branch
-        git checkout origin $CURRENT_BRANCH
+        git checkout $CURRENT_BRANCH
 
     - name: Validate schemas in current branch
       shell: bash
