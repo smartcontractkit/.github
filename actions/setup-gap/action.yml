@@ -213,6 +213,13 @@ runs:
         # Remove certificate-authority-data populated from `aws eks update-kubeconfig` which is for the endpoint which is not publicly accessible
         kubectl config unset clusters.$CLUSTER_ARN.certificate-authority-data
 
+    - name: Install gomplate and verify installation
+      shell: bash
+      run: |
+        curl -L https://github.com/hairyhenderson/gomplate/releases/latest/download/gomplate_linux-amd64 -o /usr/local/bin/gomplate
+        chmod +x /usr/local/bin/gomplate
+        gomplate --version
+
     - name: Run Envoy proxy
       shell: sh
       env:
