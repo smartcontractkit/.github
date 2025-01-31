@@ -37,7 +37,7 @@ runs:
     - name: Checkout repo
       uses: actions/checkout@v4.2.1
       with:
-        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+        fetch-depth: 0
     - name: Detect changed files
       id: changes
       shell: bash
