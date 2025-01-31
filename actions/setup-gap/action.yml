@@ -267,16 +267,6 @@ runs:
 
         # Loop through each variable and check if it's empty
         for var in $required_env_vars; do
-          # Use eval to get the value of the environment variable
-          eval value=\$$var
-          if [ -z "$value" ]; then
-            echo "Error: $var is not set."
-            exit 1
-          fi
-        done
-
-        # Loop through each variable and check if it's empty
-        for var in $required_env_vars; do
           eval value=\$$var
           if [ -z "$value" ]; then
             echo "Error: Required environment variable '$var' is not set."
@@ -303,7 +293,7 @@ runs:
 
         echo "Validating Envoy config..."
         if ! docker run --rm \
-            --name "gap-v2" \
+            --name "gap" \
             -p "${DYNAMIC_PROXY_PORT}:${DYNAMIC_PROXY_PORT}" \
             -p "${PROXY_PORT}:${PROXY_PORT}" \
             -p "${WEBSOCKETS_PROXY_PORT}:${WEBSOCKETS_PROXY_PORT}" \
@@ -320,7 +310,7 @@ runs:
 
         echo "Starting the local Envoy proxy..."
         docker run --rm -d \
-          --name "gap-v2-test" \
+          --name "gap" \
           -p "${DYNAMIC_PROXY_PORT}:${DYNAMIC_PROXY_PORT}" \
           -p "${PROXY_PORT}:${PROXY_PORT}" \
           -p "${WEBSOCKETS_PROXY_PORT}:${WEBSOCKETS_PROXY_PORT}" \
