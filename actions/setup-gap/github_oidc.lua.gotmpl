@@ -132,13 +132,13 @@ function envoy_on_request(request_handle)
     -- Get the host/authority from the request headers
     local host = request_handle:headers():get(":authority")
 
-    -- Check if the host starts with the main_dns_zone
-    if host and host:find("^" .. main_dns_zone) then
+    -- Check if the host starts with the main_dns_zone or starts with "localhost"
+    if host and (host:find("^" .. main_dns_zone) or host:find("^localhost")) then
         -- Refresh the token if necessary
         refresh_token_if_needed(request_handle)
         -- Add the required headers to the request
         add_headers(request_handle)
     else
-        request_handle:logInfo(LOG_PREFIX .. "Skipping JWT token addition for host: " .. (host or "nil") .. " (does not match main DNS zone)")
+        request_handle:logInfo(LOG_PREFIX .. "Skipping JWT token addition for host: " .. (host or "nil") .. " (does not match main DNS zone or does not start with localhost)")
     end
 end
