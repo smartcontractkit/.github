@@ -41,7 +41,8 @@ runs:
     - name: Detect changed files
       id: changes
       shell: bash
-      run:
+      run: |
+        git fetch --prune origin +refs/heads/*:refs/remotes/origin/*
         echo "CHANGED_FILES=$(git diff --name-only ${{
         github.event.repository.default_branch }})" >> $GITHUB_ENV
     - name: Start Redpanda with Docker Compose
