@@ -21,10 +21,6 @@ static_resources:
                       routes:
                         - match:
                             prefix: "/"
-                          metadata:
-                            filter_metadata:
-                              envoy.filters.http.lua:
-                                route_name: "service2"
                           route:
                             cluster: k8s_api_cluster
                             host_rewrite_literal: "gap-k8s-api.{{ getenv "MAIN_DNS_ZONE" }}"
@@ -77,6 +73,7 @@ static_resources:
                           request_id: "%REQ(X-Request-Id)%"  # Request ID for correlation
                           x_authorization_github_jwt: "%REQ({{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }})%" # The JWT header
                           x_repository: "%REQ(x-repository)%" # Repo name prefixed with the org
+                          text_format: "%DYNAMIC_METADATA(envoy.filters.http.lua:my_key)%"
           transport_socket:
             name: envoy.transport_sockets.tls
             typed_config:
