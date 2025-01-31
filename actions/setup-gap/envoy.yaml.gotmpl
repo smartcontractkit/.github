@@ -209,8 +209,8 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: gap_ws_echo
-                  {{- if getenv "SERVICES" }}
-                    {{- $services := getenv "SERVICES" | strings.Split "," }}
+                  {{- if getenv "WEBSOCKETS_SERVICES" }}
+                    {{- $services := getenv "WEBSOCKETS_SERVICES" | strings.Split "," }}
                     {{- if not $services }}
                       {{- fail "SERVICES environment variable is empty or invalid" }}
                     {{- end }}
@@ -360,11 +360,8 @@ static_resources:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
           sni: "gap-ws-echo.{{ getenv "MAIN_DNS_ZONE" }}"
 
-    {{- if getenv "SERVICES" }}
-      {{- $services := getenv "SERVICES" | strings.Split "," }}
-      {{- if not $services }}
-        {{- fail "SERVICES environment variable is empty or invalid" }}
-      {{- end }}
+    {{- if getenv "WEBSOCKETS_SERVICES" }}
+      {{- $services := getenv "WEBSOCKETS_SERVICES" | strings.Split "," }}
       {{- range $services }}
       # Cluster for WebSocket {{ . }} service
     - name: {{ replaceAll "-" "_" . }}

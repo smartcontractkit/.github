@@ -258,12 +258,13 @@ runs:
         MAIN_DNS_ZONE: ${{ inputs.main-dns-zone }}
         PROXY_PORT: ${{ inputs.proxy-port }}
         WEBSOCKETS_PROXY_PORT: ${{ inputs.websockets-proxy-port }}
+        WEBSOCKETS_SERVICES: ${{ inputs.websockets-services }}
       run: |
         # Get the Github OIDC hostname
         export GITHUB_OIDC_HOSTNAME=$(echo $ACTIONS_ID_TOKEN_REQUEST_URL | awk -F[/:] '{print $4}')
 
         # List of required ENVs to check
-        required_env_vars="DYNAMIC_PROXY_PORT ENABLE_PROXY_DEBUG GITHUB_OIDC_TOKEN_HEADER_NAME ENVOY_PROXY_IMAGE GITHUB_OIDC_HOSTNAME K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE PROXY_LOG_LEVEL PROXY_PORT GITHUB_REPOSITORY WEBSOCKETS_PROXY_PORT"
+        required_env_vars="DYNAMIC_PROXY_PORT ENABLE_PROXY_DEBUG GITHUB_OIDC_TOKEN_HEADER_NAME ENVOY_PROXY_IMAGE GITHUB_OIDC_HOSTNAME K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE PROXY_LOG_LEVEL PROXY_PORT GITHUB_REPOSITORY WEBSOCKETS_PROXY_PORT WEBSOCKETS_SERVICES"
 
         # Loop through each variable and check if it's empty
         for var in $required_env_vars; do
