@@ -2,6 +2,12 @@ name: "Schema Validator Action"
 description: "Validates schema compatibility with schema registry"
 
 inputs:
+  # general inputs
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+  # image inputs
   docker-registry:
     description: "Docker registry to use"
     required: true
