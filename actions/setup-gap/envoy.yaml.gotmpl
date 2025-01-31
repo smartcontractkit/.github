@@ -7,10 +7,6 @@ static_resources:
         socket_address:
           address: 0.0.0.0
           port_value: "{{ getenv "PROXY_PORT" }}"
-      metadata:
-        filter_metadata:
-          traffic_tag:
-            source_listener: "k8s-api"
       filter_chains:
         - filters:
             - name: envoy.filters.network.http_connection_manager
@@ -21,6 +17,10 @@ static_resources:
                   name: http
                   virtual_hosts:
                     - name: http
+                      metadata:
+                        filter_metadata:
+                          traffic_tag:
+                            source_listener: "k8s-api"
                       domains: ["*"]
                       routes:
                         - match:
