@@ -1,81 +1,5 @@
-{{- if not (getenv "MAIN_DNS_ZONE") }}
-  {{- fail "MAIN_DNS_ZONE environment variable is required" }}
-{{- end }}
-
 static_resources:
   listeners:
-
-    # Listener for WebSocket traffic
-    - name: https_listener
-      address:
-        socket_address:
-          address: 0.0.0.0
-          port_value: "{{ getenv "WEBSOCKETS_PROXY_PORT" }}"
-      filter_chains:
-        - filters:
-            - name: envoy.filters.network.http_connection_manager
-              typed_config:
-                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-                stat_prefix: ingress_http
-                upgrade_configs:
-                  - upgrade_type: websocket
-                http_filters:
-                  - name: envoy.filters.http.lua
-                    typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
-                      default_source_code:
-                        filename: /etc/envoy/github_oidc.lua
-                  - name: envoy.filters.http.router
-                    typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
-                route_config:
-                  name: local_route
-                  virtual_hosts:
-                    - name: gap_ws_echo
-                      domains: ["gap-ws-echo.{{ getenv "MAIN_DNS_ZONE" }}*"]
-                      routes:
-                        - match:
-                            prefix: "/"
-                          route:
-                            cluster: gap_ws_echo
-                  {{- if getenv "SERVICES" }}
-                    {{- $services := getenv "SERVICES" | strings.Split "," }}
-                    {{- if not $services }}
-                      {{- fail "SERVICES environment variable is empty or invalid" }}
-                    {{- end }}
-                    {{- range $services }}
-                      {{- if not (regexMatch "^[a-zA-Z0-9-]+$" .) }}
-                        {{- fail (printf "Invalid service name: %s" .) }}
-                      {{- end }}
-                      - name: {{ replaceAll "-" "_" . }}
-                        domains: ["{{ . }}.{{ getenv "MAIN_DNS_ZONE" }}*"]
-                        routes:
-                          - match:
-                              prefix: "/"
-                            route:
-                              cluster: {{ replaceAll "-" "_" . }}
-                    {{- end }}
-                  {{- end }}
-          transport_socket:
-            name: envoy.transport_sockets.tls
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
-              common_tls_context:
-                tls_params:
-                  tls_minimum_protocol_version: TLSv1_2
-                  cipher_suites:
-                    - ECDHE-ECDSA-AES128-GCM-SHA256
-                    - ECDHE-RSA-AES128-GCM-SHA256
-                    - ECDHE-ECDSA-AES256-GCM-SHA384
-                    - ECDHE-RSA-AES256-GCM-SHA384
-                tls_certificates:
-                  - certificate_chain:
-                      filename: "/tls/server.crt"
-                    private_key:
-                      filename: "/tls/server.key"
-                validation_context:
-                  trusted_ca:
-                    filename: "/tls/ca.crt"
 
     # Listener for Kubernetes API traffic
     - name: k8s-api
@@ -142,11 +66,6 @@ static_resources:
               common_tls_context:
                 tls_params:
                   tls_minimum_protocol_version: TLSv1_2
-                  cipher_suites:
-                    - ECDHE-ECDSA-AES128-GCM-SHA256
-                    - ECDHE-RSA-AES128-GCM-SHA256
-                    - ECDHE-ECDSA-AES256-GCM-SHA384
-                    - ECDHE-RSA-AES256-GCM-SHA384
                 tls_certificates:
                   - certificate_chain:
                       filename: "/tls/server.crt"
@@ -177,11 +96,6 @@ static_resources:
               common_tls_context:
                 tls_params:
                   tls_minimum_protocol_version: TLSv1_2
-                  cipher_suites:
-                    - ECDHE-ECDSA-AES128-GCM-SHA256
-                    - ECDHE-RSA-AES128-GCM-SHA256
-                    - ECDHE-ECDSA-AES256-GCM-SHA384
-                    - ECDHE-RSA-AES256-GCM-SHA384
                 tls_certificates:
                   - certificate_chain:
                       filename: /tls/server.crt
@@ -250,6 +164,69 @@ static_resources:
                           trace_id: "%REQ(X-B3-TraceId)%"
                           response_size: "%RESP(:CONTENT_LENGTH)%"
 
+    # Listener for WebSocket traffic
+    - name: webosckets_listener
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: "{{ getenv "WEBSOCKETS_PROXY_PORT" }}"
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: ingress_http
+                upgrade_configs:
+                  - upgrade_type: websocket
+                http_filters:
+                  - name: envoy.filters.http.lua
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+                      default_source_code:
+                        filename: /etc/envoy/github_oidc.lua
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: gap_ws_echo
+                      domains: ["gap-ws-echo.{{ getenv "MAIN_DNS_ZONE" }}*"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: gap_ws_echo
+                  {{- if getenv "SERVICES" }}
+                    {{- $services := getenv "SERVICES" | strings.Split "," }}
+                    {{- if not $services }}
+                      {{- fail "SERVICES environment variable is empty or invalid" }}
+                    {{- end }}
+                    {{- range $services }}
+                      - name: {{ replaceAll "-" "_" . }}
+                        domains: ["{{ . }}.{{ getenv "MAIN_DNS_ZONE" }}*"]
+                        routes:
+                          - match:
+                              prefix: "/"
+                            route:
+                              cluster: {{ replaceAll "-" "_" . }}
+                    {{- end }}
+                  {{- end }}
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+              common_tls_context:
+                tls_params:
+                  tls_minimum_protocol_version: TLSv1_2
+                tls_certificates:
+                  - certificate_chain:
+                      filename: "/tls/server.crt"
+                    private_key:
+                      filename: "/tls/server.key"
+                validation_context:
+                  trusted_ca:
+                    filename: "/tls/ca.crt"
   clusters:
 
     # Cluster for Kubernetes API
@@ -350,9 +327,7 @@ static_resources:
         {{- fail "SERVICES environment variable is empty or invalid" }}
       {{- end }}
       {{- range $services }}
-        {{- if not (regexMatch "^[a-zA-Z0-9-]+$" .) }}
-          {{- fail (printf "Invalid service name: %s" .) }}
-        {{- end }}
+      # Cluster for WebSocket {{ . }} service
     - name: {{ replaceAll "-" "_" . }}
       connect_timeout: 5s
       type: LOGICAL_DNS
