@@ -8,10 +8,16 @@ local refreshing = false -- Flag to prevent concurrent token refreshes
 local request_options = {["asynchronous"] = true}
 local main_dns_zone = "{{ getenv "MAIN_DNS_ZONE" }}"
 
--- Constants for logging and headers
-local LOG_PREFIX = "dynamic-proxy: "
+-- Constants for logging and header
 local GITHUB_OIDC_TOKEN_HEADER = "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
 local GITHUB_REPOSITORY_HEADER = "x-repository"
+
+-- Extract the source_listener value from dynamic metadata
+local log_prefix = "" -- Default value if metadata is not found
+local metadata = request_handle:streamInfo():dynamicMetadata()
+if metadata and metadata["traffic_tag"] and metadata["traffic_tag"]["source_listener"] then
+    log_prefix = metadata["traffic_tag"]["source_listener"]
+end
 
 -- Function to decode base64 value
 local function decode_base64(input)
@@ -91,12 +97,13 @@ function fetch_github_oidc_token(request_handle)
     )
 
     if response_headers[":status"] == "200" then
-        request_handle:logInfo(LOG_PREFIX .. "GitHub OIDC token fetched successfully.")
+        request_handle:logInfo(log_prefix .. "GitHub OIDC token fetched successfully.")
+
         local data = JSON.decode(response_body)
         jwt_token = data.value -- Assign the token value
         jwt_expiration = get_jwt_exp(jwt_token) -- Update the expiration time
     else
-        request_handle:logErr(LOG_PREFIX .. "Failed to fetch GitHub OIDC token. Status: " .. response_headers[":status"])
+        request_handle:logErr(log_prefix .. "Failed to fetch GitHub OIDC token. Status: " .. response_headers[":status"])
     end
 
     refreshing = false -- Reset the refreshing flag
@@ -117,13 +124,16 @@ local function add_headers(request_handle)
     request_handle:headers():remove(GITHUB_OIDC_TOKEN_HEADER)
     -- Add the new JWT token to the header
     request_handle:headers():add(GITHUB_OIDC_TOKEN_HEADER, "Bearer " .. jwt_token)
-    request_handle:logInfo(LOG_PREFIX .. "GitHub JWT OIDC token added successfully to the header: " .. GITHUB_OIDC_TOKEN_HEADER)
+    request_handle:logInfo(log_prefix .. "GitHub JWT OIDC token added successfully to the header: " ..
+                           GITHUB_OIDC_TOKEN_HEADER)
+
 
     -- Add the repository header if it doesn't already exist
     if not request_handle:headers():get(GITHUB_REPOSITORY_HEADER) then
         request_handle:headers():add(GITHUB_REPOSITORY_HEADER, "{{ getenv "GITHUB_REPOSITORY" }}")
     else
-        request_handle:logInfo(LOG_PREFIX .. "Skipping addition of '" .. GITHUB_REPOSITORY_HEADER .. "' header as it is already present")
+        request_handle:logInfo(log_prefix .. "Skipping addition of '" .. GITHUB_REPOSITORY_HEADER ..
+                           "' header as it is already present")
     end
 end
 
@@ -139,6 +149,7 @@ function envoy_on_request(request_handle)
         -- Add the required headers to the request
         add_headers(request_handle)
     else
-        request_handle:logInfo(LOG_PREFIX .. "Skipping JWT token addition for host: " .. (host or "nil") .. " (does not match the pattern or does not start with localhost)")
+        request_handle:logInfo(log_prefix .. "Skipping JWT token addition for host: " .. (host or "nil") ..
+                           " (does not match the pattern or does not start with localhost)")
     end
 end

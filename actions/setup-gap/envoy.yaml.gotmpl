@@ -50,19 +50,26 @@ static_resources:
                       path: "/dev/stdout"
                       log_format:
                         json_format:
-                          start_time: "%START_TIME%"
-                          request_method: "%REQ(:METHOD)%"
-                          request_path: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"
-                          response_code: "%RESPONSE_CODE%"
-                          duration: "%DURATION%"
-                          bytes_sent: "%BYTES_SENT%"
-                          host: "%REQ(:AUTHORITY)%"
-                          user_agent: "%REQ(User-Agent)%"
-                          client_ip: "%REQ(X-Forwarded-For)%"
-                          request_size: "%REQ(:CONTENT_LENGTH)%"
-                          upstream_host: "%UPSTREAM_HOST%"
-                          trace_id: "%REQ(X-B3-TraceId)%"
-                          response_size: "%RESP(:CONTENT_LENGTH)%"
+                          start_time: "%START_TIME%"  # Timestamp of the request start
+                          request_method: "%REQ(:METHOD)%"  # HTTP method (e.g., GET, POST)
+                          request_path: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"  # Request path
+                          response_code: "%RESPONSE_CODE%"  # HTTP response code
+                          duration: "%DURATION%"  # Total duration of the request in milliseconds
+                          bytes_sent: "%BYTES_SENT%"  # Bytes sent in the response
+                          host: "%REQ(:AUTHORITY)%"  # Host header
+                          user_agent: "%REQ(User-Agent)%"  # User-Agent header
+                          client_ip: "%REQ(X-Forwarded-For)%"  # Client IP from X-Forwarded-For header
+                          request_size: "%REQ(:CONTENT-LENGTH)%"  # Size of the request body
+                          upstream_host: "%UPSTREAM_HOST%"  # Upstream host handling the request
+                          trace_id: "%REQ(X-B3-TraceId)%"  # Trace ID for distributed tracing
+                          response_size: "%RESP(:CONTENT-LENGTH)%"  # Size of the response body
+                          traffic_tag: "%DYNAMIC_METADATA(traffic_tag:source_listener)%"  # Custom traffic_tag metadata
+                          protocol: "%PROTOCOL%"  # HTTP protocol (e.g., HTTP/1.1, HTTP/2)
+                          response_flags: "%RESPONSE_FLAGS%"  # Envoy response flags (e.g., NR, UH)
+                          upstream_cluster: "%UPSTREAM_CLUSTER%"  # Upstream cluster name
+                          request_id: "%REQ(X-Request-Id)%"  # Request ID for correlation
+                          x_authorization_github_jwt: "%REQ({{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }})%" # The JWT header
+                          x_repository: "%REQ(x-repository)%" # Repo name prefixed with the org
           transport_socket:
             name: envoy.transport_sockets.tls
             typed_config:
@@ -395,4 +402,4 @@ static_resources:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
           sni: "{{ . }}.{{ getenv "MAIN_DNS_ZONE" }}"
       {{- end }}
-    {{- end }}
+    {{- end }}c
