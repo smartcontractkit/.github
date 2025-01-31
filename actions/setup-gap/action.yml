@@ -88,7 +88,9 @@ inputs:
     required: false
     default: "info"
   dynamic-proxy-port:
-    description: "The port the dynamic proxy will listen on. Defaults to 443."
+    description:
+      "The port the dynamic proxy will listen on. Defaults to 443. It handles
+      most of the traffic, except for K8s and websockets."
     required: false
     default: "443"
   main-dns-zone:
