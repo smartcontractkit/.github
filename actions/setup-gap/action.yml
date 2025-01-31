@@ -310,7 +310,7 @@ runs:
             "${ENVOY_PROXY_IMAGE}" \
             /usr/local/bin/envoy --mode validate -c /etc/envoy/envoy.yaml \
             --log-level "${PROXY_LOG_LEVEL}"; then
-          echo "Error: Envoy configuration validation failed."
+          echo "::error::Envoy configuration validation failed."
           exit 1
         fi
 
