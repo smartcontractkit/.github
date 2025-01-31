@@ -40,7 +40,9 @@ static_resources:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.set_metadata.v3.Config
                       metadata_namespace: gap
                       value:
-                         route_name: "service2"
+                        fields:
+                          route_name:
+                            string_value: "service2"
                   - name: envoy.filters.http.lua
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
