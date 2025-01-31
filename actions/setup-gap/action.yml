@@ -1,13 +1,12 @@
 name: setup-gap
-description: "setup github actions proxy"
+description: "Setup GitHub Actions Proxy (GAP)"
 
 inputs:
-  # general inputs
+  # General inputs
   gap-name:
     description:
       "The name of the GAP. Used in the dir name for self-signed certs and the
-      docker container name. Required if using multiple invocations of this in
-      the same job."
+      docker container name."
     required: false
     default: "default"
   ca-cert-validity-days:
@@ -20,7 +19,8 @@ inputs:
       "The number of days the server certificate is valid for. Defaults to 1."
     required: false
     default: "1"
-  # aws role inputs
+
+  # AWS role inputs
   aws-role-duration-seconds:
     description:
       "The duration in seconds for the assumed role. Defaults to 900 (15
@@ -28,7 +28,8 @@ inputs:
     required: false
     default: "900"
   aws-region:
-    description: "The AWS region resources unless specified in other inputs"
+    description:
+      "The AWS region for resources unless specified in other inputs."
     required: false
   aws-role-arn:
     description:
@@ -36,7 +37,8 @@ inputs:
       access for private repositories, and, if for Kubernetes, EKS describe
       permissions."
     required: false
-  # k8s inputs
+
+  # Kubernetes inputs
   use-k8s:
     description:
       "Whether to setup GAP for communicating with K8s. Cannot be used with
@@ -51,26 +53,27 @@ inputs:
       "The region for the EKS cluster, if different from aws-region input."
     required: false
   k8s-api-endpoint-port:
+    description: "The port number for accessing the Kubernetes API server."
     required: false
     default: "443"
-    description: "The port number for accessing the Kubernetes API server."
-  # local proxy inputs
+
+  # Local proxy inputs
   enable-proxy-debug:
-    required: false
-    default: "false"
     description:
       "Enable or disable detailed Envoy proxy logs used for K8s API access. When
       enabled, debug logs are generated locally, and container logs are streamed
       to the console for troubleshooting."
-  github-oidc-token-header-name:
     required: false
-    default: "x-authorization-github-jwt"
+    default: "false"
+  github-oidc-token-header-name:
     description:
       "Specifies the name of the HTTP header used to pass the GitHub OIDC JWT
       token. This header is automatically injected by the local proxy and must
       not be the same as the default 'Authorization' header."
+    required: false
+    default: "x-authorization-github-jwt"
   envoy-proxy-image:
-    description: "Envoy Proxy image used to run Envoy proxy for GAP"
+    description: "Envoy Proxy image used to run Envoy proxy for GAP."
     required: false
     default: "envoyproxy/envoy:v1.33.0"
   proxy-port:
@@ -95,14 +98,52 @@ inputs:
       information to random external endpoints. This ensures that the dynamic
       local proxy is used only for the specific DNS zone."
     required: true
+  websockets-proxy-port:
+    description:
+      "Port number used by the listener for the local proxy of WebSocket
+      services."
+    default: "9443"
+    required: false
+  websockets-services:
+    description:
+      "List of service names to be configured in the local proxy for proper
+      handling of all required headers, including the JWT token. It should be a
+      comma-separated list, for example: 'gap-ws-echo,gap-ws-hello'. Note: If
+      you are using Crib, append the Devspace namespace name as the suffix in
+      the service name, e.g., 'gap-geth-${namespace-name},
+      gap-custom-ws-${namespace-name}'."
+    default: ""
+    required: false
+
 outputs:
   local-proxy-port:
     description: "The port the local proxy will listen on."
     value: ${{ inputs.proxy-port }}
+  dynamic-proxy-port:
+    description: "The port the dynamic proxy will listen on."
+    value: ${{ inputs.dynamic-proxy-port }}
+  websockets-proxy-port:
+    description: "The port the WebSocket proxy will listen on."
+    value: ${{ inputs.websockets-proxy-port }}
 
 runs:
   using: composite
   steps:
+    - name: Validate inputs
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.main-dns-zone }}" ]; then
+          echo "Error: main-dns-zone is required."
+          exit 1
+        fi
+
+        if [[ "${{ inputs.dynamic-proxy-port }}" == "${{ inputs.proxy-port }}" || \
+              "${{ inputs.dynamic-proxy-port }}" == "${{ inputs.websockets-proxy-port }}" || \
+              "${{ inputs.proxy-port }}" == "${{ inputs.websockets-proxy-port }}" ]]; then
+          echo "Error: PROXY_PORT, DYNAMIC_PROXY_PORT, and WEBSOCKETS_PROXY_PORT must have unique values."
+          exit 1
+        fi
+
     - name: Assume role
       # We only need to assume a role if we intend to use k8s API server access via the proxy
       if: inputs.use-k8s == 'true'
@@ -197,7 +238,14 @@ runs:
         # Remove certificate-authority-data populated from `aws eks update-kubeconfig` which is for the endpoint which is not publicly accessible
         kubectl config unset clusters.$CLUSTER_ARN.certificate-authority-data
 
-    - name: Run Envoy proxy
+    - name: Install gomplate and verify installation
+      shell: bash
+      run: |
+        curl -L https://github.com/hairyhenderson/gomplate/releases/latest/download/gomplate_linux-amd64 -o /usr/local/bin/gomplate
+        chmod +x /usr/local/bin/gomplate
+        gomplate --version
+
+    - name: Run local Envoy proxy
       shell: sh
       env:
         DYNAMIC_PROXY_PORT: ${{ inputs.dynamic-proxy-port }}
@@ -209,26 +257,29 @@ runs:
         K8S_API_ENDPOINT_PORT: ${{ inputs.k8s-api-endpoint-port }}
         MAIN_DNS_ZONE: ${{ inputs.main-dns-zone }}
         PROXY_PORT: ${{ inputs.proxy-port }}
+        WEBSOCKETS_PROXY_PORT: ${{ inputs.websockets-proxy-port }}
+        WEBSOCKETS_SERVICES: ${{ inputs.websockets-services }}
       run: |
         # Get the Github OIDC hostname
         export GITHUB_OIDC_HOSTNAME=$(echo $ACTIONS_ID_TOKEN_REQUEST_URL | awk -F[/:] '{print $4}')
 
         # List of required ENVs to check
-        required_env_vars="DYNAMIC_PROXY_PORT ENABLE_PROXY_DEBUG GITHUB_OIDC_TOKEN_HEADER_NAME ENVOY_PROXY_IMAGE GITHUB_OIDC_HOSTNAME K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE PROXY_LOG_LEVEL PROXY_PORT GITHUB_REPOSITORY"
+        required_env_vars="DYNAMIC_PROXY_PORT ENABLE_PROXY_DEBUG GITHUB_OIDC_TOKEN_HEADER_NAME ENVOY_PROXY_IMAGE GITHUB_OIDC_HOSTNAME K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE PROXY_LOG_LEVEL PROXY_PORT GITHUB_REPOSITORY WEBSOCKETS_PROXY_PORT"
 
         # Loop through each variable and check if it's empty
         for var in $required_env_vars; do
-          # Use eval to get the value of the environment variable
           eval value=\$$var
           if [ -z "$value" ]; then
-            echo "Error: $var is not set."
+            echo "Error: Required environment variable '$var' is not set."
             exit 1
           fi
         done
 
         # Generate Envoy config from template
-        ls -l
-        envsubst < "${GITHUB_ACTION_PATH}/envoy.yaml.template" > "${GITHUB_ACTION_PATH}/envoy.yaml"
+        gomplate -f "${GITHUB_ACTION_PATH}/envoy.yaml.gotmpl" -o "${GITHUB_ACTION_PATH}/envoy.yaml"
+
+        # Generate LUA script from template
+        gomplate -f "${GITHUB_ACTION_PATH}/github_oidc.lua.gotmpl" -o "${GITHUB_ACTION_PATH}/github_oidc.lua"
 
         # Copy AWS CA certs
         cp ${{ github.action_path }}/aws-ca.crt "${PATH_CERTS_DIR}"
@@ -241,13 +292,33 @@ runs:
           cat "${GITHUB_ACTION_PATH}/envoy.yaml"
         fi
 
+        echo "Validating Envoy config..."
+        if ! docker run --rm \
+            --name "gap" \
+            -p "${DYNAMIC_PROXY_PORT}:${DYNAMIC_PROXY_PORT}" \
+            -p "${PROXY_PORT}:${PROXY_PORT}" \
+            -p "${WEBSOCKETS_PROXY_PORT}:${WEBSOCKETS_PROXY_PORT}" \
+            -v "${PATH_CERTS_DIR}":/tls \
+            -v "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
+            -v "${GITHUB_ACTION_PATH}/json.lua":/etc/envoy/json.lua \
+            -v "${GITHUB_ACTION_PATH}/github_oidc.lua":/etc/envoy/github_oidc.lua \
+            "${ENVOY_PROXY_IMAGE}" \
+            /usr/local/bin/envoy --mode validate -c /etc/envoy/envoy.yaml \
+            --log-level "${PROXY_LOG_LEVEL}"; then
+          echo "Error: Envoy configuration validation failed."
+          exit 1
+        fi
+
+        echo "Starting the local Envoy proxy..."
         docker run --rm -d \
-          --name "gap-v2" \
+          --name "gap" \
           -p "${DYNAMIC_PROXY_PORT}:${DYNAMIC_PROXY_PORT}" \
           -p "${PROXY_PORT}:${PROXY_PORT}" \
+          -p "${WEBSOCKETS_PROXY_PORT}:${WEBSOCKETS_PROXY_PORT}" \
           -v "${PATH_CERTS_DIR}":/tls \
           -v "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
           -v "${GITHUB_ACTION_PATH}/json.lua":/etc/envoy/json.lua \
+          -v "${GITHUB_ACTION_PATH}/github_oidc.lua":/etc/envoy/github_oidc.lua \
           "${ENVOY_PROXY_IMAGE}" \
           /usr/local/bin/envoy -c /etc/envoy/envoy.yaml \
           --log-level "${PROXY_LOG_LEVEL}"
@@ -258,12 +329,13 @@ runs:
         USE_K8S: ${{ inputs.use-k8s }}
         PROXY_PORT: ${{ inputs.proxy-port }}
         DYNAMIC_PROXY_PORT: ${{ inputs.dynamic-proxy-port }}
+        WEBSOCKETS_PROXY_PORT: ${{ inputs.websockets-proxy-port }}
       run: |
         check_proxy() {
           local port=$1
           local name=$2
 
-          echo "Checking if the ${name} proxy is up and running on https://localhost:${port}..."
+          echo "Checking if the ${name} proxy is up and running on [https://localhost:${port}] ..."
           for attempt in {1..10}; do
             if curl --silent --cacert "${PATH_CERTS_DIR}/ca.crt" --head https://localhost:${port} > /dev/null 2>&1; then
               echo "${name} proxy is up, and the HTTPS connection is successful."
@@ -282,10 +354,9 @@ runs:
           check_proxy "${PROXY_PORT}" "K8s API" || exit 1
         fi
 
-        check_proxy "${DYNAMIC_PROXY_PORT}" "Dynamic local proxy" || exit 1
+        check_proxy "${DYNAMIC_PROXY_PORT}" "Dynamic local proxy listener" || exit 1
+        check_proxy "${WEBSOCKETS_PROXY_PORT}" "Websockets local proxy listener" || exit 1
 
     - name: Collect Envoy proxy logs when debug is enabled
       uses: jwalton/gh-docker-logs@2741064ab9d7af54b0b1ffb6076cf64c16f0220e # v2.2.2
-      if:
-        inputs.use-k8s == 'true' && (inputs.enable-proxy-debug == 'true' ||
-        failure())
+      if: inputs.enable-proxy-debug == 'true' || failure()
