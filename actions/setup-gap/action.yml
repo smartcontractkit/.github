@@ -275,7 +275,7 @@ runs:
         for var in $required_env_vars; do
           eval value=\$$var
           if [ -z "$value" ]; then
-            echo "Error: Required environment variable '$var' is not set."
+            echo "::error::Required environment variable '$var' is not set."
             exit 1
           fi
         done
