@@ -136,7 +136,7 @@ function envoy_on_request(request_handle)
         -- Extract the source_listener value from dynamic metadata
         local metadata = request_handle:streamInfo():dynamicMetadata():get("traffic_tag")
         if metadata and metadata["source_listener"] then
-            log_prefix = metadata["traffic_tag"]["source_listener"] .. ": "
+            log_prefix = metadata["source_listener"] .. ": "
         end
     end
 
