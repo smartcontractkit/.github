@@ -13,11 +13,12 @@ local GITHUB_OIDC_TOKEN_HEADER = "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
 local GITHUB_REPOSITORY_HEADER = "x-repository"
 
 -- Extract the source_listener value from dynamic metadata
-local log_prefix = "" -- Default value if metadata is not found
+local log_prefix = "local-proxy" -- Default value if metadata is not found
 local metadata = request_handle:streamInfo():dynamicMetadata()
 if metadata and metadata["traffic_tag"] and metadata["traffic_tag"]["source_listener"] then
     log_prefix = metadata["traffic_tag"]["source_listener"]
 end
+log_prefix = log_prefix .. ": "
 
 -- Function to decode base64 value
 local function decode_base64(input)
