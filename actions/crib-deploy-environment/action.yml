@@ -128,8 +128,21 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Generate CRIB Namespace Name and labels
+      id: generate-ns-name
+      shell: bash
+      run: |
+        echo "devspace-namespace=${{ inputs.ns-name-prefix }}-$(uuidgen | cut -c1-5)" >> $GITHUB_OUTPUT
+        # This will work only for PRs, push event itself does not contain PR information.
+        echo "pr-number=${{ github.event.number }}" >> $GITHUB_OUTPUT
+        echo "workflow-job=${{ github.job }}" >> $GITHUB_OUTPUT
+        echo "repo-name=$(basename $GITHUB_REPOSITORY)" >> $GITHUB_OUTPUT
+        echo "branch-name=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        echo "commit-sha=${{ github.sha }}" >> $GITHUB_OUTPUT
+        echo "workflow-run-number=${{ github.run_number }}" >> $GITHUB_OUTPUT
+
     - name: Setup GAP
-      uses: smartcontractkit/.github/actions/setup-gap@4cd62b20cf1e625b8c5ceb23bc30e3c2d8973454 # setup-gap@3.5.5
+      uses: smartcontractkit/.github/actions/setup-gap@ws-proxy-final # setup-gap@3.5.5
       with:
         aws-region: ${{ inputs.aws-region }}
         aws-role-arn: ${{ inputs.aws-role-arn }}
@@ -144,6 +157,10 @@ runs:
         proxy-port: ${{ inputs.gap-local-proxy-port }}
         dynamic-proxy-port: ${{ inputs.dynamic-proxy-port }}
         main-dns-zone: ${{ inputs.main-dns-zone }}
+        websockets-services:
+          "gap-${{ steps.generate-ns-name.outputs.devspace-namespace
+          }}-geth-1337-ws,gap-${{
+          steps.generate-ns-name.outputs.devspace-namespace }}-geth-2337-ws"
 
     - name: Checkout crib repo
       uses: actions/checkout@v4.2.1
@@ -181,19 +198,6 @@ runs:
         cache-pubkey: ${{ inputs.cache-pubkey }}
         enable-aws: true
         aws-region: ${{ inputs.aws-region }}
-
-    - name: Generate CRIB Namespace Name and labels
-      id: generate-ns-name
-      shell: bash
-      run: |
-        echo "devspace-namespace=${{ inputs.ns-name-prefix }}-$(uuidgen | cut -c1-5)" >> $GITHUB_OUTPUT
-        # This will work only for PRs, push event itself does not contain PR information.
-        echo "pr-number=${{ github.event.number }}" >> $GITHUB_OUTPUT
-        echo "workflow-job=${{ github.job }}" >> $GITHUB_OUTPUT
-        echo "repo-name=$(basename $GITHUB_REPOSITORY)" >> $GITHUB_OUTPUT
-        echo "branch-name=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
-        echo "commit-sha=${{ github.sha }}" >> $GITHUB_OUTPUT
-        echo "workflow-run-number=${{ github.run_number }}" >> $GITHUB_OUTPUT
 
     - name: Create and label CRIB namespace
       shell: bash
