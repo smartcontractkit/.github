@@ -132,7 +132,7 @@ end
 -- Main function for Envoy request interception
 function envoy_on_request(request_handle)
     local metadata = request_handle:streamInfo():dynamicMetadata()
-    local gap_metadata = metadata["gap"]
+    local gap_metadata = metadata["envoy.filters.http.lua"]
     request_handle:logInfo("debug:: before readingg")
     if gap_metadata then
         request_handle:logInfo("debug:: got metadata for namespace")

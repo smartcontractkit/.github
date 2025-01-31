@@ -38,7 +38,7 @@ static_resources:
                   - name: envoy.filters.http.set_metadata
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.set_metadata.v3.Config
-                      metadata_namespace: gap
+                      metadata_namespace: envoy.filters.http.lua
                       value:
                         my_key: "my_value"
                         test: "tesesd"
