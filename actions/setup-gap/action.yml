@@ -329,6 +329,7 @@ runs:
         USE_K8S: ${{ inputs.use-k8s }}
         PROXY_PORT: ${{ inputs.proxy-port }}
         DYNAMIC_PROXY_PORT: ${{ inputs.dynamic-proxy-port }}
+        WEBSOCKETS_PROXY_PORT: ${{ inputs.websockets-proxy-port }}
       run: |
         check_proxy() {
           local port=$1
