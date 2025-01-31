@@ -132,14 +132,14 @@ runs:
       id: generate-ns-name
       shell: bash
       run: |
-        echo "devspace-namespace=${{ inputs.ns-name-prefix }}-$(uuidgen | cut -c1-5)" >> $GITHUB_OUTPUT
+        echo "devspace-namespace=${{ inputs.ns-name-prefix }}-$(uuidgen | cut -c1-5)" | tee -a "$GITHUB_OUTPUT"
         # This will work only for PRs, push event itself does not contain PR information.
-        echo "pr-number=${{ github.event.number }}" >> $GITHUB_OUTPUT
-        echo "workflow-job=${{ github.job }}" >> $GITHUB_OUTPUT
-        echo "repo-name=$(basename $GITHUB_REPOSITORY)" >> $GITHUB_OUTPUT
-        echo "branch-name=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
-        echo "commit-sha=${{ github.sha }}" >> $GITHUB_OUTPUT
-        echo "workflow-run-number=${{ github.run_number }}" >> $GITHUB_OUTPUT
+        echo "pr-number=${{ github.event.number }}" | tee -a "$GITHUB_OUTPUT"
+        echo "workflow-job=${{ github.job }}" | tee -a "$GITHUB_OUTPUT"
+        echo "repo-name=$(basename $GITHUB_REPOSITORY)" | tee -a "$GITHUB_OUTPUT"
+        echo "branch-name=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" | tee -a "$GITHUB_OUTPUT"
+        echo "commit-sha=${{ github.sha }}" | tee -a "$GITHUB_OUTPUT"
+        echo "workflow-run-number=${{ github.run_number }}" | tee -a "$GITHUB_OUTPUT"
 
     - name: Setup GAP
       uses: smartcontractkit/.github/actions/setup-gap@ws-proxy-final # setup-gap@3.5.5
