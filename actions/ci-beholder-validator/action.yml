@@ -68,7 +68,7 @@ runs:
 
         # Checkout and validate default branch
         git checkout ${{ github.event.repository.default_branch }}
-        docker run -v "$PWD:/app/repo" \
+        docker run -v "$PWD:/usr/src/app/repo" \
         --network redpanda_network \
         -e SCHEMA_REGISTRY_URL=http://redpanda-0:8081 \
         ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:${{ inputs.image-tag }} \
@@ -80,7 +80,7 @@ runs:
     - name: Validate schemas in current branch
       shell: bash
       run: |
-        docker run -v "$PWD:/app/repo" \
+        docker run -v "$PWD:/usr/src/app/repo" \
         --network redpanda_network \
         -e SCHEMA_REGISTRY_URL=http://redpanda:8081 \
         -e CHANGED_FILES="$CHANGED_FILES" \
