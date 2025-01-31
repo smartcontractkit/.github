@@ -1,5 +1,21 @@
 # setup-gap
 
+## 4.0.0
+
+### Major Changes
+
+- [#848](https://github.com/smartcontractkit/.github/pull/848)
+  [`519b719`](https://github.com/smartcontractkit/.github/commit/519b719d1b283c6c768cddbd45b86086c8b5750a)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Migrating to go
+  template and adding support for websockets.
+
+### Minor Changes
+
+- [#831](https://github.com/smartcontractkit/.github/pull/831)
+  [`bba3537`](https://github.com/smartcontractkit/.github/commit/bba3537561a9f9a368c71db2109839fd6334572b)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Set the default
+  port for the dynamic proxy to 443
+
 ## 3.5.6
 
 ### Patch Changes
