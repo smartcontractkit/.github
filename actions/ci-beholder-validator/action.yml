@@ -43,7 +43,7 @@ runs:
       shell: bash
       run: |
         git fetch --prune origin +refs/heads/*:refs/remotes/origin/*
-        echo "CHANGED_FILES=/usr/src/app/repo/$(git diff --name-only origin/${{
+        echo "CHANGED_FILES=$(git diff --name-only origin/${{
         github.event.repository.default_branch }})" >> $GITHUB_ENV
     - name: Start Redpanda with Docker Compose
       shell: bash
