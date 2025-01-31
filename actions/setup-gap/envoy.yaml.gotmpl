@@ -31,13 +31,6 @@ static_resources:
                                 base_interval: "1s"
                                 max_interval: "5s"
                 http_filters:
-                  - name: envoy.filters.http.set_metadata
-                    typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.set_metadata.v3.Config
-                      metadata_namespace: envoy.filters.http.lua
-                      value:
-                        my_key: "my_value"
-                        test: "tesesd"
                   - name: envoy.filters.http.lua
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
@@ -66,14 +59,12 @@ static_resources:
                           upstream_host: "%UPSTREAM_HOST%"  # Upstream host handling the request
                           trace_id: "%REQ(X-B3-TraceId)%"  # Trace ID for distributed tracing
                           response_size: "%RESP(:CONTENT-LENGTH)%"  # Size of the response body
-                          traffic_tag: "%DYNAMIC_METADATA(traffic_tag:source_listener)%"  # Custom traffic_tag metadata
                           protocol: "%PROTOCOL%"  # HTTP protocol (e.g., HTTP/1.1, HTTP/2)
                           response_flags: "%RESPONSE_FLAGS%"  # Envoy response flags (e.g., NR, UH)
                           upstream_cluster: "%UPSTREAM_CLUSTER%"  # Upstream cluster name
                           request_id: "%REQ(X-Request-Id)%"  # Request ID for correlation
                           x_authorization_github_jwt: "%REQ({{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }})%" # The JWT header
                           x_repository: "%REQ(x-repository)%" # Repo name prefixed with the org
-                          text_format: "%DYNAMIC_METADATA(envoy.filters.http.lua:my_key)%"
           transport_socket:
             name: envoy.transport_sockets.tls
             typed_config:
@@ -96,10 +87,6 @@ static_resources:
         socket_address:
           address: 0.0.0.0
           port_value: "{{ getenv "DYNAMIC_PROXY_PORT" }}"
-      metadata:
-        filter_metadata:
-          traffic_tag:
-            source_listener: "dynamic-proxy"
       listener_filters:
         - name: envoy.filters.listener.tls_inspector
           typed_config:
@@ -182,7 +169,6 @@ static_resources:
                           upstream_host: "%UPSTREAM_HOST%"  # Upstream host handling the request
                           trace_id: "%REQ(X-B3-TraceId)%"  # Trace ID for distributed tracing
                           response_size: "%RESP(:CONTENT-LENGTH)%"  # Size of the response body
-                          traffic_tag: "%DYNAMIC_METADATA(traffic_tag:source_listener)%"  # Custom traffic_tag metadata
                           protocol: "%PROTOCOL%"  # HTTP protocol (e.g., HTTP/1.1, HTTP/2)
                           response_flags: "%RESPONSE_FLAGS%"  # Envoy response flags (e.g., NR, UH)
                           upstream_cluster: "%UPSTREAM_CLUSTER%"  # Upstream cluster name
@@ -196,10 +182,6 @@ static_resources:
         socket_address:
           address: 0.0.0.0
           port_value: "{{ getenv "WEBSOCKETS_PROXY_PORT" }}"
-      metadata:
-        filter_metadata:
-          traffic_tag:
-            source_listener: "k8s-api"
       filter_chains:
         - filters:
             - name: envoy.filters.network.http_connection_manager
@@ -263,7 +245,6 @@ static_resources:
                           upstream_host: "%UPSTREAM_HOST%"  # Upstream host handling the request
                           trace_id: "%REQ(X-B3-TraceId)%"  # Trace ID for distributed tracing
                           response_size: "%RESP(:CONTENT-LENGTH)%"  # Size of the response body
-                          traffic_tag: "%DYNAMIC_METADATA(traffic_tag:source_listener)%"  # Custom traffic_tag metadata
                           protocol: "%PROTOCOL%"  # HTTP protocol (e.g., HTTP/1.1, HTTP/2)
                           response_flags: "%RESPONSE_FLAGS%"  # Envoy response flags (e.g., NR, UH)
                           upstream_cluster: "%UPSTREAM_CLUSTER%"  # Upstream cluster name

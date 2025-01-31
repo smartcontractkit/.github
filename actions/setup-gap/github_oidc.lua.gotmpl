@@ -13,7 +13,7 @@ local GITHUB_OIDC_TOKEN_HEADER = "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
 local GITHUB_REPOSITORY_HEADER = "x-repository"
 
 -- Log prefix (will be updated dynamically)
-log_prefix = "local-proxy"
+log_prefix = "local-proxy: LUA:: "
 
 -- Function to decode base64 value
 local function decode_base64(input)
@@ -131,18 +131,6 @@ end
 
 -- Main function for Envoy request interception
 function envoy_on_request(request_handle)
-    local metadata = request_handle:streamInfo():dynamicMetadata()
-    local gap_metadata = metadata["envoy.filters.http.lua"]
-    request_handle:logInfo("debug:: before readingg")
-    if gap_metadata then
-        request_handle:logInfo("debug:: got metadata for namespace")
-        for key, value in pairs(gap_metadata) do
-            request_handle:logInfo("Metadata - " .. key .. ": " .. value)
-        end
-    else
-        request_handle:logInfo("No metadata found under 'gap' namespace")
-    end
-
     -- Get the host/authority from the request headers
     local host = request_handle:headers():get(":authority")
 
