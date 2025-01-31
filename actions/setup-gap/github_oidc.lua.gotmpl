@@ -134,9 +134,9 @@ function envoy_on_request(request_handle)
     -- Set the log prefix only once
     if log_prefix == "local-proxy" then
         -- Extract the source_listener value from dynamic metadata
-        local metadata = request_handle:streamInfo():dynamicMetadata():get("filter_metadata")
-        if metadata and metadata["traffic_tag"] and metadata["traffic_tag"]["source_listener"] then
-            log_prefix = metadata["traffic_tag"]["source_listener"] .. ": "
+        local log_prefix_listener = request_handle:metadata():get("source_listener")
+        if log_prefix_listener then
+            log_prefix = log_prefix_listener .. ": "
         end
     end
 

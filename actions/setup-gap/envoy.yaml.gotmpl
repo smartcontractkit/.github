@@ -17,14 +17,14 @@ static_resources:
                   name: http
                   virtual_hosts:
                     - name: http
-                      metadata:
-                        filter_metadata:
-                          traffic_tag:
-                            source_listener: "k8s-api"
                       domains: ["*"]
                       routes:
                         - match:
                             prefix: "/"
+                          metadata:
+                            filter_metadata:
+                              envoy.filters.http.lua:
+                                source_listener: "k8s-api"
                           route:
                             cluster: k8s_api_cluster
                             host_rewrite_literal: "gap-k8s-api.{{ getenv "MAIN_DNS_ZONE" }}"
