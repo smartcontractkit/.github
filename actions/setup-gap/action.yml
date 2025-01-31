@@ -131,16 +131,21 @@ runs:
   steps:
     - name: Validate inputs
       shell: bash
+      env:
+        DYNAMIC_PROXY_PORT: ${{ inputs.dynamic-proxy-port }}
+        MAIN_DNS_ZONE: ${{ inputs.main-dns-zone }}
+        PROXY_PORT: ${{ inputs.proxy-port }}
+        WEBSOCKETS_PROXY_PORT: ${{ inputs.websockets-proxy-port }}
       run: |
-        if [ -z "${{ inputs.main-dns-zone }}" ]; then
-          echo "Error: main-dns-zone is required."
+        if [[ -z "${MAIN_DNS_ZONE:-}" ]]; then
+          echo "::error::inputs.main-dns-zone is required."
           exit 1
         fi
 
-        if [[ "${{ inputs.dynamic-proxy-port }}" == "${{ inputs.proxy-port }}" || \
-              "${{ inputs.dynamic-proxy-port }}" == "${{ inputs.websockets-proxy-port }}" || \
-              "${{ inputs.proxy-port }}" == "${{ inputs.websockets-proxy-port }}" ]]; then
-          echo "Error: PROXY_PORT, DYNAMIC_PROXY_PORT, and WEBSOCKETS_PROXY_PORT must have unique values."
+        if [[ "${DYNAMIC_PROXY_PORT}" == "${PROXY_PORT}" || \
+              "${DYNAMIC_PROXY_PORT}" == "${WEBSOCKETS_PROXY_PORT}" || \
+              "${PROXY_PORT}" == "${WEBSOCKETS_PROXY_PORT}" ]]; then
+          echo "::error::PROXY_PORT, DYNAMIC_PROXY_PORT, and WEBSOCKETS_PROXY_PORT must have unique values."
           exit 1
         fi
 
