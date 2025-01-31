@@ -1,24 +1,19 @@
 -- Load the JSON library for decoding JSON payloads
-JSON = (loadfile "/etc/envoy/json.lua")() -- one-time load of the routines
+JSON = (loadfile "/etc/envoy/json.lua")() -- One-time load of the routines
 
 -- Variables to store JWT token and its expiration time
 local jwt_expiration = 0
 local jwt_token = nil
 local refreshing = false -- Flag to prevent concurrent token refreshes
-local request_options = {["asynchronous"] = true}
-local main_dns_zone = "{{ getenv "MAIN_DNS_ZONE" }}"
+local request_options = { ["asynchronous"] = true }
+local main_dns_zone = "{{ getenv 'MAIN_DNS_ZONE' }}"
 
--- Constants for logging and header
-local GITHUB_OIDC_TOKEN_HEADER = "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
+-- Constants for headers
+local GITHUB_OIDC_TOKEN_HEADER = "{{ getenv 'GITHUB_OIDC_TOKEN_HEADER_NAME' }}"
 local GITHUB_REPOSITORY_HEADER = "x-repository"
 
--- Extract the source_listener value from dynamic metadata
-local log_prefix = "local-proxy" -- Default value if metadata is not found
-local metadata = request_handle:streamInfo():dynamicMetadata()
-if metadata and metadata["traffic_tag"] and metadata["traffic_tag"]["source_listener"] then
-    log_prefix = metadata["traffic_tag"]["source_listener"]
-end
-log_prefix = log_prefix .. ": "
+-- Log prefix (will be updated dynamically)
+local log_prefix = "local-proxy"
 
 -- Function to decode base64 value
 local function decode_base64(input)
@@ -46,7 +41,7 @@ local function decode_base64(input)
     end))
 end
 
--- Function to get JWT exp time from JWT token
+-- Function to get JWT expiration time from JWT token
 local function get_jwt_exp(jwt)
     -- Extract the three parts of the JWT: header, payload, and signature
     local header, payload, signature = jwt:match("([^%.]+)%.([^%.]+)%.([^%.]+)")
@@ -78,14 +73,14 @@ function fetch_github_oidc_token(request_handle)
 
     -- Set the audience and the GitHub OIDC token URL
     local audience = "gap"
-    local oidc_url = "{{ getenv "ACTIONS_ID_TOKEN_REQUEST_URL" }}&audience=" .. audience
+    local oidc_url = "{{ getenv 'ACTIONS_ID_TOKEN_REQUEST_URL' }}&audience=" .. audience
 
     -- Prepare headers for the HTTP request
     local headers = {
         [":method"] = "GET",
         [":path"] = oidc_url,
-        [":authority"] = "{{ getenv "GITHUB_OIDC_HOSTNAME" }}",
-        ["Authorization"] = "Bearer " .. "{{ getenv "ACTIONS_ID_TOKEN_REQUEST_TOKEN" }}", -- Use environment variable
+        [":authority"] = "{{ getenv 'GITHUB_OIDC_HOSTNAME' }}",
+        ["Authorization"] = "Bearer " .. "{{ getenv 'ACTIONS_ID_TOKEN_REQUEST_TOKEN' }}", -- Use environment variable
         ["accept"] = "application/json",
     }
 
@@ -99,7 +94,6 @@ function fetch_github_oidc_token(request_handle)
 
     if response_headers[":status"] == "200" then
         request_handle:logInfo(log_prefix .. "GitHub OIDC token fetched successfully.")
-
         local data = JSON.decode(response_body)
         jwt_token = data.value -- Assign the token value
         jwt_expiration = get_jwt_exp(jwt_token) -- Update the expiration time
@@ -125,21 +119,28 @@ local function add_headers(request_handle)
     request_handle:headers():remove(GITHUB_OIDC_TOKEN_HEADER)
     -- Add the new JWT token to the header
     request_handle:headers():add(GITHUB_OIDC_TOKEN_HEADER, "Bearer " .. jwt_token)
-    request_handle:logInfo(log_prefix .. "GitHub JWT OIDC token added successfully to the header: " ..
-                           GITHUB_OIDC_TOKEN_HEADER)
-
+    request_handle:logInfo(log_prefix .. "GitHub JWT OIDC token added successfully to the header: " .. GITHUB_OIDC_TOKEN_HEADER)
 
     -- Add the repository header if it doesn't already exist
     if not request_handle:headers():get(GITHUB_REPOSITORY_HEADER) then
-        request_handle:headers():add(GITHUB_REPOSITORY_HEADER, "{{ getenv "GITHUB_REPOSITORY" }}")
+        request_handle:headers():add(GITHUB_REPOSITORY_HEADER, "{{ getenv 'GITHUB_REPOSITORY' }}")
     else
-        request_handle:logInfo(log_prefix .. "Skipping addition of '" .. GITHUB_REPOSITORY_HEADER ..
-                           "' header as it is already present")
+        request_handle:logInfo(log_prefix .. "Skipping addition of '" .. GITHUB_REPOSITORY_HEADER .. "' header as it is already present")
     end
 end
 
 -- Main function for Envoy request interception
 function envoy_on_request(request_handle)
+    -- Set the log prefix only once
+    if log_prefix == "local-proxy" then
+        -- Extract the source_listener value from dynamic metadata
+        local metadata = request_handle:streamInfo():dynamicMetadata()
+        if metadata and metadata["traffic_tag"] and metadata["traffic_tag"]["source_listener"] then
+            log_prefix = metadata["traffic_tag"]["source_listener"]
+        end
+        log_prefix = log_prefix .. ": "
+    end
+
     -- Get the host/authority from the request headers
     local host = request_handle:headers():get(":authority")
 
