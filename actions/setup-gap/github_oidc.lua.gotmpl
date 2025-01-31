@@ -132,14 +132,15 @@ end
 -- Main function for Envoy request interception
 function envoy_on_request(request_handle)
     -- Set the log prefix only once
-    if log_prefix == "local-proxy" then
-        -- Extract the source_listener value from dynamic metadata
-        local log_prefix_listener = request_handle:metadata():get("source_listener")
-        if log_prefix_listener then
-            log_prefix = log_prefix_listener .. ": "
-        end
-    end
+    -- Access the dynamic metadata set on the route
+    local metadata = request_handle:streamInfo():dynamicMetadata()
+    local route_name = metadata:get("envoy.filters.http.lua") and metadata:get("envoy.filters.http.lua")["route_name"]
 
+    if route_name then
+        request_handle:logInfo("Handling request for route: " .. route_name)
+    else
+        request_handle:logInfo("No metadata found for the current route.")
+    end
     -- Get the host/authority from the request headers
     local host = request_handle:headers():get(":authority")
 

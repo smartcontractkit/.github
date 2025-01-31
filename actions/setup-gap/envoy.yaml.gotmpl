@@ -24,7 +24,7 @@ static_resources:
                           metadata:
                             filter_metadata:
                               envoy.filters.http.lua:
-                                source_listener: "k8s-api"
+                                route_name: "service2"
                           route:
                             cluster: k8s_api_cluster
                             host_rewrite_literal: "gap-k8s-api.{{ getenv "MAIN_DNS_ZONE" }}"
