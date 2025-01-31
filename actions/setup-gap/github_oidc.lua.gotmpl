@@ -13,7 +13,7 @@ local GITHUB_OIDC_TOKEN_HEADER = "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
 local GITHUB_REPOSITORY_HEADER = "x-repository"
 
 -- Log prefix (will be updated dynamically)
-local log_prefix = "local-proxy"
+log_prefix = "local-proxy"
 
 -- Function to decode base64 value
 local function decode_base64(input)
