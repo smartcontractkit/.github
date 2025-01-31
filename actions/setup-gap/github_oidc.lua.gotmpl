@@ -132,19 +132,16 @@ end
 -- Main function for Envoy request interception
 function envoy_on_request(request_handle)
     local metadata = request_handle:streamInfo():dynamicMetadata()
-    local namespace_metadata = metadata:get("gap")
-
-    if namespace_metadata then
-        local route_name = namespace_metadata["route_name"]
-        if route_name then
-            request_handle:logInfo("Handling request for route: " .. route_name)
-        else
-            request_handle:logInfo("route_name not found in namespace metadata.")
+    local gap_metadata = metadata["gap"]
+    request_handle:logInfo("debug:: before readingg")
+    if gap_metadata then
+        request_handle:logInfo("debug:: got metadata for namespace")
+        for key, value in pairs(gap_metadata) do
+            request_handle:logInfo("Metadata - " .. key .. ": " .. value)
         end
     else
-        request_handle:logInfo("No metadata found under namespace 'gap'.")
+        request_handle:logInfo("No metadata found under 'gap' namespace")
     end
-
 
     -- Get the host/authority from the request headers
     local host = request_handle:headers():get(":authority")
