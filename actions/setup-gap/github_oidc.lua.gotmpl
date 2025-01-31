@@ -6,10 +6,10 @@ local jwt_expiration = 0
 local jwt_token = nil
 local refreshing = false -- Flag to prevent concurrent token refreshes
 local request_options = { ["asynchronous"] = true }
-local main_dns_zone = "{{ getenv 'MAIN_DNS_ZONE' }}"
+local main_dns_zone = "{{ getenv "MAIN_DNS_ZONE" }}"
 
 -- Constants for headers
-local GITHUB_OIDC_TOKEN_HEADER = "{{ getenv 'GITHUB_OIDC_TOKEN_HEADER_NAME' }}"
+local GITHUB_OIDC_TOKEN_HEADER = "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
 local GITHUB_REPOSITORY_HEADER = "x-repository"
 
 -- Log prefix (will be updated dynamically)
@@ -73,14 +73,14 @@ function fetch_github_oidc_token(request_handle)
 
     -- Set the audience and the GitHub OIDC token URL
     local audience = "gap"
-    local oidc_url = "{{ getenv 'ACTIONS_ID_TOKEN_REQUEST_URL' }}&audience=" .. audience
+    local oidc_url = "{{ getenv "ACTIONS_ID_TOKEN_REQUEST_URL" }}&audience=" .. audience
 
     -- Prepare headers for the HTTP request
     local headers = {
         [":method"] = "GET",
         [":path"] = oidc_url,
-        [":authority"] = "{{ getenv 'GITHUB_OIDC_HOSTNAME' }}",
-        ["Authorization"] = "Bearer " .. "{{ getenv 'ACTIONS_ID_TOKEN_REQUEST_TOKEN' }}", -- Use environment variable
+        [":authority"] = "{{ getenv "GITHUB_OIDC_HOSTNAME" }}",
+        ["Authorization"] = "Bearer " .. "{{ getenv "ACTIONS_ID_TOKEN_REQUEST_TOKEN" }}", -- Use environment variable
         ["accept"] = "application/json",
     }
 
@@ -123,7 +123,7 @@ local function add_headers(request_handle)
 
     -- Add the repository header if it doesn't already exist
     if not request_handle:headers():get(GITHUB_REPOSITORY_HEADER) then
-        request_handle:headers():add(GITHUB_REPOSITORY_HEADER, "{{ getenv 'GITHUB_REPOSITORY' }}")
+        request_handle:headers():add(GITHUB_REPOSITORY_HEADER, "{{ getenv "GITHUB_REPOSITORY" }}")
     else
         request_handle:logInfo(log_prefix .. "Skipping addition of '" .. GITHUB_REPOSITORY_HEADER .. "' header as it is already present")
     end
