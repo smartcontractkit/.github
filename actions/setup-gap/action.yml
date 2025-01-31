@@ -245,9 +245,21 @@ runs:
 
     - name: Install gomplate and verify installation
       shell: bash
+      env:
+        VERSION: "v4.3.0"
+        SHASUM: "8adb82e5be7dfde49857ebd7c948fd8f9b10cdcdb13f71b74685dff6e6756890"
       run: |
-        curl -L https://github.com/hairyhenderson/gomplate/releases/latest/download/gomplate_linux-amd64 -o /usr/local/bin/gomplate
-        chmod +x /usr/local/bin/gomplate
+        # Download the gomplate binary
+        curl -sSfL "https://github.com/hairyhenderson/gomplate/releases/download/$VERSION/gomplate_linux-amd64" --output gomplate
+
+        # Verify the SHA256 checksum of the downloaded file
+        echo "Checking shasum of gomplate binary."
+        echo "${SHASUM} gomplate" | sha256sum --check
+
+        # If the checksum verification passes, install the binary to /usr/local/bin/
+        install gomplate /usr/local/bin/
+
+        # Verify the installation by checking version
         gomplate --version
 
     - name: Run local Envoy proxy

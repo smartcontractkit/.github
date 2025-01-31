@@ -63,7 +63,6 @@ static_resources:
                           response_flags: "%RESPONSE_FLAGS%"  # Envoy response flags (e.g., NR, UH)
                           upstream_cluster: "%UPSTREAM_CLUSTER%"  # Upstream cluster name
                           request_id: "%REQ(X-Request-Id)%"  # Request ID for correlation
-                          x_authorization_github_jwt: "%REQ({{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }})%" # The JWT header
                           x_repository: "%REQ(x-repository)%" # Repo name prefixed with the org
           transport_socket:
             name: envoy.transport_sockets.tls
@@ -173,7 +172,6 @@ static_resources:
                           response_flags: "%RESPONSE_FLAGS%"  # Envoy response flags (e.g., NR, UH)
                           upstream_cluster: "%UPSTREAM_CLUSTER%"  # Upstream cluster name
                           request_id: "%REQ(X-Request-Id)%"  # Request ID for correlation
-                          x_authorization_github_jwt: "%REQ({{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }})%" # The JWT header
                           x_repository: "%REQ(x-repository)%" # Repo name prefixed with the org
 
     # Listener for WebSocket traffic
@@ -246,7 +244,6 @@ static_resources:
                           response_flags: "%RESPONSE_FLAGS%"  # Envoy response flags (e.g., NR, UH)
                           upstream_cluster: "%UPSTREAM_CLUSTER%"  # Upstream cluster name
                           request_id: "%REQ(X-Request-Id)%"  # Request ID for correlation
-                          x_authorization_github_jwt: "%REQ({{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }})%" # The JWT header
                           x_repository: "%REQ(x-repository)%" # Repo name prefixed with the org
           transport_socket:
             name: envoy.transport_sockets.tls
