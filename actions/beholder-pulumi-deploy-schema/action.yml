@@ -32,26 +32,31 @@ runs:
         AWS_REGION: ${{ inputs.aws_region }}
 
     - name: Install Pulumi
+      shell: bash
       run: |
         curl -fsSL https://get.pulumi.com | sh
         echo "$HOME/.pulumi/bin" >> $GITHUB_PATH
 
     - name: Pulumi Login
+      shell: bash
       run: pulumi login s3://${{ inputs.pulumi_s3_bucket }}
       env:
         PULUMI_CONFIG_PASSPHRASE: ${{ env.PULUMI_CONFIG_PASSPHRASE }}
 
     - name: Docker login to ECR
+      shell: bash
       run: |
         aws ecr get-login-password --region ${{ inputs.aws_region }} \
         | docker login --username AWS --password-stdin \
           ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com
 
     - name: Pull container image
+      shell: bash
       run: |
         docker pull ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-beholder-pulumi:519065ab69c91995d1695679807619d77c031522
 
     - name: Deploy schema
+      shell: bash
       run: |
         docker run \
           -e CONFLUENT_CLOUD_API_KEY="${{ env.CONFLUENT_CLOUD_API_KEY }}" \
