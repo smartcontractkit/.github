@@ -1,0 +1,7 @@
+{
+  "name": "beholder-pulumi-deploy-schema",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "actions/beholder-pulumi-deploy-schema",
+  "targets": {}
+}
