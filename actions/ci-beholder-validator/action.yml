@@ -44,7 +44,7 @@ runs:
       run: |
         git fetch --prune origin +refs/heads/*:refs/remotes/origin/*
         # TODO: This logic need to be moved to code
-        changed_files=$(git diff --name-only origin/${{github.event.repository.default_branch }})"
+        changed_files=$(git diff --name-only origin/${{github.event.repository.default_branch }})
         prefixed_files=""
         # Loop over each changed file and prepend "./"
         for file in $changed_files; do
