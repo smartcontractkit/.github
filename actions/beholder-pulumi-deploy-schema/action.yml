@@ -20,65 +20,43 @@ runs:
   steps:
     - uses: actions/checkout@v4.2.1
 
-    - name: Debug whoami
+    - name: Install Pulumi
       shell: bash
-      run: aws sts get-caller-identity
+      run: |
+        curl -fsSL https://get.pulumi.com | sh
+        echo "$HOME/.pulumi/bin" >> $GITHUB_PATH
 
-    #- name: Configure AWS Credentials
-    #  run: |
-    #    aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
-    #    aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
-    #    aws configure set default.region "$AWS_REGION"
-    #  shell: bash
-    #  env:
-    #    AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-    #    AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-    #    AWS_REGION: ${{ inputs.aws_region }}
+    - name: Pulumi Login
+      shell: bash
+      run: pulumi login s3://${{ inputs.pulumi_s3_bucket }}
+      env:
+        PULUMI_CONFIG_PASSPHRASE: ${{ env.PULUMI_CONFIG_PASSPHRASE }}
 
-    #- name: Install Pulumi
-    #  shell: bash
-    #  run: |
-    #    curl -fsSL https://get.pulumi.com | sh
-    #    echo "$HOME/.pulumi/bin" >> $GITHUB_PATH
+    - name: Docker login to ECR
+      shell: bash
+      run: |
+        aws ecr get-login-password --region ${{ inputs.aws_region }} \
+        | docker login --username AWS --password-stdin \
+          ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com
 
-    #- name: Pulumi Login
-    #  shell: bash
-    #  run: pulumi login s3://${{ inputs.pulumi_s3_bucket }}
-    #  env:
-    #    PULUMI_CONFIG_PASSPHRASE: ${{ env.PULUMI_CONFIG_PASSPHRASE }}
-    #    AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-    #    AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-    #    AWS_REGION: ${{ inputs.aws_region }}
+    - name: Pull container image
+      shell: bash
+      run: |
+        docker pull ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-beholder-pulumi:519065ab69c91995d1695679807619d77c031522
 
-    #- name: Docker login to ECR
-    #  shell: bash
-    #  run: |
-    #    aws ecr get-login-password --region ${{ inputs.aws_region }} \
-    #    | docker login --username AWS --password-stdin \
-    #      ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com
-
-    #- name: Pull container image
-    #  shell: bash
-    #  run: |
-    #    docker pull ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-beholder-pulumi:519065ab69c91995d1695679807619d77c031522
-
-    #- name: Deploy schema
-    #  shell: bash
-    #  run: |
-    #    docker run \
-    #      -e CONFLUENT_CLOUD_API_KEY="${{ env.CONFLUENT_CLOUD_API_KEY }}" \
-    #      -e CONFLUENT_CLOUD_API_SECRET="${{ env.CONFLUENT_CLOUD_API_SECRET }}" \
-    #      -e SCHEMA_REGISTRY_KEY="${{ env.SCHEMA_REGISTRY_KEY }}" \
-    #      -e SCHEMA_REGISTRY_SECRET="${{ env.SCHEMA_REGISTRY_SECRET }}" \
-    #      -e AWS_ACCESS_KEY_ID="${{ env.AWS_ACCESS_KEY_ID }}" \
-    #      -e AWS_SECRET_ACCESS_KEY="${{ env.AWS_SECRET_ACCESS_KEY }}" \
-    #      -e PULUMI_CONFIG_PASSPHRASE="${{ env.PULUMI_CONFIG_PASSPHRASE }}" \
-    #      ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-beholder-pulumi schemas-deployment
-    #  env:
-    #    CONFLUENT_CLOUD_API_KEY: ${{ env.CONFLUENT_CLOUD_API_KEY }}
-    #    CONFLUENT_CLOUD_API_SECRET: ${{ env.CONFLUENT_CLOUD_API_SECRET }}
-    #    SCHEMA_REGISTRY_KEY: ${{ env.SCHEMA_REGISTRY_KEY }}
-    #    SCHEMA_REGISTRY_SECRET: ${{ env.SCHEMA_REGISTRY_SECRET }}
-    #    AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-    #    AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-    #    PULUMI_CONFIG_PASSPHRASE: ${{ env.PULUMI_CONFIG_PASSPHRASE }}
+    - name: Deploy schema
+      shell: bash
+      run: |
+        docker run \
+          -e CONFLUENT_CLOUD_API_KEY="${{ env.CONFLUENT_CLOUD_API_KEY }}" \
+          -e CONFLUENT_CLOUD_API_SECRET="${{ env.CONFLUENT_CLOUD_API_SECRET }}" \
+          -e SCHEMA_REGISTRY_KEY="${{ env.SCHEMA_REGISTRY_KEY }}" \
+          -e SCHEMA_REGISTRY_SECRET="${{ env.SCHEMA_REGISTRY_SECRET }}" \
+          -e PULUMI_CONFIG_PASSPHRASE="${{ env.PULUMI_CONFIG_PASSPHRASE }}" \
+          ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-beholder-pulumi schemas-deployment
+      env:
+        CONFLUENT_CLOUD_API_KEY: ${{ env.CONFLUENT_CLOUD_API_KEY }}
+        CONFLUENT_CLOUD_API_SECRET: ${{ env.CONFLUENT_CLOUD_API_SECRET }}
+        SCHEMA_REGISTRY_KEY: ${{ env.SCHEMA_REGISTRY_KEY }}
+        SCHEMA_REGISTRY_SECRET: ${{ env.SCHEMA_REGISTRY_SECRET }}
+        PULUMI_CONFIG_PASSPHRASE: ${{ env.PULUMI_CONFIG_PASSPHRASE }}
