@@ -53,7 +53,7 @@ runs:
           -e SCHEMA_REGISTRY_KEY="${{ env.SCHEMA_REGISTRY_KEY }}" \
           -e SCHEMA_REGISTRY_SECRET="${{ env.SCHEMA_REGISTRY_SECRET }}" \
           -e PULUMI_CONFIG_PASSPHRASE="${{ env.PULUMI_CONFIG_PASSPHRASE }}" \
-          ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-beholder-pulumi schemas-deployment --preview
+          ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-beholder-pulumi deploy-schemas --preview
       env:
         CONFLUENT_CLOUD_API_KEY: ${{ env.CONFLUENT_CLOUD_API_KEY }}
         CONFLUENT_CLOUD_API_SECRET: ${{ env.CONFLUENT_CLOUD_API_SECRET }}
