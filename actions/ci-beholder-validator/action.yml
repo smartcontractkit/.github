@@ -99,7 +99,7 @@ runs:
       run: |
         docker run -v "$PWD:/usr/src/app/repo" \
         --network redpanda_network \
-        -e SCHEMA_REGISTRY_URL=http://redpanda:8081 \
+        -e SCHEMA_REGISTRY_URL=http://redpanda-0:8081 \
         -e CHANGED_FILES="$CHANGED_FILES" \
         ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:${{ inputs.image-tag }} \
         validate --phase pr
