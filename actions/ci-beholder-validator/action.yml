@@ -43,8 +43,18 @@ runs:
       shell: bash
       run: |
         git fetch --prune origin +refs/heads/*:refs/remotes/origin/*
-        echo "CHANGED_FILES=$(git diff --name-only origin/${{
-        github.event.repository.default_branch }})" >> $GITHUB_ENV
+        # TODO: This logic need to be moved to code
+        changed_files=$(git diff --name-only origin/${{github.event.repository.default_branch }})"
+        prefixed_files=""
+        # Loop over each changed file and prepend "./"
+        for file in $changed_files; do
+          prefixed_files="$prefixed_files,./$file"
+        done
+
+        # Remove the leading comma
+        prefixed_files="${prefixed_files#,}"
+
+        echo "CHANGED_FILES=$prefixed_files" >> "$GITHUB_ENV"
     - name: Start Redpanda with Docker Compose
       shell: bash
       run: |
