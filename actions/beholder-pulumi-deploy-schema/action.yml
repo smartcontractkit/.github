@@ -9,7 +9,7 @@ inputs:
   aws_account_id:
     description: "AWS Account ID"
     required: false
-    default: "804282218731"
+    default: "654654554896" # this is info platform sandbox. TBD: change to prod account once ready
   aws_region:
     description: "AWS region"
     required: false
