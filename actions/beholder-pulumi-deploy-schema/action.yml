@@ -49,7 +49,7 @@ runs:
 
     - name: Pull container image
       run: |
-        docker pull ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-beholder-pulumi
+        docker pull ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-beholder-pulumi:519065ab69c91995d1695679807619d77c031522
 
     - name: Deploy schema
       run: |
