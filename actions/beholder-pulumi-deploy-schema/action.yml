@@ -15,22 +15,24 @@ inputs:
     required: false
     default: "us-west-2"
 
-env:
-  PULUMI_S3_BUCKET: ${{ github.event.inputs.pulumi_s3_bucket }}
-  AWS_ACCOUNT_ID: ${{ github.event.inputs.aws_account_id }}
-  AWS_REGION: ${{ github.event.inputs.aws_region }}
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
-  CONFLUENT_CLOUD_API_KEY: ${{ secrets.CONFLUENT_CLOUD_API_KEY }}
-  CONFLUENT_CLOUD_API_SECRET: ${{ secrets.CONFLUENT_CLOUD_API_SECRET }}
-  SCHEMA_REGISTRY_KEY: ${{ secrets.SCHEMA_REGISTRY_KEY }}
-  SCHEMA_REGISTRY_SECRET: ${{ secrets.SCHEMA_REGISTRY_SECRET }}
-
 runs:
   using: "composite"
   steps:
     - uses: actions/checkout@v4.2.1
+
+    - name: Set up environment
+      shell: bash
+      run: |
+        echo "PULUMI_S3_BUCKET=${{ github.event.inputs.pulumi_s3_bucket }}" >> $GITHUB_ENV
+        echo "AWS_ACCOUNT_ID=${{ github.event.inputs.aws_account_id }}" >> $GITHUB_ENV
+        echo "AWS_REGION=${{ github.event.inputs.aws_region }}" >> $GITHUB_ENV
+        echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+        echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+        echo "PULUMI_CONFIG_PASSPHRASE=${{ secrets.PULUMI_CONFIG_PASSPHRASE }}" >> $GITHUB_ENV
+        echo "CONFLUENT_CLOUD_API_KEY=${{ secrets.CONFLUENT_CLOUD_API_KEY }}" >> $GITHUB_ENV
+        echo "CONFLUENT_CLOUD_API_SECRET=${{ secrets.CONFLUENT_CLOUD_API_SECRET }}" >> $GITHUB_ENV
+        echo "SCHEMA_REGISTRY_KEY=${{ secrets.SCHEMA_REGISTRY_KEY }}" >> $GITHUB_ENV
+        echo "SCHEMA_REGISTRY_SECRET=${{ secrets.SCHEMA_REGISTRY_SECRET }}" >> $GITHUB_ENV
 
     - name: Configure AWS Credentials
       shell: bash
