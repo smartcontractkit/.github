@@ -36,7 +36,7 @@ runs:
     - name: Pull container image
       shell: bash
       run: |
-        docker pull ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-beholder-pulumi:latest
+        docker pull ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-beholder-pulumi:qa-latest
 
     - name: Deploy schema
       shell: bash
