@@ -169,9 +169,10 @@ runs:
       env:
         DEVSPACE_NAMESPACE:
           "${{ steps.generate-ns-name.outputs.devspace-namespace }}"
+         WEBSOCKETS_SERVICES: ${{ inputs.websockets-services }}
       run: |
         # Substitute environment variables in the input string
-        websockets_services=$(echo "${{ inputs.websockets-services }}" | envsubst)
+        websockets_services=$(echo "${WEBSOCKETS_SERVICES}" | envsubst)
         echo "websockets-services=${websockets_services}" | tee -a "$GITHUB_OUTPUT"
 
     - name: Setup GAP
