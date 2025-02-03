@@ -54,7 +54,7 @@ runs:
       shell: bash
       run: |
         docker run \
-          -v $PWD:/workspace \ # mount workspace to read config files
+          -v $PWD:/workspace \
           -w /workspace \
           -e DEPLOY_ENVIRONMENT="${{ inputs.deploy_environment }}" \
           -e DEPLOY_CONFIG_PATH="${{ inputs.deploy_config_path }}" \
