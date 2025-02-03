@@ -6,6 +6,12 @@ inputs:
   pulumi_s3_bucket:
     description: "S3 bucket name to use as Pulumi backend"
     required: true
+  deploy_environment:
+    description: "Deployment environment"
+    required: true
+  deploy_config_path:
+    description: "Path to the deploy config YAML file"
+    required: true
   aws_account_id:
     description: "AWS Account ID"
     required: false
@@ -48,6 +54,8 @@ runs:
       shell: bash
       run: |
         docker run \
+          -e DEPLOY_ENVIRONMENT="${{ inputs.deploy_environment }}" \
+          -e DEPLOY_CONFIG_PATH="${{ inputs.deploy_config_path }}" \
           -e CONFLUENT_CLOUD_API_KEY="${{ env.CONFLUENT_CLOUD_API_KEY }}" \
           -e CONFLUENT_CLOUD_API_SECRET="${{ env.CONFLUENT_CLOUD_API_SECRET }}" \
           -e SCHEMA_REGISTRY_KEY="${{ env.SCHEMA_REGISTRY_KEY }}" \
