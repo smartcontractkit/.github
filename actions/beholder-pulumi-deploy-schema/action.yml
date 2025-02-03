@@ -15,7 +15,7 @@ inputs:
   aws_account_id:
     description: "AWS Account ID"
     required: false
-    default: "654654554896" # this is info platform sandbox. TBD: change to prod account once ready
+    default: "654654554896" # Info Platform Sandbox
   aws_region:
     description: "AWS region"
     required: false
@@ -25,18 +25,6 @@ runs:
   using: "composite"
   steps:
     - uses: actions/checkout@v4.2.1
-
-    - name: Install Pulumi
-      shell: bash
-      run: |
-        curl -fsSL https://get.pulumi.com | sh
-        echo "$HOME/.pulumi/bin" >> $GITHUB_PATH
-
-    - name: Pulumi Login
-      shell: bash
-      run: pulumi login s3://${{ inputs.pulumi_s3_bucket }}
-      env:
-        PULUMI_CONFIG_PASSPHRASE: ${{ env.PULUMI_CONFIG_PASSPHRASE }}
 
     - name: Docker login to ECR
       shell: bash
