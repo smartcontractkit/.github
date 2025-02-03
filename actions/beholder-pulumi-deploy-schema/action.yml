@@ -61,6 +61,8 @@ runs:
           -e SCHEMA_REGISTRY_KEY="${{ env.SCHEMA_REGISTRY_KEY }}" \
           -e SCHEMA_REGISTRY_SECRET="${{ env.SCHEMA_REGISTRY_SECRET }}" \
           -e PULUMI_CONFIG_PASSPHRASE="${{ env.PULUMI_CONFIG_PASSPHRASE }}" \
+          -e KAFKA_REST_KEY="${{ env.KAFKA_REST_KEY }}" \
+          -e KAFKA_REST_SECRET="${{ env.KAFKA_REST_SECRET }}" \
           ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-beholder-pulumi deploy-schemas --preview
       env:
         CONFLUENT_CLOUD_API_KEY: ${{ env.CONFLUENT_CLOUD_API_KEY }}
@@ -68,3 +70,5 @@ runs:
         SCHEMA_REGISTRY_KEY: ${{ env.SCHEMA_REGISTRY_KEY }}
         SCHEMA_REGISTRY_SECRET: ${{ env.SCHEMA_REGISTRY_SECRET }}
         PULUMI_CONFIG_PASSPHRASE: ${{ env.PULUMI_CONFIG_PASSPHRASE }}
+        KAFKA_REST_KEY: ${{ env.KAFKA_REST_KEY }}
+        KAFKA_REST_SECRET: ${{ env.KAFKA_REST_SECRET }}
