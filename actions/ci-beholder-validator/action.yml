@@ -43,18 +43,18 @@ runs:
       shell: bash
       run: |
         git fetch --prune origin +refs/heads/*:refs/remotes/origin/*
-        # TODO: This logic need to be moved to code
-        changed_files=$(git diff --name-only origin/${{github.event.repository.default_branch }})
-        prefixed_files=""
-        # Loop over each changed file and prepend "./"
-        for file in $changed_files; do
-          prefixed_files="$prefixed_files,./$file"
-        done
 
-        # Remove the leading comma
-        prefixed_files="${prefixed_files#,}"
+        # Collect the changed files:
+        changed_files=$(git diff --name-only origin/${{ github.event.repository.default_branch }})
 
-        echo "CHANGED_FILES=$prefixed_files" >> "$GITHUB_ENV"
+        # Each file is prefixed with './' on its own line.
+        {
+          echo "CHANGED_FILES<<EOF"
+          for file in $changed_files; do
+            echo "./$file"
+          done
+          echo "EOF"
+        } >> "$GITHUB_ENV"
     - name: Start Redpanda with Docker Compose
       shell: bash
       run: |
@@ -100,7 +100,7 @@ runs:
       run: |
         docker run -v "$PWD:/usr/src/app/repo" \
         --network redpanda_network \
-        -e SCHEMA_REGISTRY_URL=http://redpanda-0:8081 \
+        -e SCHEMA_REGISTRY_URL=http://redpanda-0:8081 \ 
         -e CHANGED_FILES="$CHANGED_FILES" \
         ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:${{ inputs.image-tag }} \
         validate --phase pr
