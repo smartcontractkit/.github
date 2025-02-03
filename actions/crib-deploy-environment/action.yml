@@ -162,6 +162,17 @@ runs:
         echo "commit-sha=${COMMIT_SHA}" | tee -a "$GITHUB_OUTPUT"
         echo "workflow-run-number=${WORKFLOW_RUN_NUMBER}" | tee -a "$GITHUB_OUTPUT"
 
+    - name: Set WEBSOCKET_SERVICES ENV
+      id: set-websockets-services-env
+      shell: bash
+      env:
+        DEVSPACE_NAMESPACE:
+          "${{ steps.generate-ns-name.outputs.devspace-namespace }}"
+      run: |
+        WEBSOCKET_SERVICES="${{ inputs.websockets-services }}"
+        echo "WEBSOCKET_SERVICES=$WEBSOCKET_SERVICES"
+        echo "WEBSOCKET_SERVICES=$WEBSOCKET_SERVICES" >> $GITHUB_ENV
+
     - name: Setup GAP
       uses: smartcontractkit/.github/actions/setup-gap@b969c2d42c15e937e2f94cc0e050f39cd5369f4f # setup-gap@4.0.0
       env:
@@ -181,7 +192,7 @@ runs:
         proxy-port: ${{ inputs.gap-local-proxy-port }}
         dynamic-proxy-port: ${{ inputs.dynamic-proxy-port }}
         main-dns-zone: ${{ inputs.main-dns-zone }}
-        websockets-services: ${{ inputs.websocket-services }}
+        websockets-services: "${WEBSOCKET_SERVICES}"
 
     - name: Checkout crib repo
       uses: actions/checkout@v4.2.1
