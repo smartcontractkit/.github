@@ -1,5 +1,5 @@
 ---
-"crib-deploy-environment": patch
+"crib-deploy-environment": minor
 ---
 
 Moving the step for generating the CRIB namespace and labels before the
