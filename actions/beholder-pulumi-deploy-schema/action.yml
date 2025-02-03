@@ -54,6 +54,8 @@ runs:
       shell: bash
       run: |
         docker run \
+          -v $PWD:/workspace \ # mount workspace to read config files
+          -w /workspace \
           -e DEPLOY_ENVIRONMENT="${{ inputs.deploy_environment }}" \
           -e DEPLOY_CONFIG_PATH="${{ inputs.deploy_config_path }}" \
           -e CONFLUENT_CLOUD_API_KEY="${{ env.CONFLUENT_CLOUD_API_KEY }}" \
