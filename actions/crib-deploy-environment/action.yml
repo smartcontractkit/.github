@@ -142,7 +142,7 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Generate CRIB Namespace Name and labels
+    - name: Generate CRIB Namespace Name, configure variables
       id: generate-ns-name
       shell: bash
       env:
@@ -162,22 +162,22 @@ runs:
         echo "commit-sha=${COMMIT_SHA}" | tee -a "$GITHUB_OUTPUT"
         echo "workflow-run-number=${WORKFLOW_RUN_NUMBER}" | tee -a "$GITHUB_OUTPUT"
 
-    - name: Set WEBSOCKET_SERVICES ENV
-      id: set-websockets-services-env
+    - name: Set Websockets Services
+      id: set-websockets-services
       shell: bash
       env:
         DEVSPACE_NAMESPACE:
           "${{ steps.generate-ns-name.outputs.devspace-namespace }}"
       run: |
-        WEBSOCKET_SERVICES="${{ inputs.websockets-services }}"
-        echo "WEBSOCKET_SERVICES=$WEBSOCKET_SERVICES"
-        echo "WEBSOCKET_SERVICES=$WEBSOCKET_SERVICES" >> $GITHUB_ENV
+        # Substitute environment variables in the input string
+        websockets_services=$(echo "${{ inputs.websockets-services }}" | envsubst)
+        echo "websockets-services=${websockets_services}" | tee -a "$GITHUB_OUTPUT"
 
     - name: Setup GAP
       uses: smartcontractkit/.github/actions/setup-gap@b969c2d42c15e937e2f94cc0e050f39cd5369f4f # setup-gap@4.0.0
       env:
-        DEVSPACE_NAMESPACE:
-          "${{ steps.generate-ns-name.outputs.devspace-namespace }}"
+        WEBSOCKETS_SERVICES:
+          "${{ steps.set-websockets-services.outputs.websockets-services }}"
       with:
         aws-region: ${{ inputs.aws-region }}
         aws-role-arn: ${{ inputs.aws-role-arn }}
@@ -192,7 +192,7 @@ runs:
         proxy-port: ${{ inputs.gap-local-proxy-port }}
         dynamic-proxy-port: ${{ inputs.dynamic-proxy-port }}
         main-dns-zone: ${{ inputs.main-dns-zone }}
-        websockets-services: "${WEBSOCKET_SERVICES}"
+        websockets-services: ${{ env.WEBSOCKETS_SERVICES }}
 
     - name: Checkout crib repo
       uses: actions/checkout@v4.2.1
