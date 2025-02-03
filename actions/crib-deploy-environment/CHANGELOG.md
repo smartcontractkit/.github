@@ -1,5 +1,16 @@
 # crib-deploy-environment
 
+## 8.5.0
+
+### Minor Changes
+
+- [#849](https://github.com/smartcontractkit/.github/pull/849)
+  [`0c0cc73`](https://github.com/smartcontractkit/.github/commit/0c0cc73a27862740e43c5e9ae850d69bae242444)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Moving the step for
+  generating the CRIB namespace and labels before the setup-gap step allows the
+  namespace name to be passed to the setup-gap step, which is required for
+  handling WebSockets.
+
 ## 8.4.0
 
 ### Minor Changes
