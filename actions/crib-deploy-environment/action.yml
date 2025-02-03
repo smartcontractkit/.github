@@ -128,7 +128,7 @@ inputs:
       "List of service names to be configured in the local proxy for proper
       handling of all required headers, including the JWT token. Append the
       Devspace namespace name as the suffix in the service name, e.g.,
-      'gap-${namespace-name}-geth, gap-${namespace-name}-custom-ws'."
+      'gap-${DEVSPACE_NAMESPACE}-geth, gap-${DEVSPACE_NAMESPACE}-custom-ws'."
     default: ""
     required: false
 outputs:
@@ -163,7 +163,7 @@ runs:
         echo "workflow-run-number=${WORKFLOW_RUN_NUMBER}" | tee -a "$GITHUB_OUTPUT"
 
     - name: Setup GAP
-      uses: smartcontractkit/.github/actions/setup-gap@ws-proxy-final # setup-gap@3.5.5
+      uses: smartcontractkit/.github/actions/setup-gap@b969c2d42c15e937e2f94cc0e050f39cd5369f4f # setup-gap@4.0.0
       env:
         DEVSPACE_NAMESPACE:
           "${{ steps.generate-ns-name.outputs.devspace-namespace }}"
