@@ -1,5 +1,14 @@
 # cicd-build-publish-docker
 
+## 0.2.0
+
+### Minor Changes
+
+- [#835](https://github.com/smartcontractkit/.github/pull/835)
+  [`44dc8d1`](https://github.com/smartcontractkit/.github/commit/44dc8d167680ccc06c77e9de74e0e6cc641faa32)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Support for multi
+  platform builds
+
 ## 0.1.1
 
 ### Patch Changes

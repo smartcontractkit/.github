@@ -13,10 +13,10 @@ For secured policy-bots (internal), pass:
 
 - `setup-gap: true`
 - `aws-region` - the `aws-region` such as `us-east-1`
-- `aws-role-arn` - the GH OIDC IAM role ARN with permission to execute the below
-  API Gateway
-- `api-gateway-host` - The API gateway host such as:
-  `<id>.execute-api.<region>.amazonaws.com`
+- `aws-role-arn` - the GH OIDC IAM role ARN with permission to describe the
+  below EKS cluster
+- `k8s-cluster-name` - The EKS cluster name to target
+- `main-dns-zone` - The DNS zone used for exposing services
 
 ### Workflow (secured endpoint)
 
@@ -45,16 +45,7 @@ jobs:
           setup-gap: true
           aws-region: ${{ secrets.AWS_REGION }}
           aws-role-arn: ${{ secrets.AWS_OIDC_IAM_ROLE }}
-          api-gateway-host: ${{ secrets.AWS_API_GW_HOST }}
+          k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME }}
+          main-dns-zone: ${{ secrets.MAIN_DNS_ZONE }}
           policy-yml-path: ".policy.yml" # this input defaults to ".policy.yml"
-```
-
-and optional metrics inputs:
-
-```yml
-# Optional metrics inputs
-metrics-job-name: "policy-yml-validation"
-gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
 ```

@@ -1,6 +1,6 @@
 {
-  "name": "policy-bot-config-validator",
-  "version": "1.0.1",
+  "name": "check-if-verified",
+  "version": "1.0.0",
   "description": "",
   "private": true,
   "scripts": {},

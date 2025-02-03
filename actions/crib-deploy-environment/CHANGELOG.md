@@ -1,5 +1,99 @@
 # crib-deploy-environment
 
+## 8.5.0
+
+### Minor Changes
+
+- [#849](https://github.com/smartcontractkit/.github/pull/849)
+  [`0c0cc73`](https://github.com/smartcontractkit/.github/commit/0c0cc73a27862740e43c5e9ae850d69bae242444)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Moving the step for
+  generating the CRIB namespace and labels before the setup-gap step allows the
+  namespace name to be passed to the setup-gap step, which is required for
+  handling WebSockets.
+
+## 8.4.0
+
+### Minor Changes
+
+- [#832](https://github.com/smartcontractkit/.github/pull/832)
+  [`63bc25d`](https://github.com/smartcontractkit/.github/commit/63bc25dbdcdf6c9953ae4676ea7f3ddaef8d457e)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Bump crib repo ref
+
+## 8.3.1
+
+### Patch Changes
+
+- [#829](https://github.com/smartcontractkit/.github/pull/829)
+  [`f46bb65`](https://github.com/smartcontractkit/.github/commit/f46bb65017b188355902d3421b7a7ee4c5f15a24)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Bumping the
+  setup-gap GHA version in crib-deploy-environment GHA
+
+## 8.3.0
+
+### Minor Changes
+
+- [#815](https://github.com/smartcontractkit/.github/pull/815)
+  [`4caf18b`](https://github.com/smartcontractkit/.github/commit/4caf18bd5e430eed152604c66715719fd453afbb)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Removing
+  k8s-api-endpoint input from crib-deploy-environment GH action. Please use
+  main-dns-zone to pass the DNS zone for the services
+
+## 8.2.1
+
+### Patch Changes
+
+- [#810](https://github.com/smartcontractkit/.github/pull/810)
+  [`f8232f1`](https://github.com/smartcontractkit/.github/commit/f8232f166b39de28e50cdbe6968c13fd8d9251ad)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Use the latest
+  version of setup-gap action
+
+## 8.2.0
+
+### Minor Changes
+
+- [#789](https://github.com/smartcontractkit/.github/pull/789)
+  [`3bcae62`](https://github.com/smartcontractkit/.github/commit/3bcae62dfad0c5056207e6a53f2ca45dead8adc8)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Bumping the
+  setup-gap GHA version
+
+## 8.1.0
+
+### Minor Changes
+
+- [#783](https://github.com/smartcontractkit/.github/pull/783)
+  [`6db6d21`](https://github.com/smartcontractkit/.github/commit/6db6d21b42b1196099628039a2c00423716b4325)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Use the latest
+  version of setup-gap with local dynamic proxy
+
+  Input parameters changes:
+
+  - Renamed:
+    - `envoy-github-oidc-token-header-name` ->
+      `envoy-github-oidc-token-header-name`
+  - Added (not required):
+    - `dynamic-proxy-port`
+  - Added (required):
+    - `main-dns-zone`
+
+## 8.0.0
+
+### Major Changes
+
+- [#779](https://github.com/smartcontractkit/.github/pull/779)
+  [`b6027b5`](https://github.com/smartcontractkit/.github/commit/b6027b55727b892eca6ae257970e80532c6b7ecc)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - CRIB now spins up all
+  dependencies using the existing `nginx` ingressClass instead of `alb`, for
+  cost-savings
+
+## 7.5.1
+
+### Patch Changes
+
+- [#777](https://github.com/smartcontractkit/.github/pull/777)
+  [`6a5bf1b`](https://github.com/smartcontractkit/.github/commit/6a5bf1b5f2600bc7a644479fe9876ae3e3c8e237)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding support for
+  labeling NS for cost attribution
+
 ## 7.5.0
 
 ### Minor Changes

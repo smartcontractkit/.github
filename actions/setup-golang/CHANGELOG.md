@@ -1,5 +1,32 @@
 # setup-golang
 
+## 0.3.0
+
+### Minor Changes
+
+- [#841](https://github.com/smartcontractkit/.github/pull/841)
+  [`bca1d46`](https://github.com/smartcontractkit/.github/commit/bca1d461d8a970e967f33960e3c5932f0cd74159)
+  Thanks [@DimitriosNaikopoulos](https://github.com/DimitriosNaikopoulos)! -
+  install toolchain version if it exists
+
+## 0.2.3
+
+### Patch Changes
+
+- [#839](https://github.com/smartcontractkit/.github/pull/839)
+  [`e11dad2`](https://github.com/smartcontractkit/.github/commit/e11dad26e54b45a6db2dd400c300f8d221965dac)
+  Thanks [@DimitriosNaikopoulos](https://github.com/DimitriosNaikopoulos)! -
+  Remove caching errors because of tar
+
+## 0.2.2
+
+### Patch Changes
+
+- [#754](https://github.com/smartcontractkit/.github/pull/754)
+  [`f1d7e9d`](https://github.com/smartcontractkit/.github/commit/f1d7e9d889b3205980a906ef4a89ba42577a69eb)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: upgrade
+  actions/cache to v4
+
 ## 0.2.1
 
 ### Patch Changes

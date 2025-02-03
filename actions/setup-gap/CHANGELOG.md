@@ -1,5 +1,131 @@
 # setup-gap
 
+## 4.0.0
+
+### Major Changes
+
+- [#848](https://github.com/smartcontractkit/.github/pull/848)
+  [`519b719`](https://github.com/smartcontractkit/.github/commit/519b719d1b283c6c768cddbd45b86086c8b5750a)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Migrating to go
+  template and adding support for websockets.
+
+### Minor Changes
+
+- [#831](https://github.com/smartcontractkit/.github/pull/831)
+  [`bba3537`](https://github.com/smartcontractkit/.github/commit/bba3537561a9f9a368c71db2109839fd6334572b)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Set the default
+  port for the dynamic proxy to 443
+
+## 3.5.6
+
+### Patch Changes
+
+- [#827](https://github.com/smartcontractkit/.github/pull/827)
+  [`b900b78`](https://github.com/smartcontractkit/.github/commit/b900b78853c33c55bcb0b3f6bbafd95f124fe97e)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Ensure the local
+  proxy always sets the JWT header even if it's provided by the client
+
+## 3.5.5
+
+### Patch Changes
+
+- [#823](https://github.com/smartcontractkit/.github/pull/823)
+  [`c79f5cd`](https://github.com/smartcontractkit/.github/commit/c79f5cd567593ff08e35424a760fdd7ff3b298ba)
+  Thanks [@JooKop](https://github.com/JooKop)! - Add all wildcard subdomains of
+  a zone, e.g. `*.<DNS-ZONE>` to the SANs of the self-signed certs provided by
+  the local proxy. This allows any client to utilize any service even if they
+  can't submit custom host headers or use insecure connections.
+
+  Usage:
+
+  1. Re-route a specific domain to go to localhost:
+     `echo "127.0.0.1 my-service.my-dns-zone" | sudo tee -a /etc/hosts`
+  2. Afterwards, any client can use `https://my-service.my-dns-zone` to access a
+     service, without setting up insecure connectivity or overriding host
+     headers.
+
+## 3.5.4
+
+### Patch Changes
+
+- [#821](https://github.com/smartcontractkit/.github/pull/821)
+  [`7d8eceb`](https://github.com/smartcontractkit/.github/commit/7d8eceb13a564baaeff9d445baf70cd2a9cf5e71)
+  Thanks [@JooKop](https://github.com/JooKop)! - Fix the `setup-gap` action to
+  work without passing an AWS IAM Role ARN argument when no k8s API server
+  access is needed.
+
+## 3.5.3
+
+### Patch Changes
+
+- [#819](https://github.com/smartcontractkit/.github/pull/819)
+  [`0c1e820`](https://github.com/smartcontractkit/.github/commit/0c1e8206f6a55aa9304e7ee458889ed68f4f23aa)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Fixing the
+  x-repository header handling to avoid breaking the Lua filter.
+
+## 3.5.2
+
+### Patch Changes
+
+- [#817](https://github.com/smartcontractkit/.github/pull/817)
+  [`f73da48`](https://github.com/smartcontractkit/.github/commit/f73da48a9c58b1711311d97fc0492aaae25420e6)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Make sure we always
+  Generate SSL cert because we need to it for local proxy.
+
+## 3.5.1
+
+### Patch Changes
+
+- [#808](https://github.com/smartcontractkit/.github/pull/808)
+  [`f00a6a6`](https://github.com/smartcontractkit/.github/commit/f00a6a61af9004a16390bfa340ceb9c1277a1468)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Upgrade Envoy image
+  for setup-gap to v1.33.0
+
+## 3.5.0
+
+### Minor Changes
+
+- [#806](https://github.com/smartcontractkit/.github/pull/806)
+  [`815c244`](https://github.com/smartcontractkit/.github/commit/815c244aa5e805017d3c9e80fa374f5426c3ab47)
+  Thanks [@chainchad](https://github.com/chainchad)! - Add repository header for
+  GAP route matching
+
+## 3.4.1
+
+### Patch Changes
+
+- [#800](https://github.com/smartcontractkit/.github/pull/800)
+  [`3df8e1a`](https://github.com/smartcontractkit/.github/commit/3df8e1a3b2767e85d9032d1dcc4df0545d65b225)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Improve the role
+  input parameter description.
+
+## 3.4.0
+
+### Minor Changes
+
+- [#794](https://github.com/smartcontractkit/.github/pull/794)
+  [`a55cafe`](https://github.com/smartcontractkit/.github/commit/a55cafe1807f8f600b77035cb39200957fcadf1b)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Improve the
+  setup-gap action and ensure the local proxy always runs
+
+## 3.3.0
+
+### Minor Changes
+
+- [#787](https://github.com/smartcontractkit/.github/pull/787)
+  [`10454c3`](https://github.com/smartcontractkit/.github/commit/10454c3bd43936749f573d2c35eabaf6786722b8)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding the retry
+  configuration for Envoy routes
+
+## 3.2.0
+
+### Minor Changes
+
+- [#781](https://github.com/smartcontractkit/.github/pull/781)
+  [`f6fff64`](https://github.com/smartcontractkit/.github/commit/f6fff64d270165a5a910a34f0edace5bd3747b5c)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding the local
+  dynamic proxy configuration
+
 ## 3.1.1
 
 ### Patch Changes

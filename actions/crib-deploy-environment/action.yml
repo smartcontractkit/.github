@@ -39,6 +39,10 @@ inputs:
       "Namespace TTL, which defines how long a namespace will remain alive after
       creation."
     required: false
+  ns-name-prefix:
+    default: "crib-ci"
+    description: "Namespace name prefix for CRIB environment."
+    required: false
   command:
     default: "core"
     description: "The devspace command to run."
@@ -72,7 +76,7 @@ inputs:
       for example: https://hooks.slack.com/services/aaa/bbb
     required: false
   crib-repo-ref:
-    default: "v1.2.0"
+    default: "v2.2.0"
     required: false
     description: Useful for testing updates in CRIB
   chainlink-team:
@@ -85,9 +89,6 @@ inputs:
     description: |
       Specify a relevant value for tagging resources and attributing
       costs to the correct product.
-  k8s-api-endpoint:
-    required: true
-    description: "The Kubernetes API server's endpoint hostname."
   k8s-api-endpoint-port:
     required: false
     default: "443"
@@ -99,13 +100,37 @@ inputs:
       "Enable or disable detailed Envoy proxy logs used for K8s API access. When
       enabled, debug logs are generated locally, and container logs are streamed
       to the console for troubleshooting."
-  envoy-github-oidc-token-header-name:
+  github-oidc-token-header-name:
     required: false
     default: "x-authorization-github-jwt"
     description:
       "Specifies the name of the HTTP header used to pass the GitHub OIDC JWT
       token. This header is automatically injected by the local proxy and must
       not be the same as the default 'Authorization' header."
+  dynamic-proxy-port:
+    description: "The port the dynamic proxy will listen on. Defaults to 9090."
+    required: false
+    default: "9090"
+  websockets-proxy-port:
+    description:
+      "Port number used by the listener for the local proxy of WebSocket
+      services."
+    default: "9443"
+    required: false
+  main-dns-zone:
+    description:
+      "The DNS zone is used for exposing services. It is required when using the
+      dynamic local proxy to prevent sending requests and exposing sensitive
+      information to random external endpoints. This ensures that the dynamic
+      local proxy is used only for the specific DNS zone."
+  websockets-services:
+    description:
+      "List of service names to be configured in the local proxy for proper
+      handling of all required headers, including the JWT token. Append the
+      Devspace namespace name as the suffix in the service name, e.g.,
+      'gap-${DEVSPACE_NAMESPACE}-geth, gap-${DEVSPACE_NAMESPACE}-custom-ws'."
+    default: ""
+    required: false
 outputs:
   devspace-namespace:
     description: "Kubernetes namespace used to provision a CRIB environment."
@@ -117,21 +142,59 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Generate CRIB Namespace Name, configure variables
+      id: generate-ns-name
+      shell: bash
+      env:
+        NS_NAME_PREFIX: ${{ inputs.ns-name-prefix }}
+        PR_NUMBER: ${{ github.event.number }}
+        WORKFLOW_JOB: ${{ github.job }}
+        COMMIT_SHA: ${{ github.sha }}
+        WORKFLOW_RUN_NUMBER: ${{ github.run_number }}
+      run: |
+        REPO_NAME=$(basename "$GITHUB_REPOSITORY")
+        BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+
+        echo "devspace-namespace=${NS_NAME_PREFIX}-$(uuidgen | cut -c1-5)" | tee -a "$GITHUB_OUTPUT"
+        echo "pr-number=${PR_NUMBER}" | tee -a "$GITHUB_OUTPUT"
+        echo "workflow-job=${WORKFLOW_JOB}" | tee -a "$GITHUB_OUTPUT"
+        echo "repo-name=${REPO_NAME}" | tee -a "$GITHUB_OUTPUT"
+        echo "branch-name=${BRANCH_NAME}" | tee -a "$GITHUB_OUTPUT"
+        echo "commit-sha=${COMMIT_SHA}" | tee -a "$GITHUB_OUTPUT"
+        echo "workflow-run-number=${WORKFLOW_RUN_NUMBER}" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Set Websockets Services
+      id: set-websockets-services
+      shell: bash
+      env:
+        DEVSPACE_NAMESPACE:
+          "${{ steps.generate-ns-name.outputs.devspace-namespace }}"
+        WEBSOCKETS_SERVICES: ${{ inputs.websockets-services }}
+      run: |
+        # Substitute environment variables in the input string
+        websockets_services=$(echo "${WEBSOCKETS_SERVICES}" | envsubst)
+        echo "websockets-services=${websockets_services}" | tee -a "$GITHUB_OUTPUT"
+
     - name: Setup GAP
-      uses: smartcontractkit/.github/actions/setup-gap@1bb35eaa8308e0a780afe4945596a6482e13f320 # setup-gap@3.1.0
+      uses: smartcontractkit/.github/actions/setup-gap@b969c2d42c15e937e2f94cc0e050f39cd5369f4f # setup-gap@4.0.0
+      env:
+        WEBSOCKETS_SERVICES:
+          "${{ steps.set-websockets-services.outputs.websockets-services }}"
       with:
         aws-region: ${{ inputs.aws-region }}
         aws-role-arn: ${{ inputs.aws-role-arn }}
         enable-proxy-debug: ${{ inputs.enable-proxy-debug }}
-        envoy-github-oidc-token-header-name:
-          ${{ inputs.envoy-github-oidc-token-header-name }}
+        github-oidc-token-header-name:
+          ${{ inputs.github-oidc-token-header-name }}
         k8s-api-endpoint-port: ${{ inputs.k8s-api-endpoint-port }}
-        k8s-api-endpoint: ${{ inputs.k8s-api-endpoint }}
         k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
         use-k8s: true
         # Choose port that is less likely to be conflicting with other GAP
         # instances that runs in the same workflow
         proxy-port: ${{ inputs.gap-local-proxy-port }}
+        dynamic-proxy-port: ${{ inputs.dynamic-proxy-port }}
+        main-dns-zone: ${{ inputs.main-dns-zone }}
+        websockets-services: ${{ env.WEBSOCKETS_SERVICES }}
 
     - name: Checkout crib repo
       uses: actions/checkout@v4.2.1
@@ -170,21 +233,11 @@ runs:
         enable-aws: true
         aws-region: ${{ inputs.aws-region }}
 
-    - name: Generate CRIB Namespace Name and labels
-      id: generate-ns-name
-      shell: bash
-      run: |
-        echo "devspace-namespace=crib-ci-$(uuidgen | cut -c1-5)" >> $GITHUB_OUTPUT
-        # This will work only for PRs, push event itself does not contain PR information.
-        echo "pr-number=${{ github.event.number }}" >> $GITHUB_OUTPUT
-        echo "workflow-job=${{ github.job }}" >> $GITHUB_OUTPUT
-        echo "repo-name=$(basename $GITHUB_REPOSITORY)" >> $GITHUB_OUTPUT
-        echo "branch-name=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
-        echo "commit-sha=${{ github.sha }}" >> $GITHUB_OUTPUT
-        echo "workflow-run-number=${{ github.run_number }}" >> $GITHUB_OUTPUT
-
     - name: Create and label CRIB namespace
       shell: bash
+      env:
+        DEVSPACE_NAMESPACE:
+          "${{ steps.generate-ns-name.outputs.devspace-namespace }}"
       run: |
         # a valid label must be an empty string or consist of alphanumeric characters,
         # ‘-’, ‘_’ or ‘.’, and must start and end with an alphanumeric character
@@ -203,11 +256,10 @@ runs:
           exit 1
         fi
 
-        NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
-        echo "Creating $NAMESPACE Kubernetes namespace.."
-        kubectl create ns "$NAMESPACE"
+        echo "Creating ${DEVSPACE_NAMESPACE} Kubernetes namespace.."
+        kubectl create ns "${DEVSPACE_NAMESPACE}"
 
-        kubectl label namespace $NAMESPACE \
+        kubectl label namespace ${DEVSPACE_NAMESPACE} \
           branch="${sanitized_branch}" \
           commit=${{ steps.generate-ns-name.outputs.commit-sha }} \
           pr-number=${{ steps.generate-ns-name.outputs.pr-number || 'none' }} \
@@ -215,11 +267,11 @@ runs:
           workflow-job=${{ steps.generate-ns-name.outputs.workflow-job }} \
           workflow-run-number=${{ steps.generate-ns-name.outputs.workflow-run-number }}
 
-        kubectl label namespace --overwrite=true $NAMESPACE \
+        kubectl label namespace --overwrite=true ${DEVSPACE_NAMESPACE} \
           cleanup.kyverno.io/ttl=${{ inputs.ns-ttl }}
 
-        echo "Kubernetes namespace [$NAMESPACE] successfully labeled:"
-        kubectl get namespace $NAMESPACE --show-labels
+        echo "Kubernetes namespace [${DEVSPACE_NAMESPACE}] successfully labeled:"
+        kubectl get namespace ${DEVSPACE_NAMESPACE} --show-labels
 
     - name: Deploy to CRIB ephemeral environment
       working-directory:
@@ -229,23 +281,22 @@ runs:
         CHAINLINK_CODE_DIR: "../"
         CHAINLINK_PRODUCT: ${{ inputs.chainlink-product }}
         CHAINLINK_TEAM: ${{ inputs.chainlink-team }}
-        CRIB_CI_ENV: true
         CLI_CHANGED: ${{ steps.filter.outputs.cli == 'true' }}
+        CRIB_CI_ENV: true
         CRIB_SKIP_DOCKER_ECR_LOGIN: true
         CRIB_SKIP_HELM_ECR_LOGIN: true
         DEVSPACE_IMAGE_TAG: "${{inputs.product-image-tag}}"
         DEVSPACE_IMAGE: "${{inputs.product-image}}"
         DEVSPACE_INGRESS_BASE_DOMAIN: ${{ inputs.ingress-base-domain }}
         DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
+        DEVSPACE_NAMESPACE:
+          "${{ steps.generate-ns-name.outputs.devspace-namespace }}"
         GH_TOKEN: ${{ inputs.github-token }}
         PROFILES: ${{ inputs.devspace-profiles }}
         SETUP_AWS_PROFILE: false
         SETUP_EKS_CONFIG: false
       run: |
         echo "Working directory: $(pwd)"
-
-        # Get the namespace name from GitHub Actions output
-        export DEVSPACE_NAMESPACE="${{ steps.generate-ns-name.outputs.devspace-namespace }}"
         echo "Using $DEVSPACE_NAMESPACE Kubernetes namespace"
 
         nix develop -c /bin/bash -c "devspace use namespace ${DEVSPACE_NAMESPACE} && devspace run ${{ inputs.command }} ${{ inputs.command-args }}"

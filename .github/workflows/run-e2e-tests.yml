@@ -66,6 +66,13 @@ on:
           'Run tests by trigger name. Example: "Run Nightly E2E Tests"'
         required: false
         type: string
+      test_secrets_override_key:
+        description:
+          'Key to use for overriding the default test secrets. Use "aws:" prefix
+          for AWS secrets. Example:
+          "aws:testsecrets/TEST_SECRETS_OVERRIDE_BASE64"'
+        required: false
+        type: string
       test_config_override_path:
         description:
           "Path to a test config file used to override the default test config"
@@ -200,8 +207,6 @@ on:
         required: true
       QA_PYROSCOPE_KEY:
         required: true
-      QA_KUBECONFIG:
-        required: true
       LOKI_TENANT_ID:
         required: true
       LOKI_URL:
@@ -234,6 +239,15 @@ on:
         required: false
       # Used in some tests to send slack notifications
       SLACK_CHANNEL:
+        required: false
+      AWS_K8S_CLUSTER_NAME_SDLC:
+        required: true
+      MAIN_DNS_ZONE_PUBLIC_SDLC:
+        required: true
+      # Passing these will get GATI token and set it as env var GATI_TOKEN for the tests
+      OPTIONAL_GATI_AWS_ROLE_ARN:
+        required: false
+      OPTIONAL_GATI_LAMBDA_URL:
         required: false
 
 env:
@@ -280,24 +294,48 @@ jobs:
       require_chainlink_plugin_versions_in_qa_ecr_matrix:
         ${{ steps.set-required-chainlink-plugin-versions-matrix.outputs.versions
         }}
+      aws_test_secrets_key:
+        ${{ steps.check-inputs.outputs.aws_test_secrets_key }}
     steps:
       - name: Check input conditions
+        id: check-inputs
+        env:
+          TEST_IDS: ${{ inputs.test_ids }}
+          TEST_TRIGGER: ${{ inputs.test_trigger }}
+          TEST_SECRETS_OVERRIDE_KEY: ${{ inputs.test_secrets_override_key }}
         run: |
-          if [[ "${{ inputs.test_ids }}" != "" && "${{ inputs.test_trigger }}" != "" ]]; then
+          if [[ "$TEST_IDS" != "" && "$TEST_TRIGGER" != "" ]]; then
             echo "::error::Error: Both 'test_ids' and 'test_trigger' are provided. Please specify only one."
             exit 1
           fi
-          if [[ "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" != "" ]]; then
-            echo "Will run tests with custom test secrets"
+
+          # Check if both TEST_SECRETS_OVERRIDE_BASE64 and test_secrets_override_key starting with 'aws:' are set
+          if [[ "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" != "" && "$TEST_SECRETS_OVERRIDE_KEY" == aws:* ]]; then
+            echo "::error::Error: Both GitHub Secret and AWS Secret ('test_secrets_override_key' starting with 'aws:') are set. Please specify only one."
+            exit 1
           fi
+
+          # Inform if custom secrets are being used
+          if [[ "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" != "" ]]; then
+            echo "Will run tests with custom test secrets from GitHub Secret."
+          elif [[ "$TEST_SECRETS_OVERRIDE_KEY" == aws:* ]]; then
+            ORIGINAL_KEY="$TEST_SECRETS_OVERRIDE_KEY"
+            SECRET_ID="${ORIGINAL_KEY#aws:}"
+            echo "aws_test_secrets_key=$SECRET_ID" >> "$GITHUB_OUTPUT"
+            echo "Will run tests with custom test secrets from AWS Secrets Manager. AWS Secret ID: $SECRET_ID"
+          fi
+
       - name: Install jq
         run: sudo apt-get install jq
 
       - name: Create matrix for required Chainlink image versions
         id: set-required-chainlink-image-versions-matrix
         shell: bash
+        env:
+          REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR:
+            ${{ inputs.require_chainlink_image_versions_in_qa_ecr }}
         run: |
-          image_versions="${{ inputs.require_chainlink_image_versions_in_qa_ecr }}"
+          image_versions="$REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR"
           default_version="${{ env.DEFAULT_CHAINLINK_VERSION }}"
           current_sha="${{ github.sha }}"
 
@@ -319,8 +357,11 @@ jobs:
       - name: Create matrix for required Chainlink plugin versions
         id: set-required-chainlink-plugin-versions-matrix
         shell: bash
+        env:
+          REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR:
+            ${{ inputs.require_chainlink_image_versions_in_qa_ecr }}
         run: |
-          image_versions=$(echo "${{ inputs.require_chainlink_plugin_versions_in_qa_ecr }}" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
+          image_versions=$(echo "$REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
           echo "Required Chainlink plugin image versions: $image_versions"
           echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
 
@@ -332,14 +373,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
       - name: Install citool
         shell: bash
         run: go install
           github.com/smartcontractkit/chainlink-testing-framework/tools/citool@83100a879006dde55ace09a5dfd99b37e62f5a3f # v1.34.4
       - name: Run Check Tests Command
+        env:
+          TEST_PATH: ${{ inputs.test_path }}
+          CHECK_TEST_PATH: ${{ inputs.check_test_path }}
         run: |
-          if ! citool check-tests ${{ github.workspace }}/${{ inputs.check_test_path }} ${{ github.workspace }}/${{ inputs.test_path }}; then
-            echo "::error::Some E2E test configurations have to be added to ${{ inputs.test_path }}. This file defines Github CI configuration for each E2E test or set of E2E tests." && exit 1
+          if ! citool check-tests "${{ github.workspace }}/$CHECK_TEST_PATH" "${{ github.workspace }}/$TEST_PATH"; then
+            echo "::error::Some E2E test configurations have to be added to $TEST_PATH. This file defines Github CI configuration for each E2E test or set of E2E tests." && exit 1
           fi
 
   get_latest_chainlink_release_version:
@@ -376,6 +422,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
       - name: Setup Go
         uses: actions/setup-go@v5.0.2
         with:
@@ -391,14 +439,20 @@ jobs:
       - name: Generate Docker Tests Matrix
         id: set-docker-matrix
         shell: bash
+        env:
+          CUSTOM_TEST_LIST_JSON: ${{ inputs.custom_test_list_json }}
+          TEST_PATH: ${{ inputs.test_path }}
+          TEST_LIST: ${{ inputs.test_list }}
+          TEST_IDS: ${{ inputs.test_ids }}
+          TEST_TRIGGER: ${{ inputs.test_trigger }}
         run: |
           # Check if custom_test_list_json is provided and non-empty
-          if [[ -n '${{ inputs.custom_test_list_json }}' ]]; then
+          if [[ -n "$CUSTOM_TEST_LIST_JSON" ]]; then
             echo "Using custom test list JSON"
-            MATRIX_JSON=$(echo '${{ inputs.custom_test_list_json }}' | jq -c '{tests: [.tests[] | select(.test_env_type == "docker")]}')
+            MATRIX_JSON=$(echo "$CUSTOM_TEST_LIST_JSON" | jq -c '{tests: [.tests[] | select(.test_env_type == "docker")]}')
           else
             echo "Using default test list"
-            MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'docker' --test-list '${{ inputs.test_list }}' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}')
+            MATRIX_JSON=$(citool filter --file "${{ github.workspace }}/$TEST_PATH" --test-env-type 'docker' --test-list "$TEST_LIST" --test-ids "$TEST_IDS" --workflow "$TEST_TRIGGER")
           fi
 
           echo "Docker tests:"
@@ -408,14 +462,20 @@ jobs:
       - name: Generate K8s Tests Matrix
         id: set-k8s-runner-matrix
         shell: bash
+        env:
+          CUSTOM_TEST_LIST_JSON: ${{ inputs.custom_test_list_json }}
+          TEST_PATH: ${{ inputs.test_path }}
+          TEST_LIST: ${{ inputs.test_list }}
+          TEST_IDS: ${{ inputs.test_ids }}
+          TEST_TRIGGER: ${{ inputs.test_trigger }}
         run: |
           # Check if custom_test_list_json is provided and non-empty
-          if [[ -n '${{ inputs.custom_test_list_json }}' ]]; then
+          if [[ -n "$CUSTOM_TEST_LIST_JSON" ]]; then
             echo "Using custom test list JSON"
-            MATRIX_JSON=$(echo '${{ inputs.custom_test_list_json }}' | jq -c '{tests: [.tests[] | select(.test_env_type == "k8s-remote-runner")]}')
+            MATRIX_JSON=$(echo "$CUSTOM_TEST_LIST_JSON" | jq -c '{tests: [.tests[] | select(.test_env_type == "k8s-remote-runner")]}')
           else
             echo "Using default test list"
-            MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'k8s-remote-runner' --test-list '${{ inputs.test_list }}' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}')
+            MATRIX_JSON=$(citool filter --file "${{ github.workspace }}/$TEST_PATH" --test-env-type 'k8s-remote-runner' --test-list "$TEST_LIST" --test-ids "$TEST_IDS" --workflow "$TEST_TRIGGER")
           fi
 
           echo "K8s tests:"
@@ -455,18 +515,28 @@ jobs:
 
       - name: Check if team is required
         if: ${{ steps.check-matrices.outputs.run-k8s-tests == 'true' }}
+        env:
+          TEAM: ${{ inputs.team }}
         run: |
-          if [[ -z "${{ inputs.team }}" ]]; then
+          if [[ -z "$TEAM" ]]; then
             echo "Team is required for k8s tests"
             exit 1
           fi
 
       - name: Check if test secrets are required for any test
         shell: bash
+        env:
+          TEST_PATH: ${{ inputs.test_path }}
         run: |
-          # Check if the test secret key is provided and skip the checks if it is non-empty
-          if [ -n "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" ]; then
-            echo "Test secret key provided. Skipping checks for tests requiring secrets."
+          # Check if the test secret key is provided from GitHub Secrets and skip the checks if it is non-empty
+          if [[ -n "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" ]]; then
+            echo "Test secrets from GitHub Secret provided. Skipping checks for tests requiring secrets."
+            exit 0
+          fi
+
+          # Check if the test secret key is provided from AWS Secrets Manager and skip the checks if it is non-empty
+          if [[ "${{ inputs.test_secrets_override_key }}" =~ ^aws: ]]; then
+            echo "Test secrets from AWS Secrets Manager provided. Skipping checks for tests requiring secrets."
             exit 0
           fi
 
@@ -477,7 +547,7 @@ jobs:
 
           # Determine if any tests require secrets
           if [ -n "$DOCKER_TESTS_REQUIRING_SECRETS" ] || [ -n "$K8S_TESTS_REQUIRING_SECRETS" ]; then
-            echo "Tests in ${{ github.workspace }}/${{ inputs.test_path }} requiring custom test secrets:"
+            echo "Tests in ${{ github.workspace }}/$TEST_PATH requiring custom test secrets:"
             if [ -n "$DOCKER_TESTS_REQUIRING_SECRETS" ]; then
               echo "$DOCKER_TESTS_REQUIRING_SECRETS"
             fi
@@ -521,6 +591,8 @@ jobs:
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Get Chainlink image
         uses: ./.github/actions/build-chainlink-image
@@ -558,6 +630,8 @@ jobs:
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Get Chainlink plugins image
         uses: ./.github/actions/build-chainlink-image
@@ -574,6 +648,7 @@ jobs:
     name: ${{ matrix.tests.id }}
     needs:
       [
+        validate-inputs,
         load-test-configurations,
         require-chainlink-image-versions-in-qa-ecr,
         require-chainlink-plugin-versions-in-qa-ecr,
@@ -609,6 +684,8 @@ jobs:
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -686,9 +763,33 @@ jobs:
               echo "$key=$value" >> "$GITHUB_ENV"
             done
           fi
+
+      - name: Get Test Secrets from AWS Secret Manager
+        if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
+        id: aws-test-secrets
+        uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@921f4b0ca850dd473dcef9082e3169ccbb83cc52 # ctf-fetch-aws-secret@0.0.0
+        with:
+          secret_id: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
+          aws_region: ${{ secrets.QA_AWS_REGION }}
+          aws_role_to_assume: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
+
+      - name: Setup GitHub token using GATI
+        id: setup-optional-gati-token
+        env:
+          OPTIONAL_GATI_AWS_ROLE_ARN: ${{ secrets.OPTIONAL_GATI_AWS_ROLE_ARN }}
+          OPTIONAL_GATI_LAMBDA_URL: ${{ secrets.OPTIONAL_GATI_LAMBDA_URL }}
+        if:
+          ${{ env.OPTIONAL_GATI_AWS_ROLE_ARN && env.OPTIONAL_GATI_LAMBDA_URL }}
+        uses: smartcontractkit/.github/actions/setup-github-token@ef78fa97bf3c77de6563db1175422703e9e6674f # setup-github-token@0.2.1
+        with:
+          aws-role-arn: ${{ secrets.OPTIONAL_GATI_AWS_ROLE_ARN }}
+          aws-lambda-url: ${{ secrets.OPTIONAL_GATI_LAMBDA_URL }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-role-duration-seconds: "1800"
+
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@b8731364b119e88983e94b0c4da87fc27ddb41b8 # ctf-run-tests@0.0.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@5a52473d754eb3cfde41449437e320167bbbddf2 # ctf-run-tests@v0.4.1
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION:
@@ -709,6 +810,8 @@ jobs:
           INTERNAL_DOCKER_REPO:
             ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
             secrets.QA_AWS_REGION }}.amazonaws.com
+          GITHUB_API_TOKEN:
+            ${{ steps.setup-optional-gati-token.outputs.access-token || ''}}
         with:
           test_command_to_run:
             ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1
@@ -717,7 +820,8 @@ jobs:
           test_download_vendor_packages_command:
             cd $(dirname ${{ matrix.tests.path }}) && go mod download
           test_secrets_override_base64:
-            ${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
+            ${{ steps.aws-test-secrets.outputs.secret_value ||
+            secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
@@ -734,7 +838,8 @@ jobs:
             ./integration-tests/smoke/logs/
             ./integration-tests/smoke/db_dumps/
             ./integration-tests/smoke/ccip/logs/
-            ./integration-tests/smoke/ccip/db_dumps/            
+            ./integration-tests/smoke/capabilities/logs/
+            ./integration-tests/smoke/ccip/db_dumps/
             /tmp/gotest.log
           publish_check_name: ${{ env.TEST_ID }}
           token: ${{ secrets.GH_TOKEN }}
@@ -742,10 +847,11 @@ jobs:
           go_mod_path: ./integration-tests/go.mod
           QA_AWS_REGION: ${{ secrets.QA_AWS_REGION }}
           QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
-          QA_KUBECONFIG: ""
           should_tidy: "false"
           go_coverage_src_dir: /var/tmp/go-coverage
           go_coverage_dest_dir: ${{ github.workspace }}/.covdata
+          main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
+          k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
 
       - name: Show Otel-Collector logs
         if:
@@ -849,6 +955,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
       - name: Build Test Runner Image
         id: build-test-runner-image
         uses: smartcontractkit/.github/actions/ctf-build-test-image@main # main branch
@@ -860,19 +968,23 @@ jobs:
           suites: ${{ inputs.test_image_suites }}
       - name: Set Remote Runner Version
         id: set-remote-runner-version
+        env:
+          WITH_EXISTING_REMOTE_RUNNER_VERSION:
+            ${{ inputs.with_existing_remote_runner_version }}
         run: |
           # shellcheck disable=SC2129
-          if [[ -z "${{ inputs.with_existing_remote_runner_version }}" ]]; then
+          if [[ -z "$WITH_EXISTING_REMOTE_RUNNER_VERSION" ]]; then
             echo "remote-runner-image=${{ steps.build-test-runner-image.outputs.test_image }}" >> "$GITHUB_OUTPUT"
             echo "remote-runner-repository=${{ steps.build-test-runner-image.outputs.test_image_repository }}" >> "$GITHUB_OUTPUT"
             echo "remote-runner-version=${{ steps.build-test-runner-image.outputs.test_image_tag }}" >> "$GITHUB_OUTPUT"
           else
-            echo "remote-runner-version=${{ inputs.with_existing_remote_runner_version }}" >> "$GITHUB_OUTPUT"
+            echo "remote-runner-version=$WITH_EXISTING_REMOTE_RUNNER_VERSION" >> "$GITHUB_OUTPUT"
           fi
 
   run-k8s-runner-tests:
     needs:
       [
+        validate-inputs,
         load-test-configurations,
         get-remote-runner-test-image,
         require-chainlink-image-versions-in-qa-ecr,
@@ -909,6 +1021,8 @@ jobs:
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -951,9 +1065,18 @@ jobs:
             done
           fi
 
+      - name: Get Test Secrets from AWS Secret Manager
+        if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
+        id: aws-test-secrets
+        uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@921f4b0ca850dd473dcef9082e3169ccbb83cc52 # ctf-fetch-aws-secret@0.0.0
+        with:
+          secret_id: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
+          aws_region: ${{ secrets.QA_AWS_REGION }}
+          aws_role_to_assume: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
+
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@b6e37806737eef87e8c9137ceeb23ef0bff8b1db # ctf-run-tests@0.1.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@5a52473d754eb3cfde41449437e320167bbbddf2 # ctf-run-tests@v0.4.1
         env:
           DETACH_RUNNER: true
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
@@ -992,7 +1115,8 @@ jobs:
             -hidepassingtests=false' }}
           test_download_vendor_packages_command: make gomod
           test_secrets_override_base64:
-            ${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
+            ${{ steps.aws-test-secrets.outputs.secret_value ||
+            secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
@@ -1007,7 +1131,8 @@ jobs:
           go_mod_path: ./integration-tests/go.mod
           QA_AWS_REGION: ${{ secrets.QA_AWS_REGION }}
           QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
-          QA_KUBECONFIG: ${{ secrets.QA_KUBECONFIG }}
+          main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
+          k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
 
       - name: Upload test log as artifact
         uses: actions/upload-artifact@v4.4.3
