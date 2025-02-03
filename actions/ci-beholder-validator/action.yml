@@ -37,14 +37,14 @@ runs:
     - name: Checkout repo
       uses: actions/checkout@v4.2.1
       with:
-        fetch-depth: 0
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
     - name: Detect changed files
-      id: changes
       shell: bash
       run: |
         git fetch --prune origin +refs/heads/*:refs/remotes/origin/*
 
-        # Collect the changed files:
+        # Collect the changed files from the default branch
         changed_files=$(git diff --name-only origin/${{ github.event.repository.default_branch }})
 
         # Each file is prefixed with './' on its own line.
@@ -55,52 +55,59 @@ runs:
           done
           echo "EOF"
         } >> "$GITHUB_ENV"
+
     - name: Start Redpanda with Docker Compose
       shell: bash
       run: |
         docker compose -f "${{ github.action_path }}/docker-compose.yml" up -d redpanda-console
+
     - name: Configure aws creds
-      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+      uses: aws-actions/configure-aws-credentials@v4
       if: inputs.docker-registry == 'aws'
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
         role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
         aws-region: ${{ inputs.aws-region }}
         mask-aws-account-id: true
+
     - name: Login to aws ecr
       id: login-ecr
       if: inputs.docker-registry == 'aws'
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
       with:
         registries: ${{ inputs.aws-account-number }}
+
     - name: Pull schema-validator image from ECR
       shell: bash
       run: |
         docker pull ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:${{ inputs.image-tag }}
-    - name: Validate schemas in master branch
+    - name: Validate schemas in default branch
       shell: bash
       run: |
         # Store current branch
         CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-        # Checkout and validate default branch
+        # Checkout and validate the default branch
         git checkout ${{ github.event.repository.default_branch }}
         docker run -v "$PWD:/usr/src/app/repo" \
-        --network redpanda_network \
-        -e SCHEMA_REGISTRY_URL=http://redpanda-0:8081 \
-        ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:${{ inputs.image-tag }} \
-        validate --phase master
+          --network redpanda_network \
+          -e SCHEMA_REGISTRY_URL=http://redpanda-0:8081 \
+          ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:${{ inputs.image-tag }} \
+          validate --phase master
 
         # Return to original branch
         git checkout $CURRENT_BRANCH
 
-    - name: Validate schemas in current branch
+    - name: Validate schemas in current branch (PR phase)
       if: ${{ github.ref_name != github.event.repository.default_branch }}
       shell: bash
+      env:
+        CHANGED_FILES: ${{ env.CHANGED_FILES }}
       run: |
+        # Validate only changed schemas
         docker run -v "$PWD:/usr/src/app/repo" \
-        --network redpanda_network \
-        -e SCHEMA_REGISTRY_URL=http://redpanda-0:8081 \ 
-        -e CHANGED_FILES="$CHANGED_FILES" \
-        ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:${{ inputs.image-tag }} \
-        validate --phase pr
+          --network redpanda_network \
+          -e SCHEMA_REGISTRY_URL=http://redpanda-0:8081 \
+          -e CHANGED_FILES \
+          ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:${{ inputs.image-tag }} \
+          validate --phase pr
