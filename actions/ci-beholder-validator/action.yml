@@ -95,6 +95,7 @@ runs:
         git checkout $CURRENT_BRANCH
 
     - name: Validate schemas in current branch
+      if: ${{ github.ref_name != github.event.repository.default_branch }}
       shell: bash
       run: |
         docker run -v "$PWD:/usr/src/app/repo" \
