@@ -43,7 +43,7 @@ runs:
   using: "composite"
   steps:
     - name: Checkout calling repo
-      uses: actions/checkout@v4.2.1
+      uses: actions/checkout@v4
 
     - name: Check if this run is invoked from a pull request event
       shell: bash
@@ -68,7 +68,7 @@ runs:
 
     - name: Checkout action repo
       if: ${{ env.SKIP_ACTION == 'false' }}
-      uses: actions/checkout@v4.2.1
+      uses: actions/checkout@v4
       with:
         repository: smartcontractkit/.github
         ref: ${{ inputs.workflow-ref }}
@@ -214,7 +214,7 @@ runs:
           // Create new comment if COMMENT_ID is empty
           if ((!commentId || commentId.trim() === '')) {
             // but only if the parent workflow failed or if the parent workflow succeeded and skip-on-success is false
-            if (process.env.WORKFLOW_STATUS === 'failure' 
+            if (process.env.WORKFLOW_STATUS === 'failure'
               || (process.env.WORKFLOW_STATUS === 'success' && process.env.SKIP_ON_SUCCESS === 'false')) {
               const newComment = await github.rest.issues.createComment({
                 owner: context.repo.owner,

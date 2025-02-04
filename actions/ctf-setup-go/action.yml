@@ -41,7 +41,7 @@ runs:
   using: composite
   steps:
     - name: Setup Go
-      uses: actions/setup-go@v5.0.2
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ inputs.go_version }}
         go-version-file: ${{ inputs.go_mod_path }}

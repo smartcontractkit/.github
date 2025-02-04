@@ -98,7 +98,7 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4.2.1
+      uses: actions/checkout@v4
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
@@ -163,7 +163,7 @@ runs:
 
     - name: Store test report artifacts
       if: always()
-      uses: actions/upload-artifact@v4.4.3
+      uses: actions/upload-artifact@v4
       with:
         name: go-test-results
         path: |
@@ -172,7 +172,7 @@ runs:
 
     - name: Store race coverage report
       if: ${{ inputs.enable-go-test-race == 'true' }}
-      uses: actions/upload-artifact@v4.4.3
+      uses: actions/upload-artifact@v4
       with:
         name: go-test-race-results
         path: race/*.txt
