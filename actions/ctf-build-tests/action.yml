@@ -92,7 +92,7 @@ runs:
         echo "Built binary at ./integration-tests/tests"
 
     - name: Publish Binary
-      uses: actions/upload-artifact@v4.4.3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.binary_name }}
         path: ./integration-tests/tests
