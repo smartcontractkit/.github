@@ -21,7 +21,6 @@ pull requests.
 
 7. [Schema Configuration (`beholder.yaml`)](#schema-configuration-beholderyaml)
 8. [Troubleshooting](#troubleshooting)
-9. [Contributing](#contributing)
 
 ---
 
@@ -253,6 +252,8 @@ beholder:
 - Paths such as schema: "./schemas/user_event.proto" must match your actual
   folder structure.
 
+---
+
 ## Troubleshooting
 
 1. AWS Authentication Failed
@@ -272,7 +273,9 @@ beholder:
    - Verify your PR modifies .proto, .avsc, or a path included under
      on.pull_request.paths.
    - Ensure beholder.yaml is in the correct location.
+5. Workflow Fails to Start
+   - Confirm your workflow is enabled in the Actions tab.
+   - Check for syntax errors in your YAML file.
+   - Ensure the workflow is in the correct directory.
 
-## Contributing
-
-Contributions are welcome! Please submit PRs with improvements or bug fixes.
+---

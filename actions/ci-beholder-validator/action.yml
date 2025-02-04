@@ -75,12 +75,15 @@ runs:
 
     - name: Pull schema-validator image from ECR
       shell: bash
+      env:
+        IMAGE_TAG: ${{ inputs.image-tag }}
       run: |
-        docker pull ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:${{ inputs.image-tag }}
+        docker pull ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:${{ env.IMAGE_TAG }}
     - name: Validate schemas in default branch
       shell: bash
       env:
         DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        IMAGE_TAG: ${{ inputs.image-tag }}
       run: |
         # Store current branch
         CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -90,7 +93,7 @@ runs:
         docker run -v "$PWD:/usr/src/app/repo" \
           --network redpanda_network \
           -e SCHEMA_REGISTRY_URL=http://redpanda-0:8081 \
-          ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:${{ inputs.image-tag }} \
+          ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:${{ env.IMAGE_TAG }} \
           validate --phase master
 
         # Return to original branch
@@ -101,11 +104,12 @@ runs:
       shell: bash
       env:
         CHANGED_FILES: ${{ env.CHANGED_FILES }}
+        IMAGE_TAG: ${{ inputs.image-tag }}
       run: |
         # Validate only changed schemas
         docker run -v "$PWD:/usr/src/app/repo" \
           --network redpanda_network \
           -e SCHEMA_REGISTRY_URL=http://redpanda-0:8081 \
           -e CHANGED_FILES \
-          ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:${{ inputs.image-tag }} \
+          ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:${{ env.IMAGE_TAG }} \
           validate --phase pr
