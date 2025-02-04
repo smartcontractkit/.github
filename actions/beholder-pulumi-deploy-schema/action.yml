@@ -1,0 +1,70 @@
+name: beholder-pulumi-deploy-schema
+description:
+  "Validates and deploys a Protobuf or AVRO schema to Confluent Schema Registry"
+
+inputs:
+  pulumi_s3_bucket:
+    description: "S3 bucket name to use as Pulumi backend"
+    required: true
+  deploy_environment:
+    description: "Deployment environment"
+    required: true
+  deploy_config_path:
+    description: "Path to the deploy config YAML file"
+    required: true
+  aws_account_id:
+    description: "AWS Account ID"
+    required: false
+    default: "654654554896"
+  aws_region:
+    description: "AWS region"
+    required: false
+    default: "us-west-2"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4.2.1
+
+    - name: Docker login to ECR
+      shell: bash
+      run: |
+        aws ecr get-login-password --region ${{ inputs.aws_region }} \
+        | docker login --username AWS --password-stdin \
+          ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com
+
+    - name: Pull container image
+      shell: bash
+      run: |
+        docker pull ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-beholder-pulumi:qa-latest
+        docker tag ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-beholder-pulumi:qa-latest atlas-beholder-pulumi
+
+    - name: Deploy schema
+      shell: bash
+      run: |
+        docker run \
+          -v "$PWD:/workspace" \
+          -w /workspace \
+          -e AWS_REGION=${{ inputs.aws_region }} \
+          -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+          -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+          -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
+          -e DEPLOY_ENVIRONMENT=${{ inputs.deploy_environment }} \
+          -e DEPLOY_CONFIG_PATH=${{ inputs.deploy_config_path }} \
+          -e PULUMI_S3_BUCKET=${{ inputs.pulumi_s3_bucket }} \
+          -e CONFLUENT_CLOUD_API_KEY=${CONFLUENT_CLOUD_API_KEY} \
+          -e CONFLUENT_CLOUD_API_SECRET=${CONFLUENT_CLOUD_API_SECRET} \
+          -e SCHEMA_REGISTRY_KEY=${SCHEMA_REGISTRY_KEY} \
+          -e SCHEMA_REGISTRY_SECRET=${SCHEMA_REGISTRY_SECRET} \
+          -e PULUMI_CONFIG_PASSPHRASE=${PULUMI_CONFIG_PASSPHRASE} \
+          -e KAFKA_REST_KEY=${KAFKA_REST_KEY} \
+          -e KAFKA_REST_SECRET=${KAFKA_REST_SECRET} \
+          atlas-beholder-pulumi beholder-pulumi deploy-schemas
+      env:
+        CONFLUENT_CLOUD_API_KEY: ${{ env.CONFLUENT_CLOUD_API_KEY }}
+        CONFLUENT_CLOUD_API_SECRET: ${{ env.CONFLUENT_CLOUD_API_SECRET }}
+        SCHEMA_REGISTRY_KEY: ${{ env.SCHEMA_REGISTRY_KEY }}
+        SCHEMA_REGISTRY_SECRET: ${{ env.SCHEMA_REGISTRY_SECRET }}
+        PULUMI_CONFIG_PASSPHRASE: ${{ env.PULUMI_CONFIG_PASSPHRASE }}
+        KAFKA_REST_KEY: ${{ env.KAFKA_REST_KEY }}
+        KAFKA_REST_SECRET: ${{ env.KAFKA_REST_SECRET }}
