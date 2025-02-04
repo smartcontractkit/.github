@@ -1,6 +1,6 @@
 {
   "name": "ci-test-sol",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "test solidity smart contracts",
   "private": true,
   "scripts": {},
