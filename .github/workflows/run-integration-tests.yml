@@ -277,6 +277,15 @@ jobs:
           retention-days: ${{ inputs.test_log_upload_retention_days }}
         continue-on-error: true
 
+      - name: Upload environment logs for in-memory tests as artifact
+        uses: actions/upload-artifact@v4.4.3
+        if: inputs.test_log_upload_on_failure && failure()
+        with:
+          name: ccip_logs_${{ env.TEST_ID }}
+          path: ./deployment/environment/memory/logs/
+          retention-days: ${{ inputs.test_log_upload_retention_days }}
+        continue-on-error: true
+
       - name: Record test result
         if: ${{ always() }}
         run: |
