@@ -37,11 +37,13 @@ runs:
 
     - name: Detect changed files
       shell: bash
+      env:
+        DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       run: |
         git fetch --prune origin +refs/heads/*:refs/remotes/origin/*
 
         # Collect the changed files from the default branch
-        changed_files=$(git diff --name-only origin/${{ github.event.repository.default_branch }})
+        changed_files=$(git diff --name-only origin/${{ env.DEFAULT_BRANCH }})
 
         # Each file is prefixed with './' on its own line.
         {
@@ -77,12 +79,14 @@ runs:
         docker pull ${{ steps.login-ecr.outputs.registry }}/atlas-beholder-schema-validator:${{ inputs.image-tag }}
     - name: Validate schemas in default branch
       shell: bash
+      env:
+        DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       run: |
         # Store current branch
         CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
         # Checkout and validate the default branch
-        git checkout ${{ github.event.repository.default_branch }}
+        git checkout ${{ env.DEFAULT_BRANCH }}
         docker run -v "$PWD:/usr/src/app/repo" \
           --network redpanda_network \
           -e SCHEMA_REGISTRY_URL=http://redpanda-0:8081 \
