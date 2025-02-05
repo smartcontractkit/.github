@@ -65,7 +65,7 @@ runs:
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
-        go-version: ${{ inputs.go_version }}
+        go-version: ${{ steps.export-go-version.outputs.go_version }}
         go-version-file: ${{ inputs.go_mod_path }}
         check-latest: true
         cache: false
