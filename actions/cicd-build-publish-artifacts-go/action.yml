@@ -110,7 +110,7 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4.2.1
+      uses: actions/checkout@v4
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
         ref: ${{ inputs.checkout-ref }}
@@ -140,7 +140,7 @@ runs:
           "https://github.com/"
 
     - name: Setup go
-      uses: actions/setup-go@v5.0.2
+      uses: actions/setup-go@v5
       with:
         go-version-file: ${{ inputs.go-version-file }}
         cache: ${{ inputs.use-go-cache }}

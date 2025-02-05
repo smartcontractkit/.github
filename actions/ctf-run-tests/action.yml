@@ -216,7 +216,7 @@ runs:
     # Download any external artifacts
     - name: Download Artifacts
       if: inputs.download_contract_artifacts_path != 'none'
-      uses: actions/download-artifact@v4.1.8
+      uses: actions/download-artifact@v4
       with:
         name: artifacts
         path: ${{ inputs.download_contract_artifacts_path }}
@@ -315,7 +315,7 @@ runs:
 
     - name: Publish Artifacts
       if: failure()
-      uses: actions/upload-artifact@v4.4.3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifacts_name }}
         path: ${{ inputs.artifacts_location }}

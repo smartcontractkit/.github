@@ -1,6 +1,6 @@
 {
   "name": "cicd-build-publish-artifacts-ts",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "",
   "private": true,
   "scripts": {},
