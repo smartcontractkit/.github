@@ -789,7 +789,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@860eccdb9ce562a6a3677c5b1c8f0d56a58d971f # ctf-run-tests@v0.4.1
+        uses: smartcontractkit/.github/actions/ctf-run-tests@c115c9739cab9f999781981c0f7d78b3e70e6957 # ctf-run-tests@v0.4.1
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION:
@@ -1076,7 +1076,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@860eccdb9ce562a6a3677c5b1c8f0d56a58d971f # ctf-run-tests@v0.4.1
+        uses: smartcontractkit/.github/actions/ctf-run-tests@c115c9739cab9f999781981c0f7d78b3e70e6957 # ctf-run-tests@v0.4.1
         env:
           DETACH_RUNNER: true
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
