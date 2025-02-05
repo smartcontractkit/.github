@@ -178,7 +178,7 @@ runs:
     # Setup Tools and libraries
     - name: Setup environment
       if: inputs.run_setup == 'true'
-      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@5340dc1606507bdc3ed45063e0e8b22edc3b3cd3 # ctf-setup-run-tests-environment@v0.2.1
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@4ff522b1aef76519d2ced17b5d052927754fd34b # ctf-setup-run-tests-environment@v0.2.1
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
