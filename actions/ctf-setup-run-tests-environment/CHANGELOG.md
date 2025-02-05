@@ -1,5 +1,14 @@
 # ctf-setup-run-tests-environment
 
+## 0.4.0
+
+### Minor Changes
+
+- [#860](https://github.com/smartcontractkit/.github/pull/860)
+  [`a1cdfb6`](https://github.com/smartcontractkit/.github/commit/a1cdfb6503d8edcc8563b926b46959445446d6d7)
+  Thanks [@gheorghestrimtu](https://github.com/gheorghestrimtu)! - Update
+  version of ctf-setup-go
+
 ## 0.3.0
 
 ### Minor Changes
