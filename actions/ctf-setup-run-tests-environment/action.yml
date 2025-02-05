@@ -99,7 +99,7 @@ runs:
         mask-aws-account-id: true
 
     - name: Configure local GAP proxy for accessing (Kubernetes) services
-      uses: smartcontractkit/.github/actions/setup-gap@495d349ba13c395defc974be85747dae450eb3d7 # setup-gap@3.5.1
+      uses: smartcontractkit/.github/actions/setup-gap@b969c2d42c15e937e2f94cc0e050f39cd5369f4f # setup-gap@4.0.0
       with:
         aws-role-duration-seconds: 3600 # 1 hour
         aws-role-arn: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
