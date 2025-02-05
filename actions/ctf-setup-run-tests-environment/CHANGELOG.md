@@ -1,5 +1,14 @@
 # ctf-setup-run-tests-environment
 
+## 0.3.0
+
+### Minor Changes
+
+- [#857](https://github.com/smartcontractkit/.github/pull/857)
+  [`6e76ad2`](https://github.com/smartcontractkit/.github/commit/6e76ad2db461bd199fff4450bd8e998b53c7f82c)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Use the latest
+  version of the setup-gap GHA
+
 ## 0.2.1
 
 ### Patch Changes
