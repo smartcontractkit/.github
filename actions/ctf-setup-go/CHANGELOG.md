@@ -1,5 +1,14 @@
 # ctf-setup-go
 
+## 0.2.0
+
+### Minor Changes
+
+- [#859](https://github.com/smartcontractkit/.github/pull/859)
+  [`315ef5e`](https://github.com/smartcontractkit/.github/commit/315ef5ef0877d1765ba70bdad2ec734c3899c908)
+  Thanks [@gheorghestrimtu](https://github.com/gheorghestrimtu)! - Fix the cache
+  restoration errors
+
 ## 0.1.3
 
 ### Patch Changes
