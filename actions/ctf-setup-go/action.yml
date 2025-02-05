@@ -46,6 +46,8 @@ runs:
       # Since actions/cache does not support this option, we set it here as a default.
       run: echo "TAR_OPTIONS=--skip-old-files" >> $GITHUB_ENV
 
+    # This change is based on the modifications done by @erikburt in the `chainlink` repo
+    # https://github.com/smartcontractkit/chainlink/pull/15645
     - name: Get Go Version
       shell: bash
       if: ${{ inputs.go_mod_path }}
@@ -68,6 +70,7 @@ runs:
         else
           echo "go_version=${{ steps.go-version.outputs.version }}" >> "$GITHUB_OUTPUT"
         fi
+
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
