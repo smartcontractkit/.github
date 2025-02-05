@@ -77,7 +77,7 @@ runs:
     # Go setup and caching
     - name: Setup Go
       if: inputs.go_necessary == 'true'
-      uses: smartcontractkit/.github/actions/ctf-setup-go@5a90069d860edbaddc296a139b13e2e97bf463ab # ctf-setup-go@0.0.0
+      uses: smartcontractkit/.github/actions/ctf-setup-go@6a78f2f5a0535330780dcd2d0665858e2f3a7b2d # ctf-setup-go@0.0.0
       with:
         go_version: ${{ inputs.go_version }}
         go_mod_path: ${{ inputs.go_mod_path }}
