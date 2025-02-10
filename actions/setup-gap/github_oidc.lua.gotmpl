@@ -7,6 +7,7 @@ local jwt_token = nil
 local refreshing = false -- Flag to prevent concurrent token refreshes
 local request_options = { ["asynchronous"] = true }
 local main_dns_zone = "{{ getenv "MAIN_DNS_ZONE" }}"
+local escaped_main_dns_zone = main_dns_zone:gsub("[%.%+%*%?%^%$%(%)%%]", "%%%1")
 
 -- Constants for headers
 local GITHUB_OIDC_TOKEN_HEADER = "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
@@ -134,14 +135,14 @@ function envoy_on_request(request_handle)
     -- Get the host/authority from the request headers
     local host = request_handle:headers():get(":authority")
 
-    -- Check if the host contains the main_dns_zone followed by ":<port>" or starts with "localhost"
-    if host and (host:find(main_dns_zone .. ":%d+$") or host:find("^localhost")) then
+    -- Check if the host matches the allowed patterns
+    if host and (host:find(escaped_main_dns_zone .. "$") or host:find(escaped_main_dns_zone .. ":%d+$") or host:find("^localhost")) then
         -- Refresh the token if necessary
         refresh_token_if_needed(request_handle)
         -- Add the required headers to the request
         add_headers(request_handle)
     else
         request_handle:logInfo(log_prefix .. "Skipping JWT token addition for host: " .. (host or "nil") ..
-                           " (does not match the pattern or does not start with localhost)")
+                           " (does not end with the <main-dns-zone>, does not end with <main-dns-zone>:<port>, or does not start with localhost)")
     end
 end
