@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#
+# This script acts as a docker replacement around pg_dump so that developers can
+# run DB involved tests locally without having postgres installed.
+
+cd "$(dirname "$0")" || exit
+
+docker compose exec -T postgres pg_dump "$@" 
