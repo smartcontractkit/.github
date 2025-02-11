@@ -300,11 +300,6 @@ runs:
         echo ::add-mask::$BASE64_CONFIG_OVERRIDE
         echo "BASE64_CONFIG_OVERRIDE=$BASE64_CONFIG_OVERRIDE" >> $GITHUB_ENV
 
-    - name: Install flakeguard
-      shell: bash
-      run: |
-        go install github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@52911190a0f58bd099abc8aa6fee2cc1b8da97bb
-
     - name: Run Tests With Flakeguard
       if: inputs.use_flakeguard == 'true'
       shell: bash
@@ -316,8 +311,11 @@ runs:
         GO_COVERAGE_SRC_DIR: ${{ inputs.go_coverage_src_dir }}
         GO_COVERAGE_DEST_DIR: ${{ inputs.go_coverage_dest_dir }}
       run: |
+        # Install Flakeguard
+        go install github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@52911190a0f58bd099abc8aa6fee2cc1b8da97bb
         PATH=$PATH:$(go env GOPATH)/bin
         export PATH
+
         export TEST_TRIGGERED_BY=${{ inputs.triggered_by }}-${{ github.event.pull_request.number || github.run_id }}
         # Handle bots as users
         export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}
@@ -325,7 +323,7 @@ runs:
         flakeguard run \
           --test-cmd bash \
           --test-cmd -c \
-          --test-cmd "${{ inputs.test_command_to_run }}" \
+          --test-cmd '${{ inputs.test_command_to_run }}' \
           --run-count=${{ inputs.flakeguard_run_count }} \
           --omit-test-outputs-on-success=true \
           --output-json=flakeguard_results.json
