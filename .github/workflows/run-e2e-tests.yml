@@ -817,6 +817,7 @@ jobs:
             ${{ steps.setup-optional-gati-token.outputs.access-token || ''}}
         with:
           use_flakeguard: "true"
+          flakeguard_run_count: "2"
           test_command_to_run:
             ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command:
