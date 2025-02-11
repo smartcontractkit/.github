@@ -1247,7 +1247,7 @@ jobs:
 
       - name: Upload All Test Results as Artifact
         if:
-          ${{ (success() || failure()) &&
+          ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) &&
           fromJSON(steps.results.outputs.summary).total_tests > 0 }}
         uses: actions/upload-artifact@v4.4.3
         with:
@@ -1257,7 +1257,7 @@ jobs:
 
       - name: Upload Failed Test Results as Artifact
         if:
-          ${{ (success() || failure()) &&
+          ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) &&
           fromJSON(steps.results.outputs.summary).failed_runs > 0 }}
         uses: actions/upload-artifact@v4.4.3
         with:
@@ -1267,7 +1267,7 @@ jobs:
 
       - name: Upload Failed Test Results With Logs as Artifact
         if:
-          ${{ (success() || failure()) &&
+          ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) &&
           fromJSON(steps.results.outputs.summary).failed_runs > 0 }}
         uses: actions/upload-artifact@v4.4.3
         with:
