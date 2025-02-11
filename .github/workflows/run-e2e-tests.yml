@@ -19,12 +19,6 @@ on:
           develop or commit sha"
         required: false
         type: string
-      chainlink_upgrade_version:
-        description:
-          "Enter Chainlink version to use for the upgrade tests. Example:
-          v2.10.0, develop or commit sha"
-        required: false
-        type: string
       test_path:
         description:
           "Path to the YAML test configuration file. Example:
