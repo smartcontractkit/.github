@@ -1183,7 +1183,7 @@ jobs:
       - name: Download Flakeguard artifacts
         uses: actions/download-artifact@v4.1.8
         with:
-          path: ci_test_results
+          path: flakeguard_results
           pattern:
             flakeguard_results_${{
             needs.load-test-configurations.outputs.workflow_id }}_*
@@ -1191,7 +1191,7 @@ jobs:
       - name: Install flakeguard
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@0499b965909d4e1a21589256bededba155549a82 # flakguard@0.1.0
+          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@52911190a0f58bd099abc8aa6fee2cc1b8da97bb # flakguard@0.1.0
 
       - name: Aggregate Flakeguard Results
         id: results
@@ -1200,7 +1200,7 @@ jobs:
           GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
         run: |
           # Create test results folder if it doesn't exist
-          mkdir -p ci_test_results
+          mkdir -p flakeguard_results
 
           # Fix flakeguard binary path
           PATH=$PATH:$(go env GOPATH)/bin
@@ -1210,7 +1210,7 @@ jobs:
 
           # Aggregate Flakeguard test results
           flakeguard aggregate-results \
-            --results-path ./ci_test_results \
+            --results-path ./flakeguard_results \
             --output-path ./flakeguard-report \
             # --repo-path "${{ github.workspace }}" \
             --codeowners-path "${{ github.workspace }}/.github/CODEOWNERS" \
