@@ -1203,7 +1203,7 @@ jobs:
       - name: Install flakeguard
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@52911190a0f58bd099abc8aa6fee2cc1b8da97bb # flakguard@0.1.0
+          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@16574e9f0e9e2a9deb51bae459c7f1a3608839cc # flakguard@0.1.0
 
       - name: Aggregate Flakeguard Results
         id: results
