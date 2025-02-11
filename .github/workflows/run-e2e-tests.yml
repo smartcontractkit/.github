@@ -818,9 +818,7 @@ jobs:
         with:
           use_flakeguard: "true"
           test_command_to_run:
-            ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1
-            | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage
-            -hidepassingtests=false' }}
+            ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command:
             cd $(dirname ${{ matrix.tests.path }}) && go mod download
           test_secrets_override_base64:
