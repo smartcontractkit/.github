@@ -177,17 +177,15 @@ on:
         required: false
         type: boolean
         default: false
-      collect_test_telemetry:
-        description:
-          'Set to "true" to collect telemetry data for E2E tests, helpful for
-          debugging resource issues.'
-        required: false
-        type: boolean
-        default: false
       team:
         description: "Team to run the tests for (e.g. BIX, CCIP)"
         required: false
         type: string
+      extraArgs:
+        required: false
+        type: string
+        default: "{}"
+        description: "JSON of extra arguments for the workflow."
     outputs:
       test_results:
         description: "Test results from all executed tests"
@@ -282,6 +280,11 @@ env:
   E2E_RMN_AFN2PROXY_IMAGE:
     ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
     secrets.AWS_REGION}}.amazonaws.com/afn2proxy
+
+  COLLECT_TEST_TELEMETRY: ${{
+    fromJSON(inputs.extraArgs)['collect_test_telemetry'] || 'false' }} # Set to "true" to collect telemetry data for E2E tests
+  FLAKEGUARD_MAX_PASS_RATIO:
+    ${{ fromJSON(inputs.extraArgs)['flakeguard_max_pass_ratio'] || '1.0' }}
 
 jobs:
   validate-inputs:
@@ -680,7 +683,7 @@ jobs:
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
     steps:
       - name: Collect Test Telemetry
-        if: inputs.collect_test_telemetry
+        if: ${{ env.COLLECT_TEST_TELEMETRY == 'true' }}
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
@@ -915,6 +918,17 @@ jobs:
           path: test_result.json
           retention-days: 1
 
+      - name: Upload Flakeguard test results as artifact
+        if: always()
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name:
+            flakeguard_results_${{
+            needs.load-test-configurations.outputs.workflow_id }}_${{
+            env.TEST_ID }}
+          path: flakeguard_results.json
+          retention-days: 1
+
       - name: Upload custom test artifacts
         if: failure() && matrix.tests.test_artifacts_on_failure != ''
         uses: actions/upload-artifact@v4.4.3
@@ -1017,7 +1031,7 @@ jobs:
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
     steps:
       - name: Collect Test Telemetry
-        if: inputs.collect_test_telemetry
+        if: ${{ env.COLLECT_TEST_TELEMETRY == 'true' }}
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
@@ -1167,6 +1181,147 @@ jobs:
     outputs:
       test_results: ${{ steps.set_test_results.outputs.results }}
     steps:
+      - name: Download Flakeguard artifacts
+        uses: actions/download-artifact@v4.1.8
+        with:
+          path: ci_test_results
+          pattern:
+            flakeguard_results_${{
+            needs.load-test-configurations.outputs.workflow_id }}_*
+
+      - name: Install flakeguard
+        shell: bash
+        run: go install
+          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@0499b965909d4e1a21589256bededba155549a82 # flakguard@0.1.0
+
+      - name: Aggregate Flakeguard Results
+        id: results
+        shell: bash
+        env:
+          GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
+        run: |
+          # Create test results folder if it doesn't exist
+          mkdir -p ci_test_results
+
+          # Fix flakeguard binary path
+          PATH=$PATH:$(go env GOPATH)/bin
+          export PATH
+
+          current_branch_name="${{ github.head_ref || github.ref_name }} "
+
+          # Aggregate Flakeguard test results
+          flakeguard aggregate-results \
+            --results-path ./ci_test_results \
+            --output-path ./flakeguard-report \
+            --repo-path "${{ github.workspace }}" \
+            --codeowners-path "${{ github.workspace }}/.github/CODEOWNERS" \
+            --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO" \
+            --repo-url "$GH_INPUTS_REPO_URL" \
+            --branch-name "$current_branch_name" \
+            --base-sha "${{ needs.get-tests.outputs.git_base_sha }}" \
+            --head-sha "${{ needs.get-tests.outputs.git_head_sha }}" \
+            --github-workflow-name "${{ github.workflow }}" \
+            --github-workflow-run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            # --splunk-url "${{ secrets.FLAKEGUARD_SPLUNK_ENDPOINT }}" \
+            # --splunk-token "${{ secrets.FLAKEGUARD_SPLUNK_HEC }}" \
+            # --splunk-event "${{ github.event_name }}"
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -e 2 ]; then
+            echo "ERROR: Flakeguard encountered an error while aggregating results"
+            echo "ERROR: Flakeguard encountered an error while aggregating results" >> $GITHUB_STEP_SUMMARY
+            exit $EXIT_CODE
+          fi
+
+          # Print out the summary file
+          echo -e "\nFlakeguard Summary:"
+          jq .summary_data ./flakeguard-report/all-test-results.json          
+
+          # Read the summary from the generated report
+          summary=$(jq -c '.summary_data' ./flakeguard-report/all-test-results.json)
+          echo "summary=$summary" >> $GITHUB_OUTPUT
+
+      - name: Upload All Test Results as Artifact
+        if:
+          ${{ (success() || failure()) &&
+          fromJSON(steps.results.outputs.summary).total_tests > 0 }}
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          path: ./flakeguard-report/all-test-results.json
+          name: all-test-results.json
+          retention-days: 90
+
+      - name: Upload Failed Test Results as Artifact
+        if:
+          ${{ (success() || failure()) &&
+          fromJSON(steps.results.outputs.summary).failed_runs > 0 }}
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          path: ./flakeguard-report/failed-test-results.json
+          name: failed-test-results.json
+          retention-days: 90
+
+      - name: Upload Failed Test Results With Logs as Artifact
+        if:
+          ${{ (success() || failure()) &&
+          fromJSON(steps.results.outputs.summary).failed_runs > 0 }}
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          path: ./flakeguard-report/failed-test-results-with-logs.json
+          name: failed-test-results-with-logs.json
+          retention-days: 90
+
+      - name: Generate Flakeguard Reports
+        shell: bash
+        if: success() || failure()
+        id: generate-report
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
+          GH_EVENT_NAME: ${{ github.event_name }}
+          GH_EVENT_PULL_REQUEST_BASE_REF:
+            ${{ github.event.pull_request.base.ref }}
+          GH_EVENT_PULL_REQUEST_HEAD_SHA:
+            ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Fix flakeguard binary path
+          PATH=$PATH:$(go env GOPATH)/bin
+          export PATH
+
+          flakeguard generate-report \
+            --aggregated-results-path ./flakeguard-report/all-test-results.json \
+            --output-path ./flakeguard-report \
+            --github-repository "${{ github.repository }}" \
+            --github-run-id "${{ github.run_id }}" \
+            --failed-tests-artifact-name "failed-test-results-with-logs.json" \
+            --base-branch "$GH_EVENT_PULL_REQUEST_BASE_REF" \
+            --current-branch "${{ github.head_ref }}" \
+            --current-commit-sha "$GH_EVENT_PULL_REQUEST_HEAD_SHA" \
+            --repo-url "https://github.com/${{ github.repository }}" \
+            --action-run-id "${{ github.run_id }}" \
+            --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO"
+                      
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -e 2 ]; then
+            echo "ERROR: Flakeguard encountered an error while generating reports"
+            echo "ERROR: Flakeguard encountered an error while generating reports" >> $GITHUB_STEP_SUMMARY
+            exit $EXIT_CODE
+          fi
+
+      - name: Add Github Summary
+        if: (success() || failure())
+        run: |
+          FILE_SIZE=$(wc -c < ./flakeguard-report/all-test-summary.md)
+                    echo "File size: $FILE_SIZE bytes"
+          SIZE_LIMIT=$((1024 * 1024))
+
+          if [ "$FILE_SIZE" -le "$SIZE_LIMIT" ]; then
+            cat ./flakeguard-report/all-test-summary.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**We found flaky tests, so many flaky tests that the summary is too large for github actions step summaries!**" >> $GITHUB_STEP_SUMMARY
+            echo "**Please see logs, or the attached `all-test-summary.md` artifact**" >> $GITHUB_STEP_SUMMARY
+            cat ./flakeguard-report/all-test-summary.md
+          fi
+
       - name: Download all test result artifacts
         uses: actions/download-artifact@v4.1.8
         with:

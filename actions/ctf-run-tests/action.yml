@@ -171,6 +171,10 @@ inputs:
     description:
       The name of the Kubernetes cluster to be used in the `kubectl`
       configuration for accessing the desired cluster.
+  use_flakeguard:
+    required: false
+    description: Whether to use flakeguard
+    default: "false"
 
 runs:
   using: composite
@@ -295,8 +299,13 @@ runs:
         echo ::add-mask::$BASE64_CONFIG_OVERRIDE
         echo "BASE64_CONFIG_OVERRIDE=$BASE64_CONFIG_OVERRIDE" >> $GITHUB_ENV
 
-    # Run the tests
-    - name: Run Tests
+    - name: Install flakeguard
+      shell: bash
+      run: go install
+        github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@0499b965909d4e1a21589256bededba155549a82 # flakguard@0.1.0
+
+    - name: Run Tests With Flakeguard
+      if: inputs.use_flakeguard == 'true'
       shell: bash
       env:
         CHAINLINK_IMAGE: ${{ inputs.cl_repo }} # TODO: to remove
@@ -310,8 +319,33 @@ runs:
         export PATH
         export TEST_TRIGGERED_BY=${{ inputs.triggered_by }}-${{ github.event.pull_request.number || github.run_id }}
         # Handle bots as users
-        export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}
-        ${{ inputs.test_command_to_run }}
+        export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}      
+
+        flakeguard run \
+          --test-cmd bash \
+          --test-cmd -c \
+          --test-cmd "${{ inputs.test_command_to_run }}" \
+          --run-count=3 \
+          --omit-test-outputs-on-success=true \
+          --output-json=flakeguard_results.json
+
+    # - name: Run Tests
+    #   if: inputs.use_flakeguard != 'true'
+    #   shell: bash
+    #   env:
+    #     CHAINLINK_IMAGE: ${{ inputs.cl_repo }} # TODO: to remove
+    #     CHAINLINK_VERSION: ${{ inputs.cl_image_tag }} # TODO: to remove
+    #     CHAINLINK_ENV_USER: ${{ github.actor }}
+    #     CGO_ENABLED: ${{ inputs.CGO_ENABLED }}
+    #     GO_COVERAGE_SRC_DIR: ${{ inputs.go_coverage_src_dir }}
+    #     GO_COVERAGE_DEST_DIR: ${{ inputs.go_coverage_dest_dir }}
+    #   run: |
+    #     PATH=$PATH:$(go env GOPATH)/bin
+    #     export PATH
+    #     export TEST_TRIGGERED_BY=${{ inputs.triggered_by }}-${{ github.event.pull_request.number || github.run_id }}
+    #     # Handle bots as users
+    #     export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}
+    #     ${{ inputs.test_command_to_run }}
 
     - name: Publish Artifacts
       if: failure()
