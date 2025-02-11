@@ -792,7 +792,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@69eac30499b604099f9b23ab57f124aa2837df7e # ctf-run-tests@v0.5.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ab4796a20912718aac0cb028b35223cbefe1eb7e # ctf-run-tests@v0.5.0
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION:
