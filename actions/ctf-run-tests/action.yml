@@ -302,7 +302,7 @@ runs:
     - name: Install flakeguard
       shell: bash
       run: go install
-        github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@0499b965909d4e1a21589256bededba155549a82 # flakguard@0.1.0
+        github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@17648e7c14ac8f4cae4c6c05edea0d8789a69a81 # flakguard@0.1.0
 
     - name: Run Tests With Flakeguard
       if: inputs.use_flakeguard == 'true'
