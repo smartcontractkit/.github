@@ -343,7 +343,7 @@ runs:
         export PATH
         export TEST_TRIGGERED_BY=${{ inputs.triggered_by }}-${{ github.event.pull_request.number || github.run_id }}
         export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}
-        ${{ inputs.test_command_to_run }}
+        ${{ inputs.test_command_to_run }} 2>&1 | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage -hidepassingtests=false
 
     - name: Publish Artifacts
       if: failure()
