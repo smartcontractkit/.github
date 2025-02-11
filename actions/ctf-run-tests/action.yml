@@ -171,9 +171,9 @@ inputs:
     description:
       The name of the Kubernetes cluster to be used in the `kubectl`
       configuration
-  use_flakeguard:
+  flakeguard_enable:
     required: false
-    description: Whether to run tests with flakeguard
+    description: Whether to run tests with Flakeguard
     default: "false"
   flakeguard_run_count:
     required: false
@@ -301,7 +301,7 @@ runs:
         echo "BASE64_CONFIG_OVERRIDE=$BASE64_CONFIG_OVERRIDE" >> $GITHUB_ENV
 
     - name: Run Tests With Flakeguard
-      if: inputs.use_flakeguard == 'true'
+      if: inputs.flakeguard_enable == 'true'
       shell: bash
       env:
         CHAINLINK_IMAGE: ${{ inputs.cl_repo }} # TODO: to remove
@@ -329,7 +329,7 @@ runs:
           --output-json=flakeguard_results.json
 
     - name: Run Tests Without Flakeguard
-      if: inputs.use_flakeguard != 'true'
+      if: inputs.flakeguard_enable != 'true'
       shell: bash
       env:
         CHAINLINK_IMAGE: ${{ inputs.cl_repo }} # TODO: to remove
