@@ -1180,6 +1180,12 @@ jobs:
     outputs:
       test_results: ${{ steps.set_test_results.outputs.results }}
     steps:
+      # Needed for codeowners in Flakeguard
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
+
       - name: Download Flakeguard artifacts
         uses: actions/download-artifact@v4.1.8
         with:
