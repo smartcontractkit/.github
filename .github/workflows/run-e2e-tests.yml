@@ -1286,13 +1286,11 @@ jobs:
 
           flakeguard generate-report \
             --aggregated-results-path ./flakeguard-report/all-test-results.json \
+            --summary-path ./flakeguard-report/all-test-summary.md \
+            --failed-tests-artifact-name "failed-test-results-with-logs.json" \
             --output-path ./flakeguard-report \
             --github-repository "${{ github.repository }}" \
             --github-run-id "${{ github.run_id }}" \
-            --failed-tests-artifact-name "failed-test-results-with-logs.json" \
-            --base-branch "$GH_EVENT_PULL_REQUEST_BASE_REF" \
-            --current-branch "${{ github.head_ref }}" \
-            --current-commit-sha "$GH_EVENT_PULL_REQUEST_HEAD_SHA" \
             --repo-url "https://github.com/${{ github.repository }}" \
             --action-run-id "${{ github.run_id }}" \
             --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO"
