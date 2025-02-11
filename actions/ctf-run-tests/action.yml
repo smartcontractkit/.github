@@ -178,7 +178,7 @@ inputs:
   flakeguard_run_count:
     required: false
     description: Number of times to re-run tests under flakeguard
-    default: "1"
+    default: "3"
 
 runs:
   using: composite
