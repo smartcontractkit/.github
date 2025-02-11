@@ -1212,9 +1212,7 @@ jobs:
             cl_ref_path="releases"
           fi
 
-          echo "cl_ref=$cl_ref" >> "$GITHUB_OUTPUT"
-          echo "cl_short_ref=$cl_short_ref" >> "$GITHUB_OUTPUT"
-          echo "cl_ref_path=$cl_ref_path" >> "$GITHUB_OUTPUT"
+          { echo "cl_ref=$cl_ref"; echo "cl_short_ref=$cl_short_ref"; echo "cl_ref_path=$cl_ref_path"; } >> "$GITHUB_OUTPUT"
 
       - name: Send Slack notification
         uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # v1.25.0
