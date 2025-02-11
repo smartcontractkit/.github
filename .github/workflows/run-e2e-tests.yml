@@ -1212,14 +1212,8 @@ jobs:
           flakeguard aggregate-results \
             --results-path ./flakeguard_results \
             --output-path ./flakeguard-report \
-            # --repo-path "${{ github.workspace }}" \
             --codeowners-path "${{ github.workspace }}/.github/CODEOWNERS" \
             --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO" \
-            # --github-workflow-name "${{ github.workflow }}" \
-            # --github-workflow-run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            # --splunk-url "${{ secrets.FLAKEGUARD_SPLUNK_ENDPOINT }}" \
-            # --splunk-token "${{ secrets.FLAKEGUARD_SPLUNK_HEC }}" \
-            # --splunk-event "${{ github.event_name }}"
           EXIT_CODE=$?
           if [ $EXIT_CODE -e 2 ]; then
             echo "ERROR: Flakeguard encountered an error while aggregating results"
@@ -1284,8 +1278,8 @@ jobs:
 
           flakeguard generate-report \
             --aggregated-results-path ./flakeguard-report/all-test-results.json \
-            --summary-path ./flakeguard-report/all-test-summary.md \
-            --failed-tests-artifact-name "failed-test-results-with-logs.json" \
+            --summary-path ./flakeguard-report/all-test-summary.json \
+            --failed-tests-artifact-name failed-test-results-with-logs.json \
             --output-path ./flakeguard-report \
             --github-repository "${{ github.repository }}" \
             --github-run-id "${{ github.run_id }}" \
