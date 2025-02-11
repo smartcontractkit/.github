@@ -171,10 +171,16 @@ inputs:
     description:
       The name of the Kubernetes cluster to be used in the `kubectl`
       configuration for accessing the desired cluster.
-  use_flakeguard:
+  extraArgs:
     required: false
-    description: Whether to use flakeguard
-    default: "false"
+    type: string
+    default: "{}"
+    description: "JSON of extra arguments for the GHA."
+
+env:
+  USE_FLAKEGUARD: ${{ fromJSON(inputs.extraArgs)['use_flakeguard'] || 'false' }}
+  FLAKEGUARD_RUN_COUNT:
+    ${{ fromJSON(inputs.extraArgs)['flakeguard_run_count'] || 1 }}
 
 runs:
   using: composite
@@ -305,7 +311,7 @@ runs:
         github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@52911190a0f58bd099abc8aa6fee2cc1b8da97bb # flakguard@0.1.0
 
     - name: Run Tests With Flakeguard
-      if: inputs.use_flakeguard == 'true'
+      if: ${{ env.USE_FLAKEGUARD == 'true' }}
       shell: bash
       env:
         CHAINLINK_IMAGE: ${{ inputs.cl_repo }} # TODO: to remove
@@ -325,11 +331,12 @@ runs:
           --test-cmd bash \
           --test-cmd -c \
           --test-cmd "${{ inputs.test_command_to_run }}" \
-          --run-count=1 \
+          --run-count=${{ env.FLAKEGUARD_RUN_COUNT }} \
           --omit-test-outputs-on-success=true \
           --output-json=flakeguard_results.json
 
     # - name: Run Tests
+    # if: ${{ env.USE_FLAKEGUARD != 'true' }}
     #   if: inputs.use_flakeguard != 'true'
     #   shell: bash
     #   env:
