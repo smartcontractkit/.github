@@ -328,22 +328,22 @@ runs:
           --omit-test-outputs-on-success=true \
           --output-json=flakeguard_results.json
 
-    # - name: Run Tests Without Flakeguard
-    #   if: inputs.use_flakeguard != 'true'
-    #   shell: bash
-    #   env:
-    #     CHAINLINK_IMAGE: ${{ inputs.cl_repo }} # TODO: to remove
-    #     CHAINLINK_VERSION: ${{ inputs.cl_image_tag }} # TODO: to remove
-    #     CHAINLINK_ENV_USER: ${{ github.actor }}
-    #     CGO_ENABLED: ${{ inputs.CGO_ENABLED }}
-    #     GO_COVERAGE_SRC_DIR: ${{ inputs.go_coverage_src_dir }}
-    #     GO_COVERAGE_DEST_DIR: ${{ inputs.go_coverage_dest_dir }}
-    #   run: |
-    #     PATH=$PATH:$(go env GOPATH)/bin
-    #     export PATH
-    #     export TEST_TRIGGERED_BY=${{ inputs.triggered_by }}-${{ github.event.pull_request.number || github.run_id }}
-    #     export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}
-    #     ${{ inputs.test_command_to_run }}
+    - name: Run Tests Without Flakeguard
+      if: inputs.use_flakeguard != 'true'
+      shell: bash
+      env:
+        CHAINLINK_IMAGE: ${{ inputs.cl_repo }} # TODO: to remove
+        CHAINLINK_VERSION: ${{ inputs.cl_image_tag }} # TODO: to remove
+        CHAINLINK_ENV_USER: ${{ github.actor }}
+        CGO_ENABLED: ${{ inputs.CGO_ENABLED }}
+        GO_COVERAGE_SRC_DIR: ${{ inputs.go_coverage_src_dir }}
+        GO_COVERAGE_DEST_DIR: ${{ inputs.go_coverage_dest_dir }}
+      run: |
+        PATH=$PATH:$(go env GOPATH)/bin
+        export PATH
+        export TEST_TRIGGERED_BY=${{ inputs.triggered_by }}-${{ github.event.pull_request.number || github.run_id }}
+        export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}
+        ${{ inputs.test_command_to_run }}
 
     - name: Publish Artifacts
       if: failure()
