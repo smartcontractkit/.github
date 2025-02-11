@@ -792,7 +792,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@725dd141dd77cc87dad420e9484416fc4ae26be2 # ctf-run-tests@v0.5.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@69eac30499b604099f9b23ab57f124aa2837df7e # ctf-run-tests@v0.5.0
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION:
@@ -816,6 +816,7 @@ jobs:
           GITHUB_API_TOKEN:
             ${{ steps.setup-optional-gati-token.outputs.access-token || ''}}
         with:
+          use_flakeguard: "true"
           test_command_to_run:
             ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1
             | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage
@@ -1213,15 +1214,11 @@ jobs:
           flakeguard aggregate-results \
             --results-path ./ci_test_results \
             --output-path ./flakeguard-report \
-            --repo-path "${{ github.workspace }}" \
+            # --repo-path "${{ github.workspace }}" \
             --codeowners-path "${{ github.workspace }}/.github/CODEOWNERS" \
             --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO" \
-            --repo-url "$GH_INPUTS_REPO_URL" \
-            --branch-name "$current_branch_name" \
-            --base-sha "${{ needs.get-tests.outputs.git_base_sha }}" \
-            --head-sha "${{ needs.get-tests.outputs.git_head_sha }}" \
-            --github-workflow-name "${{ github.workflow }}" \
-            --github-workflow-run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            # --github-workflow-name "${{ github.workflow }}" \
+            # --github-workflow-run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             # --splunk-url "${{ secrets.FLAKEGUARD_SPLUNK_ENDPOINT }}" \
             # --splunk-token "${{ secrets.FLAKEGUARD_SPLUNK_HEC }}" \
             # --splunk-event "${{ github.event_name }}"
