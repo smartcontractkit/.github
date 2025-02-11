@@ -1231,7 +1231,7 @@ jobs:
             --codeowners-path "${{ github.workspace }}/.github/CODEOWNERS" \
             --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO" \
           EXIT_CODE=$?
-          if [ $EXIT_CODE -e 2 ]; then
+          if [ $EXIT_CODE -eq 2 ]; then
             echo "ERROR: Flakeguard encountered an error while aggregating results"
             echo "ERROR: Flakeguard encountered an error while aggregating results" >> $GITHUB_STEP_SUMMARY
             exit $EXIT_CODE
@@ -1304,7 +1304,7 @@ jobs:
             --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO"
                       
           EXIT_CODE=$?
-          if [ $EXIT_CODE -e 2 ]; then
+          if [ $EXIT_CODE -eq 2 ]; then
             echo "ERROR: Flakeguard encountered an error while generating reports"
             echo "ERROR: Flakeguard encountered an error while generating reports" >> $GITHUB_STEP_SUMMARY
             exit $EXIT_CODE
