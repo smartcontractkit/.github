@@ -1,5 +1,13 @@
 # beholder-pulumi-deploy-schema
 
+## 1.1.0
+
+### Minor Changes
+
+- [#878](https://github.com/smartcontractkit/.github/pull/878)
+  [`8d2fa37`](https://github.com/smartcontractkit/.github/commit/8d2fa37586273116fbdf9ee487e1165a6a228dc1)
+  Thanks [@nanchano](https://github.com/nanchano)! - Update ECR image name
+
 ## 1.0.0
 
 ### Major Changes
