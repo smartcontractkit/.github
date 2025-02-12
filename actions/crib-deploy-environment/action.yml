@@ -155,7 +155,7 @@ runs:
         REPO_NAME=$(basename "$GITHUB_REPOSITORY")
         BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
 
-        echo "devspace-namespace=${NS_NAME_PREFIX}-$(uuidgen | cut -c1-5)" | tee -a "$GITHUB_OUTPUT"
+        echo "devspace-namespace=${NS_NAME_PREFIX}-$(uuidgen | cut -c1-6)" | tee -a "$GITHUB_OUTPUT"
         echo "pr-number=${PR_NUMBER}" | tee -a "$GITHUB_OUTPUT"
         echo "workflow-job=${WORKFLOW_JOB}" | tee -a "$GITHUB_OUTPUT"
         echo "repo-name=${REPO_NAME}" | tee -a "$GITHUB_OUTPUT"
