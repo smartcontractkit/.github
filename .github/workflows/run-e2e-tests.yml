@@ -305,6 +305,16 @@ jobs:
       aws_test_secrets_key:
         ${{ steps.check-inputs.outputs.aws_test_secrets_key }}
     steps:
+      - name: Upload Flakeguard test results as artifact
+        if: ${{ env.FLAKEGUARD_ENABLE == 'true' }}
+        run: |
+          if [ "${FLAKEGUARD_ENABLE}" = "true" ]; then
+            echo "Uploading artifact..."
+            # do the upload
+          else
+            echo "Skipping artifact upload."
+          fi
+
       - name: Check input conditions
         id: check-inputs
         env:
