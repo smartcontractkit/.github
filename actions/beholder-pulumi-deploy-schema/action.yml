@@ -36,8 +36,8 @@ runs:
     - name: Pull container image
       shell: bash
       run: |
-        docker pull ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-beholder-pulumi:qa-latest
-        docker tag ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-beholder-pulumi:qa-latest atlas-beholder-pulumi
+        docker pull ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/beholder-pulumi:qa-latest
+        docker tag ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/beholder-pulumi:qa-latest beholder-pulumi
 
     - name: Deploy schema
       shell: bash
@@ -59,7 +59,7 @@ runs:
           -e PULUMI_CONFIG_PASSPHRASE=${PULUMI_CONFIG_PASSPHRASE} \
           -e KAFKA_REST_KEY=${KAFKA_REST_KEY} \
           -e KAFKA_REST_SECRET=${KAFKA_REST_SECRET} \
-          atlas-beholder-pulumi beholder-pulumi deploy-schemas
+          beholder-pulumi beholder-pulumi deploy-schemas
       env:
         CONFLUENT_CLOUD_API_KEY: ${{ env.CONFLUENT_CLOUD_API_KEY }}
         CONFLUENT_CLOUD_API_SECRET: ${{ env.CONFLUENT_CLOUD_API_SECRET }}
