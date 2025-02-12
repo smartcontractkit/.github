@@ -305,16 +305,6 @@ jobs:
       aws_test_secrets_key:
         ${{ steps.check-inputs.outputs.aws_test_secrets_key }}
     steps:
-      - name: Upload Flakeguard test results as artifact
-        if: ${{ env.FLAKEGUARD_ENABLE == 'true' }}
-        run: |
-          if [ "${FLAKEGUARD_ENABLE}" = "true" ]; then
-            echo "Uploading artifact..."
-            # do the upload
-          else
-            echo "Skipping artifact upload."
-          fi
-
       - name: Check input conditions
         id: check-inputs
         env:
@@ -934,7 +924,7 @@ jobs:
           retention-days: 1
 
       - name: Upload Flakeguard test results as artifact
-        if: ${{ env.FLAKEGUARD_ENABLE == 'true' }}
+        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         uses: actions/upload-artifact@v4.4.3
         with:
           name:
@@ -1198,13 +1188,13 @@ jobs:
     steps:
       # Needed for codeowners in Flakeguard
       - name: Checkout repository
-        if: ${{ env.FLAKEGUARD_ENABLE == 'true' }}
+        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         uses: actions/checkout@v4.2.1
         with:
           persist-credentials: false
 
       - name: Download Flakeguard artifacts
-        if: ${{ env.FLAKEGUARD_ENABLE == 'true' }}
+        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         uses: actions/download-artifact@v4.1.8
         with:
           path: flakeguard_results
@@ -1213,13 +1203,13 @@ jobs:
             needs.load-test-configurations.outputs.workflow_id }}_*
 
       - name: Install flakeguard
-        if: ${{ env.FLAKEGUARD_ENABLE == 'true' }}
+        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         shell: bash
         run: go install
           github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@ee2ff566e22a8d5ecee7e490cbfc6780d144b4a8 # flakguard@0.1.0
 
       - name: Aggregate Flakeguard Results
-        if: ${{ env.FLAKEGUARD_ENABLE == 'true' }}
+        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         id: results
         shell: bash
         env:
