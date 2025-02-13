@@ -1,5 +1,14 @@
 # cicd-build-publish-artifacts-go
 
+## 0.4.0
+
+### Minor Changes
+
+- [#870](https://github.com/smartcontractkit/.github/pull/870)
+  [`222afc0`](https://github.com/smartcontractkit/.github/commit/222afc0601b7d6c298f90b82c6267d8c214595a9)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Bumping the
+  goreleaser GHA version to v6.2.1
+
 ## 0.3.1
 
 ### Patch Changes

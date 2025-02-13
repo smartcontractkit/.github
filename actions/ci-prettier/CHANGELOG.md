@@ -1,5 +1,14 @@
 # ci-prettier
 
+## 0.1.4
+
+### Patch Changes
+
+- [#874](https://github.com/smartcontractkit/.github/pull/874)
+  [`10eec2c`](https://github.com/smartcontractkit/.github/commit/10eec2c8de39f8db81873d8a3025129f85d67b61)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump setup-nodejs
+  dependency to v0.2.3
+
 ## 0.1.3
 
 ### Patch Changes

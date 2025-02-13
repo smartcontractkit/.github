@@ -1,0 +1,51 @@
+name: Setup Postgresql
+description:
+  Setup postgres docker container via docker-compose, allowing usage of a custom
+  command, see https://github.com/orgs/community/discussions/26688
+inputs:
+  print-logs:
+    description: |
+      Whether to print the logs of the postgres service to the console and a file.
+      Note: This action should be called first without this input set.
+    required: false
+    default: ""
+  print-logs-path:
+    description: |
+      The directory to print the logs to.
+      Note: This input does nothing if `print-logs` is not set to true.
+    default: ${{ github.workspace }}
+
+outputs:
+  database-url:
+    description: The URL to connect to the postgres database
+    value: "postgresql://postgres:postgres@localhost:5432/chainlink_test?sslmode=disable"
+
+runs:
+  using: composite
+  steps:
+    - name: Print Inputs
+      shell: bash
+      run: |
+        echo "print-logs: ${{ inputs.print-logs }}"
+        echo "print-logs-path: ${{ inputs.print-logs-path }}"
+
+    - name: Start postgres service
+      if: ${{ inputs.print-logs != 'true' }}
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: docker compose up -d
+
+    - name: Wait for postgres service to be healthy
+      if: ${{ inputs.print-logs != 'true' }}
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: ./wait-for-healthy-postgres.sh
+
+    - name: Print logs
+      if: ${{ inputs.print-logs == 'true' }}
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        LOGS_PATH: ${{ inputs.print-logs-path }}
+      run: |
+        docker compose logs postgres | tee $LOGS_PATH/postgres_logs.txt

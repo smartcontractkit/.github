@@ -1,7 +1,7 @@
 {
-  "name": "setup-gap",
-  "version": "4.0.1",
-  "description": "setup github actions proxy",
+  "name": "setup-postgres",
+  "version": "0.1.0",
+  "description": "",
   "private": true,
   "scripts": {},
   "author": "@smartcontractkit",

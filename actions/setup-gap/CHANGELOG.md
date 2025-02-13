@@ -1,5 +1,14 @@
 # setup-gap
 
+## 4.0.1
+
+### Patch Changes
+
+- [#867](https://github.com/smartcontractkit/.github/pull/867)
+  [`5518299`](https://github.com/smartcontractkit/.github/commit/5518299de5c13d9fb9bf7f57122ae2fa78cccfa1)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Fixing the hostname
+  matching pattern in the LUA script.
+
 ## 4.0.0
 
 ### Major Changes
