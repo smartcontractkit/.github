@@ -61,19 +61,29 @@ inputs:
   gati_token:
     required: false
     description: Token provided by GATI to pull from private repos
+  enable-gap:
+    required: false
+    default: "true"
+    description: Configure and enable GAP for accessing internal services.
   main-dns-zone:
-    required: true
+    required: false
+    default: ""
     description:
       The primary DNS zone used in the hostname of the Kubernetes API endpoint.
-  k8s-cluster-name:
-    required: true
-    description:
-      The name of the Kubernetes cluster to be used in the `kubectl`
-      configuration for accessing the desired cluster.
+      Required if GAP is enabled.
 
 runs:
   using: composite
   steps:
+    - name: Validate GAP inputs
+      shell: bash
+      if: inputs.enable-gap == 'true'
+      run: |
+        if [ -z "${{ inputs.main-dns-zone }}" ]; then
+          echo "Error: main-dns-zone is required when enable-gap is true."
+          exit 1
+        fi
+
     # Go setup and caching
     - name: Setup Go
       if: inputs.go_necessary == 'true'
@@ -99,15 +109,15 @@ runs:
         mask-aws-account-id: true
 
     - name: Configure local GAP proxy for accessing (Kubernetes) services
-      uses: smartcontractkit/.github/actions/setup-gap@b969c2d42c15e937e2f94cc0e050f39cd5369f4f # setup-gap@4.0.0
+      uses: smartcontractkit/.github/actions/setup-gap@858d6785a9cce58359f5d6f9481902f2d0a331ac # setup-gap@4.0.1
+      if: inputs.enable-gap == 'true'
       with:
         aws-role-duration-seconds: 3600 # 1 hour
         aws-role-arn: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
         aws-region: ${{ inputs.QA_AWS_REGION }}
-        k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
         gap-name: k8s
         use-k8s: true
-        proxy-port: 8080
+        proxy-port: 9339
         main-dns-zone: ${{ inputs.main-dns-zone }}
 
     # Login to AWS ECR registries if needed
