@@ -1206,6 +1206,10 @@ jobs:
             cl_ref_path="releases"
           fi
 
+          echo "References to use in Slack message:"
+          echo "chainlink version: $cl_ref"
+          echo "chainlink version short: $cl_short_ref"
+          echo "reference path: $cl_ref_path"
           { echo "cl_ref=$cl_ref"; echo "cl_short_ref=$cl_short_ref"; echo "cl_ref_path=$cl_ref_path"; } >> "$GITHUB_OUTPUT"
 
       - name: Send Slack notification
