@@ -73,6 +73,7 @@ inputs:
       Required if GAP is enabled.
   k8s-cluster-name:
     required: false
+    default: ""
     description:
       The name of the Kubernetes cluster to be used in the `kubectl`
       configuration for accessing the desired cluster.
