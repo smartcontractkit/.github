@@ -312,7 +312,7 @@ runs:
         GO_COVERAGE_DEST_DIR: ${{ inputs.go_coverage_dest_dir }}
       run: |
         # Install Flakeguard
-        go install github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@c52228d3b2c01826062f1aa1512a514a35c7fb16
+        go install github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@8aeea5ccf0e4d782b3e3318ce54c468efece988f
         PATH=$PATH:$(go env GOPATH)/bin
         export PATH
 
