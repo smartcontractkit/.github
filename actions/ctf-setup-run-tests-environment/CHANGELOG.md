@@ -1,5 +1,14 @@
 # ctf-setup-run-tests-environment
 
+## 0.5.0
+
+### Minor Changes
+
+- [#882](https://github.com/smartcontractkit/.github/pull/882)
+  [`60ed27a`](https://github.com/smartcontractkit/.github/commit/60ed27af8c77afa04e4becc4af89eaae7875b74f)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Improving the
+  inputs and GAP configuration.
+
 ## 0.4.0
 
 ### Minor Changes
