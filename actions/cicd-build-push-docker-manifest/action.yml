@@ -96,7 +96,7 @@ runs:
       with:
         cosign-release: "v2.4.2"
 
-    - name: Sign the published root Docker image using GH OIDC
+    - name: Sign Docker Manifest using GH OIDC
       if: inputs.docker-manifest-sign == 'true'
       shell: sh
       env:
