@@ -177,6 +177,13 @@ on:
         required: false
         type: boolean
         default: false
+      collect_test_telemetry:
+        description:
+          'Set to "true" to collect telemetry data for E2E tests, helpful for
+          debugging resource issues.'
+        required: false
+        type: boolean
+        default: false
       team:
         description: "Team to run the tests for (e.g. BIX, CCIP)"
         required: false
@@ -280,9 +287,6 @@ env:
   E2E_RMN_AFN2PROXY_IMAGE:
     ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
     secrets.AWS_REGION}}.amazonaws.com/afn2proxy
-
-  COLLECT_TEST_TELEMETRY: ${{
-    fromJSON(inputs.extraArgs)['collect_test_telemetry'] || 'false' }} # Set to "true" to collect telemetry data for E2E tests
 
   FLAKEGUARD_ENABLE:
     ${{ fromJSON(inputs.extraArgs)['flakeguard_enable'] || 'false' }}
@@ -688,7 +692,7 @@ jobs:
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
     steps:
       - name: Collect Test Telemetry
-        if: ${{ env.COLLECT_TEST_TELEMETRY == 'true' }}
+        if: inputs.collect_test_telemetry
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
@@ -1036,7 +1040,7 @@ jobs:
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
     steps:
       - name: Collect Test Telemetry
-        if: ${{ env.COLLECT_TEST_TELEMETRY == 'true' }}
+        if: inputs.collect_test_telemetry
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
