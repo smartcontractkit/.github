@@ -19,12 +19,6 @@ on:
           develop or commit sha"
         required: false
         type: string
-      chainlink_upgrade_version:
-        description:
-          "Enter Chainlink version to use for the upgrade tests. Example:
-          v2.10.0, develop or commit sha"
-        required: false
-        type: string
       test_path:
         description:
           "Path to the YAML test configuration file. Example:
@@ -268,7 +262,7 @@ env:
     inputs.chainlink_version) }}
   DEFAULT_CHAINLINK_UPGRADE_VERSION: ${{ inputs.chainlink_version }}
   CHAINLINK_ENV_USER: ${{ github.actor }}
-  CHAINLINK_COMMIT_SHA: ${{ github.sha }}
+  CHAINLINK_COMMIT_SHA: ${{ inputs.chainlink_version }}
   MOD_CACHE_VERSION: 1
   TEST_LOG_LEVEL: ${{ inputs.test_log_level }}
   METRICS_COLLECTION_ID: chainlink-e2e-tests
@@ -349,15 +343,12 @@ jobs:
         run: |
           image_versions="$REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR"
           default_version="${{ env.DEFAULT_CHAINLINK_VERSION }}"
-          current_sha="${{ github.sha }}"
 
-          if [[ "$default_version" == "$current_sha" ]]; then
-            # Append the current SHA to required image versions
-            if [[ -z "$image_versions" ]]; then
-              image_versions="${{ github.sha }}"
-            else
-              image_versions+=",${{ github.sha }}"
-            fi
+          # Append the default_version to required image versions
+          if [[ -z "$image_versions" ]]; then
+            image_versions="$default_version"
+          else
+            image_versions+=",$default_version"
           fi
 
           # Convert the comma-separated string to a JSON array
@@ -387,6 +378,7 @@ jobs:
         uses: actions/checkout@v4.2.1
         with:
           persist-credentials: false
+          ref: ${{ inputs.chainlink_version }}
       - name: Install citool
         shell: bash
         run: go install
@@ -436,6 +428,7 @@ jobs:
         uses: actions/checkout@v4.2.1
         with:
           persist-credentials: false
+          ref: ${{ inputs.chainlink_version }}
       - name: Setup Go
         uses: actions/setup-go@v5.0.2
         with:
@@ -605,6 +598,7 @@ jobs:
         uses: actions/checkout@v4.2.1
         with:
           persist-credentials: false
+          ref: ${{ inputs.chainlink_version }}
 
       - name: Get Chainlink image
         uses: ./.github/actions/build-chainlink-image
@@ -644,6 +638,7 @@ jobs:
         uses: actions/checkout@v4.2.1
         with:
           persist-credentials: false
+          ref: ${{ inputs.chainlink_version }}
 
       - name: Get Chainlink plugins image
         uses: ./.github/actions/build-chainlink-image
@@ -698,6 +693,7 @@ jobs:
         uses: actions/checkout@v4.2.1
         with:
           persist-credentials: false
+          ref: ${{ inputs.chainlink_version }}
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -706,7 +702,7 @@ jobs:
         shell: bash
         run: |
           echo "### Test config override path" >> "$GITHUB_STEP_SUMMARY"
-          echo "[${{ env.TEST_CONFIG_OVERRIDE_PATH }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/${{ github.sha }}/${{ env.TEST_CONFIG_OVERRIDE_PATH }})" >> "$GITHUB_STEP_SUMMARY"
+          echo "[${{ env.TEST_CONFIG_OVERRIDE_PATH }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/${{ inputs.chainlink_version }}/${{ env.TEST_CONFIG_OVERRIDE_PATH }})" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Show chainlink version in summary
         if:
@@ -1053,7 +1049,7 @@ jobs:
         if: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
         run: |
           echo "### Test config override path" >> "$GITHUB_STEP_SUMMARY"
-          echo "[${{ env.TEST_CONFIG_OVERRIDE_PATH }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/${{ github.sha }}/${{ env.TEST_CONFIG_OVERRIDE_PATH }})" >> "$GITHUB_STEP_SUMMARY"
+          echo "[${{ env.TEST_CONFIG_OVERRIDE_PATH }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/${{ inputs.chainlink_version }}/${{ env.TEST_CONFIG_OVERRIDE_PATH }})" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Show chainlink version in summary
         if:
@@ -1354,12 +1350,25 @@ jobs:
             echo "results=[]" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Set short SHA
-        id: set_short_sha
+      - name: Set Slack references
+        id: set_slack_references
         shell: bash
-        run:
-          echo "short_sha=$(echo ${{ github.sha }} | cut -c1-7)" >>
-          "$GITHUB_OUTPUT"
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            cl_ref="${{github.event.pull_request.head.sha }}"
+            cl_short_ref="$(echo ${{github.event.pull_request.head.sha }} | cut -c1-7)"
+            cl_ref_path="commit"
+          elif [ "$GITHUB_EVENT_NAME" = "merge_queue" ]; then
+            cl_ref="${{ github.event.merge_group.head_sha }}"
+            cl_short_ref="$(echo ${{ github.event.merge_group.head_sha }} | cut -c1-7)"
+            cl_ref_path="commit"
+          elif [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            cl_ref="${{ github.ref_name }}"
+            cl_short_ref="${{ github.ref_name }}"
+            cl_ref_path="releases"
+          fi
+
+          { echo "cl_ref=$cl_ref"; echo "cl_short_ref=$cl_short_ref"; echo "cl_ref_path=$cl_ref_path"; } >> "$GITHUB_OUTPUT"
 
       - name: Send Slack notification
         uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # v1.25.0
@@ -1392,7 +1401,7 @@ jobs:
                       "type": "section",
                       "text": {
                         "type": "mrkdwn",
-                        "text": "${{ github.ref_name }} | <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ steps.set_short_sha.outputs.short_sha }}> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+                        "text": "${{ steps.set_slack_references.outputs.cl_ref }} | <${{ github.server_url }}/${{ github.repository }}/${{ steps.set_slack_references.outputs.cl_ref_path }} /${{ steps.set_slack_references.outputs.cl_ref }}|${{ steps.set_slack_references.outputs.cl_short_ref }}> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
                       }
                     }
                   ]
