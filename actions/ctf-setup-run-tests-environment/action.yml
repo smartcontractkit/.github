@@ -71,6 +71,11 @@ inputs:
     description:
       The primary DNS zone used in the hostname of the Kubernetes API endpoint.
       Required if GAP is enabled.
+  k8s-cluster-name:
+    required: false
+    description:
+      The name of the Kubernetes cluster to be used in the `kubectl`
+      configuration for accessing the desired cluster.
 
 runs:
   using: composite
@@ -83,7 +88,10 @@ runs:
           echo "Error: main-dns-zone is required when enable-gap is true."
           exit 1
         fi
-
+        if [ -z "${{ inputs.k8s-cluster-name }}" ]; then
+          echo "Error: k8s-cluster-name is required when enable-gap is true."
+          exit 1
+        fi
     # Go setup and caching
     - name: Setup Go
       if: inputs.go_necessary == 'true'
@@ -112,13 +120,14 @@ runs:
       uses: smartcontractkit/.github/actions/setup-gap@858d6785a9cce58359f5d6f9481902f2d0a331ac # setup-gap@4.0.1
       if: inputs.enable-gap == 'true'
       with:
-        aws-role-duration-seconds: 3600 # 1 hour
-        aws-role-arn: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
         aws-region: ${{ inputs.QA_AWS_REGION }}
+        aws-role-arn: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
+        aws-role-duration-seconds: 3600 # 1 hour
         gap-name: k8s
-        use-k8s: true
-        proxy-port: 9339
+        k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
         main-dns-zone: ${{ inputs.main-dns-zone }}
+        proxy-port: 9339
+        use-k8s: true
 
     # Login to AWS ECR registries if needed
     - name: Login to Amazon ECR
