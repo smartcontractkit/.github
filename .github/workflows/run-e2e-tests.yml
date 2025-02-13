@@ -797,7 +797,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@8009d55536fa30c336bb9775a32705eed21b0ecf # ctf-run-tests@v0.5.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@5ae98c22b73e6fc8f4fc7f490b734373401d3b05 # ctf-run-tests@v0.5.0
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION:
@@ -1206,7 +1206,7 @@ jobs:
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@c52228d3b2c01826062f1aa1512a514a35c7fb16 # flakguard@0.1.0
+          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@8aeea5ccf0e4d782b3e3318ce54c468efece988f # flakguard@0.1.0
 
       - name: Aggregate Flakeguard Results
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
