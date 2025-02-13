@@ -39,7 +39,7 @@ inputs:
     # See: https://docs.docker.com/reference/cli/docker/buildx/build/#platform
     description:
       "Platform for the docker image, e.g. linux/amd64 or linux/arm64"
-    required: false
+    required: true
   # aws inputs
   aws-region:
     description:
