@@ -1239,10 +1239,10 @@ jobs:
 
           # Print out the summary file
           echo -e "\nFlakeguard Summary:"
-          jq '.' ./flakeguard-report/all-test-summary.json
+          jq .summary_data ./flakeguard-report/all-test-results.json          
 
           # Read the summary from the generated report
-          summary=$(jq -c '.' ./flakeguard-report/all-test-summary.json)
+          summary=$(jq -c '.summary_data' ./flakeguard-report/all-test-results.json)
           echo "summary=$summary" >> $GITHUB_OUTPUT
 
       - name: Upload All Test Results as Artifact
@@ -1294,7 +1294,6 @@ jobs:
 
           flakeguard generate-report \
             --aggregated-results-path ./flakeguard-report/all-test-results.json \
-            --summary-path ./flakeguard-report/all-test-summary.json \
             --failed-tests-artifact-name failed-test-results-with-logs.json \
             --output-path ./flakeguard-report \
             --github-repository "${{ github.repository }}" \
