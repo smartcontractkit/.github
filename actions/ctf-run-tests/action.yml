@@ -162,15 +162,23 @@ inputs:
   gati_token:
     required: false
     description: Token provided by GATI to pull from private repos
+  enable-gap:
+    required: false
+    default: "true"
+    description: Configure and enable GAP for accessing internal services.
   main-dns-zone:
-    required: true
+    required: false
+    default: ""
     description:
       The primary DNS zone used in the hostname of the Kubernetes API endpoint.
+      Required if GAP is enabled.
   k8s-cluster-name:
-    required: true
+    required: false
+    default: ""
     description:
       The name of the Kubernetes cluster to be used in the `kubectl`
-      configuration for accessing the desired cluster.
+      configuration for accessing the desired cluster. Required if GAP is
+      enabled.
 
 runs:
   using: composite
@@ -178,7 +186,7 @@ runs:
     # Setup Tools and libraries
     - name: Setup environment
       if: inputs.run_setup == 'true'
-      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@4ff522b1aef76519d2ced17b5d052927754fd34b # ctf-setup-run-tests-environment@v0.2.1
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@c32b6dd129369d01ec0037256698baf825e53d78 # ctf-setup-run-tests-environment@v0.5.0
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
@@ -197,6 +205,7 @@ runs:
         gati_token: ${{ inputs.gati_token }}
         main-dns-zone: ${{ inputs.main-dns-zone }}
         k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+        enable-gap: ${{ inputs.enable-gap }}
 
     - name: Replace chainlink/integration-tests deps
       if: ${{ inputs.dep_chainlink_integration_tests }}
