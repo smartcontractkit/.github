@@ -6,8 +6,8 @@ inputs:
   cosign-oidc-identity:
     description:
       "OIDC issuer for cosign. Example:
-      https://github.com/smartcontractkit/chainlink/.github/workflows/build-publish.yml@${{
-      github.ref }}"
+      https://github.com/smartcontractkit/chainlink/.github/workflows/build-publish.yml@<git
+      ref>"
     required: false
   cosign-oidc-issuer:
     description: "OIDC issuer for cosign"
@@ -35,10 +35,6 @@ inputs:
 
       Example:
         public.ecr.aws/chainlink/chainlink@sha256:abc123,public.ecr.aws/chainlink/chainlink@sha256:def456
-  context:
-    description:
-      "Build's context is the set of files located in the specified PATH or URL"
-    required: false
   # aws inputs
   aws-region:
     description:
