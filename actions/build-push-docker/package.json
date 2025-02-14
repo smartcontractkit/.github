@@ -1,5 +1,5 @@
 {
-  "name": "cicd-build-push-docker",
+  "name": "build-push-docker",
   "version": "0.0.0",
   "description": "",
   "private": true,

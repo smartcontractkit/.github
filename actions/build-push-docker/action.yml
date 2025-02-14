@@ -1,7 +1,7 @@
-name: cicd-build-push-docker
+name: build-push-docker
 description: |
   Reusable action to build and create docker image artifacts for a specific
-  platform. Use this with the `cicd-build-push-docker-manifest` action to create
+  platform. Use this with the `build-push-docker-manifest` action to create
   a Docker image manifest for multi-platform support and to publish images.
 inputs:
   # general inputs

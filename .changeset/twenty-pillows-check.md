@@ -1,5 +1,5 @@
 ---
-"cicd-build-push-docker": minor
+"build-push-docker": minor
 ---
 
-Create cicd-build-push-docker composite workflow
+Create build-push-docker composite workflow

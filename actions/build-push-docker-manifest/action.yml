@@ -1,7 +1,7 @@
-name: cicd-build-push-docker-manifest
+name: build-push-docker-manifest
 description: |
   Reusable action to create docker manifest for multi-platform. Use this after
-  the `cicd-build-push-docker` action to create and push the manifest.
+  the `build-push-docker` action to create and push the manifest.
 inputs:
   cosign-oidc-identity:
     description:

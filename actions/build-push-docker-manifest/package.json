@@ -1,5 +1,5 @@
 {
-  "name": "cicd-build-push-docker-manifest",
+  "name": "build-push-docker-manifest",
   "version": "0.0.0",
   "description": "",
   "private": true,
