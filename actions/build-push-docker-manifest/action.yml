@@ -49,6 +49,14 @@ inputs:
     description: "AWS role ARN for pushing docker image"
     required: true
 
+outputs:
+  manifest-name-digest:
+    description: "Full manifest name suffixed with @sha256:<sha> digest."
+    value: ${{ steps.create-push-docker-manifest.outputs.manifest-name-digest }}
+  manifest-name-tag:
+    description: "Full manifest name suffixed with tag."
+    value: ${{ steps.create-push-docker-manifest.outputs.manifest-name-tag }}
+
 runs:
   using: composite
   steps:
@@ -76,15 +84,20 @@ runs:
       id: create-push-docker-manifest
       shell: bash
       env:
-        DOCKER_TAG:
+        DOCKER_MANIFEST_TAG:
           ${{ format('{0}:{1}', inputs.docker-manifest-name,
           inputs.docker-manifest-tag) }}
+        DOCKER_MANIFEST_NAME: ${{ inputs.docker-manifest-name }}
         DOCKER_IMAGE_NAME_DIGESTS: ${{ inputs.docker-image-name-digests }}
       run: |
         # Convert comma-separated list into array and pass as separate arguments
         IFS=',' read -ra DIGESTS <<< "$DOCKER_IMAGE_NAME_DIGESTS"
-        docker buildx imagetools create --tag "${DOCKER_TAG}" "${DIGESTS[@]}"
-        echo "docker-tag=${DOCKER_TAG}" | tee -a "${GITHUB_OUTPUT}"
+        docker buildx imagetools create --tag "${DOCKER_MANIFEST_TAG}" "${DIGESTS[@]}"
+
+        echo "manifest-name-tag=${DOCKER_MANIFEST_TAG}" | tee -a "${GITHUB_OUTPUT}"
+        # Get manifest digest (format: sha256:hash)
+        MANIFEST_DIGEST=$(docker buildx imagetools inspect "${DOCKER_MANIFEST_TAG}" | grep -m1 'Digest:' | awk '{print $2}')
+        echo "manifest-name-digest=${DOCKER_MANIFEST_NAME}@${MANIFEST_DIGEST}" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Install cosign
       if: inputs.docker-manifest-sign == 'true'
@@ -96,8 +109,9 @@ runs:
       if: inputs.docker-manifest-sign == 'true'
       shell: sh
       env:
-        DOCKER_TAG: ${{ steps.create-push-docker-manifest.outputs.docker-tag }}
-      run: cosign sign "${DOCKER_TAG}" --yes
+        MANIFEST_NAME_DIGEST:
+          ${{ steps.create-push-docker-manifest.outputs.manifest-name-digest }}
+      run: cosign sign "${MANIFEST_NAME_DIGEST}" --yes
 
     - name: Verify Docker image signature
       if:
@@ -105,10 +119,11 @@ runs:
         ''
       shell: sh
       env:
-        DOCKER_TAG: ${{ steps.create-push-docker-manifest.outputs.docker-tag }}
+        MANIFEST_NAME_DIGEST:
+          ${{ steps.create-push-docker-manifest.outputs.manifest-name-digest }}
         OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
         OIDC_IDENTITY: ${{ inputs.cosign-oidc-identity }}
       run: |
-        cosign verify "${DOCKER_TAG}" \
+        cosign verify "${MANIFEST_NAME_DIGEST}" \
           --certificate-oidc-issuer "${OIDC_ISSUER}" \
           --certificate-identity "${OIDC_IDENTITY}"
