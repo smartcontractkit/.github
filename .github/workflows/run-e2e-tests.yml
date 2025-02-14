@@ -1193,7 +1193,7 @@ jobs:
         shell: bash
         run: |
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
-            cl_ref="${{github.event.pull_request.head.sha }}"
+            cl_ref="${{ github.event.pull_request.head.sha }}"
             cl_short_ref="$(echo ${{github.event.pull_request.head.sha }} | cut -c1-7)"
             cl_ref_path="commit"
           elif [ "$GITHUB_EVENT_NAME" = "merge_queue" ]; then
@@ -1204,8 +1204,10 @@ jobs:
             cl_ref="${{ github.ref_name }}"
             cl_short_ref="${{ github.ref_name }}"
             cl_ref_path="releases"
-          else
-            echo "Unsupported Github ref type: $GITHUB_REF_TYPE. Treating it as a commit"
+          fi
+
+          if [ -z "$cl_ref" ] || [ -z "$cl_short_ref" ]; then
+            echo "Could not find a valid reference to use in Slack message. Will fallback to github.sha."
             cl_ref="${{ github.sha }}"
             cl_short_ref="$(echo ${{ github.sha }} | cut -c1-7)"
             cl_ref_path="commit"
@@ -1219,11 +1221,11 @@ jobs:
 
       - name: Send Slack notification
         uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # v1.25.0
-        # if:
-        #   ${{ inputs.slack_notification_after_tests == 'true' ||
-        #   inputs.slack_notification_after_tests == 'always' ||
-        #   (inputs.slack_notification_after_tests == 'on_failure' &&
-        #   contains(join(needs.*.result, ','), 'failure')) }}
+        if:
+          ${{ inputs.slack_notification_after_tests == 'true' ||
+          inputs.slack_notification_after_tests == 'always' ||
+          (inputs.slack_notification_after_tests == 'on_failure' &&
+          contains(join(needs.*.result, ','), 'failure')) }}
         id: slack
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
