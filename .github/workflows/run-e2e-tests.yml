@@ -1204,6 +1204,11 @@ jobs:
             cl_ref="${{ github.ref_name }}"
             cl_short_ref="${{ github.ref_name }}"
             cl_ref_path="releases"
+          else
+            echo "Unsupported Github ref type: $GITHUB_REF_TYPE. Treating it as a commit"
+            cl_ref="${{ github.sha }}"
+            cl_short_ref="$(echo ${{ github.sha }} | cut -c1-7)"
+            cl_ref_path="commit"
           fi
 
           echo "References to use in Slack message:"
@@ -1214,11 +1219,11 @@ jobs:
 
       - name: Send Slack notification
         uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # v1.25.0
-        if:
-          ${{ inputs.slack_notification_after_tests == 'true' ||
-          inputs.slack_notification_after_tests == 'always' ||
-          (inputs.slack_notification_after_tests == 'on_failure' &&
-          contains(join(needs.*.result, ','), 'failure')) }}
+        # if:
+        #   ${{ inputs.slack_notification_after_tests == 'true' ||
+        #   inputs.slack_notification_after_tests == 'always' ||
+        #   (inputs.slack_notification_after_tests == 'on_failure' &&
+        #   contains(join(needs.*.result, ','), 'failure')) }}
         id: slack
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -1243,7 +1248,7 @@ jobs:
                       "type": "section",
                       "text": {
                         "type": "mrkdwn",
-                        "text": "${{ steps.set_slack_references.outputs.cl_ref }} | <${{ github.server_url }}/${{ github.repository }}/${{ steps.set_slack_references.outputs.cl_ref_path }} /${{ steps.set_slack_references.outputs.cl_ref }}|${{ steps.set_slack_references.outputs.cl_short_ref }}> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+                        "text": "${{ steps.set_slack_references.outputs.cl_ref }} | <${{ github.server_url }}/${{ github.repository }}/${{ steps.set_slack_references.outputs.cl_ref_path }}/${{ steps.set_slack_references.outputs.cl_ref }}|${{ steps.set_slack_references.outputs.cl_short_ref }}> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
                       }
                     }
                   ]
