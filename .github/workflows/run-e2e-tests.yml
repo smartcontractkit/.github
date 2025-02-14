@@ -1206,7 +1206,7 @@ jobs:
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@ac47c595176e681a11b49929d5c26df1ec5d4134 # flakguard@0.1.0
+          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@5a5aff2a8b4b418579edf011b6dd964e91302738 # flakguard@0.1.0
 
       - name: Aggregate Flakeguard Results
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
@@ -1230,6 +1230,10 @@ jobs:
             --output-path ./flakeguard-report \
             --codeowners-path "${{ github.workspace }}/.github/CODEOWNERS" \
             --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO" \
+            --github-repository "${{ github.repository }}" \
+            --github-run-id "${{ github.run_id }}" \
+            --action-run-id "${{ github.run_id }}" \
+            --repo-url "https://github.com/${{ github.repository }}" \
           EXIT_CODE=$?
           if [ $EXIT_CODE -eq 2 ]; then
             echo "ERROR: Flakeguard encountered an error while aggregating results"
