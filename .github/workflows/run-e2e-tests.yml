@@ -1219,7 +1219,7 @@ jobs:
           mkdir -p flakeguard_results
 
           # Fix flakeguard binary path
-          PATH=$PATH:$(go env GOPATH)/bin
+          PATH="$PATH:$(go env GOPATH)/bin"
           export PATH
 
           # Aggregate Flakeguard test results
@@ -1231,12 +1231,13 @@ jobs:
             --github-repository "${{ github.repository }}" \
             --github-run-id "${{ github.run_id }}" \
             --action-run-id "${{ github.run_id }}" \
-            --repo-url "https://github.com/${{ github.repository }}" \
+            --repo-url "https://github.com/${{ github.repository }}"
+
           EXIT_CODE=$?
-          if [ $EXIT_CODE -eq 2 ]; then
+          if [ "$EXIT_CODE" -eq 2 ]; then
             echo "ERROR: Flakeguard encountered an error while aggregating results"
-            echo "ERROR: Flakeguard encountered an error while aggregating results" >> $GITHUB_STEP_SUMMARY
-            exit $EXIT_CODE
+            echo "ERROR: Flakeguard encountered an error while aggregating results" >> "$GITHUB_STEP_SUMMARY"
+            exit "$EXIT_CODE"
           fi
 
           # Print out the summary file
@@ -1245,7 +1246,7 @@ jobs:
 
           # Read the summary from the generated report
           summary=$(jq -c '.summary_data' ./flakeguard-report/all-test-results.json)
-          echo "summary=$summary" >> $GITHUB_OUTPUT
+          echo "summary=$summary" >> "$GITHUB_OUTPUT"
 
       - name: Upload All Test Results as Artifact
         if:
@@ -1291,7 +1292,7 @@ jobs:
             ${{ github.event.pull_request.head.sha }}
         run: |
           # Fix flakeguard binary path
-          PATH=$PATH:$(go env GOPATH)/bin
+          PATH="$PATH:$(go env GOPATH)/bin"
           export PATH
 
           flakeguard generate-report \
@@ -1305,10 +1306,10 @@ jobs:
             --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO"
                       
           EXIT_CODE=$?
-          if [ $EXIT_CODE -eq 2 ]; then
+          if [ "$EXIT_CODE" -eq 2 ]; then
             echo "ERROR: Flakeguard encountered an error while generating reports"
-            echo "ERROR: Flakeguard encountered an error while generating reports" >> $GITHUB_STEP_SUMMARY
-            exit $EXIT_CODE
+            echo "ERROR: Flakeguard encountered an error while generating reports" >> "$GITHUB_STEP_SUMMARY"
+            exit "$EXIT_CODE"
           fi
 
       - name: Add Github Summary
