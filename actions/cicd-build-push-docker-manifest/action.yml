@@ -81,9 +81,9 @@ runs:
           inputs.docker-manifest-tag) }}
         DOCKER_IMAGE_NAME_DIGESTS: ${{ inputs.docker-image-name-digests }}
       run: |
-        # Replaces commas with spaces.
-        docker_image_names_with_digests=$(echo "${DOCKER_IMAGE_NAME_DIGESTS}" | tr ',' ' ')
-        docker buildx imagetools create --tag "${DOCKER_TAG}" "${docker_image_names_with_digests}"
+        # Convert comma-separated list into array and pass as separate arguments
+        IFS=',' read -ra DIGESTS <<< "$DOCKER_IMAGE_NAME_DIGESTS"
+        docker buildx imagetools create --tag "${DOCKER_TAG}" "${DIGESTS[@]}"
         echo "docker-tag=${DOCKER_TAG}" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Install cosign
