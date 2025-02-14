@@ -111,14 +111,20 @@ runs:
               inputs.docker-repository-name
             )
           }}
+        DOCKER_MANIFEST_TAG: ${{ inputs.docker-manifest-tag }}
         DOCKER_REGISTRY_URL: ${{ inputs.docker-registry-url }}
         DOCKER_REPOSITORY_NAME: ${{ inputs.docker-repository-name }}
         DOCKER_IMAGE_NAME_DIGESTS: ${{ inputs.docker-image-name-digests }}
       run: |
-        DOCKER_MANIFEST_NAME_WITH_TAG="${DOCKER_MANIFEST_NAME}@${DOCKER_MANIFEST_NAME}"
+        DOCKER_MANIFEST_NAME_WITH_TAG="${DOCKER_MANIFEST_NAME}:${DOCKER_MANIFEST_TAG}"
         # Convert comma-separated list into array and pass as separate arguments
         IFS=',' read -ra DIGESTS <<< "$DOCKER_IMAGE_NAME_DIGESTS"
-        docker buildx imagetools create --tag "${DOCKER_MANIFEST_NAME_WITH_TAG}" "${DIGESTS[@]}"
+        # Map each digest to include the manifest name
+        PREFIXED_DIGESTS=()
+        for digest in "${DIGESTS[@]}"; do
+          PREFIXED_DIGESTS+=("${DOCKER_MANIFEST_NAME}@${digest}")
+        done
+        docker buildx imagetools create --tag "${DOCKER_MANIFEST_NAME_WITH_TAG}" "${PREFIXED_DIGESTS[@]}"
 
         # Get manifest digest (format: sha256:hash)
         MANIFEST_DIGEST=$(docker buildx imagetools inspect "${DOCKER_MANIFEST_NAME}" | grep -m1 'Digest:' | awk '{print $2}')

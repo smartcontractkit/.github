@@ -61,9 +61,9 @@ outputs:
   docker-image-sha-digest:
     description: "Docker image SHA digest"
     value: ${{ steps.build-image.outputs.digest }}
-  docker-image-tag:
-    description: "Docker image tag"
-    value: ${{ steps.build-image.outputs.tag }}
+  docker-image-tags:
+    description: "Docker image tags"
+    value: ${{ input.tags }}
 
 runs:
   using: composite
