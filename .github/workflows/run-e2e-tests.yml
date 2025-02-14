@@ -1192,13 +1192,9 @@ jobs:
         id: set_slack_references
         shell: bash
         run: |
-          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
-            cl_ref="${{ github.event.pull_request.head.sha }}"
-            cl_short_ref="$(echo ${{github.event.pull_request.head.sha }} | cut -c1-7)"
-            cl_ref_path="commit"
-          elif [ "$GITHUB_EVENT_NAME" = "merge_queue" ]; then
-            cl_ref="${{ github.event.merge_group.head_sha }}"
-            cl_short_ref="$(echo ${{ github.event.merge_group.head_sha }} | cut -c1-7)"
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ] || [ "$GITHUB_EVENT_NAME" = "merge_queue" ]; then
+            cl_ref="${{ inputs.chainlink_version }}"
+            cl_short_ref="$(echo ${{ inputs.chainlink_version }} | cut -c1-7)"
             cl_ref_path="commit"
           elif [ "$GITHUB_REF_TYPE" = "tag" ]; then
             cl_ref="${{ github.ref_name }}"
