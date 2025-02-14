@@ -63,7 +63,7 @@ outputs:
     value: ${{ steps.build-image.outputs.digest }}
   docker-image-tags:
     description: "Docker image tags"
-    value: ${{ input.tags }}
+    value: ${{ inputs.tags }}
 
 runs:
   using: composite
