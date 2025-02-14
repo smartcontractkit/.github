@@ -179,6 +179,14 @@ inputs:
       The name of the Kubernetes cluster to be used in the `kubectl`
       configuration for accessing the desired cluster. Required if GAP is
       enabled.
+  flakeguard_enable:
+    required: false
+    description: Whether to run tests with Flakeguard
+    default: "false"
+  flakeguard_run_count:
+    required: false
+    description: Number of times to re-run tests under flakeguard
+    default: "3"
 
 runs:
   using: composite
@@ -304,8 +312,36 @@ runs:
         echo ::add-mask::$BASE64_CONFIG_OVERRIDE
         echo "BASE64_CONFIG_OVERRIDE=$BASE64_CONFIG_OVERRIDE" >> $GITHUB_ENV
 
-    # Run the tests
-    - name: Run Tests
+    - name: Run Tests With Flakeguard
+      if: inputs.flakeguard_enable == 'true'
+      shell: bash
+      env:
+        CHAINLINK_IMAGE: ${{ inputs.cl_repo }} # TODO: to remove
+        CHAINLINK_VERSION: ${{ inputs.cl_image_tag }} # TODO: to remove
+        CHAINLINK_ENV_USER: ${{ github.actor }}
+        CGO_ENABLED: ${{ inputs.CGO_ENABLED }}
+        GO_COVERAGE_SRC_DIR: ${{ inputs.go_coverage_src_dir }}
+        GO_COVERAGE_DEST_DIR: ${{ inputs.go_coverage_dest_dir }}
+      run: |
+        # Install Flakeguard
+        go install github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@5a5aff2a8b4b418579edf011b6dd964e91302738
+        PATH=$PATH:$(go env GOPATH)/bin
+        export PATH
+
+        export TEST_TRIGGERED_BY=${{ inputs.triggered_by }}-${{ github.event.pull_request.number || github.run_id }}
+        # Handle bots as users
+        export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}
+
+        flakeguard run \
+          --test-cmd bash \
+          --test-cmd -c \
+          --test-cmd '${{ inputs.test_command_to_run }}' \
+          --run-count=${{ inputs.flakeguard_run_count }} \
+          --omit-test-outputs-on-success=true \
+          --output-json=flakeguard_results.json
+
+    - name: Run Tests Without Flakeguard
+      if: inputs.flakeguard_enable != 'true'
       shell: bash
       env:
         CHAINLINK_IMAGE: ${{ inputs.cl_repo }} # TODO: to remove
@@ -318,9 +354,8 @@ runs:
         PATH=$PATH:$(go env GOPATH)/bin
         export PATH
         export TEST_TRIGGERED_BY=${{ inputs.triggered_by }}-${{ github.event.pull_request.number || github.run_id }}
-        # Handle bots as users
         export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}
-        ${{ inputs.test_command_to_run }}
+        ${{ inputs.test_command_to_run }} 2>&1 | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage -hidepassingtests=false
 
     - name: Publish Artifacts
       if: failure()
@@ -330,8 +365,8 @@ runs:
         path: ${{ inputs.artifacts_location }}
 
     - name: Collect local GAP (Envoy) proxy logs on failure
+      if: failure() && inputs.flakeguard_enable != 'true'
       uses: jwalton/gh-docker-logs@2741064ab9d7af54b0b1ffb6076cf64c16f0220e # v2.2.2
-      if: failure()
 
     - name: cleanup
       if: always()
