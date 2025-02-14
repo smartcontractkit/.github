@@ -4,22 +4,22 @@ description: |
   platform. Use this with the `build-push-docker-manifest` action to create
   a Docker image manifest for multi-platform support and to publish images.
 inputs:
-  # general inputs
-  checkout-repo:
-    description: "enable git checkout repo"
-    required: false
-    default: "true"
-  checkout-repo-fetch-depth:
-    description: "number of commits to fetch"
-    required: false
-    default: "2"
-  docker-image-name:
+  docker-registry-url:
     required: true
     description: |
-      Name of the Docker image including hostname. Excludes any tags.
+      Hostname for the docker image registry.
 
       Example:
-        public.ecr.aws/chainlink/chainlink
+        public.ecr.aws
+  docker-repository-name:
+    required: true
+    description: |
+      Name of the Docker repository excluding hostname. Excludes any tags. Public ECR's will include a registry alias and a forward slash.
+
+      Example:
+        chainlink/chainlink # Public ECR
+        chainlink/ccip # Public ECR
+        my-repo-name # Private ECR
   tags:
     required: false
     description: "Tags input for the docker metadata action"
@@ -55,11 +55,15 @@ inputs:
     required: true
 
 outputs:
-  docker-image-name-digest:
-    description: "Docker image name plus its digest"
-    value:
-      ${{ format('{0}@{1}', inputs.docker-image-name,
-      steps.build-image.outputs.digest) }}
+  docker-repository-name:
+    description: "Docker repository name"
+    value: ${{ inputs.docker-repository-name }}
+  docker-image-sha-digest:
+    description: "Docker image SHA digest"
+    value: ${{ steps.build-image.outputs.digest }}
+  docker-image-tag:
+    description: "Docker image tag"
+    value: ${{ steps.build-image.outputs.tag }}
 
 runs:
   using: composite
@@ -83,13 +87,6 @@ runs:
           exit 1
         fi
 
-    - name: Checkout repo
-      if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
-        persist-credentials: false
-
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
       with:
@@ -104,7 +101,8 @@ runs:
       with:
         registry-type: >-
           ${{
-            startsWith(inputs.docker-image-name, 'public.ecr.aws/') && 'public'
+            startsWith(inputs.docker-registry-url, 'public.ecr.aws') &&
+          'public'
               || 'private'
           }}
         registries: ${{ inputs.aws-account-number }}
@@ -118,7 +116,9 @@ runs:
       id: docker-meta
       uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
       with:
-        images: ${{ inputs.docker-image-name }}
+        images:
+          ${{ format('{0}/{1}', inputs.docker-registry-url,
+          inputs.docker-repository-name) }}
         tags: ${{ inputs.tags }}
         flavor: |
           latest=false

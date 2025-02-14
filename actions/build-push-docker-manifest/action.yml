@@ -13,13 +13,6 @@ inputs:
     description: "OIDC issuer for cosign"
     required: false
     default: "https://token.actions.githubusercontent.com"
-  docker-manifest-name:
-    required: true
-    description: |
-      Name of the Docker manifest including hostname. Excludes any tags.
-
-      Example:
-        public.ecr.aws/chainlink/chainlink
   docker-manifest-sign:
     required: false
     description: "Sign the docker manifest"
@@ -27,14 +20,29 @@ inputs:
   docker-manifest-tag:
     required: true
     description: "Tag for the docker manifest"
+  docker-registry-url:
+    required: true
+    description: |
+      Hostname for the docker image registry.
+
+      Example:
+        public.ecr.aws
+  docker-repository-name:
+    required: true
+    description: |
+      Name of the Docker repository excluding hostname. Excludes any tags. Public ECR's will include a registry alias and a forward slash.
+
+      Example:
+        chainlink/chainlink # Public ECR
+        chainlink/ccip # Public ECR
+        my-repo-name # Private ECR
   docker-image-name-digests:
     required: true
     description: |
-      Docker image names plus their digests which will become added to this
-      manifest. Comma separated list.
+      Docker sha digests which will become added to this manifest. Comma separated list.
 
       Example:
-        public.ecr.aws/chainlink/chainlink@sha256:abc123,public.ecr.aws/chainlink/chainlink@sha256:def456
+       sha256:abc123,sha256:def456
   # aws inputs
   aws-region:
     description:
@@ -50,12 +58,23 @@ inputs:
     required: true
 
 outputs:
-  manifest-name-digest:
-    description: "Full manifest name suffixed with @sha256:<sha> digest."
-    value: ${{ steps.create-push-docker-manifest.outputs.manifest-name-digest }}
-  manifest-name-tag:
-    description: "Full manifest name suffixed with tag."
-    value: ${{ steps.create-push-docker-manifest.outputs.manifest-name-tag }}
+  manifest-digest:
+    description: "Docker @sha256:<sha> digest."
+    value: ${{ steps.create-push-docker-manifest.outputs.manifest-digest }}
+  manifest-tag:
+    description: "Docker manifest tag."
+    value: ${{ inputs.docker-manifest-tag }}
+  manifest-name:
+    description: "Docker manifest name."
+    value: ${{ steps.create-push-docker-manifest.outputs.manifest-name }}
+  manifest-name-with-digest:
+    description: "Docker manifest name with digest."
+    value:
+      ${{ steps.create-push-docker-manifest.outputs.manifest-name-with-digest }}
+  manifest-name-with-tag:
+    description: "Docker manifest name with tag."
+    value:
+      ${{ steps.create-push-docker-manifest.outputs.manifest-name-with-tag }}
 
 runs:
   using: composite
@@ -74,7 +93,7 @@ runs:
       with:
         registry-type: >-
           ${{
-            startsWith(inputs.docker-manifest-name, 'public.ecr.aws/') &&
+            startsWith(inputs.docker-registry-url, 'public.ecr.aws') &&
           'public'
               || 'private'
           }}
@@ -84,20 +103,29 @@ runs:
       id: create-push-docker-manifest
       shell: bash
       env:
-        DOCKER_MANIFEST_TAG:
-          ${{ format('{0}:{1}', inputs.docker-manifest-name,
-          inputs.docker-manifest-tag) }}
-        DOCKER_MANIFEST_NAME: ${{ inputs.docker-manifest-name }}
+        DOCKER_MANIFEST_NAME: >-
+          ${{
+            format(
+              '{0}/{1}',
+              inputs.docker-registry-url,
+              inputs.docker-repository-name
+            )
+          }}
+        DOCKER_REGISTRY_URL: ${{ inputs.docker-registry-url }}
+        DOCKER_REPOSITORY_NAME: ${{ inputs.docker-repository-name }}
         DOCKER_IMAGE_NAME_DIGESTS: ${{ inputs.docker-image-name-digests }}
       run: |
+        DOCKER_MANIFEST_NAME_WITH_TAG="${DOCKER_MANIFEST_NAME}@${DOCKER_MANIFEST_NAME}"
         # Convert comma-separated list into array and pass as separate arguments
         IFS=',' read -ra DIGESTS <<< "$DOCKER_IMAGE_NAME_DIGESTS"
-        docker buildx imagetools create --tag "${DOCKER_MANIFEST_TAG}" "${DIGESTS[@]}"
+        docker buildx imagetools create --tag "${DOCKER_MANIFEST_NAME_WITH_TAG}" "${DIGESTS[@]}"
 
-        echo "manifest-name-tag=${DOCKER_MANIFEST_TAG}" | tee -a "${GITHUB_OUTPUT}"
         # Get manifest digest (format: sha256:hash)
-        MANIFEST_DIGEST=$(docker buildx imagetools inspect "${DOCKER_MANIFEST_TAG}" | grep -m1 'Digest:' | awk '{print $2}')
-        echo "manifest-name-digest=${DOCKER_MANIFEST_NAME}@${MANIFEST_DIGEST}" | tee -a "${GITHUB_OUTPUT}"
+        MANIFEST_DIGEST=$(docker buildx imagetools inspect "${DOCKER_MANIFEST_NAME}" | grep -m1 'Digest:' | awk '{print $2}')
+        echo "manifest-digest=${MANIFEST_DIGEST}" | tee -a "${GITHUB_OUTPUT}"
+        echo "manifest-name=${DOCKER_MANIFEST_NAME}" | tee -a "${GITHUB_OUTPUT}"
+        echo "manifest-name-with-digest=${DOCKER_MANIFEST_NAME}@${MANIFEST_DIGEST}" | tee -a "${GITHUB_OUTPUT}"
+        echo "manifest-name-with-tag=${DOCKER_MANIFEST_NAME_WITH_TAG}" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Install cosign
       if: inputs.docker-manifest-sign == 'true'
@@ -109,9 +137,10 @@ runs:
       if: inputs.docker-manifest-sign == 'true'
       shell: sh
       env:
-        MANIFEST_NAME_DIGEST:
-          ${{ steps.create-push-docker-manifest.outputs.manifest-name-digest }}
-      run: cosign sign "${MANIFEST_NAME_DIGEST}" --yes
+        MANIFEST_NAME_WITH_DIGEST:
+          ${{
+          steps.create-push-docker-manifest.outputs.manifest-name-with-digest }}
+      run: cosign sign "${MANIFEST_NAME_WITH_DIGEST}" --yes
 
     - name: Verify Docker image signature
       if:
@@ -119,11 +148,50 @@ runs:
         ''
       shell: sh
       env:
-        MANIFEST_NAME_DIGEST:
-          ${{ steps.create-push-docker-manifest.outputs.manifest-name-digest }}
+        MANIFEST_NAME_WITH_DIGEST: >-
+          ${{
+            steps.create-push-docker-manifest.outputs.manifest-name-with-digest
+          }}
         OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
         OIDC_IDENTITY: ${{ inputs.cosign-oidc-identity }}
       run: |
-        cosign verify "${MANIFEST_NAME_DIGEST}" \
+        cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
           --certificate-oidc-issuer "${OIDC_ISSUER}" \
           --certificate-identity "${OIDC_IDENTITY}"
+
+    - name: Summary output
+      shell: bash
+      env:
+        OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
+        OIDC_IDENTITY: ${{ inputs.cosign-oidc-identity }}
+        MANIFEST_DIGEST:
+          ${{ steps.create-push-docker-manifest.outputs.manifest-digest }}
+        MANIFEST_NAME:
+          ${{ steps.create-push-docker-manifest.outputs.manifest-name}}
+        MANIFEST_NAME_WITH_DIGEST: >-
+          ${{
+            steps.create-push-docker-manifest.outputs.manifest-name-with-digest
+          }}
+        MANIFEST_NAME_WITH_TAG: >-
+          ${{
+            steps.create-push-docker-manifest.outputs.manifest-name-with-tag
+          }}
+        DOCKER_MANIFEST_SIGNED: ${{ inputs.docker-manifest-sign }}
+        MANIFEST_TAG: ${{ inputs.docker-manifest-tag }}
+      run: |
+        echo "### Docker Manifest 📒" | tee -a "${$GITHUB_STEP_SUMMARY}"
+        echo >> "${$GITHUB_STEP_SUMMARY}"
+        echo "Manifest digest: `${MANIFEST_DIGEST}`" | tee -a "${$GITHUB_STEP_SUMMARY}"
+        echo "Manifest name: `${MANIFEST_NAME}`" | tee -a "${$GITHUB_STEP_SUMMARY}"
+        echo "Manifest tag: `${MANIFEST_TAG}`" | tee -a "${$GITHUB_STEP_SUMMARY}"
+        echo "Manifest name with tag: `${MANIFEST_NAME_WITH_TAG}`" | tee -a "${$GITHUB_STEP_SUMMARY}"
+        echo "Manifest name with digest: `${MANIFEST_NAME_WITH_DIGEST}`" | tee -a "${$GITHUB_STEP_SUMMARY}"
+        echo "**NOTE:** Above output may be masked if using private registries. You may need to fill in the blanks." | tee -a "${$GITHUB_STEP_SUMMARY}"
+        if [[ "${DOCKER_MANIFEST_SIGNED}" == 'true' ]]; then
+          echo >> "${$GITHUB_STEP_SUMMARY}"
+          echo "#### Docker Manifest signed 📝" | tee -a "${$GITHUB_STEP_SUMMARY}"
+          echo "Manifest signed with cosign. To verify, run:" | tee -a "${$GITHUB_STEP_SUMMARY}"
+          echo "```" >> "${$GITHUB_STEP_SUMMARY}"
+          echo "cosign verify ${MANIFEST_NAME_WITH_DIGEST} --certificate-oidc-issuer ${OIDC_ISSUER} --certificate-identity ${OIDC_IDENTITY}" | tee -a "${$GITHUB_STEP_SUMMARY}"
+          echo "```" >> "${$GITHUB_STEP_SUMMARY}"
+        fi
