@@ -127,7 +127,7 @@ runs:
         docker buildx imagetools create --tag "${DOCKER_MANIFEST_NAME_WITH_TAG}" "${PREFIXED_DIGESTS[@]}"
 
         # Get manifest digest (format: sha256:hash)
-        MANIFEST_DIGEST=$(docker buildx imagetools inspect "${DOCKER_MANIFEST_NAME}" | grep -m1 'Digest:' | awk '{print $2}')
+        MANIFEST_DIGEST=$(docker buildx imagetools inspect "${DOCKER_MANIFEST_NAME_WITH_TAG}" | grep -m1 'Digest:' | awk '{print $2}')
         echo "manifest-digest=${MANIFEST_DIGEST}" | tee -a "${GITHUB_OUTPUT}"
         echo "manifest-name=${DOCKER_MANIFEST_NAME}" | tee -a "${GITHUB_OUTPUT}"
         echo "manifest-name-with-digest=${DOCKER_MANIFEST_NAME}@${MANIFEST_DIGEST}" | tee -a "${GITHUB_OUTPUT}"
