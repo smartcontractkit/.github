@@ -84,8 +84,8 @@ inputs:
   publish_test_results_commit:
     required: false
     description:
-      Commit SHA to which test results are published. Only needed if GITHUB_SHA
-      doesn’t work for you.
+      Commit SHA to which test results are published. Only needed if the value
+      of GITHUB_SHA does not work for you.
   triggered_by:
     required: true
     description:
@@ -148,8 +148,8 @@ inputs:
   should_cleanup:
     required: false
     description:
-      Whether to run the cleanup at the end (e.g. soak tests might not want
-      auto-cleanup)
+      Whether to run the cleanup at the end, soak tests and such would not want
+      to automatically cleanup
     default: "false"
   should_tidy:
     required: false
@@ -219,14 +219,14 @@ runs:
       if: ${{ inputs.dep_chainlink_integration_tests }}
       shell: bash
       run: |
-        # Find test go root by using the go_mod_path and change to that directory
+        # find test go root by using the go_mod_path and change to that directory
         TEST_LIB_PATH="${{ inputs.go_mod_path }}"
         if [ "${#TEST_LIB_PATH}" -gt "6" ]; then
             TEST_LIB_PATH=${TEST_LIB_PATH%go.mod}
             cd "${TEST_LIB_PATH}"
         fi
 
-        # Update the integration-tests lib to the branch or commit
+        # update the integration-tests lib to the branch or commit
         go get github.com/smartcontractkit/chainlink/integration-tests@${{ inputs.dep_chainlink_integration_tests }}
         go mod tidy
 
@@ -238,7 +238,7 @@ runs:
         name: artifacts
         path: ${{ inputs.download_contract_artifacts_path }}
 
-    # Generate any executables needed to run tests
+    # Generate any excutables needed to run tests
     - name: Generate gauntlet executable
       if: inputs.build_gauntlet_command != 'false'
       shell: bash
@@ -246,17 +246,18 @@ runs:
 
     # TODO: Remove this once gotestloghelper has replaced all usages of gotestfmt
     - name: Set Up gotestfmt
-      uses: GoTestTools/gotestfmt-action@8b4478c7019be847373babde9300210e7de34bfb
+      uses: GoTestTools/gotestfmt-action@8b4478c7019be847373babde9300210e7de34bfb # v2.2.0
       with:
         token: ${{ inputs.token }} # Avoids rate-limiting
 
     # gotestfmt gives us pretty test output
     - name: Set Up gotestloghelper
       shell: bash
-      run: |
-        go install github.com/smartcontractkit/chainlink-testing-framework/tools/gotestloghelper@v1.1.1
+      run:
+        go install
+        github.com/smartcontractkit/chainlink-testing-framework/tools/gotestloghelper@v1.1.1
 
-    - name: Set default environment variables
+    - name: Set default enironment variables
       shell: bash
       run: |
         if [ -n "${{ inputs.test_type }}" ]; then
@@ -268,19 +269,21 @@ runs:
           echo "TEST_TEST_SUITE=${{ inputs.test_suite }}" >> $GITHUB_ENV
         fi
 
-    # If default and/or custom secrets provided, decode them, mask them, and set them as env vars to override the default secrets
+    # If default and/or custom secrets provided, decode them, mask them and set them as env vars to override the default secrets
     - name: Set default test secrets from dotenv file
       if: inputs.test_secrets_defaults_base64 != ''
       shell: bash
-      run: |
-        go run ${{ github.action_path }}/mask-testsecrets/main.go "${{ inputs.test_secrets_defaults_base64 }}"
+      run:
+        go run ${{ github.action_path }}/mask-testsecrets/main.go "${{
+        inputs.test_secrets_defaults_base64 }}"
 
     # Custom secrets override the default secrets
     - name: Set custom test secrets from dotenv file
       if: inputs.test_secrets_override_base64 != ''
       shell: bash
-      run: |
-        go run ${{ github.action_path }}/mask-testsecrets/main.go "${{ inputs.test_secrets_override_base64 }}"
+      run:
+        go run ${{ github.action_path }}/mask-testsecrets/main.go "${{
+        inputs.test_secrets_override_base64 }}"
 
     - name: Set default E2E_TEST_* env vars if they are not set already
       shell: bash
@@ -363,11 +366,11 @@ runs:
 
     - name: Collect local GAP (Envoy) proxy logs on failure
       if: failure() && inputs.flakeguard_enable != 'true'
-      uses: jwalton/gh-docker-logs@2741064ab9d7af54b0b1ffb6076cf64c16f0220e
+      uses: jwalton/gh-docker-logs@2741064ab9d7af54b0b1ffb6076cf64c16f0220e # v2.2.2
 
     - name: cleanup
       if: always()
-      uses: smartcontractkit/.github/actions/ctf-cleanup@d7bff995d180bd94443e68d5a54496e674232836
+      uses: smartcontractkit/.github/actions/ctf-cleanup@d7bff995d180bd94443e68d5a54496e674232836 # ctf-cleanup@0.0.0
       with:
         triggered_by: ${{ inputs.triggered_by }}
         should_cleanup: ${{ inputs.should_cleanup }}
