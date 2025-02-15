@@ -136,18 +136,31 @@ runs:
         flavor: |
           latest=false
 
+      # Build records contain AWS account ID's (in e.g. the private ECR
+      # hostname) and AWS account ID's are currently considered `sensitive`.
+      # Avoid including the build record as a GitHub Actions artifact unless
+      # the ECR is public.
+    - name: Docker build record
+      id: docker-build-record
+      shell: bash
+      env:
+        DOCKER_REGISTRY_URL: ${{ inputs.docker-registry-url }}
+      run: |
+        build_record_artifact_upload=false
+        if [[ "${DOCKER_REGISTRY_URL}" == public.ecr.aws* ]]; then
+          echo "::debug::${DOCKER_REGISTRY_URL} is a public ECR registry. Docker Build Record will be uploaded as an artifact."
+          build_record_artifact_upload=true
+        fi
+        echo "upload=${build_record_artifact_upload}" | tee -a "${GITHUB_OUTPUT}"
+
     - name: Build & push image
       id: build-image
       uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6.13.0
       env:
         DOCKER_BUILD_CHECKS_ANNOTATIONS: true
         DOCKER_BUILD_SUMMARY: true
-        # Build records contain AWS account ID's (in e.g. the private ECR
-        # hostname) and AWS account ID's are currently considered `sensitive`.
-        # Avoid including the build record as a GitHub Actions artifact unless
-        # the ECR is public.
         DOCKER_BUILD_RECORD_UPLOAD:
-          ${{ startsWith(inputs.docker-registry-url, 'public.ecr.aws' }}
+          ${{ steps.docker-build-record.outputs.upload }}
         # Defaults to repository/org retention settings if unset or 0.
         DOCKER_BUILD_RECORD_RETENTION_DAYS: 0
       with:
