@@ -1,10 +1,10 @@
 {
-  "name": "ci-prettier",
-  "version": "0.1.4",
+  "name": "setup-postgres",
+  "version": "0.1.0",
   "description": "",
   "private": true,
   "scripts": {},
-  "author": "@chainchad",
+  "author": "@smartcontractkit",
   "license": "MIT",
   "dependencies": {},
   "repository": "https://github.com/smartcontractkit/.github"
