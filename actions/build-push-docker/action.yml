@@ -71,9 +71,12 @@ outputs:
   docker-repository-name:
     description: "Docker repository name"
     value: ${{ inputs.docker-repository-name }}
-  docker-image-sha-digest:
-    description: "Docker image SHA digest"
-    value: ${{ steps.build-image.outputs.digest }}
+  docker-image-sha-digest-amd64:
+    description: "Docker image SHA digest for platform: amd64"
+    value: ${{ steps.set-outputs.outputs.docker-image-sha-digest-amd64 }}
+  docker-image-sha-digest-arm64:
+    description: "Docker image SHA digest for platform: amd64"
+    value: ${{ steps.set-outputs.outputs.docker-image-sha-digest-arm64 }}
   docker-image-tags:
     description: "Docker image tags"
     value: ${{ steps.docker-meta.outputs.tags }}
@@ -174,3 +177,16 @@ runs:
         platforms: ${{ inputs.platform }}
         cache-from: ${{ inputs.docker-build-cache-from }}
         cache-to: ${{ inputs.docker-build-cache-to }}
+
+    - name: Set outputs
+      id: set-outputs
+      shell: bash
+      env:
+        DOCKER_IMAGE_DIGEST: ${{ steps.build-image.outputs.digest }}
+        INPUT_PLATFORM: ${{ inputs.platform }}
+      run: |
+        if [[ "${INPUT_PLATFORM}" == "linux/amd64" ]]; then
+          echo "docker-image-sha-digest-amd64=${DOCKER_IMAGE_DIGEST}" | tee -a "${GITHUB_OUTPUT}"
+        elif [[ "${INPUT_PLATFORM}" == "linux/arm64" ]]; then
+          echo "docker-image-sha-digest-arm64=${DOCKER_IMAGE_DIGEST}" | tee -a "${GITHUB_OUTPUT}"
+        fi
