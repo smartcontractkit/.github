@@ -136,10 +136,10 @@ runs:
         flavor: |
           latest=false
 
-      # Build records contain AWS account ID's (in e.g. the private ECR
-      # hostname) and AWS account ID's are currently considered `sensitive`.
-      # Avoid including the build record as a GitHub Actions artifact unless
-      # the ECR is public.
+    # Build records contain AWS account ID's (in e.g. the private ECR
+    # hostname) and AWS account ID's are currently considered `sensitive`.
+    # Avoid including the build record as a GitHub Actions artifact unless the
+    # ECR is public.
     - name: Docker build record
       id: docker-build-record
       shell: bash
