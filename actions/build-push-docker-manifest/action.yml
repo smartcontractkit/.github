@@ -45,16 +45,14 @@ inputs:
        sha256:abc123,sha256:def456
   # aws inputs
   aws-region:
-    description:
-      "The region for pushing docker image. For public images ecr-login requires
-      it to be us-east-1"
+    description: "AWS region for ECR. For public images, use: us-east-1"
     required: false
     default: "us-east-1"
   aws-account-number:
-    description: "Account number for pushing docker image"
+    description: "AWS account number for the ECR registry."
     required: true
   aws-role-arn:
-    description: "AWS role ARN for pushing docker image"
+    description: "AWS role ARN with permissions to push ECR images."
     required: true
 
 outputs:

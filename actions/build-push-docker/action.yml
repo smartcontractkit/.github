@@ -1,25 +1,40 @@
 name: build-push-docker
 description: |
-  Reusable action to build and create docker image artifacts for a specific
+  Reusable action to build and push docker image artifacts for a specific
   platform. Use this with the `build-push-docker-manifest` action to create
-  a Docker image manifest for multi-platform support and to publish images.
+  a Docker image manifest for multi-platform support.
 inputs:
+  # See: https://github.com/moby/buildkit#github-actions-cache-experimental
+  docker-build-cache-from:
+    description: "Source of Docker build cache."
+    required: false
+    default: "type=gha,scope=buildkit,timeout=10m"
+  # See: https://github.com/moby/buildkit#github-actions-cache-experimental
+  docker-build-cache-to:
+    description: "Destination of Docker build cache."
+    required: false
+    default: "type=gha,scope=buildkit,timeout=10m,mode=max,ignore-error=false"
   docker-registry-url:
     required: true
     description: |
       Hostname for the docker image registry.
 
-      Example:
+      Examples:
         public.ecr.aws
+        <account-id>.dkr.ecr.<region>.amazonaws.com
   docker-repository-name:
     required: true
     description: |
       Name of the Docker repository excluding hostname. Excludes any tags. Public ECR's will include a registry alias and a forward slash.
 
-      Example:
+      Examples:
         chainlink/chainlink # Public ECR
         chainlink/ccip # Public ECR
         my-repo-name # Private ECR
+  docker-push:
+    description: "Push the docker image. Build only (no push) if: false."
+    required: false
+    default: "true"
   tags:
     required: false
     description: "Tags input for the docker metadata action"
@@ -42,16 +57,14 @@ inputs:
     required: true
   # aws inputs
   aws-region:
-    description:
-      "The region for pushing docker image. For public images ecr-login requires
-      it to be us-east-1"
+    description: "AWS region for ECR. For public images, use: us-east-1"
     required: false
     default: "us-east-1"
   aws-account-number:
-    description: "Account number for pushing docker image"
+    description: "AWS account number for the ECR registry."
     required: true
   aws-role-arn:
-    description: "AWS role ARN for pushing docker image"
+    description: "AWS role ARN with permissions to push ECR images."
     required: true
 
 outputs:
@@ -63,7 +76,7 @@ outputs:
     value: ${{ steps.build-image.outputs.digest }}
   docker-image-tags:
     description: "Docker image tags"
-    value: ${{ inputs.tags }}
+    value: ${{ steps.docker-meta.outputs.tags }}
 
 runs:
   using: composite
@@ -126,8 +139,19 @@ runs:
     - name: Build & push image
       id: build-image
       uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6.13.0
+      env:
+        DOCKER_BUILD_CHECKS_ANNOTATIONS: true
+        DOCKER_BUILD_SUMMARY: true
+        # Build records contain AWS account ID's (in e.g. the private ECR
+        # hostname) and AWS account ID's are currently considered `sensitive`.
+        # Avoid including the build record as a GitHub Actions artifact unless
+        # the ECR is public.
+        DOCKER_BUILD_RECORD_UPLOAD:
+          ${{ startsWith(inputs.docker-registry-url, 'public.ecr.aws' }}
+        # Defaults to repository/org retention settings if unset or 0.
+        DOCKER_BUILD_RECORD_RETENTION_DAYS: 0
       with:
-        push: true
+        push: ${{ inputs.docker-push }}
         sbom: true
         provenance: mode=max
         file: ${{ inputs.dockerfile }}
@@ -135,3 +159,5 @@ runs:
         tags: ${{ steps.docker-meta.outputs.tags }}
         labels: ${{ steps.docker-meta.outputs.labels }}
         platforms: ${{ inputs.platform }}
+        cache-from: ${{ inputs.docker-build-cache-from }}
+        cache-to: ${{ inputs.docker-build-cache-to }}
