@@ -1,5 +1,14 @@
 # ctf-setup-run-tests-environment
 
+## 0.5.1
+
+### Patch Changes
+
+- [#887](https://github.com/smartcontractkit/.github/pull/887)
+  [`eae41ad`](https://github.com/smartcontractkit/.github/commit/eae41ad70803e9945bd2fd546d8e09f2d6f22462)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding a flag for
+  enabling local proxy debug logs
+
 ## 0.5.0
 
 ### Minor Changes
