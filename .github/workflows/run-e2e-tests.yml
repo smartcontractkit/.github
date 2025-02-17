@@ -248,6 +248,12 @@ on:
         required: false
       OPTIONAL_GATI_LAMBDA_URL:
         required: false
+      FLAKEGUARD_SPLUNK_ENDPOINT:
+        description: "The Splunk HTTP Event Collector (HEC) endpoint."
+        required: false
+      FLAKEGUARD_SPLUNK_HEC:
+        description: "The Splunk HTTP Event Collector (HEC) token."
+        required: false
 
 env:
   CHAINLINK_IMAGE:
@@ -1231,7 +1237,12 @@ jobs:
             --github-repository "${{ github.repository }}" \
             --github-run-id "${{ github.run_id }}" \
             --action-run-id "${{ github.run_id }}" \
-            --repo-url "https://github.com/${{ github.repository }}"
+            --repo-url "https://github.com/${{ github.repository }}" \
+            --github-workflow-name "${{ github.workflow }}" \
+            --github-workflow-run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --splunk-url "${{ secrets.FLAKEGUARD_SPLUNK_ENDPOINT }}" \
+            --splunk-token "${{ secrets.FLAKEGUARD_SPLUNK_HEC }}" \
+            --splunk-event "${{ github.event_name }}"            
 
           EXIT_CODE=$?
           if [ "$EXIT_CODE" -eq 2 ]; then
