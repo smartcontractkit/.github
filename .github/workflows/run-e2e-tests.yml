@@ -1212,7 +1212,7 @@ jobs:
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@5a5aff2a8b4b418579edf011b6dd964e91302738 # flakguard@0.1.0
+          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@b0f04144eb5d5145552935f9e2b1ab9468d8c756 # flakguard@0.1.0
 
       - name: Aggregate Flakeguard Results
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
