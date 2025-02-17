@@ -179,6 +179,13 @@ inputs:
       The name of the Kubernetes cluster to be used in the `kubectl`
       configuration for accessing the desired cluster. Required if GAP is
       enabled.
+  enable-proxy-debug:
+    description:
+      "Enable or disable detailed Envoy proxy logs used for K8s API access. When
+      enabled, debug logs are generated locally, and container logs are streamed
+      to the console for troubleshooting."
+    required: false
+    default: "false"
   flakeguard_enable:
     required: false
     description: Whether to run tests with Flakeguard
@@ -194,7 +201,7 @@ runs:
     # Setup Tools and libraries
     - name: Setup environment
       if: inputs.run_setup == 'true'
-      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@c32b6dd129369d01ec0037256698baf825e53d78 # ctf-setup-run-tests-environment@v0.5.0
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@ec165ce3098a51462f2bb6713cdc38eb58e89df2 # ctf-setup-run-tests-environment@v0.5.1
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
@@ -214,6 +221,7 @@ runs:
         main-dns-zone: ${{ inputs.main-dns-zone }}
         k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
         enable-gap: ${{ inputs.enable-gap }}
+        enable-proxy-debug: ${{ inputs.enable-proxy-debug }}
 
     - name: Replace chainlink/integration-tests deps
       if: ${{ inputs.dep_chainlink_integration_tests }}
@@ -364,9 +372,15 @@ runs:
         name: ${{ inputs.artifacts_name }}
         path: ${{ inputs.artifacts_location }}
 
-    - name: Collect local GAP (Envoy) proxy logs on failure
-      if: failure() && inputs.flakeguard_enable != 'true'
+    - name: Collect local GAP (Envoy) proxy logs
+      if:
+        failure() && inputs.flakeguard_enable != 'true' || inputs.enable-gap ==
+        'true' && inputs.enable-proxy-debug == 'true'
       uses: jwalton/gh-docker-logs@2741064ab9d7af54b0b1ffb6076cf64c16f0220e # v2.2.2
+      with:
+        images: "envoy"
+        # Only show last 1000
+        tail: "1000"
 
     - name: cleanup
       if: always()
