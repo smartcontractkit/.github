@@ -1234,9 +1234,6 @@ jobs:
             --output-path ./flakeguard-report \
             --codeowners-path "${{ github.workspace }}/.github/CODEOWNERS" \
             --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO" \
-            --github-repository "${{ github.repository }}" \
-            --github-run-id "${{ github.run_id }}" \
-            --action-run-id "${{ github.run_id }}" \
             --repo-url "https://github.com/${{ github.repository }}" \
             --github-workflow-name "${{ github.workflow }}" \
             --github-workflow-run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
