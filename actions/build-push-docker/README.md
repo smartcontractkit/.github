@@ -3,8 +3,9 @@
 ## Example usage
 
 **NOTE**: _This composite workflow is intended to be used in conjunction with
-`../cicd-build-docker-manifest-push` which will create a Docker manifest (or
-index) of the images created within this composite workflow._
+[cicd-build-docker-manifest-push](../cicd-build-docker-manifest-push) which will
+create a Docker manifest (or index) of the images created within this composite
+workflow._
 
 ### Set the following repo secrets
 
@@ -81,7 +82,7 @@ jobs:
           fetch-depth: 1
       - name: Build Docker image
         id: build-core
-        uses: smartcontractkit/.github/actions/build-push-docker@main # TODO: use version tag.
+        uses: smartcontractkit/.github/actions/build-push-docker@<sha> # build-push-docker@x.y.z
         with:
           # Change this to public.ecr.aws if you are using the public ECR.
           docker-registry-url:

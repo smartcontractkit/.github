@@ -3,9 +3,9 @@
 ## Example usage
 
 Reusable composite workflow to create docker manifest for multi-platform. Use
-this after the `build-push-docker` composite workflow to create and push the
-manifest which will be an index of the image(s) from the `build-push-docker`
-composite workflow.
+this after the [`build-push-docker`](../build-push-docker/) composite workflow
+to create and push the manifest which will be an index of the image(s) from the
+[`build-push-docker`](../build-push-docker/) composite workflow.
 
 ### Set the following repo secrets
 
@@ -82,7 +82,7 @@ jobs:
           fetch-depth: 1
       - name: Build Docker image
         id: build-core
-        uses: smartcontractkit/.github/actions/build-push-docker@main # TODO: use version tag.
+        uses: smartcontractkit/.github/actions/build-push-docker@<sha> # build-push-docker@x.y.z
         with:
           # Change this to public.ecr.aws if you are using the public ECR.
           docker-registry-url:
@@ -108,7 +108,7 @@ jobs:
       id-token: write
     runs-on: ubuntu-24.04
     steps:
-      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@re-3518/general-docker-workflow # TODO: use version tag.
+      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@<sha> # build-push-docker-manifest@x.y.z
         with:
           cosign-oidc-identity:
             ${{ format('https://github.com/{0}', github.workflow_ref) }}
