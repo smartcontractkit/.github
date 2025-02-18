@@ -1,5 +1,14 @@
 # setup-gap
 
+## 4.1.0
+
+### Minor Changes
+
+- [#892](https://github.com/smartcontractkit/.github/pull/892)
+  [`0fe263c`](https://github.com/smartcontractkit/.github/commit/0fe263cbc76c76823fffa2132f9db552fa8ce0c0)
+  Thanks [@DimitriosNaikopoulos](https://github.com/DimitriosNaikopoulos)! -
+  Retry HTTP upgrade requests for WS endpoints
+
 ## 4.0.1
 
 ### Patch Changes
