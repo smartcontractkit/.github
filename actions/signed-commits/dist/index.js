@@ -16797,12 +16797,12 @@ var require_lib = __commonJS({
             throw new Error("Client has already been disposed.");
           }
           const parsedUrl = new URL(requestUrl);
-          let info4 = this._prepareRequest(verb, parsedUrl, headers);
+          let info5 = this._prepareRequest(verb, parsedUrl, headers);
           const maxTries = this._allowRetries && RetryableHttpVerbs.includes(verb) ? this._maxRetries + 1 : 1;
           let numTries = 0;
           let response;
           do {
-            response = yield this.requestRaw(info4, data);
+            response = yield this.requestRaw(info5, data);
             if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
               let authenticationHandler;
               for (const handler of this.handlers) {
@@ -16812,7 +16812,7 @@ var require_lib = __commonJS({
                 }
               }
               if (authenticationHandler) {
-                return authenticationHandler.handleAuthentication(this, info4, data);
+                return authenticationHandler.handleAuthentication(this, info5, data);
               } else {
                 return response;
               }
@@ -16835,8 +16835,8 @@ var require_lib = __commonJS({
                   }
                 }
               }
-              info4 = this._prepareRequest(verb, parsedRedirectUrl, headers);
-              response = yield this.requestRaw(info4, data);
+              info5 = this._prepareRequest(verb, parsedRedirectUrl, headers);
+              response = yield this.requestRaw(info5, data);
               redirectsRemaining--;
             }
             if (!response.message.statusCode || !HttpResponseRetryCodes.includes(response.message.statusCode)) {
@@ -16865,7 +16865,7 @@ var require_lib = __commonJS({
        * @param info
        * @param data
        */
-      requestRaw(info4, data) {
+      requestRaw(info5, data) {
         return __awaiter(this, void 0, void 0, function* () {
           return new Promise((resolve, reject) => {
             function callbackForResult(err, res) {
@@ -16877,7 +16877,7 @@ var require_lib = __commonJS({
                 resolve(res);
               }
             }
-            this.requestRawWithCallback(info4, data, callbackForResult);
+            this.requestRawWithCallback(info5, data, callbackForResult);
           });
         });
       }
@@ -16887,12 +16887,12 @@ var require_lib = __commonJS({
        * @param data
        * @param onResult
        */
-      requestRawWithCallback(info4, data, onResult) {
+      requestRawWithCallback(info5, data, onResult) {
         if (typeof data === "string") {
-          if (!info4.options.headers) {
-            info4.options.headers = {};
+          if (!info5.options.headers) {
+            info5.options.headers = {};
           }
-          info4.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
+          info5.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
         }
         let callbackCalled = false;
         function handleResult(err, res) {
@@ -16901,7 +16901,7 @@ var require_lib = __commonJS({
             onResult(err, res);
           }
         }
-        const req = info4.httpModule.request(info4.options, (msg) => {
+        const req = info5.httpModule.request(info5.options, (msg) => {
           const res = new HttpClientResponse(msg);
           handleResult(void 0, res);
         });
@@ -16913,7 +16913,7 @@ var require_lib = __commonJS({
           if (socket) {
             socket.end();
           }
-          handleResult(new Error(`Request timeout: ${info4.options.path}`));
+          handleResult(new Error(`Request timeout: ${info5.options.path}`));
         });
         req.on("error", function(err) {
           handleResult(err);
@@ -16949,27 +16949,27 @@ var require_lib = __commonJS({
         return this._getProxyAgentDispatcher(parsedUrl, proxyUrl);
       }
       _prepareRequest(method, requestUrl, headers) {
-        const info4 = {};
-        info4.parsedUrl = requestUrl;
-        const usingSsl = info4.parsedUrl.protocol === "https:";
-        info4.httpModule = usingSsl ? https : http;
+        const info5 = {};
+        info5.parsedUrl = requestUrl;
+        const usingSsl = info5.parsedUrl.protocol === "https:";
+        info5.httpModule = usingSsl ? https : http;
         const defaultPort = usingSsl ? 443 : 80;
-        info4.options = {};
-        info4.options.host = info4.parsedUrl.hostname;
-        info4.options.port = info4.parsedUrl.port ? parseInt(info4.parsedUrl.port) : defaultPort;
-        info4.options.path = (info4.parsedUrl.pathname || "") + (info4.parsedUrl.search || "");
-        info4.options.method = method;
-        info4.options.headers = this._mergeHeaders(headers);
+        info5.options = {};
+        info5.options.host = info5.parsedUrl.hostname;
+        info5.options.port = info5.parsedUrl.port ? parseInt(info5.parsedUrl.port) : defaultPort;
+        info5.options.path = (info5.parsedUrl.pathname || "") + (info5.parsedUrl.search || "");
+        info5.options.method = method;
+        info5.options.headers = this._mergeHeaders(headers);
         if (this.userAgent != null) {
-          info4.options.headers["user-agent"] = this.userAgent;
+          info5.options.headers["user-agent"] = this.userAgent;
         }
-        info4.options.agent = this._getAgent(info4.parsedUrl);
+        info5.options.agent = this._getAgent(info5.parsedUrl);
         if (this.handlers) {
           for (const handler of this.handlers) {
-            handler.prepareRequest(info4.options);
+            handler.prepareRequest(info5.options);
           }
         }
-        return info4;
+        return info5;
       }
       _mergeHeaders(headers) {
         if (this.requestOptions && this.requestOptions.headers) {
@@ -17823,10 +17823,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       command_1.issueCommand("notice", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
     exports2.notice = notice;
-    function info4(message) {
+    function info5(message) {
       process.stdout.write(message + os.EOL);
     }
-    exports2.info = info4;
+    exports2.info = info5;
     function startGroup(name) {
       command_1.issue("group", name);
     }
@@ -17887,20 +17887,17 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
   }
 });
 
-// node_modules/.pnpm/universalify@2.0.0/node_modules/universalify/index.js
+// node_modules/.pnpm/universalify@2.0.1/node_modules/universalify/index.js
 var require_universalify = __commonJS({
-  "node_modules/.pnpm/universalify@2.0.0/node_modules/universalify/index.js"(exports2) {
+  "node_modules/.pnpm/universalify@2.0.1/node_modules/universalify/index.js"(exports2) {
     "use strict";
     exports2.fromCallback = function(fn) {
       return Object.defineProperty(function(...args) {
         if (typeof args[args.length - 1] === "function") fn.apply(this, args);
         else {
           return new Promise((resolve, reject) => {
-            fn.call(
-              this,
-              ...args,
-              (err, res) => err != null ? reject(err) : resolve(res)
-            );
+            args.push((err, res) => err != null ? reject(err) : resolve(res));
+            fn.apply(this, args);
           });
         }
       }, "name", { value: fn.name });
@@ -17909,7 +17906,10 @@ var require_universalify = __commonJS({
       return Object.defineProperty(function(...args) {
         const cb = args[args.length - 1];
         if (typeof cb !== "function") return fn.apply(this, args);
-        else fn.apply(this, args.slice(0, -1)).then((r) => cb(null, r), cb);
+        else {
+          args.pop();
+          fn.apply(this, args).then((r) => cb(null, r), cb);
+        }
       }, "name", { value: fn.name });
     };
   }
@@ -32046,7 +32046,7 @@ var require_partial = __commonJS({
       match(filepath) {
         const parts = filepath.split("/");
         const levels = parts.length;
-        const patterns = this._storage.filter((info4) => !info4.complete || info4.segments.length > levels);
+        const patterns = this._storage.filter((info5) => !info5.complete || info5.segments.length > levels);
         for (const pattern of patterns) {
           const section = pattern.sections[0];
           if (!pattern.complete && levels > section.length) {
@@ -41269,7 +41269,7 @@ var require_lib4 = __commonJS({
     var VFile = require_core3();
     module2.exports = VFile;
     VFile.prototype.message = message;
-    VFile.prototype.info = info4;
+    VFile.prototype.info = info5;
     VFile.prototype.fail = fail;
     function message(reason, position, origin) {
       var message2 = new VMessage(reason, position, origin);
@@ -41286,7 +41286,7 @@ var require_lib4 = __commonJS({
       message2.fatal = true;
       throw message2;
     }
-    function info4() {
+    function info5() {
       var message2 = this.message.apply(this, arguments);
       message2.fatal = null;
       return message2;
@@ -49884,13 +49884,13 @@ var require_code = __commonJS({
       var value = node.value;
       var options = self2.options;
       var marker = options.fence;
-      var info4 = node.lang || "";
+      var info5 = node.lang || "";
       var fence;
-      if (info4 && node.meta) {
-        info4 += space + node.meta;
+      if (info5 && node.meta) {
+        info5 += space + node.meta;
       }
-      info4 = self2.encode(self2.escape(info4, node));
-      if (!info4 && !options.fences && value && value.charAt(0) !== lineFeed && value.charAt(value.length - 1) !== lineFeed) {
+      info5 = self2.encode(self2.escape(info5, node));
+      if (!info5 && !options.fences && value && value.charAt(0) !== lineFeed && value.charAt(value.length - 1) !== lineFeed) {
         if (parent && parent.type === "listItem" && options.listItemIndent !== "tab" && options.pedantic) {
           self2.file.fail(
             "Cannot indent code properly. See https://git.io/fxKR8",
@@ -49899,11 +49899,11 @@ var require_code = __commonJS({
         }
         return pad(value, 1);
       }
-      if (marker === graveAccent && info4.indexOf(graveAccent) !== -1) {
+      if (marker === graveAccent && info5.indexOf(graveAccent) !== -1) {
         marker = tilde;
       }
       fence = repeat(marker, Math.max(streak(value, marker) + 1, 3));
-      return fence + info4 + lineFeed + value + lineFeed + fence;
+      return fence + info5 + lineFeed + value + lineFeed + fence;
     }
   }
 });
@@ -53993,11 +53993,11 @@ var require_isexe = __commonJS({
   "node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js"(exports2, module2) {
     "use strict";
     var fs5 = require("fs");
-    var core5;
+    var core6;
     if (process.platform === "win32" || global.TESTING_WINDOWS) {
-      core5 = require_windows();
+      core6 = require_windows();
     } else {
-      core5 = require_mode();
+      core6 = require_mode();
     }
     module2.exports = isexe;
     isexe.sync = sync;
@@ -54020,7 +54020,7 @@ var require_isexe = __commonJS({
           });
         });
       }
-      core5(path4, options || {}, function(er, is) {
+      core6(path4, options || {}, function(er, is) {
         if (er) {
           if (er.code === "EACCES" || options && options.ignoreErrors) {
             er = null;
@@ -54032,7 +54032,7 @@ var require_isexe = __commonJS({
     }
     function sync(path4, options) {
       try {
-        return core5.sync(path4, options || {});
+        return core6.sync(path4, options || {});
       } catch (er) {
         if (options && options.ignoreErrors || er.code === "EACCES") {
           return false;
@@ -54085,10 +54085,10 @@ var require_which = __commonJS({
         cb = opt;
         opt = {};
       }
-      var info4 = getPathInfo(cmd, opt);
-      var pathEnv = info4.env;
-      var pathExt = info4.ext;
-      var pathExtExe = info4.extExe;
+      var info5 = getPathInfo(cmd, opt);
+      var pathEnv = info5.env;
+      var pathExt = info5.ext;
+      var pathExtExe = info5.extExe;
       var found = [];
       (function F(i, l) {
         if (i === l) {
@@ -54122,10 +54122,10 @@ var require_which = __commonJS({
     }
     function whichSync(cmd, opt) {
       opt = opt || {};
-      var info4 = getPathInfo(cmd, opt);
-      var pathEnv = info4.env;
-      var pathExt = info4.ext;
-      var pathExtExe = info4.extExe;
+      var info5 = getPathInfo(cmd, opt);
+      var pathEnv = info5.env;
+      var pathExt = info5.ext;
+      var pathExtExe = info5.extExe;
       var found = [];
       for (var i = 0, l = pathEnv.length; i < l; i++) {
         var pathPart = pathEnv[i];
@@ -59817,8 +59817,8 @@ var require_dist_node11 = __commonJS({
         "error",
         (e) => octokit.log.warn("Error in throttling-plugin limit handler", e)
       );
-      state.retryLimiter.on("failed", async function(error2, info4) {
-        const [state2, request, options] = info4.args;
+      state.retryLimiter.on("failed", async function(error2, info5) {
+        const [state2, request, options] = info5.args;
         const { pathname } = new URL(options.url, "http://github.test");
         const shouldRetryGraphQL = pathname.startsWith("/graphql") && error2.status !== 401;
         if (!(shouldRetryGraphQL || error2.status === 403)) {
@@ -59876,7 +59876,7 @@ var require_dist_node11 = __commonJS({
 });
 
 // actions/signed-commits/src/index.ts
-var core4 = __toESM(require_core());
+var core5 = __toESM(require_core());
 var import_fs_extra3 = __toESM(require_lib2());
 
 // actions/signed-commits/src/git/local-git.ts
@@ -59925,7 +59925,7 @@ var checkIfClean = async () => {
 var import_exec3 = __toESM(require_exec());
 var import_utils3 = __toESM(require_utils6());
 var github = __toESM(require_github());
-var core3 = __toESM(require_core());
+var core4 = __toESM(require_core());
 var import_fs_extra2 = __toESM(require_lib2());
 var import_get_packages4 = __toESM(require_manypkg_get_packages_cjs());
 var import_path5 = __toESM(require("path"));
@@ -60035,12 +60035,13 @@ function nodeHasDepthProperty(node) {
 }
 
 // actions/signed-commits/src/git/github-git/index.ts
-var core2 = __toESM(require_core());
+var core3 = __toESM(require_core());
 var import_path2 = require("path");
 
 // actions/signed-commits/src/git/github-git/repo-status.ts
 var import_path = require("path");
 var import_fs = require("fs");
+var core2 = __toESM(require_core());
 async function getFileChanges(cwd) {
   const output = await getGitStatusPorcelainV1(cwd);
   const changes = listChanges(output);
@@ -60099,6 +60100,7 @@ function listChanges(output) {
 }
 async function calculateFileChanges(changes, cwd = "") {
   const additions = changes.additions.map((path4) => {
+    core2.info(`cwd: ${cwd}, path: ${path4}`);
     const fullPath = (0, import_path.join)(cwd, path4);
     const contents = (0, import_fs.readFileSync)(fullPath).toString("base64");
     return {
@@ -60178,11 +60180,11 @@ async function getRemoteTagNames(remote, cwd) {
 
 // actions/signed-commits/src/git/github-git/index.ts
 async function commitAll(client, branch, owner, repo, message, cwd) {
-  core2.debug(`Committing all changes in ${cwd} to ${owner}/${repo}:${branch}`);
+  core3.debug(`Committing all changes in ${cwd} to ${owner}/${repo}:${branch}`);
   const fileChanges = await getFileChanges(cwd);
   const commits = compileCommits(fileChanges, message);
   if (commits.length === 0) {
-    core2.info("No changes to commit. Skipping.");
+    core3.info("No changes to commit. Skipping.");
   }
   let expectedHeadOid = await getRemoteHeadOid(client, {
     branch,
@@ -60190,9 +60192,9 @@ async function commitAll(client, branch, owner, repo, message, cwd) {
     repo
   });
   let commitNumber = 1;
-  core2.info(`Creating ${commits.length} commits.`);
+  core3.info(`Creating ${commits.length} commits.`);
   for (const commit of commits) {
-    core2.debug(
+    core3.debug(
       `Commit ${commitNumber++}/${commits.length} - ${commit.message}`
     );
     const input = {
@@ -60212,7 +60214,7 @@ async function commitAll(client, branch, owner, repo, message, cwd) {
   }
 }
 async function createCommitOnBranch(client, input) {
-  core2.debug(`Creating commit on branch ${input.branch.branchName}`);
+  core3.debug(`Creating commit on branch ${input.branch.branchName}`);
   const query = `
     mutation($input: CreateCommitOnBranchInput!) {
       createCommitOnBranch(input: $input) {
@@ -60232,7 +60234,7 @@ async function createCommitOnBranch(client, input) {
   }
 }
 async function getRemoteHeadOid(client, opts) {
-  core2.debug(
+  core3.debug(
     `Getting remote head oid for ${opts?.owner}/${opts?.repo}:${opts?.branch}`
   );
   const res = await client.rest.repos.getBranch(opts);
@@ -60556,20 +60558,20 @@ var setupOctokit = (githubToken) => {
     (0, import_utils3.getOctokitOptions)(githubToken, {
       throttle: {
         onRateLimit: (retryAfter, options, _octokit, retryCount) => {
-          core3.warning(
+          core4.warning(
             `Request quota exhausted for request ${options.method} ${options.url}`
           );
           if (retryCount <= 2) {
-            core3.info(`Retrying after ${retryAfter} seconds!`);
+            core4.info(`Retrying after ${retryAfter} seconds!`);
             return true;
           }
         },
         onSecondaryRateLimit: (retryAfter, options, _octokit, retryCount) => {
-          core3.warning(
+          core4.warning(
             `SecondaryRateLimit detected for request ${options.method} ${options.url}`
           );
           if (retryCount <= 2) {
-            core3.info(`Retrying after ${retryAfter} seconds!`);
+            core4.info(`Retrying after ${retryAfter} seconds!`);
             return true;
           }
         }
@@ -60579,7 +60581,7 @@ var setupOctokit = (githubToken) => {
 };
 var createRelease = async (octokit, { pkg, tagName }) => {
   try {
-    core3.debug(
+    core4.debug(
       `Creating release for ${pkg.packageJson.name}@${pkg.packageJson.version}`
     );
     let changelogFileName = import_path5.default.join(pkg.dir, "CHANGELOG.md");
@@ -60712,9 +60714,9 @@ async function getVersionPrBody({
     messageHeader,
     messagePrestate,
     messageReleasesHeading,
-    ...changedPackagesInfo.map((info4) => `${info4.header}
+    ...changedPackagesInfo.map((info5) => `${info5.header}
 
-${info4.content}`)
+${info5.content}`)
   ].join("\n");
   if (fullMessage.length > prBodyMaxCharacters) {
     fullMessage = [
@@ -60726,7 +60728,7 @@ ${info4.content}`)
 
 To view the full changelog, please check the [CHANGELOG file](https://github.com/${fullRepo}/blob/changeset-release/${branch}/CHANGELOG.md).
 `,
-      ...changedPackagesInfo.map((info4) => `${info4.header}
+      ...changedPackagesInfo.map((info5) => `${info5.header}
 
 `)
     ].join("\n");
@@ -60811,7 +60813,7 @@ async function runVersion({
       `This action only works if "commit:false" is set within .changeset/config.json`
     );
   }
-  core3.info(JSON.stringify(searchResult.data, null, 2));
+  core4.info(JSON.stringify(searchResult.data, null, 2));
   const changedPackagesInfo = (await changedPackagesInfoPromises).filter((x) => x).sort(sortTheThings);
   let prBody = await getVersionPrBody({
     hasPublishScript,
@@ -60822,7 +60824,7 @@ async function runVersion({
     prBodyMaxCharacters
   });
   if (searchResult.data.items.length === 0) {
-    core3.info("creating pull request");
+    core4.info("creating pull request");
     const { data: newPullRequest } = await octokit.rest.pulls.create({
       base: branch,
       head: versionBranch,
@@ -60836,7 +60838,7 @@ async function runVersion({
     };
   } else {
     const [pullRequest] = searchResult.data.items;
-    core3.info(`updating found pull request #${pullRequest.number}`);
+    core4.info(`updating found pull request #${pullRequest.number}`);
     await octokit.rest.pulls.update({
       pull_number: pullRequest.number,
       title: finalPrTitle,
@@ -60851,24 +60853,24 @@ async function runVersion({
 }
 
 // actions/signed-commits/src/index.ts
-var getOptionalInput = (name) => core4.getInput(name) || void 0;
+var getOptionalInput = (name) => core5.getInput(name) || void 0;
 (async () => {
   let githubToken = process.env.GITHUB_TOKEN;
   if (!githubToken) {
-    core4.setFailed("Please add the GITHUB_TOKEN to the changesets action");
+    core5.setFailed("Please add the GITHUB_TOKEN to the changesets action");
     return;
   }
-  const inputCwd = core4.getInput("cwd");
+  const inputCwd = core5.getInput("cwd");
   if (inputCwd) {
-    core4.info("changing directory to the one given as the input");
+    core5.info("changing directory to the one given as the input");
     process.chdir(inputCwd);
   }
-  let setupGitUser = core4.getBooleanInput("setupGitUser");
+  let setupGitUser = core5.getBooleanInput("setupGitUser");
   if (setupGitUser) {
-    core4.info("setting git user");
+    core5.info("setting git user");
     await setupUser();
   }
-  core4.info("setting GitHub credentials");
+  core5.info("setting GitHub credentials");
   await import_fs_extra3.default.writeFile(
     `${process.env.HOME}/.netrc`,
     `machine github.com
@@ -60876,36 +60878,36 @@ login github-actions[bot]
 password ${githubToken}`
   );
   let { changesets } = await readChangesetState();
-  let publishScript = core4.getInput("publish");
+  let publishScript = core5.getInput("publish");
   let hasChangesets = changesets.length !== 0;
   const hasNonEmptyChangesets = changesets.some(
     (changeset) => changeset.releases.length > 0
   );
   let hasPublishScript = !!publishScript;
-  core4.setOutput("published", "false");
-  core4.setOutput("publishedPackages", "[]");
-  core4.setOutput("hasChangesets", String(hasChangesets));
+  core5.setOutput("published", "false");
+  core5.setOutput("publishedPackages", "[]");
+  core5.setOutput("hasChangesets", String(hasChangesets));
   switch (true) {
     case (!hasChangesets && !hasPublishScript):
-      core4.info("No changesets found");
+      core5.info("No changesets found");
       return;
     case (!hasChangesets && hasPublishScript): {
-      core4.info(
+      core5.info(
         "No changesets found, attempting to publish any unpublished packages to npm"
       );
       let userNpmrcPath = `${process.env.HOME}/.npmrc`;
       if (import_fs_extra3.default.existsSync(userNpmrcPath)) {
-        core4.info("Found existing user .npmrc file");
+        core5.info("Found existing user .npmrc file");
         const userNpmrcContent = await import_fs_extra3.default.readFile(userNpmrcPath, "utf8");
         const authLine = userNpmrcContent.split("\n").find((line) => {
           return /^\s*\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);
         });
         if (authLine) {
-          core4.info(
+          core5.info(
             "Found existing auth token for the npm registry in the user .npmrc file"
           );
         } else {
-          core4.info(
+          core5.info(
             "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one"
           );
           import_fs_extra3.default.appendFileSync(
@@ -60916,7 +60918,7 @@ password ${githubToken}`
           );
         }
       } else {
-        core4.info("No user .npmrc file found, creating one");
+        core5.info("No user .npmrc file found, creating one");
         import_fs_extra3.default.writeFileSync(
           userNpmrcPath,
           `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}
@@ -60926,11 +60928,11 @@ password ${githubToken}`
       const result = await runPublish({
         script: publishScript,
         githubToken,
-        createGithubReleases: core4.getBooleanInput("createGithubReleases")
+        createGithubReleases: core5.getBooleanInput("createGithubReleases")
       });
       if (result.published) {
-        core4.setOutput("published", "true");
-        core4.setOutput(
+        core5.setOutput("published", "true");
+        core5.setOutput(
           "publishedPackages",
           JSON.stringify(result.publishedPackages)
         );
@@ -60938,7 +60940,7 @@ password ${githubToken}`
       return;
     }
     case (hasChangesets && !hasNonEmptyChangesets):
-      core4.info("All changesets are empty; not creating PR");
+      core5.info("All changesets are empty; not creating PR");
       return;
     case hasChangesets:
       const { pullRequestNumber } = await runVersion({
@@ -60946,15 +60948,15 @@ password ${githubToken}`
         githubToken,
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
-        prDraft: core4.getBooleanInput("prDraft"),
+        prDraft: core5.getBooleanInput("prDraft"),
         hasPublishScript
       });
-      core4.setOutput("pullRequestNumber", String(pullRequestNumber));
+      core5.setOutput("pullRequestNumber", String(pullRequestNumber));
       return;
   }
 })().catch((err) => {
-  core4.error(err);
-  core4.setFailed(err.message);
+  core5.error(err);
+  core5.setFailed(err.message);
 });
 /*! Bundled license information:
 

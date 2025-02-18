@@ -6,6 +6,7 @@ import {
   FileAddition,
   FileDeletion,
 } from "../../generated/graphql";
+import * as core from "@actions/core";
 
 export async function getFileChanges(cwd?: string) {
   const output = await getGitStatusPorcelainV1(cwd);
@@ -112,6 +113,7 @@ export async function calculateFileChanges(
   cwd = "",
 ): Promise<FileChanges> {
   const additions: FileAddition[] = changes.additions.map((path) => {
+    core.info(`cwd: ${cwd}, path: ${path}`);
     const fullPath = join(cwd, path);
     const contents = readFileSync(fullPath).toString("base64");
     return {
