@@ -248,6 +248,12 @@ on:
         required: false
       OPTIONAL_GATI_LAMBDA_URL:
         required: false
+      FLAKEGUARD_SPLUNK_ENDPOINT:
+        description: "The Splunk HTTP Event Collector (HEC) endpoint."
+        required: false
+      FLAKEGUARD_SPLUNK_HEC:
+        description: "The Splunk HTTP Event Collector (HEC) token."
+        required: false
 
 env:
   CHAINLINK_IMAGE:
@@ -1206,7 +1212,7 @@ jobs:
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@5a5aff2a8b4b418579edf011b6dd964e91302738 # flakguard@0.1.0
+          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@b0f04144eb5d5145552935f9e2b1ab9468d8c756 # flakguard@0.1.0
 
       - name: Aggregate Flakeguard Results
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
@@ -1228,10 +1234,12 @@ jobs:
             --output-path ./flakeguard-report \
             --codeowners-path "${{ github.workspace }}/.github/CODEOWNERS" \
             --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO" \
-            --github-repository "${{ github.repository }}" \
-            --github-run-id "${{ github.run_id }}" \
-            --action-run-id "${{ github.run_id }}" \
-            --repo-url "https://github.com/${{ github.repository }}"
+            --repo-url "https://github.com/${{ github.repository }}" \
+            --github-workflow-name "${{ github.workflow }}" \
+            --github-workflow-run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --splunk-url "${{ secrets.FLAKEGUARD_SPLUNK_ENDPOINT }}" \
+            --splunk-token "${{ secrets.FLAKEGUARD_SPLUNK_HEC }}" \
+            --splunk-event "${{ github.event_name }}"            
 
           EXIT_CODE=$?
           if [ "$EXIT_CODE" -eq 2 ]; then
@@ -1356,13 +1364,9 @@ jobs:
         id: set_slack_references
         shell: bash
         run: |
-          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
-            cl_ref="${{github.event.pull_request.head.sha }}"
-            cl_short_ref="$(echo ${{github.event.pull_request.head.sha }} | cut -c1-7)"
-            cl_ref_path="commit"
-          elif [ "$GITHUB_EVENT_NAME" = "merge_queue" ]; then
-            cl_ref="${{ github.event.merge_group.head_sha }}"
-            cl_short_ref="$(echo ${{ github.event.merge_group.head_sha }} | cut -c1-7)"
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ] || [ "$GITHUB_EVENT_NAME" = "merge_queue" ]; then
+            cl_ref="${{ inputs.chainlink_version }}"
+            cl_short_ref="$(echo ${{ inputs.chainlink_version }} | cut -c1-7)"
             cl_ref_path="commit"
           elif [ "$GITHUB_REF_TYPE" = "tag" ]; then
             cl_ref="${{ github.ref_name }}"
@@ -1370,6 +1374,17 @@ jobs:
             cl_ref_path="releases"
           fi
 
+          if [ -z "$cl_ref" ] || [ -z "$cl_short_ref" ]; then
+            echo "Could not find a valid reference to use in Slack message. Will fallback to github.sha."
+            cl_ref="${{ github.sha }}"
+            cl_short_ref="$(echo ${{ github.sha }} | cut -c1-7)"
+            cl_ref_path="commit"
+          fi
+
+          echo "References to use in Slack message:"
+          echo "chainlink version: $cl_ref"
+          echo "chainlink version short: $cl_short_ref"
+          echo "reference path: $cl_ref_path"
           { echo "cl_ref=$cl_ref"; echo "cl_short_ref=$cl_short_ref"; echo "cl_ref_path=$cl_ref_path"; } >> "$GITHUB_OUTPUT"
 
       - name: Send Slack notification
@@ -1403,7 +1418,7 @@ jobs:
                       "type": "section",
                       "text": {
                         "type": "mrkdwn",
-                        "text": "${{ steps.set_slack_references.outputs.cl_ref }} | <${{ github.server_url }}/${{ github.repository }}/${{ steps.set_slack_references.outputs.cl_ref_path }} /${{ steps.set_slack_references.outputs.cl_ref }}|${{ steps.set_slack_references.outputs.cl_short_ref }}> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+                        "text": "${{ steps.set_slack_references.outputs.cl_ref }} | <${{ github.server_url }}/${{ github.repository }}/${{ steps.set_slack_references.outputs.cl_ref_path }}/${{ steps.set_slack_references.outputs.cl_ref }}|${{ steps.set_slack_references.outputs.cl_short_ref }}> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
                       }
                     }
                   ]

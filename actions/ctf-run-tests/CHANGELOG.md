@@ -1,5 +1,14 @@
 # ctf-run-tests
 
+## 0.6.1
+
+### Patch Changes
+
+- [#889](https://github.com/smartcontractkit/.github/pull/889)
+  [`0cf9be2`](https://github.com/smartcontractkit/.github/commit/0cf9be26805b7569e931322d0a6e7bfcccc62e25)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Improving GAP local
+  proxy log handling
+
 ## 0.6.0
 
 ### Minor Changes
