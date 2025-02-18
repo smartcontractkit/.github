@@ -1,5 +1,14 @@
 # ci-test-go
 
+## 0.3.4
+
+### Patch Changes
+
+- [#872](https://github.com/smartcontractkit/.github/pull/872)
+  [`1acefa2`](https://github.com/smartcontractkit/.github/commit/1acefa2515d25bd29307fe70447e194adbf00caf)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump setup-golang
+  dependency to v0.3.1
+
 ## 0.3.3
 
 ### Patch Changes

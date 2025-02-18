@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 8.5.2
+
+### Patch Changes
+
+- [#876](https://github.com/smartcontractkit/.github/pull/876)
+  [`716cdcf`](https://github.com/smartcontractkit/.github/commit/716cdcf99ff4acd8a2c7225932d7fa8116385f15)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - increased generated
+  ns name by 1 char (attempt to increase uniqueness)
+
 ## 8.5.1
 
 ### Patch Changes
