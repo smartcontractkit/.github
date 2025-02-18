@@ -93,7 +93,11 @@ importers:
         specifier: ^2.0.0
         version: 2.0.4(@types/node@20.14.13)(jsdom@24.1.0)
 
+  actions/beholder-pulumi-deploy-schema: {}
+
   actions/check-git-tag-for-monorepo: {}
+
+  actions/check-if-verified: {}
 
   actions/ci-beholder-schema-validate: {}
 
@@ -125,13 +129,15 @@ importers:
 
   actions/ci-test-ts: {}
 
+  actions/cicd-build-docker-artifact: {}
+
+  actions/cicd-build-docker-manifest-push: {}
+
   actions/cicd-build-publish-artifacts-go: {}
 
   actions/cicd-build-publish-artifacts-ts: {}
 
   actions/cicd-build-publish-charts: {}
-
-  actions/cicd-build-publish-docker: {}
 
   actions/cicd-changesets: {}
 
@@ -150,6 +156,8 @@ importers:
   actions/ctf-check-mod-version: {}
 
   actions/ctf-cleanup: {}
+
+  actions/ctf-fetch-aws-secret: {}
 
   actions/ctf-run-tests: {}
 
