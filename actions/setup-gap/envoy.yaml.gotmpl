@@ -344,8 +344,6 @@ static_resources:
         name: envoy.transport_sockets.tls
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
-          common_tls_context:
-            alpn_protocols: "h2,http/1.1"
             validation_context:
               trusted_ca:
                 filename: /etc/ssl/certs/ca-certificates.crt
@@ -370,8 +368,6 @@ static_resources:
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
           sni: "gap-ws-echo.{{ getenv "MAIN_DNS_ZONE" }}"
-          common_tls_context:
-            alpn_protocols: "h2,http/1.1"
 
     {{- if getenv "WEBSOCKETS_SERVICES" }}
       {{- $services := getenv "WEBSOCKETS_SERVICES" | strings.Split "," }}
@@ -396,7 +392,5 @@ static_resources:
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
           sni: "{{ . }}.{{ getenv "MAIN_DNS_ZONE" }}"
-          common_tls_context:
-            alpn_protocols: "h2,http/1.1"
       {{- end }}
     {{- end }}
