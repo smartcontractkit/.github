@@ -34,7 +34,7 @@ inputs:
       Use this only if using a remote config file for `inputs.config-file`.
 
       Examples:
-        ${{ secrets.GITHUB_PAT }} # GitHub token that allows cross-repo `contents:read`.
+        $\{{ secrets.GITHUB_PAT }} # GitHub token that allows cross-repo `contents:read`. Use without the escape "\".
     required: false
 runs:
   using: composite
