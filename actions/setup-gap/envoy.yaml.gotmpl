@@ -129,7 +129,7 @@ static_resources:
                               num_retries: 5
                               host_selection_retry_max_attempts: 5
                               retry_back_off:
-                                base_interval: "1s"
+                                base_interval: "10s"
                                 max_interval: "5s"
                           typed_per_filter_config:
                             envoy.filters.http.dynamic_forward_proxy:
@@ -230,7 +230,7 @@ static_resources:
                               num_retries: 5
                               host_selection_retry_max_attempts: 5
                               retry_back_off:
-                                base_interval: "1s"
+                                base_interval: "30s"
                                 max_interval: "5s"
                     {{- end }}
                   {{- end }}
