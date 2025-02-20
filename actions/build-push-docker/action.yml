@@ -4,6 +4,11 @@ description: |
   platform. Use this with the `build-push-docker-manifest` action to create
   a Docker image manifest for multi-platform support.
 inputs:
+  docker-build-args:
+    description: |
+      Build arguments for the docker image build. See:
+      https://docs.docker.com/reference/cli/docker/buildx/build/#build-arg
+    required: false
   # See: https://github.com/moby/buildkit#github-actions-cache-experimental
   docker-build-cache-from:
     description: "Source of Docker build cache."
@@ -172,6 +177,7 @@ runs:
         provenance: mode=max
         file: ${{ inputs.dockerfile }}
         context: ${{ inputs.context }}
+        build-args: ${{ inputs.docker-build-args }}
         tags: ${{ steps.docker-meta.outputs.tags }}
         labels: ${{ steps.docker-meta.outputs.labels }}
         platforms: ${{ inputs.platform }}
