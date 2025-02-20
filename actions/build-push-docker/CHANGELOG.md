@@ -1,5 +1,14 @@
 # build-push-docker
 
+## 0.2.0
+
+### Minor Changes
+
+- [#897](https://github.com/smartcontractkit/.github/pull/897)
+  [`edf8605`](https://github.com/smartcontractkit/.github/commit/edf8605aad9f95781bf10605a96c17710a81b5c9)
+  Thanks [@chainchad](https://github.com/chainchad)! - Support optional docker
+  build args
+
 ## 0.1.0
 
 ### Minor Changes
