@@ -866,6 +866,9 @@ jobs:
           go_coverage_dest_dir: ${{ github.workspace }}/.covdata
           main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
           k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
+          enable-gap:
+            ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }} != '' && ${{
+            secrets.AWS_K8S_CLUSTER_NAME_SDLC }} != ''
 
       - name: Show Otel-Collector logs
         if:
