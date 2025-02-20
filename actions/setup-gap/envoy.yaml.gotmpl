@@ -332,7 +332,6 @@ static_resources:
     - name: dynamic_forward_proxy_cluster
       lb_policy: CLUSTER_PROVIDED
       connect_timeout: 5s
-      type: STRICT_DNS
       http2_protocol_options: {}
       cluster_type:
         name: envoy.clusters.dynamic_forward_proxy
