@@ -9,3 +9,5 @@ This will work for:
 
 - Public repositories
 - Private repositories with a GitHub Advanced Security license
+  > Please ensure that Dependency graph is enabled along with GitHub Advanced
+  > Security on private repositories
