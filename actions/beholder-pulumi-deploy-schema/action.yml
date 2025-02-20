@@ -59,7 +59,7 @@ runs:
           -e PULUMI_CONFIG_PASSPHRASE=${PULUMI_CONFIG_PASSPHRASE} \
           -e KAFKA_REST_KEY=${KAFKA_REST_KEY} \
           -e KAFKA_REST_SECRET=${KAFKA_REST_SECRET} \
-          beholder-pulumi beholder-pulumi deploy-all --cancel --preview
+          beholder-pulumi beholder-pulumi deploy-all --preview
       env:
         CONFLUENT_CLOUD_API_KEY: ${{ env.CONFLUENT_CLOUD_API_KEY }}
         CONFLUENT_CLOUD_API_SECRET: ${{ env.CONFLUENT_CLOUD_API_SECRET }}
