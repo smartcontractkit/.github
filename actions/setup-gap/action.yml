@@ -267,6 +267,7 @@ runs:
     - name: Run local Envoy proxy
       shell: sh
       env:
+        GAP_NAME: "gap-${{ inputs.gap-name }}"
         DYNAMIC_PROXY_PORT: ${{ inputs.dynamic-proxy-port }}
         ENABLE_PROXY_DEBUG: ${{ inputs.enable-proxy-debug }}
         GITHUB_OIDC_TOKEN_HEADER_NAME:
@@ -313,7 +314,7 @@ runs:
 
         echo "Validating Envoy config..."
         if ! docker run --rm \
-            --name "gap" \
+            --name "${GAP_NAME}" \
             -p "${DYNAMIC_PROXY_PORT}:${DYNAMIC_PROXY_PORT}" \
             -p "${PROXY_PORT}:${PROXY_PORT}" \
             -p "${WEBSOCKETS_PROXY_PORT}:${WEBSOCKETS_PROXY_PORT}" \
@@ -330,7 +331,7 @@ runs:
 
         echo "Starting the local Envoy proxy..."
         docker run --rm -d \
-          --name "gap" \
+          --name "${GAP_NAME}" \
           -p "${DYNAMIC_PROXY_PORT}:${DYNAMIC_PROXY_PORT}" \
           -p "${PROXY_PORT}:${PROXY_PORT}" \
           -p "${WEBSOCKETS_PROXY_PORT}:${WEBSOCKETS_PROXY_PORT}" \
