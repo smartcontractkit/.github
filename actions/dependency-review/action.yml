@@ -73,3 +73,4 @@ runs:
       uses: actions/dependency-review-action@v4
       with:
         config-file: ${{ steps.set-config-file.outputs.path }}
+        external-repo-token: ${{ inputs.external-repo-token }}
