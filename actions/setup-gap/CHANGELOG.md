@@ -1,5 +1,15 @@
 # setup-gap
 
+## 4.2.0
+
+### Minor Changes
+
+- [#898](https://github.com/smartcontractkit/.github/pull/898)
+  [`ff8424c`](https://github.com/smartcontractkit/.github/commit/ff8424cee6a09c7d6d9d0d90c466acfc1e8178fb)
+  Thanks [@DimitriosNaikopoulos](https://github.com/DimitriosNaikopoulos)! -
+  Adds ALPN support, uses dynamic container name and ensures the HOST header
+  will always direct traffic to port 443 for the dynamic forward proxy
+
 ## 4.1.0
 
 ### Minor Changes
