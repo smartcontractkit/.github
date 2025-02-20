@@ -135,17 +135,17 @@ static_resources:
                             envoy.filters.http.dynamic_forward_proxy:
                               '@type': type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.PerRouteConfig
                 http_filters:
+                  - name: envoy.filters.http.lua
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+                      default_source_code:
+                        filename: /etc/envoy/github_oidc.lua
                   - name: envoy.filters.http.dynamic_forward_proxy
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.FilterConfig
                       dns_cache_config:
                         name: dynamic_forward_proxy_cache_config
                         dns_lookup_family: V4_ONLY
-                  - name: envoy.filters.http.lua
-                    typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
-                      default_source_code:
-                        filename: /etc/envoy/github_oidc.lua
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
