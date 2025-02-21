@@ -1108,7 +1108,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@0cf9be26805b7569e931322d0a6e7bfcccc62e25 # ctf-run-tests@v0.5.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@91995e4dd053581696702eec503ce2d2c8b8e753 # ctf-run-tests@0.6.1
         env:
           DETACH_RUNNER: true
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
