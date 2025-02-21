@@ -239,8 +239,10 @@ on:
       # Used in some tests to send slack notifications
       SLACK_CHANNEL:
         required: false
+      # Required only for k8s tests
       AWS_K8S_CLUSTER_NAME_SDLC:
         required: false
+      # Required only for k8s tests
       MAIN_DNS_ZONE_PUBLIC_SDLC:
         required: false
       # Passing these will get GATI token and set it as env var GATI_TOKEN for the tests
@@ -866,6 +868,8 @@ jobs:
           go_coverage_dest_dir: ${{ github.workspace }}/.covdata
           main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
           k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
+          # enable GAP only if tests explicitly set k8s-related secrets
+          # since GAP is required only, when running tests in k8s
           enable-gap:
             ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }} != '' && ${{
             secrets.AWS_K8S_CLUSTER_NAME_SDLC }} != ''
