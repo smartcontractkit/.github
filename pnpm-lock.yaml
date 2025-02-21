@@ -95,6 +95,10 @@ importers:
 
   actions/beholder-pulumi-deploy-schema: {}
 
+  actions/build-push-docker: {}
+
+  actions/build-push-docker-manifest: {}
+
   actions/check-git-tag-for-monorepo: {}
 
   actions/check-if-verified: {}
@@ -128,10 +132,6 @@ importers:
   actions/ci-test-sol: {}
 
   actions/ci-test-ts: {}
-
-  actions/cicd-build-docker-artifact: {}
-
-  actions/cicd-build-docker-manifest-push: {}
 
   actions/cicd-build-publish-artifacts-go: {}
 
@@ -246,6 +246,8 @@ importers:
   actions/setup-nix-gati: {}
 
   actions/setup-nodejs: {}
+
+  actions/setup-postgres: {}
 
   actions/setup-renovate: {}
 
