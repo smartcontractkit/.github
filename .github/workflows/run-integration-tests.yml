@@ -238,7 +238,7 @@ jobs:
           fi
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@0cf9be26805b7569e931322d0a6e7bfcccc62e25 # ctf-run-tests@v0.5.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@0cf9be26805b7569e931322d0a6e7bfcccc62e25 # ctf-run-tests@v0.6.1
         env:
           CL_DATABASE_URL: ${{ env.DB_URL }}
         with:
