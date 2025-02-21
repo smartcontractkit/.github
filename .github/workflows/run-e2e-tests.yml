@@ -239,10 +239,12 @@ on:
       # Used in some tests to send slack notifications
       SLACK_CHANNEL:
         required: false
+      # Required only for k8s tests
       AWS_K8S_CLUSTER_NAME_SDLC:
-        required: true
+        required: false
+      # Required only for k8s tests
       MAIN_DNS_ZONE_PUBLIC_SDLC:
-        required: true
+        required: false
       # Passing these will get GATI token and set it as env var GATI_TOKEN for the tests
       OPTIONAL_GATI_AWS_ROLE_ARN:
         required: false
@@ -803,7 +805,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@b5bad2031cbc00db18a42f09cdde0bc12db99e23 # ctf-run-tests@v0.5.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@0cf9be26805b7569e931322d0a6e7bfcccc62e25 # ctf-run-tests@v0.6.1
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION:
@@ -866,6 +868,11 @@ jobs:
           go_coverage_dest_dir: ${{ github.workspace }}/.covdata
           main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
           k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
+          # enable GAP only if tests explicitly set k8s-related secrets
+          # since GAP is required only, when running tests in k8s
+          enable-gap:
+            ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }} != '' && ${{
+            secrets.AWS_K8S_CLUSTER_NAME_SDLC }} != ''
 
       - name: Show Otel-Collector logs
         if:
@@ -1101,7 +1108,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@725dd141dd77cc87dad420e9484416fc4ae26be2 # ctf-run-tests@v0.5.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@91995e4dd053581696702eec503ce2d2c8b8e753 # ctf-run-tests@0.6.1
         env:
           DETACH_RUNNER: true
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
@@ -1239,7 +1246,7 @@ jobs:
             --github-workflow-run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             --splunk-url "${{ secrets.FLAKEGUARD_SPLUNK_ENDPOINT }}" \
             --splunk-token "${{ secrets.FLAKEGUARD_SPLUNK_HEC }}" \
-            --splunk-event "${{ github.event_name }}"            
+            --splunk-event "${{ github.event_name }}"
 
           EXIT_CODE=$?
           if [ "$EXIT_CODE" -eq 2 ]; then
@@ -1250,7 +1257,7 @@ jobs:
 
           # Print out the summary file
           echo -e "\nFlakeguard Summary:"
-          jq .summary_data ./flakeguard-report/all-test-results.json          
+          jq .summary_data ./flakeguard-report/all-test-results.json
 
           # Read the summary from the generated report
           summary=$(jq -c '.summary_data' ./flakeguard-report/all-test-results.json)
@@ -1312,7 +1319,7 @@ jobs:
             --repo-url "https://github.com/${{ github.repository }}" \
             --action-run-id "${{ github.run_id }}" \
             --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO"
-                      
+
           EXIT_CODE=$?
           if [ "$EXIT_CODE" -eq 2 ]; then
             echo "ERROR: Flakeguard encountered an error while generating reports"
