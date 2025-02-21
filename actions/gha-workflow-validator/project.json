@@ -10,6 +10,13 @@
         "cwd": "{projectRoot}"
       }
     },
+    "update-snapshots": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest --update run",
+        "cwd": "{projectRoot}"
+      }
+    },
     "build": {
       "dependsOn": ["build:internal"],
       "command": "rimraf dist/package.json"

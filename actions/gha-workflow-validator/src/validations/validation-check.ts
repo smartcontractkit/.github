@@ -1,4 +1,4 @@
-import { FileLine, ParsedFile } from "../utils.js";
+import { FileLine, ParsedFile } from "../parse-files.js";
 
 export interface FileValidationResult {
   filename: string;
@@ -24,8 +24,9 @@ export enum ValidationType {
   RUNNER_UBUNTU = "runner-ubuntu",
   RUNNER_MACOS = "runner-macos",
   IGNORE_COMMENT = "ignore-comment",
+  ACTIONS_CACHE = "actions-cache",
 }
 
 export interface ValidationCheck {
-  validate(file: ParsedFile): Promise<FileValidationResult>;
+  validateLine(line: FileLine): Promise<ValidationMessage[]>;
 }
