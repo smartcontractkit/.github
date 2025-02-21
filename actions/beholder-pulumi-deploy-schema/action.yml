@@ -39,7 +39,7 @@ runs:
         docker pull ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/beholder-pulumi:qa-latest
         docker tag ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/beholder-pulumi:qa-latest beholder-pulumi
 
-    - name: Deploy schema
+    - name: Preview
       shell: bash
       run: |
         docker run \
@@ -57,14 +57,46 @@ runs:
           -e SCHEMA_REGISTRY_KEY=${SCHEMA_REGISTRY_KEY} \
           -e SCHEMA_REGISTRY_SECRET=${SCHEMA_REGISTRY_SECRET} \
           -e PULUMI_CONFIG_PASSPHRASE=${PULUMI_CONFIG_PASSPHRASE} \
-          -e KAFKA_REST_KEY=${KAFKA_REST_KEY} \
-          -e KAFKA_REST_SECRET=${KAFKA_REST_SECRET} \
-          beholder-pulumi beholder-pulumi deploy-schemas
+          -e KAFKA_API_KEY=${KAFKA_API_KEY} \
+          -e KAFKA_API_SECRET=${KAFKA_API_SECRET} \
+          -e KAFKA_REST_ENDPOINT=${KAFKA_REST_ENDPOINT} \
+          beholder-pulumi beholder-pulumi deploy-all --preview
       env:
         CONFLUENT_CLOUD_API_KEY: ${{ env.CONFLUENT_CLOUD_API_KEY }}
         CONFLUENT_CLOUD_API_SECRET: ${{ env.CONFLUENT_CLOUD_API_SECRET }}
         SCHEMA_REGISTRY_KEY: ${{ env.SCHEMA_REGISTRY_KEY }}
         SCHEMA_REGISTRY_SECRET: ${{ env.SCHEMA_REGISTRY_SECRET }}
         PULUMI_CONFIG_PASSPHRASE: ${{ env.PULUMI_CONFIG_PASSPHRASE }}
-        KAFKA_REST_KEY: ${{ env.KAFKA_REST_KEY }}
-        KAFKA_REST_SECRET: ${{ env.KAFKA_REST_SECRET }}
+        KAFKA_API_KEY: ${{ env.KAFKA_API_KEY }}
+        KAFKA_API_SECRET: ${{ env.KAFKA_API_SECRET }}
+
+    - name: Deploy schemas
+      shell: bash
+      run: |
+        docker run \
+          -v "$PWD:/workspace" \
+          -w /workspace \
+          -e AWS_REGION=${{ inputs.aws_region }} \
+          -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+          -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+          -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
+          -e DEPLOY_ENVIRONMENT=${{ inputs.deploy_environment }} \
+          -e DEPLOY_CONFIG_PATH=${{ inputs.deploy_config_path }} \
+          -e PULUMI_S3_BUCKET=${{ inputs.pulumi_s3_bucket }} \
+          -e CONFLUENT_CLOUD_API_KEY=${CONFLUENT_CLOUD_API_KEY} \
+          -e CONFLUENT_CLOUD_API_SECRET=${CONFLUENT_CLOUD_API_SECRET} \
+          -e SCHEMA_REGISTRY_KEY=${SCHEMA_REGISTRY_KEY} \
+          -e SCHEMA_REGISTRY_SECRET=${SCHEMA_REGISTRY_SECRET} \
+          -e PULUMI_CONFIG_PASSPHRASE=${PULUMI_CONFIG_PASSPHRASE} \
+          -e KAFKA_API_KEY=${KAFKA_API_KEY} \
+          -e KAFKA_API_SECRET=${KAFKA_API_SECRET} \
+          -e KAFKA_REST_ENDPOINT=${KAFKA_REST_ENDPOINT} \
+          beholder-pulumi beholder-pulumi deploy-all --cancel
+      env:
+        CONFLUENT_CLOUD_API_KEY: ${{ env.CONFLUENT_CLOUD_API_KEY }}
+        CONFLUENT_CLOUD_API_SECRET: ${{ env.CONFLUENT_CLOUD_API_SECRET }}
+        SCHEMA_REGISTRY_KEY: ${{ env.SCHEMA_REGISTRY_KEY }}
+        SCHEMA_REGISTRY_SECRET: ${{ env.SCHEMA_REGISTRY_SECRET }}
+        PULUMI_CONFIG_PASSPHRASE: ${{ env.PULUMI_CONFIG_PASSPHRASE }}
+        KAFKA_API_KEY: ${{ env.KAFKA_API_KEY }}
+        KAFKA_API_SECRET: ${{ env.KAFKA_API_SECRET }}
