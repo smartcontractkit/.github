@@ -296,6 +296,8 @@ env:
     ${{ fromJSON(inputs.extraArgs)['flakeguard_max_pass_ratio'] || '1.0' }}
   FLAKEGUARD_RUN_COUNT:
     ${{ fromJSON(inputs.extraArgs)['flakeguard_run_count'] || '3' }}
+  DOCKER_TESTS_TIMEOUT_MINUTES:
+    ${{ fromJSON(inputs.extraArgs)['docker_tests_timeout_minutes'] || 60 }}
 
 jobs:
   validate-inputs:
@@ -805,6 +807,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
+        timeout-minutes: ${{ env.DOCKER_TESTS_TIMEOUT_MINUTES }}
         uses: smartcontractkit/.github/actions/ctf-run-tests@0cf9be26805b7569e931322d0a6e7bfcccc62e25 # ctf-run-tests@v0.6.1
         env:
           DETACH_RUNNER: true
