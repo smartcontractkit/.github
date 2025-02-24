@@ -114,6 +114,15 @@ function refresh_token_if_needed(request_handle)
     end
 end
 
+-- Function to ensure that the host header's port will be 443
+local function ensure_port_443(request_handle)
+    local host = request_handle:headers():get(":authority")
+    if host and host:find(escaped_main_dns_zone .. ":%d+$") then
+        request_handle:headers():remove(":authority")
+        request_handle:headers():add(":authority", host:gsub(":%d+$", ":443"))
+    end
+end
+
 -- Function to add headers to the request
 local function add_headers(request_handle)
     -- Remove the existing header if it already exists
@@ -128,6 +137,9 @@ local function add_headers(request_handle)
     else
         request_handle:logInfo(log_prefix .. "Skipping addition of '" .. GITHUB_REPOSITORY_HEADER .. "' header as it is already present")
     end
+
+    -- Ensure that the host header's port will be 443
+    ensure_port_443(request_handle)
 end
 
 -- Main function for Envoy request interception

@@ -1,7 +1,7 @@
 {
-  "name": "setup-gap",
-  "version": "4.2.0",
-  "description": "setup github actions proxy",
+  "name": "dependency-review",
+  "version": "0.0.0",
+  "description": "",
   "private": true,
   "scripts": {},
   "author": "@smartcontractkit",
