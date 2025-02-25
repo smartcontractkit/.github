@@ -64,10 +64,10 @@ runs:
       run: |
         if [[ -n "${CONFIG_FILE:-}" ]]; then
           echo "Using config file: ${CONFIG_FILE}"
-          echo "path=${CONFIG_FILE}" | tee -a "$GITHUB_OUTPUT}"
+          echo "path=${CONFIG_FILE}" | tee -a "${GITHUB_OUTPUT}"
         elif [[ -n "${CONFIG_PRESET:-}" ]]; then
           echo "Using config preset: ${CONFIG_PRESET}"
-          echo "path=${GITHUB_ACTION_PATH}/configs/${CONFIG_PRESET}.yml" | tee -a "$GITHUB_OUTPUT}"
+          echo "path=${GITHUB_ACTION_PATH}/configs/${CONFIG_PRESET}.yml" | tee -a "${GITHUB_OUTPUT}"
         fi
     - name: Dependency Review
       uses: actions/dependency-review-action@v4
