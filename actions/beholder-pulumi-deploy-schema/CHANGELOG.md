@@ -1,5 +1,14 @@
 # beholder-pulumi-deploy-schema
 
+## 1.2.0
+
+### Minor Changes
+
+- [#899](https://github.com/smartcontractkit/.github/pull/899)
+  [`04ab14a`](https://github.com/smartcontractkit/.github/commit/04ab14abefc60468d7dac04b1885f7486346447e)
+  Thanks [@nanchano](https://github.com/nanchano)! - Added preview step, handle
+  state locks
+
 ## 1.1.0
 
 ### Minor Changes
