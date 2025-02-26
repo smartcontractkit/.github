@@ -1,0 +1,71 @@
+name: "Validate CODEOWNERS (test)"
+
+on:
+  pull_request:
+    paths:
+      - ".github/CODEOWNERS"
+      - "CODEOWNERS"
+
+jobs:
+  validate-codeowners:
+    name: "Validate"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      # Checks-out your repository, which is validated in the next step
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Setup GitHub Token
+        id: gh-token
+        uses: smartcontractkit/.github/actions/setup-github-token@main
+        with:
+          aws-role-arn: ${{ secrets.GATI_CODEOWNERS_IAM_ARN }}
+          aws-lambda-url: ${{ secrets.GATI_CODEOWNERS_LAMBDA_URL }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-role-duration-seconds: "1800" # this is optional and defaults to 900
+
+      - name: GitHub CODEOWNERS Validator
+        uses: patrickhuie19/codeowners-validator@176f0bfd300c754c6cc8d4a9e9863323e6752b90 # v0.1.8
+        # input parameters
+        with:
+          github_access_token: ${{ steps.gh-token.outputs.access-token }}
+
+          # "The list of checks that will be executed. By default, all checks are executed. Possible values: files,owners,duppatterns,syntax,patterns"
+          checks: "files,owners,duppatterns,syntax,patterns"
+
+          # "The comma-separated list of experimental checks that should be executed. By default, all experimental checks are turned off. Possible values: notowned,avoid-shadowing"
+          # disabled 'notowned' as the action attempts to fork the repository. Requiring contents:read permissions, which the setup-github-token action does not provide.
+          # This shouldn't be an issue with public repositories. Will need to fix the action to use different tokens for different purposes?
+          experimental_checks: "avoid-shadowing"
+
+          # The repository path in which CODEOWNERS file should be validated."
+          repository_path: "."
+
+          # Defines the level on which the application should treat check issues as failures. Defaults to warning, which treats both errors and warnings as failures, and exits with error code 3. Possible values are error and warning. Default: warning"
+          check_failure_level: "warning"
+
+          # The comma-separated list of patterns that should be ignored by not-owned-checker. For example, you can specify * and as a result, the * pattern from the CODEOWNERS file will be ignored and files owned by this pattern will be reported as unowned unless a later specific pattern will match that path. It's useful because often we have default owners entry at the begging of the CODOEWNERS file, e.g. * @global-owner1 @global-owner2"
+          not_owned_checker_skip_patterns: ""
+
+          # The owner and repository name. For example, gh-codeowners/codeowners-samples. Used to check if GitHub team is in the given organization and has permission to the given repository."
+          owner_checker_repository: "${{ github.repository }}"
+
+          # The comma-separated list of owners that should not be validated. Example: @owner1,@owner2,@org/team1,example@email.com."
+          owner_checker_ignored_owners: "@ghost"
+
+          # Specifies whether CODEOWNERS may have unowned files. For example, `/infra/oncall-rotator/oncall-config.yml` doesn't have owner and this is not reported.
+          owner_checker_allow_unowned_patterns: "false"
+
+          # Specifies whether only teams are allowed as owners of files.
+          owner_checker_owners_must_be_teams: "true"
+
+          # Only check listed subdirectories for CODEOWNERS ownership that don't have owners.
+          not_owned_checker_subdirectories: ""
+
+          # The comma-separated list of patterns that should not be validated.
+          pattern_checker_ignored_patterns: ""
