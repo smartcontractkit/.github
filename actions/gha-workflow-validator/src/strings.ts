@@ -63,6 +63,25 @@ For specific runner costs see "[What are the per-minute costs of the runners?](h
 
 </details>
 
+</details>
+
+<details>
+<summary>Actions Cache Version (actions-cache)</summary>
+
+This validation is required due to the deprecation of older versions of the actions/cache action. See: https://github.com/actions/cache/releases/tag/v4.2.0
+
+Please use the \`v4\` tag for the actions/cache action. This would like like one of the following:
+
+\`\`\`
+uses: actions/cache@v4
+uses: actions/cache/restore@v4
+uses: actions/cache/save@v4
+\`\`\`
+
+
+</details>
+
+
 ### Ignoring Errors
 
 You can use the following string to ignore a line from validation \`${VALIDATOR_IGNORE_LINE}\` (must be inlined).

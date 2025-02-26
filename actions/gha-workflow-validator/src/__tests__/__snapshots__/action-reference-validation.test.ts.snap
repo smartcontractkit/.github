@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`ActionReferenceValidation > should invalidate action reference (sha-ref / no comment) 1`] = `
+exports[`ActionRefValidation > should invalidate action reference (sha-ref / no comment) 1`] = `
 [
   {
     "message": "No version comment found",
@@ -10,7 +10,7 @@ exports[`ActionReferenceValidation > should invalidate action reference (sha-ref
 ]
 `;
 
-exports[`ActionReferenceValidation > should invalidate single action reference (all errors) 1`] = `
+exports[`ActionRefValidation > should invalidate single action reference (all errors) 1`] = `
 [
   {
     "message": "v2.11.0 is not a valid SHA reference",
@@ -30,7 +30,7 @@ exports[`ActionReferenceValidation > should invalidate single action reference (
 ]
 `;
 
-exports[`ActionReferenceValidation > should invalidate single action reference (bad sha ref) 1`] = `
+exports[`ActionRefValidation > should invalidate single action reference (bad sha ref) 1`] = `
 [
   {
     "message": "v3.0.2 is not a valid SHA reference",
@@ -40,7 +40,7 @@ exports[`ActionReferenceValidation > should invalidate single action reference (
 ]
 `;
 
-exports[`ActionReferenceValidation > should invalidate single action reference (no version comment) 1`] = `
+exports[`ActionRefValidation > should invalidate single action reference (no version comment) 1`] = `
 [
   {
     "message": "No version comment found",
@@ -50,7 +50,7 @@ exports[`ActionReferenceValidation > should invalidate single action reference (
 ]
 `;
 
-exports[`ActionReferenceValidation > should invalidate single action reference (node16) 1`] = `
+exports[`ActionRefValidation > should invalidate single action reference (node16) 1`] = `
 [
   {
     "message": "Action is using node16",
