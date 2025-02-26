@@ -40,11 +40,41 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Setup tar default options
+      shell: bash
+      # Do not overwrite existing files when extracting files from a cache archive.
+      # Since actions/cache does not support this option, we set it here as a default.
+      run: echo "TAR_OPTIONS=--skip-old-files" >> $GITHUB_ENV
+
+    # This change is based on the modifications done by @erikburt in the `chainlink` repo
+    # https://github.com/smartcontractkit/chainlink/pull/15645
+    - name: Get Go Version
+      shell: bash
+      if: ${{ inputs.go_mod_path }}
+      id: go-version
+      run: |
+        version=$(sed -ne '/^toolchain /s/^toolchain go//p' ${{ inputs.go_mod_path }})
+        if [ -z "$version" ]; then
+          version=$(sed -ne '/^go /s/^go //p' ${{ inputs.go_mod_path }})
+          echo "Toolchain version not found in ${{ inputs.go_mod_path }}, using go directive instead."
+        fi
+        echo "Go Version: $version"
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+    - name: Export Go version
+      id: export-go-version
+      shell: bash
+      run: |
+        if [[ "${{ inputs.go_mod_path }}" == "" ]]; then
+          echo "No go mod path provided, using go version provided"
+          echo "go_version=${{ inputs.go_version }}" >> "$GITHUB_OUTPUT"
+        else
+          echo "go_version=${{ steps.go-version.outputs.version }}" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Setup Go
-      uses: actions/setup-go@v5.0.2
+      uses: actions/setup-go@v5
       with:
-        go-version: ${{ inputs.go_version }}
-        go-version-file: ${{ inputs.go_mod_path }}
+        go-version: ${{ steps.export-go-version.outputs.go_version }}
         check-latest: true
         cache: false
 

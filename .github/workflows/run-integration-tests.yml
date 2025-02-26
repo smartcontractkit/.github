@@ -124,6 +124,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
       - name: Setup Go
         uses: actions/setup-go@v5.0.2
         with:
@@ -137,9 +139,13 @@ jobs:
       - name: Generate Tests Matrix
         id: set-matrix
         shell: bash
+        env:
+          TEST_PATH: ${{ inputs.test_path }}
+          TEST_IDS: ${{ inputs.test_ids }}
+          TEST_TRIGGER: ${{ inputs.test_trigger }}
         run: |
           echo "Using default test list"
-          MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'in-memory' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}')
+          MATRIX_JSON=$(citool filter --file "${{ github.workspace }}/$TEST_PATH" --test-env-type 'in-memory' --test-ids "$TEST_IDS" --workflow "$TEST_TRIGGER")
           echo "Tests:"
           echo "$MATRIX_JSON" | jq
           echo "matrix=$MATRIX_JSON" >> "$GITHUB_OUTPUT"
@@ -203,6 +209,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
       - name: Wait for postgres to be ready
         run: |
           until pg_isready -h localhost -p 5432 -U postgres; do
@@ -230,7 +238,7 @@ jobs:
           fi
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@5a52473d754eb3cfde41449437e320167bbbddf2 # ctf-run-tests@v0.4.1
+        uses: smartcontractkit/.github/actions/ctf-run-tests@0cf9be26805b7569e931322d0a6e7bfcccc62e25 # ctf-run-tests@v0.6.1
         env:
           CL_DATABASE_URL: ${{ env.DB_URL }}
         with:

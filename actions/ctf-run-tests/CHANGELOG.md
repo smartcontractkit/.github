@@ -1,5 +1,41 @@
 # ctf-run-tests
 
+## 0.6.1
+
+### Patch Changes
+
+- [#889](https://github.com/smartcontractkit/.github/pull/889)
+  [`0cf9be2`](https://github.com/smartcontractkit/.github/commit/0cf9be26805b7569e931322d0a6e7bfcccc62e25)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Improving GAP local
+  proxy log handling
+
+## 0.6.0
+
+### Minor Changes
+
+- [#884](https://github.com/smartcontractkit/.github/pull/884)
+  [`ea773c4`](https://github.com/smartcontractkit/.github/commit/ea773c461be417951e857c50d32b78e9b06b0ff4)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Bumping the
+  ctf-setup-run-tests-environment version in ctf-run-tests
+
+## 0.5.0
+
+### Minor Changes
+
+- [#861](https://github.com/smartcontractkit/.github/pull/861)
+  [`f0fd680`](https://github.com/smartcontractkit/.github/commit/f0fd680f962d09b599c38c8408a54b0cbd1c1eb1)
+  Thanks [@gheorghestrimtu](https://github.com/gheorghestrimtu)! - Update the
+  ctf-setup-run-tests-environment version
+
+## 0.4.2
+
+### Patch Changes
+
+- [#855](https://github.com/smartcontractkit/.github/pull/855)
+  [`18a8a89`](https://github.com/smartcontractkit/.github/commit/18a8a89b23006355003b705d55acaf329c384d94)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: pin actions/\*
+  dependencies to major version tag
+
 ## 0.4.1
 
 ### Patch Changes

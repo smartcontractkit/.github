@@ -19,12 +19,6 @@ on:
           develop or commit sha"
         required: false
         type: string
-      chainlink_upgrade_version:
-        description:
-          "Enter Chainlink version to use for the upgrade tests. Example:
-          v2.10.0, develop or commit sha"
-        required: false
-        type: string
       test_path:
         description:
           "Path to the YAML test configuration file. Example:
@@ -188,6 +182,11 @@ on:
         description: "Team to run the tests for (e.g. BIX, CCIP)"
         required: false
         type: string
+      extraArgs:
+        required: false
+        type: string
+        default: "{}"
+        description: "JSON of extra arguments for the workflow."
     outputs:
       test_results:
         description: "Test results from all executed tests"
@@ -240,14 +239,22 @@ on:
       # Used in some tests to send slack notifications
       SLACK_CHANNEL:
         required: false
+      # Required only for k8s tests
       AWS_K8S_CLUSTER_NAME_SDLC:
-        required: true
+        required: false
+      # Required only for k8s tests
       MAIN_DNS_ZONE_PUBLIC_SDLC:
-        required: true
+        required: false
       # Passing these will get GATI token and set it as env var GATI_TOKEN for the tests
       OPTIONAL_GATI_AWS_ROLE_ARN:
         required: false
       OPTIONAL_GATI_LAMBDA_URL:
+        required: false
+      FLAKEGUARD_SPLUNK_ENDPOINT:
+        description: "The Splunk HTTP Event Collector (HEC) endpoint."
+        required: false
+      FLAKEGUARD_SPLUNK_HEC:
+        description: "The Splunk HTTP Event Collector (HEC) token."
         required: false
 
 env:
@@ -263,7 +270,7 @@ env:
     inputs.chainlink_version) }}
   DEFAULT_CHAINLINK_UPGRADE_VERSION: ${{ inputs.chainlink_version }}
   CHAINLINK_ENV_USER: ${{ github.actor }}
-  CHAINLINK_COMMIT_SHA: ${{ github.sha }}
+  CHAINLINK_COMMIT_SHA: ${{ inputs.chainlink_version }}
   MOD_CACHE_VERSION: 1
   TEST_LOG_LEVEL: ${{ inputs.test_log_level }}
   METRICS_COLLECTION_ID: chainlink-e2e-tests
@@ -283,6 +290,15 @@ env:
     ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
     secrets.AWS_REGION}}.amazonaws.com/afn2proxy
 
+  FLAKEGUARD_ENABLE:
+    ${{ fromJSON(inputs.extraArgs)['flakeguard_enable'] || 'false' }}
+  FLAKEGUARD_MAX_PASS_RATIO:
+    ${{ fromJSON(inputs.extraArgs)['flakeguard_max_pass_ratio'] || '1.0' }}
+  FLAKEGUARD_RUN_COUNT:
+    ${{ fromJSON(inputs.extraArgs)['flakeguard_run_count'] || '3' }}
+  DOCKER_TESTS_TIMEOUT_MINUTES:
+    ${{ fromJSON(inputs.extraArgs)['docker_tests_timeout_minutes'] || 60 }}
+
 jobs:
   validate-inputs:
     name: Validate workflow inputs
@@ -299,14 +315,18 @@ jobs:
     steps:
       - name: Check input conditions
         id: check-inputs
+        env:
+          TEST_IDS: ${{ inputs.test_ids }}
+          TEST_TRIGGER: ${{ inputs.test_trigger }}
+          TEST_SECRETS_OVERRIDE_KEY: ${{ inputs.test_secrets_override_key }}
         run: |
-          if [[ "${{ inputs.test_ids }}" != "" && "${{ inputs.test_trigger }}" != "" ]]; then
+          if [[ "$TEST_IDS" != "" && "$TEST_TRIGGER" != "" ]]; then
             echo "::error::Error: Both 'test_ids' and 'test_trigger' are provided. Please specify only one."
             exit 1
           fi
 
           # Check if both TEST_SECRETS_OVERRIDE_BASE64 and test_secrets_override_key starting with 'aws:' are set
-          if [[ "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" != "" && "${{ inputs.test_secrets_override_key }}" == aws:* ]]; then
+          if [[ "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" != "" && "$TEST_SECRETS_OVERRIDE_KEY" == aws:* ]]; then
             echo "::error::Error: Both GitHub Secret and AWS Secret ('test_secrets_override_key' starting with 'aws:') are set. Please specify only one."
             exit 1
           fi
@@ -314,8 +334,8 @@ jobs:
           # Inform if custom secrets are being used
           if [[ "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" != "" ]]; then
             echo "Will run tests with custom test secrets from GitHub Secret."
-          elif [[ "${{ inputs.test_secrets_override_key }}" == aws:* ]]; then
-            ORIGINAL_KEY="${{ inputs.test_secrets_override_key }}"
+          elif [[ "$TEST_SECRETS_OVERRIDE_KEY" == aws:* ]]; then
+            ORIGINAL_KEY="$TEST_SECRETS_OVERRIDE_KEY"
             SECRET_ID="${ORIGINAL_KEY#aws:}"
             echo "aws_test_secrets_key=$SECRET_ID" >> "$GITHUB_OUTPUT"
             echo "Will run tests with custom test secrets from AWS Secrets Manager. AWS Secret ID: $SECRET_ID"
@@ -327,18 +347,18 @@ jobs:
       - name: Create matrix for required Chainlink image versions
         id: set-required-chainlink-image-versions-matrix
         shell: bash
+        env:
+          REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR:
+            ${{ inputs.require_chainlink_image_versions_in_qa_ecr }}
         run: |
-          image_versions="${{ inputs.require_chainlink_image_versions_in_qa_ecr }}"
+          image_versions="$REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR"
           default_version="${{ env.DEFAULT_CHAINLINK_VERSION }}"
-          current_sha="${{ github.sha }}"
 
-          if [[ "$default_version" == "$current_sha" ]]; then
-            # Append the current SHA to required image versions
-            if [[ -z "$image_versions" ]]; then
-              image_versions="${{ github.sha }}"
-            else
-              image_versions+=",${{ github.sha }}"
-            fi
+          # Append the default_version to required image versions
+          if [[ -z "$image_versions" ]]; then
+            image_versions="$default_version"
+          else
+            image_versions+=",$default_version"
           fi
 
           # Convert the comma-separated string to a JSON array
@@ -350,8 +370,11 @@ jobs:
       - name: Create matrix for required Chainlink plugin versions
         id: set-required-chainlink-plugin-versions-matrix
         shell: bash
+        env:
+          REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR:
+            ${{ inputs.require_chainlink_image_versions_in_qa_ecr }}
         run: |
-          image_versions=$(echo "${{ inputs.require_chainlink_plugin_versions_in_qa_ecr }}" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
+          image_versions=$(echo "$REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
           echo "Required Chainlink plugin image versions: $image_versions"
           echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
 
@@ -363,14 +386,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.chainlink_version }}
       - name: Install citool
         shell: bash
         run: go install
           github.com/smartcontractkit/chainlink-testing-framework/tools/citool@83100a879006dde55ace09a5dfd99b37e62f5a3f # v1.34.4
       - name: Run Check Tests Command
+        env:
+          TEST_PATH: ${{ inputs.test_path }}
+          CHECK_TEST_PATH: ${{ inputs.check_test_path }}
         run: |
-          if ! citool check-tests ${{ github.workspace }}/${{ inputs.check_test_path }} ${{ github.workspace }}/${{ inputs.test_path }}; then
-            echo "::error::Some E2E test configurations have to be added to ${{ inputs.test_path }}. This file defines Github CI configuration for each E2E test or set of E2E tests." && exit 1
+          if ! citool check-tests "${{ github.workspace }}/$CHECK_TEST_PATH" "${{ github.workspace }}/$TEST_PATH"; then
+            echo "::error::Some E2E test configurations have to be added to $TEST_PATH. This file defines Github CI configuration for each E2E test or set of E2E tests." && exit 1
           fi
 
   get_latest_chainlink_release_version:
@@ -407,6 +436,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.chainlink_version }}
       - name: Setup Go
         uses: actions/setup-go@v5.0.2
         with:
@@ -422,14 +454,20 @@ jobs:
       - name: Generate Docker Tests Matrix
         id: set-docker-matrix
         shell: bash
+        env:
+          CUSTOM_TEST_LIST_JSON: ${{ inputs.custom_test_list_json }}
+          TEST_PATH: ${{ inputs.test_path }}
+          TEST_LIST: ${{ inputs.test_list }}
+          TEST_IDS: ${{ inputs.test_ids }}
+          TEST_TRIGGER: ${{ inputs.test_trigger }}
         run: |
           # Check if custom_test_list_json is provided and non-empty
-          if [[ -n '${{ inputs.custom_test_list_json }}' ]]; then
+          if [[ -n "$CUSTOM_TEST_LIST_JSON" ]]; then
             echo "Using custom test list JSON"
-            MATRIX_JSON=$(echo '${{ inputs.custom_test_list_json }}' | jq -c '{tests: [.tests[] | select(.test_env_type == "docker")]}')
+            MATRIX_JSON=$(echo "$CUSTOM_TEST_LIST_JSON" | jq -c '{tests: [.tests[] | select(.test_env_type == "docker")]}')
           else
             echo "Using default test list"
-            MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'docker' --test-list '${{ inputs.test_list }}' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}')
+            MATRIX_JSON=$(citool filter --file "${{ github.workspace }}/$TEST_PATH" --test-env-type 'docker' --test-list "$TEST_LIST" --test-ids "$TEST_IDS" --workflow "$TEST_TRIGGER")
           fi
 
           echo "Docker tests:"
@@ -439,14 +477,20 @@ jobs:
       - name: Generate K8s Tests Matrix
         id: set-k8s-runner-matrix
         shell: bash
+        env:
+          CUSTOM_TEST_LIST_JSON: ${{ inputs.custom_test_list_json }}
+          TEST_PATH: ${{ inputs.test_path }}
+          TEST_LIST: ${{ inputs.test_list }}
+          TEST_IDS: ${{ inputs.test_ids }}
+          TEST_TRIGGER: ${{ inputs.test_trigger }}
         run: |
           # Check if custom_test_list_json is provided and non-empty
-          if [[ -n '${{ inputs.custom_test_list_json }}' ]]; then
+          if [[ -n "$CUSTOM_TEST_LIST_JSON" ]]; then
             echo "Using custom test list JSON"
-            MATRIX_JSON=$(echo '${{ inputs.custom_test_list_json }}' | jq -c '{tests: [.tests[] | select(.test_env_type == "k8s-remote-runner")]}')
+            MATRIX_JSON=$(echo "$CUSTOM_TEST_LIST_JSON" | jq -c '{tests: [.tests[] | select(.test_env_type == "k8s-remote-runner")]}')
           else
             echo "Using default test list"
-            MATRIX_JSON=$(citool filter --file ${{ github.workspace }}/${{ inputs.test_path }} --test-env-type 'k8s-remote-runner' --test-list '${{ inputs.test_list }}' --test-ids '${{ inputs.test_ids }}' --workflow '${{ inputs.test_trigger }}')
+            MATRIX_JSON=$(citool filter --file "${{ github.workspace }}/$TEST_PATH" --test-env-type 'k8s-remote-runner' --test-list "$TEST_LIST" --test-ids "$TEST_IDS" --workflow "$TEST_TRIGGER")
           fi
 
           echo "K8s tests:"
@@ -486,14 +530,18 @@ jobs:
 
       - name: Check if team is required
         if: ${{ steps.check-matrices.outputs.run-k8s-tests == 'true' }}
+        env:
+          TEAM: ${{ inputs.team }}
         run: |
-          if [[ -z "${{ inputs.team }}" ]]; then
+          if [[ -z "$TEAM" ]]; then
             echo "Team is required for k8s tests"
             exit 1
           fi
 
       - name: Check if test secrets are required for any test
         shell: bash
+        env:
+          TEST_PATH: ${{ inputs.test_path }}
         run: |
           # Check if the test secret key is provided from GitHub Secrets and skip the checks if it is non-empty
           if [[ -n "${{ secrets.TEST_SECRETS_OVERRIDE_BASE64 }}" ]]; then
@@ -514,7 +562,7 @@ jobs:
 
           # Determine if any tests require secrets
           if [ -n "$DOCKER_TESTS_REQUIRING_SECRETS" ] || [ -n "$K8S_TESTS_REQUIRING_SECRETS" ]; then
-            echo "Tests in ${{ github.workspace }}/${{ inputs.test_path }} requiring custom test secrets:"
+            echo "Tests in ${{ github.workspace }}/$TEST_PATH requiring custom test secrets:"
             if [ -n "$DOCKER_TESTS_REQUIRING_SECRETS" ]; then
               echo "$DOCKER_TESTS_REQUIRING_SECRETS"
             fi
@@ -558,6 +606,9 @@ jobs:
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.chainlink_version }}
 
       - name: Get Chainlink image
         uses: ./.github/actions/build-chainlink-image
@@ -595,6 +646,9 @@ jobs:
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.chainlink_version }}
 
       - name: Get Chainlink plugins image
         uses: ./.github/actions/build-chainlink-image
@@ -647,6 +701,9 @@ jobs:
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.chainlink_version }}
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -655,7 +712,7 @@ jobs:
         shell: bash
         run: |
           echo "### Test config override path" >> "$GITHUB_STEP_SUMMARY"
-          echo "[${{ env.TEST_CONFIG_OVERRIDE_PATH }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/${{ github.sha }}/${{ env.TEST_CONFIG_OVERRIDE_PATH }})" >> "$GITHUB_STEP_SUMMARY"
+          echo "[${{ env.TEST_CONFIG_OVERRIDE_PATH }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/${{ inputs.chainlink_version }}/${{ env.TEST_CONFIG_OVERRIDE_PATH }})" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Show chainlink version in summary
         if:
@@ -750,7 +807,8 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@5a52473d754eb3cfde41449437e320167bbbddf2 # ctf-run-tests@v0.4.1
+        timeout-minutes: ${{ fromJson(env.DOCKER_TESTS_TIMEOUT_MINUTES) }}
+        uses: smartcontractkit/.github/actions/ctf-run-tests@0cf9be26805b7569e931322d0a6e7bfcccc62e25 # ctf-run-tests@v0.6.1
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION:
@@ -774,10 +832,10 @@ jobs:
           GITHUB_API_TOKEN:
             ${{ steps.setup-optional-gati-token.outputs.access-token || ''}}
         with:
+          flakeguard_enable: ${{ env.FLAKEGUARD_ENABLE }}
+          flakeguard_run_count: ${{ env.FLAKEGUARD_RUN_COUNT }}
           test_command_to_run:
-            ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1
-            | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage
-            -hidepassingtests=false' }}
+            ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command:
             cd $(dirname ${{ matrix.tests.path }}) && go mod download
           test_secrets_override_base64:
@@ -813,6 +871,11 @@ jobs:
           go_coverage_dest_dir: ${{ github.workspace }}/.covdata
           main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
           k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
+          # enable GAP only if tests explicitly set k8s-related secrets
+          # since GAP is required only, when running tests in k8s
+          enable-gap:
+            ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }} != '' && ${{
+            secrets.AWS_K8S_CLUSTER_NAME_SDLC }} != ''
 
       - name: Show Otel-Collector logs
         if:
@@ -876,6 +939,17 @@ jobs:
           path: test_result.json
           retention-days: 1
 
+      - name: Upload Flakeguard test results as artifact
+        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name:
+            flakeguard_results_${{
+            needs.load-test-configurations.outputs.workflow_id }}_${{
+            env.TEST_ID }}
+          path: flakeguard_results.json
+          retention-days: 1
+
       - name: Upload custom test artifacts
         if: failure() && matrix.tests.test_artifacts_on_failure != ''
         uses: actions/upload-artifact@v4.4.3
@@ -916,6 +990,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
       - name: Build Test Runner Image
         id: build-test-runner-image
         uses: smartcontractkit/.github/actions/ctf-build-test-image@main # main branch
@@ -927,14 +1003,17 @@ jobs:
           suites: ${{ inputs.test_image_suites }}
       - name: Set Remote Runner Version
         id: set-remote-runner-version
+        env:
+          WITH_EXISTING_REMOTE_RUNNER_VERSION:
+            ${{ inputs.with_existing_remote_runner_version }}
         run: |
           # shellcheck disable=SC2129
-          if [[ -z "${{ inputs.with_existing_remote_runner_version }}" ]]; then
+          if [[ -z "$WITH_EXISTING_REMOTE_RUNNER_VERSION" ]]; then
             echo "remote-runner-image=${{ steps.build-test-runner-image.outputs.test_image }}" >> "$GITHUB_OUTPUT"
             echo "remote-runner-repository=${{ steps.build-test-runner-image.outputs.test_image_repository }}" >> "$GITHUB_OUTPUT"
             echo "remote-runner-version=${{ steps.build-test-runner-image.outputs.test_image_tag }}" >> "$GITHUB_OUTPUT"
           else
-            echo "remote-runner-version=${{ inputs.with_existing_remote_runner_version }}" >> "$GITHUB_OUTPUT"
+            echo "remote-runner-version=$WITH_EXISTING_REMOTE_RUNNER_VERSION" >> "$GITHUB_OUTPUT"
           fi
 
   run-k8s-runner-tests:
@@ -977,6 +1056,8 @@ jobs:
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -984,7 +1065,7 @@ jobs:
         if: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
         run: |
           echo "### Test config override path" >> "$GITHUB_STEP_SUMMARY"
-          echo "[${{ env.TEST_CONFIG_OVERRIDE_PATH }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/${{ github.sha }}/${{ env.TEST_CONFIG_OVERRIDE_PATH }})" >> "$GITHUB_STEP_SUMMARY"
+          echo "[${{ env.TEST_CONFIG_OVERRIDE_PATH }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/${{ inputs.chainlink_version }}/${{ env.TEST_CONFIG_OVERRIDE_PATH }})" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Show chainlink version in summary
         if:
@@ -1030,7 +1111,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@5a52473d754eb3cfde41449437e320167bbbddf2 # ctf-run-tests@v0.4.1
+        uses: smartcontractkit/.github/actions/ctf-run-tests@91995e4dd053581696702eec503ce2d2c8b8e753 # ctf-run-tests@0.6.1
         env:
           DETACH_RUNNER: true
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
@@ -1121,6 +1202,149 @@ jobs:
     outputs:
       test_results: ${{ steps.set_test_results.outputs.results }}
     steps:
+      # Needed for codeowners in Flakeguard
+      - name: Checkout repository
+        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
+        uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
+
+      - name: Download Flakeguard artifacts
+        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
+        uses: actions/download-artifact@v4.1.8
+        with:
+          path: flakeguard_results
+          pattern:
+            flakeguard_results_${{
+            needs.load-test-configurations.outputs.workflow_id }}_*
+
+      - name: Install flakeguard
+        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
+        shell: bash
+        run: go install
+          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@66ea05943a1c2800369cfe391b53f4738a2d3c17 # flakguard@0.1.0
+
+      - name: Aggregate Flakeguard Results
+        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
+        id: results
+        shell: bash
+        env:
+          GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
+        run: |
+          # Create test results folder if it doesn't exist
+          mkdir -p flakeguard_results
+
+          # Fix flakeguard binary path
+          PATH="$PATH:$(go env GOPATH)/bin"
+          export PATH
+
+          # Aggregate Flakeguard test results
+          flakeguard aggregate-results \
+            --results-path ./flakeguard_results \
+            --output-path ./flakeguard-report \
+            --codeowners-path "${{ github.workspace }}/.github/CODEOWNERS" \
+            --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO" \
+            --repo-url "https://github.com/${{ github.repository }}" \
+            --github-workflow-name "${{ github.workflow }}" \
+            --github-workflow-run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --splunk-url "${{ secrets.FLAKEGUARD_SPLUNK_ENDPOINT }}" \
+            --splunk-token "${{ secrets.FLAKEGUARD_SPLUNK_HEC }}" \
+            --splunk-event "${{ github.event_name }}"
+
+          EXIT_CODE=$?
+          if [ "$EXIT_CODE" -eq 2 ]; then
+            echo "ERROR: Flakeguard encountered an error while aggregating results"
+            echo "ERROR: Flakeguard encountered an error while aggregating results" >> "$GITHUB_STEP_SUMMARY"
+            exit "$EXIT_CODE"
+          fi
+
+          # Print out the summary file
+          echo -e "\nFlakeguard Summary:"
+          jq .summary_data ./flakeguard-report/all-test-results.json
+
+          # Read the summary from the generated report
+          summary=$(jq -c '.summary_data' ./flakeguard-report/all-test-results.json)
+          echo "summary=$summary" >> "$GITHUB_OUTPUT"
+
+      - name: Upload All Test Results as Artifact
+        if:
+          ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) &&
+          fromJSON(steps.results.outputs.summary).total_tests > 0 }}
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          path: ./flakeguard-report/all-test-results.json
+          name: all-test-results.json
+          retention-days: 90
+
+      - name: Upload Failed Test Results as Artifact
+        if:
+          ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) &&
+          fromJSON(steps.results.outputs.summary).failed_runs > 0 }}
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          path: ./flakeguard-report/failed-test-results.json
+          name: failed-test-results.json
+          retention-days: 90
+
+      - name: Upload Failed Test Results With Logs as Artifact
+        if:
+          ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) &&
+          fromJSON(steps.results.outputs.summary).failed_runs > 0 }}
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          path: ./flakeguard-report/failed-test-results-with-logs.json
+          name: failed-test-results-with-logs.json
+          retention-days: 90
+
+      - name: Generate Flakeguard Reports
+        shell: bash
+        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
+        id: generate-report
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
+          GH_EVENT_NAME: ${{ github.event_name }}
+          GH_EVENT_PULL_REQUEST_BASE_REF:
+            ${{ github.event.pull_request.base.ref }}
+          GH_EVENT_PULL_REQUEST_HEAD_SHA:
+            ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Fix flakeguard binary path
+          PATH="$PATH:$(go env GOPATH)/bin"
+          export PATH
+
+          flakeguard generate-report \
+            --aggregated-results-path ./flakeguard-report/all-test-results.json \
+            --failed-tests-artifact-name failed-test-results-with-logs.json \
+            --output-path ./flakeguard-report \
+            --github-repository "${{ github.repository }}" \
+            --github-run-id "${{ github.run_id }}" \
+            --repo-url "https://github.com/${{ github.repository }}" \
+            --action-run-id "${{ github.run_id }}" \
+            --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO"
+
+          EXIT_CODE=$?
+          if [ "$EXIT_CODE" -eq 2 ]; then
+            echo "ERROR: Flakeguard encountered an error while generating reports"
+            echo "ERROR: Flakeguard encountered an error while generating reports" >> "$GITHUB_STEP_SUMMARY"
+            exit "$EXIT_CODE"
+          fi
+
+      - name: Add Github Summary
+        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
+        run: |
+          FILE_SIZE=$(wc -c < ./flakeguard-report/all-test-summary.md)
+          echo "File size: $FILE_SIZE bytes"
+          SIZE_LIMIT=$((1024 * 1024))
+
+          if [ "$FILE_SIZE" -le "$SIZE_LIMIT" ]; then
+            cat ./flakeguard-report/all-test-summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "**We found flaky tests, so many flaky tests that the summary is too large for GitHub Actions step summaries!**" >> "$GITHUB_STEP_SUMMARY"
+            echo "**Please see logs, or the attached \`all-test-summary.md\` artifact**" >> "$GITHUB_STEP_SUMMARY"
+            cat ./flakeguard-report/all-test-summary.md
+          fi
+
       - name: Download all test result artifacts
         uses: actions/download-artifact@v4.1.8
         with:
@@ -1146,12 +1370,32 @@ jobs:
             echo "results=[]" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Set short SHA
-        id: set_short_sha
+      - name: Set Slack references
+        id: set_slack_references
         shell: bash
-        run:
-          echo "short_sha=$(echo ${{ github.sha }} | cut -c1-7)" >>
-          "$GITHUB_OUTPUT"
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ] || [ "$GITHUB_EVENT_NAME" = "merge_queue" ]; then
+            cl_ref="${{ inputs.chainlink_version }}"
+            cl_short_ref="$(echo ${{ inputs.chainlink_version }} | cut -c1-7)"
+            cl_ref_path="commit"
+          elif [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            cl_ref="${{ github.ref_name }}"
+            cl_short_ref="${{ github.ref_name }}"
+            cl_ref_path="releases"
+          fi
+
+          if [ -z "$cl_ref" ] || [ -z "$cl_short_ref" ]; then
+            echo "Could not find a valid reference to use in Slack message. Will fallback to github.sha."
+            cl_ref="${{ github.sha }}"
+            cl_short_ref="$(echo ${{ github.sha }} | cut -c1-7)"
+            cl_ref_path="commit"
+          fi
+
+          echo "References to use in Slack message:"
+          echo "chainlink version: $cl_ref"
+          echo "chainlink version short: $cl_short_ref"
+          echo "reference path: $cl_ref_path"
+          { echo "cl_ref=$cl_ref"; echo "cl_short_ref=$cl_short_ref"; echo "cl_ref_path=$cl_ref_path"; } >> "$GITHUB_OUTPUT"
 
       - name: Send Slack notification
         uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # v1.25.0
@@ -1184,7 +1428,7 @@ jobs:
                       "type": "section",
                       "text": {
                         "type": "mrkdwn",
-                        "text": "${{ github.ref_name }} | <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ steps.set_short_sha.outputs.short_sha }}> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+                        "text": "${{ steps.set_slack_references.outputs.cl_ref }} | <${{ github.server_url }}/${{ github.repository }}/${{ steps.set_slack_references.outputs.cl_ref_path }}/${{ steps.set_slack_references.outputs.cl_ref }}|${{ steps.set_slack_references.outputs.cl_short_ref }}> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
                       }
                     }
                   ]

@@ -36,7 +36,7 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4.2.1
+      uses: actions/checkout@v4
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
@@ -48,7 +48,7 @@ runs:
         fi
 
     - name: Setup nodejs
-      uses: smartcontractkit/.github/actions/setup-nodejs@5b1046c28343660ecb84844c6fa95a66d1cdb52e # setup-nodejs@0.2.1
+      uses: smartcontractkit/.github/actions/setup-nodejs@43fe7fdc5d678b962d777a4af76719792f9a4354 # setup-nodejs@0.2.3
       with:
         node-version-file: ${{ inputs.node-version-file }}
         pnpm-version: ${{ inputs.pnpm-version }}

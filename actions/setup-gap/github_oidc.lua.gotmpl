@@ -1,0 +1,160 @@
+-- Load the JSON library for decoding JSON payloads
+JSON = (loadfile "/etc/envoy/json.lua")() -- One-time load of the routines
+
+-- Variables to store JWT token and its expiration time
+local jwt_expiration = 0
+local jwt_token = nil
+local refreshing = false -- Flag to prevent concurrent token refreshes
+local request_options = { ["asynchronous"] = true }
+local main_dns_zone = "{{ getenv "MAIN_DNS_ZONE" }}"
+local escaped_main_dns_zone = main_dns_zone:gsub("[%.%+%*%?%^%$%(%)%%]", "%%%1")
+
+-- Constants for headers
+local GITHUB_OIDC_TOKEN_HEADER = "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
+local GITHUB_REPOSITORY_HEADER = "x-repository"
+
+-- Log prefix (will be updated dynamically)
+log_prefix = "local-proxy: LUA:: "
+
+-- Function to decode base64 value
+local function decode_base64(input)
+    local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    input = input:gsub('[^' .. b .. '=]', '') -- Remove invalid characters
+
+    return (input:gsub('.', function(x)
+        if x == '=' then
+            return '' -- Ignore padding characters
+        end
+        local r, f = '', (b:find(x) - 1)
+        for i = 6, 1, -1 do
+            r = r .. (f % 2 ^ i - f % 2 ^ (i - 1) > 0 and '1' or '0') -- Convert to binary
+        end
+        return r
+    end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+        if #x ~= 8 then
+            return '' -- Skip incomplete bytes
+        end
+        local c = 0
+        for i = 1, 8 do
+            c = c + (x:sub(i, i) == '1' and 2 ^ (8 - i) or 0) -- Convert binary to decimal
+        end
+        return string.char(c) -- Convert decimal to ASCII character
+    end))
+end
+
+-- Function to get JWT expiration time from JWT token
+local function get_jwt_exp(jwt)
+    -- Extract the three parts of the JWT: header, payload, and signature
+    local header, payload, signature = jwt:match("([^%.]+)%.([^%.]+)%.([^%.]+)")
+    if not (header and payload and signature) then
+        return nil -- Invalid JWT format
+    end
+
+    -- Decode the payload from Base64
+    local decoded_payload = decode_base64(payload)
+    if not decoded_payload then
+        return nil -- Failed to decode payload
+    end
+
+    -- Parse the decoded payload as JSON
+    local decoded_json = JSON.decode(decoded_payload)
+    if not decoded_json or not decoded_json.exp then
+        return nil -- Missing expiration time in payload
+    end
+
+    return decoded_json.exp -- Return the expiration time
+end
+
+-- Function to fetch GitHub OIDC token
+function fetch_github_oidc_token(request_handle)
+    if refreshing then
+        return -- Prevent multiple concurrent refreshes
+    end
+    refreshing = true
+
+    -- Set the audience and the GitHub OIDC token URL
+    local audience = "gap"
+    local oidc_url = "{{ getenv "ACTIONS_ID_TOKEN_REQUEST_URL" }}&audience=" .. audience
+
+    -- Prepare headers for the HTTP request
+    local headers = {
+        [":method"] = "GET",
+        [":path"] = oidc_url,
+        [":authority"] = "{{ getenv "GITHUB_OIDC_HOSTNAME" }}",
+        ["Authorization"] = "Bearer " .. "{{ getenv "ACTIONS_ID_TOKEN_REQUEST_TOKEN" }}", -- Use environment variable
+        ["accept"] = "application/json",
+    }
+
+    -- Make the HTTP call to fetch the OIDC token
+    local response_headers, response_body = request_handle:httpCall(
+        "github_oidc_endpoint",
+        headers,
+        nil, -- No body for GET requests
+        3000 -- Timeout in milliseconds
+    )
+
+    if response_headers[":status"] == "200" then
+        request_handle:logInfo(log_prefix .. "GitHub OIDC token fetched successfully.")
+        local data = JSON.decode(response_body)
+        jwt_token = data.value -- Assign the token value
+        jwt_expiration = get_jwt_exp(jwt_token) -- Update the expiration time
+    else
+        request_handle:logErr(log_prefix .. "Failed to fetch GitHub OIDC token. Status: " .. response_headers[":status"])
+    end
+
+    refreshing = false -- Reset the refreshing flag
+end
+
+-- Function to refresh the token if needed
+function refresh_token_if_needed(request_handle)
+    local current_time = os.time()
+    -- Refresh the token if it's missing or about to expire (within 60 seconds)
+    if not jwt_token or jwt_expiration - current_time < 60 then
+        fetch_github_oidc_token(request_handle)
+    end
+end
+
+-- Function to ensure that the host header's port will be 443
+local function ensure_port_443(request_handle)
+    local host = request_handle:headers():get(":authority")
+    if host and host:find(escaped_main_dns_zone .. ":%d+$") then
+        request_handle:headers():remove(":authority")
+        request_handle:headers():add(":authority", host:gsub(":%d+$", ":443"))
+    end
+end
+
+-- Function to add headers to the request
+local function add_headers(request_handle)
+    -- Remove the existing header if it already exists
+    request_handle:headers():remove(GITHUB_OIDC_TOKEN_HEADER)
+    -- Add the new JWT token to the header
+    request_handle:headers():add(GITHUB_OIDC_TOKEN_HEADER, "Bearer " .. jwt_token)
+    request_handle:logInfo(log_prefix .. "GitHub JWT OIDC token added successfully to the header: " .. GITHUB_OIDC_TOKEN_HEADER)
+
+    -- Add the repository header if it doesn't already exist
+    if not request_handle:headers():get(GITHUB_REPOSITORY_HEADER) then
+        request_handle:headers():add(GITHUB_REPOSITORY_HEADER, "{{ getenv "GITHUB_REPOSITORY" }}")
+    else
+        request_handle:logInfo(log_prefix .. "Skipping addition of '" .. GITHUB_REPOSITORY_HEADER .. "' header as it is already present")
+    end
+
+    -- Ensure that the host header's port will be 443
+    ensure_port_443(request_handle)
+end
+
+-- Main function for Envoy request interception
+function envoy_on_request(request_handle)
+    -- Get the host/authority from the request headers
+    local host = request_handle:headers():get(":authority")
+
+    -- Check if the host matches the allowed patterns
+    if host and (host:find(escaped_main_dns_zone .. "$") or host:find(escaped_main_dns_zone .. ":%d+$") or host:find("^localhost")) then
+        -- Refresh the token if necessary
+        refresh_token_if_needed(request_handle)
+        -- Add the required headers to the request
+        add_headers(request_handle)
+    else
+        request_handle:logInfo(log_prefix .. "Skipping JWT token addition for host: " .. (host or "nil") ..
+                           " (does not end with the <main-dns-zone>, does not end with <main-dns-zone>:<port>, or does not start with localhost)")
+    end
+end

@@ -1,0 +1,36 @@
+# Fails when:
+# - vulnerabilities are found in the dependency tree with a severity of moderate or greater; and
+# - a dependency is found with a license that is not in the allow_licenses list
+vulnerability_check: true
+fail_on_severity: "moderate"
+license_check: true
+# Contains a list of allowed licenses. The action will fail on pull requests
+# that introduce dependencies with licenses that do not match the list.
+allow_licenses:
+  - 0BSD
+  - AFL-3.0s
+  - Apache-2.0
+  - Artistic-2.0
+  - BSD-2-Clause
+  - BSD-2-Clause-Patent
+  - BSD-3-Clause
+  - BSD-3-Clause-Clear
+  - BSD-4-Clause
+  - BSL-1.0
+  - BlueOak-1.0.0
+  - CC0-1.0
+  - CERN-OHL-P-2.0
+  - ECL-2.0
+  - ISC
+  - LPPL-1.3c
+  - MIT
+  - MIT-0
+  - MS-PL
+  - MulanPSL-2.0
+  - NCSA
+  - PostgreSQL
+  - Python-2.0
+  - UPL-1.0
+  - Unlicense
+  - WTFPL
+  - Zlib

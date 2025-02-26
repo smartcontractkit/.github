@@ -1,0 +1,198 @@
+name: build-push-docker
+description: |
+  Reusable action to build and push docker image artifacts for a specific
+  platform. Use this with the `build-push-docker-manifest` action to create
+  a Docker image manifest for multi-platform support.
+inputs:
+  docker-build-args:
+    description: |
+      Build arguments for the docker image build. See:
+      https://docs.docker.com/reference/cli/docker/buildx/build/#build-arg
+    required: false
+  # See: https://github.com/moby/buildkit#github-actions-cache-experimental
+  docker-build-cache-from:
+    description: "Source of Docker build cache."
+    required: false
+    default: "type=gha,scope=buildkit,timeout=10m"
+  # See: https://github.com/moby/buildkit#github-actions-cache-experimental
+  docker-build-cache-to:
+    description: "Destination of Docker build cache."
+    required: false
+    default: "type=gha,scope=buildkit,timeout=10m,mode=max,ignore-error=false"
+  docker-registry-url:
+    required: true
+    description: |
+      Hostname for the docker image registry.
+
+      Examples:
+        public.ecr.aws
+        <account-id>.dkr.ecr.<region>.amazonaws.com
+  docker-repository-name:
+    required: true
+    description: |
+      Name of the Docker repository excluding hostname. Excludes any tags. Public ECR's will include a registry alias and a forward slash.
+
+      Examples:
+        chainlink/chainlink # Public ECR
+        chainlink/ccip # Public ECR
+        my-repo-name # Private ECR
+  docker-push:
+    description: "Push the docker image. Build only (no push) if: false."
+    required: false
+    default: "true"
+  tags:
+    required: false
+    description: "Tags input for the docker metadata action"
+    # Tags should always be immutable.
+    default: |
+      type=sha,prefix=pr=,event=pr
+      type=ref,event=tag
+  dockerfile:
+    description: Path to dockerfile
+    required: false
+    default: "./Dockerfile"
+  context:
+    description:
+      "Build's context is the set of files located in the specified PATH or URL"
+    required: false
+  platform:
+    # See: https://docs.docker.com/reference/cli/docker/buildx/build/#platform
+    description:
+      "Platform for the docker image, e.g. linux/amd64 or linux/arm64"
+    required: true
+  # aws inputs
+  aws-region:
+    description: "AWS region for ECR. For public images, use: us-east-1"
+    required: false
+    default: "us-east-1"
+  aws-account-number:
+    description: "AWS account number for the ECR registry."
+    required: true
+  aws-role-arn:
+    description: "AWS role ARN with permissions to push ECR images."
+    required: true
+
+outputs:
+  docker-repository-name:
+    description: "Docker repository name"
+    value: ${{ inputs.docker-repository-name }}
+  docker-image-sha-digest-amd64:
+    description: "Docker image SHA digest for platform: amd64"
+    value: ${{ steps.set-outputs.outputs.docker-image-sha-digest-amd64 }}
+  docker-image-sha-digest-arm64:
+    description: "Docker image SHA digest for platform: amd64"
+    value: ${{ steps.set-outputs.outputs.docker-image-sha-digest-arm64 }}
+  docker-image-tags:
+    description: "Docker image tags"
+    value: ${{ steps.docker-meta.outputs.tags }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check runner arch and platform compatibility
+      shell: bash
+      env:
+        RUNNER_ARCH: ${{ runner.arch }}
+        RUNNER_OS: ${{ runner.os }}
+        INPUT_PLATFORM: ${{ inputs.platform }}
+      run: |
+        # Fail if wrong OS or if runner arch is different than target platform.
+        if [[ "${RUNNER_OS}" != "Linux" ]]; then
+          echo "::error::Runner OS is not Linux; only Linux is supported."
+          exit 1
+        elif [[ "${RUNNER_ARCH}" == "X64" && "${INPUT_PLATFORM}" == "linux/amd64" ]] || 
+           [[ "${RUNNER_ARCH}" == "ARM64" && "${INPUT_PLATFORM}" == "linux/arm64" ]]; then
+          echo "Runner arch (${RUNNER_ARCH}) and platform (${INPUT_PLATFORM}) are compatible."
+        else
+          echo "::error::Runner arch (${RUNNER_ARCH}) is different than target platform ${INPUT_PLATFORM} or not supported."
+          exit 1
+        fi
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        role-duration-seconds: 900
+        aws-region: ${{ inputs.aws-region }}
+        mask-aws-account-id: true
+
+    - name: Login to ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      with:
+        registry-type: >-
+          ${{
+            startsWith(inputs.docker-registry-url, 'public.ecr.aws') &&
+          'public'
+              || 'private'
+          }}
+        registries: ${{ inputs.aws-account-number }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3.9.0
+      with:
+        version: latest
+
+    - name: Docker meta
+      id: docker-meta
+      uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
+      with:
+        images:
+          ${{ format('{0}/{1}', inputs.docker-registry-url,
+          inputs.docker-repository-name) }}
+        tags: ${{ inputs.tags }}
+        flavor: |
+          latest=false
+
+    # Build records contain AWS account ID's (in e.g. the private ECR
+    # hostname) and AWS account ID's are currently considered `sensitive`.
+    # Avoid including the build record as a GitHub Actions artifact unless the
+    # ECR is public.
+    - name: Docker build record
+      id: docker-build-record
+      shell: bash
+      env:
+        DOCKER_REGISTRY_URL: ${{ inputs.docker-registry-url }}
+      run: |
+        build_record_artifact_upload=false
+        if [[ "${DOCKER_REGISTRY_URL}" == public.ecr.aws* ]]; then
+          echo "::debug::${DOCKER_REGISTRY_URL} is a public ECR registry. Docker Build Record will be uploaded as an artifact."
+          build_record_artifact_upload=true
+        fi
+        echo "upload=${build_record_artifact_upload}" | tee -a "${GITHUB_OUTPUT}"
+
+    - name: Build & push image
+      id: build-image
+      uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6.13.0
+      env:
+        DOCKER_BUILD_CHECKS_ANNOTATIONS: true
+        DOCKER_BUILD_SUMMARY: true
+        DOCKER_BUILD_RECORD_UPLOAD:
+          ${{ steps.docker-build-record.outputs.upload }}
+        # Defaults to repository/org retention settings if unset or 0.
+        DOCKER_BUILD_RECORD_RETENTION_DAYS: 0
+      with:
+        push: ${{ inputs.docker-push }}
+        sbom: true
+        provenance: mode=max
+        file: ${{ inputs.dockerfile }}
+        context: ${{ inputs.context }}
+        build-args: ${{ inputs.docker-build-args }}
+        tags: ${{ steps.docker-meta.outputs.tags }}
+        labels: ${{ steps.docker-meta.outputs.labels }}
+        platforms: ${{ inputs.platform }}
+        cache-from: ${{ inputs.docker-build-cache-from }}
+        cache-to: ${{ inputs.docker-build-cache-to }}
+
+    - name: Set outputs
+      id: set-outputs
+      shell: bash
+      env:
+        DOCKER_IMAGE_DIGEST: ${{ steps.build-image.outputs.digest }}
+        INPUT_PLATFORM: ${{ inputs.platform }}
+      run: |
+        if [[ "${INPUT_PLATFORM}" == "linux/amd64" ]]; then
+          echo "docker-image-sha-digest-amd64=${DOCKER_IMAGE_DIGEST}" | tee -a "${GITHUB_OUTPUT}"
+        elif [[ "${INPUT_PLATFORM}" == "linux/arm64" ]]; then
+          echo "docker-image-sha-digest-arm64=${DOCKER_IMAGE_DIGEST}" | tee -a "${GITHUB_OUTPUT}"
+        fi

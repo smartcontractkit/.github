@@ -1,5 +1,49 @@
 # setup-gap
 
+## 4.2.0
+
+### Minor Changes
+
+- [#898](https://github.com/smartcontractkit/.github/pull/898)
+  [`ff8424c`](https://github.com/smartcontractkit/.github/commit/ff8424cee6a09c7d6d9d0d90c466acfc1e8178fb)
+  Thanks [@DimitriosNaikopoulos](https://github.com/DimitriosNaikopoulos)! -
+  Adds ALPN support, uses dynamic container name and ensures the HOST header
+  will always direct traffic to port 443 for the dynamic forward proxy
+
+## 4.1.0
+
+### Minor Changes
+
+- [#892](https://github.com/smartcontractkit/.github/pull/892)
+  [`0fe263c`](https://github.com/smartcontractkit/.github/commit/0fe263cbc76c76823fffa2132f9db552fa8ce0c0)
+  Thanks [@DimitriosNaikopoulos](https://github.com/DimitriosNaikopoulos)! -
+  Retry HTTP upgrade requests for WS endpoints
+
+## 4.0.1
+
+### Patch Changes
+
+- [#867](https://github.com/smartcontractkit/.github/pull/867)
+  [`5518299`](https://github.com/smartcontractkit/.github/commit/5518299de5c13d9fb9bf7f57122ae2fa78cccfa1)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Fixing the hostname
+  matching pattern in the LUA script.
+
+## 4.0.0
+
+### Major Changes
+
+- [#848](https://github.com/smartcontractkit/.github/pull/848)
+  [`519b719`](https://github.com/smartcontractkit/.github/commit/519b719d1b283c6c768cddbd45b86086c8b5750a)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Migrating to go
+  template and adding support for websockets.
+
+### Minor Changes
+
+- [#831](https://github.com/smartcontractkit/.github/pull/831)
+  [`bba3537`](https://github.com/smartcontractkit/.github/commit/bba3537561a9f9a368c71db2109839fd6334572b)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Set the default
+  port for the dynamic proxy to 443
+
 ## 3.5.6
 
 ### Patch Changes
