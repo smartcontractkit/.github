@@ -332,7 +332,7 @@ runs:
         GO_COVERAGE_DEST_DIR: ${{ inputs.go_coverage_dest_dir }}
       run: |
         # Install Flakeguard
-        go install github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@66ea05943a1c2800369cfe391b53f4738a2d3c17
+        go install github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@16a2d871c5e1e853e58563a8c6caf0359e43ca58
         PATH=$PATH:$(go env GOPATH)/bin
         export PATH
 
@@ -341,6 +341,7 @@ runs:
         export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}
 
         flakeguard run \
+          --ignore-parent-failures-on-subtests=true \
           --test-cmd bash \
           --test-cmd -c \
           --test-cmd '${{ inputs.test_command_to_run }}' \
