@@ -161,7 +161,7 @@ runs:
         BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
 
         # configure namespace
-        if [ -z "$variable" ]; then
+        if [ -z "$NS_NAME_OVERRIDE" ]; then
           echo "The variable is empty"
           echo "devspace-namespace=${NS_NAME_PREFIX}-$(uuidgen | cut -c1-6)" | tee -a "$GITHUB_OUTPUT"
         else
