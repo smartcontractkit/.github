@@ -271,7 +271,7 @@ runs:
         fi
 
         echo "Creating ${DEVSPACE_NAMESPACE} Kubernetes namespace.."
-        kubectl create ns "${DEVSPACE_NAMESPACE}"
+        kubectl create ns "${DEVSPACE_NAMESPACE}" --ignore-existing
 
         kubectl label namespace ${DEVSPACE_NAMESPACE} \
           branch="${sanitized_branch}" \
