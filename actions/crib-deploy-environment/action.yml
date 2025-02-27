@@ -273,7 +273,7 @@ runs:
         echo "Creating ${DEVSPACE_NAMESPACE} Kubernetes namespace.."
         kubectl get ns "${DEVSPACE_NAMESPACE}" || kubectl create ns "${DEVSPACE_NAMESPACE}"
 
-        kubectl label namespace ${DEVSPACE_NAMESPACE} \
+        kubectl label namespace --overwrite=true ${DEVSPACE_NAMESPACE} \
           branch="${sanitized_branch}" \
           commit=${{ steps.generate-ns-name.outputs.commit-sha }} \
           pr-number=${{ steps.generate-ns-name.outputs.pr-number || 'none' }} \
