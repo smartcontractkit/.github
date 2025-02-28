@@ -250,6 +250,7 @@ runs:
       env:
         DEVSPACE_NAMESPACE:
           "${{ steps.generate-ns-name.outputs.devspace-namespace }}"
+        NS_NAME_OVERRIDE: ${{ inputs.ns-name-override }}
       run: |
         # a valid label must be an empty string or consist of alphanumeric characters,
         # ‘-’, ‘_’ or ‘.’, and must start and end with an alphanumeric character
