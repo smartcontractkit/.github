@@ -166,7 +166,7 @@ runs:
         else
           echo "devspace-namespace=${NS_NAME_OVERRIDE}" | tee -a "$GITHUB_OUTPUT"
         fi
-        
+
         # configure rest of variables
         echo "pr-number=${PR_NUMBER}" | tee -a "$GITHUB_OUTPUT"
         echo "workflow-job=${WORKFLOW_JOB}" | tee -a "$GITHUB_OUTPUT"
@@ -268,10 +268,16 @@ runs:
           exit 1
         fi
 
+        overwrite=false
         echo "Creating ${DEVSPACE_NAMESPACE} Kubernetes namespace.."
-        kubectl get ns "${DEVSPACE_NAMESPACE}" || kubectl create ns "${DEVSPACE_NAMESPACE}"
+        if [ -z "$NS_NAME_OVERRIDE" ]; then
+          kubectl create ns "${DEVSPACE_NAMESPACE}"
+        else
+          overwrite=true
+          kubectl get ns "${DEVSPACE_NAMESPACE}" || kubectl create ns "${DEVSPACE_NAMESPACE}"
+        fi
 
-        kubectl label namespace --overwrite=true ${DEVSPACE_NAMESPACE} \
+        kubectl label namespace --overwrite=$overwrite ${DEVSPACE_NAMESPACE} \
           branch="${sanitized_branch}" \
           commit=${{ steps.generate-ns-name.outputs.commit-sha }} \
           pr-number=${{ steps.generate-ns-name.outputs.pr-number || 'none' }} \
