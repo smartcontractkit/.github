@@ -162,11 +162,9 @@ runs:
 
         # configure namespace
         if [ -z "$NS_NAME_OVERRIDE" ]; then
-          echo "The variable is empty"
           echo "devspace-namespace=${NS_NAME_PREFIX}-$(uuidgen | cut -c1-6)" | tee -a "$GITHUB_OUTPUT"
         else
-            echo "The variable is not empty"
-            echo "devspace-namespace=${NS_NAME_OVERRIDE}" | tee -a "$GITHUB_OUTPUT"
+          echo "devspace-namespace=${NS_NAME_OVERRIDE}" | tee -a "$GITHUB_OUTPUT"
         fi
         
         # configure rest of variables
