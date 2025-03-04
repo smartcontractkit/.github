@@ -43,6 +43,10 @@ inputs:
     default: "crib-ci"
     description: "Namespace name prefix for CRIB environment."
     required: false
+  ns-name-override:
+    default: ""
+    description: "Namespace name override for CRIB environment."
+    required: false
   command:
     default: "core"
     description: "The devspace command to run."
@@ -147,6 +151,7 @@ runs:
       shell: bash
       env:
         NS_NAME_PREFIX: ${{ inputs.ns-name-prefix }}
+        NS_NAME_OVERRIDE: ${{ inputs.ns-name-override }}
         PR_NUMBER: ${{ github.event.number }}
         WORKFLOW_JOB: ${{ github.job }}
         COMMIT_SHA: ${{ github.sha }}
@@ -155,7 +160,14 @@ runs:
         REPO_NAME=$(basename "$GITHUB_REPOSITORY")
         BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
 
-        echo "devspace-namespace=${NS_NAME_PREFIX}-$(uuidgen | cut -c1-6)" | tee -a "$GITHUB_OUTPUT"
+        # configure namespace
+        if [ -z "$NS_NAME_OVERRIDE" ]; then
+          echo "devspace-namespace=${NS_NAME_PREFIX}-$(uuidgen | cut -c1-6)" | tee -a "$GITHUB_OUTPUT"
+        else
+          echo "devspace-namespace=${NS_NAME_OVERRIDE}" | tee -a "$GITHUB_OUTPUT"
+        fi
+
+        # configure rest of variables
         echo "pr-number=${PR_NUMBER}" | tee -a "$GITHUB_OUTPUT"
         echo "workflow-job=${WORKFLOW_JOB}" | tee -a "$GITHUB_OUTPUT"
         echo "repo-name=${REPO_NAME}" | tee -a "$GITHUB_OUTPUT"
@@ -238,6 +250,7 @@ runs:
       env:
         DEVSPACE_NAMESPACE:
           "${{ steps.generate-ns-name.outputs.devspace-namespace }}"
+        NS_NAME_OVERRIDE: ${{ inputs.ns-name-override }}
       run: |
         # a valid label must be an empty string or consist of alphanumeric characters,
         # ‘-’, ‘_’ or ‘.’, and must start and end with an alphanumeric character
@@ -256,10 +269,16 @@ runs:
           exit 1
         fi
 
+        overwrite=false
         echo "Creating ${DEVSPACE_NAMESPACE} Kubernetes namespace.."
-        kubectl create ns "${DEVSPACE_NAMESPACE}"
+        if [ -z "$NS_NAME_OVERRIDE" ]; then
+          kubectl create ns "${DEVSPACE_NAMESPACE}"
+        else
+          overwrite=true
+          kubectl get ns "${DEVSPACE_NAMESPACE}" || kubectl create ns "${DEVSPACE_NAMESPACE}"
+        fi
 
-        kubectl label namespace ${DEVSPACE_NAMESPACE} \
+        kubectl label namespace --overwrite=$overwrite ${DEVSPACE_NAMESPACE} \
           branch="${sanitized_branch}" \
           commit=${{ steps.generate-ns-name.outputs.commit-sha }} \
           pr-number=${{ steps.generate-ns-name.outputs.pr-number || 'none' }} \

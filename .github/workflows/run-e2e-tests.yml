@@ -857,7 +857,7 @@ jobs:
             ./integration-tests/smoke/logs/
             ./integration-tests/smoke/db_dumps/
             ./integration-tests/smoke/ccip/logs/
-            ./integration-tests/smoke/capabilities/logs/
+            ./system-tests/tests/smoke/capabilities/logs/
             ./integration-tests/smoke/ccip/db_dumps/
             /tmp/gotest.log
           publish_check_name: ${{ env.TEST_ID }}

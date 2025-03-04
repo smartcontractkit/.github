@@ -169,6 +169,8 @@ importers:
 
   actions/ctf-show-grafana-in-test-summary: {}
 
+  actions/dependency-review: {}
+
   actions/dispatch-workflow: {}
 
   actions/get-latest-github-release: {}
