@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 8.6.0
+
+### Minor Changes
+
+- [#911](https://github.com/smartcontractkit/.github/pull/911)
+  [`a53b2b0`](https://github.com/smartcontractkit/.github/commit/a53b2b0fdba6a8901d14de7ecce29f9c72ec27fb)
+  Thanks [@ajgrande924](https://github.com/ajgrande924)! - update inputs to
+  handle ns override
+
 ## 8.5.2
 
 ### Patch Changes
