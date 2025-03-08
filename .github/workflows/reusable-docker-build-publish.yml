@@ -86,7 +86,7 @@ on:
         type: string
       docker-manifest-sign:
         description: "Sign docker manifest or not."
-        required: true
+        required: false
         type: string
         default: "true"
       docker-tag-custom-suffix:
