@@ -1,41 +1,42 @@
 name: Reusable Docker Build and Publish
-description: |
-  Build and publish Docker images to AWS ECR.
-
-  This workflow is reusable and can be called from other workflows.
-
-  It builds and publishes Docker images to AWS ECR, and generates a Docker
-  manifest for multi-architecture support.
-
-  The workflow supports the following Linux architectures:
-    - amd64
-    - arm64
-
-  The workflow also generates pre-defined Docker image tags based on the
-  specified type (branch, nightly, pr, tag).
-
-  Example usage from a calling workflow:
-
-    jobs:
-      docker-build-publish:
-        permissions:
-          contents: read  # needed to checkout repo.
-          id-token: write # needed to assume AWS IAM role via OIDC.
-        uses: smartcontractkit/.github/.github/workflows/reusable-docker-build-publish.yml@<git-sha>
-        with:
-          # NOTE: Remove the "\" escape character for every: $\{{ when implementing.
-          aws-ecr-name: chainlink
-          dockerfile: Dockerfile
-          docker-build-context: .
-          docker-image-type: branch
-          docker-manifest-sign: true
-          git-sha: $\{{ github.sha }}
-          github-event-name: $\{{ github.event_name }}
-          github-ref-name: $\{{ github.ref_name }}
-        secrets:
-          AWS_ACCOUNT_ID: $\{{ secrets.AWS_ACCOUNT_ID }} 
-          AWS_REGION: $\{{ secrets.AWS_REGION }} # Remove the "\" escape character.
-          AWS_ROLE_ARN: $\{{ secrets.AWS_ROLE_ARN }} # Remove the "\" escape character.
+##
+# Build and publish Docker images to AWS ECR.
+#
+# This workflow is reusable and can be called from other workflows.
+#
+# It builds and publishes Docker images to AWS ECR, and generates a Docker
+# manifest for multi-architecture support.
+#
+# The workflow supports the following Linux architectures:
+#   - amd64
+#   - arm64
+#
+# The workflow also generates pre-defined Docker image tags based on the
+# specified type (branch, nightly, pr, tag).
+#
+# Example usage from a calling workflow:
+#
+#   jobs:
+#     docker-build-publish:
+#       permissions:
+#         contents: read  # needed to checkout repo.
+#         id-token: write # needed to assume AWS IAM role via OIDC.
+#       uses: smartcontractkit/.github/.github/workflows/reusable-docker-build-publish.yml@<git-sha>
+#       with:
+#         # NOTE: Remove the "\" escape character for every: $\{{ when implementing.
+#         aws-ecr-name: chainlink
+#         dockerfile: Dockerfile
+#         docker-build-context: .
+#         docker-image-type: branch
+#         docker-manifest-sign: true
+#         git-sha: $\{{ github.sha }}
+#         github-event-name: $\{{ github.event_name }}
+#         github-ref-name: $\{{ github.ref_name }}
+#       secrets:
+#         AWS_ACCOUNT_ID: $\{{ secrets.AWS_ACCOUNT_ID }}
+#         AWS_REGION: $\{{ secrets.AWS_REGION }} # Remove the "\" escape character.
+#         AWS_ROLE_ARN: $\{{ secrets.AWS_ROLE_ARN }} # Remove the "\" escape character.
+##
 on:
   workflow_call:
     secrets:
