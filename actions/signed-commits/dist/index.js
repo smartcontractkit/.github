@@ -17887,20 +17887,17 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
   }
 });
 
-// node_modules/.pnpm/universalify@2.0.0/node_modules/universalify/index.js
+// node_modules/.pnpm/universalify@2.0.1/node_modules/universalify/index.js
 var require_universalify = __commonJS({
-  "node_modules/.pnpm/universalify@2.0.0/node_modules/universalify/index.js"(exports2) {
+  "node_modules/.pnpm/universalify@2.0.1/node_modules/universalify/index.js"(exports2) {
     "use strict";
     exports2.fromCallback = function(fn) {
       return Object.defineProperty(function(...args) {
         if (typeof args[args.length - 1] === "function") fn.apply(this, args);
         else {
           return new Promise((resolve, reject) => {
-            fn.call(
-              this,
-              ...args,
-              (err, res) => err != null ? reject(err) : resolve(res)
-            );
+            args.push((err, res) => err != null ? reject(err) : resolve(res));
+            fn.apply(this, args);
           });
         }
       }, "name", { value: fn.name });
@@ -17909,7 +17906,10 @@ var require_universalify = __commonJS({
       return Object.defineProperty(function(...args) {
         const cb = args[args.length - 1];
         if (typeof cb !== "function") return fn.apply(this, args);
-        else fn.apply(this, args.slice(0, -1)).then((r) => cb(null, r), cb);
+        else {
+          args.pop();
+          fn.apply(this, args).then((r) => cb(null, r), cb);
+        }
       }, "name", { value: fn.name });
     };
   }
@@ -60116,10 +60116,10 @@ async function calculateFileChanges(changes, cwd = "") {
 }
 
 // actions/signed-commits/src/git/github-git/repo-tags.ts
-async function pushTags(cwd) {
+async function pushTags(tagSeparator, cwd) {
   const onlyLocalTags = await getLocalRemoteTagDiff(cwd);
   await deleteTags(onlyLocalTags, cwd);
-  const createdTags = await createLightweightTags(onlyLocalTags, cwd);
+  const createdTags = await createLightweightTags(tagSeparator, onlyLocalTags, cwd);
   await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
   return createdTags;
 }
@@ -60138,8 +60138,9 @@ async function getLocalTags(cwd) {
   });
   return await Promise.all(tags);
 }
-async function createLightweightTags(tags, cwd) {
+async function createLightweightTags(tagSeparator, tags, cwd) {
   const createdTags = tags.map(async (tag) => {
+    tag.name = tag.name.replace("@", tagSeparator);
     await execWithOutput("git", ["tag", tag.name, tag.ref], { cwd });
     return tag;
   });
@@ -60607,6 +60608,7 @@ async function runPublish({
   script,
   githubToken,
   createGithubReleases,
+  tagSeparator,
   cwd = process.cwd()
 }) {
   const octokit = setupOctokit(githubToken);
@@ -60616,7 +60618,7 @@ async function runPublish({
     publishArgs,
     { cwd }
   );
-  await pushTags();
+  await pushTags(tagSeparator);
   let { packages, tool } = await (0, import_get_packages4.getPackages)(cwd);
   let releasedPackages = [];
   if (tool.type !== "root") {
@@ -60641,7 +60643,7 @@ async function runPublish({
         releasedPackages.map(
           (pkg) => createRelease(octokit, {
             pkg,
-            tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`
+            tagName: `${pkg.packageJson.name}${tagSeparator}${pkg.packageJson.version}`
           })
         )
       );
@@ -60765,7 +60767,7 @@ async function runVersion({
     q: searchQuery
   });
   await push(versionBranch, { force: true });
-  let versionsByDirectory = await getVersionsByDirectory(cwd);
+  const versionsByDirectory = await getVersionsByDirectory(cwd);
   if (script) {
     let [versionCommand, ...versionArgs] = script.split(/\s+/);
     await (0, import_exec3.exec)(versionCommand, versionArgs, { cwd });
@@ -60776,7 +60778,7 @@ async function runVersion({
       cwd
     });
   }
-  let changedPackages = await getChangedPackages(cwd, versionsByDirectory);
+  const changedPackages = await getChangedPackages(cwd, versionsByDirectory);
   let changedPackagesInfoPromises = Promise.all(
     changedPackages.map(async (pkg) => {
       let changelogContents = await import_fs_extra2.default.readFile(
@@ -60853,9 +60855,16 @@ async function runVersion({
 // actions/signed-commits/src/index.ts
 var getOptionalInput = (name) => core4.getInput(name) || void 0;
 (async () => {
-  let githubToken = process.env.GITHUB_TOKEN;
+  const githubToken = process.env.GITHUB_TOKEN;
   if (!githubToken) {
     core4.setFailed("Please add the GITHUB_TOKEN to the changesets action");
+    return;
+  }
+  const tagSeparator = core4.getInput("tagSeparator");
+  if (tagSeparator !== "@" && tagSeparator !== "/") {
+    core4.setFailed(
+      `Tag separator must be either '@' or '/', ${tagSeparator} is not supported`
+    );
     return;
   }
   const inputCwd = core4.getInput("cwd");
@@ -60863,7 +60872,7 @@ var getOptionalInput = (name) => core4.getInput(name) || void 0;
     core4.info("changing directory to the one given as the input");
     process.chdir(inputCwd);
   }
-  let setupGitUser = core4.getBooleanInput("setupGitUser");
+  const setupGitUser = core4.getBooleanInput("setupGitUser");
   if (setupGitUser) {
     core4.info("setting git user");
     await setupUser();
@@ -60926,7 +60935,8 @@ password ${githubToken}`
       const result = await runPublish({
         script: publishScript,
         githubToken,
-        createGithubReleases: core4.getBooleanInput("createGithubReleases")
+        createGithubReleases: core4.getBooleanInput("createGithubReleases"),
+        tagSeparator
       });
       if (result.published) {
         core4.setOutput("published", "true");
