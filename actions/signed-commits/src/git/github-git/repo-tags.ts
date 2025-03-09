@@ -14,7 +14,11 @@ export async function pushTags(tagSeparator: string, cwd?: string) {
   const onlyLocalTags = await getLocalRemoteTagDiff(cwd);
 
   await deleteTags(onlyLocalTags, cwd);
-  const createdTags = await createLightweightTags(tagSeparator, onlyLocalTags, cwd);
+  const createdTags = await createLightweightTags(
+    tagSeparator,
+    onlyLocalTags,
+    cwd,
+  );
   await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
 
   return createdTags;
