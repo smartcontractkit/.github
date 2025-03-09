@@ -40,6 +40,15 @@ inputs:
       `publish` or not"
     required: false
     default: "true"
+  tagSeparator:
+    description: |
+      What character to use to separate the package name and version in the tag.
+      For example:
+        - Using `@`, the resulting git tag will be <package>@<version>
+        - Using `/`, the resulting git tag will be <package>/<version>
+    required: false
+    default: "@"
+
 outputs:
   published:
     description:

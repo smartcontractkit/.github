@@ -7,10 +7,17 @@ import readChangesetState from "./read-changeset-state";
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
 (async () => {
-  let githubToken = process.env.GITHUB_TOKEN;
-
+  const githubToken = process.env.GITHUB_TOKEN;
   if (!githubToken) {
     core.setFailed("Please add the GITHUB_TOKEN to the changesets action");
+    return;
+  }
+
+  const tagSeparator = core.getInput("tagSeparator");
+  if (tagSeparator !== "@" && tagSeparator !== "/") {
+    core.setFailed(
+      `Tag separator must be either '@' or '/', ${tagSeparator} is not supported`,
+    );
     return;
   }
 
@@ -20,8 +27,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     process.chdir(inputCwd);
   }
 
-  let setupGitUser = core.getBooleanInput("setupGitUser");
-
+  const setupGitUser = core.getBooleanInput("setupGitUser");
   if (setupGitUser) {
     core.info("setting git user");
     await gitUtils.setupUser();
@@ -88,6 +94,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         script: publishScript,
         githubToken,
         createGithubReleases: core.getBooleanInput("createGithubReleases"),
+        tagSeparator: tagSeparator,
       });
 
       if (result.published) {
