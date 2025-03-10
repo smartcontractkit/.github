@@ -128,6 +128,13 @@ on:
             - v1.0.0            # tag on push events
         required: true
         type: string
+      github-workflow-repository:
+        description: |
+          The repository name of the workflow that triggered the workflow run.
+
+          Example: smartcontractkit/chainlink
+        required: true
+        type: string
 
     outputs:
       docker-image-sha-digest-amd64:
@@ -298,7 +305,7 @@ jobs:
       name: ${{ steps.docker-manifest.outputs.manifest-name }}
       tag: ${{ steps.docker-manifest.outputs.manifest-tag }}
     steps:
-      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@ebd396e260b7151da6ea5fc49996bd50e4de447e # TODO: add tag.
+      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@re-3449/cosign-verify-repo # TODO: add tag.
         id: docker-manifest
         with:
           # Avoid using `github.workflow_ref` here because the `cosign sign`
@@ -324,7 +331,7 @@ jobs:
                   needs.build-publish.outputs.docker-image-sha-digest-arm64
                 )
             }}
-          github-workflow-repository: ${{ github.repository}}
+          github-workflow-repository: ${{ inputs.github-workflow-repository }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
