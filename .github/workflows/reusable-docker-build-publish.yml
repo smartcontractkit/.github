@@ -128,18 +128,6 @@ on:
             - v1.0.0            # tag on push events
         required: true
         type: string
-      github-workflow-ref:
-        description: |
-          The ref path to the workflow. This is used for the OIDC identity as
-          part of the Docker manifest signing and for verification.
-
-          We need the caller to specify it or else the path to this reusable
-          workflow will be the OIDC identity.
-
-          Example:
-            octocat/hello-world/.github/workflows/ci.yml@<git-sha>
-        required: true
-        type: string
 
     outputs:
       docker-image-sha-digest-amd64:
@@ -276,7 +264,7 @@ jobs:
             echo "::error::Invalid Docker tag value: ${tag_value}-${MATRIX_ARCH}."
             exit 1
           fi
-          # Append the arch (example: "-linux/arm64") to the tag value.
+          # Append the arch (example: "-arm64") to the tag value.
           tags="type=raw,value=${tag_value}-${MATRIX_ARCH}"                
           echo "tags=${tags}" | tee -a "${GITHUB_OUTPUT}"
           # This will be used to generate the docker manifest tag in a future
@@ -313,15 +301,18 @@ jobs:
       - uses: smartcontractkit/.github/actions/build-push-docker-manifest@ebd396e260b7151da6ea5fc49996bd50e4de447e # TODO: add tag.
         id: docker-manifest
         with:
-          cosign-oidc-identity: >-
+          # Avoid using `github.workflow_ref` here because the `cosign sign`
+          # command will use the reusable workflow path for its identity and
+          # not the calling workflow path.
+          cosign-oidc-identity-regexp: "^https://github.com/smartcontractkit/.*$"
+          docker-registry-url: >-
             ${{
-              inputs.github-workflow-ref != ''
-              && format('https://github.com/{0}', inputs.github-workflow-ref)
-              || ''
+              format(
+                '{0}.dkr.ecr.{1}.amazonaws.com',
+                secrets.AWS_ACCOUNT_ID,
+                secrets.AWS_REGION
+              )
             }}
-          docker-registry-url:
-            ${{ format('{0}.dkr.ecr.{1}.amazonaws.com', secrets.AWS_ACCOUNT_ID,
-            secrets.AWS_REGION) }}
           docker-repository-name: ${{ inputs.aws-ecr-name }}
           docker-manifest-sign: ${{ inputs.docker-manifest-sign }}
           docker-manifest-tag:
@@ -333,6 +324,7 @@ jobs:
                   needs.build-publish.outputs.docker-image-sha-digest-arm64
                 )
             }}
+          github-workflow-repository: ${{ github.repository}}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
