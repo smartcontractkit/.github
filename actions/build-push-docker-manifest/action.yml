@@ -223,7 +223,7 @@ runs:
           echo "#### Docker Manifest signed 📝" | tee -a "${GITHUB_STEP_SUMMARY}"
           echo "Manifest signed with cosign. To verify, run:" | tee -a "${GITHUB_STEP_SUMMARY}"
           echo "\`\`\`shell" >> "${GITHUB_STEP_SUMMARY}"
-          echo "cosign verify ${MANIFEST_NAME_WITH_DIGEST} --certificate-oidc-issuer ${OIDC_ISSUER} --certificate-identity-regexp ${OIDC_IDENTITY_REGEXP} --certificate-github-workflow-repository ${GITHUB_WORKFLOW_REPOSITORY}" | tee -a "${GITHUB_STEP_SUMMARY}"
+          echo "cosign verify ${MANIFEST_NAME_WITH_DIGEST} --certificate-oidc-issuer ${OIDC_ISSUER} --certificate-identity-regexp '${OIDC_IDENTITY_REGEXP}' --certificate-github-workflow-repository ${GITHUB_WORKFLOW_REPOSITORY}" | tee -a "${GITHUB_STEP_SUMMARY}"
           echo "\`\`\`" >> "${GITHUB_STEP_SUMMARY}"
         fi
         echo >> "${GITHUB_STEP_SUMMARY}"
