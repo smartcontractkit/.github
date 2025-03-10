@@ -317,7 +317,7 @@ jobs:
       name: ${{ steps.docker-manifest.outputs.manifest-name }}
       tag: ${{ steps.docker-manifest.outputs.manifest-tag }}
     steps:
-      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@re-3449/cosign-verify-repo # TODO: add tag.
+      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@c147b5676b87e06c34f175c5537bc06901df085c # build-push-docker-manifest@0.2.0
         id: docker-manifest
         with:
           # Avoid using `github.workflow_ref` here because the `cosign sign`
