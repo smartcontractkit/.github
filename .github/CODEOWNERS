@@ -4,7 +4,7 @@
 actions/ctf-*/** @smartcontractkit/test-tooling-team
 .github/workflows/run-e2e-tests.yml @smartcontractkit/test-tooling-team
 
-actions/beholder-*/** @smartcontractkit/realtime
+/actions/beholder-*/** @smartcontractkit/realtime
 actions/ci-beholder-*/** @smartcontractkit/realtime
 
 **/package.json @smartcontractkit/releng
