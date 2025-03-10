@@ -125,7 +125,11 @@ describe("repo-tags", () => {
       expect(createdTags.length).toBe(testTags.localOnlyTags.length);
       expect(createdTags.every((t) => t.name.includes("/"))).toBe(true);
       for (const cTag of createdTags) {
-        expect(testTags.localOnlyTags.some((lTag) => lTag.name === cTag.originalName)).toBe(true);
+        expect(
+          testTags.localOnlyTags.some(
+            (lTag) => lTag.name === cTag.originalName,
+          ),
+        ).toBe(true);
       }
 
       const afterTagTypes = await listTagTypes(
@@ -150,17 +154,27 @@ describe("repo-tags", () => {
       expect(createdTags.length).toBe(testTags.localOnlyTags.length);
       expect(createdTags.every((t) => t.name.includes("/"))).toBe(true);
       for (const cTag of createdTags) {
-        expect(testTags.localOnlyTags.some((lTag) => lTag.name === cTag.originalName)).toBe(true);
+        expect(
+          testTags.localOnlyTags.some(
+            (lTag) => lTag.name === cTag.originalName,
+          ),
+        ).toBe(true);
       }
 
       // 2nd pass - create new local only tags, and check diff with tag rewrites
       // should have 6 remote tags, and 3 local only tags
-      const newLocalOnlyTestTags = await createAnnotatedTestTags(testTags.localRepoPath, "new-local-only", 3);
+      const newLocalOnlyTestTags = await createAnnotatedTestTags(
+        testTags.localRepoPath,
+        "new-local-only",
+        3,
+      );
       const createdTags2 = await pushTags("/", testTags.localRepoPath);
 
       expect(createdTags2.length).toBe(newLocalOnlyTestTags.length);
       for (const cTag of createdTags2) {
-        expect(newLocalOnlyTestTags.some((lTag) => lTag.name === cTag.originalName)).toBe(true);
+        expect(
+          newLocalOnlyTestTags.some((lTag) => lTag.name === cTag.originalName),
+        ).toBe(true);
       }
     });
   });

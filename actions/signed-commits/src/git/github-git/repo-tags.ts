@@ -69,7 +69,7 @@ export async function createLightweightTags(
     return {
       name: newTagName,
       ref: tag.ref,
-      originalName: (newTagName != tag.name) ? tag.name : undefined,
+      originalName: newTagName != tag.name ? tag.name : undefined,
     };
   });
 
