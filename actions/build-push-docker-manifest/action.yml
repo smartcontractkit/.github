@@ -3,11 +3,24 @@ description: |
   Reusable action to create docker manifest for multi-platform. Use this after
   the `build-push-docker` action to create and push the manifest.
 inputs:
-  cosign-oidc-identity:
-    description:
-      "OIDC issuer for cosign. Example:
-      https://github.com/smartcontractkit/chainlink/.github/workflows/build-publish.yml@<git
-      ref>"
+  cosign-oidc-identity-regexp:
+    description: |
+      > The identity expected in a valid Fulcio certificate.
+
+      NOTE: Always prefix this with a `^` to match the start of the string
+      and end with a `$` to match the end of the string for security.
+
+      This is used to verify the cosigned image.
+
+      Accepts the Go regular expression syntax described at:
+      https://github.com/google/re2/wiki/Syntax.
+
+      If this action is used in a reusable workflow, the identity will be the
+      reusable workflow itself and not the calling workflow.
+
+      Examples:
+        - ^https://github.com/smartcontractkit/chainlink/.github/.github/workflows/.*$
+        - ^https://github.com/smartcontractkit/.*$
     required: false
   cosign-oidc-issuer:
     description: "OIDC issuer for cosign"
@@ -43,6 +56,18 @@ inputs:
 
       Example:
        sha256:abc123,sha256:def456
+  github-workflow-repository:
+    required: false
+    description: |
+      The repository for the GitHub Actions workflow. Format is `owner/repo`.
+
+      This is used to verify the cosigned image.
+
+      Set this if the action is used in a reusable workflow.
+
+      Example:
+        smartcontractkit/chainlink
+    default: ${{ github.repository }}
   # aws inputs
   aws-region:
     description: "AWS region for ECR. For public images, use: us-east-1"
@@ -148,26 +173,28 @@ runs:
 
     - name: Verify Docker image signature
       if:
-        inputs.docker-manifest-sign == 'true' && inputs.cosign-oidc-identity !=
-        ''
+        inputs.docker-manifest-sign == 'true' &&
+        inputs.cosign-oidc-identity-regexp != ''
       shell: sh
       env:
         MANIFEST_NAME_WITH_DIGEST: >-
           ${{
             steps.create-push-docker-manifest.outputs.manifest-name-with-digest
           }}
+        GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
         OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
-        OIDC_IDENTITY: ${{ inputs.cosign-oidc-identity }}
+        OIDC_IDENTITY_REGEXP: ${{ inputs.cosign-oidc-identity-regexp }}
       run: |
         cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
           --certificate-oidc-issuer "${OIDC_ISSUER}" \
-          --certificate-identity "${OIDC_IDENTITY}"
+          --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
+          --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}"
 
     - name: Summary output
       shell: bash
       env:
-        OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
-        OIDC_IDENTITY: ${{ inputs.cosign-oidc-identity }}
+        DOCKER_MANIFEST_SIGNED: ${{ inputs.docker-manifest-sign }}
+        GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
         MANIFEST_DIGEST:
           ${{ steps.create-push-docker-manifest.outputs.manifest-digest }}
         MANIFEST_NAME:
@@ -180,8 +207,9 @@ runs:
           ${{
             steps.create-push-docker-manifest.outputs.manifest-name-with-tag
           }}
-        DOCKER_MANIFEST_SIGNED: ${{ inputs.docker-manifest-sign }}
         MANIFEST_TAG: ${{ inputs.docker-manifest-tag }}
+        OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
+        OIDC_IDENTITY_REGEXP: ${{ inputs.cosign-oidc-identity-regexp }}
       run: |
         echo "### Docker Manifest 📒" | tee -a "${GITHUB_STEP_SUMMARY}"
         echo >> "${GITHUB_STEP_SUMMARY}"
@@ -194,8 +222,8 @@ runs:
           echo >> "${GITHUB_STEP_SUMMARY}"
           echo "#### Docker Manifest signed 📝" | tee -a "${GITHUB_STEP_SUMMARY}"
           echo "Manifest signed with cosign. To verify, run:" | tee -a "${GITHUB_STEP_SUMMARY}"
-          echo "\`\`\`" >> "${GITHUB_STEP_SUMMARY}"
-          echo "cosign verify ${MANIFEST_NAME_WITH_DIGEST} --certificate-oidc-issuer ${OIDC_ISSUER} --certificate-identity ${OIDC_IDENTITY}" | tee -a "${GITHUB_STEP_SUMMARY}"
+          echo "\`\`\`shell" >> "${GITHUB_STEP_SUMMARY}"
+          echo "cosign verify ${MANIFEST_NAME_WITH_DIGEST} --certificate-oidc-issuer ${OIDC_ISSUER} --certificate-identity-regexp ${OIDC_IDENTITY_REGEXP} --certificate-github-workflow-repository ${GITHUB_WORKFLOW_REPOSITORY}" | tee -a "${GITHUB_STEP_SUMMARY}"
           echo "\`\`\`" >> "${GITHUB_STEP_SUMMARY}"
         fi
         echo >> "${GITHUB_STEP_SUMMARY}"

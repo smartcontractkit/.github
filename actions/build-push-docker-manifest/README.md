@@ -110,8 +110,8 @@ jobs:
     steps:
       - uses: smartcontractkit/.github/actions/build-push-docker-manifest@<sha> # build-push-docker-manifest@x.y.z
         with:
-          cosign-oidc-identity:
-            ${{ format('https://github.com/{0}', github.workflow_ref) }}
+          # Used for verifying the image signed with cosign.
+          cosign-oidc-identity-regexp: "^https://github.com/smartcontractkit/.*$"
           docker-registry-url:
             ${{ format('{0}.dkr.ecr.{1}.amazonaws.com', secrets.AWS_ACCOUNT_ID,
             secrets.AWS_REGION) }}
