@@ -3,6 +3,7 @@ import { execWithOutput } from "../../utils";
 export interface GitTag {
   name: string;
   ref: string;
+  originalName?: string;
 }
 
 /**
@@ -62,10 +63,14 @@ export async function createLightweightTags(
 ): Promise<GitTag[]> {
   const createdTags = tags.map(async (tag) => {
     // Default tag separator is @
-    tag.name = tag.name.replace("@", tagSeparator);
-    await execWithOutput("git", ["tag", tag.name, tag.ref], { cwd });
+    const newTagName = tag.name.replace("@", tagSeparator);
+    await execWithOutput("git", ["tag", newTagName, tag.ref], { cwd });
 
-    return tag;
+    return {
+      name: newTagName,
+      ref: tag.ref,
+      originalName: (newTagName != tag.name) ? tag.name : undefined,
+    };
   });
 
   return await Promise.all(createdTags);

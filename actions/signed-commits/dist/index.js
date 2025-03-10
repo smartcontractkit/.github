@@ -60119,7 +60119,11 @@ async function calculateFileChanges(changes, cwd = "") {
 async function pushTags(tagSeparator, cwd) {
   const onlyLocalTags = await getLocalRemoteTagDiff(cwd);
   await deleteTags(onlyLocalTags, cwd);
-  const createdTags = await createLightweightTags(tagSeparator, onlyLocalTags, cwd);
+  const createdTags = await createLightweightTags(
+    tagSeparator,
+    onlyLocalTags,
+    cwd
+  );
   await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
   return createdTags;
 }
@@ -60140,9 +60144,13 @@ async function getLocalTags(cwd) {
 }
 async function createLightweightTags(tagSeparator, tags, cwd) {
   const createdTags = tags.map(async (tag) => {
-    tag.name = tag.name.replace("@", tagSeparator);
-    await execWithOutput("git", ["tag", tag.name, tag.ref], { cwd });
-    return tag;
+    const newTagName = tag.name.replace("@", tagSeparator);
+    await execWithOutput("git", ["tag", newTagName, tag.ref], { cwd });
+    return {
+      name: newTagName,
+      ref: tag.ref,
+      originalName: newTagName != tag.name ? tag.name : void 0
+    };
   });
   return await Promise.all(createdTags);
 }

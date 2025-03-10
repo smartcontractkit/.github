@@ -120,17 +120,48 @@ describe("repo-tags", () => {
         testTags.localOnlyTags,
         testTags.localRepoPath,
       );
-      await pushTags("/", testTags.localRepoPath);
+
+      const createdTags = await pushTags("/", testTags.localRepoPath);
+      expect(createdTags.length).toBe(testTags.localOnlyTags.length);
+      expect(createdTags.every((t) => t.name.includes("/"))).toBe(true);
+      for (const cTag of createdTags) {
+        expect(testTags.localOnlyTags.some((lTag) => lTag.name === cTag.originalName)).toBe(true);
+      }
+
       const afterTagTypes = await listTagTypes(
-        testTags.localOnlyTags,
+        createdTags,
         testTags.localRepoPath,
       );
-
       expect(beforeTagTypes.every((t) => t.type === "tag")).toBe(true);
       expect(afterTagTypes.every((t) => t.type === "commit")).toBe(true);
-      expect(beforeTagTypes.map((t) => t.name).sort()).toEqual(
-        afterTagTypes.map((t) => t.name).sort(),
-      );
+
+      for (const cTag of createdTags) {
+        expect(afterTagTypes.some((t) => t.name === cTag.name)).toBe(true);
+      }
+    });
+
+    it("should push lightweight versions of tags - complex (/)", async () => {
+      const testTags = await createTestRepoWithRemote("repo-tags", true);
+
+      // 1st pass - push tags. Should now have 6 remote tags:
+      // - 3 with <pkg>/<tag> format
+      // - 3 with <pkg>@<tag> format
+      const createdTags = await pushTags("/", testTags.localRepoPath);
+      expect(createdTags.length).toBe(testTags.localOnlyTags.length);
+      expect(createdTags.every((t) => t.name.includes("/"))).toBe(true);
+      for (const cTag of createdTags) {
+        expect(testTags.localOnlyTags.some((lTag) => lTag.name === cTag.originalName)).toBe(true);
+      }
+
+      // 2nd pass - create new local only tags, and check diff with tag rewrites
+      // should have 6 remote tags, and 3 local only tags
+      const newLocalOnlyTestTags = await createAnnotatedTestTags(testTags.localRepoPath, "new-local-only", 3);
+      const createdTags2 = await pushTags("/", testTags.localRepoPath);
+
+      expect(createdTags2.length).toBe(newLocalOnlyTestTags.length);
+      for (const cTag of createdTags2) {
+        expect(newLocalOnlyTestTags.some((lTag) => lTag.name === cTag.originalName)).toBe(true);
+      }
     });
   });
 
@@ -197,13 +228,13 @@ async function createAnnotatedTestTags(
   count: number,
 ): Promise<GitTag[]> {
   const newTags = new Array(count).fill(null).map(async (_, i) => {
-    const name = `tag-${key}-${i}`;
+    const name = `pkg@tag-${key}-${i}`;
     const msg = `This is tag ${key}-${i}`;
     const ref = await execWithOutput("git", ["rev-parse", "HEAD"], {
       cwd: repoPath,
     });
 
-    execSync(`cd ${repoPath} && git tag -a ${name} -m "${msg}" ${ref}`);
+    execSync(`cd ${repoPath} && git tag -a '${name}' -m "${msg}" ${ref}`);
 
     return { name, ref } satisfies GitTag;
   });
