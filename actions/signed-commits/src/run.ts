@@ -109,6 +109,7 @@ type PublishOptions = {
   script: string;
   githubToken: string;
   createGithubReleases: boolean;
+  tagSeparator: string;
   cwd?: string;
 };
 
@@ -127,6 +128,7 @@ export async function runPublish({
   script,
   githubToken,
   createGithubReleases,
+  tagSeparator,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
   const octokit = setupOctokit(githubToken);
@@ -139,7 +141,7 @@ export async function runPublish({
     { cwd },
   );
 
-  await githubGitUtils.pushTags();
+  await githubGitUtils.pushTags(tagSeparator);
 
   let { packages, tool } = await getPackages(cwd);
   let releasedPackages: Package[] = [];
@@ -172,7 +174,7 @@ export async function runPublish({
         releasedPackages.map((pkg) =>
           createRelease(octokit, {
             pkg,
-            tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
+            tagName: `${pkg.packageJson.name}${tagSeparator}${pkg.packageJson.version}`,
           }),
         ),
       );
@@ -362,7 +364,8 @@ export async function runVersion({
   // on top. Unfortunately this means that the PR will be closed and reopened
   await localGitUtils.push(versionBranch, { force: true });
 
-  let versionsByDirectory = await getVersionsByDirectory(cwd);
+  // Get the versions of each package before we 'version' them. This allows us to diff the version bumps.
+  const versionsByDirectory = await getVersionsByDirectory(cwd);
 
   if (script) {
     let [versionCommand, ...versionArgs] = script.split(/\s+/);
@@ -377,7 +380,7 @@ export async function runVersion({
     });
   }
 
-  let changedPackages = await getChangedPackages(cwd, versionsByDirectory);
+  const changedPackages = await getChangedPackages(cwd, versionsByDirectory);
   let changedPackagesInfoPromises = Promise.all(
     changedPackages.map(async (pkg) => {
       let changelogContents = await fs.readFile(

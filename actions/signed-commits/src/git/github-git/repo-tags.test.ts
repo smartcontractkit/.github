@@ -41,12 +41,13 @@ describe("repo-tags", () => {
   });
 
   describe("createLightweightTags", () => {
-    it("should create the given tags", async () => {
+    it("should create the given tags (@)", async () => {
       const repo = await createRepo("repo-tags");
       const tags = await createLightweightTags(
+        "@",
         [
-          { name: "tag-1", ref: "HEAD" },
-          { name: "tag-2", ref: "HEAD" },
+          { name: "foo@tag-1", ref: "HEAD" },
+          { name: "bar@tag-2", ref: "HEAD" },
         ],
         repo,
       );
@@ -55,11 +56,37 @@ describe("repo-tags", () => {
       expect(stdout).toMatchInlineSnapshot(`
         [
           {
-            "name": "tag-1",
+            "name": "foo@tag-1",
             "type": "commit",
           },
           {
-            "name": "tag-2",
+            "name": "bar@tag-2",
+            "type": "commit",
+          },
+        ]
+      `);
+    });
+
+    it("should create the given tags (/)", async () => {
+      const repo = await createRepo("repo-tags");
+      const tags = await createLightweightTags(
+        "/",
+        [
+          { name: "foo@tag-1", ref: "HEAD" },
+          { name: "bar@tag-2", ref: "HEAD" },
+        ],
+        repo,
+      );
+
+      const stdout = await listTagTypes(tags, repo);
+      expect(stdout).toMatchInlineSnapshot(`
+        [
+          {
+            "name": "foo/tag-1",
+            "type": "commit",
+          },
+          {
+            "name": "bar/tag-2",
             "type": "commit",
           },
         ]
@@ -68,13 +95,32 @@ describe("repo-tags", () => {
   });
 
   describe("pushTags", () => {
-    it("should push lightweight versions of tags", async () => {
+    it("should push lightweight versions of tags (@)", async () => {
       const testTags = await createTestRepoWithRemote("repo-tags", true);
       const beforeTagTypes = await listTagTypes(
         testTags.localOnlyTags,
         testTags.localRepoPath,
       );
-      await pushTags(testTags.localRepoPath);
+      await pushTags("@", testTags.localRepoPath);
+      const afterTagTypes = await listTagTypes(
+        testTags.localOnlyTags,
+        testTags.localRepoPath,
+      );
+
+      expect(beforeTagTypes.every((t) => t.type === "tag")).toBe(true);
+      expect(afterTagTypes.every((t) => t.type === "commit")).toBe(true);
+      expect(beforeTagTypes.map((t) => t.name).sort()).toEqual(
+        afterTagTypes.map((t) => t.name).sort(),
+      );
+    });
+
+    it("should push lightweight versions of tags (/)", async () => {
+      const testTags = await createTestRepoWithRemote("repo-tags", true);
+      const beforeTagTypes = await listTagTypes(
+        testTags.localOnlyTags,
+        testTags.localRepoPath,
+      );
+      await pushTags("/", testTags.localRepoPath);
       const afterTagTypes = await listTagTypes(
         testTags.localOnlyTags,
         testTags.localRepoPath,
