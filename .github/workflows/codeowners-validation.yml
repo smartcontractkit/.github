@@ -9,7 +9,7 @@ on:
 jobs:
   validate-codeowners:
     name: "Validate"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-arm
     permissions:
       contents: read
       id-token: write
