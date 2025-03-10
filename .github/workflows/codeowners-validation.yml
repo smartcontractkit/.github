@@ -47,7 +47,7 @@ jobs:
 
 
           # The repository path in which CODEOWNERS file should be validated."
-          repository_path: "."
+          repository_path: "${{ github.workspace }}"
 
           # Defines the level on which the application should treat check issues as failures. Defaults to warning, which treats both errors and warnings as failures, and exits with error code 3. Possible values are error and warning. Default: warning"
           check_failure_level: "warning"
