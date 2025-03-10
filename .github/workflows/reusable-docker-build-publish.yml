@@ -128,6 +128,20 @@ on:
             - v1.0.0            # tag on push events
         required: true
         type: string
+      github-runner-amd64:
+        description: |
+          The GitHub Actions runner name for builds on the platform: amd64
+        required: false
+        type: string
+        default: "ubuntu-24.04"
+      github-runner-arm64:
+        description: |
+          The GitHub Actions runner name for builds on the platform: arm64
+        required: false
+        type: string
+        # NOTE: This runner is not yet available on non-public repos.
+        # Will require an override for private/internal repos.
+        default: "ubuntu-24.04-arm"
       github-workflow-repository:
         description: |
           The repository name of the workflow that triggered the workflow run.
@@ -155,7 +169,6 @@ on:
 jobs:
   init:
     name: init
-    # TODO: use an input for a default runner.
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
@@ -212,10 +225,9 @@ jobs:
     strategy:
       matrix:
         include:
-          # TODO: (optional) make this dynamic based on inputs in case we want custom runners?
-          - runner: ubuntu-24.04
+          - runner: ${{ inputs.github-runner-amd64 }}
             arch: amd64
-          - runner: ubuntu-24.04-arm
+          - runner: ${{ inputs.github-runner-arm64}}
             arch: arm64
     outputs:
       docker-image-sha-digest-amd64:
@@ -280,7 +292,7 @@ jobs:
 
       - name: Docker image build
         id: build
-        uses: smartcontractkit/.github/actions/build-push-docker@24d50bf6739d561b95fde0c671f08ed9ea3837b8 # TODO: add tag.
+        uses: smartcontractkit/.github/actions/build-push-docker@24d50bf6739d561b95fde0c671f08ed9ea3837b8 # build-push-docker@0.2.0
         with:
           platform: ${{ format('linux/{0}', matrix.arch) }}
           docker-registry-url:
