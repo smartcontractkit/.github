@@ -169,7 +169,7 @@ on:
 jobs:
   init:
     name: init
-    runs-on: ${{ inputs.github-runner-amd64 }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: read
@@ -310,7 +310,7 @@ jobs:
   docker-manifest:
     name: docker-manifest
     needs: [init, build-publish]
-    runs-on: ${{ inputs.github-runner-amd64 }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       digest: ${{ steps.docker-manifest.outputs.manifest-digest}}
