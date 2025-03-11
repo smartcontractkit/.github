@@ -70,6 +70,7 @@ jobs:
           pattern_checker_ignored_patterns: ""
 
       - name: Print Summary
+        if: always()
         run: |
           cat <<'EOF' >> $GITHUB_STEP_SUMMARY
           ## CODEOWNERS Validation Guidelines
