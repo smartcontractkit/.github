@@ -18,6 +18,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
+          persist-credentials: false
 
       - name: Setup GitHub Token
         id: gh-token
@@ -26,7 +27,6 @@ jobs:
           aws-role-arn: ${{ secrets.GATI_CODEOWNERS_IAM_ARN }}
           aws-lambda-url: ${{ secrets.GATI_CODEOWNERS_LAMBDA_URL }}
           aws-region: ${{ secrets.AWS_REGION }}
-          aws-role-duration-seconds: "1800" # this is optional and defaults to 900
 
       - name: GitHub CODEOWNERS Validator
         uses: patrickhuie19/codeowners-validator@176f0bfd300c754c6cc8d4a9e9863323e6752b90 # v0.1.8
