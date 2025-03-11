@@ -55,6 +55,14 @@ inputs:
     description: ""
     required: false
     default: "false"
+  changesets-tag-separator:
+    description: |
+      What character to use to separate the package name and version in the tag.
+      For example:
+        - Using `@`, the resulting git tag will be <package>@<version>
+        - Using `/`, the resulting git tag will be <package>/<version>
+    required: false
+    default: "@"
   pr-title:
     description: "title of the PR"
     required: false
@@ -130,6 +138,7 @@ runs:
         setupGitUser: false
         title: ${{ inputs.pr-title }}
         prDraft: ${{ inputs.pr-draft }}
+        tagSeparator: ${{ inputs.changesets-tag-separator }}
 
     - name: Check changesets output
       shell: bash
