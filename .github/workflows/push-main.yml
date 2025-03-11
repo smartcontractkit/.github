@@ -91,6 +91,8 @@ jobs:
           pnpm-version: "^9.0.0"
           git-user: app-token-issuer-releng-renovate[bot]
           git-email: app-token-issuer-releng-renovate[bot]@users.noreply.github.com
+          # changesets inputs
+          changesets-tag-separator: "/"
           # aws inputs
           aws-region: ${{ secrets.AWS_REGION }}
           aws-role-arn: ${{ secrets.AWS_OIDC_IAM_ROLE_ARN_GATI }}
