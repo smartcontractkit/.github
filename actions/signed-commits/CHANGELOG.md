@@ -1,5 +1,14 @@
 # changesets-signed-commits
 
+## 1.4.0
+
+### Minor Changes
+
+- [#919](https://github.com/smartcontractkit/.github/pull/919)
+  [`c2b68a1`](https://github.com/smartcontractkit/.github/commit/c2b68a1fea6b10827dbdbb77a48c5544cbb129e0)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: allow for custom git
+  tag separators in monorepos
+
 ## 1.3.0
 
 ### Minor Changes
