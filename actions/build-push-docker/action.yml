@@ -11,14 +11,22 @@ inputs:
     required: false
   # See: https://github.com/moby/buildkit#github-actions-cache-experimental
   docker-build-cache-from:
-    description: "Source of Docker build cache."
+    description: |
+      Source of Docker build cache.
+
+      ",scope=buildkit-<runner arch>" is appended to this input in order to set
+      caching for the specific runner architecture.
     required: false
-    default: "type=gha,scope=buildkit,timeout=10m"
+    default: "type=gha,timeout=10m"
   # See: https://github.com/moby/buildkit#github-actions-cache-experimental
   docker-build-cache-to:
-    description: "Destination of Docker build cache."
+    description: |
+      Destination of Docker build cache.
+
+      ",scope=buildkit-<runner arch>" is appended to this input in order to set
+      caching for the specific runner architecture.
     required: false
-    default: "type=gha,scope=buildkit,timeout=10m,mode=max,ignore-error=false"
+    default: "type=gha,timeout=10m,mode=max,ignore-error=false"
   docker-registry-url:
     required: true
     description: |
@@ -181,8 +189,14 @@ runs:
         tags: ${{ steps.docker-meta.outputs.tags }}
         labels: ${{ steps.docker-meta.outputs.labels }}
         platforms: ${{ inputs.platform }}
-        cache-from: ${{ inputs.docker-build-cache-from }}
-        cache-to: ${{ inputs.docker-build-cache-to }}
+        cache-from: >-
+          ${{
+            format('{0},scope={1}', inputs.docker-build-cache-from, runner.arch)
+          }}
+        cache-to: >-
+          ${{
+            format('{0},scope={1}', inputs.docker-build-cache-to, runner.arch)
+          }}
 
     - name: Set outputs
       id: set-outputs
