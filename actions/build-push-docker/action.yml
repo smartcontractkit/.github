@@ -14,8 +14,8 @@ inputs:
     description: |
       Source of Docker build cache.
 
-      ",scope=buildkit-$\{{ runner.arch }}" (ignore \ escape) is appended to
-      whichver value is provided for this input.
+      ",scope=buildkit-<runner arch>" is appended to this input in order to set
+      caching for the specific runner architecture.
     required: false
     default: "type=gha,timeout=10m"
   # See: https://github.com/moby/buildkit#github-actions-cache-experimental
@@ -23,8 +23,8 @@ inputs:
     description: |
       Destination of Docker build cache.
 
-      ",scope=buildkit-$\{{ runner.arch }}" (ignore \ escape) is appended to
-      whichver value is provided for this input.
+      ",scope=buildkit-<runner arch>" is appended to this input in order to set
+      caching for the specific runner architecture.
     required: false
     default: "type=gha,timeout=10m,mode=max,ignore-error=false"
   docker-registry-url:
