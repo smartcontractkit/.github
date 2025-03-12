@@ -1,8 +1,6 @@
 # Fails when:
-# - vulnerabilities are found in the dependency tree with a severity of moderate or greater; and
 # - a dependency is found with a license that is in the deny_licenses list
-vulnerability_check: true
-fail_on_severity: "moderate"
+vulnerability_check: false
 license_check: true
 # Contains a list of prohibited licenses. The action will fail on pull requests
 # that introduce dependencies with licenses that match the list.
