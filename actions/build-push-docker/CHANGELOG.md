@@ -1,5 +1,14 @@
 # build-push-docker
 
+## 0.3.0
+
+### Minor Changes
+
+- [#923](https://github.com/smartcontractkit/.github/pull/923)
+  [`507338d`](https://github.com/smartcontractkit/.github/commit/507338d9adf7e04112b14ebc9ccf3403344bbc63)
+  Thanks [@chainchad](https://github.com/chainchad)! - Add docker cache scope
+  suffixed with runner arch
+
 ## 0.2.0
 
 ### Minor Changes
