@@ -292,7 +292,7 @@ jobs:
 
       - name: Docker image build
         id: build
-        uses: smartcontractkit/.github/actions/build-push-docker@re-3518/docker-cache # TODO
+        uses: smartcontractkit/.github/actions/build-push-docker@24d50bf6739d561b95fde0c671f08ed9ea3837b8 # build-push-docker@0.2.0
         with:
           platform: ${{ format('linux/{0}', matrix.arch) }}
           docker-registry-url:
