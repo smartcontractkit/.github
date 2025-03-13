@@ -7,4 +7,4 @@ COPY context/ context/
 COPY src/ src/
 COPY main.py main.py
 
-ENTRYPOINT ["python3.11", "main.py"]
+ENTRYPOINT ["python3.11", "/main.py"]
