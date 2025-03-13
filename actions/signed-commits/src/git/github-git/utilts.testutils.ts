@@ -34,5 +34,8 @@ export async function createRepo(name: string) {
   fs.writeFileSync(`${repoPath}/README.md`, "README");
   execSync(`cd ${repoPath} && git add . && git commit -m "Initial commit"`);
 
+  fs.writeFileSync(`${repoPath}/README.md`, "README\nEDIT");
+  execSync(`cd ${repoPath} && git add . && git commit -m "Secondary Commit"`);
+
   return repoPath;
 }

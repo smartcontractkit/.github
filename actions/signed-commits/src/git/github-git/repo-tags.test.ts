@@ -41,56 +41,63 @@ describe("repo-tags", () => {
   });
 
   describe("createLightweightTags", () => {
+    function validateLightWeightTags(
+      result: Awaited<ReturnType<typeof listTagTypes>>,
+      tagNames: string[],
+    ) {
+      expect(result.length).toBe(tagNames.length);
+      expect(result.map((t) => t.name)).toEqual(tagNames);
+      expect(result.every((t) => t.type === "commit")).toBe(true);
+    }
+
     it("should create the given tags (@)", async () => {
       const repo = await createRepo("repo-tags");
-      const tags = await createLightweightTags(
-        "@",
-        [
-          { name: "foo@tag-1", ref: "HEAD" },
-          { name: "bar@tag-2", ref: "HEAD" },
-        ],
-        repo,
-      );
+      const tagNames = ["foo@tag-1", "bar@tag-2"];
+      const tags = tagNames.map((name) => ({ name, ref: "HEAD" }));
 
-      const stdout = await listTagTypes(tags, repo);
-      expect(stdout).toMatchInlineSnapshot(`
-        [
-          {
-            "name": "foo@tag-1",
-            "type": "commit",
-          },
-          {
-            "name": "bar@tag-2",
-            "type": "commit",
-          },
-        ]
-      `);
+      await createLightweightTags(tags, repo);
+
+      const result = await listTagTypes(tagNames, repo);
+      validateLightWeightTags(result, tagNames);
     });
 
     it("should create the given tags (/)", async () => {
       const repo = await createRepo("repo-tags");
-      const tags = await createLightweightTags(
-        "/",
-        [
-          { name: "foo@tag-1", ref: "HEAD" },
-          { name: "bar@tag-2", ref: "HEAD" },
-        ],
-        repo,
-      );
+      const tagNames = ["foo/tag-1", "bar/tag-2"];
+      const tags = tagNames.map((name) => ({ name, ref: "HEAD" }));
 
-      const stdout = await listTagTypes(tags, repo);
-      expect(stdout).toMatchInlineSnapshot(`
-        [
-          {
-            "name": "foo/tag-1",
-            "type": "commit",
-          },
-          {
-            "name": "bar/tag-2",
-            "type": "commit",
-          },
-        ]
-      `);
+      await createLightweightTags(tags, repo);
+
+      const result = await listTagTypes(tagNames, repo);
+      validateLightWeightTags(result, tagNames);
+    });
+
+    it("should force create major version tags (/)", async () => {
+      const repo = await createRepo("repo-tags");
+      const tagNames = ["foo/v1", "bar/v2"];
+
+      // 1. Push original major version tags
+      const mvTags = tagNames.map((name) => ({
+        name,
+        ref: "HEAD^", // Use previous commit
+        majorVersion: true,
+      }));
+      await createLightweightTags(mvTags, repo);
+
+      const firstResult = await listTagTypes(tagNames, repo);
+      validateLightWeightTags(firstResult, tagNames);
+
+      // Push new major version tags, should force rewrite existing tags
+      const newMVTags = tagNames.map((name) => ({
+        name,
+        ref: "HEAD", // Use current commit
+        majorVersion: true,
+      }));
+      await createLightweightTags(newMVTags, repo);
+
+      const newResult = await listTagTypes(tagNames, repo);
+      validateLightWeightTags(newResult, tagNames);
+      expect(newResult.map((t) => t.ref)).not.toEqual(firstResult.map((t) => t.ref));
     });
   });
 
@@ -256,13 +263,16 @@ async function createAnnotatedTestTags(
   return Promise.all(newTags);
 }
 
-async function listTagTypes(tags: GitTag[], repoPath: string) {
-  const types = tags.map(async (t) => {
-    const type = await execWithOutput("git", ["cat-file", "-t", t.name], {
-      cwd: repoPath,
+async function listTagTypes(tagNames: string[], cwd: string) {
+  const types = tagNames.map(async (name) => {
+    const ref = await execWithOutput("git", ["rev-list", "-n 1", name], {
+      cwd,
+    });
+    const type = await execWithOutput("git", ["cat-file", "-t", name], {
+      cwd,
     });
 
-    return { type, name: t.name };
+    return { type, name, ref };
   });
 
   return Promise.all(types);

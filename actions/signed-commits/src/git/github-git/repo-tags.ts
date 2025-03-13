@@ -4,6 +4,7 @@ export interface GitTag {
   name: string;
   ref: string;
   originalName?: string;
+  majorVersion?: boolean;
 }
 
 /**
@@ -11,18 +12,79 @@ export interface GitTag {
  * We replace annotated tags with lightweight ones because we cannot sign annotated tags, but
  * lightweight tags pointing to signed commits will show up as verified in GitHub.
  */
-export async function pushTags(tagSeparator: string, cwd?: string) {
-  const onlyLocalTags = await getLocalRemoteTagDiff(cwd);
+export async function pushTags(tagSeparator: string, createMajorVersionTags: boolean, cwd?: string) {
+  const newTags = await getLocalRemoteTagDiff(cwd);
 
-  await deleteTags(onlyLocalTags, cwd);
+  // Delete the local annotated tags that will be rewritten as lightweight tags
+  await deleteTags(newTags, cwd);
+
+  const tagsToCreate = await getTagsToCreate(tagSeparator, createMajorVersionTags, newTags);
   const createdTags = await createLightweightTags(
-    tagSeparator,
-    onlyLocalTags,
+    tagsToCreate,
     cwd,
   );
   await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
 
   return createdTags;
+}
+
+/**
+ * From the local tags, returns the lightweight tags that need to be created.
+ * This does two things:
+ * 1. Rewrites the tags with the new separator
+ * 2. Creates major version tags
+ * @param tagSeparator The separator to use for the tags (either @ or /)
+ * @param tagsToProcess The tags that were present locally but not on the remote
+ * @returns The tags that need to be created;
+ */
+export async function getTagsToCreate(
+  tagSeparator: string,
+  createMajorVersionTags: boolean,
+  tagsToProcess: GitTag[]
+): Promise<GitTag[]> {
+  const tagsToCreate: GitTag[] = [];
+
+  // Rewritten tags
+  for (const tag of tagsToProcess) {
+    const newTagName = tag.name.replace("@", tagSeparator);
+    tagsToCreate.push({
+      name: newTagName,
+      ref: tag.ref,
+      originalName: newTagName != tag.name ? tag.name : undefined,
+    });
+  }
+
+  const tagNames = new Set<string>();
+
+  // [a-z-]+ is the package name
+  // @ is the separator of the local tags (changesets)
+  // (\d+) is the major/minor/patch version
+  const tagRegex = new RegExp(`^[a-z-]+@(\d+)\.(\d+)\.(\d+)$`);
+
+  // Major version tags
+  for (const tag of tagsToProcess) {
+    const [name, version] = tag.name.split("@");
+    const match = tagRegex.exec(version);
+    if (!match || match.length < 4) {
+      continue;
+    }
+    const majorVersion = match[1] ?? "0";
+    if (majorVersion == "0") {
+      continue;
+    }
+    const majorTag = `${name}/v${majorVersion}`;
+    if (tagNames.has(majorTag)) {
+      continue;
+    }
+    tagNames.add(majorTag);
+    tagsToCreate.push({
+      name: majorTag,
+      ref: tag.ref,
+      majorVersion: true,
+    });
+  }
+
+  return tagsToCreate;
 }
 
 /**
@@ -57,20 +119,14 @@ export async function getLocalTags(cwd?: string): Promise<GitTag[]> {
 }
 
 export async function createLightweightTags(
-  tagSeparator: string,
   tags: GitTag[],
   cwd?: string,
 ): Promise<GitTag[]> {
   const createdTags = tags.map(async (tag) => {
-    // Default tag separator is @
-    const newTagName = tag.name.replace("@", tagSeparator);
-    await execWithOutput("git", ["tag", newTagName, tag.ref], { cwd });
-
-    return {
-      name: newTagName,
-      ref: tag.ref,
-      originalName: newTagName != tag.name ? tag.name : undefined,
-    };
+    // Force rewrite tags if they are major versions, as these are mutable
+    const maybeForceFlag = tag.majorVersion ? [ "-f" ] : [];
+    await execWithOutput("git", ["tag", tag.name, tag.ref, ...maybeForceFlag], { cwd });
+    return tag;
   });
 
   return await Promise.all(createdTags);
