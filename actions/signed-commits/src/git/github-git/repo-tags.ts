@@ -24,13 +24,22 @@ export async function pushTags(
   await deleteTags(newTags, cwd);
 
   const rewrittenTags = replaceTagSeparator(newTags, tagSeparator);
-  const majorVersionTags = getMajorVersionTags(rewrittenTags, tagSeparator);
-  const tagsToCreate = rewrittenTags.concat(
-    createMajorVersionTags ? majorVersionTags : [],
-  );
-
-  const createdTags = await createLightweightTags(tagsToCreate, cwd);
+  const createdTags = await createLightweightTags(rewrittenTags, cwd);
   await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
+
+  if (createMajorVersionTags) {
+    const majorVersionTags = getMajorVersionTags(rewrittenTags, tagSeparator);
+    const createdMajorTags = await createLightweightTags(majorVersionTags, cwd);
+
+    // force push the major version tags
+    for (const tag of createdMajorTags) {
+      await execWithOutput("git", ["push", "--force", "origin", tag.name], {
+        cwd,
+      });
+    }
+
+    return [...createdTags, ...createdMajorTags];
+  }
 
   return createdTags;
 }

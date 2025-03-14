@@ -12,7 +12,7 @@ import {
   getMajorVersionTags,
   parseTagName,
 } from "./repo-tags";
-import { createRepo } from "./utils.testutils";
+import { createRepo, createCommit } from "./utils.testutils";
 
 import { describe, it, expect } from "vitest";
 
@@ -228,7 +228,7 @@ describe("repo-tags", () => {
       }
     });
 
-    it("should push lightweight versions of tags - complex (/)", async () => {
+    it("should push lightweight versions of tags (complex) (/)", async () => {
       const testTags = await createTestRepoWithRemote("repo-tags", true);
       // 1st pass - push tags. Should now have 6 remote tags:
       // - 3 with <pkg>/<tag> format
@@ -318,6 +318,55 @@ describe("repo-tags", () => {
       expect(beforeTagTypes.every((t) => t.type === "tag")).toBe(true);
       expect(afterTagTypes.every((t) => t.type === "commit")).toBe(true);
     });
+
+    it("should push lightweight versions of tags and major version tags (complex) (/)", async () => {
+      const testTags = await createTestRepoWithRemote("repo-tags", true);
+      const tagNames = testTags.localOnlyTags.map((t) => t.name);
+      const beforeTagTypes = await listTagTypes(
+        tagNames,
+        testTags.localRepoPath,
+      );
+
+      const createdTags = await pushTags("/", true, testTags.localRepoPath);
+      const expectedTagNames = [
+        "local-only-0/v1",
+        "local-only-1/v2",
+        "local-only-2/v3",
+        "local-only-0/1.0.0",
+        "local-only-1/2.1.0",
+        "local-only-2/3.2.0",
+      ];
+      const createdTagNames = createdTags.map((t) => t.name);
+      expect(createdTagNames.sort()).toEqual(expectedTagNames.sort());
+      const afterTagTypes = await listTagTypes(
+        createdTagNames,
+        testTags.localRepoPath,
+      );
+      expect(beforeTagTypes.every((t) => t.type === "tag")).toBe(true);
+      expect(afterTagTypes.every((t) => t.type === "commit")).toBe(true);
+
+      // 2nd pass - create a new tag that should overwrite a previously created major version tag
+      const newTagName = "local-only-0@1.2.0"; // Should overwrite local-only-0/v1
+      await createAnnotatedTestTag(testTags.localRepoPath, newTagName);
+
+      const createdTags2 = await pushTags("/", true, testTags.localRepoPath);
+      const createdTagNames2 = createdTags2.map((t) => t.name);
+      const expectedTagNames2 = ["local-only-0/1.2.0", "local-only-0/v1"];
+      expect(createdTagNames2.sort()).toEqual(expectedTagNames2.sort());
+      const afterTagTypes2 = await listTagTypes(
+        createdTagNames2,
+        testTags.localRepoPath,
+      );
+      expect(afterTagTypes2.every((t) => t.type === "commit")).toBe(true);
+
+      const mvTagToCheck = "local-only-0/v1";
+      const oldMVTag = afterTagTypes.find((t) => t.name === mvTagToCheck);
+      const newMVTag = afterTagTypes2.find((t) => t.name === mvTagToCheck);
+
+      expect(oldMVTag).toBeDefined();
+      expect(newMVTag).toBeDefined();
+      expect(oldMVTag?.ref).not.toEqual(newMVTag?.ref);
+    });
   });
 
   describe(getLocalTags.name, () => {
@@ -384,17 +433,29 @@ async function createAnnotatedTestTags(
 ): Promise<GitTag[]> {
   const newTags = new Array(count).fill(null).map(async (_, i) => {
     const name = `${key}-${i}@${i + 1}.${i}.0`;
-    const msg = `This is tag ${name}`;
-    const ref = await execWithOutput("git", ["rev-parse", "HEAD"], {
-      cwd: repoPath,
-    });
-
-    execSync(`cd ${repoPath} && git tag -a '${name}' -m "${msg}" ${ref}`);
-
-    return { name, ref } satisfies GitTag;
+    return createAnnotatedTestTag(repoPath, name);
   });
 
   return Promise.all(newTags);
+}
+
+async function createAnnotatedTestTag(
+  repoPath: string,
+  name: string,
+  createNewCommit: boolean = true,
+): Promise<GitTag> {
+  if (createNewCommit) {
+    createCommit(repoPath);
+  }
+
+  const msg = `This is tag ${name}`;
+  const ref = await execWithOutput("git", ["rev-parse", "HEAD"], {
+    cwd: repoPath,
+  });
+
+  execSync(`cd ${repoPath} && git tag -a '${name}' -m "${msg}" ${ref}`);
+
+  return { name, ref } satisfies GitTag;
 }
 
 async function listTagTypes(tagNames: string[], cwd: string) {
