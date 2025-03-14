@@ -48,6 +48,16 @@ inputs:
         - Using `/`, the resulting git tag will be <package>/<version>
     required: false
     default: "@"
+  createMajorVersionTags:
+    description:
+      A boolean value to indicate whether to create major version tags or not.
+      Defaults to `false`. Major version tags are mutable tags that point to the
+      the latest commit of a versioned release for a package. For example,
+      pkg/1.1.0 would also create pkg/v1. Upon a subsequent release of
+      pkg/1.2.0, pkg/v1 would be updated to point to the same commit as
+      pkg/1.2.0.
+    required: false
+    default: "false"
 
 outputs:
   published:
