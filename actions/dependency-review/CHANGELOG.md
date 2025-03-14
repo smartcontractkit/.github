@@ -1,5 +1,14 @@
 # dependency-review
 
+## 1.0.0
+
+### Major Changes
+
+- [#926](https://github.com/smartcontractkit/.github/pull/926)
+  [`99f8ef1`](https://github.com/smartcontractkit/.github/commit/99f8ef161f1d4c102385bf8ec109866fc5bb27f6)
+  Thanks [@chainchad](https://github.com/chainchad)! - Create separate default
+  configs for vulnerability and license checks
+
 ## 0.1.0
 
 ### Minor Changes

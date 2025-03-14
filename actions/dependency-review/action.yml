@@ -21,8 +21,10 @@ inputs:
       Maps to a configuration file in the `configs` directory.
 
       Examples:
-        default-allow # fail if dependency is not in allow list
-        default-deny # fail if dependency is in deny list
+        default-license-allow # fail if dependency is not in allow list
+        default-license-deny # fail if dependency is in deny list
+        default-vulnerability-check-high # fail if high severity vulnerability is found
+        default-vulnerability-check-moderate # fail if moderate severity vulnerability is found
 
       NOTE: Mutually exclusive with `inputs.config-file`.
     required: false
