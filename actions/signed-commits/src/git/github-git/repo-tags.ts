@@ -1,3 +1,4 @@
+import { parse } from "path";
 import { execWithOutput } from "../../utils";
 
 export interface GitTag {
@@ -12,79 +13,26 @@ export interface GitTag {
  * We replace annotated tags with lightweight ones because we cannot sign annotated tags, but
  * lightweight tags pointing to signed commits will show up as verified in GitHub.
  */
-export async function pushTags(tagSeparator: string, createMajorVersionTags: boolean, cwd?: string) {
+export async function pushTags(
+  tagSeparator: string,
+  createMajorVersionTags: boolean,
+  cwd?: string,
+) {
   const newTags = await getLocalRemoteTagDiff(cwd);
 
   // Delete the local annotated tags that will be rewritten as lightweight tags
   await deleteTags(newTags, cwd);
 
-  const tagsToCreate = await getTagsToCreate(tagSeparator, createMajorVersionTags, newTags);
-  const createdTags = await createLightweightTags(
-    tagsToCreate,
-    cwd,
+  const rewrittenTags = replaceTagSeparator(newTags, tagSeparator);
+  const majorVersionTags = getMajorVersionTags(rewrittenTags, tagSeparator);
+  const tagsToCreate = rewrittenTags.concat(
+    createMajorVersionTags ? majorVersionTags : [],
   );
+
+  const createdTags = await createLightweightTags(tagsToCreate, cwd);
   await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
 
   return createdTags;
-}
-
-/**
- * From the local tags, returns the lightweight tags that need to be created.
- * This does two things:
- * 1. Rewrites the tags with the new separator
- * 2. Creates major version tags
- * @param tagSeparator The separator to use for the tags (either @ or /)
- * @param tagsToProcess The tags that were present locally but not on the remote
- * @returns The tags that need to be created;
- */
-export async function getTagsToCreate(
-  tagSeparator: string,
-  createMajorVersionTags: boolean,
-  tagsToProcess: GitTag[]
-): Promise<GitTag[]> {
-  const tagsToCreate: GitTag[] = [];
-
-  // Rewritten tags
-  for (const tag of tagsToProcess) {
-    const newTagName = tag.name.replace("@", tagSeparator);
-    tagsToCreate.push({
-      name: newTagName,
-      ref: tag.ref,
-      originalName: newTagName != tag.name ? tag.name : undefined,
-    });
-  }
-
-  const tagNames = new Set<string>();
-
-  // [a-z-]+ is the package name
-  // @ is the separator of the local tags (changesets)
-  // (\d+) is the major/minor/patch version
-  const tagRegex = new RegExp(`^[a-z-]+@(\d+)\.(\d+)\.(\d+)$`);
-
-  // Major version tags
-  for (const tag of tagsToProcess) {
-    const [name, version] = tag.name.split("@");
-    const match = tagRegex.exec(version);
-    if (!match || match.length < 4) {
-      continue;
-    }
-    const majorVersion = match[1] ?? "0";
-    if (majorVersion == "0") {
-      continue;
-    }
-    const majorTag = `${name}/v${majorVersion}`;
-    if (tagNames.has(majorTag)) {
-      continue;
-    }
-    tagNames.add(majorTag);
-    tagsToCreate.push({
-      name: majorTag,
-      ref: tag.ref,
-      majorVersion: true,
-    });
-  }
-
-  return tagsToCreate;
 }
 
 /**
@@ -124,8 +72,10 @@ export async function createLightweightTags(
 ): Promise<GitTag[]> {
   const createdTags = tags.map(async (tag) => {
     // Force rewrite tags if they are major versions, as these are mutable
-    const maybeForceFlag = tag.majorVersion ? [ "-f" ] : [];
-    await execWithOutput("git", ["tag", tag.name, tag.ref, ...maybeForceFlag], { cwd });
+    const maybeForceFlag = tag.majorVersion ? ["-f"] : [];
+    await execWithOutput("git", ["tag", tag.name, tag.ref, ...maybeForceFlag], {
+      cwd,
+    });
     return tag;
   });
 
@@ -182,4 +132,92 @@ export async function getRemoteTagNames(
     });
 
   return tags;
+}
+
+/**
+ * Replaces the tag separator in the list of tags. Typically used to replace the @ separator
+ * with the / separator.
+ * @param tags The list of tags to update.
+ * @param separator The separator to replace the @ separator with.
+ * @returns The updated list of tags.
+ */
+export function replaceTagSeparator(
+  tags: GitTag[],
+  separator: string,
+): GitTag[] {
+  if (separator === "@") {
+    return tags;
+  }
+
+  return tags.map((tag) => {
+    const newTagName = tag.name.replace("@", separator);
+    return {
+      ...tag,
+      name: newTagName,
+      originalName: newTagName != tag.name ? tag.name : undefined,
+    };
+  });
+}
+
+/**
+ * Gets the list of major version tags from the list of tags.
+ * @param tags The list of tags to filter
+ * @param separator The separator for the list of tags
+ * @returns The list of major version tags
+ */
+export function getMajorVersionTags(
+  tags: GitTag[],
+  separator: string,
+): GitTag[] {
+  const tagNamesSeen = new Set<string>();
+  return tags.reduce((acc, tag) => {
+    const info = parseTagName(tag.name, separator);
+    if (!info) {
+      return acc;
+    }
+
+    const majorTag = `${info.pkg}${separator}v${info.major}`;
+    if (tagNamesSeen.has(majorTag)) {
+      return acc;
+    }
+    tagNamesSeen.add(majorTag);
+    acc.push({
+      name: majorTag,
+      ref: tag.ref,
+      majorVersion: true,
+    });
+    return acc;
+  }, [] as GitTag[]);
+}
+
+/**
+ * Parses a tag name into its package name and version components.
+ * @param tagName The tag name to parse
+ * @param separator The separator of the current tag
+ * @returns The parsed tag
+ */
+export function parseTagName(tagName: string, separator: string) {
+  // [a-z-]+ is the package name
+  // (\d+) is the major/minor/patch version
+  const tagRegex = new RegExp(`([a-z0-9-]+)${separator}(\\d+)\.(\\d+)\.(\\d+)`);
+  const match = tagRegex.exec(tagName);
+  if (!match || match.length < 5) {
+    return;
+  }
+
+  const name = match[1];
+  const version = `${match[2]}.${match[3]}.${match[4]}`;
+  const majorVersion = match[2] ?? "0";
+  if (majorVersion == "0") {
+    // Don't create major version tags for version 0
+    return;
+  }
+
+  return {
+    pkg: name,
+    version: version,
+    major: majorVersion,
+    minor: match[2],
+    patch: match[3],
+  };
 }
