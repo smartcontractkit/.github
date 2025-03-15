@@ -1,5 +1,14 @@
 # ci-test-go
 
+## 0.3.5
+
+### Patch Changes
+
+- [#937](https://github.com/smartcontractkit/.github/pull/937)
+  [`3112199`](https://github.com/smartcontractkit/.github/commit/31121997aa804f4dda61126eacd4dd99b46b6b4d)
+  Thanks [@erikburt](https://github.com/erikburt)! - choref; update setup-golang
+  to 0.3.2 (tj-actions/branch-names fix)
+
 ## 0.3.4
 
 ### Patch Changes
