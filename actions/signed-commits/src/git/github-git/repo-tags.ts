@@ -18,17 +18,27 @@ export async function pushTags(
   createMajorVersionTags: boolean,
   cwd?: string,
 ) {
-  const newTags = await getLocalRemoteTagDiff(cwd);
+  const localTags = await getLocalTags(cwd);
+  const remoteTagNames = await getRemoteTagNames(cwd);
+  const newTags = computeTagDiff(localTags, remoteTagNames); // tags only present locally
 
   // Delete the local annotated tags that will be rewritten as lightweight tags
   await deleteTags(newTags, cwd);
 
+  // Local only tags may have tags for previous versions that are present on the remote
+  // But the remote's tags may have been rewritten with a different separator.
   const rewrittenTags = replaceTagSeparator(newTags, tagSeparator);
-  const createdTags = await createLightweightTags(rewrittenTags, cwd);
+
+  // Filter out rewritten tags that are already present on the remote.
+  const filteredRewrittenTags = computeTagDiff(rewrittenTags, remoteTagNames);
+  const createdTags = await createLightweightTags(filteredRewrittenTags, cwd);
   await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
 
   if (createMajorVersionTags) {
-    const majorVersionTags = getMajorVersionTags(rewrittenTags, tagSeparator);
+    const majorVersionTags = getMajorVersionTags(
+      filteredRewrittenTags,
+      tagSeparator,
+    );
     const createdMajorTags = await createLightweightTags(majorVersionTags, cwd);
 
     // force push the major version tags
@@ -42,18 +52,6 @@ export async function pushTags(
   }
 
   return createdTags;
-}
-
-/**
- * Returns the tags that are present locally but not on the remote.
- */
-export async function getLocalRemoteTagDiff(cwd?: string): Promise<GitTag[]> {
-  const localTags = await getLocalTags(cwd);
-  // Checkout action uses origin for the remote
-  // https://github.com/actions/checkout/blob/main/src/git-source-provider.ts#L111
-  const remoteTagNames = await getRemoteTagNames("origin", cwd);
-
-  return computeTagDiff(localTags, remoteTagNames);
 }
 
 /**
@@ -116,10 +114,9 @@ export function computeTagDiff(
   return diff;
 }
 
-export async function getRemoteTagNames(
-  remote: string,
-  cwd?: string,
-): Promise<string[]> {
+export async function getRemoteTagNames(cwd?: string): Promise<string[]> {
+  // Checkout action uses origin for the remote
+  // https://github.com/actions/checkout/blob/main/src/git-source-provider.ts#L111
   const stdout = await execWithOutput(
     "git",
     // Note that --refs will filter out peeled tags from the output
@@ -128,7 +125,7 @@ export async function getRemoteTagNames(
     //
     // On the other hand, lightweight tags will have their ref to the commit
     // that they point to.
-    ["ls-remote", "--refs", "--tags", remote],
+    ["ls-remote", "--refs", "--tags", "origin"],
     { cwd },
   );
 

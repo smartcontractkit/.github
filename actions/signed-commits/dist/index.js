@@ -60117,13 +60117,16 @@ async function calculateFileChanges(changes, cwd = "") {
 
 // actions/signed-commits/src/git/github-git/repo-tags.ts
 async function pushTags(tagSeparator, createMajorVersionTags, cwd) {
-  const newTags = await getLocalRemoteTagDiff(cwd);
+  const localTags = await getLocalTags(cwd);
+  const remoteTagNames = await getRemoteTagNames(cwd);
+  const newTags = computeTagDiff(localTags, remoteTagNames);
   await deleteTags(newTags, cwd);
   const rewrittenTags = replaceTagSeparator(newTags, tagSeparator);
-  const createdTags = await createLightweightTags(rewrittenTags, cwd);
+  const filteredRewrittenTags = computeTagDiff(rewrittenTags, remoteTagNames);
+  const createdTags = await createLightweightTags(filteredRewrittenTags, cwd);
   await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
   if (createMajorVersionTags) {
-    const majorVersionTags = getMajorVersionTags(rewrittenTags, tagSeparator);
+    const majorVersionTags = getMajorVersionTags(filteredRewrittenTags, tagSeparator);
     const createdMajorTags = await createLightweightTags(majorVersionTags, cwd);
     for (const tag of createdMajorTags) {
       await execWithOutput("git", ["push", "--force", "origin", tag.name], {
@@ -60133,11 +60136,6 @@ async function pushTags(tagSeparator, createMajorVersionTags, cwd) {
     return [...createdTags, ...createdMajorTags];
   }
   return createdTags;
-}
-async function getLocalRemoteTagDiff(cwd) {
-  const localTags = await getLocalTags(cwd);
-  const remoteTagNames = await getRemoteTagNames("origin", cwd);
-  return computeTagDiff(localTags, remoteTagNames);
 }
 async function getLocalTags(cwd) {
   const stdout = await execWithOutput("git", ["tag", "--list"], { cwd });
@@ -60171,7 +60169,7 @@ function computeTagDiff(localTags, remoteTags) {
   const diff = localTags.filter((tag) => !remoteSet.has(tag.name));
   return diff;
 }
-async function getRemoteTagNames(remote, cwd) {
+async function getRemoteTagNames(cwd) {
   const stdout = await execWithOutput(
     "git",
     // Note that --refs will filter out peeled tags from the output
@@ -60180,7 +60178,7 @@ async function getRemoteTagNames(remote, cwd) {
     //
     // On the other hand, lightweight tags will have their ref to the commit
     // that they point to.
-    ["ls-remote", "--refs", "--tags", remote],
+    ["ls-remote", "--refs", "--tags", "origin"],
     { cwd }
   );
   const tags = stdout.split("\n").filter((line) => !!line).map((line) => {

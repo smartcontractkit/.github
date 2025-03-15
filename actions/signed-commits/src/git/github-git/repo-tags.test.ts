@@ -1,7 +1,6 @@
 import { execSync } from "child_process";
 import { execWithOutput } from "../../utils";
 import {
-  getLocalRemoteTagDiff,
   deleteTags,
   createLightweightTags,
   GitTag,
@@ -15,31 +14,19 @@ import {
 import { createRepo, createCommit } from "./utils.testutils";
 
 import { describe, it, expect } from "vitest";
+import exp from "constants";
 
 describe("repo-tags", () => {
-  describe(getLocalRemoteTagDiff.name, () => {
-    it("should return the correct tags", async () => {
-      const testTags = await createTestRepoWithRemote("repo-tags", true);
-
-      const tags = await getLocalRemoteTagDiff(testTags.localRepoPath);
-      expect(tags.map((t) => t.name)).toEqual(
-        testTags.localOnlyTags.map((t) => t.name),
-      );
-    });
-  });
-
   describe("deleteTags", () => {
     it("should delete the given tags", async () => {
       const testTags = await createTestRepoWithRemote("repo-tags", true);
 
-      const tags = await getLocalRemoteTagDiff(testTags.localRepoPath);
-      await deleteTags(tags, testTags.localRepoPath);
+      await deleteTags(testTags.localOnlyTags, testTags.localRepoPath);
 
-      const notags = await getLocalRemoteTagDiff(testTags.localRepoPath);
-      expect(tags.map((t) => t.name)).toEqual(
-        testTags.localOnlyTags.map((t) => t.name),
-      );
-      expect(notags).toEqual([]);
+      const localTags = await getLocalTags(testTags.localRepoPath);
+      const remoteTags = await getRemoteTagNames(testTags.localRepoPath);
+
+      expect(remoteTags).toEqual(localTags.map((t) => t.name));
     });
   });
 
@@ -228,6 +215,80 @@ describe("repo-tags", () => {
       }
     });
 
+    it("should not push try and push remote tags again", async () => {
+      // create repo and origin with no tags
+      const testTags = await createTestRepoWithRemote("repo-tags");
+
+      // 1. Create a tag that uses the / separator. Mimicking that it was added in previous publish.
+      // This will exist on the remote and locally because when the repo is cloned, it will pull the tags from the remote.
+      await createLightweightTag(
+        testTags.localRepoPath,
+        "foo/1.0.0", // rewritten from foo@1.0.0
+        "HEAD^",
+      );
+      execSync(`cd ${testTags.localRepoPath} && git push origin --tags`);
+
+      // 2. Create local tags as though changeset publish was run.
+      // ========================================
+      // This tag will be created by changesets because it doesn't exist locally or on the remote, even though this version
+      // has technically been published before.
+      await createAnnotatedTestTag(testTags.localRepoPath, "foo@1.0.0", true);
+      // Some new random tag for a new version.
+      await createAnnotatedTestTag(testTags.localRepoPath, "bar@1.2.3", false);
+
+      // This should not try and push the foo/1.0.0 tag again.
+      const pushedTags = await pushTags("/", false, testTags.localRepoPath);
+
+      // The fact that it got here means it's probably working.
+      // As git will exit with a non-zero status code as it's trying to push a tag that already exists on the remote.
+      // Do some basic validation anyways...
+      expect(pushedTags.length).toBe(1);
+      expect(pushedTags[0].name).toBe("bar/1.2.3");
+
+      const tagTypes = await listTagTypes(
+        [pushedTags[0].name],
+        testTags.localRepoPath,
+      );
+      expect(tagTypes.every((t) => t.type === "commit")).toBe(true);
+    });
+
+    it("should not update major version tags accidentally", async () => {
+      // create repo and origin with no tags
+      const testTags = await createTestRepoWithRemote("repo-tags");
+
+      // 1. Create a tag that uses the / separator. Mimicking that it was added in previous publish.
+      // This will exist on the remote and locally because when the repo is cloned, it will pull the tags from the remote.
+      await createLightweightTag(
+        testTags.localRepoPath,
+        "foo/1.0.0", // rewritten from foo@1.0.0
+        "HEAD^",
+      );
+      await createLightweightTag(testTags.localRepoPath, "foo/v1", "HEAD^");
+      execSync(`cd ${testTags.localRepoPath} && git push origin --tags`);
+
+      // 2. Create local tags as though changeset publish was run.
+      // ========================================
+      // This tag will be created by changesets because it doesn't exist locally or on the remote, even though this version
+      // has technically been published before.
+      await createAnnotatedTestTag(testTags.localRepoPath, "foo@1.0.0", true);
+
+      // Some new random tag for a new version.
+      await createAnnotatedTestTag(testTags.localRepoPath, "bar@1.2.3", false);
+
+      // This should not try and push the foo/1.0.0 tag again.
+      // It should also not update the foo/v1 tag.
+      const pushedTags = await pushTags("/", false, testTags.localRepoPath);
+
+      expect(pushedTags.length).toBe(1);
+      expect(pushedTags[0].name).toBe("bar/1.2.3");
+
+      const tagTypes = await listTagTypes(
+        [pushedTags[0].name],
+        testTags.localRepoPath,
+      );
+      expect(tagTypes.every((t) => t.type === "commit")).toBe(true);
+    });
+
     it("should push lightweight versions of tags (complex) (/)", async () => {
       const testTags = await createTestRepoWithRemote("repo-tags", true);
       // 1st pass - push tags. Should now have 6 remote tags:
@@ -379,6 +440,15 @@ describe("repo-tags", () => {
       const remoteTags = await getLocalTags(testRepoConfig.localRepoPath);
       expect(remoteTags).toEqual([]);
     });
+
+    it("should return local tags", async () => {
+      const testRepoConfig = await createTestRepoWithRemote("repo-tags", true);
+
+      const localTags = await getLocalTags(testRepoConfig.localRepoPath);
+      expect(localTags.sort()).toEqual(
+        [...testRepoConfig.localOnlyTags, ...testRepoConfig.sharedTags].sort(),
+      );
+    });
   });
 
   describe(getRemoteTagNames.name, () => {
@@ -388,12 +458,20 @@ describe("repo-tags", () => {
       expect(testRepoConfig.localOnlyTags).toEqual([]);
       expect(testRepoConfig.sharedTags).toEqual([]);
 
-      const remoteTags = await getRemoteTagNames(
-        "origin",
-        testRepoConfig.localRepoPath,
-      );
+      const remoteTags = await getRemoteTagNames(testRepoConfig.localRepoPath);
       expect(remoteTags).toEqual([]);
     });
+  });
+
+  it("should return remote tags", async () => {
+    const testRepoConfig = await createTestRepoWithRemote("repo-tags", true);
+
+    const remoteTagNames = await getRemoteTagNames(
+      testRepoConfig.localRepoPath,
+    );
+    expect(remoteTagNames.sort()).toEqual(
+      testRepoConfig.sharedTags.map((t) => t.name).sort(),
+    );
   });
 });
 
@@ -437,6 +515,20 @@ async function createAnnotatedTestTags(
   });
 
   return Promise.all(newTags);
+}
+
+async function createLightweightTag(
+  repoPath: string,
+  name: string,
+  refQuery: string = "HEAD",
+): Promise<GitTag> {
+  const ref = await execWithOutput("git", ["rev-parse", refQuery], {
+    cwd: repoPath,
+  });
+
+  execSync(`cd ${repoPath} && git tag ${name} ${ref}`);
+
+  return { name, ref } satisfies GitTag;
 }
 
 async function createAnnotatedTestTag(
