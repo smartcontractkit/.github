@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {},
   "author": "@smartcontractkit",
-  "license": "MIT",
+  "orginal-author": "@tj-actions",
+  "license": "Apache-2.0",
   "dependencies": {},
   "repository": "https://github.com/smartcontractkit/.github"
 }
