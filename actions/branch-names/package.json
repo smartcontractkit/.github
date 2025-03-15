@@ -1,11 +1,12 @@
 {
-  "name": "ci-test-go",
-  "version": "0.3.5",
+  "name": "branch-names",
+  "version": "1.0.0",
   "description": "",
   "private": true,
   "scripts": {},
-  "author": "@ajgrande924",
-  "license": "MIT",
+  "author": "@smartcontractkit",
+  "orginal-author": "@tj-actions",
+  "license": "Apache-2.0",
   "dependencies": {},
   "repository": "https://github.com/smartcontractkit/.github"
 }
