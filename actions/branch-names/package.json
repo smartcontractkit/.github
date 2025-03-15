@@ -1,0 +1,12 @@
+{
+  "name": "branch-names",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "orginal-author": "@tj-actions",
+  "license": "Apache-2.0",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}
