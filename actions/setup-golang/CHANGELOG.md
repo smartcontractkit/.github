@@ -1,5 +1,14 @@
 # setup-golang
 
+## 0.3.2
+
+### Patch Changes
+
+- [#935](https://github.com/smartcontractkit/.github/pull/935)
+  [`dcdc10b`](https://github.com/smartcontractkit/.github/commit/dcdc10badaa0702553d4aa2c8311b4239b48be2c)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: swap out
+  tj-actions/branch-names for internal fork
+
 ## 0.3.1
 
 ### Patch Changes
