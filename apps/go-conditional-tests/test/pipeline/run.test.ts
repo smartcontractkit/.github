@@ -213,7 +213,7 @@ describe("runTestBinary", () => {
     const result = await runTestBinary(outputDir, pkg, binaryPath, [], "");
 
     // Assert
-    expect(core.error).toHaveBeenCalledWith(
+    expect(core.setFailed).toHaveBeenCalledWith(
       expect.stringContaining(
         "Failed to run test for package github.com/example/pkg",
       ),
@@ -274,7 +274,7 @@ describe("validateRunResultsOrThrow", () => {
       {
         output: {
           log: "/path/to/log",
-          binary: "/path/to/binary",
+          coverage: "/path/to/coverage",
         },
         pkg: {
           importPath: "github.com/example/pkg",
@@ -286,10 +286,7 @@ describe("validateRunResultsOrThrow", () => {
 
     // Act & Assert
     expect(() => validateRunResultsOrThrow(packages, results)).toThrow(
-      "1 tests completed with an error, or failed to run",
-    );
-    expect(core.setFailed).toHaveBeenCalledWith(
-      "Test Package Failures: github.com/example/pkg",
+      "Failed to run 1 packages.",
     );
   });
 
