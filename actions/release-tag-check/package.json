@@ -1,0 +1,11 @@
+{
+  "name": "release-tag-check",
+  "version": "0.1.0",
+  "description": "Indicates whether a GitHub ref is a pre-release or a final release",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}

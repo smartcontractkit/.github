@@ -1,5 +1,59 @@
 # ctf-run-tests
 
+## 0.6.1
+
+### Patch Changes
+
+- [#889](https://github.com/smartcontractkit/.github/pull/889)
+  [`0cf9be2`](https://github.com/smartcontractkit/.github/commit/0cf9be26805b7569e931322d0a6e7bfcccc62e25)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Improving GAP local
+  proxy log handling
+
+## 0.6.0
+
+### Minor Changes
+
+- [#884](https://github.com/smartcontractkit/.github/pull/884)
+  [`ea773c4`](https://github.com/smartcontractkit/.github/commit/ea773c461be417951e857c50d32b78e9b06b0ff4)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Bumping the
+  ctf-setup-run-tests-environment version in ctf-run-tests
+
+## 0.5.0
+
+### Minor Changes
+
+- [#861](https://github.com/smartcontractkit/.github/pull/861)
+  [`f0fd680`](https://github.com/smartcontractkit/.github/commit/f0fd680f962d09b599c38c8408a54b0cbd1c1eb1)
+  Thanks [@gheorghestrimtu](https://github.com/gheorghestrimtu)! - Update the
+  ctf-setup-run-tests-environment version
+
+## 0.4.2
+
+### Patch Changes
+
+- [#855](https://github.com/smartcontractkit/.github/pull/855)
+  [`18a8a89`](https://github.com/smartcontractkit/.github/commit/18a8a89b23006355003b705d55acaf329c384d94)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: pin actions/\*
+  dependencies to major version tag
+
+## 0.4.1
+
+### Patch Changes
+
+- [#812](https://github.com/smartcontractkit/.github/pull/812)
+  [`b518a6f`](https://github.com/smartcontractkit/.github/commit/b518a6f3a245229d0e5ce5c16a39943d6397dd1d)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Bump
+  ctf-setup-run-tests-environment version in ctf-run-tests GHA
+
+## 0.4.0
+
+### Minor Changes
+
+- [#802](https://github.com/smartcontractkit/.github/pull/802)
+  [`5783d6c`](https://github.com/smartcontractkit/.github/commit/5783d6c4356d12b5a12577e86fb57fe261a3e600)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Bumping the
+  ctf-setup-run-tests-environment version in the ctf-run-tests GH action.
+
 ## 0.3.0
 
 ### Minor Changes

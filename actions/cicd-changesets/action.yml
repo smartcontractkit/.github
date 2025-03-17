@@ -55,6 +55,14 @@ inputs:
     description: ""
     required: false
     default: "false"
+  changesets-tag-separator:
+    description: |
+      What character to use to separate the package name and version in the tag.
+      For example:
+        - Using `@`, the resulting git tag will be <package>@<version>
+        - Using `/`, the resulting git tag will be <package>/<version>
+    required: false
+    default: "@"
   pr-title:
     description: "title of the PR"
     required: false
@@ -99,7 +107,7 @@ runs:
         url: ${{ inputs.aws-lambda-url }}
 
     - name: Checkout repo
-      uses: actions/checkout@v4.2.1
+      uses: actions/checkout@v4
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
         token: ${{ steps.get-gh-token.outputs.access-token }}
@@ -120,7 +128,7 @@ runs:
 
     - name: Run changesets
       id: changesets
-      uses: smartcontractkit/.github/actions/signed-commits@ff80d56f5301dc8a65f66c4d47d746ee956beed9 # changesets-signed-commits@1.2.3
+      uses: smartcontractkit/.github/actions/signed-commits@81d53d6ed52fdd02ce7f6cf14634f06419b3a6e6 # changesets-signed-commits@1.4.0
       env:
         GITHUB_TOKEN: ${{ steps.get-gh-token.outputs.access-token }}
       with:
@@ -130,6 +138,7 @@ runs:
         setupGitUser: false
         title: ${{ inputs.pr-title }}
         prDraft: ${{ inputs.pr-draft }}
+        tagSeparator: ${{ inputs.changesets-tag-separator }}
 
     - name: Check changesets output
       shell: bash

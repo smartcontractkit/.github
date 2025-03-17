@@ -67,11 +67,11 @@ runs:
   steps:
     - name: Checkout Chainlink repo
       if: ${{ inputs.should_checkout == 'true' }}
-      uses: actions/checkout@v4.2.1
+      uses: actions/checkout@v4
       with:
         repository: ${{ inputs.cl_repo }}
         ref: ${{ inputs.cl_ref }}
-    - uses: actions/setup-go@v5.0.2
+    - uses: actions/setup-go@v5
       env:
         GOPRIVATE: ${{ inputs.GOPRIVATE }}
       with:

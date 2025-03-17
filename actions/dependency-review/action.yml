@@ -1,0 +1,78 @@
+name: dependency-review
+description: |
+  Wrapper for actions/dependency-review-action to check dependency licenses and
+  vulnerabilities.
+
+inputs:
+  config-file:
+    description: |
+      A path to the configuration file for the action.
+
+      Examples:
+        ./configs/default.yml # local file
+        github/octorepo/dependency-review-config.yml@main # remote file
+
+        NOTE: Mutually exclusive with `inputs.config-preset`.
+    required: false
+  config-preset:
+    description: |
+      A preset configuration for the action.
+
+      Maps to a configuration file in the `configs` directory.
+
+      Examples:
+        default-license-allow # fail if dependency is not in allow list
+        default-license-deny # fail if dependency is in deny list
+        default-vulnerability-check-high # fail if high severity vulnerability is found
+        default-vulnerability-check-moderate # fail if moderate severity vulnerability is found
+
+      NOTE: Mutually exclusive with `inputs.config-file`.
+    required: false
+  external-repo-token:
+    description: |
+      A GitHub token with access (contents: read) to an external private repository.
+      This is used to fetch a configuration file from a private repository.
+
+      Use this only if using a remote config file for `inputs.config-file`.
+
+      Examples:
+        $\{{ secrets.GITHUB_PAT }} # GitHub token that allows cross-repo `contents:read`. Use without the escape "\".
+    required: false
+runs:
+  using: composite
+  steps:
+    - name: Input validation
+      shell: bash
+      env:
+        CONFIG_FILE: ${{ inputs.config-file }}
+        CONFIG_PRESET: ${{ inputs.config-preset }}
+      run: |
+        if [[ -z "${CONFIG_FILE:-}" && -z "${CONFIG_PRESET:-}" ]]; then
+          echo "::error::Either 'config-preset' or 'config-file' inputs must be provided."
+          exit 1
+        elif [[ -n "${CONFIG_FILE:-}" && -n "${CONFIG_PRESET:-}" ]]; then
+          echo "::error::Only one of 'config-preset' or 'config-file' inputs can be provided."
+          exit 1
+        elif [[ -n "${CONFIG_PRESET:-}" && ! -f "${GITHUB_ACTION_PATH}/configs/${CONFIG_PRESET}.yml" ]]; then
+          echo "::error::Config preset ${CONFIG_PRESET} does not exist at ${GITHUB_ACTION_PATH}/configs/${CONFIG_PRESET}.yml."
+          exit 1
+        fi
+    - name: Set config file
+      id: set-config-file
+      shell: bash
+      env:
+        CONFIG_FILE: ${{ inputs.config-file }}
+        CONFIG_PRESET: ${{ inputs.config-preset }}
+      run: |
+        if [[ -n "${CONFIG_FILE:-}" ]]; then
+          echo "Using config file: ${CONFIG_FILE}"
+          echo "path=${CONFIG_FILE}" | tee -a "${GITHUB_OUTPUT}"
+        elif [[ -n "${CONFIG_PRESET:-}" ]]; then
+          echo "Using config preset: ${CONFIG_PRESET}"
+          echo "path=${GITHUB_ACTION_PATH}/configs/${CONFIG_PRESET}.yml" | tee -a "${GITHUB_OUTPUT}"
+        fi
+    - name: Dependency Review
+      uses: actions/dependency-review-action@v4
+      with:
+        config-file: ${{ steps.set-config-file.outputs.path }}
+        external-repo-token: ${{ inputs.external-repo-token }}

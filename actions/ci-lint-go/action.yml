@@ -73,7 +73,7 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4.2.1
+      uses: actions/checkout@v4
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
@@ -108,7 +108,7 @@ runs:
         envFile: ${{ inputs.env-files }}
 
     - name: Setup go
-      uses: actions/setup-go@v5.0.2
+      uses: actions/setup-go@v5
       with:
         go-version-file: ${{ inputs.go-version-file }}
         cache: ${{ inputs.use-go-cache }}
@@ -131,7 +131,7 @@ runs:
 
     - name: Store lint report artifact
       if: always()
-      uses: actions/upload-artifact@v4.4.3
+      uses: actions/upload-artifact@v4
       with:
         name: golangci-lint-report
         path: ${{ inputs.go-directory }}/golangci-lint-report.xml

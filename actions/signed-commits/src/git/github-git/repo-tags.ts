@@ -3,6 +3,7 @@ import { execWithOutput } from "../../utils";
 export interface GitTag {
   name: string;
   ref: string;
+  originalName?: string;
 }
 
 /**
@@ -10,11 +11,15 @@ export interface GitTag {
  * We replace annotated tags with lightweight ones because we cannot sign annotated tags, but
  * lightweight tags pointing to signed commits will show up as verified in GitHub.
  */
-export async function pushTags(cwd?: string) {
+export async function pushTags(tagSeparator: string, cwd?: string) {
   const onlyLocalTags = await getLocalRemoteTagDiff(cwd);
 
   await deleteTags(onlyLocalTags, cwd);
-  const createdTags = await createLightweightTags(onlyLocalTags, cwd);
+  const createdTags = await createLightweightTags(
+    tagSeparator,
+    onlyLocalTags,
+    cwd,
+  );
   await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
 
   return createdTags;
@@ -52,13 +57,20 @@ export async function getLocalTags(cwd?: string): Promise<GitTag[]> {
 }
 
 export async function createLightweightTags(
+  tagSeparator: string,
   tags: GitTag[],
   cwd?: string,
 ): Promise<GitTag[]> {
   const createdTags = tags.map(async (tag) => {
-    await execWithOutput("git", ["tag", tag.name, tag.ref], { cwd });
+    // Default tag separator is @
+    const newTagName = tag.name.replace("@", tagSeparator);
+    await execWithOutput("git", ["tag", newTagName, tag.ref], { cwd });
 
-    return tag;
+    return {
+      name: newTagName,
+      ref: tag.ref,
+      originalName: newTagName != tag.name ? tag.name : undefined,
+    };
   });
 
   return await Promise.all(createdTags);

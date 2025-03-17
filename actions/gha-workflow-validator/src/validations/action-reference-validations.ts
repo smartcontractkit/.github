@@ -1,4 +1,4 @@
-import { mapAndFilterUndefined, ParsedFile, FileLine } from "../utils.js";
+import { ParsedFile, FileLine } from "../parse-files.js";
 import { Octokit, getActionFileFromGithub } from "../github.js";
 import * as core from "@actions/core";
 import {
@@ -11,7 +11,7 @@ import {
 
 const CURRENT_NODE_VERSION = 20;
 
-interface FileLineActionReference extends FileLine {
+interface FileLineActionRef extends FileLine {
   actionReference?: ActionReference;
 }
 
@@ -25,49 +25,39 @@ interface ActionReference {
   trusted: boolean;
 }
 
-interface ActionReferenceValidationOptions {
+interface ActionRefValidationOptions {
   validateNodeVersion: boolean;
 }
 
-export class ActionReferenceValidation implements ValidationCheck {
-  private options: ActionReferenceValidationOptions;
+export class ActionRefValidation implements ValidationCheck {
+  private options: ActionRefValidationOptions;
 
   constructor(
     readonly octokit: Octokit,
-    options?: ActionReferenceValidationOptions,
+    options?: ActionRefValidationOptions,
   ) {
     this.options = options ?? { validateNodeVersion: true };
   }
 
-  async validate(parsedFile: ParsedFile): Promise<FileValidationResult> {
-    core.debug(`Validating action references in ${parsedFile.filename}`);
-    const { filename } = parsedFile;
+  async validateLine(line: FileLine): Promise<ValidationMessage[]> {
+    if (line.operation === "unchanged") {
+      return [];
+    }
 
-    const lineActionRefs = mapAndFilterUndefined(
-      parsedFile.lines,
-      extractActionReference,
+    const fileLineActionReference = extractActionReference(line);
+    return validateActionReference(
+      this.octokit,
+      this.options,
+      fileLineActionReference.actionReference,
     );
-
-    const lineValidations: LineValidationResult[] =
-      await validateActionReferences(
-        this.octokit,
-        filename,
-        this.options,
-        lineActionRefs,
-      );
-
-    return {
-      filename,
-      lineValidations,
-    };
   }
 }
 
 async function validateActionReferences(
   octokit: Octokit,
   filename: string,
-  options: ActionReferenceValidationOptions,
-  lines: FileLineActionReference[],
+  options: ActionRefValidationOptions,
+  lines: FileLineActionRef[],
 ): Promise<LineValidationResult[]> {
   const lineValidationResults: LineValidationResult[] = [];
 
@@ -92,7 +82,7 @@ async function validateActionReferences(
 
 async function validateActionReference(
   octokit: Octokit,
-  options: ActionReferenceValidationOptions,
+  options: ActionRefValidationOptions,
   actionRef: ActionReference | undefined,
 ): Promise<ValidationMessage[]> {
   if (!actionRef) {
@@ -197,12 +187,10 @@ async function validateNodeActionVersion(
   return;
 }
 
-function extractActionReference(
-  fileLine: FileLine,
-): FileLineActionReference | undefined {
+function extractActionReference(fileLine: FileLine): FileLineActionRef {
   const actionReference = extractActionReferenceFromLine(fileLine.content);
   if (!actionReference) {
-    return;
+    return fileLine;
   }
 
   if (actionReference.isWorkflowFile) {
@@ -226,12 +214,16 @@ export function extractActionReferenceFromLine(
     return;
   }
 
-  // example line:
+  // example line (after trimming):
   // - uses: actions/checkout@v4.2.1
-  const trimSubString = "uses:";
-  const usesIndex = trimmedLine.indexOf(trimSubString);
+  // or
+  // uses: actions/checkout@v4.2.1
+  const possibleTrimmedPrefixes = ["- uses: ", "uses: "];
+  const trimSubString = possibleTrimmedPrefixes.find((prefix) =>
+    trimmedLine.startsWith(prefix),
+  );
 
-  if (usesIndex === -1) {
+  if (!trimSubString) {
     // Not an action reference
     return;
   }

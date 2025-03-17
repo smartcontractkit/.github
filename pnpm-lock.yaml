@@ -93,9 +93,21 @@ importers:
         specifier: ^2.0.0
         version: 2.0.4(@types/node@20.14.13)(jsdom@24.1.0)
 
+  actions/beholder-pulumi-deploy-schema: {}
+
+  actions/branch-names: {}
+
+  actions/build-push-docker: {}
+
+  actions/build-push-docker-manifest: {}
+
   actions/check-git-tag-for-monorepo: {}
 
+  actions/check-if-verified: {}
+
   actions/ci-beholder-schema-validate: {}
+
+  actions/ci-beholder-validator: {}
 
   actions/ci-benchmarking: {}
 
@@ -129,8 +141,6 @@ importers:
 
   actions/cicd-build-publish-charts: {}
 
-  actions/cicd-build-publish-docker: {}
-
   actions/cicd-changesets: {}
 
   actions/cleanup-old-branches: {}
@@ -149,6 +159,8 @@ importers:
 
   actions/ctf-cleanup: {}
 
+  actions/ctf-fetch-aws-secret: {}
+
   actions/ctf-run-tests: {}
 
   actions/ctf-run-tests-binary: {}
@@ -158,6 +170,8 @@ importers:
   actions/ctf-setup-run-tests-environment: {}
 
   actions/ctf-show-grafana-in-test-summary: {}
+
+  actions/dependency-review: {}
 
   actions/dispatch-workflow: {}
 
@@ -221,6 +235,8 @@ importers:
 
   actions/pr-slack-alert: {}
 
+  actions/release-tag-check: {}
+
   actions/setup-gap: {}
 
   actions/setup-github-token: {}
@@ -234,6 +250,8 @@ importers:
   actions/setup-nix-gati: {}
 
   actions/setup-nodejs: {}
+
+  actions/setup-postgres: {}
 
   actions/setup-renovate: {}
 
@@ -396,6 +414,9 @@ importers:
       '@actions/artifact':
         specifier: ^2.1.11
         version: 2.1.11
+      '@actions/cache':
+        specifier: ^4.0.0
+        version: 4.0.0
       '@actions/core':
         specifier: ^1.10.1
         version: 1.10.1
@@ -587,8 +608,14 @@ packages:
   '@actions/artifact@2.1.11':
     resolution: {integrity: sha512-V/N/3yM3oLxozq2dpdGqbd/39UbDOR54bF25vYsvn3QZnyZERSzPjTAAwpGzdcwESye9G7vnuhPiKQACEuBQpg==}
 
+  '@actions/cache@4.0.0':
+    resolution: {integrity: sha512-WIuxjnZ44lNYtIS4fqSaYvF00hORdy3cSin+jx8xNgBVGWnNIAiCBHjlwusVQlcgExoQC9pHXGrDsZyZr7rCDQ==}
+
   '@actions/core@1.10.1':
     resolution: {integrity: sha512-3lBR9EDAY+iYIpTnTIXmWcNbX3T2kCkAEQGIQx4NVQ0575nk2k3GRZDTPQG+vVtS2izSLmINlxXf0uLtnrTP+g==}
+
+  '@actions/core@1.11.1':
+    resolution: {integrity: sha512-hXJCSrkwfA46Vd9Z3q4cpEpHB1rL5NG04+/rbqW9d3+CSvtB1tYe8UTpAlixa1vj0m/ULglfEK2UKxMGxCxv5A==}
 
   '@actions/exec@1.1.1':
     resolution: {integrity: sha512-+sCcHHbVdk93a0XT19ECtO/gIXoxvdsgQLzb2fE2/5sIZmWQuluYyjPQtrtTHdU1YzTZ7bAPN4sITq2xi1679w==}
@@ -598,6 +625,9 @@ packages:
 
   '@actions/github@6.0.0':
     resolution: {integrity: sha512-alScpSVnYmjNEXboZjarjukQEzgCRmjMv6Xj47fsdnqGS73bjJNDpiiXmp8jr0UZLdUB6d9jW63IcmddUP+l0g==}
+
+  '@actions/glob@0.1.2':
+    resolution: {integrity: sha512-SclLR7Ia5sEqjkJTPs7Sd86maMDw43p769YxBOxvPvEWuPEhpAnBsQfENOpXjFYMmhCqd127bmf+YdvJqVqR4A==}
 
   '@actions/glob@0.4.0':
     resolution: {integrity: sha512-+eKIGFhsFa4EBwaf/GMyzCdWrXWymGXfFmZU3FHQvYS8mPcHtTtZONbkcqqUMzw9mJ/pImEBFET1JNifhqGsAQ==}
@@ -625,6 +655,10 @@ packages:
   '@ardatan/sync-fetch@0.0.1':
     resolution: {integrity: sha512-xhlTqH0m31mnsG0tIP4ETgfSB6gXDaYYsUWTrlUV93fFQPI9dd8hE0Ot6MHLCtqgB32hwJAC3YZMWlXZw7AleA==}
     engines: {node: '>=14'}
+
+  '@azure/abort-controller@1.1.0':
+    resolution: {integrity: sha512-TrRLIoSQVzfAJX9H1JeFjzAoDGcoK1IYX1UImfceTZpsyYfWr09Ss1aHW1y5TrrR3iq6RZLBwJ3E24uwPhwahw==}
+    engines: {node: '>=12.0.0'}
 
   '@azure/abort-controller@2.1.2':
     resolution: {integrity: sha512-nBrLsEWm4J2u5LpAPjxADTlq3trDgVZZXHNKabeXZtpq3d3AbN/KGO82R87rdDz5/lYB024rtEf10/q0urNgsA==}
@@ -669,6 +703,9 @@ packages:
   '@azure/logger@1.1.4':
     resolution: {integrity: sha512-4IXXzcCdLdlXuCG+8UKEwLA1T1NHqUfanhXYHiQTn+6sfWCZXduqbtXDGceg3Ce5QxTGo7EqmbV6Bi+aqKuClQ==}
     engines: {node: '>=18.0.0'}
+
+  '@azure/ms-rest-js@2.7.0':
+    resolution: {integrity: sha512-ngbzWbqF+NmztDOpLBVDxYM+XLcUj7nKhxGbSU9WtIsXfRB//cf2ZbAG5HkOrhU9/wd/ORRB6lM/d69RKVjiyA==}
 
   '@azure/storage-blob@12.25.0':
     resolution: {integrity: sha512-oodouhA3nCCIh843tMMbxty3WqfNT+Vgzj3Xo5jqR9UPnzq3d7mzLjlHAYz7lW+b4km3SIgz+NAgztvhm7Z6kQ==}
@@ -4199,6 +4236,10 @@ packages:
     resolution: {integrity: sha512-TMKDUnIte6bfb5nWv7V/caI169OHgvwjb7V4WkeUvbQQdjr5rWKqHFiKWb/fcOwB+CzBT+qbWjvj+DVwRskpIg==}
     engines: {node: '>=14'}
 
+  form-data@2.5.2:
+    resolution: {integrity: sha512-GgwY0PS7DbXqajuGf4OYlsrIu3zgxD6Vvql43IBhm6MahqA5SK/7mwhtNj2AdH2z35YR34ujJ7BN+3fFC3jP5Q==}
+    engines: {node: '>= 0.12'}
+
   form-data@4.0.0:
     resolution: {integrity: sha512-ETEklSGi5t0QMZuiXoA/Q6vcnxcLQP5vdugSpuAyi6SVGi2clPPp+xgEhuMaHC+zGgn31Kd235W35f7Hykkaww==}
     engines: {node: '>= 6'}
@@ -5776,6 +5817,9 @@ packages:
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
 
+  sax@1.4.1:
+    resolution: {integrity: sha512-+aWOz7yVScEGoKNd4PA10LZ8sk0A/z5+nXQG5giUO5rprX9jgYsTdov9qCchZiPIZezbZH+jRut8nPodFAX4Jg==}
+
   saxes@6.0.0:
     resolution: {integrity: sha512-xAg7SOnEhrm5zI3puOOKyy1OMcMlIJZYNJY7xLBwSze0UjhPLnWfj2GF2EpT0jmzaJKIWKHLsaSSajf35bcYnA==}
     engines: {node: '>=v12.22.7'}
@@ -6175,6 +6219,9 @@ packages:
     resolution: {integrity: sha512-NoZ4roiN7LnbKn9QqE1amc9DJfzvZXxF4xDavcOWt1BPkdx+m+0gJuPM+S0vCe7zTJMYUP0R8pO2XMr+Y8oLIg==}
     engines: {node: '>=6'}
 
+  tslib@1.14.1:
+    resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
+
   tslib@2.6.3:
     resolution: {integrity: sha512-xNvxJEOUiWPGhUuUdQgAJPKOOJfGnIyKySOc09XkKsgdUV/3E2zvwZYdejjmRgPCgcym1juLH3226yA7sEFJKQ==}
 
@@ -6559,6 +6606,14 @@ packages:
     resolution: {integrity: sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg==}
     engines: {node: '>=18'}
 
+  xml2js@0.5.0:
+    resolution: {integrity: sha512-drPFnkQJik/O+uPKpqSgr22mpuFHqKdbS835iAQrUC73L2F5WkboIRd63ai/2Yg6I1jzifPFKH2NTK+cfglkIA==}
+    engines: {node: '>=4.0.0'}
+
+  xmlbuilder@11.0.1:
+    resolution: {integrity: sha512-fDlsI/kFEx7gLvbecc0/ohLG50fugQp8ryHzMTuW9vSa1GJ0XYWKnhsUx7oie3G98+r56aTQIUB4kht42R3JvA==}
+    engines: {node: '>=4.0'}
+
   xmlchars@2.2.0:
     resolution: {integrity: sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==}
 
@@ -6656,10 +6711,33 @@ snapshots:
       - supports-color
       - ts-proto
 
+  '@actions/cache@4.0.0':
+    dependencies:
+      '@actions/core': 1.11.1
+      '@actions/exec': 1.1.1
+      '@actions/glob': 0.1.2
+      '@actions/http-client': 2.2.0
+      '@actions/io': 1.1.3
+      '@azure/abort-controller': 1.1.0
+      '@azure/ms-rest-js': 2.7.0
+      '@azure/storage-blob': 12.25.0
+      '@protobuf-ts/plugin': 2.9.4
+      semver: 6.3.1
+      twirp-ts: 2.5.0(@protobuf-ts/plugin@2.9.4)
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
+      - ts-proto
+
   '@actions/core@1.10.1':
     dependencies:
       '@actions/http-client': 2.2.0
       uuid: 8.3.2
+
+  '@actions/core@1.11.1':
+    dependencies:
+      '@actions/exec': 1.1.1
+      '@actions/http-client': 2.2.0
 
   '@actions/exec@1.1.1':
     dependencies:
@@ -6680,6 +6758,11 @@ snapshots:
       '@octokit/core': 5.2.0
       '@octokit/plugin-paginate-rest': 9.1.2(@octokit/core@5.2.0)
       '@octokit/plugin-rest-endpoint-methods': 10.1.2(@octokit/core@5.2.0)
+
+  '@actions/glob@0.1.2':
+    dependencies:
+      '@actions/core': 1.11.1
+      minimatch: 3.1.2
 
   '@actions/glob@0.4.0':
     dependencies:
@@ -6732,6 +6815,10 @@ snapshots:
       node-fetch: 2.7.0
     transitivePeerDependencies:
       - encoding
+
+  '@azure/abort-controller@1.1.0':
+    dependencies:
+      tslib: 2.6.3
 
   '@azure/abort-controller@2.1.2':
     dependencies:
@@ -6804,6 +6891,19 @@ snapshots:
   '@azure/logger@1.1.4':
     dependencies:
       tslib: 2.6.3
+
+  '@azure/ms-rest-js@2.7.0':
+    dependencies:
+      '@azure/core-auth': 1.9.0
+      abort-controller: 3.0.0
+      form-data: 2.5.2
+      node-fetch: 2.7.0
+      tslib: 1.14.1
+      tunnel: 0.0.6
+      uuid: 8.3.2
+      xml2js: 0.5.0
+    transitivePeerDependencies:
+      - encoding
 
   '@azure/storage-blob@12.25.0':
     dependencies:
@@ -11755,6 +11855,13 @@ snapshots:
       cross-spawn: 7.0.3
       signal-exit: 4.1.0
 
+  form-data@2.5.2:
+    dependencies:
+      asynckit: 0.4.0
+      combined-stream: 1.0.8
+      mime-types: 2.1.35
+      safe-buffer: 5.2.1
+
   form-data@4.0.0:
     dependencies:
       asynckit: 0.4.0
@@ -13580,6 +13687,8 @@ snapshots:
 
   safer-buffer@2.1.2: {}
 
+  sax@1.4.1: {}
+
   saxes@6.0.0:
     dependencies:
       xmlchars: 2.2.0
@@ -14014,6 +14123,8 @@ snapshots:
       json5: 2.2.3
       minimist: 1.2.8
       strip-bom: 3.0.0
+
+  tslib@1.14.1: {}
 
   tslib@2.6.3: {}
 
@@ -14480,6 +14591,13 @@ snapshots:
   ws@8.17.1: {}
 
   xml-name-validator@5.0.0: {}
+
+  xml2js@0.5.0:
+    dependencies:
+      sax: 1.4.1
+      xmlbuilder: 11.0.1
+
+  xmlbuilder@11.0.1: {}
 
   xmlchars@2.2.0: {}
 

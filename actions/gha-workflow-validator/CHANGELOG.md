@@ -1,5 +1,24 @@
 # gha-workflow-validator
 
+## 0.5.0
+
+### Minor Changes
+
+- [#843](https://github.com/smartcontractkit/.github/pull/843)
+  [`781b8f0`](https://github.com/smartcontractkit/.github/commit/781b8f07726ed9554fe55242510ac756f65e6824)
+  Thanks [@erikburt](https://github.com/erikburt)! - logical refactors, and new
+  actions/cache validation
+
+## 0.4.8
+
+### Patch Changes
+
+- [#758](https://github.com/smartcontractkit/.github/pull/758)
+  [`24d9351`](https://github.com/smartcontractkit/.github/commit/24d9351ac0c5cc7ad12de5bcd4a6e4eeaf083a96)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: action reference
+  validation bug producing false positives for lines which contain "uses:"
+  substring, but is not an action reference
+
 ## 0.4.7
 
 ### Patch Changes

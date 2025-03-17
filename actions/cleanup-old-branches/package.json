@@ -1,6 +1,6 @@
 {
   "name": "cleanup-old-branches",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Cleans up old branches in a GitHub repository.",
   "private": true,
   "scripts": {},

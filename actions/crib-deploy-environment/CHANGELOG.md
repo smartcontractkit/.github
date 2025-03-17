@@ -1,5 +1,178 @@
 # crib-deploy-environment
 
+## 8.6.0
+
+### Minor Changes
+
+- [#911](https://github.com/smartcontractkit/.github/pull/911)
+  [`a53b2b0`](https://github.com/smartcontractkit/.github/commit/a53b2b0fdba6a8901d14de7ecce29f9c72ec27fb)
+  Thanks [@ajgrande924](https://github.com/ajgrande924)! - update inputs to
+  handle ns override
+
+## 8.5.2
+
+### Patch Changes
+
+- [#876](https://github.com/smartcontractkit/.github/pull/876)
+  [`716cdcf`](https://github.com/smartcontractkit/.github/commit/716cdcf99ff4acd8a2c7225932d7fa8116385f15)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - increased generated
+  ns name by 1 char (attempt to increase uniqueness)
+
+## 8.5.1
+
+### Patch Changes
+
+- [#855](https://github.com/smartcontractkit/.github/pull/855)
+  [`18a8a89`](https://github.com/smartcontractkit/.github/commit/18a8a89b23006355003b705d55acaf329c384d94)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: pin actions/\*
+  dependencies to major version tag
+
+## 8.5.0
+
+### Minor Changes
+
+- [#849](https://github.com/smartcontractkit/.github/pull/849)
+  [`0c0cc73`](https://github.com/smartcontractkit/.github/commit/0c0cc73a27862740e43c5e9ae850d69bae242444)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Moving the step for
+  generating the CRIB namespace and labels before the setup-gap step allows the
+  namespace name to be passed to the setup-gap step, which is required for
+  handling WebSockets.
+
+## 8.4.0
+
+### Minor Changes
+
+- [#832](https://github.com/smartcontractkit/.github/pull/832)
+  [`63bc25d`](https://github.com/smartcontractkit/.github/commit/63bc25dbdcdf6c9953ae4676ea7f3ddaef8d457e)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Bump crib repo ref
+
+## 8.3.1
+
+### Patch Changes
+
+- [#829](https://github.com/smartcontractkit/.github/pull/829)
+  [`f46bb65`](https://github.com/smartcontractkit/.github/commit/f46bb65017b188355902d3421b7a7ee4c5f15a24)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Bumping the
+  setup-gap GHA version in crib-deploy-environment GHA
+
+## 8.3.0
+
+### Minor Changes
+
+- [#815](https://github.com/smartcontractkit/.github/pull/815)
+  [`4caf18b`](https://github.com/smartcontractkit/.github/commit/4caf18bd5e430eed152604c66715719fd453afbb)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Removing
+  k8s-api-endpoint input from crib-deploy-environment GH action. Please use
+  main-dns-zone to pass the DNS zone for the services
+
+## 8.2.1
+
+### Patch Changes
+
+- [#810](https://github.com/smartcontractkit/.github/pull/810)
+  [`f8232f1`](https://github.com/smartcontractkit/.github/commit/f8232f166b39de28e50cdbe6968c13fd8d9251ad)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Use the latest
+  version of setup-gap action
+
+## 8.2.0
+
+### Minor Changes
+
+- [#789](https://github.com/smartcontractkit/.github/pull/789)
+  [`3bcae62`](https://github.com/smartcontractkit/.github/commit/3bcae62dfad0c5056207e6a53f2ca45dead8adc8)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Bumping the
+  setup-gap GHA version
+
+## 8.1.0
+
+### Minor Changes
+
+- [#783](https://github.com/smartcontractkit/.github/pull/783)
+  [`6db6d21`](https://github.com/smartcontractkit/.github/commit/6db6d21b42b1196099628039a2c00423716b4325)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Use the latest
+  version of setup-gap with local dynamic proxy
+
+  Input parameters changes:
+
+  - Renamed:
+    - `envoy-github-oidc-token-header-name` ->
+      `envoy-github-oidc-token-header-name`
+  - Added (not required):
+    - `dynamic-proxy-port`
+  - Added (required):
+    - `main-dns-zone`
+
+## 8.0.0
+
+### Major Changes
+
+- [#779](https://github.com/smartcontractkit/.github/pull/779)
+  [`b6027b5`](https://github.com/smartcontractkit/.github/commit/b6027b55727b892eca6ae257970e80532c6b7ecc)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - CRIB now spins up all
+  dependencies using the existing `nginx` ingressClass instead of `alb`, for
+  cost-savings
+
+## 7.5.1
+
+### Patch Changes
+
+- [#777](https://github.com/smartcontractkit/.github/pull/777)
+  [`6a5bf1b`](https://github.com/smartcontractkit/.github/commit/6a5bf1b5f2600bc7a644479fe9876ae3e3c8e237)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding support for
+  labeling NS for cost attribution
+
+## 7.5.0
+
+### Minor Changes
+
+- [#770](https://github.com/smartcontractkit/.github/pull/770)
+  [`d448849`](https://github.com/smartcontractkit/.github/commit/d44884987b855e6085bcf5e6a02a43e00057bef3)
+  Thanks [@chainchad](https://github.com/chainchad)! - Make local proxy port
+  configurable via input
+
+## 7.4.0
+
+### Minor Changes
+
+- [#764](https://github.com/smartcontractkit/.github/pull/764)
+  [`b1a69d8`](https://github.com/smartcontractkit/.github/commit/b1a69d84985fdef78dce563fdc69b840e7cf0e1a)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - upgraded default
+  crib-repo-ref to v1.2.0
+
+## 7.3.0
+
+### Minor Changes
+
+- [#743](https://github.com/smartcontractkit/.github/pull/743)
+  [`f5fbc93`](https://github.com/smartcontractkit/.github/commit/f5fbc93a367af8b8cd16093fd0edd92b9ba756ea)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Switch the cost
+  stributtion NS labeling to crib CLI
+
+### Patch Changes
+
+- [#759](https://github.com/smartcontractkit/.github/pull/759)
+  [`7f3916b`](https://github.com/smartcontractkit/.github/commit/7f3916b1177db2b3e9c6af8e1d92bc7004f4b046)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Removing default
+  empty values for cost atributtion labels
+
+## 7.2.0
+
+### Minor Changes
+
+- [#755](https://github.com/smartcontractkit/.github/pull/755)
+  [`080a444`](https://github.com/smartcontractkit/.github/commit/080a444ef384c43c860a5430b1a5f0b2f0bd9386)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Add product-dir
+  option to enable multiple product directories.
+
+## 7.1.1
+
+### Patch Changes
+
+- [#752](https://github.com/smartcontractkit/.github/pull/752)
+  [`b1e576f`](https://github.com/smartcontractkit/.github/commit/b1e576f6a632c921806840523ca0561ad4a3fef0)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Fix breaking
+  dorny/path-filter step, by skipping it in other repos than crib.
+
 ## 7.1.0
 
 ### Minor Changes

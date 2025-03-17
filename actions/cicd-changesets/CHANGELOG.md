@@ -1,5 +1,32 @@
 # cicd-changesets
 
+## 0.3.8
+
+### Patch Changes
+
+- [#922](https://github.com/smartcontractkit/.github/pull/922)
+  [`ced0b32`](https://github.com/smartcontractkit/.github/commit/ced0b32325f63b17612babca89f44dcef5045d9c)
+  Thanks [@erikburt](https://github.com/erikburt)! - deps: bump
+  changesets-signed-commits to v1.4.0
+
+## 0.3.7
+
+### Patch Changes
+
+- [#919](https://github.com/smartcontractkit/.github/pull/919)
+  [`c2b68a1`](https://github.com/smartcontractkit/.github/commit/c2b68a1fea6b10827dbdbb77a48c5544cbb129e0)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: allow for custom git
+  tag separators in monorepos
+
+## 0.3.6
+
+### Patch Changes
+
+- [#855](https://github.com/smartcontractkit/.github/pull/855)
+  [`18a8a89`](https://github.com/smartcontractkit/.github/commit/18a8a89b23006355003b705d55acaf329c384d94)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: pin actions/\*
+  dependencies to major version tag
+
 ## 0.3.5
 
 ### Patch Changes

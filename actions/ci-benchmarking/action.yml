@@ -53,10 +53,10 @@ runs:
   using: "composite"
   steps:
     - name: Checkout Code
-      uses: actions/checkout@v4.2.1
+      uses: actions/checkout@v4
 
     - name: Setup Go Environment
-      uses: actions/setup-go@v5.0.2
+      uses: actions/setup-go@v5
       with:
         go-version: "stable"
 
@@ -100,7 +100,7 @@ runs:
 
     - name: Download Previous Benchmark Data
       if: ${{ env.IS_PR == 'true' || env.IS_MERGE == 'true' }}
-      uses: actions/cache@v4.1.1
+      uses: actions/cache@v4
       with:
         path: ./cache
         key: ${{ runner.os }}-benchmark
@@ -132,7 +132,7 @@ runs:
 
     - name: Upload Updated Benchmark Data
       if: ${{ env.IS_MERGE == 'true' }}
-      uses: actions/cache@v4.1.1
+      uses: actions/cache@v4
       with:
         path: ./cache
         key: ${{ runner.os }}-benchmark

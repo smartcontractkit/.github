@@ -50,9 +50,6 @@ inputs:
   QA_AWS_ROLE_TO_ASSUME:
     required: true
     description: The AWS role to assume
-  QA_KUBECONFIG:
-    required: false
-    description: The kubernetes configuration to use
   should_tidy:
     required: false
     description: Should we check go mod tidy
@@ -64,14 +61,49 @@ inputs:
   gati_token:
     required: false
     description: Token provided by GATI to pull from private repos
+  enable-gap:
+    required: false
+    default: "true"
+    description: Configure and enable GAP for accessing internal services.
+  main-dns-zone:
+    required: false
+    default: ""
+    description:
+      The primary DNS zone used in the hostname of the Kubernetes API endpoint.
+      Required if GAP is enabled.
+  k8s-cluster-name:
+    required: false
+    default: ""
+    description:
+      The name of the Kubernetes cluster to be used in the `kubectl`
+      configuration for accessing the desired cluster.
+  enable-proxy-debug:
+    description:
+      "Enable or disable detailed Envoy proxy logs used for K8s API access. When
+      enabled, debug logs are generated locally, and container logs are streamed
+      to the console for troubleshooting."
+    required: false
+    default: "false"
 
 runs:
   using: composite
   steps:
+    - name: Validate GAP inputs
+      shell: bash
+      if: inputs.enable-gap == 'true'
+      run: |
+        if [ -z "${{ inputs.main-dns-zone }}" ]; then
+          echo "Error: main-dns-zone is required when enable-gap is true."
+          exit 1
+        fi
+        if [ -z "${{ inputs.k8s-cluster-name }}" ]; then
+          echo "Error: k8s-cluster-name is required when enable-gap is true."
+          exit 1
+        fi
     # Go setup and caching
     - name: Setup Go
       if: inputs.go_necessary == 'true'
-      uses: smartcontractkit/.github/actions/ctf-setup-go@5a90069d860edbaddc296a139b13e2e97bf463ab # ctf-setup-go@0.0.0
+      uses: smartcontractkit/.github/actions/ctf-setup-go@c83a1867f404a79db873b55f1a5fd30b42569bbb # ctf-setup-go@0.2.0
       with:
         go_version: ${{ inputs.go_version }}
         go_mod_path: ${{ inputs.go_mod_path }}
@@ -92,12 +124,19 @@ runs:
         role-duration-seconds: ${{ inputs.aws_role_duration_seconds }}
         mask-aws-account-id: true
 
-    - name: Set Kubernetes Context
-      if: inputs.QA_KUBECONFIG
-      uses: azure/k8s-set-context@27bfb387305b8f0ab5495d692e4a3304db7d0669 # v4.0.0
+    - name: Configure local GAP proxy for accessing (Kubernetes) services
+      uses: smartcontractkit/.github/actions/setup-gap@858d6785a9cce58359f5d6f9481902f2d0a331ac # setup-gap@4.0.1
+      if: inputs.enable-gap == 'true'
       with:
-        method: kubeconfig
-        kubeconfig: ${{ inputs.QA_KUBECONFIG }}
+        aws-region: ${{ inputs.QA_AWS_REGION }}
+        aws-role-arn: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
+        aws-role-duration-seconds: 3600 # 1 hour
+        gap-name: k8s
+        k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+        main-dns-zone: ${{ inputs.main-dns-zone }}
+        proxy-port: 9339
+        use-k8s: true
+        enable-proxy-debug: ${{ inputs.enable-proxy-debug }}
 
     # Login to AWS ECR registries if needed
     - name: Login to Amazon ECR

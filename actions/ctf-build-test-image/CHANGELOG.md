@@ -1,5 +1,14 @@
 # ctf-build-test-image
 
+## 0.2.1
+
+### Patch Changes
+
+- [#855](https://github.com/smartcontractkit/.github/pull/855)
+  [`18a8a89`](https://github.com/smartcontractkit/.github/commit/18a8a89b23006355003b705d55acaf329c384d94)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: pin actions/\*
+  dependencies to major version tag
+
 ## 0.2.0
 
 ### Minor Changes

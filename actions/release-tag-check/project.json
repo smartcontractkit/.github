@@ -1,0 +1,7 @@
+{
+  "name": "release-tag-check",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "actions/release-tag-check",
+  "targets": {}
+}

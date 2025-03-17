@@ -24,6 +24,8 @@ jobs:
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: ci-prettier
         uses: ./actions/ci-prettier
@@ -37,6 +39,8 @@ jobs:
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: ci-test
         uses: ./actions/ci-test-ts
@@ -59,6 +63,7 @@ jobs:
         uses: actions/checkout@v4.2.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: cicd-build-publish-artifacts-dev
         uses: ./actions/cicd-build-publish-artifacts-ts
@@ -77,6 +82,7 @@ jobs:
         uses: actions/checkout@v4.2.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: cd-release
         uses: ./actions/cicd-changesets
@@ -85,6 +91,8 @@ jobs:
           pnpm-version: "^9.0.0"
           git-user: app-token-issuer-releng-renovate[bot]
           git-email: app-token-issuer-releng-renovate[bot]@users.noreply.github.com
+          # changesets inputs
+          changesets-tag-separator: "/"
           # aws inputs
           aws-region: ${{ secrets.AWS_REGION }}
           aws-role-arn: ${{ secrets.AWS_OIDC_IAM_ROLE_ARN_GATI }}

@@ -1,5 +1,23 @@
 # ci-benchmarking
 
+## 1.0.4
+
+### Patch Changes
+
+- [#855](https://github.com/smartcontractkit/.github/pull/855)
+  [`18a8a89`](https://github.com/smartcontractkit/.github/commit/18a8a89b23006355003b705d55acaf329c384d94)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: pin actions/\*
+  dependencies to major version tag
+
+## 1.0.3
+
+### Patch Changes
+
+- [#754](https://github.com/smartcontractkit/.github/pull/754)
+  [`f1d7e9d`](https://github.com/smartcontractkit/.github/commit/f1d7e9d889b3205980a906ef4a89ba42577a69eb)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: upgrade
+  actions/cache to v4
+
 ## 1.0.2
 
 ### Patch Changes
