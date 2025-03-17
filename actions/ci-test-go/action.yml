@@ -139,7 +139,7 @@ runs:
       working-directory: ${{ inputs.docker-compose-workdir }}
 
     - name: Setup go
-      uses: smartcontractkit/.github/actions/setup-golang@01d931b0455a754d12e7143cc54a5a3521a8f6f6 # setup-golang@0.3.1
+      uses: smartcontractkit/.github/actions/setup-golang@setup-golang/0.3.2
       with:
         go-version-file: ${{ inputs.go-version-file }}
         use-go-cache: ${{ inputs.use-go-cache }}

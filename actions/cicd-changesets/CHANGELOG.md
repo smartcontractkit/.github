@@ -1,5 +1,14 @@
 # cicd-changesets
 
+## 0.3.8
+
+### Patch Changes
+
+- [#922](https://github.com/smartcontractkit/.github/pull/922)
+  [`ced0b32`](https://github.com/smartcontractkit/.github/commit/ced0b32325f63b17612babca89f44dcef5045d9c)
+  Thanks [@erikburt](https://github.com/erikburt)! - deps: bump
+  changesets-signed-commits to v1.4.0
+
 ## 0.3.7
 
 ### Patch Changes

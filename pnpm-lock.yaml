@@ -95,6 +95,8 @@ importers:
 
   actions/beholder-pulumi-deploy-schema: {}
 
+  actions/branch-names: {}
+
   actions/build-push-docker: {}
 
   actions/build-push-docker-manifest: {}
