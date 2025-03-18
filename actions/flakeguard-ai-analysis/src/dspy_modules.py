@@ -1,4 +1,3 @@
-from pathlib import Path
 
 import dspy
 
@@ -43,11 +42,11 @@ class FlakyTestGuideRecommender(dspy.Signature):
 
 
 class FlakyTestAnalyzer(dspy.Module):
-    def __init__(self, test_guide: Path):
+    def __init__(self, test_guide: str):
         self.parser = dspy.Predict(FailedOutputsParser)
         self.classifier = dspy.Predict(FlakyTestClassifier)
         self.recommender = dspy.Predict(FlakyTestGuideRecommender)
-        self.test_guide = test_guide.read_text()
+        self.test_guide = test_guide
 
     def forward(self, df_row):
         parsed = self.parser(

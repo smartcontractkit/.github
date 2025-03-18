@@ -5,7 +5,7 @@ import os
 import pandas as pd
 
 from src.dspy_modules import FlakyTestAnalyzer
-from src.utils import init, read_results_file
+from src.utils import init, read_results_file, get_repo_file
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -15,7 +15,11 @@ def main():
     file_path = Path(__file__).parent
     init()
     logger.info("Initialized dspy")
-    test_guide = file_path / "context/test_guide.md"
+    test_guide = get_repo_file(
+        "tools/flakeguard/e2e-flaky-test-guide.md",
+        repo="chainlink-testing-framework",
+        branch="main",
+    )
     analyzer = FlakyTestAnalyzer(test_guide=test_guide)
     failed_test_results = os.environ.get("FAILED_TEST_RESULTS", "context/results.json")
     df = read_results_file(file_path / failed_test_results)

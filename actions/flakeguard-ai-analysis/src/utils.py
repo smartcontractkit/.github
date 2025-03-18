@@ -6,11 +6,12 @@ import pandas as pd
 import requests
 
 
-def get_repo_file(file_path: str) -> str:
-    username = "smartcontractkit"
-    repo = "chainlink"
-    branch = "develop"
-
+def get_repo_file(
+    file_path: str,
+    username: str = "smartcontractkit",
+    repo: str = "chainlink",
+    branch: str = "develop",
+) -> str:
     raw_url = (
         f"https://raw.githubusercontent.com/{username}/{repo}/{branch}/{file_path}"
     )
