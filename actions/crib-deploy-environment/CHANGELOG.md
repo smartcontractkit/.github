@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 8.7.0
+
+### Minor Changes
+
+- [#941](https://github.com/smartcontractkit/.github/pull/941)
+  [`1b6cef7`](https://github.com/smartcontractkit/.github/commit/1b6cef77145f45e2e0e7a616ea91ff86a055f66c)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Set required
+  CRIB_EKS_CLUSTER_NAME
+
 ## 8.6.0
 
 ### Minor Changes
