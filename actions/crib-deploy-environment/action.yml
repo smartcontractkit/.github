@@ -310,6 +310,7 @@ runs:
         DEVSPACE_INGRESS_CIDRS: ${{ inputs.devspace-ingress-cidrs }}
         DEVSPACE_NAMESPACE:
           "${{ steps.generate-ns-name.outputs.devspace-namespace }}"
+        CRIB_EKS_CLUSTER_NAME: "${{inputs.k8s-cluster-name}}"
         GH_TOKEN: ${{ inputs.github-token }}
         PROFILES: ${{ inputs.devspace-profiles }}
         SETUP_AWS_PROFILE: false
