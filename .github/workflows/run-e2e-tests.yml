@@ -195,39 +195,39 @@ on:
       TEST_SECRETS_OVERRIDE_BASE64:
         required: false
       QA_AWS_REGION:
-        required: true
+        required: false
       QA_AWS_ROLE_TO_ASSUME:
-        required: true
+        required: false
       QA_AWS_ACCOUNT_NUMBER:
-        required: true
+        required: false
       PROD_AWS_ACCOUNT_NUMBER:
-        required: true
+        required: false
       QA_PYROSCOPE_INSTANCE:
-        required: true
+        required: false
       QA_PYROSCOPE_KEY:
-        required: true
+        required: false
       LOKI_TENANT_ID:
-        required: true
+        required: false
       LOKI_URL:
-        required: true
+        required: false
       LOKI_BASIC_AUTH:
-        required: true
+        required: false
       GRAFANA_INTERNAL_TENANT_ID:
-        required: true
+        required: false
       GRAFANA_INTERNAL_BASIC_AUTH:
-        required: true
+        required: false
       GRAFANA_INTERNAL_HOST:
-        required: true
+        required: false
       GRAFANA_INTERNAL_URL_SHORTENER_TOKEN:
-        required: true
+        required: false
       GH_TOKEN:
         required: true
       AWS_REGION:
-        required: true
+        required: false
       AWS_OIDC_IAM_ROLE_VALIDATION_PROD_ARN:
-        required: true
+        required: false
       AWS_API_GW_HOST_GRAFANA:
-        required: true
+        required: false
       SLACK_BOT_TOKEN:
         required: false
       # Use instead of slack_notification_after_tests_channel_id if channel id is secret
@@ -430,6 +430,8 @@ jobs:
     outputs:
       run-docker-tests: ${{ steps.check-matrices.outputs.run-docker-tests }}
       run-k8s-tests: ${{ steps.check-matrices.outputs.run-k8s-tests }}
+      run-in-memory-tests:
+        ${{ steps.check-matrices.outputs.run-in-memory-tests }}
       docker-matrix: ${{ steps.set-docker-matrix.outputs.matrix }}
       k8s-runner-matrix: ${{ steps.set-k8s-runner-matrix.outputs.matrix }}
       workflow_id: ${{ steps.gen_id.outputs.workflow_id }}
@@ -442,7 +444,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5.0.2
         with:
-          go-version: "1.22.6"
+          go-version: "1.24.0"
           check-latest: true
       - name: Install citool
         shell: bash
@@ -497,11 +499,35 @@ jobs:
           echo "$MATRIX_JSON" | jq
           echo "matrix=$MATRIX_JSON" >> "$GITHUB_OUTPUT"
 
+      - name: Generate In Memory Tests Matrix
+        id: set-in-memory-matrix
+        shell: bash
+        env:
+          CUSTOM_TEST_LIST_JSON: ${{ inputs.custom_test_list_json }}
+          TEST_PATH: ${{ inputs.test_path }}
+          TEST_LIST: ${{ inputs.test_list }}
+          TEST_IDS: ${{ inputs.test_ids }}
+          TEST_TRIGGER: ${{ inputs.test_trigger }}
+        run: |
+          # Check if custom_test_list_json is provided and non-empty
+          if [[ -n "$CUSTOM_TEST_LIST_JSON" ]]; then
+            echo "Using custom test list JSON"
+            MATRIX_JSON=$(echo "$CUSTOM_TEST_LIST_JSON" | jq -c '{tests: [.tests[] | select(.test_env_type == "in-memory")]}')
+          else
+            echo "Using default test list"
+            MATRIX_JSON=$(citool filter --file "${{ github.workspace }}/$TEST_PATH" --test-env-type 'in-memory' --test-list "$TEST_LIST" --test-ids "$TEST_IDS" --workflow "$TEST_TRIGGER")
+          fi
+
+          echo "In Memory tests:"
+          echo "$MATRIX_JSON" | jq
+          echo "matrix=$MATRIX_JSON" >> "$GITHUB_OUTPUT"
+
       - name: Check Test Matrices
         id: check-matrices
         run: |
           DOCKER_MATRIX_EMPTY=$(echo '${{ steps.set-docker-matrix.outputs.matrix }}' | jq '.tests == null or .tests == []')
           K8S_MATRIX_EMPTY=$(echo '${{ steps.set-k8s-runner-matrix.outputs.matrix }}' | jq '.tests == null or .tests == []')
+          IN_MEMORY_MATRIX_EMPTY=$(echo '${{ steps.set-k8s-runner-matrix.outputs.matrix }}' | jq '.tests == null or .tests == []')
 
           # Check if jq commands succeeded
           # shellcheck disable=SC2181
@@ -1192,6 +1218,97 @@ jobs:
         if: always()
         uses: smartcontractkit/.github/actions/ctf-show-grafana-in-test-summary@b6e37806737eef87e8c9137ceeb23ef0bff8b1db # ctf-show-grafana-in-test-summary@0.1.0
 
+  # Run tests that us only in-memory components
+  run_in_memory_tests:
+    name: ${{ matrix.tests.id }}
+    needs: load-test-configurations
+    services:
+      postgres:
+        image: postgres:14-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready  --health-interval 2s  --health-timeout 5s
+          --health-retries 5
+    # Run when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok)
+    if:
+      ${{ needs.load-test-configurations.outputs.run-tests == 'true' && always()
+      && !failure() && !cancelled() }}
+    runs-on: ${{ matrix.tests.runs_on }}
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.load-test-configurations.outputs.test-matrix)}}
+    environment: integration
+    permissions:
+      actions: read
+      checks: write
+      pull-requests: write
+      id-token: write
+      contents: read
+    env:
+      TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
+      - name: Wait for postgres to be ready
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for postgres to be ready..."
+            sleep 1
+          done
+      - name: Setup DB
+        run: go run . local db preparetest
+        env:
+          CL_DATABASE_URL: ${{  env.DB_URL }}
+      - name: Set dynamic env vars for tests
+        shell: bash
+        run: |
+          json_content='${{ toJson(matrix.tests.test_env_vars) }}'
+          test_id='${{ matrix.tests.id }}'
+
+          # Check if json_content is non-empty and is a valid JSON object that is not null
+          if [ -z "$json_content" ] || [ "$json_content" = 'null' ] || ! echo "$json_content" | jq -e .; then
+            echo "No dynamic environment variables for $test_id."
+          else
+            echo "$json_content" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' | while IFS='=' read -r key value; do
+              echo "Setting $key=$value for $test_id"
+              echo "$key=$value" >> "$GITHUB_ENV"
+            done
+          fi
+      - name: Run tests
+        id: run_tests
+        uses: smartcontractkit/.github/actions/ctf-run-tests@a778ea5c4ca7bb307169acae03ef596d78911759 # ctf-run-tests@v0.6.2
+        env:
+          CL_DATABASE_URL: ${{ env.DB_URL }}
+        with:
+          flakeguard_enable: ${{ env.FLAKEGUARD_ENABLE }}
+          flakeguard_run_count: ${{ env.FLAKEGUARD_RUN_COUNT }}
+          test_command_to_run:
+            ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1
+            | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage
+            -hidepassingtests=false' }}
+          test_download_vendor_packages_command:
+            cd $(dirname ${{ matrix.tests.path }}) && go mod download
+          test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
+          test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
+          artifacts_name: ${{ env.TEST_ID }}-test-logs
+          artifacts_location: |
+            ./integration-tests/smoke/ccip/logs/
+            ./integration-tests/smoke/ccip/db_dumps/
+            /tmp/gotest.log
+          token: ${{ secrets.GH_TOKEN }}
+          go_mod_path: ./integration-tests/go.mod
+          QA_AWS_REGION: ${{ secrets.QA_AWS_REGION }}
+          QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
+          should_tidy: "false"
+          go_coverage_src_dir: /var/tmp/go-coverage
+          go_coverage_dest_dir: ${{ github.workspace }}/.covdata
+
   after_tests:
     needs: [load-test-configurations, run-docker-tests, run-k8s-runner-tests]
     if: always()
@@ -1462,79 +1579,3 @@ jobs:
                 }
               ]
             }
-
-  # Run K8s tests using new remote runner
-  # remote-runner-k8s-tests:
-  #   runs-on: ubuntu-latest
-  #   container:
-  #     image: golang:1.18
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v2
-
-  #     - name: Set up Go
-  #       uses: actions/setup-go@v2
-  #       with:
-  #         go-version: '1.18'
-
-  #     - name: Load Runner Config
-  #       run: echo "$RUNNER_CONFIG" > runner.toml
-  #       env:
-  #         RUNNER_CONFIG: |
-  #           # Runner configuration
-  #           detached_mode = true
-  #           debug = false
-
-  #           [[test_runs]]
-  #           namespace = "dev-env"
-  #           rbac_role_name = "dev-role"
-  #           rbac_service_account_name = "dev-service-account"
-  #           sync_value = "unique-sync-value-1"
-  #           ttl_seconds_after_finished = 300
-  #           image_registry_url = "https://myregistry.dev/"
-  #           image_name = "dev-image"
-  #           image_tag = "v1.0.0"
-  #           test_name = "TestMercuryLoad/all_endpoints"
-  #           test_config_base64_env_name = "CONFIG_ENV_DEV"
-  #           test_config_file_path = "/configs/dev/test-config.toml"
-  #           test_config_base64 = "dGVzdCBjb25maWcgdmFsdWUgZGV2"
-  #           test_timeout = "30m"
-  #           resources_requests_cpu = "500m"
-  #           resources_requests_memory = "1Gi"
-  #           resources_limits_cpu = "1000m"
-  #           resources_limits_memory = "2Gi"
-  #           job_count = 2
-  #           chart_path = "/charts/dev"
-  #           [envs]
-  #           WASP_LOG_LEVEL = "info"
-  #           TEST_LOG_LEVEL = "info"
-  #           MERCURY_TEST_LOG_LEVEL = "info"
-
-  #           [[test_runs]]
-  #           namespace = "prod-env"
-  #           rbac_role_name = "prod-role"
-  #           rbac_service_account_name = "prod-service-account"
-  #           sync_value = "unique-sync-value-2"
-  #           ttl_seconds_after_finished = 600
-  #           image_registry_url = "https://myregistry.prod/"
-  #           image_name = "prod-image"
-  #           image_tag = "v1.0.1"
-  #           test_name = "TestMercuryLoad/all_endpoints"
-  #           test_config_base64_env_name = "CONFIG_ENV_PROD"
-  #           test_config_file_path = "/configs/prod/test-config.toml"
-  #           test_config_base64 = "dGVzdCBjb25maWcgdmFsdWUgcHJvZA=="
-  #           test_timeout = "45m"
-  #           resources_requests_cpu = "800m"
-  #           resources_requests_memory = "2Gi"
-  #           resources_limits_cpu = "1500m"
-  #           resources_limits_memory = "4Gi"
-  #           job_count = 3
-  #           chart_path = "/charts/prod"
-  #           [envs]
-  #           WASP_LOG_LEVEL = "info"
-  #           TEST_LOG_LEVEL = "info"
-  #           MERCURY_TEST_LOG_LEVEL = "info"
-
-  #     # Schedule the tests in K8s in remote runner
-  #     - name: Run Kubernetes Tests
-  #       run: go run ./cmd/main.go run -c runner.toml
