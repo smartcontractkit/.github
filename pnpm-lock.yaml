@@ -175,6 +175,8 @@ importers:
 
   actions/dispatch-workflow: {}
 
+  actions/flakeguard-ai-analysis: {}
+
   actions/get-latest-github-release: {}
 
   actions/gha-workflow-validator:
