@@ -1,0 +1,44 @@
+name: ctf-setup-gauntlet-plus-plus
+description: "Common gauntlet-plus-plus setup for CTF"
+
+inputs:
+  PROD_AWS_REGION:
+    required: true
+    description: The AWS region to use
+  PROD_AWS_ROLE_TO_ASSUME:
+    required: true
+    description: The AWS role to assume
+  GAUNTLET_PLUS_PLUS_IMAGE:
+    required: true
+    description: Gauntlet-plus-plus image link
+  AWS_ROLE_DURATION_SECONDS:
+    required: false
+    default: "3600"
+    description: The duration to be logged into the aws role for
+  AWS_ACCOUNT_NUMBER:
+    required: true
+    description: AWS Account number that holds the gauntlet_plus_plus
+
+runs:
+  using: composite
+  steps:
+    # Setup AWS cred and K8s context
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
+      with:
+        aws-region: ${{ inputs.PROD_AWS_REGION }}
+        role-to-assume: ${{ inputs.PROD_AWS_ROLE_TO_ASSUME }}
+        role-duration-seconds: ${{ inputs.AWS_ROLE_DURATION_SECONDS }}
+        mask-aws-account-id: true
+    - name: Login to Amazon ECR
+      if: inputs.AWS_ACCOUNT_NUMBER && inputs.PROD_AWS_REGION
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      with:
+        registries: ${{ inputs.AWS_ACCOUNT_NUMBER }}
+      env:
+        AWS_REGION: ${{ inputs.PROD_AWS_REGION }}
+    - name: Pull Gauntlet Plus Plus Image
+      shell: bash # Specify the shell to be used
+      run: |
+        docker pull ${{ inputs.GAUNTLET_PLUS_PLUS_IMAGE }}
