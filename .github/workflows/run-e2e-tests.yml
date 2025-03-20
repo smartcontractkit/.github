@@ -201,7 +201,7 @@ on:
       QA_AWS_ACCOUNT_NUMBER:
         required: true
       PROD_AWS_ACCOUNT_NUMBER:
-        required: true
+        required: false
       QA_PYROSCOPE_INSTANCE:
         required: false
       QA_PYROSCOPE_KEY:
@@ -225,9 +225,9 @@ on:
       AWS_REGION:
         required: true
       AWS_OIDC_IAM_ROLE_VALIDATION_PROD_ARN:
-        required: true
+        required: false
       AWS_API_GW_HOST_GRAFANA:
-        required: true
+        required: false
       SLACK_BOT_TOKEN:
         required: false
       # Use instead of slack_notification_after_tests_channel_id if channel id is secret
