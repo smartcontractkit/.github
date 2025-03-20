@@ -203,23 +203,23 @@ on:
       PROD_AWS_ACCOUNT_NUMBER:
         required: true
       QA_PYROSCOPE_INSTANCE:
-        required: true
+        required: false
       QA_PYROSCOPE_KEY:
-        required: true
+        required: false
       LOKI_TENANT_ID:
-        required: true
+        required: false
       LOKI_URL:
-        required: true
+        required: false
       LOKI_BASIC_AUTH:
-        required: true
+        required: false
       GRAFANA_INTERNAL_TENANT_ID:
-        required: true
+        required: false
       GRAFANA_INTERNAL_BASIC_AUTH:
-        required: true
+        required: false
       GRAFANA_INTERNAL_HOST:
-        required: true
+        required: false
       GRAFANA_INTERNAL_URL_SHORTENER_TOKEN:
-        required: true
+        required: false
       GH_TOKEN:
         required: true
       AWS_REGION:
