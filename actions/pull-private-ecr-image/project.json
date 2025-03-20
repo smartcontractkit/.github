@@ -1,7 +1,7 @@
 {
-  "name": "ctf-pull-private-ecr-image",
+  "name": "pull-private-ecr-image",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "sourceRoot": "actions/ctf-pull-private-ecr-image",
+  "sourceRoot": "actions/pull-private-ecr-image",
   "targets": {}
 }
