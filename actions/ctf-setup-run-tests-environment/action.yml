@@ -129,7 +129,7 @@ runs:
 
     - name: Setup gauntlet plus plus
       if: inputs.gauntlet_plus_plus_image
-      uses: smartcontractkit/.github/actions/pull-private-ecr-image@2508f41342a34e8425957c19e719c04a54287d84 # pull-private-ecr-image@1.0.0
+      uses: smartcontractkit/.github/actions/pull-private-ecr-image@pull-private-ecr-image/1.0.0 # pull-private-ecr-image@1.0.0
       with:
         aws-region: ${{ inputs.prod_aws_region }}
         aws-role-arn: ${{ inputs.prod_aws_role_to_assume }}
