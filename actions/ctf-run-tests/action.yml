@@ -137,6 +137,21 @@ inputs:
   QA_AWS_ROLE_TO_ASSUME:
     required: true
     description: The AWS role to assume
+  PROD_AWS_REGION:
+    required: false
+    description: The AWS region to use for prod ECR
+  PROD_AWS_ROLE_TO_ASSUME:
+    required: false
+    description: The AWS role to assume for prod ECR
+  PROD_AWS_ACCOUNT_NUMBER:
+    required: false
+    description: The AWS Account number for the prod AWS account
+  gauntlet_plus_plus_image:
+    required: false
+    description: Gauntlet-plus-plus image link
+  QA_KUBECONFIG:
+    required: false
+    description: The kubernetes configuration to use
   CGO_ENABLED:
     required: false
     description: Whether to have cgo enabled, defaults to enabled
@@ -201,7 +216,7 @@ runs:
     # Setup Tools and libraries
     - name: Setup environment
       if: inputs.run_setup == 'true'
-      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@ec165ce3098a51462f2bb6713cdc38eb58e89df2 # ctf-setup-run-tests-environment@v0.5.1
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@bf800f15fe032b9dc1230b0a041a1f179b8c2474 # ctf-setup-run-tests-environment@v0.5.1
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
@@ -217,6 +232,10 @@ runs:
         QA_AWS_ROLE_TO_ASSUME: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
         should_tidy: ${{ inputs.should_tidy }}
         no_cache: ${{ inputs.no_cache }}
+        PROD_AWS_ROLE_TO_ASSUME: ${{ inputs.PROD_AWS_ROLE_TO_ASSUME }}
+        PROD_AWS_REGION: ${{ inputs.PROD_AWS_REGION }}
+        gauntlet_plus_plus_image: ${{ inputs.gauntlet_plus_plus_image }}
+        prod_aws_account_number: ${{ inputs.PROD_AWS_ACCOUNT_NUMBER }}
         gati_token: ${{ inputs.gati_token }}
         main-dns-zone: ${{ inputs.main-dns-zone }}
         k8s-cluster-name: ${{ inputs.k8s-cluster-name }}

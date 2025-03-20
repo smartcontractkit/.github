@@ -165,6 +165,8 @@ importers:
 
   actions/ctf-run-tests-binary: {}
 
+  actions/ctf-setup-gauntlet-plus-plus: {}
+
   actions/ctf-setup-go: {}
 
   actions/ctf-setup-run-tests-environment: {}
