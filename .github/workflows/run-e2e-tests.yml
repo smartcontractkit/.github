@@ -544,10 +544,15 @@ jobs:
           else
             echo "run-k8s-tests=true" >> "$GITHUB_OUTPUT"
           fi
+          if [[ "$IN_MEMORY_MATRIX_EMPTY" == "true" ]]; then
+            echo "run-in-memory-tests=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run-in-memory-tests=true" >> "$GITHUB_OUTPUT"
+          fi
 
-          # Check if both matrices are empty
-          if [[ "$DOCKER_MATRIX_EMPTY" == "true" ]] && [[ "$K8S_MATRIX_EMPTY" == "true" ]]; then
-            echo "No tests found for inputs. Both Docker and Kubernetes tests matrices are empty"
+          # Check if all matrices are empty
+          if [[ "$DOCKER_MATRIX_EMPTY" == "true" ]] && [[ "$K8S_MATRIX_EMPTY" == "true" ]] && [[ "IN_MEMORY_MATRIX_EMPTY" == "true" ]]; then
+            echo "No tests found for inputs. No Docker, K8s, or In-Memory tests found to run."
             exit 1
           fi
         shell: bash
@@ -1219,6 +1224,7 @@ jobs:
   # Run tests that us only in-memory components
   run_in_memory_tests:
     name: ${{ matrix.tests.id }}
+    if: ${{ needs.load-test-configurations.outputs.run-k8s-tests == 'true' }}
     needs: load-test-configurations
     services:
       postgres:
@@ -1232,9 +1238,6 @@ jobs:
           --health-cmd pg_isready  --health-interval 2s  --health-timeout 5s
           --health-retries 5
     # Run when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok)
-    if:
-      ${{ needs.load-test-configurations.outputs.run-tests == 'true' && always()
-      && !failure() && !cancelled() }}
     runs-on: ${{ matrix.tests.runs_on }}
     strategy:
       fail-fast: false
