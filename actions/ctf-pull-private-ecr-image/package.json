@@ -1,7 +1,7 @@
 {
-  "name": "ctf-setup-gauntlet-plus-plus",
+  "name": "ctf-pull-private-ecr-image",
   "version": "0.1.1",
-  "description": "Action that pulls the gauntlet-plus-plus image",
+  "description": "Action that pulls the an image from a private ecr",
   "private": true,
   "scripts": {},
   "author": "@smartcontractkit",
