@@ -1312,6 +1312,7 @@ jobs:
           should_tidy: "false"
           go_coverage_src_dir: /var/tmp/go-coverage
           go_coverage_dest_dir: ${{ github.workspace }}/.covdata
+          enable-gap: false
 
   after_tests:
     needs: [load-test-configurations, run-docker-tests, run-k8s-runner-tests]
