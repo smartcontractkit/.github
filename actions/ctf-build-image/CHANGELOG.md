@@ -1,5 +1,14 @@
 # ctf-build-image
 
+## 0.1.3
+
+### Patch Changes
+
+- [#950](https://github.com/smartcontractkit/.github/pull/950)
+  [`a2583b3`](https://github.com/smartcontractkit/.github/commit/a2583b3277d3be77bb2fbad7814b239cf2650c94)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: install cosmos &
+  starknet via docker build-args
+
 ## 0.1.2
 
 ### Patch Changes
