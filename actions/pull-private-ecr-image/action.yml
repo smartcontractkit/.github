@@ -1,0 +1,90 @@
+name: Pull from Private ECR
+description: |
+  Authenticates to a private ECR and performs a `docker pull` on the specified image.
+
+inputs:
+  aws-account-number:
+    required: true
+    description: |
+      The AWS account number of the ECR to pull from, which is also used as the registry's ID.
+  aws-region:
+    required: true
+    description: |
+      The AWS region to use. Example: us-west-2
+  aws-role-arn:
+    required: true
+    description: |
+      The AWS role to assume which has read access to the ECR.
+  aws-role-duration-seconds:
+    required: false
+    default: "3600"
+    description: The duration to be logged into the aws role for.
+
+  ecr-repository:
+    required: false
+    description: |
+      The ECR repository to pull from. Use this in conjunction with the "image-tag" input.
+      For example: <aws-account-number>.dkr.ecr.<aws-region>.amazonaws.com/<REPOSITORY>
+  image-tag:
+    required: false
+    description: |
+      The tag of the image to pull. Use this in conjunction with the "ecr-repository" input.
+      For example <aws-account-number>.dkr.ecr.<aws-region>.amazonaws.com/<REPOSITORY>:<IMAGE_TAG>
+
+  image-url:
+    required: false
+    description: |
+      The full URL of the image to pull. Use this if you have the full URL of the image already.
+      Takes precendence over the "ecr-repository" and "image-tag" inputs.
+      For example: 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repo:latest
+
+outputs:
+  image-url:
+    description: The image pulled from the ECR
+    value: ${{ steps.validate-inputs.outputs.image-url }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate Inputs
+      id: validate-inputs
+      env:
+        INPUT_IMAGE_URL: ${{ inputs.image-url }}
+        INPUT_AWS_ACCOUNT_NUMBER: ${{ inputs.aws-account-number }}
+        INPUT_AWS_REGION: ${{ inputs.aws-region }}
+        INPUT_ECR_REPOSITORY: ${{ inputs.ecr-repository }}
+        INPUT_IMAGE_TAG: ${{ inputs.image-tag }}
+      shell: bash
+      run: |
+        if [ -z "$INPUT_IMAGE_URL" ]; then
+          if [ -z "$INPUT_ECR_REPOSITORY" ] || [ -z "$INPUT_IMAGE_TAG" ]; then
+            echo "::error::Either 'image-url' or both 'ecr-repository' and 'image-tag' inputs must be provided."
+            exit 1
+          else
+            echo "image-url=${INPUT_AWS_ACCOUNT_NUMBER}.dkr.ecr.${INPUT_AWS_REGION}.amazonaws.com/${INPUT_ECR_REPOSITORY}:${INPUT_IMAGE_TAG}" | tee -a $GITHUB_OUTPUT
+          fi
+        else
+          echo "image-url=$INPUT_IMAGE_URL" | tee -a $GITHUB_OUTPUT
+        fi
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+      with:
+        aws-region: ${{ inputs.aws-region }}
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+        mask-aws-account-id: true
+
+    - name: Login to Amazon ECR
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      with:
+        registries: ${{ inputs.aws-account-number }}
+
+    - name: Pull Image from private ECR
+      id: pull-image
+      env:
+        IMAGE_URL: ${{ steps.validate-inputs.outputs.image-url }}
+      shell: bash
+      run: |
+        echo "Pulling $IMAGE_URL"
+        docker pull $IMAGE_URL
