@@ -1224,7 +1224,8 @@ jobs:
   # Run tests that us only in-memory components
   run_in_memory_tests:
     name: ${{ matrix.tests.id }}
-    if: ${{ needs.load-test-configurations.outputs.run-k8s-tests == 'true' }}
+    if: ${{ needs.load-test-configurations.outputs.run-docker-tests == 'true' &&
+      always() && !failure() && !cancelled() }}
     needs: load-test-configurations
     services:
       postgres:
