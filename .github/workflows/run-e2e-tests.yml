@@ -1253,9 +1253,7 @@ jobs:
             --github-workflow-run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             --branch-name "${{ github.head_ref || github.ref_name }}" \
             --head-sha "$git_head_sha" \
-            --splunk-url "${{ secrets.FLAKEGUARD_SPLUNK_ENDPOINT }}" \
-            --splunk-token "${{ secrets.FLAKEGUARD_SPLUNK_HEC }}" \
-            --splunk-event "${{ github.event_name }}"
+            --gen-report-id \
 
           EXIT_CODE=$?
           if [ "$EXIT_CODE" -eq 2 ]; then
