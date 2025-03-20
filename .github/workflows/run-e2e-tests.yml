@@ -275,10 +275,7 @@ env:
   TEST_LOG_LEVEL: ${{ inputs.test_log_level }}
   METRICS_COLLECTION_ID: chainlink-e2e-tests
   SLACK_API_KEY: ${{ secrets.SLACK_API_KEY }}
-  SLACK_CHANNEL:
-    ${{ inputs.slack_notification_after_tests_channel_id || inputs.SLACK_CHANNEL
-    || secrets.SLACK_CHANNEL }}
-  SLACK_USER: ${{ inputs.SLACK_USER }}
+  DB_URL: postgresql://postgres:postgres@localhost:5432/chainlink_test?sslmode=disable
   CHAINLINK_USER_TEAM: ${{ inputs.team }}
   E2E_JD_IMAGE:
     ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
@@ -289,6 +286,10 @@ env:
   E2E_RMN_AFN2PROXY_IMAGE:
     ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
     secrets.AWS_REGION}}.amazonaws.com/afn2proxy
+  SLACK_USER: ${{ inputs.SLACK_USER }}
+  SLACK_CHANNEL:
+    ${{ inputs.slack_notification_after_tests_channel_id || inputs.SLACK_CHANNEL
+    || secrets.SLACK_CHANNEL }}
 
   FLAKEGUARD_ENABLE:
     ${{ fromJSON(inputs.extraArgs)['flakeguard_enable'] || 'false' }}
