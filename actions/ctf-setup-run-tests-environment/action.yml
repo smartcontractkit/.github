@@ -84,6 +84,18 @@ inputs:
       to the console for troubleshooting."
     required: false
     default: "false"
+  prod_aws_region:
+    required: false
+    description: The AWS region to use for prod ECR
+  prod_aws_role_to_assume:
+    required: false
+    description: The AWS role to assume for prod ECR
+  gauntlet_plus_plus_image:
+    required: false
+    description: Gauntlet-plus-plus image link
+  prod_aws_account_number:
+    required: false
+    description: AWS Account number that holds the gauntlet_plus_plus
 
 runs:
   using: composite
@@ -114,6 +126,15 @@ runs:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
         gati_token: ${{ inputs.gati_token }}
+
+    - name: Setup gauntlet plus plus
+      if: inputs.gauntlet_plus_plus_image
+      uses: smartcontractkit/.github/actions/pull-private-ecr-image@2508f41342a34e8425957c19e719c04a54287d84 # pull-private-ecr-image@1.0.0
+      with:
+        aws-region: ${{ inputs.prod_aws_region }}
+        aws-role-arn: ${{ inputs.prod_aws_role_to_assume }}
+        image-url: ${{ inputs.gauntlet_plus_plus_image }}
+        aws-account-number: ${{ inputs.prod_aws_account_number }}
 
     # Setup AWS cred and K8s context
     - name: Configure AWS Credentials
