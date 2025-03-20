@@ -433,6 +433,7 @@ jobs:
         ${{ steps.check-matrices.outputs.run-in-memory-tests }}
       docker-matrix: ${{ steps.set-docker-matrix.outputs.matrix }}
       k8s-runner-matrix: ${{ steps.set-k8s-runner-matrix.outputs.matrix }}
+      in-memory-matrix: ${{ steps.set-in-memory-matrix.outputs.matrix }}
       workflow_id: ${{ steps.gen_id.outputs.workflow_id }}
     steps:
       - name: Checkout code
@@ -525,7 +526,7 @@ jobs:
         run: |
           DOCKER_MATRIX_EMPTY=$(echo '${{ steps.set-docker-matrix.outputs.matrix }}' | jq '.tests == null or .tests == []')
           K8S_MATRIX_EMPTY=$(echo '${{ steps.set-k8s-runner-matrix.outputs.matrix }}' | jq '.tests == null or .tests == []')
-          IN_MEMORY_MATRIX_EMPTY=$(echo '${{ steps.set-k8s-runner-matrix.outputs.matrix }}' | jq '.tests == null or .tests == []')
+          IN_MEMORY_MATRIX_EMPTY=$(echo '${{ steps.set-in-memory-matrix.outputs.matrix }}' | jq '.tests == null or .tests == []')
 
           # Check if jq commands succeeded
           # shellcheck disable=SC2181
@@ -1224,7 +1225,7 @@ jobs:
   # Run tests that us only in-memory components
   run_in_memory_tests:
     name: ${{ matrix.tests.id }}
-    if: ${{ needs.load-test-configurations.outputs.run-docker-tests == 'true' &&
+    if: ${{ needs.load-test-configurations.outputs.run-in-memory-tests == 'true' &&
       always() && !failure() && !cancelled() }}
     needs: load-test-configurations
     services:
@@ -1242,7 +1243,7 @@ jobs:
     runs-on: ${{ matrix.tests.runs_on }}
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.load-test-configurations.outputs.test-matrix)}}
+      matrix: ${{fromJson(needs.load-test-configurations.outputs.in-memory-matrix)}}
     environment: integration
     permissions:
       actions: read
