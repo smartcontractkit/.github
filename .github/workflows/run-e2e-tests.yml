@@ -1389,7 +1389,8 @@ jobs:
           echo "summary=$summary" >> $GITHUB_OUTPUT
 
       - name: Upload Test Report as Artifact
-        if: ${{ fromJSON(steps.results.outputs.summary).total_runs > 0 }}
+        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) &&
+          fromJSON(steps.results.outputs.summary).failed_runs > 0 }}
         uses: actions/upload-artifact@v4
         with:
           path: ./flakeguard-report
@@ -1450,7 +1451,7 @@ jobs:
 
       - name: Generate Flakeguard Github Reports
         shell: bash
-        if: success() || failure()
+        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
@@ -1483,7 +1484,7 @@ jobs:
           fi
 
       - name: Add Github Summary
-        if: (success() || failure())
+        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
         run: |
           FILE_SIZE=$(wc -c < ./flakeguard-report/all-test-summary.md)
                     echo "File size: $FILE_SIZE bytes"
