@@ -341,7 +341,7 @@ runs:
           --test-cmd '${{ inputs.test_command_to_run }}' \
           --run-count=${{ inputs.flakeguard_run_count }} \
           --omit-test-outputs-on-success=true \
-          --output-json=flakeguard_results.json
+          --main-results-path=flakeguard_results.json
 
     - name: Run Tests Without Flakeguard
       if: inputs.flakeguard_enable != 'true'
