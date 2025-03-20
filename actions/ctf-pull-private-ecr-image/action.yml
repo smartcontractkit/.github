@@ -17,7 +17,7 @@ inputs:
     description: The duration to be logged into the aws role for
   AWS_ACCOUNT_NUMBER:
     required: true
-    description: AWS Account number that holds the gauntlet_plus_plus
+    description: AWS Account number that holds the image
 
 runs:
   using: composite
