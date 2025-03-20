@@ -1,5 +1,5 @@
-name: ctf-setup-gauntlet-plus-plus
-description: "Common gauntlet-plus-plus setup for CTF"
+name: ctf-pull-private-ecr-image
+description: "Common private ECR image pull for CTF"
 
 inputs:
   PROD_AWS_REGION:
@@ -8,9 +8,9 @@ inputs:
   PROD_AWS_ROLE_TO_ASSUME:
     required: true
     description: The AWS role to assume
-  GAUNTLET_PLUS_PLUS_IMAGE:
+  IMAGE_URL:
     required: true
-    description: Gauntlet-plus-plus image link
+    description: Image link
   AWS_ROLE_DURATION_SECONDS:
     required: false
     default: "3600"
@@ -38,7 +38,7 @@ runs:
         registries: ${{ inputs.AWS_ACCOUNT_NUMBER }}
       env:
         AWS_REGION: ${{ inputs.PROD_AWS_REGION }}
-    - name: Pull Gauntlet Plus Plus Image
+    - name: Pull Image from private ECR
       shell: bash # Specify the shell to be used
       run: |
-        docker pull ${{ inputs.GAUNTLET_PLUS_PLUS_IMAGE }}
+        docker pull ${{ inputs.IMAGE_URL }}
