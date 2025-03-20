@@ -1268,6 +1268,13 @@ jobs:
           summary=$(jq -c '.summary_data' ./flakeguard-report/all-test-report.json)
           echo "summary=$summary" >> $GITHUB_OUTPUT
 
+      - name: Upload Test Report as Artifact
+        if: ${{ fromJSON(steps.results.outputs.summary).total_runs > 0 }}
+        uses: actions/upload-artifact@v4
+        with:
+          path: ./flakeguard-report
+          retention-days: 14
+
       - name: Upload Failed Test Report as Artifact
         if:
           ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) &&
@@ -1311,7 +1318,7 @@ jobs:
           # Send the aggregated test report to Splunk
           flakeguard send-to-splunk \
             --report-path ./flakeguard-report/all-test-report.json \
-            --failed-logs-url ${{ steps.upload-failed-report-with-logs.outputs.artifact-url }} \
+            --failed-logs-url "${{ steps.upload-failed-report-with-logs.outputs.artifact-url }}" \
             --splunk-url "${{ secrets.FLAKEGUARD_SPLUNK_ENDPOINT }}" \
             --splunk-token "${{ secrets.FLAKEGUARD_SPLUNK_HEC }}" \
             --splunk-event "${{ github.event_name }}"
@@ -1339,8 +1346,8 @@ jobs:
 
           flakeguard generate-github-report \
             --flakeguard-report ./flakeguard-report/all-test-report.json \
-            --failed-logs-url ${{ steps.upload-failed-report-with-logs.outputs.artifact-url }} \
             --summary-report-md-path ./flakeguard-report/all-test-summary.md \
+            --failed-logs-url "${{ steps.upload-failed-report-with-logs.outputs.artifact-url }}" \
             --github-repository "${{ github.repository }}" \
             --github-run-id "${{ github.run_id }}" \
             --current-branch "${{ github.head_ref }}" \
