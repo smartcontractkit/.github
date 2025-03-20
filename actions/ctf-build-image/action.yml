@@ -92,18 +92,6 @@ runs:
       run:
         go get github.com/smartcontractkit/chainlink-solana@${{
         inputs.dep_solana_sha }}
-    - name: Replace Cosmos deps
-      if: ${{ inputs.dep_cosmos_sha }}
-      shell: bash
-      run:
-        go get github.com/smartcontractkit/chainlink-cosmos@${{
-        inputs.dep_cosmos_sha }}
-    - name: Replace StarkNet deps
-      if: ${{ inputs.dep_starknet_sha }}
-      shell: bash
-      run:
-        go get github.com/smartcontractkit/chainlink-starknet/relayer@${{
-        inputs.dep_starknet_sha }}
     - name: Replace Atlas deps
       if: ${{ inputs.dep_atlas_sha }}
       shell: bash
@@ -183,6 +171,8 @@ runs:
           COMMIT_SHA=${{ github.sha }}
           CHAINLINK_USER=chainlink
           GO_COVER_FLAG=${{ inputs.GO_COVER_FLAG }}
+          COSMOS_SHA=${{ inputs.dep_cosmos_sha }}
+          STARKNET_SHA=${{ inputs.dep_starknet_sha }}
         tags: ${{ inputs.push_tag }}
         push: ${{ steps.push.outputs.push }}
         secrets: ${{ inputs.docker_secrets }}
