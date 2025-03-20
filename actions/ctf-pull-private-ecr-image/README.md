@@ -1,3 +1,3 @@
-# ctf-setup-guantlet-plus-plus
+# ctf-pull-private-ecr-image
 
-> Common Gauntlet Plus Plus setup for CTF
+Common private ECR image pull for CTF
