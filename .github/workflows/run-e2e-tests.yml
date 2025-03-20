@@ -195,39 +195,39 @@ on:
       TEST_SECRETS_OVERRIDE_BASE64:
         required: false
       QA_AWS_REGION:
-        required: false
+        required: true
       QA_AWS_ROLE_TO_ASSUME:
-        required: false
+        required: true
       QA_AWS_ACCOUNT_NUMBER:
-        required: false
+        required: true
       PROD_AWS_ACCOUNT_NUMBER:
-        required: false
+        required: true
       QA_PYROSCOPE_INSTANCE:
-        required: false
+        required: true
       QA_PYROSCOPE_KEY:
-        required: false
+        required: true
       LOKI_TENANT_ID:
-        required: false
+        required: true
       LOKI_URL:
-        required: false
+        required: true
       LOKI_BASIC_AUTH:
-        required: false
+        required: true
       GRAFANA_INTERNAL_TENANT_ID:
-        required: false
+        required: true
       GRAFANA_INTERNAL_BASIC_AUTH:
-        required: false
+        required: true
       GRAFANA_INTERNAL_HOST:
-        required: false
+        required: true
       GRAFANA_INTERNAL_URL_SHORTENER_TOKEN:
-        required: false
+        required: true
       GH_TOKEN:
         required: true
       AWS_REGION:
-        required: false
+        required: true
       AWS_OIDC_IAM_ROLE_VALIDATION_PROD_ARN:
-        required: false
+        required: true
       AWS_API_GW_HOST_GRAFANA:
-        required: false
+        required: true
       SLACK_BOT_TOKEN:
         required: false
       # Use instead of slack_notification_after_tests_channel_id if channel id is secret
@@ -1312,6 +1312,8 @@ jobs:
           should_tidy: "false"
           go_coverage_src_dir: /var/tmp/go-coverage
           go_coverage_dest_dir: ${{ github.workspace }}/.covdata
+          main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
+          k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
           enable-gap: false
 
   after_tests:
