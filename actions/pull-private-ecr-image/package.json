@@ -1,6 +1,6 @@
 {
   "name": "pull-private-ecr-image",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Action that pulls the an image from a private ecr",
   "private": true,
   "scripts": {},
