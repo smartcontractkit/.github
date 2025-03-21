@@ -237,6 +237,8 @@ importers:
 
   actions/pr-slack-alert: {}
 
+  actions/pull-private-ecr-image: {}
+
   actions/release-tag-check: {}
 
   actions/setup-gap: {}
