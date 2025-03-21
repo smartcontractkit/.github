@@ -1,5 +1,14 @@
 # ctf-setup-run-tests-environment
 
+## 0.6.0
+
+### Minor Changes
+
+- [#951](https://github.com/smartcontractkit/.github/pull/951)
+  [`cd0706a`](https://github.com/smartcontractkit/.github/commit/cd0706ad1754d7c22a4f865301472dddfa0256a5)
+  Thanks [@chray-zhang](https://github.com/chray-zhang)! - Adding gauntlet plus
+  plus image pull if applicable
+
 ## 0.5.1
 
 ### Patch Changes
