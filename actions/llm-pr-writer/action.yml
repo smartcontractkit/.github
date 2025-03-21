@@ -19,8 +19,7 @@ inputs:
     description: "openai api key"
     required: true
   openai-model:
-    description:
-      "openai model. defaults to 'o3-mini-2025-01-31'."
+    description: "openai model. defaults to 'o3-mini-2025-01-31'."
     required: false
     default: "o3-mini-2025-01-31"
   exclude-paths:
@@ -32,7 +31,6 @@ inputs:
       "path to a markdown or text file to append to the PR message (checklist,
       etc.)"
     required: false
-
 
 runs:
   using: composite
