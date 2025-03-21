@@ -19,11 +19,9 @@ inputs:
     description: "openai api key"
     required: true
   openai-model:
-    description:
-      "openai model. defaults to 'gpt-4o-2024-08-06'. use
-      'gpt-4-turbo-2024-04-09' if 4o does not perform as expected."
+    description: "openai model. defaults to 'o3-mini-2025-01-31'."
     required: false
-    default: "gpt-4o-2024-08-06"
+    default: "o3-mini-2025-01-31"
   exclude-paths:
     description: "semi-colon(;) separated paths to exclude from diff"
     required: false
@@ -33,10 +31,6 @@ inputs:
       "path to a markdown or text file to append to the PR message (checklist,
       etc.)"
     required: false
-  workflow-ref:
-    description: "ref of the workflow to checkout"
-    required: false
-    default: "main"
 
 runs:
   using: composite
@@ -56,19 +50,6 @@ runs:
       uses: actions/checkout@v4
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
-
-    - name: Checkout action repo
-      if: ${{ env.SKIP_ACTION == 'false' }}
-      uses: actions/checkout@v4
-      with:
-        repository: smartcontractkit/.github
-        ref: ${{ inputs.workflow-ref }}
-        path: "pr_writer_actions"
-        # prevents access to any other action and workflow files
-        sparse-checkout: |
-          actions/llm-pr-writer/pr-writer-prompt.md
-        sparse-checkout-cone-mode: false
-        fetch-depth: 1
 
     - name: Format diff exclude filter
       if: ${{ env.SKIP_ACTION == 'false' }}
@@ -121,18 +102,34 @@ runs:
         # processes the contents of diff_output.txt and prompt: converts to raw string, removes leading and trailing quotes, and cleans up known problematic patterns.
         # this helps prepare both prompt and log content for the OpenAI API call
         diff_output=$(cat diff_output.txt | sed -e 's/\\ No newline at end of file//g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
-        openai_prompt=$(cat pr_writer_actions/actions/llm-pr-writer/pr-writer-prompt.md | sed 's/"/\\"/g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
+        openai_prompt=$(cat ${{ github.action_path }}/pr-writer-prompt.md | sed 's/"/\\"/g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
         openai_model=${{ inputs.openai-model }}
-        openai_result=$(echo '{
-          "model": "'$openai_model'",
-          "temperature": 0.1,
-          "messages": [
-            {
-              "role": "system",
-              "content": "'$openai_prompt' \n\n```'$diff_output'```\n"
-            }
-          ]
-        }' | envsubst | curl https://api.openai.com/v1/chat/completions \
+        # Check if model is 'o' series with support for suffixes (e.g., o1-mini, o3-pro-2025-23-1)
+        # if so, exclude temperature as this class of models does not support it
+        if [[ "$openai_model" =~ o[0-9]+(-[a-zA-Z0-9-]+)* ]]; then
+          request_body='{
+            "model": "'$openai_model'",
+            "messages": [
+              {
+                "role": "system",
+                "content": "'$openai_prompt' \n\n```'$diff_output'```\n"
+              }
+            ]
+          }'
+        else
+          request_body='{
+            "model": "'$openai_model'",
+            "temperature": 0.1,
+            "messages": [
+              {
+                "role": "system",
+                "content": "'$openai_prompt' \n\n```'$diff_output'```\n"
+              }
+            ]
+          }'
+        fi
+
+        openai_result=$(echo "$request_body" | envsubst | curl https://api.openai.com/v1/chat/completions \
                       -w "%{http_code}" \
                       -o prompt_response.json \
                       -H "Content-Type: application/json" \
