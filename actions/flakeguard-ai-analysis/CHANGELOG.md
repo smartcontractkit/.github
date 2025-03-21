@@ -1,5 +1,14 @@
 # flakeguard-ai-analysis
 
+## 1.1.0
+
+### Minor Changes
+
+- [#955](https://github.com/smartcontractkit/.github/pull/955)
+  [`31622aa`](https://github.com/smartcontractkit/.github/commit/31622aae9045da7613bf760add223880eec3cd4a)
+  Thanks [@KMontag42](https://github.com/KMontag42)! - Return success when there
+  are no test failures
+
 ## 1.0.0
 
 ### Major Changes
