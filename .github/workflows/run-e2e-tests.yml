@@ -1224,7 +1224,7 @@ jobs:
         uses: smartcontractkit/.github/actions/ctf-show-grafana-in-test-summary@b6e37806737eef87e8c9137ceeb23ef0bff8b1db # ctf-show-grafana-in-test-summary@0.1.0
 
   # Run tests that us only in-memory components
-  run_in_memory_tests:
+  run-in-memory-tests:
     name: ${{ matrix.tests.id }}
     if: ${{ needs.load-test-configurations.outputs.run-in-memory-tests == 'true' &&
       always() && !failure() && !cancelled() }}
@@ -1317,7 +1317,7 @@ jobs:
           enable-gap: false
 
   after_tests:
-    needs: [load-test-configurations, run-docker-tests, run-k8s-runner-tests]
+    needs: [load-test-configurations, run-docker-tests, run-k8s-runner-tests, run-in-memory-tests]
     if: always()
     name: After tests
     runs-on: ubuntu-latest
