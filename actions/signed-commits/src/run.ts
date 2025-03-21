@@ -110,6 +110,7 @@ type PublishOptions = {
   githubToken: string;
   createGithubReleases: boolean;
   tagSeparator: string;
+  createMajorVersionTags: boolean;
   cwd?: string;
 };
 
@@ -129,6 +130,7 @@ export async function runPublish({
   githubToken,
   createGithubReleases,
   tagSeparator,
+  createMajorVersionTags,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
   const octokit = setupOctokit(githubToken);
@@ -141,7 +143,7 @@ export async function runPublish({
     { cwd },
   );
 
-  await githubGitUtils.pushTags(tagSeparator);
+  await githubGitUtils.pushTags(tagSeparator, createMajorVersionTags);
 
   let { packages, tool } = await getPackages(cwd);
   let releasedPackages: Package[] = [];

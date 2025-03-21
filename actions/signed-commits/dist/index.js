@@ -60116,21 +60116,26 @@ async function calculateFileChanges(changes, cwd = "") {
 }
 
 // actions/signed-commits/src/git/github-git/repo-tags.ts
-async function pushTags(tagSeparator, cwd) {
-  const onlyLocalTags = await getLocalRemoteTagDiff(cwd);
-  await deleteTags(onlyLocalTags, cwd);
-  const createdTags = await createLightweightTags(
-    tagSeparator,
-    onlyLocalTags,
-    cwd
-  );
-  await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
-  return createdTags;
-}
-async function getLocalRemoteTagDiff(cwd) {
+async function pushTags(tagSeparator, createMajorVersionTags, cwd) {
   const localTags = await getLocalTags(cwd);
-  const remoteTagNames = await getRemoteTagNames("origin", cwd);
-  return computeTagDiff(localTags, remoteTagNames);
+  const remoteTagNames = await getRemoteTagNames(cwd);
+  const newTags = computeTagDiff(localTags, remoteTagNames);
+  await deleteTags(newTags, cwd);
+  const rewrittenTags = replaceTagSeparator(newTags, tagSeparator);
+  const filteredRewrittenTags = computeTagDiff(rewrittenTags, remoteTagNames);
+  const createdTags = await createLightweightTags(filteredRewrittenTags, cwd);
+  await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
+  if (createMajorVersionTags) {
+    const majorVersionTags = getMajorVersionTags(filteredRewrittenTags, tagSeparator);
+    const createdMajorTags = await createLightweightTags(majorVersionTags, cwd);
+    for (const tag of createdMajorTags) {
+      await execWithOutput("git", ["push", "--force", "origin", tag.name], {
+        cwd
+      });
+    }
+    return [...createdTags, ...createdMajorTags];
+  }
+  return createdTags;
 }
 async function getLocalTags(cwd) {
   const stdout = await execWithOutput("git", ["tag", "--list"], { cwd });
@@ -60142,15 +60147,13 @@ async function getLocalTags(cwd) {
   });
   return await Promise.all(tags);
 }
-async function createLightweightTags(tagSeparator, tags, cwd) {
+async function createLightweightTags(tags, cwd) {
   const createdTags = tags.map(async (tag) => {
-    const newTagName = tag.name.replace("@", tagSeparator);
-    await execWithOutput("git", ["tag", newTagName, tag.ref], { cwd });
-    return {
-      name: newTagName,
-      ref: tag.ref,
-      originalName: newTagName != tag.name ? tag.name : void 0
-    };
+    const maybeForceFlag = tag.majorVersion ? ["-f"] : [];
+    await execWithOutput("git", ["tag", tag.name, tag.ref, ...maybeForceFlag], {
+      cwd
+    });
+    return tag;
   });
   return await Promise.all(createdTags);
 }
@@ -60166,7 +60169,7 @@ function computeTagDiff(localTags, remoteTags) {
   const diff = localTags.filter((tag) => !remoteSet.has(tag.name));
   return diff;
 }
-async function getRemoteTagNames(remote, cwd) {
+async function getRemoteTagNames(cwd) {
   const stdout = await execWithOutput(
     "git",
     // Note that --refs will filter out peeled tags from the output
@@ -60175,7 +60178,7 @@ async function getRemoteTagNames(remote, cwd) {
     //
     // On the other hand, lightweight tags will have their ref to the commit
     // that they point to.
-    ["ls-remote", "--refs", "--tags", remote],
+    ["ls-remote", "--refs", "--tags", "origin"],
     { cwd }
   );
   const tags = stdout.split("\n").filter((line) => !!line).map((line) => {
@@ -60183,6 +60186,59 @@ async function getRemoteTagNames(remote, cwd) {
     return tag.replace("refs/tags/", "");
   });
   return tags;
+}
+function replaceTagSeparator(tags, separator) {
+  if (separator === "@") {
+    return tags;
+  }
+  return tags.map((tag) => {
+    const newTagName = tag.name.replace("@", separator);
+    return {
+      ...tag,
+      name: newTagName,
+      originalName: newTagName != tag.name ? tag.name : void 0
+    };
+  });
+}
+function getMajorVersionTags(tags, separator) {
+  const tagNamesSeen = /* @__PURE__ */ new Set();
+  return tags.reduce((acc, tag) => {
+    const info4 = parseTagName(tag.name, separator);
+    if (!info4) {
+      return acc;
+    }
+    const majorTag = `${info4.pkg}${separator}v${info4.major}`;
+    if (tagNamesSeen.has(majorTag)) {
+      return acc;
+    }
+    tagNamesSeen.add(majorTag);
+    acc.push({
+      name: majorTag,
+      ref: tag.ref,
+      majorVersion: true
+    });
+    return acc;
+  }, []);
+}
+function parseTagName(tagName, separator) {
+  const tagRegex = new RegExp(`([a-z0-9-]+)${separator}(\\d+).(\\d+).(\\d+)`);
+  const match = tagRegex.exec(tagName);
+  if (!match || match.length < 5) {
+    return;
+  }
+  const name = match[1];
+  const version2 = `${match[2]}.${match[3]}.${match[4]}`;
+  const majorVersion = match[2] ?? "0";
+  if (majorVersion == "0") {
+    return;
+  }
+  return {
+    pkg: name,
+    version: version2,
+    major: majorVersion,
+    minor: match[2],
+    patch: match[3]
+  };
 }
 
 // actions/signed-commits/src/git/github-git/index.ts
@@ -60617,6 +60673,7 @@ async function runPublish({
   githubToken,
   createGithubReleases,
   tagSeparator,
+  createMajorVersionTags,
   cwd = process.cwd()
 }) {
   const octokit = setupOctokit(githubToken);
@@ -60626,7 +60683,7 @@ async function runPublish({
     publishArgs,
     { cwd }
   );
-  await pushTags(tagSeparator);
+  await pushTags(tagSeparator, createMajorVersionTags);
   let { packages, tool } = await (0, import_get_packages4.getPackages)(cwd);
   let releasedPackages = [];
   if (tool.type !== "root") {
@@ -60875,6 +60932,7 @@ var getOptionalInput = (name) => core4.getInput(name) || void 0;
     );
     return;
   }
+  const createMajorVersionTags = core4.getBooleanInput("createMajorVersionTags");
   const inputCwd = core4.getInput("cwd");
   if (inputCwd) {
     core4.info("changing directory to the one given as the input");
@@ -60944,7 +61002,8 @@ password ${githubToken}`
         script: publishScript,
         githubToken,
         createGithubReleases: core4.getBooleanInput("createGithubReleases"),
-        tagSeparator
+        tagSeparator,
+        createMajorVersionTags
       });
       if (result.published) {
         core4.setOutput("published", "true");

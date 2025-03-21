@@ -27,6 +27,11 @@ include commit signing.
   releases after `publish` or not. Default to `true`
 - `cwd` - Changes node's `process.cwd()` if the project is not located on the
   root. Default to `process.cwd()`
+- `tagSeparator` - The tag separator to use. Defaults to `@`. For example git
+  tags will be formatted like `<pkg>@<version>`.
+- `createMajorVersionTags` - Create mutable major version tags alongside the
+  specific versions. For example will maintain the `<pkg>@v1` tag for subsequent
+  updates to a package.
 
 ### Outputs
 
