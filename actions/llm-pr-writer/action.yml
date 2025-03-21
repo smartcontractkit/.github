@@ -123,16 +123,32 @@ runs:
         diff_output=$(cat diff_output.txt | sed -e 's/\\ No newline at end of file//g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
         openai_prompt=$(cat pr_writer_actions/actions/llm-pr-writer/pr-writer-prompt.md | sed 's/"/\\"/g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
         openai_model=${{ inputs.openai-model }}
-        openai_result=$(echo '{
-          "model": "'$openai_model'",
-          "temperature": 0.1,
-          "messages": [
-            {
-              "role": "system",
-              "content": "'$openai_prompt' \n\n```'$diff_output'```\n"
-            }
-          ]
-        }' | envsubst | curl https://api.openai.com/v1/chat/completions \
+        # Check if model is 'o' series with support for suffixes (e.g., o1-mini, o3-pro-2025-23-1)
+        # if so, exclude temperature as this class of models does not support it
+        if [[ "$openai_model" =~ o[0-9]+(-[a-zA-Z0-9-]+)* ]]; then
+          request_body='{
+            "model": "'$openai_model'",
+            "messages": [
+              {
+                "role": "system",
+                "content": "'$openai_prompt' \n\n```'$diff_output'```\n"
+              }
+            ]
+          }'
+        else
+          request_body='{
+            "model": "'$openai_model'",
+            "temperature": 0.1,
+            "messages": [
+              {
+                "role": "system",
+                "content": "'$openai_prompt' \n\n```'$diff_output'```\n"
+              }
+            ]
+          }'
+        fi
+
+        openai_result=$(echo "$request_body" | envsubst | curl https://api.openai.com/v1/chat/completions \
                       -w "%{http_code}" \
                       -o prompt_response.json \
                       -H "Content-Type: application/json" \
