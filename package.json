@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "license": "MIT",
   "engines": {
-    "pnpm": "9"
+    "pnpm": "10"
   },
   "scripts": {
     "prettier:check": "prettier --check \"**/*.{json,md,js,ts,yml,yaml}\" --ignore-path=.prettierignore",
