@@ -20,10 +20,9 @@ inputs:
     required: true
   openai-model:
     description:
-      "openai model. defaults to 'gpt-4o-2024-08-06'. use
-      'gpt-4-turbo-2024-04-09' if 4o does not perform as expected."
+      "openai model. defaults to 'o3-mini-2025-01-31'."
     required: false
-    default: "gpt-4o-2024-08-06"
+    default: "o3-mini-2025-01-31"
   exclude-paths:
     description: "semi-colon(;) separated paths to exclude from diff"
     required: false
@@ -33,10 +32,7 @@ inputs:
       "path to a markdown or text file to append to the PR message (checklist,
       etc.)"
     required: false
-  workflow-ref:
-    description: "ref of the workflow to checkout"
-    required: false
-    default: "main"
+
 
 runs:
   using: composite
@@ -56,19 +52,6 @@ runs:
       uses: actions/checkout@v4
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
-
-    - name: Checkout action repo
-      if: ${{ env.SKIP_ACTION == 'false' }}
-      uses: actions/checkout@v4
-      with:
-        repository: smartcontractkit/.github
-        ref: ${{ inputs.workflow-ref }}
-        path: "pr_writer_actions"
-        # prevents access to any other action and workflow files
-        sparse-checkout: |
-          actions/llm-pr-writer/pr-writer-prompt.md
-        sparse-checkout-cone-mode: false
-        fetch-depth: 1
 
     - name: Format diff exclude filter
       if: ${{ env.SKIP_ACTION == 'false' }}
