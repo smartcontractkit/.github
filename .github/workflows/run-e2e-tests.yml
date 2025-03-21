@@ -1226,8 +1226,9 @@ jobs:
   # Run tests that us only in-memory components
   run-in-memory-tests:
     name: ${{ matrix.tests.id }}
-    if: ${{ needs.load-test-configurations.outputs.run-in-memory-tests == 'true' &&
-      always() && !failure() && !cancelled() }}
+    if:
+      ${{ needs.load-test-configurations.outputs.run-in-memory-tests == 'true'
+      && always() && !failure() && !cancelled() }}
     needs: load-test-configurations
     services:
       postgres:
@@ -1317,7 +1318,13 @@ jobs:
           enable-gap: false
 
   after_tests:
-    needs: [load-test-configurations, run-docker-tests, run-k8s-runner-tests, run-in-memory-tests]
+    needs:
+      [
+        load-test-configurations,
+        run-docker-tests,
+        run-k8s-runner-tests,
+        run-in-memory-tests,
+      ]
     if: always()
     name: After tests
     runs-on: ubuntu-latest
@@ -1395,7 +1402,8 @@ jobs:
           echo "summary=$summary" >> $GITHUB_OUTPUT
 
       - name: Upload Test Report as Artifact
-        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) &&
+        if:
+          ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) &&
           fromJSON(steps.results.outputs.summary).failed_runs > 0 }}
         uses: actions/upload-artifact@v4
         with:
