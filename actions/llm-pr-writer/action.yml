@@ -121,7 +121,7 @@ runs:
         # processes the contents of diff_output.txt and prompt: converts to raw string, removes leading and trailing quotes, and cleans up known problematic patterns.
         # this helps prepare both prompt and log content for the OpenAI API call
         diff_output=$(cat diff_output.txt | sed -e 's/\\ No newline at end of file//g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
-        openai_prompt=$(cat pr_writer_actions/actions/llm-pr-writer/pr-writer-prompt.md | sed 's/"/\\"/g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
+        openai_prompt=$(cat ${{ github.action_path }}/pr-writer-prompt.md | sed 's/"/\\"/g' | sed -E 's/\\+$//g' | sed -E 's/\\+ //g')
         openai_model=${{ inputs.openai-model }}
         # Check if model is 'o' series with support for suffixes (e.g., o1-mini, o3-pro-2025-23-1)
         # if so, exclude temperature as this class of models does not support it
