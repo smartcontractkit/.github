@@ -1,6 +1,7 @@
-* @smartcontractkit/releng
+#TODO: remove test-tooling-team and releng after github team rename
+* @smartcontractkit/releng @smartcontractkit/devex-cicd
 
 # Chainlink Testing Framework (CTF)
-/actions/ctf-*/** @smartcontractkit/test-tooling-team
+/actions/ctf-*/** @smartcontractkit/devex-tooling  @smartcontractkit/test-tooling
 /actions/crib-*/** @smartcontractkit/cl-orchestration
-.github/workflows/run-e2e-tests.yml @smartcontractkit/test-tooling-team
+.github/workflows/run-e2e-tests.yml @smartcontractkit/devex-tooling  @smartcontractkit/test-tooling
