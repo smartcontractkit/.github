@@ -21,6 +21,8 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     return;
   }
 
+  const createMajorVersionTags = core.getBooleanInput("createMajorVersionTags");
+
   const inputCwd = core.getInput("cwd");
   if (inputCwd) {
     core.info("changing directory to the one given as the input");
@@ -95,6 +97,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         githubToken,
         createGithubReleases: core.getBooleanInput("createGithubReleases"),
         tagSeparator: tagSeparator,
+        createMajorVersionTags,
       });
 
       if (result.published) {
