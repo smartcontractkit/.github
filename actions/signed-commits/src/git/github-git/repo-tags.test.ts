@@ -14,7 +14,6 @@ import {
 import { createRepo, createCommit } from "./utils.testutils";
 
 import { describe, it, expect } from "vitest";
-import exp from "constants";
 
 describe("repo-tags", () => {
   describe("deleteTags", () => {
@@ -54,6 +53,17 @@ describe("repo-tags", () => {
     it("should create the given tags (/)", async () => {
       const repo = await createRepo("repo-tags");
       const tagNames = ["foo/tag-1", "bar/tag-2"];
+      const tags = tagNames.map((name) => ({ name, ref: "HEAD" }));
+
+      await createLightweightTags(tags, repo);
+
+      const result = await listTagTypes(tagNames, repo);
+      validateLightWeightTags(result, tagNames);
+    });
+
+    it("should create the given tags (/v)", async () => {
+      const repo = await createRepo("repo-tags");
+      const tagNames = ["foo/vtag-1", "bar/vtag-2"];
       const tags = tagNames.map((name) => ({ name, ref: "HEAD" }));
 
       await createLightweightTags(tags, repo);
@@ -114,6 +124,18 @@ describe("repo-tags", () => {
         { name: "bar/2.0.0", ref: "def", originalName: "bar@2.0.0" },
       ]);
     });
+
+    it("should replace '@' with new separator and set originalName", () => {
+      const input = [
+        { name: "foo@1.0.0", ref: "abc" },
+        { name: "bar@2.0.0", ref: "def" },
+      ];
+      const result = replaceTagSeparator(input, "/v");
+      expect(result).toEqual([
+        { name: "foo/v1.0.0", ref: "abc", originalName: "foo@1.0.0" },
+        { name: "bar/v2.0.0", ref: "def", originalName: "bar@2.0.0" },
+      ]);
+    });
   });
 
   describe("getMajorVersionTags", () => {
@@ -138,6 +160,14 @@ describe("repo-tags", () => {
         { name: "foo/v3", ref: "ref4", majorVersion: true },
       ]);
     });
+
+    it("should respect different separators (/v)", () => {
+      const input = [{ name: "foo/v3.4.5", ref: "ref4" }];
+      const result = getMajorVersionTags(input, "/v");
+      expect(result).toEqual([
+        { name: "foo/v3", ref: "ref4", majorVersion: true },
+      ]);
+    });
   });
 
   describe("parseTagName", () => {
@@ -147,8 +177,30 @@ describe("repo-tags", () => {
         pkg: "foo",
         version: "1.2.3",
         major: "1",
-        minor: "1",
-        patch: "2", // Note: Due to implementation, patch is derived from the third capture group.
+        minor: "2",
+        patch: "3",
+      });
+    });
+
+    it("should parse valid tag names correctly (/)", () => {
+      const result = parseTagName("foo/1.2.3", "/");
+      expect(result).toEqual({
+        pkg: "foo",
+        version: "1.2.3",
+        major: "1",
+        minor: "2",
+        patch: "3",
+      });
+    });
+
+    it("should parse valid tag names correctly (/v)", () => {
+      const result = parseTagName("foo/v1.2.3", "/v");
+      expect(result).toEqual({
+        pkg: "foo",
+        version: "1.2.3",
+        major: "1",
+        minor: "2",
+        patch: "3",
       });
     });
 

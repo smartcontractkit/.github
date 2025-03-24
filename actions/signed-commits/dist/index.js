@@ -60126,7 +60126,10 @@ async function pushTags(tagSeparator, createMajorVersionTags, cwd) {
   const createdTags = await createLightweightTags(filteredRewrittenTags, cwd);
   await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
   if (createMajorVersionTags) {
-    const majorVersionTags = getMajorVersionTags(filteredRewrittenTags, tagSeparator);
+    const majorVersionTags = getMajorVersionTags(
+      filteredRewrittenTags,
+      tagSeparator
+    );
     const createdMajorTags = await createLightweightTags(majorVersionTags, cwd);
     for (const tag of createdMajorTags) {
       await execWithOutput("git", ["push", "--force", "origin", tag.name], {
@@ -60207,7 +60210,7 @@ function getMajorVersionTags(tags, separator) {
     if (!info4) {
       return acc;
     }
-    const majorTag = `${info4.pkg}${separator}v${info4.major}`;
+    const majorTag = separator.endsWith("v") ? `${info4.pkg}${separator}${info4.major}` : `${info4.pkg}${separator}v${info4.major}`;
     if (tagNamesSeen.has(majorTag)) {
       return acc;
     }
@@ -60236,8 +60239,8 @@ function parseTagName(tagName, separator) {
     pkg: name,
     version: version2,
     major: majorVersion,
-    minor: match[2],
-    patch: match[3]
+    minor: match[3],
+    patch: match[4]
   };
 }
 
@@ -60926,9 +60929,9 @@ var getOptionalInput = (name) => core4.getInput(name) || void 0;
     return;
   }
   const tagSeparator = core4.getInput("tagSeparator");
-  if (tagSeparator !== "@" && tagSeparator !== "/") {
+  if (tagSeparator !== "@" && tagSeparator !== "/" && tagSeparator !== "/v") {
     core4.setFailed(
-      `Tag separator must be either '@' or '/', ${tagSeparator} is not supported`
+      `Tag separator must be either '@', '/', or '/v', ${tagSeparator} is not supported`
     );
     return;
   }

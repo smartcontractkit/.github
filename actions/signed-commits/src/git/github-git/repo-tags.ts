@@ -141,8 +141,7 @@ export async function getRemoteTagNames(cwd?: string): Promise<string[]> {
 }
 
 /**
- * Replaces the tag separator in the list of tags. Typically used to replace the @ separator
- * with the / separator.
+ * Replaces the tag separator in the list of tags.
  * @param tags The list of tags to update.
  * @param separator The separator to replace the @ separator with.
  * @returns The updated list of tags.
@@ -182,7 +181,11 @@ export function getMajorVersionTags(
       return acc;
     }
 
-    const majorTag = `${info.pkg}${separator}v${info.major}`;
+    // Don't add a v to the tag, if the separator already ends with a v
+    const majorTag = separator.endsWith("v")
+      ? `${info.pkg}${separator}${info.major}`
+      : `${info.pkg}${separator}v${info.major}`;
+
     if (tagNamesSeen.has(majorTag)) {
       return acc;
     }
@@ -205,7 +208,7 @@ export function getMajorVersionTags(
 export function parseTagName(tagName: string, separator: string) {
   // [a-z-]+ is the package name
   // (\d+) is the major/minor/patch version
-  const tagRegex = new RegExp(`([a-z0-9-]+)${separator}(\\d+)\.(\\d+)\.(\\d+)`);
+  const tagRegex = new RegExp(`([a-z0-9-]+)${separator}(\\d+).(\\d+).(\\d+)`);
   const match = tagRegex.exec(tagName);
   if (!match || match.length < 5) {
     return;
@@ -223,7 +226,7 @@ export function parseTagName(tagName: string, separator: string) {
     pkg: name,
     version: version,
     major: majorVersion,
-    minor: match[2],
-    patch: match[3],
+    minor: match[3],
+    patch: match[4],
   };
 }

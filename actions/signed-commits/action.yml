@@ -46,6 +46,7 @@ inputs:
       For example:
         - Using `@`, the resulting git tag will be <package>@<version>
         - Using `/`, the resulting git tag will be <package>/<version>
+        - Using `/v`, the resulting git tag will be <package>/v<version>
     required: false
     default: "@"
   createMajorVersionTags:
