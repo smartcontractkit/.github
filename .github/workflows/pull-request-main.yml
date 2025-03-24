@@ -20,7 +20,7 @@ jobs:
         with:
           # general inputs
           checkout-repo: "false"
-          pnpm-version: "^9.0.0"
+          pnpm-version: "^10.0.0"
 
   ci-prettier:
     runs-on: ubuntu-latest
@@ -35,7 +35,7 @@ jobs:
         with:
           # general inputs
           checkout-repo: "false"
-          pnpm-version: "^9.0.0"
+          pnpm-version: "^10.0.0"
 
   ci-lint-misc:
     runs-on: ubuntu-latest
@@ -69,7 +69,7 @@ jobs:
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
         with:
-          pnpm-version: "^9.0.0"
+          pnpm-version: "^10.0.0"
 
       - name: Build signed-commits
         run: pnpm nx run signed-commits:build
@@ -94,7 +94,7 @@ jobs:
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
         with:
-          pnpm-version: "^9.0.0"
+          pnpm-version: "^10.0.0"
 
       - name: Run tests for signed-commits
         run: pnpm nx run signed-commits:test
@@ -112,7 +112,7 @@ jobs:
         with:
           # general inputs
           checkout-repo: "false"
-          pnpm-version: "^9.0.0"
+          pnpm-version: "^10.0.0"
 
   ci-build-artifacts:
     runs-on: ubuntu-latest
@@ -127,7 +127,7 @@ jobs:
         with:
           # general inputs
           checkout-repo: "false"
-          pnpm-version: "^9.0.0"
+          pnpm-version: "^10.0.0"
 
   ci-actions-dependencies-updater:
     runs-on: ubuntu-latest
@@ -140,7 +140,7 @@ jobs:
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
         with:
-          pnpm-version: "^9.0.0"
+          pnpm-version: "^10.0.0"
 
       - name: Run typecheck for actions-dependencies-updater
         shell: bash
@@ -161,7 +161,7 @@ jobs:
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
         with:
-          pnpm-version: "^9.0.0"
+          pnpm-version: "^10.0.0"
 
       - name: Run build for gha-workflow-validator
         shell: bash
