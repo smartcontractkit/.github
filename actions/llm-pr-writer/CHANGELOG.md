@@ -1,5 +1,14 @@
 # llm-pr-writer
 
+## 0.6.0
+
+### Minor Changes
+
+- [#952](https://github.com/smartcontractkit/.github/pull/952)
+  [`c7a8eb5`](https://github.com/smartcontractkit/.github/commit/c7a8eb5856479cd4c8b66e5fd3421f430d2c7649)
+  Thanks [@kalanyuz](https://github.com/kalanyuz)! - Add o3 mini support +
+  prompt adjustment
+
 ## 0.5.1
 
 ### Patch Changes
