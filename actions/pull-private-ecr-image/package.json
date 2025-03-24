@@ -1,7 +1,7 @@
 {
-  "name": "ctf-setup-run-tests-environment",
-  "version": "0.6.0",
-  "description": "",
+  "name": "pull-private-ecr-image",
+  "version": "1.0.0",
+  "description": "Action that pulls the an image from a private ecr",
   "private": true,
   "scripts": {},
   "author": "@smartcontractkit",

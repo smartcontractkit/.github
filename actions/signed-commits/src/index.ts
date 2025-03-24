@@ -14,12 +14,14 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   }
 
   const tagSeparator = core.getInput("tagSeparator");
-  if (tagSeparator !== "@" && tagSeparator !== "/") {
+  if (tagSeparator !== "@" && tagSeparator !== "/" && tagSeparator !== "/v") {
     core.setFailed(
-      `Tag separator must be either '@' or '/', ${tagSeparator} is not supported`,
+      `Tag separator must be either '@', '/', or '/v', ${tagSeparator} is not supported`,
     );
     return;
   }
+
+  const createMajorVersionTags = core.getBooleanInput("createMajorVersionTags");
 
   const inputCwd = core.getInput("cwd");
   if (inputCwd) {
@@ -94,7 +96,8 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         script: publishScript,
         githubToken,
         createGithubReleases: core.getBooleanInput("createGithubReleases"),
-        tagSeparator: tagSeparator,
+        tagSeparator,
+        createMajorVersionTags,
       });
 
       if (result.published) {
