@@ -4,7 +4,7 @@
   "private": true,
   "description": "Parses 'go.mod' file given as input, and verifies it's dependencies",
   "engines": {
-    "pnpm": "9",
+    "pnpm": "10",
     "node": "20"
   },
   "main": "out/index.js",

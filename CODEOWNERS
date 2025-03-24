@@ -2,4 +2,5 @@
 
 # Chainlink Testing Framework (CTF)
 /actions/ctf-*/** @smartcontractkit/test-tooling-team
+/actions/crib-*/** @smartcontractkit/cl-orchestration
 .github/workflows/run-e2e-tests.yml @smartcontractkit/test-tooling-team

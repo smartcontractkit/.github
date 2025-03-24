@@ -1,7 +1,7 @@
 {
-  "name": "ctf-setup-run-tests-environment",
-  "version": "0.6.0",
-  "description": "",
+  "name": "flakeguard-ai-analysis",
+  "version": "1.1.0",
+  "description": "AI Powered Analysis for FlakeGuard",
   "private": true,
   "scripts": {},
   "author": "@smartcontractkit",
