@@ -1,5 +1,15 @@
 # cicd-changesets
 
+## 0.3.9
+
+### Patch Changes
+
+- [#962](https://github.com/smartcontractkit/.github/pull/962)
+  [`4381a1e`](https://github.com/smartcontractkit/.github/commit/4381a1ef1956ff6153952eb19d3a84615f57ab95)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump
+  changesets-signed-commits version, pass through optional parameter
+  changesets-major-version-tags
+
 ## 0.3.8
 
 ### Patch Changes
