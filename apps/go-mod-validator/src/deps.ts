@@ -236,26 +236,36 @@ export function lineForDependencyPathFinder() {
    *
    * @throws If the dependency path is found more than once in the go.mod file.
    */
-  return function getDepPath(goModPath: string, depPath: string): number {
-    if (!cache[goModPath]) {
-      cache[goModPath] = readFileSync(goModPath, "utf-8")
+  return function getDepPath({
+    goModFilePath,
+    path,
+    name,
+  }: BaseGoModule): number {
+    core.debug(
+      `Finding line number for ${path} in ${goModFilePath}. (${name})`,
+    );
+    if (!cache[goModFilePath]) {
+      cache[goModFilePath] = readFileSync(goModFilePath, "utf-8")
         .split("\n")
         .map((l) => l.trim());
     }
 
     let line = -1;
-    for (let i = 0; i < cache[goModPath].length; i++) {
+    for (let i = 0; i < cache[goModFilePath].length; i++) {
       // HACK: We add a space after the depPath to avoid matching substrings.
-      if (cache[goModPath][i].includes(depPath + " ")) {
+      if (cache[goModFilePath][i].includes(path + " ")) {
         if (line !== -1) {
-          throw new Error(`duplicate dependency path found: ${depPath}`);
+          core.warning(
+            `Duplicate dependency path found: ${path} in ${goModFilePath} (line ${i + 1}). Previously found on line ${line}. Annotations may be faulty. Skipping.`,
+          );
+          continue;
         }
         line = i + 1;
       }
     }
 
     if (line === -1) {
-      throw new Error(`dependency path not found: ${depPath}`);
+      throw new Error(`dependency path not found: ${path}`);
     }
 
     return line;
