@@ -1,5 +1,21 @@
 # changesets-signed-commits
 
+## 1.5.0
+
+### Minor Changes
+
+- [#930](https://github.com/smartcontractkit/.github/pull/930)
+  [`bd234dd`](https://github.com/smartcontractkit/.github/commit/bd234dd67841664df423d72cffad5be8406c97a5)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: support adding
+  mutable major version tags during releases
+
+### Patch Changes
+
+- [#961](https://github.com/smartcontractkit/.github/pull/961)
+  [`b5e9e77`](https://github.com/smartcontractkit/.github/commit/b5e9e773ff620507a60f2c1d0621087b8258d871)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: support /v tag
+  separator
+
 ## 1.4.0
 
 ### Minor Changes

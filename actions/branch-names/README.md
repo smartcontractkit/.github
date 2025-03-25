@@ -1,24 +1,23 @@
 # branch-names
 
-Copy/drop-in replacement for the defunct
-[tj-actions/branch-names](https://github.com/tj-actions/branch-names) (Apache
-2.0 licensed).
+Internally maintained drop-in replacement for
+[tj-actions/branch-names](https://github.com/tj-actions/branch-names).
 
-<!-- toc -->
+Original author: [tj-actions](https://github.com/tj-actions)
+
+## TOC
 
 - [branch-names](#branch-names)
+  - [TOC](#toc)
   - [Features](#features)
   - [Usage](#usage)
   - [Inputs](#inputs)
   - [Outputs](#outputs)
   - [Events](#events)
-    - [Push](#push)
-    - [Pull Request](#pull-request)
-    - [Tag](#tag)
-
-<!-- Regenerate with "pre-commit run -a markdown-toc" -->
-
-<!-- tocstop -->
+    - [`push*`](#push)
+    - [`pull_request*`](#pull_request)
+    - [`tag*`](#tag)
+  - [License](#license)
 
 ## Features
 
@@ -38,7 +37,7 @@ Copy/drop-in replacement for the defunct
 steps:
   - name: Get branch names.
     id: branch-names
-    uses: smartcontractkit/.github/actions/branch-names@<ref>
+    uses: smartcontractkit/.github/actions/branch-names@branch-names/1.0.0
 
   - name: Running on the default branch.
     if: steps.branch-names.outputs.is_default == 'true'
@@ -67,32 +66,33 @@ steps:
 ## Inputs
 
 ```yaml
-- uses: smartcontractkit/.github/actions/branch-names@<ref>
+- uses: smartcontractkit/.github/actions/branch-names@branch-names/1.0.0
   id: branch-names
   with:
-    # The prefix that should be stripped from the tag
-    # e.g `v` -> with a tag `v0.0.1` -> returns
-    # `0.0.1`
+    # The prefix that should be
+    # stripped from the tag e.g
+    # `v` -> with a tag
+    # `v0.0.1` -> returns `0.0.1`
     # Type: string
     strip_tag_prefix: ""
 ```
 
 ## Outputs
 
-| Output            | Type   | Description                                                                 |
-| ----------------- | ------ | --------------------------------------------------------------------------- |
-| `base_ref_branch` | string | The target branch of a pull request or tag e.g `main`                       |
-| `current_branch`  | string | The current branch name regardless of event_type e.g `main`, `feature/test` |
-| `default_branch`  | string | The default branch name e.g `main` OR `master`                              |
-| `head_ref_branch` | string | The source branch of a pull request e.g `feature/test`                      |
-| `is_default`      | string | Returns `"true"` if the current branch is the default else `"false"`        |
-| `is_tag`          | string | Returns `"true"` if the current branch is a tag else `"false"`              |
-| `ref_branch`      | string | The branch that triggered the workflow run. e.g `1/merge`, `main`           |
-| `tag`             | string | The tag that triggered the workflow run. e.g `v0.0.1`, `0.0.1`              |
+| OUTPUT                                                                          | TYPE   | DESCRIPTION                                                                     |
+| ------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------- |
+| <a name="output_base_ref_branch"></a>[base_ref_branch](#output_base_ref_branch) | string | The target branch of a <br>pull request or tag e.g <br>`main`                   |
+| <a name="output_current_branch"></a>[current_branch](#output_current_branch)    | string | The current branch name regardless <br>of event_type e.g `main`, `feature/test` |
+| <a name="output_default_branch"></a>[default_branch](#output_default_branch)    | string | The default branch name e.g <br>`main` OR `master`                              |
+| <a name="output_head_ref_branch"></a>[head_ref_branch](#output_head_ref_branch) | string | The source branch of a <br>pull request e.g `feature/test`                      |
+| <a name="output_is_default"></a>[is_default](#output_is_default)                | string | Returns `"true"` if the current <br>branch is the default else <br>`"false"`.   |
+| <a name="output_is_tag"></a>[is_tag](#output_is_tag)                            | string | Returns `"true"` if the current <br>branch is a tag else <br>`"false"`.         |
+| <a name="output_ref_branch"></a>[ref_branch](#output_ref_branch)                | string | The branch that triggered the <br>workflow run. e.g `1/merge`, `main`           |
+| <a name="output_tag"></a>[tag](#output_tag)                                     | string | The tag that triggered the <br>workflow run. e.g `v0.0.1`, `0.0.1`              |
 
 ## Events
 
-### Push
+### `push*`
 
 ```yaml
 on:
@@ -103,7 +103,7 @@ on:
 steps:
   - name: Get branch names
     id: branch-names
-    uses: smartcontractkit/.github/actions/branch-names@<ref>
+    uses: smartcontractkit/.github/actions/branch-names@branch-names/1.0.0
 
   - name: Current branch names
     run: |
@@ -135,7 +135,7 @@ steps:
     # Outputs: "main" the default branch.
 ```
 
-### Pull Request
+### `pull_request*`
 
 ```yaml
 on:
@@ -146,7 +146,7 @@ on:
 steps:
   - name: Get branch names
     id: branch-names
-    uses: smartcontractkit/.github/actions/branch-names@<ref>
+    uses: smartcontractkit/.github/actions/branch-names@branch-names/1.0.0
 
   - name: Current branch names
     run: |
@@ -188,7 +188,7 @@ steps:
     # Outputs: "main" the default branch.
 ```
 
-### Tag
+### `tag*`
 
 ```yaml
 on:
@@ -199,7 +199,7 @@ on:
 steps:
   - name: Get branch names
     id: branch-names
-    uses: smartcontractkit/.github/actions/branch-names@<ref>
+    uses: smartcontractkit/.github/actions/branch-names@branch-names/1.0.0
     with:
       strip_tag_prefix: v # Optionally strip the leading `v` from the tag.
 
@@ -215,3 +215,7 @@ steps:
       echo "${{ steps.branch-names.outputs.tag }}"
     # Outputs: "0.0.1"
 ```
+
+## License
+
+- Free software: [MIT license](LICENSE)

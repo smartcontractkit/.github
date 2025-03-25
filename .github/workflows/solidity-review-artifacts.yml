@@ -211,7 +211,7 @@ jobs:
         uses: smartcontractkit/.github/actions/setup-nodejs@bff23e98280a3f60233e7ab2d5675a006843732c # v0.0.0
         with:
           package-json-directory: ${{ inputs.contracts_directory }}
-          pnpm-version: ^9.0.0
+          pnpm-version: ^10.0.0
 
       - name: Create code coverage directory
         if: ${{ inputs.generate_code_coverage == true }}
@@ -320,7 +320,7 @@ jobs:
         uses: smartcontractkit/.github/actions/setup-nodejs@bff23e98280a3f60233e7ab2d5675a006843732c # v0.0.0
         with:
           package-json-directory: ${{ inputs.contracts_directory }}
-          pnpm-version: ^9.0.0
+          pnpm-version: ^10.0.0
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@8f1998e9878d786675189ef566a2e4bf24869773 # v1.2.0
@@ -488,7 +488,7 @@ jobs:
         uses: smartcontractkit/.github/actions/setup-nodejs@bff23e98280a3f60233e7ab2d5675a006843732c # v0.0.0
         with:
           package-json-directory: ${{ inputs.contracts_directory }}
-          pnpm-version: ^9.0.0
+          pnpm-version: ^10.0.0
 
       - name: Setup git top level directory
         if: ${{ inputs.link_with_jira == true }}

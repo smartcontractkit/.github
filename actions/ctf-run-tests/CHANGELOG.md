@@ -1,5 +1,14 @@
 # ctf-run-tests
 
+## 0.7.0
+
+### Minor Changes
+
+- [#956](https://github.com/smartcontractkit/.github/pull/956)
+  [`6a6f231`](https://github.com/smartcontractkit/.github/commit/6a6f23140de2d90b020ba3795568d2ed85cb11b9)
+  Thanks [@chray-zhang](https://github.com/chray-zhang)! - Adding gauntlet plus
+  plus to start on ctf run tests
+
 ## 0.6.1
 
 ### Patch Changes

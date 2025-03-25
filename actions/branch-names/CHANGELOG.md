@@ -1,5 +1,14 @@
 # branch-names
 
+## 1.0.1
+
+### Patch Changes
+
+- [#943](https://github.com/smartcontractkit/.github/pull/943)
+  [`7a5e74a`](https://github.com/smartcontractkit/.github/commit/7a5e74ad57ccf69f9b28b5f40d09ea3f7b3d42a2)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: sync w/ original
+  source
+
 ## 1.0.0
 
 ### Major Changes

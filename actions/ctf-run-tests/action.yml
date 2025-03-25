@@ -194,6 +194,18 @@ inputs:
     required: false
     description: Number of times to re-run tests under flakeguard
     default: "3"
+  prod_aws_region:
+    required: false
+    description: The AWS region to use for prod ECR
+  prod_aws_role_to_assume:
+    required: false
+    description: The AWS role to assume for prod ECR
+  prod_aws_account_number:
+    required: false
+    description: The AWS Account number for the prod AWS account
+  gauntlet_plus_plus_image:
+    required: false
+    description: Gauntlet-plus-plus image link
 
 runs:
   using: composite
@@ -201,7 +213,7 @@ runs:
     # Setup Tools and libraries
     - name: Setup environment
       if: inputs.run_setup == 'true'
-      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@ec165ce3098a51462f2bb6713cdc38eb58e89df2 # ctf-setup-run-tests-environment@v0.5.1
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@ctf-setup-run-tests-environment/0.6.0 # ctf-setup-run-tests-environment@v0.6.0
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
@@ -217,6 +229,10 @@ runs:
         QA_AWS_ROLE_TO_ASSUME: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
         should_tidy: ${{ inputs.should_tidy }}
         no_cache: ${{ inputs.no_cache }}
+        prod_aws_role_to_assume: ${{ inputs.prod_aws_role_to_assume }}
+        prod_aws_region: ${{ inputs.prod_aws_region }}
+        gauntlet_plus_plus_image: ${{ inputs.gauntlet_plus_plus_image }}
+        prod_aws_account_number: ${{ inputs.prod_aws_account_number }}
         gati_token: ${{ inputs.gati_token }}
         main-dns-zone: ${{ inputs.main-dns-zone }}
         k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
