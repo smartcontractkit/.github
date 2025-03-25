@@ -93,6 +93,7 @@ jobs:
           git-email: app-token-issuer-releng-renovate[bot]@users.noreply.github.com
           # changesets inputs
           changesets-tag-separator: "/"
+          changesets-major-version-tags: "true"
           # aws inputs
           aws-region: ${{ secrets.AWS_REGION }}
           aws-role-arn: ${{ secrets.AWS_OIDC_IAM_ROLE_ARN_GATI }}

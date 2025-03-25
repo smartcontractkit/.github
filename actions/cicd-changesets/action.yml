@@ -61,8 +61,15 @@ inputs:
       For example:
         - Using `@`, the resulting git tag will be <package>@<version>
         - Using `/`, the resulting git tag will be <package>/<version>
+        - Using `/v` the resulting git tag will be <package>/v<version>
     required: false
     default: "@"
+  changesets-major-version-tags:
+    description: |
+      Create and mutate major version tags for each package.
+      Uses the same separator as above.
+    required: false
+    default: "false"
   pr-title:
     description: "title of the PR"
     required: false
@@ -139,6 +146,7 @@ runs:
         title: ${{ inputs.pr-title }}
         prDraft: ${{ inputs.pr-draft }}
         tagSeparator: ${{ inputs.changesets-tag-separator }}
+        createMajorVersionTags: ${{ inputs.changesets-major-version-tags }}
 
     - name: Check changesets output
       shell: bash
