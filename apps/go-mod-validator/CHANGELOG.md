@@ -1,5 +1,14 @@
 # go-mod-validator
 
+## 0.5.2
+
+### Patch Changes
+
+- [#967](https://github.com/smartcontractkit/.github/pull/967)
+  [`319c6d8`](https://github.com/smartcontractkit/.github/commit/319c6d8532eff1f68139eb5a5fcfbd5e23492adf)
+  Thanks [@erikburt](https://github.com/erikburt)! - better logging to debug
+  edge case
+
 ## 0.5.1
 
 ### Patch Changes
