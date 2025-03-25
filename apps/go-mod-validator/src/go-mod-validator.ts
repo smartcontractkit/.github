@@ -10,6 +10,7 @@ function getContext() {
   const goModDir = core.getInput("go-mod-dir", { required: true });
   const githubToken = core.getInput("github-token", { required: true });
   const depPrefix = core.getInput("dep-prefix", { required: true });
+
   const gh = github.getOctokit(
     githubToken,
     {
@@ -64,6 +65,13 @@ export async function run(): Promise<string> {
       owner,
       repo,
       depPrefix,
+    );
+
+    core.debug(
+      `Changed files: ${JSON.stringify(changedFiles.map((f) => f.filename))}`,
+    );
+    core.debug(
+      `Deps to validate: ${JSON.stringify(depsToValidate.map((d) => d.path))}`,
     );
     depsToValidate = depsToValidate.filter((d) => {
       return changedFiles.some(
@@ -120,7 +128,7 @@ ${detailString}`;
       }
       case "unknown": {
         const msg = `[${d.goModFilePath}] dependency ${d.name} not found in default branch (${defaultBranch}).
-Reason: ${result.reason}          
+Reason: ${result.reason}
 ${detailString}`;
 
         invalidations.set(d, { msg, type: "warning" });
@@ -139,6 +147,7 @@ ${detailString}`;
   await Promise.all(validating);
 
   if (invalidations.size > 0) {
+    core.info(`Found ${invalidations.size} invalid dependencies.`);
     const depLineFinder = lineForDependencyPathFinder();
     const sortedErrs = [...invalidations.entries()].sort((a, b) => {
       const aKey = a[0].goModFilePath + a[0].name;
@@ -151,7 +160,7 @@ ${detailString}`;
       // so we can't find the line number
       const line = goMod.name.endsWith("// indirect")
         ? undefined
-        : depLineFinder(goMod.goModFilePath, goMod.path);
+        : depLineFinder(goMod);
       switch (invalidation.type) {
         case "error":
           core.error(invalidation.msg, {
