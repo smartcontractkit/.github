@@ -258,3 +258,27 @@ You can run the action locally by doing the following:
 ```
 DEBUG=true INPUT_SETUPGITUSER=false INPUT_CWD="<path to local repo>" GITHUB_TOKEN=(gh auth token) INPUT_PRDRAFT=true GITHUB_REPOSITORY="<repo with changesets>" GITHUB_REF="refs/heads/main" GITHUB_SHA="<head SHA>" node actions/signed-commits/dist/index.js
 ```
+
+### Notes on Tagging
+
+`changesets` by default creates annotated git tags for versioning. However,
+these tags are not signed.
+
+So this action also rewrites the annotated tags into lightweight tags, which
+point directly at a commit. Lightweight tags do not need to be signed because
+they include no metadata. They are considered 'verified' by Github if the commit
+in which they reference is signed/verified.
+
+As of March 24, 2025 there is no way to create signed annotated tags using
+Github's REST or GQL API.
+
+All other methods are insecure or are debatably too much work for little return.
+The general idea is to create a service account within the Github org, and
+generate a signing key for it.
+
+1. Inject key as a GHA secret, and sign annotated tags (insecure as it exposes
+   signing key to runner).
+2. Create a lambda service that can create signed annotated tags on request (a
+   lot of work).
+   - Secure because the signing key could be within AWK KMS, and the lambda
+     function would be the only thing with access.
