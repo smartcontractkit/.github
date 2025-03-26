@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    file_path = Path(__file__).parent
+    file_path = Path("/github/workspace")
     init()
     logger.info("Initialized dspy")
     test_guide = get_repo_file(
