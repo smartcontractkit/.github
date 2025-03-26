@@ -22,6 +22,7 @@ def main():
     )
     analyzer = FlakyTestAnalyzer(test_guide=test_guide)
     failed_test_results = os.environ.get("FAILED_TEST_RESULTS", "context/results.json")
+    logger.info(f"Checking for results file at {file_path / failed_test_results}")
     if not Path(file_path / failed_test_results).exists():
         logger.info("No Flakeguard failed test results found")
         return
