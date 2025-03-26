@@ -228,6 +228,11 @@ jobs:
             pr_number=$(echo "${GITHUB_REF_NAME}" | cut -d'/' -f1)
             echo "pr-number=${pr_number}" | tee -a "${GITHUB_OUTPUT}"
           fi
+      - name: Debug OIDC Claims
+        uses: github/actions-oidc-debugger@0ac6a1f7fefa4229fabe4ce05f17d9ad03a5b328 # 2025-03-26
+        with:
+          audience: "${{ github.server_url }}/${{ github.repository_owner }}"
+
   build-publish:
     name: build-publish-${{ matrix.arch }}
     needs: init
