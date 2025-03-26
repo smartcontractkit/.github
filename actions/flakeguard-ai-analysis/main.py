@@ -47,7 +47,7 @@ def main():
     logger.info("Wrote analysis to file")
 
     output_file = os.getenv("GITHUB_OUTPUT", file_path / "output.txt")
-    open(output_file, "w").write(f"analysis={file_path}/context/analysis.jsonl")
+    open(output_file, "w").write(f"analysis={file_path}/analysis.jsonl")
     logger.info(f"Output file written to {output_file}")
 
 
