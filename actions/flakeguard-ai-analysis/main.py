@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    file_path = Path(__file__).parent
+    file_path = Path("/github/workspace")
     init()
     logger.info("Initialized dspy")
     test_guide = get_repo_file(
@@ -22,6 +22,7 @@ def main():
     )
     analyzer = FlakyTestAnalyzer(test_guide=test_guide)
     failed_test_results = os.environ.get("FAILED_TEST_RESULTS", "context/results.json")
+    logger.info(f"Checking for results file at {file_path / failed_test_results}")
     if not Path(file_path / failed_test_results).exists():
         logger.info("No Flakeguard failed test results found")
         return
