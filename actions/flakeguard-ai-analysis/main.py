@@ -32,8 +32,8 @@ def main():
         return
 
     # github actions downloads into a folder with a file underneath it
-    file_name = "failed-test-report-with-logs.json"
-    df = read_results_file(file_path / failed_test_results / file_name)
+    report_file_name = os.environ.get("REPORT_FILE_NAME", "failed-test-report-with-logs.json")
+    df = read_results_file(file_path / failed_test_results / report_file_name)
     logger.info("Read results file")
 
     analysis = df.apply(lambda x: analyzer(x), axis=1)
