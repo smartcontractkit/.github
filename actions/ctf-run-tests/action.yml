@@ -13,6 +13,10 @@ inputs:
   test_command_to_run:
     required: true
     description: The command to run the tests
+  test_dir:
+    required: false
+    description: The directory to run the tests in
+    default: .
   test_download_vendor_packages_command:
     required: false
     description: The command to download the go modules
@@ -365,6 +369,7 @@ runs:
         flakeguard run \
           --ignore-parent-failures-on-subtests=true \
           --rerun-failed-count=${{ inputs.flakeguard_rerun_failed_count }} \
+          --project-path=${{ inputs.test_dir }} \
           --test-cmd bash \
           --test-cmd -c \
           --test-cmd '${{ inputs.test_command_to_run }}' \
