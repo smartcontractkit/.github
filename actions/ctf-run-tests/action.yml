@@ -366,6 +366,9 @@ runs:
         # Handle bots as users
         export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}
 
+        # Install gotestsum to parse JSON test outputs from flakeguard to console outputs
+        go install gotest.tools/gotestsum@latest
+
         echo "Running flakeguard in directory: $(pwd)"
 
         flakeguard run \
