@@ -194,6 +194,18 @@ inputs:
     required: false
     description: Number of times to re-run tests under flakeguard
     default: "3"
+  flakeguard_rerun_failed_count:
+    required: false
+    description: Number of times to re-run failed tests under flakeguard
+    default: "0"
+  flakeguard_main_results_path:
+    required: false
+    description: Path to the main results file for flakeguard
+    default: "main/flakeguard_results.json"
+  flakeguard_rerun_results_path:
+    required: false
+    description: Path to the rerun results file for flakeguard
+    default: "rerun/flakeguard_results.json"
   prod_aws_region:
     required: false
     description: The AWS region to use for prod ECR
@@ -352,12 +364,14 @@ runs:
 
         flakeguard run \
           --ignore-parent-failures-on-subtests=true \
+          --rerun-failed-count=${{ inputs.flakeguard_rerun_failed_count }} \
           --test-cmd bash \
           --test-cmd -c \
           --test-cmd '${{ inputs.test_command_to_run }}' \
           --run-count=${{ inputs.flakeguard_run_count }} \
           --omit-test-outputs-on-success=true \
-          --main-results-path=flakeguard_results.json
+          --main-results-path=${{ inputs.flakeguard_main_results_path }}
+          --rerun-results-path=${{ inputs.flakeguard_rerun_results_path }}
 
     - name: Run Tests Without Flakeguard
       if: inputs.flakeguard_enable != 'true'
