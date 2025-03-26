@@ -297,6 +297,8 @@ env:
     ${{ fromJSON(inputs.extraArgs)['flakeguard_max_pass_ratio'] || '1.0' }}
   FLAKEGUARD_RUN_COUNT:
     ${{ fromJSON(inputs.extraArgs)['flakeguard_run_count'] || '3' }}
+  FLAKEGUARD_RERUN_FAILED_COUNT:
+    ${{ fromJSON(inputs.extraArgs)['flakeguard_rerun_failed_count'] || '0' }}
   DOCKER_TESTS_TIMEOUT_MINUTES:
     ${{ fromJSON(inputs.extraArgs)['docker_tests_timeout_minutes'] || 60 }}
 
@@ -839,7 +841,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ fromJson(env.DOCKER_TESTS_TIMEOUT_MINUTES) }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@987f6401bbef0f86f6916f9b958b617a202b0037 # ctf-run-tests@v0.6.2
+        uses: smartcontractkit/.github/actions/ctf-run-tests@8cc21f5ecc7bbd669316abab36da5bf580eebb1f # ctf-run-tests@v0.6.2
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION:
@@ -865,6 +867,10 @@ jobs:
         with:
           flakeguard_enable: ${{ env.FLAKEGUARD_ENABLE }}
           flakeguard_run_count: ${{ env.FLAKEGUARD_RUN_COUNT }}
+          flakeguard_rerun_failed_count:
+            ${{ env.FLAKEGUARD_RERUN_FAILED_COUNT }}
+          flakeguard_main_results_path: ./flakeguard_results.json
+          flakeguard_rerun_results_path: ./rerun/flakeguard_results.json
           test_command_to_run:
             ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command:
