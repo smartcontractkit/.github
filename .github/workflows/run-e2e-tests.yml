@@ -187,6 +187,10 @@ on:
         type: string
         default: "{}"
         description: "JSON of extra arguments for the workflow."
+    outputs:
+      test_results:
+        description: "Test results from all executed tests"
+        value: ${{ jobs.after_tests.outputs.test_results }}
     secrets:
       TEST_SECRETS_OVERRIDE_BASE64:
         required: false
@@ -1338,6 +1342,8 @@ jobs:
     runs-on: ubuntu-latest
     # Set to access secrets like secrets.QA_SLACK_API_KEY that are set in the "integration" environment
     environment: integration
+    outputs:
+      test_results: ${{ steps.set_test_results.outputs.results }}
     steps:
       # Needed for codeowners in Flakeguard
       - name: Checkout repository
@@ -1444,6 +1450,31 @@ jobs:
             echo "**We found flaky tests, so many flaky tests that the summary is too large for github actions step summaries!**" >> $GITHUB_STEP_SUMMARY
             echo "**Please see logs, or the attached `all-test-summary.md` artifact**" >> $GITHUB_STEP_SUMMARY
             cat ./flakeguard_run_report/all-test-summary.md
+          fi
+
+      - name: Download all test result artifacts
+        uses: actions/download-artifact@v4.1.8
+        with:
+          path: test_results
+          pattern:
+            test_result_${{ needs.load-test-configurations.outputs.workflow_id
+            }}_*
+
+      - name: Set detailed test results
+        id: set_test_results
+        run: |
+          if [ -d "test_results" ]; then
+            cd test_results
+            ls -R .
+            # Combine JSON files into one
+            find . -name '*.json' -exec cat {} + | jq -s '.' > test_results.json
+            # Display the combined JSON
+            jq . test_results.json
+            # Set the combined results as an output
+            echo "results=$(jq -c . test_results.json)" >> "$GITHUB_OUTPUT"
+          else
+            echo "No test results directory found."
+            echo "results=[]" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Set Slack references
