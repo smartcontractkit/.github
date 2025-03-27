@@ -89,6 +89,17 @@ on:
         required: false
         type: string
         default: "true"
+      docker-registry-url-override:
+        description: |
+          Override the default docker registry URL.
+
+          Otherwise use the private AWS ECR registry URL.
+
+          For public ECR, include the hostname and the registry alias.
+
+          Example: public.ecr.aws/chainlink
+        required: false
+        type: string
       docker-tag-custom-suffix:
         description: |
           This is an optional input that can be used to add a custom suffix to
@@ -295,9 +306,15 @@ jobs:
         uses: smartcontractkit/.github/actions/build-push-docker@a0e1222eaf55c5f14283a33628d51dcd0823a9e8 # build-push-docker@0.3.0
         with:
           platform: ${{ format('linux/{0}', matrix.arch) }}
-          docker-registry-url:
-            ${{ format('{0}.dkr.ecr.{1}.amazonaws.com', secrets.AWS_ACCOUNT_ID,
-            secrets.AWS_REGION) }}
+          docker-registry-url: >-
+            ${{
+              inputs.docker-registry-url-override ||
+              format(
+                '{0}.dkr.ecr.{1}.amazonaws.com',
+                secrets.AWS_ACCOUNT_ID,
+                secrets.AWS_REGION
+              )
+            }}
           docker-repository-name: ${{ inputs.aws-ecr-name }}
           tags: ${{ steps.set-docker-image-tags.outputs.tags }}
           dockerfile: ${{ inputs.dockerfile }}
@@ -326,6 +343,7 @@ jobs:
           cosign-oidc-identity-regexp: "^https://github.com/smartcontractkit/.*$"
           docker-registry-url: >-
             ${{
+              inputs.docker-registry-url-override ||
               format(
                 '{0}.dkr.ecr.{1}.amazonaws.com',
                 secrets.AWS_ACCOUNT_ID,
