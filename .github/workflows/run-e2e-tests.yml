@@ -1385,7 +1385,7 @@ jobs:
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_RUN_ID: ${{ github.run_id }}
           # If needed, override HEAD_REF or REF_NAME
-          GITHUB_HEAD_REF: ${{ github.head_ref || github.ref_name }}
+          GH_HEAD_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           #!/usr/bin/env bash
           set -euo pipefail
@@ -1410,7 +1410,7 @@ jobs:
           : "${GITHUB_RUN_ID:?Environment variable GITHUB_RUN_ID must be set}"
 
           # If the branch name is passed in, we'll use it; otherwise fallback or leave empty
-          : "${GITHUB_HEAD_REF:=${GITHUB_REF_NAME:-}}"
+          : "${GH_HEAD_REF:=${GITHUB_REF_NAME:-}}"
 
           # GITHUB_STEP_SUMMARY / GITHUB_OUTPUT can be defined by GitHub automatically,
           # but if they're not set, we define a fallback.
@@ -1437,7 +1437,7 @@ jobs:
                 --repo-url "https://github.com/$GITHUB_REPOSITORY" \
                 --github-workflow-name "$GITHUB_WORKFLOW" \
                 --github-workflow-run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
-                --branch-name "$GITHUB_HEAD_REF" \
+                --branch-name "$GH_HEAD_REF" \
                 --head-sha "$(git rev-parse HEAD)" \
                 --gen-report-id
 
@@ -1533,7 +1533,6 @@ jobs:
           : "${FLAKEGUARD_SPLUNK_ENDPOINT:?Environment variable FLAKEGUARD_SPLUNK_ENDPOINT must be set}"
           : "${FLAKEGUARD_SPLUNK_HEC:?Environment variable FLAKEGUARD_SPLUNK_HEC must be set}"
           : "${GITHUB_EVENT_NAME:?Environment variable GITHUB_EVENT_NAME must be set}"
-          : "${FAILED_LOGS_URL:?Environment variable FAILED_LOGS_URL must be set}"
           : "${MAIN_REPORT_PATH:?Environment variable MAIN_REPORT_PATH must be set}"
           # : "${RERUN_REPORT_PATH:?Environment variable RERUN_REPORT_PATH must be set}"
 
@@ -1589,7 +1588,7 @@ jobs:
           SUMMARY_MD_PATH: "./flakeguard_run_report/main/all-test-summary.md"
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           GITHUB_RUN_ID: ${{ github.run_id }}
-          GITHUB_HEAD_REF: ${{ github.head_ref || github.ref_name }}
+          GH_HEAD_REF: ${{ github.head_ref || github.ref_name }}
           GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
           GH_EVENT_NAME: ${{ github.event_name }}
           GH_EVENT_PULL_REQUEST_BASE_REF:
@@ -1608,7 +1607,7 @@ jobs:
           # Ensure required environment variables are set
           : "${GITHUB_REPOSITORY:?Environment variable GITHUB_REPOSITORY must be set}"
           : "${GITHUB_RUN_ID:?Environment variable GITHUB_RUN_ID must be set}"
-          : "${GITHUB_HEAD_REF:?Environment variable GITHUB_HEAD_REF must be set}"
+          : "${GH_HEAD_REF:?Environment variable GH_HEAD_REF must be set}"
           : "${GH_INPUTS_MAX_PASS_RATIO:?Environment variable GH_INPUTS_MAX_PASS_RATIO must be set}"
           : "${FAILED_LOGS_URL:?Environment variable FAILED_LOGS_URL must be set}"
           : "${MAIN_REPORT_PATH:?Environment variable MAIN_REPORT_PATH must be set}"
@@ -1621,7 +1620,7 @@ jobs:
             --failed-logs-url "${FAILED_LOGS_URL:-}" \
             --github-repository "${GITHUB_REPOSITORY:-}" \
             --github-run-id "${GITHUB_RUN_ID:-}" \
-            --current-branch "${GITHUB_HEAD_REF:-}" \
+            --current-branch "${GH_HEAD_REF:-}" \
             --repo-url "https://github.com/${GITHUB_REPOSITORY:-}" \
             --action-run-id "${GITHUB_RUN_ID:-}" \
             --max-pass-ratio "${GH_INPUTS_MAX_PASS_RATIO:-}"
