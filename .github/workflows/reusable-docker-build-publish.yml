@@ -12,7 +12,7 @@ name: Reusable Docker Build and Publish
 #   - arm64
 #
 # The workflow also generates pre-defined Docker image tags based on the
-# specified type (branch, nightly, pr, tag).
+# specified type (branch, nightly, pr, sha, tag).
 #
 # Example usage from a calling workflow:
 #
@@ -81,6 +81,7 @@ on:
             - branch
             - nightly
             - pr
+            - sha
             - tag
         required: true
         type: string
@@ -286,12 +287,16 @@ jobs:
               if [[ -z "${PR_NUMBER:-}" ]]; then echo "::error::GITHUB_EVENT_NAME is pull_request but PR_NUMBER is not set"; exit 1; fi
               tag_value="pr-${PR_NUMBER}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
               ;;
+            sha)
+              # Examples: sha-d34db33 or sha-d34db33-custom-suffix
+              tag_value="sha-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+              ;;
             tag)
               # Examples: v1.0.0 or v1.0.0-custom-suffix
               tag_value="${GITHUB_REF_NAME}${DOCKER_TAG_CUSTOM_SUFFIX}"
               ;;
             *)
-              echo "::error::Invalid docker image type: ${DOCKER_IMAGE_TYPE}. Must be one of: branch, nightly, pr, tag."
+              echo "::error::Invalid docker image type: ${DOCKER_IMAGE_TYPE}. Must be one of: branch, nightly, pr, sha, tag."
               exit 1
               ;;
           esac
