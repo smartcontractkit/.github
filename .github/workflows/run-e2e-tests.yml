@@ -1296,6 +1296,10 @@ jobs:
         with:
           flakeguard_enable: ${{ env.FLAKEGUARD_ENABLE }}
           flakeguard_run_count: ${{ env.FLAKEGUARD_RUN_COUNT }}
+          flakeguard_rerun_failed_count:
+            ${{ env.FLAKEGUARD_RERUN_FAILED_COUNT }}
+          flakeguard_main_results_path: ./flakeguard_run_results/main/flakeguard_results.json
+          flakeguard_rerun_results_path: ./flakeguard_run_results/rerun/flakeguard_results.json
           test_dir: ${{ matrix.tests.test_dir }}
           test_command_to_run:
             ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1
@@ -1387,9 +1391,7 @@ jobs:
 
       - name: Upload Failed Main Test Report With Logs as Artifact
         id: upload-failed-report-with-logs
-        if:
-          ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) &&
-          fromJSON(steps.results.outputs.main_summary).failed_runs > 0 }}
+        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
         uses: actions/upload-artifact@v4.4.3
         with:
           path: ./flakeguard_run_report/main/failed-test-report-with-logs.json
