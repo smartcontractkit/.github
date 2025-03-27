@@ -79,6 +79,10 @@ inputs:
   aws-role-arn:
     description: "AWS role ARN with permissions to push ECR images."
     required: true
+  github-token:
+    description: "GitHub token for accessing private repositories"
+    required: false
+    default: ""
 
 outputs:
   docker-repository-name:
@@ -197,6 +201,8 @@ runs:
           ${{
             format('{0},scope={1}', inputs.docker-build-cache-to, runner.arch)
           }}
+        secrets: |
+          GIT_AUTH_TOKEN=${{ inputs.github-token }}
 
     - name: Set outputs
       id: set-outputs
