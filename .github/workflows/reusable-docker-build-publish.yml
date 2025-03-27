@@ -153,6 +153,11 @@ on:
         # NOTE: This runner is not yet available on non-public repos.
         # Will require an override for private/internal repos.
         default: "ubuntu-24.04-arm"
+      github-token:
+        description: "GitHub token for accessing private repositories"
+        required: false
+        type: string
+        default: ""
       github-workflow-repository:
         description: |
           The repository name of the workflow that triggered the workflow run.
@@ -303,7 +308,7 @@ jobs:
 
       - name: Docker image build
         id: build
-        uses: smartcontractkit/.github/actions/build-push-docker@a0e1222eaf55c5f14283a33628d51dcd0823a9e8 # build-push-docker@0.3.0
+        uses: smartcontractkit/.github/actions/build-push-docker@792d6d9548a39c57b434fff34910e4c526387da3 # build-push-docker/0.4.0
         with:
           platform: ${{ format('linux/{0}', matrix.arch) }}
           docker-registry-url: >-
@@ -320,6 +325,7 @@ jobs:
           dockerfile: ${{ inputs.dockerfile }}
           docker-build-args: ${{ inputs.docker-build-args }}
           context: ${{ inputs.docker-build-context }}
+          github-token: ${{ inputs.github-token }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
