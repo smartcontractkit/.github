@@ -1352,6 +1352,12 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Show directory structure
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tree
+          tree -a
+
       - name: Download Flakeguard artifacts
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         uses: actions/download-artifact@v4.1.8
@@ -1386,7 +1392,7 @@ jobs:
           GITHUB_RUN_ID: ${{ github.run_id }}
           # If needed, override HEAD_REF or REF_NAME
           GITHUB_HEAD_REF: ${{ github.head_ref }}
-        run: ./.github/scripts/generate_flakeguard_report.sh
+        run: ./.github/scripts/generate_flakeguard_reports.sh
 
       - name: Upload Test Report as Artifact
         if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
