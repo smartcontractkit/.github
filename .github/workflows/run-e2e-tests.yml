@@ -1352,12 +1352,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Show directory structure
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y tree
-          tree -a
-
       - name: Download Flakeguard artifacts
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         uses: actions/download-artifact@v4.1.8
@@ -1391,152 +1385,7 @@ jobs:
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_RUN_ID: ${{ github.run_id }}
           # If needed, override HEAD_REF or REF_NAME
-          GITHUB_HEAD_REF: ${{ github.head_ref }}
-        run: |
-          #!/usr/bin/env bash
-          set -euo pipefail
-
-          # Fix flakeguard binary path
-          export PATH="$PATH:$(go env GOPATH)/bin"
-
-          # Ensure required environment variables are set
-          : "${GITHUB_REPOSITORY:?Environment variable GITHUB_REPOSITORY must be set}"
-          : "${GITHUB_RUN_ID:?Environment variable GITHUB_RUN_ID must be set}"
-          : "${GITHUB_HEAD_REF:?Environment variable GITHUB_HEAD_REF must be set}"
-          : "${GH_INPUTS_MAX_PASS_RATIO:?Environment variable GH_INPUTS_MAX_PASS_RATIO must be set}"
-          : "${FAILED_LOGS_URL:?Environment variable FAILED_LOGS_URL must be set}"
-          : "${MAIN_REPORT_PATH:?Environment variable MAIN_REPORT_PATH must be set}"
-          : "${SUMMARY_MD_PATH:?Environment variable SUMMARY_MD_PATH must be set}"
-
-          # Run flakeguard command
-          flakeguard generate-github-report \
-            --flakeguard-report "${MAIN_REPORT_PATH}" \
-            --summary-report-md-path "${SUMMARY_MD_PATH}" \
-            --failed-logs-url "${FAILED_LOGS_URL:-}" \
-            --github-repository "${GITHUB_REPOSITORY:-}" \
-            --github-run-id "${GITHUB_RUN_ID:-}" \
-            --current-branch "${GITHUB_HEAD_REF:-}" \
-            --repo-url "https://github.com/${GITHUB_REPOSITORY:-}" \
-            --action-run-id "${GITHUB_RUN_ID:-}" \
-            --max-pass-ratio "${GH_INPUTS_MAX_PASS_RATIO:-}"
-
-          EXIT_CODE=$?
-          if [ "$EXIT_CODE" -eq 2 ]; then
-            echo "ERROR: Flakeguard encountered an error while generating reports"
-            # Append the same message to the step summary
-            if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
-              echo "ERROR: Flakeguard encountered an error while generating reports" >> "$GITHUB_STEP_SUMMARY"
-            fi
-            exit 2
-          fi
-
-          exit "$EXIT_CODE"
-
-      - name: Upload Test Report as Artifact
-        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
-        uses: actions/upload-artifact@v4
-        with:
-          path: ./flakeguard_run_report
-          retention-days: 14
-
-      - name: Upload Failed Main Test Report With Logs as Artifact
-        id: upload-failed-report-with-logs
-        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
-        uses: actions/upload-artifact@v4.4.3
-        with:
-          path: ./flakeguard_run_report/main/failed-test-report-with-logs.json
-          name: failed-main-test-report-with-logs.json
-          retention-days: 90
-
-      - name: Send Flakeguard Results to Splunk
-        shell: bash
-        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
-        id: generate-report
-        env:
-          MAIN_REPORT_PATH: "./flakeguard_run_report/main/all-test-report.json"
-          RERUN_REPORT_PATH: "./flakeguard_run_report/rerun/all-test-report.json"
-          FAILED_LOGS_URL:
-            ${{ steps.upload-failed-report-with-logs.outputs.artifact-url }}
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
-          GH_EVENT_NAME: ${{ github.event_name }}
-          GH_EVENT_PULL_REQUEST_BASE_REF:
-            ${{ github.event.pull_request.base.ref }}
-          GH_EVENT_PULL_REQUEST_HEAD_SHA:
-            ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-
-          # Ensure flakeguard is on PATH
-          export PATH="$PATH:$(go env GOPATH)/bin"
-
-          # ----------------------------------------------------------------------------
-          # Ensure required environment variables are set
-          # ----------------------------------------------------------------------------
-          : "${FLAKEGUARD_SPLUNK_ENDPOINT:?Environment variable FLAKEGUARD_SPLUNK_ENDPOINT must be set}"
-          : "${FLAKEGUARD_SPLUNK_HEC:?Environment variable FLAKEGUARD_SPLUNK_HEC must be set}"
-          : "${GITHUB_EVENT_NAME:?Environment variable GITHUB_EVENT_NAME must be set}"
-          : "${FAILED_LOGS_URL:?Environment variable FAILED_LOGS_URL must be set}"
-          : "${MAIN_REPORT_PATH:?Environment variable MAIN_REPORT_PATH must be set}"
-          # : "${RERUN_REPORT_PATH:?Environment variable RERUN_REPORT_PATH must be set}"
-
-          echo "Using Flakeguard Splunk Endpoint: $FLAKEGUARD_SPLUNK_ENDPOINT"
-          echo "Using GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME"
-          echo "Failed Logs URL: $FAILED_LOGS_URL"
-          echo "Main report path: $MAIN_REPORT_PATH"
-          echo "Rerun report path: $RERUN_REPORT_PATH"
-
-          # ----------------------------------------------------------------------------
-          # Helper function: send a single report if it exists
-          # ----------------------------------------------------------------------------
-          send_report_to_splunk() {
-            local report_path="$1"
-
-            echo "Checking if report exists: $report_path"
-            if [ -f "$report_path" ]; then
-              echo "Sending report to Splunk: $report_path"
-              flakeguard send-to-splunk \
-                --report-path "$report_path" \
-                --failed-logs-url "${FAILED_LOGS_URL}" \
-                --splunk-url "${FLAKEGUARD_SPLUNK_ENDPOINT}" \
-                --splunk-token "${FLAKEGUARD_SPLUNK_HEC}" \
-                --splunk-event "${GITHUB_EVENT_NAME}"
-
-              local exit_code=$?
-              if [ "$exit_code" -ne 0 ]; then
-                echo "ERROR: Flakeguard encountered an error sending report '$report_path' to Splunk"
-                exit "$exit_code"
-              fi
-            else
-              echo "File not found at '$report_path'. Skipping."
-            fi
-          }
-
-          # ----------------------------------------------------------------------------
-          # Attempt to send the main and rerun reports
-          # ----------------------------------------------------------------------------
-          send_report_to_splunk "$MAIN_REPORT_PATH"
-          send_report_to_splunk "$RERUN_REPORT_PATH"
-
-          # ----------------------------------------------------------------------------
-          # If we get here, any existing reports were sent successfully
-          # ----------------------------------------------------------------------------
-          echo "All done!"
-          exit 0
-
-      - name: Generate Flakeguard Github Reports
-        shell: bash
-        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
-        env:
-          MAIN_REPORT_PATH: "./flakeguard_run_report/main/all-test-report.json"
-          SUMMARY_MD_PATH: "./flakeguard_run_report/main/all-test-summary.md"
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
-          GH_EVENT_NAME: ${{ github.event_name }}
-          GH_EVENT_PULL_REQUEST_BASE_REF:
-            ${{ github.event.pull_request.base.ref }}
-          GH_EVENT_PULL_REQUEST_HEAD_SHA:
-            ${{ github.event.pull_request.head.sha }}
+          GITHUB_HEAD_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           #!/usr/bin/env bash
           set -euo pipefail
@@ -1637,6 +1486,157 @@ jobs:
 
           echo "All done."
           exit 0
+
+      - name: Upload Test Report as Artifact
+        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
+        uses: actions/upload-artifact@v4
+        with:
+          path: ./flakeguard_run_report
+          retention-days: 14
+
+      - name: Upload Failed Main Test Report With Logs as Artifact
+        id: upload-failed-report-with-logs
+        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          path: ./flakeguard_run_report/main/failed-test-report-with-logs.json
+          name: failed-main-test-report-with-logs.json
+          retention-days: 90
+
+      - name: Send Flakeguard Results to Splunk
+        shell: bash
+        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
+        id: generate-report
+        env:
+          MAIN_REPORT_PATH: "./flakeguard_run_report/main/all-test-report.json"
+          RERUN_REPORT_PATH: "./flakeguard_run_report/rerun/all-test-report.json"
+          FAILED_LOGS_URL:
+            ${{ steps.upload-failed-report-with-logs.outputs.artifact-url }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
+          GH_EVENT_PULL_REQUEST_BASE_REF:
+            ${{ github.event.pull_request.base.ref }}
+          GH_EVENT_PULL_REQUEST_HEAD_SHA:
+            ${{ github.event.pull_request.head.sha }}
+          FLAKEGUARD_SPLUNK_ENDPOINT: ${{ secrets.FLAKEGUARD_SPLUNK_ENDPOINT }}
+          FLAKEGUARD_SPLUNK_HEC: ${{ secrets.FLAKEGUARD_SPLUNK_HEC }}
+        run: |
+          set -euo pipefail
+
+          # Ensure flakeguard is on PATH
+          export PATH="$PATH:$(go env GOPATH)/bin"
+
+          # ----------------------------------------------------------------------------
+          # Ensure required environment variables are set
+          # ----------------------------------------------------------------------------
+          : "${FLAKEGUARD_SPLUNK_ENDPOINT:?Environment variable FLAKEGUARD_SPLUNK_ENDPOINT must be set}"
+          : "${FLAKEGUARD_SPLUNK_HEC:?Environment variable FLAKEGUARD_SPLUNK_HEC must be set}"
+          : "${GITHUB_EVENT_NAME:?Environment variable GITHUB_EVENT_NAME must be set}"
+          : "${FAILED_LOGS_URL:?Environment variable FAILED_LOGS_URL must be set}"
+          : "${MAIN_REPORT_PATH:?Environment variable MAIN_REPORT_PATH must be set}"
+          # : "${RERUN_REPORT_PATH:?Environment variable RERUN_REPORT_PATH must be set}"
+
+          echo "Using Flakeguard Splunk Endpoint: $FLAKEGUARD_SPLUNK_ENDPOINT"
+          echo "Using GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME"
+          echo "Failed Logs URL: $FAILED_LOGS_URL"
+          echo "Main report path: $MAIN_REPORT_PATH"
+          echo "Rerun report path: $RERUN_REPORT_PATH"
+
+          # ----------------------------------------------------------------------------
+          # Helper function: send a single report if it exists
+          # ----------------------------------------------------------------------------
+          send_report_to_splunk() {
+            local report_path="$1"
+
+            echo "Checking if report exists: $report_path"
+            if [ -f "$report_path" ]; then
+              echo "Sending report to Splunk: $report_path"
+              flakeguard send-to-splunk \
+                --report-path "$report_path" \
+                --failed-logs-url "${FAILED_LOGS_URL}" \
+                --splunk-url "${FLAKEGUARD_SPLUNK_ENDPOINT}" \
+                --splunk-token "${FLAKEGUARD_SPLUNK_HEC}" \
+                --splunk-event "${GITHUB_EVENT_NAME}"
+
+              local exit_code=$?
+              if [ "$exit_code" -ne 0 ]; then
+                echo "ERROR: Flakeguard encountered an error sending report '$report_path' to Splunk"
+                exit "$exit_code"
+              fi
+            else
+              echo "File not found at '$report_path'. Skipping."
+            fi
+          }
+
+          # ----------------------------------------------------------------------------
+          # Attempt to send the main and rerun reports
+          # ----------------------------------------------------------------------------
+          send_report_to_splunk "$MAIN_REPORT_PATH"
+          send_report_to_splunk "$RERUN_REPORT_PATH"
+
+          # ----------------------------------------------------------------------------
+          # If we get here, any existing reports were sent successfully
+          # ----------------------------------------------------------------------------
+          echo "All done!"
+          exit 0
+
+      - name: Generate Flakeguard Github Reports
+        shell: bash
+        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
+        env:
+          MAIN_REPORT_PATH: "./flakeguard_run_report/main/all-test-report.json"
+          SUMMARY_MD_PATH: "./flakeguard_run_report/main/all-test-summary.md"
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_HEAD_REF: ${{ github.head_ref || github.ref_name }}
+          GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
+          GH_EVENT_NAME: ${{ github.event_name }}
+          GH_EVENT_PULL_REQUEST_BASE_REF:
+            ${{ github.event.pull_request.base.ref }}
+          GH_EVENT_PULL_REQUEST_HEAD_SHA:
+            ${{ github.event.pull_request.head.sha }}
+          FAILED_LOGS_URL:
+            ${{ steps.upload-failed-report-with-logs.outputs.artifact-url }}
+        run: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          # Fix flakeguard binary path
+          export PATH="$PATH:$(go env GOPATH)/bin"
+
+          # Ensure required environment variables are set
+          : "${GITHUB_REPOSITORY:?Environment variable GITHUB_REPOSITORY must be set}"
+          : "${GITHUB_RUN_ID:?Environment variable GITHUB_RUN_ID must be set}"
+          : "${GITHUB_HEAD_REF:?Environment variable GITHUB_HEAD_REF must be set}"
+          : "${GH_INPUTS_MAX_PASS_RATIO:?Environment variable GH_INPUTS_MAX_PASS_RATIO must be set}"
+          : "${FAILED_LOGS_URL:?Environment variable FAILED_LOGS_URL must be set}"
+          : "${MAIN_REPORT_PATH:?Environment variable MAIN_REPORT_PATH must be set}"
+          : "${SUMMARY_MD_PATH:?Environment variable SUMMARY_MD_PATH must be set}"
+
+          # Run flakeguard command
+          flakeguard generate-github-report \
+            --flakeguard-report "${MAIN_REPORT_PATH}" \
+            --summary-report-md-path "${SUMMARY_MD_PATH}" \
+            --failed-logs-url "${FAILED_LOGS_URL:-}" \
+            --github-repository "${GITHUB_REPOSITORY:-}" \
+            --github-run-id "${GITHUB_RUN_ID:-}" \
+            --current-branch "${GITHUB_HEAD_REF:-}" \
+            --repo-url "https://github.com/${GITHUB_REPOSITORY:-}" \
+            --action-run-id "${GITHUB_RUN_ID:-}" \
+            --max-pass-ratio "${GH_INPUTS_MAX_PASS_RATIO:-}"
+
+          EXIT_CODE=$?
+          if [ "$EXIT_CODE" -eq 2 ]; then
+            echo "ERROR: Flakeguard encountered an error while generating reports"
+            # Append the same message to the step summary
+            if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+              echo "ERROR: Flakeguard encountered an error while generating reports" >> "$GITHUB_STEP_SUMMARY"
+            fi
+            exit 2
+          fi
+
+          exit "$EXIT_CODE"
 
       - name: Add Github Summary For Main Flakeguard Report
         if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
