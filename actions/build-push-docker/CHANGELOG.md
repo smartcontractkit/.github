@@ -1,5 +1,14 @@
 # build-push-docker
 
+## 0.4.0
+
+### Minor Changes
+
+- [#974](https://github.com/smartcontractkit/.github/pull/974)
+  [`b64482c`](https://github.com/smartcontractkit/.github/commit/b64482cb7b6025d7c73408eb057255a5545ff7f0)
+  Thanks [@chainchad](https://github.com/chainchad)! - Support github token as a
+  mounted secret in docker build
+
 ## 0.3.0
 
 ### Minor Changes
