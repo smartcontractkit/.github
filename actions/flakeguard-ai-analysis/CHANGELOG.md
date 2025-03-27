@@ -1,5 +1,22 @@
 # flakeguard-ai-analysis
 
+## 1.2.0
+
+### Minor Changes
+
+- [#973](https://github.com/smartcontractkit/.github/pull/973)
+  [`d8d5377`](https://github.com/smartcontractkit/.github/commit/d8d53774045f1a0f07e0d774419cc1ff003f55b3)
+  Thanks [@KMontag42](https://github.com/KMontag42)! - Add new parameters and
+  handle artifact files from github actions properly
+
+### Patch Changes
+
+- [#971](https://github.com/smartcontractkit/.github/pull/971)
+  [`080ac59`](https://github.com/smartcontractkit/.github/commit/080ac59c28083508996c2fbec3eb064e67282060)
+  Thanks [@KMontag42](https://github.com/KMontag42)! - Properly forward the
+  input variable to the docker image ENV Update the `file_path` to use
+  `/github/workspace`
+
 ## 1.1.0
 
 ### Minor Changes
