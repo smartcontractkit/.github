@@ -338,7 +338,6 @@ jobs:
           dockerfile: ${{ inputs.dockerfile }}
           docker-build-args: ${{ inputs.docker-build-args }}
           context: ${{ inputs.docker-build-context }}
-          github-token: ${{ secrets.GITHUB_TOKEN_GATI }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}

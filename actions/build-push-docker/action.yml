@@ -79,10 +79,6 @@ inputs:
   aws-role-arn:
     description: "AWS role ARN with permissions to push ECR images."
     required: true
-  github-token:
-    description: "GitHub token for accessing private repositories"
-    required: false
-    default: ""
 
 outputs:
   docker-repository-name:
@@ -173,12 +169,6 @@ runs:
         fi
         echo "upload=${build_record_artifact_upload}" | tee -a "${GITHUB_OUTPUT}"
 
-    - name: Debug token output
-      shell: bash
-      if: always()
-      run: |
-        echo "Token exists: ${{ inputs.github-token != '' }}"
-
     - name: Build & push image
       id: build-image
       uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6.13.0
@@ -208,7 +198,7 @@ runs:
             format('{0},scope={1}', inputs.docker-build-cache-to, runner.arch)
           }}
         secrets: |
-          GIT_AUTH_TOKEN=${{ inputs.github-token }}
+          GIT_AUTH_TOKEN=${{ secrets.GITHUB_TOKEN_GATI || '' }}
 
     - name: Set outputs
       id: set-outputs
