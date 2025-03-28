@@ -394,7 +394,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@7f66f75798b3fe5f824f485439e10af15e6afbae # v1.34.4
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@bf6d060785f5938215ce7b5fff53592ab3d5e18c # v1.34.4
       - name: Run Check Tests Command
         env:
           TEST_PATH: ${{ inputs.test_path }}
@@ -451,7 +451,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@7f66f75798b3fe5f824f485439e10af15e6afbae # v1.34.4
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@bf6d060785f5938215ce7b5fff53592ab3d5e18c # v1.34.4
       - name: Install jq
         run: sudo apt-get install jq
 
@@ -1386,7 +1386,7 @@ jobs:
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@7f66f75798b3fe5f824f485439e10af15e6afbae # flakguard@0.1.0
+          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@bf6d060785f5938215ce7b5fff53592ab3d5e18c # flakguard@0.1.0
 
       - name: Generate Flakeguard Reports
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
@@ -1438,12 +1438,37 @@ jobs:
           : "${GITHUB_STEP_SUMMARY:=${GITHUB_WORKSPACE}/step_summary.txt}"
           : "${GITHUB_OUTPUT:=${GITHUB_WORKSPACE}/github_output.txt}"
 
+          echo "--------------------------------------------------------------------------------"
+          echo "Flakeguard Report Generation"
+          echo "--------------------------------------------------------------------------------"
+          echo "MAIN_RESULTS_DIR           : $MAIN_RESULTS_DIR"
+          echo "RERUN_RESULTS_DIR          : $RERUN_RESULTS_DIR"
+          echo "MAIN_REPORT_OUTPUT_PATH    : $MAIN_REPORT_OUTPUT_PATH"
+          echo "RERUN_REPORT_OUTPUT_PATH   : $RERUN_REPORT_OUTPUT_PATH"
+          echo "GH_INPUTS_MAX_PASS_RATIO   : $GH_INPUTS_MAX_PASS_RATIO"
+          echo "GITHUB_WORKSPACE           : $GITHUB_WORKSPACE"
+          echo "GITHUB_REPOSITORY          : $GITHUB_REPOSITORY"
+          echo "GITHUB_WORKFLOW            : $GITHUB_WORKFLOW"
+          echo "GITHUB_SERVER_URL          : $GITHUB_SERVER_URL"
+          echo "GITHUB_RUN_ID              : $GITHUB_RUN_ID"
+          echo "GH_HEAD_REF                : $GH_HEAD_REF"
+          echo "--------------------------------------------------------------------------------"
+
+          # ------------------------------------------------------------------------------
+          # Generate a UUID for the main report
+          # ------------------------------------------------------------------------------
+          MAIN_REPORT_ID=$(uuidgen)
+          echo "Using Main Report ID: $MAIN_REPORT_ID"
+
           # ------------------------------------------------------------------------------
           # Helper function: generate a Flakeguard test report for a given dir -> output file
+          #   - Accepts extra parameters (e.g., --report-id, --gen-report-id, --rerun-of-report-id)
           # ------------------------------------------------------------------------------
           generate_report() {
             local results_dir="$1"
             local output_path="$2"
+            shift 2
+            # The remaining arguments ($@) will be passed directly to `flakeguard generate-test-report`
 
             # Check if directory exists and is non-empty
             if [ -d "$results_dir" ] && [ -n "$(ls -A "$results_dir" 2>/dev/null || true)" ]; then
@@ -1460,7 +1485,7 @@ jobs:
                 --github-workflow-run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
                 --branch-name "$GH_HEAD_REF" \
                 --head-sha "$(git rev-parse HEAD)" \
-                --gen-report-id
+                "$@"  # pass along extra flags
 
               local exit_code=$?
               if [ "$exit_code" -eq 2 ]; then
@@ -1477,14 +1502,17 @@ jobs:
           }
 
           # ------------------------------------------------------------------------------
-          # 1) Generate the "main" report
+          # 1) Generate the "main" report (use explicit --report-id)
           # ------------------------------------------------------------------------------
-          generate_report "$MAIN_RESULTS_DIR" "$MAIN_REPORT_OUTPUT_PATH"
+          generate_report "$MAIN_RESULTS_DIR" "$MAIN_REPORT_OUTPUT_PATH" \
+            --report-id "$MAIN_REPORT_ID"
 
           # ------------------------------------------------------------------------------
-          # 2) Generate the "rerun" report
+          # 2) Generate the "rerun" report (use --gen-report-id + --rerun-of-report-id)
           # ------------------------------------------------------------------------------
-          generate_report "$RERUN_RESULTS_DIR" "$RERUN_REPORT_OUTPUT_PATH"
+          generate_report "$RERUN_RESULTS_DIR" "$RERUN_REPORT_OUTPUT_PATH" \
+            --gen-report-id \
+            --rerun-of-report-id "$MAIN_REPORT_ID"
 
           # ------------------------------------------------------------------------------
           # Print summary for each report (if it exists) and store in GITHUB_OUTPUT
