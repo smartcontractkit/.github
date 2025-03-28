@@ -841,7 +841,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ fromJson(env.DOCKER_TESTS_TIMEOUT_MINUTES) }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@13ebce24106456116b84b2b4ec22388ee878ccdc # ctf-run-tests@v0.6.2
+        uses: smartcontractkit/.github/actions/ctf-run-tests@274f15d7b562af60b07ea92b741299b11050b06b # ctf-run-tests@v0.6.2
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION:
@@ -1161,7 +1161,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@f3d57999f7845054f529e287927db7d8b1652479 # ctf-run-tests@v0.6.2
+        uses: smartcontractkit/.github/actions/ctf-run-tests@274f15d7b562af60b07ea92b741299b11050b06b # ctf-run-tests@v0.6.2
         env:
           DETACH_RUNNER: true
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
@@ -1306,7 +1306,7 @@ jobs:
           fi
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@13ebce24106456116b84b2b4ec22388ee878ccdc # ctf-run-tests@v0.6.2
+        uses: smartcontractkit/.github/actions/ctf-run-tests@274f15d7b562af60b07ea92b741299b11050b06b # ctf-run-tests@v0.6.2
         env:
           CL_DATABASE_URL: ${{ env.DB_URL }}
         with:
