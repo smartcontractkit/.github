@@ -91,8 +91,9 @@ runs:
         BENCHMARKS_PR: ${{ inputs.benchmarks-pr }}
         BENCHMARKS_MERGE: ${{ inputs.benchmarks-merge }}
         PULL_REQUEST_BODY: ${{ github.event.pull_request.body }}
+        IS_PR: ${{ env.IS_PR }}
       run: |
-        if [[ "$BENCHMARKS_PR}" == "from-pr" && ${{ env.IS_PR }} == "true" ]]; then
+        if [[ "${BENCHMARKS_PR}" == "from-pr" && "${IS_PR}" == "true" ]]; then
           BENCHMARKS=$(echo "${PULL_REQUEST_BODY}" | sed -n -e 's/^.*BENCHMARKS: //p')
         else
           BENCHMARKS=${BENCHMARKS_MERGE}
