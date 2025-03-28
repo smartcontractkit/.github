@@ -398,6 +398,14 @@ runs:
         export PATH
         export TEST_TRIGGERED_BY=${{ inputs.triggered_by }}-${{ github.event.pull_request.number || github.run_id }}
         export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}
+
+        # If 'test_dir' is provided and not empty, cd into it
+        if [ -n "${{ inputs.test_dir }}" ]; then
+          echo "Changing directory to ${{ inputs.test_dir }}"
+          cd "${{ inputs.test_dir }}"
+        fi
+                
+        # Run the test command
         ${{ inputs.test_command_to_run }} 2>&1 | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage -hidepassingtests=false
 
     - name: Publish Artifacts
