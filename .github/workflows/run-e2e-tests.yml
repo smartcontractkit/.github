@@ -1660,16 +1660,16 @@ jobs:
       - name: Add Github Summary For Main Flakeguard Report
         if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
         run: |
-          FILE_SIZE=$(wc -c < ./flakeguard_run_report/all-test-summary.md)
+          FILE_SIZE=$(wc -c < ./flakeguard_run_report/main/all-test-summary.md)
                     echo "File size: $FILE_SIZE bytes"
           SIZE_LIMIT=$((1024 * 1024))
 
           if [ "$FILE_SIZE" -le "$SIZE_LIMIT" ]; then
-            cat ./flakeguard_run_report/all-test-summary.md >> $GITHUB_STEP_SUMMARY
+            cat ./flakeguard_run_report/main/all-test-summary.md >> $GITHUB_STEP_SUMMARY
           else
             echo "**We found flaky tests, so many flaky tests that the summary is too large for github actions step summaries!**" >> $GITHUB_STEP_SUMMARY
             echo "**Please see logs, or the attached `all-test-summary.md` artifact**" >> $GITHUB_STEP_SUMMARY
-            cat ./flakeguard_run_report/all-test-summary.md
+            cat ./flakeguard_run_report/main/all-test-summary.md
           fi
 
       - name: Download all test result artifacts
