@@ -1,5 +1,14 @@
 # build-push-docker
 
+## 0.5.0
+
+### Minor Changes
+
+- [#978](https://github.com/smartcontractkit/.github/pull/978)
+  [`db0edba`](https://github.com/smartcontractkit/.github/commit/db0edbaab3c45804aab7b591ea432784183e708c)
+  Thanks [@chainchad](https://github.com/chainchad)! - Use GATI within the
+  reusable workflow to get around secret limitations
+
 ## 0.4.0
 
 ### Minor Changes
