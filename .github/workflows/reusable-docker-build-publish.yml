@@ -125,6 +125,10 @@ on:
             - "-plugins"
         required: false
         type: string
+      docker-target:
+        description: "Target stage in the Dockerfile to build."
+        required: false
+        type: string
       git-sha:
         description: |
           The full git SHA to build from.
@@ -344,7 +348,7 @@ jobs:
 
       - name: Docker image build
         id: build
-        uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/0.5.0
+        uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/0.6.0
         with:
           platform: ${{ format('linux/{0}', matrix.arch) }}
           docker-registry-url: >-
@@ -356,6 +360,7 @@ jobs:
                 secrets.AWS_REGION
               )
             }}
+          docker-target: ${{ inputs.docker-target }}
           docker-repository-name: ${{ inputs.aws-ecr-name }}
           tags: ${{ steps.set-docker-image-tags.outputs.tags }}
           dockerfile: ${{ inputs.dockerfile }}
