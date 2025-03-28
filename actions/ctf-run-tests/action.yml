@@ -13,9 +13,9 @@ inputs:
   test_command_to_run:
     required: true
     description: The command to run the tests
-  test_dir:
+  go_project_path:
     required: false
-    description: The directory to run the tests in
+    description: The path to the go project with the tests
     default: .
   test_download_vendor_packages_command:
     required: false
@@ -358,7 +358,7 @@ runs:
         GO_COVERAGE_DEST_DIR: ${{ inputs.go_coverage_dest_dir }}
       run: |
         # Install Flakeguard
-        go install github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@f3c06abe4324088752a15e642d0f0f32baba9e31
+        go install github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@bc1c49b2908c8b95d17cb3d15dd6e02087ccd25f
         PATH=$PATH:$(go env GOPATH)/bin
         export PATH
 
@@ -374,7 +374,7 @@ runs:
         flakeguard run \
           --ignore-parent-failures-on-subtests=true \
           --rerun-failed-count=${{ inputs.flakeguard_rerun_failed_count }} \
-          --project-path=${{ inputs.test_dir }} \
+          --project-path=${{ inputs.go_project_path }} \
           --test-cmd bash \
           --test-cmd -c \
           --test-cmd '${{ inputs.test_command_to_run }}' \
@@ -399,10 +399,10 @@ runs:
         export TEST_TRIGGERED_BY=${{ inputs.triggered_by }}-${{ github.event.pull_request.number || github.run_id }}
         export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}
 
-        # If 'test_dir' is provided and not empty, cd into it
-        if [ -n "${{ inputs.test_dir }}" ]; then
-          echo "Changing directory to ${{ inputs.test_dir }}"
-          cd "${{ inputs.test_dir }}"
+        # If 'go_project_path' is provided and not empty, cd into it
+        if [ -n "${{ inputs.go_project_path }}" ]; then
+          echo "Changing directory to ${{ inputs.go_project_path }}"
+          cd "${{ inputs.go_project_path }}"
         fi
                 
         # Run the test command
