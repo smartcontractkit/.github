@@ -394,7 +394,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@bf6d060785f5938215ce7b5fff53592ab3d5e18c # v1.34.4
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@bc1c49b2908c8b95d17cb3d15dd6e02087ccd25f # v1.34.4
       - name: Run Check Tests Command
         env:
           TEST_PATH: ${{ inputs.test_path }}
@@ -451,7 +451,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@bf6d060785f5938215ce7b5fff53592ab3d5e18c # v1.34.4
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@bc1c49b2908c8b95d17cb3d15dd6e02087ccd25f # v1.34.4
       - name: Install jq
         run: sudo apt-get install jq
 
@@ -841,7 +841,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ fromJson(env.DOCKER_TESTS_TIMEOUT_MINUTES) }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@274f15d7b562af60b07ea92b741299b11050b06b # ctf-run-tests@v0.6.2
+        uses: smartcontractkit/.github/actions/ctf-run-tests@38f980c70e2879e4b441242fbfd352689d72bf05 # ctf-run-tests@v0.6.2
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION:
@@ -871,7 +871,7 @@ jobs:
             ${{ env.FLAKEGUARD_RERUN_FAILED_COUNT }}
           flakeguard_main_results_path: ./flakeguard_run_results/main/flakeguard_results.json
           flakeguard_rerun_results_path: ./flakeguard_run_results/rerun/flakeguard_results.json
-          test_dir: ${{ matrix.tests.test_dir }}
+          test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run:
             ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command:
@@ -1161,7 +1161,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@274f15d7b562af60b07ea92b741299b11050b06b # ctf-run-tests@v0.6.2
+        uses: smartcontractkit/.github/actions/ctf-run-tests@38f980c70e2879e4b441242fbfd352689d72bf05 # ctf-run-tests@v0.6.2
         env:
           DETACH_RUNNER: true
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
@@ -1306,7 +1306,7 @@ jobs:
           fi
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@274f15d7b562af60b07ea92b741299b11050b06b # ctf-run-tests@v0.6.2
+        uses: smartcontractkit/.github/actions/ctf-run-tests@38f980c70e2879e4b441242fbfd352689d72bf05 # ctf-run-tests@v0.6.2
         env:
           CL_DATABASE_URL: ${{ env.DB_URL }}
         with:
@@ -1316,7 +1316,7 @@ jobs:
             ${{ env.FLAKEGUARD_RERUN_FAILED_COUNT }}
           flakeguard_main_results_path: ./flakeguard_run_results/main/flakeguard_results.json
           flakeguard_rerun_results_path: ./flakeguard_run_results/rerun/flakeguard_results.json
-          test_dir: ${{ matrix.tests.test_dir }}
+          test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run:
             ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1
             | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage
@@ -1386,7 +1386,7 @@ jobs:
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@bf6d060785f5938215ce7b5fff53592ab3d5e18c # flakguard@0.1.0
+          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@bc1c49b2908c8b95d17cb3d15dd6e02087ccd25f # flakguard@0.1.0
 
       - name: Generate Flakeguard Reports
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
