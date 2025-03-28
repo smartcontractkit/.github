@@ -1474,7 +1474,7 @@ jobs:
             # The remaining arguments ($@) will be passed directly to `flakeguard generate-test-report`
 
             # Check if directory exists and is non-empty
-            if [ -d "$results_dir" ] && [ -n "$(ls -A "$results_dir" 2>/dev/null || true)" ]; then
+            if [ -d "$results_dir" ]; then
               echo "Generating Flakeguard report from '$results_dir' => '$output_path'..."
 
               flakeguard generate-test-report \
@@ -1500,7 +1500,7 @@ jobs:
                 exit "$exit_code"
               fi
             else
-              echo "Directory '$results_dir' does not exist or is empty. Skipping."
+              echo "Directory '$results_dir' does not exist. Skipping."
             fi
           }
 
