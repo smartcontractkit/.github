@@ -374,10 +374,10 @@ jobs:
         id: set-required-chainlink-plugin-versions-matrix
         shell: bash
         env:
-          REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR:
-            ${{ inputs.require_chainlink_image_versions_in_qa_ecr }}
+          REQUIRED_VERSIONS:
+            ${{ inputs.require_chainlink_plugin_versions_in_qa_ecr }}
         run: |
-          image_versions=$(echo "$REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
+          image_versions=$(echo "$REQUIRED_VERSIONS" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
           echo "Required Chainlink plugin image versions: $image_versions"
           echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
 
