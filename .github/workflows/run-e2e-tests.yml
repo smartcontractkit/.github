@@ -996,7 +996,7 @@ jobs:
             flakeguard_rerun_results_${{
             needs.load-test-configurations.outputs.workflow_id }}_${{
             env.TEST_ID }}
-          path: flakeguard_rerun_results/main/*
+          path: flakeguard_run_results/rerun/*
           retention-days: 1
 
       - name: Upload custom test artifacts
@@ -1367,7 +1367,7 @@ jobs:
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         uses: actions/download-artifact@v4.1.8
         with:
-          path: flakeguard_main_run_results
+          path: flakeguard_main_results
           pattern:
             flakeguard_main_run_results_${{
             needs.load-test-configurations.outputs.workflow_id }}_*
@@ -1376,7 +1376,7 @@ jobs:
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         uses: actions/download-artifact@v4.1.8
         with:
-          path: flakeguard_rerun_run_results
+          path: flakeguard_rerun_results
           pattern:
             flakeguard_rerun_results_${{
             needs.load-test-configurations.outputs.workflow_id }}_*
@@ -1393,7 +1393,7 @@ jobs:
         shell: bash
         env:
           # Directories where your test results may be
-          MAIN_RESULTS_DIR: "./flakeguard_main_run_results"
+          MAIN_RESULTS_DIR: "./flakeguard_main_results"
           RERUN_RESULTS_DIR: "./flakeguard_rerun_results"
           # Each directory's output
           MAIN_REPORT_OUTPUT_PATH: "./flakeguard_run_report/main"
