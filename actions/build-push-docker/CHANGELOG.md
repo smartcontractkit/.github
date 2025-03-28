@@ -1,5 +1,14 @@
 # build-push-docker
 
+## 0.6.0
+
+### Minor Changes
+
+- [#980](https://github.com/smartcontractkit/.github/pull/980)
+  [`d1576da`](https://github.com/smartcontractkit/.github/commit/d1576da555b2385d25ed001fa3f0282dc565df78)
+  Thanks [@chainchad](https://github.com/chainchad)! - Support Docker build
+  targets/stages
+
 ## 0.5.0
 
 ### Minor Changes
