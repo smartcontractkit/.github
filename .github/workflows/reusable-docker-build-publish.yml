@@ -35,7 +35,9 @@ name: Reusable Docker Build and Publish
 #       secrets:
 #         AWS_ACCOUNT_ID: $\{{ secrets.AWS_ACCOUNT_ID }}
 #         AWS_REGION: $\{{ secrets.AWS_REGION }} # Remove the "\" escape character.
-#         AWS_ROLE_ARN: $\{{ secrets.AWS_ROLE_ARN }} # Remove the "\" escape character.
+#         AWS_ROLE_PUBLISH_ARN: $\{{ secrets.AWS_ROLE_PUBLISH_ARN }} # Remove the "\" escape character.
+#         AWS_ROLE_GATI_ARN: $\{{ secrets.AWS_ROLE_GATI_ARN }} # Remove the "\" escape character.
+#         AWS_LAMBDA_GATI_URL: $\{{ secrets.AWS_LAMBDA_GATI_URL }} # Remove the "\" escape character.
 ##
 on:
   workflow_call:
@@ -46,9 +48,20 @@ on:
       AWS_REGION:
         description: "AWS region for AWS ECR."
         required: true
-      AWS_ROLE_ARN:
+      AWS_ROLE_PUBLISH_ARN:
         description: "AWS OIDC role ARN used for publishing to AWS ECR."
         required: true
+      AWS_ROLE_GATI_ARN:
+        description: |
+          AWS OIDC role ARN used for getting token from GATI.
+
+          Use this and AWS_LAMBDA_GATI_URL if building a Docker image with private GitHub repo dependencies.
+
+          The token will be mounted as a secret within the Docker build context.
+        required: false
+      AWS_LAMBDA_GATI_URL:
+        description: "AWS Lambda URL for GATI."
+        required: false
     inputs:
       aws-ecr-name:
         description: |
@@ -154,11 +167,6 @@ on:
         # NOTE: This runner is not yet available on non-public repos.
         # Will require an override for private/internal repos.
         default: "ubuntu-24.04-arm"
-      github-token:
-        description: "GitHub token for accessing private repositories"
-        required: false
-        type: string
-        default: ""
       github-workflow-repository:
         description: |
           The repository name of the workflow that triggered the workflow run.
@@ -234,6 +242,7 @@ jobs:
             pr_number=$(echo "${GITHUB_REF_NAME}" | cut -d'/' -f1)
             echo "pr-number=${pr_number}" | tee -a "${GITHUB_OUTPUT}"
           fi
+
   build-publish:
     name: build-publish-${{ matrix.arch }}
     needs: init
@@ -311,9 +320,31 @@ jobs:
           # job (without the arch suffix).
           echo "docker-manifest-tag=${tag_value}" | tee -a "${GITHUB_OUTPUT}"
 
+      - name: Check for GATI
+        id: check-gati
+        env:
+          AWS_ROLE_GATI_ARN: ${{ secrets.AWS_ROLE_GATI_ARN }}
+          AWS_LAMBDA_GATI_URL: ${{ secrets.AWS_LAMBDA_GATI_URL }}
+        run: |
+          if [[ -n "${AWS_ROLE_GATI_ARN}" && -n "${AWS_LAMBDA_GATI_URL}" ]]; then
+            echo "use-gati=true" | tee -a "${GITHUB_OUTPUT}"
+          else
+            echo "Skipping GATI because secrets.AWS_ROLE_GATI_ARN and/or secrets.AWS_LAMBDA_GATI_URL is not set."
+          fi
+
+      - name: Setup GitHub token using GATI
+        if: steps.check-gati.outputs.use-gati == 'true'
+        id: token
+        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/1.0.0
+        with:
+          aws-role-arn: ${{ secrets.AWS_ROLE_GATI_ARN }}
+          aws-lambda-url: ${{ secrets.AWS_LAMBDA_GATI_URL }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-role-duration-seconds: "1800"
+
       - name: Docker image build
         id: build
-        uses: smartcontractkit/.github/actions/build-push-docker@792d6d9548a39c57b434fff34910e4c526387da3 # build-push-docker/0.4.0
+        uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/0.5.0
         with:
           platform: ${{ format('linux/{0}', matrix.arch) }}
           docker-registry-url: >-
@@ -330,10 +361,10 @@ jobs:
           dockerfile: ${{ inputs.dockerfile }}
           docker-build-args: ${{ inputs.docker-build-args }}
           context: ${{ inputs.docker-build-context }}
-          github-token: ${{ inputs.github-token }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
-          aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
+          aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
+          github-token: ${{ steps.token.outputs.access-token || '' }}
 
   docker-manifest:
     name: docker-manifest
@@ -345,7 +376,7 @@ jobs:
       name: ${{ steps.docker-manifest.outputs.manifest-name }}
       tag: ${{ steps.docker-manifest.outputs.manifest-tag }}
     steps:
-      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@c147b5676b87e06c34f175c5537bc06901df085c # build-push-docker-manifest@0.2.0
+      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@build-push-docker-manifest/0.2.0
         id: docker-manifest
         with:
           # Avoid using `github.workflow_ref` here because the `cosign sign`
@@ -374,5 +405,5 @@ jobs:
             }}
           github-workflow-repository: ${{ inputs.github-workflow-repository }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
-          aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
+          aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}

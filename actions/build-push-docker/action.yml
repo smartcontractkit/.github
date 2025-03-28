@@ -48,6 +48,11 @@ inputs:
     description: "Push the docker image. Build only (no push) if: false."
     required: false
     default: "true"
+  github-token:
+    description: |
+      GitHub token mounted as a Docker secret for builds which require GitHub
+      auth (private repo deps).
+    required: false
   tags:
     required: false
     description: "Tags input for the docker metadata action"
@@ -79,10 +84,6 @@ inputs:
   aws-role-arn:
     description: "AWS role ARN with permissions to push ECR images."
     required: true
-  github-token:
-    description: "GitHub token for accessing private repositories"
-    required: false
-    default: ""
 
 outputs:
   docker-repository-name:
@@ -202,7 +203,7 @@ runs:
             format('{0},scope={1}', inputs.docker-build-cache-to, runner.arch)
           }}
         secrets: |
-          GIT_AUTH_TOKEN=${{ inputs.github-token }}
+          GIT_AUTH_TOKEN=${{ inputs.github-token || ''}}
 
     - name: Set outputs
       id: set-outputs
