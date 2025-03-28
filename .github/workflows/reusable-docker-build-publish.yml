@@ -33,13 +33,11 @@ name: Reusable Docker Build and Publish
 #         github-event-name: $\{{ github.event_name }}
 #         github-ref-name: $\{{ github.ref_name }}
 #       secrets:
-#         # GITHUB_TOKEN_GATI is optional and only needed if we need the Dockerfile
-#         # to mount it to build the image while fetching with a private GitHub repo.
-#         # GITHUB_TOKEN_GATI: <GATI step token output>
 #         AWS_ACCOUNT_ID: $\{{ secrets.AWS_ACCOUNT_ID }}
 #         AWS_REGION: $\{{ secrets.AWS_REGION }} # Remove the "\" escape character.
 #         AWS_ROLE_PUBLISH_ARN: $\{{ secrets.AWS_ROLE_PUBLISH_ARN }} # Remove the "\" escape character.
 #         AWS_ROLE_GATI_ARN: $\{{ secrets.AWS_ROLE_GATI_ARN }} # Remove the "\" escape character.
+#         AWS_LAMBDA_GATI_URL: $\{{ secrets.AWS_LAMBDA_GATI_URL }} # Remove the "\" escape character.
 ##
 on:
   workflow_call:
@@ -54,7 +52,12 @@ on:
         description: "AWS OIDC role ARN used for publishing to AWS ECR."
         required: true
       AWS_ROLE_GATI_ARN:
-        description: "AWS OIDC role ARN used for getting token from GATI."
+        description: |
+          AWS OIDC role ARN used for getting token from GATI.
+
+          Use this and AWS_LAMBDA_GATI_URL if building a Docker image with private GitHub repo dependencies.
+
+          The token will be mounted as a secret within the Docker build context.
         required: false
       AWS_LAMBDA_GATI_URL:
         description: "AWS Lambda URL for GATI."
@@ -317,7 +320,20 @@ jobs:
           # job (without the arch suffix).
           echo "docker-manifest-tag=${tag_value}" | tee -a "${GITHUB_OUTPUT}"
 
+      - name: Check for GATI
+        id: check-gati
+        env:
+          AWS_ROLE_GATI_ARN: ${{ secrets.AWS_ROLE_GATI_ARN }}
+          AWS_LAMBDA_GATI_URL: ${{ secrets.AWS_LAMBDA_GATI_URL }}
+        run: |
+          if [[ -n "${AWS_ROLE_GATI_ARN}" && -n "${AWS_LAMBDA_GATI_URL}" ]]; then
+            echo "use-gati=true" | tee -a "${GITHUB_OUTPUT}"
+          else
+            echo "Skipping GATI because secrets.AWS_ROLE_GATI_ARN and/or secrets.AWS_LAMBDA_GATI_URL is not set."
+          fi
+
       - name: Setup GitHub token using GATI
+        if: steps.check-gati.outputs.use-gati == 'true'
         id: token
         uses: smartcontractkit/.github/actions/setup-github-token@9fc306ac63d8997c9ca0da283e56caaf71589f83 # setup-github-token/1.0.0
         with:
@@ -395,5 +411,5 @@ jobs:
             }}
           github-workflow-repository: ${{ inputs.github-workflow-repository }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
-          aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
+          aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
