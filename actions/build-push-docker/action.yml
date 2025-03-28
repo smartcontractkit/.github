@@ -48,6 +48,11 @@ inputs:
     description: "Push the docker image. Build only (no push) if: false."
     required: false
     default: "true"
+  github-token:
+    description: |
+      GitHub token mounted as a Docker secret for builds which require GitHub
+      auth (private repo deps).
+    required: false
   tags:
     required: false
     description: "Tags input for the docker metadata action"
@@ -198,7 +203,7 @@ runs:
             format('{0},scope={1}', inputs.docker-build-cache-to, runner.arch)
           }}
         secrets: |
-          GIT_AUTH_TOKEN=${{ secrets.GITHUB_TOKEN_GATI || '' }}
+          GIT_AUTH_TOKEN=${{ inputs.github-token || ''}}
 
     - name: Set outputs
       id: set-outputs

@@ -38,7 +38,8 @@ name: Reusable Docker Build and Publish
 #         # GITHUB_TOKEN_GATI: <GATI step token output>
 #         AWS_ACCOUNT_ID: $\{{ secrets.AWS_ACCOUNT_ID }}
 #         AWS_REGION: $\{{ secrets.AWS_REGION }} # Remove the "\" escape character.
-#         AWS_ROLE_ARN: $\{{ secrets.AWS_ROLE_ARN }} # Remove the "\" escape character.
+#         AWS_ROLE_PUBLISH_ARN: $\{{ secrets.AWS_ROLE_PUBLISH_ARN }} # Remove the "\" escape character.
+#         AWS_ROLE_GATI_ARN: $\{{ secrets.AWS_ROLE_GATI_ARN }} # Remove the "\" escape character.
 ##
 on:
   workflow_call:
@@ -49,12 +50,14 @@ on:
       AWS_REGION:
         description: "AWS region for AWS ECR."
         required: true
-      AWS_ROLE_ARN:
+      AWS_ROLE_PUBLISH_ARN:
         description: "AWS OIDC role ARN used for publishing to AWS ECR."
         required: true
-      GITHUB_TOKEN_GATI:
-        description:
-          "GitHub token for accessing private repositories from e.g. GATI."
+      AWS_ROLE_GATI_ARN:
+        description: "AWS OIDC role ARN used for getting token from GATI."
+        required: false
+      AWS_LAMBDA_GATI_URL:
+        description: "AWS Lambda URL for GATI."
         required: false
     inputs:
       aws-ecr-name:
@@ -236,6 +239,7 @@ jobs:
             pr_number=$(echo "${GITHUB_REF_NAME}" | cut -d'/' -f1)
             echo "pr-number=${pr_number}" | tee -a "${GITHUB_OUTPUT}"
           fi
+
   build-publish:
     name: build-publish-${{ matrix.arch }}
     needs: init
@@ -313,11 +317,20 @@ jobs:
           # job (without the arch suffix).
           echo "docker-manifest-tag=${tag_value}" | tee -a "${GITHUB_OUTPUT}"
 
+      - name: Setup GitHub token using GATI
+        id: token
+        uses: smartcontractkit/.github/actions/setup-github-token@9fc306ac63d8997c9ca0da283e56caaf71589f83 # setup-github-token/1.0.0
+        with:
+          aws-role-arn: ${{ secrets.AWS_ROLE_GATI_ARN }}
+          aws-lambda-url: ${{ secrets.AWS_LAMBDA_GATI_URL }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-role-duration-seconds: "1800"
+
       - name: Debug token output
         shell: bash
         if: always()
         run: |
-          echo "Token exists: ${{ secrets.GITHUB_TOKEN_GATI != '' }}"
+          echo "Token exists: ${{ steps.token.outputs.access-token != '' }}"
 
       - name: Docker image build
         id: build
@@ -339,8 +352,9 @@ jobs:
           docker-build-args: ${{ inputs.docker-build-args }}
           context: ${{ inputs.docker-build-context }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
-          aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
+          aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
+          github-token: ${{ steps.token.outputs.access-token || '' }}
 
   docker-manifest:
     name: docker-manifest
