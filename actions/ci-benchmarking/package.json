@@ -1,6 +1,6 @@
 {
   "name": "ci-benchmarking",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Reusable action for storing historical performance data from go benchmark tests in CI with notifications for regressions",
   "private": true,
   "scripts": {},
