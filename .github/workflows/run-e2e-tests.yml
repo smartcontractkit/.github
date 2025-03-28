@@ -1541,6 +1541,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: ./flakeguard_run_report
+          name: flakeguard_report
           retention-days: 14
 
       - name: Upload Failed Main Test Report With Logs as Artifact
