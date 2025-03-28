@@ -315,7 +315,7 @@ jobs:
 
       - name: Docker image build
         id: build
-        uses: smartcontractkit/.github/actions/build-push-docker@792d6d9548a39c57b434fff34910e4c526387da3 # build-push-docker/0.4.0
+        uses: smartcontractkit/.github/actions/build-push-docker@re-3577/docker-reusable-workflow-github-token-secret # TODO
         with:
           platform: ${{ format('linux/{0}', matrix.arch) }}
           docker-registry-url: >-
