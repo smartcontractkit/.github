@@ -1659,7 +1659,6 @@ jobs:
           : "${GITHUB_RUN_ID:?Environment variable GITHUB_RUN_ID must be set}"
           : "${GH_HEAD_REF:?Environment variable GH_HEAD_REF must be set}"
           : "${GH_INPUTS_MAX_PASS_RATIO:?Environment variable GH_INPUTS_MAX_PASS_RATIO must be set}"
-          : "${FAILED_LOGS_URL:?Environment variable FAILED_LOGS_URL must be set}"
           : "${MAIN_REPORT_PATH:?Environment variable MAIN_REPORT_PATH must be set}"
           : "${SUMMARY_MD_PATH:?Environment variable SUMMARY_MD_PATH must be set}"
 
