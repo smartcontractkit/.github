@@ -1460,6 +1460,9 @@ jobs:
           MAIN_REPORT_ID=$(uuidgen)
           echo "Using Main Report ID: $MAIN_REPORT_ID"
 
+          # Ensure the results directories exist (even if empty)
+          mkdir -p "$MAIN_RESULTS_DIR"
+
           # ------------------------------------------------------------------------------
           # Helper function: generate a Flakeguard test report for a given dir -> output file
           #   - Accepts extra parameters (e.g., --report-id, --gen-report-id, --rerun-of-report-id)
