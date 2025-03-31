@@ -418,6 +418,13 @@ runs:
         name: ${{ inputs.artifacts_name }}
         path: ${{ inputs.artifacts_location }}
 
+    - name: Upload Flakeguard raw test outputs
+      if: failure() && inputs.flakeguard_enable == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: flakeguard_raw_output
+        path: flakeguard_raw_output
+
     - name: Collect local GAP (Envoy) proxy logs
       if:
         failure() && inputs.flakeguard_enable != 'true' || inputs.enable-gap ==
