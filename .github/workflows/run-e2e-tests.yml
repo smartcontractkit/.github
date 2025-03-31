@@ -394,7 +394,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@b08cab0f49aa13d5adb849554b56086f4dba8984 # v1.34.4
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@8cdf5d2f65a9bbd1f7d6c5533b6b5fba936fefea # v1.34.4
       - name: Run Check Tests Command
         env:
           TEST_PATH: ${{ inputs.test_path }}
@@ -451,7 +451,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@b08cab0f49aa13d5adb849554b56086f4dba8984 # v1.34.4
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@8cdf5d2f65a9bbd1f7d6c5533b6b5fba936fefea # v1.34.4
       - name: Install jq
         run: sudo apt-get install jq
 
@@ -841,7 +841,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ fromJson(env.DOCKER_TESTS_TIMEOUT_MINUTES) }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@2ce3e01bd605c3e9bda6ed94f2d8ba3d31435379 # ctf-run-tests@v0.6.2
+        uses: smartcontractkit/.github/actions/ctf-run-tests@471a49d71e4c8237cdbaeba7e85ff4ddd5a4f4c5 # ctf-run-tests@v0.6.2
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION:
@@ -1161,7 +1161,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@2ce3e01bd605c3e9bda6ed94f2d8ba3d31435379 # ctf-run-tests@v0.6.2
+        uses: smartcontractkit/.github/actions/ctf-run-tests@471a49d71e4c8237cdbaeba7e85ff4ddd5a4f4c5 # ctf-run-tests@v0.6.2
         env:
           DETACH_RUNNER: true
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
@@ -1306,7 +1306,7 @@ jobs:
           fi
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@2ce3e01bd605c3e9bda6ed94f2d8ba3d31435379 # ctf-run-tests@v0.6.2
+        uses: smartcontractkit/.github/actions/ctf-run-tests@471a49d71e4c8237cdbaeba7e85ff4ddd5a4f4c5 # ctf-run-tests@v0.6.2
         env:
           CL_DATABASE_URL: ${{ env.DB_URL }}
         with:
@@ -1386,7 +1386,7 @@ jobs:
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@b08cab0f49aa13d5adb849554b56086f4dba8984 # flakguard@0.1.0
+          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@8cdf5d2f65a9bbd1f7d6c5533b6b5fba936fefea # flakguard@0.1.0
 
       - name: Generate Flakeguard Reports
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
