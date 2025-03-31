@@ -16,3 +16,4 @@ runs:
   image: Dockerfile
   env:
     OPENAI_API_KEY: ${{ inputs.openai_api_key }}
+    FAILED_TEST_RESULTS: ${{ inputs.failed_test_results }}

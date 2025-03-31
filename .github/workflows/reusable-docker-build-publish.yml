@@ -12,7 +12,7 @@ name: Reusable Docker Build and Publish
 #   - arm64
 #
 # The workflow also generates pre-defined Docker image tags based on the
-# specified type (branch, nightly, pr, tag).
+# specified type (branch, nightly, pr, sha, tag).
 #
 # Example usage from a calling workflow:
 #
@@ -35,7 +35,9 @@ name: Reusable Docker Build and Publish
 #       secrets:
 #         AWS_ACCOUNT_ID: $\{{ secrets.AWS_ACCOUNT_ID }}
 #         AWS_REGION: $\{{ secrets.AWS_REGION }} # Remove the "\" escape character.
-#         AWS_ROLE_ARN: $\{{ secrets.AWS_ROLE_ARN }} # Remove the "\" escape character.
+#         AWS_ROLE_PUBLISH_ARN: $\{{ secrets.AWS_ROLE_PUBLISH_ARN }} # Remove the "\" escape character.
+#         AWS_ROLE_GATI_ARN: $\{{ secrets.AWS_ROLE_GATI_ARN }} # Remove the "\" escape character.
+#         AWS_LAMBDA_GATI_URL: $\{{ secrets.AWS_LAMBDA_GATI_URL }} # Remove the "\" escape character.
 ##
 on:
   workflow_call:
@@ -46,9 +48,20 @@ on:
       AWS_REGION:
         description: "AWS region for AWS ECR."
         required: true
-      AWS_ROLE_ARN:
+      AWS_ROLE_PUBLISH_ARN:
         description: "AWS OIDC role ARN used for publishing to AWS ECR."
         required: true
+      AWS_ROLE_GATI_ARN:
+        description: |
+          AWS OIDC role ARN used for getting token from GATI.
+
+          Use this and AWS_LAMBDA_GATI_URL if building a Docker image with private GitHub repo dependencies.
+
+          The token will be mounted as a secret within the Docker build context.
+        required: false
+      AWS_LAMBDA_GATI_URL:
+        description: "AWS Lambda URL for GATI."
+        required: false
     inputs:
       aws-ecr-name:
         description: |
@@ -81,6 +94,7 @@ on:
             - branch
             - nightly
             - pr
+            - sha
             - tag
         required: true
         type: string
@@ -89,6 +103,17 @@ on:
         required: false
         type: string
         default: "true"
+      docker-registry-url-override:
+        description: |
+          Override the default docker registry URL.
+
+          Otherwise use the private AWS ECR registry URL.
+
+          For public ECR, include the hostname and the registry alias.
+
+          Example: public.ecr.aws/chainlink
+        required: false
+        type: string
       docker-tag-custom-suffix:
         description: |
           This is an optional input that can be used to add a custom suffix to
@@ -98,6 +123,10 @@ on:
           Examples:
             - "-ccip"
             - "-plugins"
+        required: false
+        type: string
+      docker-target:
+        description: "Target stage in the Dockerfile to build."
         required: false
         type: string
       git-sha:
@@ -217,6 +246,7 @@ jobs:
             pr_number=$(echo "${GITHUB_REF_NAME}" | cut -d'/' -f1)
             echo "pr-number=${pr_number}" | tee -a "${GITHUB_OUTPUT}"
           fi
+
   build-publish:
     name: build-publish-${{ matrix.arch }}
     needs: init
@@ -270,12 +300,16 @@ jobs:
               if [[ -z "${PR_NUMBER:-}" ]]; then echo "::error::GITHUB_EVENT_NAME is pull_request but PR_NUMBER is not set"; exit 1; fi
               tag_value="pr-${PR_NUMBER}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
               ;;
+            sha)
+              # Examples: sha-d34db33 or sha-d34db33-custom-suffix
+              tag_value="sha-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+              ;;
             tag)
               # Examples: v1.0.0 or v1.0.0-custom-suffix
               tag_value="${GITHUB_REF_NAME}${DOCKER_TAG_CUSTOM_SUFFIX}"
               ;;
             *)
-              echo "::error::Invalid docker image type: ${DOCKER_IMAGE_TYPE}. Must be one of: branch, nightly, pr, tag."
+              echo "::error::Invalid docker image type: ${DOCKER_IMAGE_TYPE}. Must be one of: branch, nightly, pr, sha, tag."
               exit 1
               ;;
           esac
@@ -290,22 +324,52 @@ jobs:
           # job (without the arch suffix).
           echo "docker-manifest-tag=${tag_value}" | tee -a "${GITHUB_OUTPUT}"
 
+      - name: Check for GATI
+        id: check-gati
+        env:
+          AWS_ROLE_GATI_ARN: ${{ secrets.AWS_ROLE_GATI_ARN }}
+          AWS_LAMBDA_GATI_URL: ${{ secrets.AWS_LAMBDA_GATI_URL }}
+        run: |
+          if [[ -n "${AWS_ROLE_GATI_ARN}" && -n "${AWS_LAMBDA_GATI_URL}" ]]; then
+            echo "use-gati=true" | tee -a "${GITHUB_OUTPUT}"
+          else
+            echo "Skipping GATI because secrets.AWS_ROLE_GATI_ARN and/or secrets.AWS_LAMBDA_GATI_URL is not set."
+          fi
+
+      - name: Setup GitHub token using GATI
+        if: steps.check-gati.outputs.use-gati == 'true'
+        id: token
+        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/1.0.0
+        with:
+          aws-role-arn: ${{ secrets.AWS_ROLE_GATI_ARN }}
+          aws-lambda-url: ${{ secrets.AWS_LAMBDA_GATI_URL }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-role-duration-seconds: "1800"
+
       - name: Docker image build
         id: build
-        uses: smartcontractkit/.github/actions/build-push-docker@a0e1222eaf55c5f14283a33628d51dcd0823a9e8 # build-push-docker@0.3.0
+        uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/0.6.0
         with:
           platform: ${{ format('linux/{0}', matrix.arch) }}
-          docker-registry-url:
-            ${{ format('{0}.dkr.ecr.{1}.amazonaws.com', secrets.AWS_ACCOUNT_ID,
-            secrets.AWS_REGION) }}
+          docker-registry-url: >-
+            ${{
+              inputs.docker-registry-url-override ||
+              format(
+                '{0}.dkr.ecr.{1}.amazonaws.com',
+                secrets.AWS_ACCOUNT_ID,
+                secrets.AWS_REGION
+              )
+            }}
+          docker-target: ${{ inputs.docker-target }}
           docker-repository-name: ${{ inputs.aws-ecr-name }}
           tags: ${{ steps.set-docker-image-tags.outputs.tags }}
           dockerfile: ${{ inputs.dockerfile }}
           docker-build-args: ${{ inputs.docker-build-args }}
           context: ${{ inputs.docker-build-context }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
-          aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
+          aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
+          github-token: ${{ steps.token.outputs.access-token || '' }}
 
   docker-manifest:
     name: docker-manifest
@@ -317,7 +381,7 @@ jobs:
       name: ${{ steps.docker-manifest.outputs.manifest-name }}
       tag: ${{ steps.docker-manifest.outputs.manifest-tag }}
     steps:
-      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@c147b5676b87e06c34f175c5537bc06901df085c # build-push-docker-manifest@0.2.0
+      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@build-push-docker-manifest/0.2.0
         id: docker-manifest
         with:
           # Avoid using `github.workflow_ref` here because the `cosign sign`
@@ -326,6 +390,7 @@ jobs:
           cosign-oidc-identity-regexp: "^https://github.com/smartcontractkit/.*$"
           docker-registry-url: >-
             ${{
+              inputs.docker-registry-url-override ||
               format(
                 '{0}.dkr.ecr.{1}.amazonaws.com',
                 secrets.AWS_ACCOUNT_ID,
@@ -345,5 +410,5 @@ jobs:
             }}
           github-workflow-repository: ${{ inputs.github-workflow-repository }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
-          aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
+          aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}

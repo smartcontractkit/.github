@@ -27,6 +27,10 @@ inputs:
       caching for the specific runner architecture.
     required: false
     default: "type=gha,timeout=10m,mode=max,ignore-error=false"
+  docker-push:
+    description: "Push the docker image. Build only (no push) if: false."
+    required: false
+    default: "true"
   docker-registry-url:
     required: true
     description: |
@@ -44,10 +48,14 @@ inputs:
         chainlink/chainlink # Public ECR
         chainlink/ccip # Public ECR
         my-repo-name # Private ECR
-  docker-push:
-    description: "Push the docker image. Build only (no push) if: false."
+  docker-target:
+    description: "Target stage in the Dockerfile to build."
     required: false
-    default: "true"
+  github-token:
+    description: |
+      GitHub token mounted as a Docker secret for builds which require GitHub
+      auth (private repo deps).
+    required: false
   tags:
     required: false
     description: "Tags input for the docker metadata action"
@@ -186,6 +194,7 @@ runs:
         file: ${{ inputs.dockerfile }}
         context: ${{ inputs.context }}
         build-args: ${{ inputs.docker-build-args }}
+        target: ${{ inputs.docker-target }}
         tags: ${{ steps.docker-meta.outputs.tags }}
         labels: ${{ steps.docker-meta.outputs.labels }}
         platforms: ${{ inputs.platform }}
@@ -197,6 +206,8 @@ runs:
           ${{
             format('{0},scope={1}', inputs.docker-build-cache-to, runner.arch)
           }}
+        secrets: |
+          GIT_AUTH_TOKEN=${{ inputs.github-token || ''}}
 
     - name: Set outputs
       id: set-outputs
