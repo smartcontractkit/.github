@@ -1,5 +1,14 @@
 # ci-benchmarking
 
+## 1.1.0
+
+### Minor Changes
+
+- [#977](https://github.com/smartcontractkit/.github/pull/977)
+  [`505e2c9`](https://github.com/smartcontractkit/.github/commit/505e2c93adb6b0591afeaec750c653f31657ea40)
+  Thanks [@chainchad](https://github.com/chainchad)! - Update inputs to be read
+  from env vars explicitly
+
 ## 1.0.4
 
 ### Patch Changes
