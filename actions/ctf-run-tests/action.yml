@@ -371,6 +371,9 @@ runs:
 
         echo "Running flakeguard in directory: $(pwd)"
 
+        echo "ls -lh $(ls -lh)"
+        echo "ls -lh go project path $(ls -lh ${{ inputs.test_go_project_path }})"
+
         flakeguard run \
           --ignore-parent-failures-on-subtests=true \
           --rerun-failed-count=${{ inputs.flakeguard_rerun_failed_count }} \
