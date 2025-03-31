@@ -1318,9 +1318,7 @@ jobs:
           flakeguard_rerun_results_path: ./flakeguard_run_results/rerun/flakeguard_results.json
           test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run:
-            ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1
-            | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage
-            -hidepassingtests=false' }}
+            ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command:
             cd $(dirname ${{ matrix.tests.path }}) && go mod download
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
