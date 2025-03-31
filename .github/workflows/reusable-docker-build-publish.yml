@@ -25,6 +25,8 @@ name: Reusable Docker Build and Publish
 #       with:
 #         # NOTE: Remove the "\" escape character for every: $\{{ when implementing.
 #         aws-ecr-name: chainlink
+#         aws-region-ecr: us-east-1
+#         aws-region-gati: us-west-2
 #         dockerfile: Dockerfile
 #         docker-build-context: .
 #         docker-image-type: branch
@@ -34,7 +36,6 @@ name: Reusable Docker Build and Publish
 #         github-ref-name: $\{{ github.ref_name }}
 #       secrets:
 #         AWS_ACCOUNT_ID: $\{{ secrets.AWS_ACCOUNT_ID }}
-#         AWS_REGION: $\{{ secrets.AWS_REGION }} # Remove the "\" escape character.
 #         AWS_ROLE_PUBLISH_ARN: $\{{ secrets.AWS_ROLE_PUBLISH_ARN }} # Remove the "\" escape character.
 #         AWS_ROLE_GATI_ARN: $\{{ secrets.AWS_ROLE_GATI_ARN }} # Remove the "\" escape character.
 #         AWS_LAMBDA_GATI_URL: $\{{ secrets.AWS_LAMBDA_GATI_URL }} # Remove the "\" escape character.
@@ -44,9 +45,6 @@ on:
     secrets:
       AWS_ACCOUNT_ID:
         description: "AWS account ID for AWS ECR."
-        required: true
-      AWS_REGION:
-        description: "AWS region for AWS ECR."
         required: true
       AWS_ROLE_PUBLISH_ARN:
         description: "AWS OIDC role ARN used for publishing to AWS ECR."
@@ -73,6 +71,14 @@ on:
             - chainlink
             - ccip
         required: true
+        type: string
+      aws-region-ecr:
+        description: "AWS region for AWS ECR."
+        required: true
+        type: string
+      aws-region-gati:
+        description: "AWS region for GATI (GitHub Actions Token Issuer)."
+        required: false
         type: string
       dockerfile:
         description: "Path to Dockerfile."
@@ -343,7 +349,7 @@ jobs:
         with:
           aws-role-arn: ${{ secrets.AWS_ROLE_GATI_ARN }}
           aws-lambda-url: ${{ secrets.AWS_LAMBDA_GATI_URL }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ inputs.aws-region-gati }}
           aws-role-duration-seconds: "1800"
 
       - name: Docker image build
@@ -357,7 +363,7 @@ jobs:
               format(
                 '{0}.dkr.ecr.{1}.amazonaws.com',
                 secrets.AWS_ACCOUNT_ID,
-                secrets.AWS_REGION
+                inputs.aws-region-ecr
               )
             }}
           docker-target: ${{ inputs.docker-target }}
@@ -368,7 +374,7 @@ jobs:
           context: ${{ inputs.docker-build-context }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ inputs.aws-region-ecr }}
           github-token: ${{ steps.token.outputs.access-token || '' }}
 
   docker-manifest:
@@ -394,7 +400,7 @@ jobs:
               format(
                 '{0}.dkr.ecr.{1}.amazonaws.com',
                 secrets.AWS_ACCOUNT_ID,
-                secrets.AWS_REGION
+                inputs.aws-region-ecr
               )
             }}
           docker-repository-name: ${{ inputs.aws-ecr-name }}
@@ -411,4 +417,4 @@ jobs:
           github-workflow-repository: ${{ inputs.github-workflow-repository }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ inputs.aws-region-ecr }}
