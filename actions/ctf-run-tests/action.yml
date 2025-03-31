@@ -422,7 +422,7 @@ runs:
       if: failure() && inputs.flakeguard_enable == 'true'
       uses: actions/upload-artifact@v4
       with:
-        name: flakeguard_raw_output
+        name: ${{ inputs.artifacts_name }}_flakeguard_raw_output
         path: flakeguard_raw_output
 
     - name: Collect local GAP (Envoy) proxy logs
