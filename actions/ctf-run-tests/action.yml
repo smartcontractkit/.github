@@ -13,6 +13,10 @@ inputs:
   test_command_to_run:
     required: true
     description: The command to run the tests
+  test_go_project_path:
+    required: false
+    description: The path to the go project with the tests
+    default: .
   test_download_vendor_packages_command:
     required: false
     description: The command to download the go modules
@@ -194,6 +198,18 @@ inputs:
     required: false
     description: Number of times to re-run tests under flakeguard
     default: "3"
+  flakeguard_rerun_failed_count:
+    required: false
+    description: Number of times to re-run failed tests under flakeguard
+    default: "0"
+  flakeguard_main_results_path:
+    required: false
+    description: Path to the main results file for flakeguard
+    default: "main/flakeguard_results.json"
+  flakeguard_rerun_results_path:
+    required: false
+    description: Path to the rerun results file for flakeguard
+    default: "rerun/flakeguard_results.json"
   prod_aws_region:
     required: false
     description: The AWS region to use for prod ECR
@@ -342,7 +358,7 @@ runs:
         GO_COVERAGE_DEST_DIR: ${{ inputs.go_coverage_dest_dir }}
       run: |
         # Install Flakeguard
-        go install github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@1e85367aeb99e88fa266d93312a6420a1a8a2cab
+        go install github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@b08cab0f49aa13d5adb849554b56086f4dba8984
         PATH=$PATH:$(go env GOPATH)/bin
         export PATH
 
@@ -350,14 +366,20 @@ runs:
         # Handle bots as users
         export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}
 
+        # Install gotestsum to parse JSON test outputs from flakeguard to console outputs
+        go install gotest.tools/gotestsum@latest
+
         flakeguard run \
           --ignore-parent-failures-on-subtests=true \
+          --rerun-failed-count=${{ inputs.flakeguard_rerun_failed_count }} \
+          --project-path=${{ inputs.test_go_project_path }} \
           --test-cmd bash \
           --test-cmd -c \
           --test-cmd '${{ inputs.test_command_to_run }}' \
           --run-count=${{ inputs.flakeguard_run_count }} \
           --omit-test-outputs-on-success=true \
-          --main-results-path=flakeguard_results.json
+          --main-results-path=${{ inputs.flakeguard_main_results_path }} \
+          --rerun-results-path=${{ inputs.flakeguard_rerun_results_path }}
 
     - name: Run Tests Without Flakeguard
       if: inputs.flakeguard_enable != 'true'
@@ -374,6 +396,14 @@ runs:
         export PATH
         export TEST_TRIGGERED_BY=${{ inputs.triggered_by }}-${{ github.event.pull_request.number || github.run_id }}
         export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}
+
+        # If 'test_go_project_path' is provided and not empty, cd into it
+        if [ -n "${{ inputs.test_go_project_path }}" ]; then
+          echo "Changing directory to ${{ inputs.test_go_project_path }}"
+          cd "${{ inputs.test_go_project_path }}"
+        fi
+                
+        # Run the test command
         ${{ inputs.test_command_to_run }} 2>&1 | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage -hidepassingtests=false
 
     - name: Publish Artifacts
@@ -382,6 +412,13 @@ runs:
       with:
         name: ${{ inputs.artifacts_name }}
         path: ${{ inputs.artifacts_location }}
+
+    - name: Upload Flakeguard raw test outputs
+      if: failure() && inputs.flakeguard_enable == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifacts_name }}_flakeguard_raw_output
+        path: flakeguard_raw_output
 
     - name: Collect local GAP (Envoy) proxy logs
       if:

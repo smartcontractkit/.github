@@ -297,6 +297,8 @@ env:
     ${{ fromJSON(inputs.extraArgs)['flakeguard_max_pass_ratio'] || '1.0' }}
   FLAKEGUARD_RUN_COUNT:
     ${{ fromJSON(inputs.extraArgs)['flakeguard_run_count'] || '3' }}
+  FLAKEGUARD_RERUN_FAILED_COUNT:
+    ${{ fromJSON(inputs.extraArgs)['flakeguard_rerun_failed_count'] || '0' }}
   DOCKER_TESTS_TIMEOUT_MINUTES:
     ${{ fromJSON(inputs.extraArgs)['docker_tests_timeout_minutes'] || 60 }}
 
@@ -372,10 +374,10 @@ jobs:
         id: set-required-chainlink-plugin-versions-matrix
         shell: bash
         env:
-          REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR:
-            ${{ inputs.require_chainlink_image_versions_in_qa_ecr }}
+          REQUIRED_VERSIONS:
+            ${{ inputs.require_chainlink_plugin_versions_in_qa_ecr }}
         run: |
-          image_versions=$(echo "$REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
+          image_versions=$(echo "$REQUIRED_VERSIONS" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
           echo "Required Chainlink plugin image versions: $image_versions"
           echo "versions=$image_versions" >> "$GITHUB_OUTPUT"
 
@@ -392,7 +394,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@83100a879006dde55ace09a5dfd99b37e62f5a3f # v1.34.4
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@b08cab0f49aa13d5adb849554b56086f4dba8984 # v1.34.4
       - name: Run Check Tests Command
         env:
           TEST_PATH: ${{ inputs.test_path }}
@@ -449,7 +451,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@83100a879006dde55ace09a5dfd99b37e62f5a3f # v1.34.4
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@b08cab0f49aa13d5adb849554b56086f4dba8984 # v1.34.4
       - name: Install jq
         run: sudo apt-get install jq
 
@@ -839,7 +841,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ fromJson(env.DOCKER_TESTS_TIMEOUT_MINUTES) }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@987f6401bbef0f86f6916f9b958b617a202b0037 # ctf-run-tests@v0.6.2
+        uses: smartcontractkit/.github/actions/ctf-run-tests@30b46ee5e5a5be9ae091fda296bbef605df01afd # ctf-run-tests@v0.6.2
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION:
@@ -865,6 +867,11 @@ jobs:
         with:
           flakeguard_enable: ${{ env.FLAKEGUARD_ENABLE }}
           flakeguard_run_count: ${{ env.FLAKEGUARD_RUN_COUNT }}
+          flakeguard_rerun_failed_count:
+            ${{ env.FLAKEGUARD_RERUN_FAILED_COUNT }}
+          flakeguard_main_results_path: ./flakeguard_run_results/main/flakeguard_results.json
+          flakeguard_rerun_results_path: ./flakeguard_run_results/rerun/flakeguard_results.json
+          test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run:
             ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command:
@@ -962,6 +969,7 @@ jobs:
           echo "{\"id\": \"$id\", \"result\": \"$result\"}" > test_result.json
 
       - name: Upload test result as artifact
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4.4.3
         with:
           name:
@@ -970,15 +978,26 @@ jobs:
           path: test_result.json
           retention-days: 1
 
-      - name: Upload Flakeguard test results as artifact
+      - name: Upload Flakeguard Main Run Results
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         uses: actions/upload-artifact@v4.4.3
         with:
           name:
-            flakeguard_results_${{
+            flakeguard_main_run_results_${{
             needs.load-test-configurations.outputs.workflow_id }}_${{
             env.TEST_ID }}
-          path: flakeguard_results.json
+          path: flakeguard_run_results/main/*
+          retention-days: 1
+
+      - name: Upload Flakeguard Rerun Results
+        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name:
+            flakeguard_rerun_results_${{
+            needs.load-test-configurations.outputs.workflow_id }}_${{
+            env.TEST_ID }}
+          path: flakeguard_run_results/rerun/*
           retention-days: 1
 
       - name: Upload custom test artifacts
@@ -1142,7 +1161,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@987f6401bbef0f86f6916f9b958b617a202b0037 # ctf-run-tests@v0.6.2
+        uses: smartcontractkit/.github/actions/ctf-run-tests@30b46ee5e5a5be9ae091fda296bbef605df01afd # ctf-run-tests@v0.6.2
         env:
           DETACH_RUNNER: true
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
@@ -1287,16 +1306,19 @@ jobs:
           fi
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@a778ea5c4ca7bb307169acae03ef596d78911759 # ctf-run-tests@v0.6.2
+        uses: smartcontractkit/.github/actions/ctf-run-tests@30b46ee5e5a5be9ae091fda296bbef605df01afd # ctf-run-tests@v0.6.2
         env:
           CL_DATABASE_URL: ${{ env.DB_URL }}
         with:
           flakeguard_enable: ${{ env.FLAKEGUARD_ENABLE }}
           flakeguard_run_count: ${{ env.FLAKEGUARD_RUN_COUNT }}
+          flakeguard_rerun_failed_count:
+            ${{ env.FLAKEGUARD_RERUN_FAILED_COUNT }}
+          flakeguard_main_results_path: ./flakeguard_run_results/main/flakeguard_results.json
+          flakeguard_rerun_results_path: ./flakeguard_run_results/rerun/flakeguard_results.json
+          test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run:
-            ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1
-            | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage
-            -hidepassingtests=false' }}
+            ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command:
             cd $(dirname ${{ matrix.tests.path }}) && go mod download
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
@@ -1340,95 +1362,196 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Download Flakeguard artifacts
+      - name: Download All Flakeguard Main Run Results
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         uses: actions/download-artifact@v4.1.8
         with:
-          path: flakeguard_results
+          path: flakeguard_main_results
           pattern:
-            flakeguard_results_${{
+            flakeguard_main_run_results_${{
+            needs.load-test-configurations.outputs.workflow_id }}_*
+
+      - name: Download All Flakeguard Rerun Results
+        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
+        uses: actions/download-artifact@v4.1.8
+        with:
+          path: flakeguard_rerun_results
+          pattern:
+            flakeguard_rerun_results_${{
             needs.load-test-configurations.outputs.workflow_id }}_*
 
       - name: Install flakeguard
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@1e85367aeb99e88fa266d93312a6420a1a8a2cab # flakguard@0.1.0
+          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@b08cab0f49aa13d5adb849554b56086f4dba8984 # flakguard@0.1.0
 
-      - name: Generate Flakeguard Report
+      - name: Generate Flakeguard Reports
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         id: results
         shell: bash
         env:
+          # Directories where your test results may be
+          MAIN_RESULTS_DIR: "./flakeguard_main_results"
+          RERUN_RESULTS_DIR: "./flakeguard_rerun_results"
+          # Each directory's output
+          MAIN_REPORT_OUTPUT_PATH: "./flakeguard_run_report/main"
+          RERUN_REPORT_OUTPUT_PATH: "./flakeguard_run_report/rerun"
           GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          # If needed, override HEAD_REF or REF_NAME
+          GH_HEAD_REF: ${{ github.head_ref || github.ref_name }}
         run: |
-          # Create test results folder if it doesn't exist
-          mkdir -p flakeguard_results
+          #!/usr/bin/env bash
+          set -euo pipefail
 
-          # Fix flakeguard binary path
-          PATH="$PATH:$(go env GOPATH)/bin"
-          export PATH
+          # ------------------------------------------------------------------------------
+          # Ensure flakeguard is on the PATH (assuming installed via 'go install')
+          # ------------------------------------------------------------------------------
+          export PATH="$PATH:$(go env GOPATH)/bin"
 
-          git_head_sha=$(git rev-parse HEAD)
-          git_head_short_sha=$(git rev-parse --short HEAD)
+          # ------------------------------------------------------------------------------
+          # Required environment variables
+          # ------------------------------------------------------------------------------
+          : "${MAIN_RESULTS_DIR:?Environment variable MAIN_RESULTS_DIR must be set}"
+          : "${RERUN_RESULTS_DIR:?Environment variable RERUN_RESULTS_DIR must be set}"
+          : "${MAIN_REPORT_OUTPUT_PATH:?Environment variable MAIN_REPORT_OUTPUT_PATH must be set}"
+          : "${RERUN_REPORT_OUTPUT_PATH:?Environment variable RERUN_REPORT_OUTPUT_PATH must be set}"
+          : "${GH_INPUTS_MAX_PASS_RATIO:?Environment variable GH_INPUTS_MAX_PASS_RATIO must be set}"
+          : "${GITHUB_WORKSPACE:?Environment variable GITHUB_WORKSPACE must be set}"
+          : "${GITHUB_REPOSITORY:?Environment variable GITHUB_REPOSITORY must be set}"
+          : "${GITHUB_WORKFLOW:?Environment variable GITHUB_WORKFLOW must be set}"
+          : "${GITHUB_SERVER_URL:?Environment variable GITHUB_SERVER_URL must be set}"
+          : "${GITHUB_RUN_ID:?Environment variable GITHUB_RUN_ID must be set}"
 
-          # Aggregate Flakeguard test results
-          flakeguard generate-test-report \
-            --test-results-dir ./flakeguard_results \
-            --output-path ./flakeguard-report \
-            --repo-path "${{ github.workspace }}" \
-            --codeowners-path "${{ github.workspace }}/.github/CODEOWNERS" \
-            --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO" \
-            --repo-url "https://github.com/${{ github.repository }}" \
-            --github-workflow-name "${{ github.workflow }}" \
-            --github-workflow-run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            --branch-name "${{ github.head_ref || github.ref_name }}" \
-            --head-sha "$git_head_sha" \
+          # If the branch name is passed in, we'll use it; otherwise fallback or leave empty
+          : "${GH_HEAD_REF:=${GITHUB_REF_NAME:-}}"
+
+          # GITHUB_STEP_SUMMARY / GITHUB_OUTPUT can be defined by GitHub automatically,
+          # but if they're not set, we define a fallback.
+          : "${GITHUB_STEP_SUMMARY:=${GITHUB_WORKSPACE}/step_summary.txt}"
+          : "${GITHUB_OUTPUT:=${GITHUB_WORKSPACE}/github_output.txt}"
+
+          echo "--------------------------------------------------------------------------------"
+          echo "Flakeguard Report Generation"
+          echo "--------------------------------------------------------------------------------"
+          echo "MAIN_RESULTS_DIR           : $MAIN_RESULTS_DIR"
+          echo "RERUN_RESULTS_DIR          : $RERUN_RESULTS_DIR"
+          echo "MAIN_REPORT_OUTPUT_PATH    : $MAIN_REPORT_OUTPUT_PATH"
+          echo "RERUN_REPORT_OUTPUT_PATH   : $RERUN_REPORT_OUTPUT_PATH"
+          echo "GH_INPUTS_MAX_PASS_RATIO   : $GH_INPUTS_MAX_PASS_RATIO"
+          echo "GITHUB_WORKSPACE           : $GITHUB_WORKSPACE"
+          echo "GITHUB_REPOSITORY          : $GITHUB_REPOSITORY"
+          echo "GITHUB_WORKFLOW            : $GITHUB_WORKFLOW"
+          echo "GITHUB_SERVER_URL          : $GITHUB_SERVER_URL"
+          echo "GITHUB_RUN_ID              : $GITHUB_RUN_ID"
+          echo "GH_HEAD_REF                : $GH_HEAD_REF"
+          echo "--------------------------------------------------------------------------------"
+
+          # ------------------------------------------------------------------------------
+          # Generate a UUID for the main report
+          # ------------------------------------------------------------------------------
+          MAIN_REPORT_ID=$(uuidgen)
+          echo "Using Main Report ID: $MAIN_REPORT_ID"
+
+          # Ensure the results directories exist (even if empty)
+          mkdir -p "$MAIN_RESULTS_DIR"
+
+          # ------------------------------------------------------------------------------
+          # Helper function: generate a Flakeguard test report for a given dir -> output file
+          #   - Accepts extra parameters (e.g., --report-id, --gen-report-id, --rerun-of-report-id)
+          # ------------------------------------------------------------------------------
+          generate_report() {
+            local results_dir="$1"
+            local output_path="$2"
+            shift 2
+            # The remaining arguments ($@) will be passed directly to `flakeguard generate-test-report`
+
+            # Check if directory exists and is non-empty
+            if [ -d "$results_dir" ]; then
+              echo "Generating Flakeguard report from '$results_dir' => '$output_path'..."
+
+              flakeguard generate-test-report \
+                --test-results-dir "$results_dir" \
+                --output-path "$output_path" \
+                --repo-path "$GITHUB_WORKSPACE" \
+                --codeowners-path "$GITHUB_WORKSPACE/.github/CODEOWNERS" \
+                --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO" \
+                --repo-url "https://github.com/$GITHUB_REPOSITORY" \
+                --github-workflow-name "$GITHUB_WORKFLOW" \
+                --github-workflow-run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+                --branch-name "$GH_HEAD_REF" \
+                --head-sha "$(git rev-parse HEAD)" \
+                "$@"  # pass along extra flags
+
+              local exit_code=$?
+              if [ "$exit_code" -eq 2 ]; then
+                echo "ERROR: Flakeguard encountered an error generating results from '$results_dir'"
+                echo "ERROR: Flakeguard encountered an error generating results from '$results_dir'" >> "$GITHUB_STEP_SUMMARY"
+                exit 2
+              elif [ "$exit_code" -ne 0 ]; then
+                echo "ERROR: Flakeguard failed (exit=$exit_code) for '$results_dir'"
+                exit "$exit_code"
+              fi
+            else
+              echo "Directory '$results_dir' does not exist. Skipping."
+            fi
+          }
+
+          # ------------------------------------------------------------------------------
+          # 1) Generate the "main" report (use explicit --report-id)
+          # ------------------------------------------------------------------------------
+          generate_report "$MAIN_RESULTS_DIR" "$MAIN_REPORT_OUTPUT_PATH" \
+            --report-id "$MAIN_REPORT_ID"
+
+          # ------------------------------------------------------------------------------
+          # 2) Generate the "rerun" report (use --gen-report-id + --rerun-of-report-id)
+          # ------------------------------------------------------------------------------
+          generate_report "$RERUN_RESULTS_DIR" "$RERUN_REPORT_OUTPUT_PATH" \
             --gen-report-id \
+            --rerun-of-report-id "$MAIN_REPORT_ID"
 
-          EXIT_CODE=$?
-          if [ "$EXIT_CODE" -eq 2 ]; then
-            echo "ERROR: Flakeguard encountered an error while aggregating results"
-            echo "ERROR: Flakeguard encountered an error while aggregating results" >> "$GITHUB_STEP_SUMMARY"
-            exit "$EXIT_CODE"
+          # ------------------------------------------------------------------------------
+          # Print summary for each report (if it exists) and store in GITHUB_OUTPUT
+          # ------------------------------------------------------------------------------
+          if [ -f "$MAIN_REPORT_OUTPUT_PATH" ]; then
+            echo -e "\nFlakeguard Summary from '$MAIN_REPORT_OUTPUT_PATH':"
+            jq .summary_data "$MAIN_REPORT_OUTPUT_PATH" || true
+
+            main_summary="$(jq -c '.summary_data' "$MAIN_REPORT_OUTPUT_PATH" 2>/dev/null || echo '{}')"
+            echo "main_summary=$main_summary" >> "$GITHUB_OUTPUT"
           fi
 
-          # Print out the summary file
-          echo -e "\nFlakeguard Summary:"
-          jq .summary_data ./flakeguard-report/all-test-report.json
+          if [ -f "$RERUN_REPORT_OUTPUT_PATH" ]; then
+            echo -e "\nFlakeguard Summary from '$RERUN_REPORT_OUTPUT_PATH':"
+            jq .summary_data "$RERUN_REPORT_OUTPUT_PATH" || true
 
-          # Read the summary from the generated report
-          summary=$(jq -c '.summary_data' ./flakeguard-report/all-test-report.json)
-          echo "summary=$summary" >> $GITHUB_OUTPUT
+            rerun_summary="$(jq -c '.summary_data' "$RERUN_REPORT_OUTPUT_PATH" 2>/dev/null || echo '{}')"
+            echo "rerun_summary=$rerun_summary" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "All done."
+          exit 0
 
       - name: Upload Test Report as Artifact
-        if:
-          ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) &&
-          fromJSON(steps.results.outputs.summary).failed_runs > 0 }}
+        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
         uses: actions/upload-artifact@v4
         with:
-          path: ./flakeguard-report
+          path: ./flakeguard_run_report
+          name: flakeguard_report
           retention-days: 14
 
-      - name: Upload Failed Test Report as Artifact
-        if:
-          ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) &&
-          fromJSON(steps.results.outputs.summary).failed_runs > 0 }}
-        uses: actions/upload-artifact@v4
-        with:
-          path: ./flakeguard-report/failed-test-report.json
-          name: failed-test-report.json
-          retention-days: 90
-
-      - name: Upload Failed Test Report With Logs as Artifact
+      - name: Upload Failed Main Test Report With Logs as Artifact
         id: upload-failed-report-with-logs
-        if:
-          ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) &&
-          fromJSON(steps.results.outputs.summary).failed_runs > 0 }}
+        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
         uses: actions/upload-artifact@v4.4.3
         with:
-          path: ./flakeguard-report/failed-test-report-with-logs.json
-          name: failed-test-report-with-logs.json
+          path: ./flakeguard_run_report/main/failed-test-report-with-logs.json
+          name: failed-main-test-report-with-logs.json
           retention-days: 90
 
       - name: Send Flakeguard Results to Splunk
@@ -1436,80 +1559,147 @@ jobs:
         if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
         id: generate-report
         env:
+          MAIN_REPORT_PATH: "./flakeguard_run_report/main/all-test-report.json"
+          RERUN_REPORT_PATH: "./flakeguard_run_report/rerun/all-test-report.json"
+          FAILED_LOGS_URL:
+            ${{ steps.upload-failed-report-with-logs.outputs.artifact-url }}
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
           GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
-          GH_EVENT_NAME: ${{ github.event_name }}
           GH_EVENT_PULL_REQUEST_BASE_REF:
             ${{ github.event.pull_request.base.ref }}
           GH_EVENT_PULL_REQUEST_HEAD_SHA:
             ${{ github.event.pull_request.head.sha }}
+          FLAKEGUARD_SPLUNK_ENDPOINT: ${{ secrets.FLAKEGUARD_SPLUNK_ENDPOINT }}
+          FLAKEGUARD_SPLUNK_HEC: ${{ secrets.FLAKEGUARD_SPLUNK_HEC }}
         run: |
-          # Fix flakeguard binary path
-          PATH=$PATH:$(go env GOPATH)/bin
-          export PATH
+          set -euo pipefail
 
-          echo "Artifact URL: ${{ steps.upload-failed-report-with-logs.outputs.artifact-url }}"
+          # Ensure flakeguard is on PATH
+          export PATH="$PATH:$(go env GOPATH)/bin"
 
-          # Send the aggregated test report to Splunk
-          flakeguard send-to-splunk \
-            --report-path ./flakeguard-report/all-test-report.json \
-            --failed-logs-url "${{ steps.upload-failed-report-with-logs.outputs.artifact-url }}" \
-            --splunk-url "${{ secrets.FLAKEGUARD_SPLUNK_ENDPOINT }}" \
-            --splunk-token "${{ secrets.FLAKEGUARD_SPLUNK_HEC }}" \
-            --splunk-event "${{ github.event_name }}"
-          EXIT_CODE=$?
-          if [ $EXIT_CODE -ne 0 ]; then
-            echo "ERROR: Flakeguard encountered an error while sending report to Splunk"
-            exit $EXIT_CODE
-          fi
+          # ----------------------------------------------------------------------------
+          # Ensure required environment variables are set
+          # ----------------------------------------------------------------------------
+          : "${FLAKEGUARD_SPLUNK_ENDPOINT:?Environment variable FLAKEGUARD_SPLUNK_ENDPOINT must be set}"
+          : "${FLAKEGUARD_SPLUNK_HEC:?Environment variable FLAKEGUARD_SPLUNK_HEC must be set}"
+          : "${GITHUB_EVENT_NAME:?Environment variable GITHUB_EVENT_NAME must be set}"
+          : "${MAIN_REPORT_PATH:?Environment variable MAIN_REPORT_PATH must be set}"
+          # : "${RERUN_REPORT_PATH:?Environment variable RERUN_REPORT_PATH must be set}"
+
+          echo "Using Flakeguard Splunk Endpoint: $FLAKEGUARD_SPLUNK_ENDPOINT"
+          echo "Using GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME"
+          echo "Failed Logs URL: $FAILED_LOGS_URL"
+          echo "Main report path: $MAIN_REPORT_PATH"
+          echo "Rerun report path: $RERUN_REPORT_PATH"
+
+          # ----------------------------------------------------------------------------
+          # Helper function: send a single report if it exists
+          # ----------------------------------------------------------------------------
+          send_report_to_splunk() {
+            local report_path="$1"
+
+            echo "Checking if report exists: $report_path"
+            if [ -f "$report_path" ]; then
+              echo "Sending report to Splunk: $report_path"
+              flakeguard send-to-splunk \
+                --report-path "$report_path" \
+                --failed-logs-url "${FAILED_LOGS_URL}" \
+                --splunk-url "${FLAKEGUARD_SPLUNK_ENDPOINT}" \
+                --splunk-token "${FLAKEGUARD_SPLUNK_HEC}" \
+                --splunk-event "${GITHUB_EVENT_NAME}"
+
+              local exit_code=$?
+              if [ "$exit_code" -ne 0 ]; then
+                echo "ERROR: Flakeguard encountered an error sending report '$report_path' to Splunk"
+                exit "$exit_code"
+              fi
+            else
+              echo "File not found at '$report_path'. Skipping."
+            fi
+          }
+
+          # ----------------------------------------------------------------------------
+          # Attempt to send the main and rerun reports
+          # ----------------------------------------------------------------------------
+          send_report_to_splunk "$MAIN_REPORT_PATH"
+          send_report_to_splunk "$RERUN_REPORT_PATH"
+
+          # ----------------------------------------------------------------------------
+          # If we get here, any existing reports were sent successfully
+          # ----------------------------------------------------------------------------
+          echo "All done!"
+          exit 0
 
       - name: Generate Flakeguard Github Reports
         shell: bash
         if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
         env:
+          MAIN_REPORT_PATH: "./flakeguard_run_report/main/all-test-report.json"
+          SUMMARY_MD_PATH: "./flakeguard_run_report/main/all-test-summary.md"
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GH_HEAD_REF: ${{ github.head_ref || github.ref_name }}
           GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
           GH_EVENT_NAME: ${{ github.event_name }}
           GH_EVENT_PULL_REQUEST_BASE_REF:
             ${{ github.event.pull_request.base.ref }}
           GH_EVENT_PULL_REQUEST_HEAD_SHA:
             ${{ github.event.pull_request.head.sha }}
+          FAILED_LOGS_URL:
+            ${{ steps.upload-failed-report-with-logs.outputs.artifact-url }}
         run: |
-          # Fix flakeguard binary path
-          PATH=$PATH:$(go env GOPATH)/bin
-          export PATH
+          #!/usr/bin/env bash
+          set -euo pipefail
 
+          # Fix flakeguard binary path
+          export PATH="$PATH:$(go env GOPATH)/bin"
+
+          # Ensure required environment variables are set
+          : "${GITHUB_REPOSITORY:?Environment variable GITHUB_REPOSITORY must be set}"
+          : "${GITHUB_RUN_ID:?Environment variable GITHUB_RUN_ID must be set}"
+          : "${GH_HEAD_REF:?Environment variable GH_HEAD_REF must be set}"
+          : "${GH_INPUTS_MAX_PASS_RATIO:?Environment variable GH_INPUTS_MAX_PASS_RATIO must be set}"
+          : "${MAIN_REPORT_PATH:?Environment variable MAIN_REPORT_PATH must be set}"
+          : "${SUMMARY_MD_PATH:?Environment variable SUMMARY_MD_PATH must be set}"
+
+          # Run flakeguard command
           flakeguard generate-github-report \
-            --flakeguard-report ./flakeguard-report/all-test-report.json \
-            --summary-report-md-path ./flakeguard-report/all-test-summary.md \
-            --failed-logs-url "${{ steps.upload-failed-report-with-logs.outputs.artifact-url }}" \
-            --github-repository "${{ github.repository }}" \
-            --github-run-id "${{ github.run_id }}" \
-            --current-branch "${{ github.head_ref }}" \
-            --repo-url "https://github.com/${{ github.repository }}" \
-            --action-run-id "${{ github.run_id }}" \
-            --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO"
+            --flakeguard-report "${MAIN_REPORT_PATH}" \
+            --summary-report-md-path "${SUMMARY_MD_PATH}" \
+            --failed-logs-url "${FAILED_LOGS_URL:-}" \
+            --github-repository "${GITHUB_REPOSITORY:-}" \
+            --github-run-id "${GITHUB_RUN_ID:-}" \
+            --current-branch "${GH_HEAD_REF:-}" \
+            --repo-url "https://github.com/${GITHUB_REPOSITORY:-}" \
+            --action-run-id "${GITHUB_RUN_ID:-}" \
+            --max-pass-ratio "${GH_INPUTS_MAX_PASS_RATIO:-}"
 
           EXIT_CODE=$?
-          if [ $EXIT_CODE -eq 2 ]; then
+          if [ "$EXIT_CODE" -eq 2 ]; then
             echo "ERROR: Flakeguard encountered an error while generating reports"
-            echo "ERROR: Flakeguard encountered an error while generating reports" >> $GITHUB_STEP_SUMMARY
-            exit $EXIT_CODE
+            # Append the same message to the step summary
+            if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+              echo "ERROR: Flakeguard encountered an error while generating reports" >> "$GITHUB_STEP_SUMMARY"
+            fi
+            exit 2
           fi
 
-      - name: Add Github Summary
+          exit "$EXIT_CODE"
+
+      - name: Add Github Summary For Main Flakeguard Report
         if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
         run: |
-          FILE_SIZE=$(wc -c < ./flakeguard-report/all-test-summary.md)
+          FILE_SIZE=$(wc -c < ./flakeguard_run_report/main/all-test-summary.md)
                     echo "File size: $FILE_SIZE bytes"
           SIZE_LIMIT=$((1024 * 1024))
 
           if [ "$FILE_SIZE" -le "$SIZE_LIMIT" ]; then
-            cat ./flakeguard-report/all-test-summary.md >> $GITHUB_STEP_SUMMARY
+            cat ./flakeguard_run_report/main/all-test-summary.md >> $GITHUB_STEP_SUMMARY
           else
             echo "**We found flaky tests, so many flaky tests that the summary is too large for github actions step summaries!**" >> $GITHUB_STEP_SUMMARY
             echo "**Please see logs, or the attached `all-test-summary.md` artifact**" >> $GITHUB_STEP_SUMMARY
-            cat ./flakeguard-report/all-test-summary.md
+            cat ./flakeguard_run_report/main/all-test-summary.md
           fi
 
       - name: Download all test result artifacts
