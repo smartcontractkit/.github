@@ -53,6 +53,8 @@ configuration file:
   branches being updated, or scheduled events like nightly builds.
 - **Test Command (`test_cmd`)**: The exact command line to execute the tests,
   detailing paths, flags, and parameters necessary to run the tests.
+- **Test Go Project Path (`test_go_project_path`)**: Path to go project
+  containing tests. The `test_cmd` will run in this folder.
 - **Test Environment Variables (`test_env_vars`)**: A set of environment
   variables specific to the test environment that can be used to customize or
   configure the test execution environment dynamically.
@@ -74,8 +76,8 @@ configuration file:
     - Merge Queue E2E Core Tests
     - Nightly E2E Tests
   test_cmd:
-    cd integration-tests/ && go test smoke/ocr_test.go -timeout 30m -count=1
-    -test.parallel=2 -json
+    go test smoke/ocr_test.go -timeout 30m -count=1 -test.parallel=2 -json
+  test_go_project_path: integration-tests
   pyroscope_env: ci-smoke-ocr-evm-simulated
 ```
 
@@ -87,11 +89,12 @@ configuration file:
   test_env_type: k8s-remote-runner
   runs_on: ubuntu-latest
   test_cmd:
-    cd integration-tests/ && go test soak/ocr_test.go -v -test.run
-    ^TestOCRv1Soak$ -test.parallel=1 -timeout 900h -count=1 -json
+    go test soak/ocr_test.go -v -test.run ^TestOCRv1Soak$ -test.parallel=1
+    -timeout 900h -count=1 -json
   test_cmd_opts:
     2>&1 | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage
     -hidepassingtests=false
+  test_go_project_path: integration-tests
   test_env_vars:
     TEST_SUITE: soak
 ```
