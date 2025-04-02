@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 8.8.0
+
+### Minor Changes
+
+- [#986](https://github.com/smartcontractkit/.github/pull/986)
+  [`0269342`](https://github.com/smartcontractkit/.github/commit/0269342ff9882522252772334a7dcdb7e39ac551)
+  Thanks [@chainchad](https://github.com/chainchad)! - Bump for latest version
+  of setup-gap dep
+
 ## 8.7.0
 
 ### Minor Changes
