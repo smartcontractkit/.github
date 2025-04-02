@@ -188,7 +188,7 @@ runs:
         echo "websockets-services=${websockets_services}" | tee -a "$GITHUB_OUTPUT"
 
     - name: Setup GAP
-      uses: smartcontractkit/.github/actions/setup-gap@b969c2d42c15e937e2f94cc0e050f39cd5369f4f # setup-gap@4.0.0
+      uses: smartcontractkit/.github/actions/setup-gap@f2d17705e345db78d68662e6fb3afcfc0a313a47 # setup-gap@4.2.0
       env:
         WEBSOCKETS_SERVICES:
           "${{ steps.set-websockets-services.outputs.websockets-services }}"
