@@ -146,6 +146,10 @@ end
 function envoy_on_request(request_handle)
     -- Get the host/authority from the request headers
     local host = request_handle:headers():get(":authority")
+    request_handle:logInfo(log_prefix .. "Host: " .. (host or "nil"))
+    request_handle:logInfo(log_prefix .. "Main DNS Zone: " .. (main_dns_zone or "nil"))
+
+
 
     -- Check if the host matches the allowed patterns
     if host and (host:find(escaped_main_dns_zone .. "$") or host:find(escaped_main_dns_zone .. ":%d+$") or host:find("^localhost")) then
