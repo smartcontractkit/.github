@@ -1,5 +1,14 @@
 # setup-postgres
 
+## 0.2.0
+
+### Minor Changes
+
+- [#988](https://github.com/smartcontractkit/.github/pull/988)
+  [`d6f096b`](https://github.com/smartcontractkit/.github/commit/d6f096b9e1d43e8ac835bc5f1d0d84bb9ae40de5)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: allow enabling of
+  tmpfs/ramdisk
+
 ## 0.1.0
 
 ### Minor Changes
