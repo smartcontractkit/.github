@@ -5,7 +5,13 @@ services:
       - "5432:5432"
     container_name: cl_pg
     image: postgres:14-alpine
-    command: postgres ${POSTGRES_OPTIONS}
+    command: >
+      postgres -c max_connections=${POSTGRES_MAX_CONNECTIONS} -c
+      shared_buffers=${POSTGRES_SHARED_BUFFERS} -c
+      effective_cache_size=${POSTGRES_EFFECTIVE_CACHE_SIZE} -c
+      log_lock_waits=${POSTGRES_LOG_LOCK_WAITS} -c fsync=${POSTGRES_FSYNC} -c
+      synchronous_commit=${POSTGRES_SYNCHRONOUS_COMMIT} -c
+      checkpoint_timeout=${POSTGRES_CHECKPOINT_TIMEOUT}
     env_file:
       - .env
     healthcheck:

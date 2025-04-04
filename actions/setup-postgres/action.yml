@@ -14,9 +14,18 @@ inputs:
       The directory to print the logs to.
       Note: This input does nothing if `print-logs` is not set to true.
     default: ${{ github.workspace }}
+
+  # Postgres specific inputs, tunes performance
   tmpfs:
     description: |
       Whether to use a tmpfs mount for the postgres data directory.
+    default: "false"
+    required: false
+  optimize-performance:
+    description: |
+      Whether to optimize the postgres performance settings based on the host resources.
+      This sets a few parameters that greatly favour performance over durability.
+      Only use in CI or local testing environments.
     default: "false"
     required: false
 
@@ -30,9 +39,26 @@ runs:
   steps:
     - name: Print Inputs
       shell: bash
+      env:
+        INPUTS_PRINT_LOGS: ${{ inputs.print-logs }}
+        INPUTS_PRINT_LOGS_PATH: ${{ inputs.print-logs-path }}
+        INPUTS_TMPFS: ${{ inputs.tmpfs }}
+        INPUTS_OPTIMIZE_PERFORMANCE: ${{ inputs.optimize-performance }}
       run: |
-        echo "print-logs: ${{ inputs.print-logs }}"
-        echo "print-logs-path: ${{ inputs.print-logs-path }}"
+        echo "Print Logs: $INPUTS_PRINT_LOGS"
+        echo "Print Logs Path: $INPUTS_PRINT_LOGS_PATH"
+
+        echo "Use tmpfs: $INPUTS_TMPFS"
+        echo "Optimize performance: $INPUTS_OPTIMIZE_PERFORMANCE"
+
+    - name: Configure Postgres Settings Based on Host Resources
+      if:
+        ${{ inputs.print-logs != 'true' && inputs.optimize-performance == 'true'
+        }}
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        ./optimize.sh
 
     - name: Start postgres service
       if: ${{ inputs.print-logs != 'true' }}
@@ -45,6 +71,9 @@ runs:
           echo "Using tmpfs mount for postgres data directory"
           cp docker-compose.tmpfs.yml docker-compose.override.yml
         fi
+
+        echo "-- Docker Compose config --"
+        docker compose config
 
         docker compose up -d
 

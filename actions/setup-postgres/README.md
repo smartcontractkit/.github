@@ -33,3 +33,19 @@ directory (absolute path).
         print-logs: 'true'
         print-logs-path: ${{ github.workspace }}
 ```
+
+## Performance
+
+Use `tmpfs` (true/false) and `optimize-performance` (true/false) to optimize the
+performance of this **testing** database.
+
+### tmpfs
+
+Uses a `tmpfs` (ram disk) for the postgres database.
+
+### optimize-performance
+
+Attempts to maximize performance (reducing durability) based on the current
+runner's resources.
+
+See `optimize.sh` for more information.
