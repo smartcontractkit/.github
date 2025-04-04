@@ -14,6 +14,11 @@ inputs:
       The directory to print the logs to.
       Note: This input does nothing if `print-logs` is not set to true.
     default: ${{ github.workspace }}
+  tmpfs:
+    description: |
+      Whether to use a tmpfs mount for the postgres data directory.
+    default: "false"
+    required: false
 
 outputs:
   database-url:
@@ -33,7 +38,15 @@ runs:
       if: ${{ inputs.print-logs != 'true' }}
       shell: bash
       working-directory: ${{ github.action_path }}
-      run: docker compose up -d
+      env:
+        USE_TMPFS: ${{ inputs.tmpfs }}
+      run: |
+        if [ "${USE_TMPFS}" == "true" ]; then
+          echo "Using tmpfs mount for postgres data directory"
+          cp docker-compose.tmpfs.yml docker-compose.override.yml
+        fi
+
+        docker compose up -d
 
     - name: Wait for postgres service to be healthy
       if: ${{ inputs.print-logs != 'true' }}
