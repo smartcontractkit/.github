@@ -134,6 +134,7 @@ local function add_headers(request_handle)
     -- Add the repository header if it doesn't already exist
     if not request_handle:headers():get(GITHUB_REPOSITORY_HEADER) then
         request_handle:headers():add(GITHUB_REPOSITORY_HEADER, "{{ getenv "GITHUB_REPOSITORY" }}")
+        request_handle:logInfo(log_prefix .. "GitHub repository header added successfully: " .. GITHUB_REPOSITORY_HEADER)
     else
         request_handle:logInfo(log_prefix .. "Skipping addition of '" .. GITHUB_REPOSITORY_HEADER .. "' header as it is already present")
     end
@@ -149,8 +150,6 @@ function envoy_on_request(request_handle)
     request_handle:logInfo(log_prefix .. "Host: " .. (host or "nil"))
     request_handle:logInfo(log_prefix .. "Main DNS Zone: " .. (main_dns_zone or "nil"))
 
-
-
     -- Check if the host matches the allowed patterns
     if host and (host:find(escaped_main_dns_zone .. "$") or host:find(escaped_main_dns_zone .. ":%d+$") or host:find("^localhost")) then
         -- Refresh the token if necessary
@@ -161,4 +160,8 @@ function envoy_on_request(request_handle)
         request_handle:logInfo(log_prefix .. "Skipping JWT token addition for host: " .. (host or "nil") ..
                            " (does not end with the <main-dns-zone>, does not end with <main-dns-zone>:<port>, or does not start with localhost)")
     end
+
+    -- Log the value of the "GITHUB_REPOSITORY_HEADER" header
+    local github_repository_header = request_handle:headers():get("GITHUB_REPOSITORY_HEADER")
+    request_handle:logInfo(log_prefix .. "GITHUB_REPOSITORY_HEADER Header at the end of envoy_on_request: " .. (github_repository_header or "nil"))
 end
