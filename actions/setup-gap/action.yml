@@ -295,11 +295,15 @@ runs:
           fi
         done
 
+        echo "DEBUG: GITHUB_REPOSITORY: ${GITHUB_REPOSITORY}"
+
         # Generate Envoy config from template
         gomplate -f "${GITHUB_ACTION_PATH}/envoy.yaml.gotmpl" -o "${GITHUB_ACTION_PATH}/envoy.yaml"
 
         # Generate LUA script from template
         gomplate -f "${GITHUB_ACTION_PATH}/github_oidc.lua.gotmpl" -o "${GITHUB_ACTION_PATH}/github_oidc.lua"
+
+        echo "${GITHUB_ACTION_PATH}/github_oidc.lua"
 
         # Copy AWS CA certs
         cp ${{ github.action_path }}/aws-ca.crt "${PATH_CERTS_DIR}"
