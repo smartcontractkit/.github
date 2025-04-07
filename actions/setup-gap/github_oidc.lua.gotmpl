@@ -132,12 +132,10 @@ local function add_headers(request_handle)
     request_handle:logInfo(log_prefix .. "GitHub JWT OIDC token added successfully to the header: " .. GITHUB_OIDC_TOKEN_HEADER)
 
     -- Add the repository header if it doesn't already exist
-    if not request_handle:headers():get(GITHUB_REPOSITORY_HEADER) then
-        request_handle:headers():add(GITHUB_REPOSITORY_HEADER, "{{ getenv "GITHUB_REPOSITORY" }}")
-        request_handle:logInfo(log_prefix .. "GitHub repository header added successfully: " .. GITHUB_REPOSITORY_HEADER .. "{{ getenv "GITHUB_REPOSITORY" }}")
-    else
-        request_handle:logInfo(log_prefix .. "Skipping addition of '" .. GITHUB_REPOSITORY_HEADER .. "' header as it is already present")
-    end
+    -- Upsert the repository header: remove if it exists, then add the new value
+    request_handle:headers():remove(GITHUB_REPOSITORY_HEADER)
+    request_handle:headers():add(GITHUB_REPOSITORY_HEADER, "{{ getenv "GITHUB_REPOSITORY" }}")
+    request_handle:logInfo(log_prefix .. "GitHub repository header upserted successfully: " .. GITHUB_REPOSITORY_HEADER .. " = {{ getenv "GITHUB_REPOSITORY" }}")
 
     -- Ensure that the host header's port will be 443
     ensure_port_443(request_handle)
