@@ -283,6 +283,18 @@ runs:
         # Get the Github OIDC hostname
         export GITHUB_OIDC_HOSTNAME=$(echo $ACTIONS_ID_TOKEN_REQUEST_URL | awk -F[/:] '{print $4}')
 
+        # Set additional debug flags if debug logging is enabled
+        if [ "$ENABLE_PROXY_DEBUG" = "true" ] || [ "$PROXY_LOG_LEVEL" = "debug" ]; then
+          export PROXY_LOG_LEVEL="debug"
+          export ENVOY_EXTRA_ARGS="--component-log-level upstream:debug,connection:debug,router:debug,http:debug,filter:debug,client:debug"
+          echo "Debug logging enabled with component logging"
+          cat "${GITHUB_ACTION_PATH}/envoy.yaml"
+        else
+          export ENVOY_EXTRA_ARGS=""
+        fi
+
+        echo "Using log level: ${PROXY_LOG_LEVEL}"
+
         # List of required ENVs to check
         required_env_vars="DYNAMIC_PROXY_PORT ENABLE_PROXY_DEBUG GITHUB_OIDC_TOKEN_HEADER_NAME ENVOY_PROXY_IMAGE GITHUB_OIDC_HOSTNAME K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE PROXY_LOG_LEVEL PROXY_PORT GITHUB_REPOSITORY WEBSOCKETS_PROXY_PORT"
 
@@ -305,13 +317,6 @@ runs:
         cp ${{ github.action_path }}/aws-ca.crt "${PATH_CERTS_DIR}"
         chmod 644 "${PATH_CERTS_DIR}/server.key"
 
-        # If debug is enabled, adjust log level and print config
-        if [ "$ENABLE_PROXY_DEBUG" = "true" ]; then
-          export PROXY_LOG_LEVEL="debug"
-          echo "Envoy log level set to DEBUG. Configuration:"
-          cat "${GITHUB_ACTION_PATH}/envoy.yaml"
-        fi
-
         echo "Validating Envoy config..."
         if ! docker run --rm \
             --name "${GAP_NAME}" \
@@ -324,7 +329,8 @@ runs:
             -v "${GITHUB_ACTION_PATH}/github_oidc.lua":/etc/envoy/github_oidc.lua \
             "${ENVOY_PROXY_IMAGE}" \
             /usr/local/bin/envoy --mode validate -c /etc/envoy/envoy.yaml \
-            --log-level "${PROXY_LOG_LEVEL}"; then
+            --log-level "${PROXY_LOG_LEVEL}" \
+            $ENVOY_EXTRA_ARGS; then
           echo "::error::Envoy configuration validation failed."
           exit 1
         fi
@@ -341,7 +347,8 @@ runs:
           -v "${GITHUB_ACTION_PATH}/github_oidc.lua":/etc/envoy/github_oidc.lua \
           "${ENVOY_PROXY_IMAGE}" \
           /usr/local/bin/envoy -c /etc/envoy/envoy.yaml \
-          --log-level "${PROXY_LOG_LEVEL}"
+          --log-level "${PROXY_LOG_LEVEL}" \
+          $ENVOY_EXTRA_ARGS
 
     - name: Verify Envoy Proxy
       shell: bash
