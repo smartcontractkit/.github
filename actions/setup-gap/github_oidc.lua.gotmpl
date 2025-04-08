@@ -74,35 +74,55 @@ function fetch_github_oidc_token(request_handle)
     refreshing = true
     request_handle:logDebug(log_prefix .. "Starting GitHub OIDC token fetch.")
 
-    -- Set the audience and the GitHub OIDC token URL
+    -- The GitHub OIDC token URL and token are pulled from environment variables at template render time
     local audience = "gap"
     local oidc_url = "{{ getenv "ACTIONS_ID_TOKEN_REQUEST_URL" }}&audience=" .. audience
 
-    -- Prepare headers for the HTTP request
+    -- Prepare headers for the HTTP request - these values come from environment variables
     local headers = {
         [":method"] = "GET",
         [":path"] = oidc_url,
         [":authority"] = "{{ getenv "GITHUB_OIDC_HOSTNAME" }}",
-        ["Authorization"] = "Bearer " .. "{{ getenv "ACTIONS_ID_TOKEN_REQUEST_TOKEN" }}", -- Use environment variable
+        ["Authorization"] = "Bearer {{ getenv "ACTIONS_ID_TOKEN_REQUEST_TOKEN" }}",
         ["accept"] = "application/json",
     }
 
     -- Make the HTTP call to fetch the OIDC token
-    local response_headers, response_body = request_handle:httpCall(
-        "github_oidc_endpoint",
-        headers,
-        nil, -- No body for GET requests
-        3000 -- Timeout in milliseconds
-    )
+    local response_headers, response_body
+    local success, err = pcall(function()
+        response_headers, response_body = request_handle:httpCall(
+            "github_oidc_endpoint",
+            headers,
+            nil, -- No body for GET requests
+            5000 -- Timeout in milliseconds
+        )
+        return true
+    end)
+
+    if not success then
+        request_handle:logErr(log_prefix .. "Error fetching GitHub OIDC token: " .. tostring(err))
+        refreshing = false
+        return
+    end
 
     if response_headers[":status"] == "200" then
         request_handle:logInfo(log_prefix .. "GitHub OIDC token fetched successfully.")
-        local data = JSON.decode(response_body)
-        jwt_token = data.value -- Assign the token value
-        jwt_expiration = get_jwt_exp(jwt_token) -- Update the expiration time
-        request_handle:logDebug(log_prefix .. "Fetched JWT length: " .. string.len(jwt_token))
+        -- Try-catch for JSON parsing
+        local success, data = pcall(function() 
+            return JSON.decode(response_body)
+        end)
+
+        if success and data and data.value then
+            jwt_token = data.value -- Store the token
+            jwt_expiration = get_jwt_exp(jwt_token) or (os.time() + 300) -- Use token exp or 5 minutes
+            request_handle:logDebug(log_prefix .. "Fetched JWT length: " .. string.len(jwt_token))
+        else
+            request_handle:logErr(log_prefix .. "Failed to parse OIDC token response: " .. tostring(response_body))
+        end
     else
-        request_handle:logErr(log_prefix .. "Failed to fetch GitHub OIDC token. Status: " .. response_headers[":status"])
+        request_handle:logErr(log_prefix .. "Failed to fetch GitHub OIDC token. Status: " .. 
+                            (response_headers[":status"] or "unknown") ..
+                            " Body: " .. (response_body or ""))
     end
 
     refreshing = false -- Reset the refreshing flag
@@ -177,11 +197,13 @@ end
 
 -- Main function for Envoy request interception
 function envoy_on_request(request_handle)
-    local host = request_handle:headers():get(":authority")
-    local user_agent = request_handle:headers():get("user-agent") or "nil"
-    request_handle:logDebug(log_prefix .. "Intercepting request for host: " .. (host or "nil") .. " from user-agent: " .. user_agent)
+    local host = request_handle:headers():get(":authority") or ""
+    local path = request_handle:headers():get(":path") or ""
+    local user_agent = request_handle:headers():get("user-agent") or "unknown"
+    
+    request_handle:logDebug(log_prefix .. "Processing request: " .. host .. path .. " from " .. user_agent)
 
-    -- Always ensure x-repository is set before any other processing
+    -- Set repository header once at the beginning (avoiding duplication with add_headers)
     local repoHeader = request_handle:headers():get(GITHUB_REPOSITORY_HEADER)
     if not repoHeader or repoHeader == "" then
         request_handle:headers():remove(GITHUB_REPOSITORY_HEADER)
@@ -189,49 +211,46 @@ function envoy_on_request(request_handle)
         request_handle:logDebug(log_prefix .. "Pre-check: Added default x-repository header for user-agent: " .. user_agent)
     end
 
-    -- Always refresh token and add headers for authenticated endpoints
-    local path = request_handle:headers():get(":path")
-    if path and (path:find("^/ethereum/") or host and (host:find(escaped_main_dns_zone .. "$") or host:find(escaped_main_dns_zone .. ":%d+$") or host:find("^localhost"))) then
+    -- Determine if we need to add auth token (apply to all potentially authenticated requests)
+    local needs_auth = false
+    
+    -- Check authentication patterns:
+    -- 1. All paths starting with /ethereum
+    -- 2. All hosts in the main DNS zone (*.main.prod.cldev.sh)
+    -- 3. Special paths/hosts configured in the system
+    if path:find("^/ethereum/") or 
+       host:find(escaped_main_dns_zone .. "$") or 
+       host:find(escaped_main_dns_zone .. ":%d+$") or 
+       host:find("^gap%-") or
+       host:find("^localhost") then
+        needs_auth = true
+    end
+
+    if needs_auth then
         -- Refresh the token if necessary
         refresh_token_if_needed(request_handle)
 
-        -- Verify we have a valid token before proceeding
+        -- Only proceed if we have a valid token
         if not jwt_token then
-            request_handle:logErr(log_prefix .. "No valid JWT token available for request from user-agent: " .. user_agent)
-            return
+            request_handle:logErr(log_prefix .. "No valid JWT token available for request: " .. host .. path)
+            return  -- Stop processing this request
         end
 
-        -- Add the required headers to the request
+        -- Add required headers (including JWT token)
         add_headers(request_handle)
+    else
+        request_handle:logDebug(log_prefix .. "Skipping auth for non-authenticated path: " .. host .. path)
+    end
 
-        -- Final JWT verification
-        local final_auth_header = request_handle:headers():get(GITHUB_OIDC_TOKEN_HEADER)
-        if not final_auth_header or final_auth_header == "" then
-            request_handle:logErr(log_prefix .. "Final check: JWT token header is missing for request: " .. 
-                path .. " with user-agent: " .. user_agent)
-            -- Add the token one final time as a safeguard
+    -- Final safety checks and logging (no need for duplicate header check)
+    if needs_auth and (not request_handle:headers():get(GITHUB_OIDC_TOKEN_HEADER)) then
+        request_handle:logErr(log_prefix .. "Final validation failed: Missing auth token for: " .. host .. path)
+        -- Emergency token addition as last resort
+        if jwt_token then
             request_handle:headers():remove(GITHUB_OIDC_TOKEN_HEADER)
             request_handle:headers():add(GITHUB_OIDC_TOKEN_HEADER, "Bearer " .. jwt_token)
         end
-    else
-        request_handle:logInfo(log_prefix .. "Skipping JWT token addition for non-authenticated path: " .. (path or "nil"))
     end
 
-    -- Final verification of all required headers
-    local finalRepoHeader = request_handle:headers():get(GITHUB_REPOSITORY_HEADER)
-    local finalAuthHeader = request_handle:headers():get(GITHUB_OIDC_TOKEN_HEADER)
-
-    if not finalRepoHeader or finalRepoHeader == "" then
-        request_handle:logWarn(log_prefix .. "Final check: x-repository header is still null/empty for request: " .. 
-            path .. " with user-agent: " .. user_agent)
-        -- Set header one final time as a safeguard
-        request_handle:headers():remove(GITHUB_REPOSITORY_HEADER)
-        request_handle:headers():add(GITHUB_REPOSITORY_HEADER, "{{ getenv "GITHUB_REPOSITORY" }}")
-    end
-
-    -- Log final request state
-    request_handle:logDebug(log_prefix .. "Final request state - Path: " .. (path or "nil") .. 
-        ", User-Agent: " .. user_agent .. 
-        ", Has JWT: " .. (finalAuthHeader and "yes" or "no") .. 
-        ", Has x-repository: " .. (finalRepoHeader and "yes" or "no"))
+    request_handle:logDebug(log_prefix .. "Request processing complete: " .. host .. path)
 end
