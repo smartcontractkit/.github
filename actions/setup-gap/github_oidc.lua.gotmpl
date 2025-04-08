@@ -68,9 +68,11 @@ end
 -- Function to fetch GitHub OIDC token
 function fetch_github_oidc_token(request_handle)
     if refreshing then
+        request_handle:logDebug(log_prefix .. "Token refresh already in progress, skipping new fetch.")
         return -- Prevent multiple concurrent refreshes
     end
     refreshing = true
+    request_handle:logDebug(log_prefix .. "Starting GitHub OIDC token fetch.")
 
     -- Set the audience and the GitHub OIDC token URL
     local audience = "gap"
@@ -98,6 +100,7 @@ function fetch_github_oidc_token(request_handle)
         local data = JSON.decode(response_body)
         jwt_token = data.value -- Assign the token value
         jwt_expiration = get_jwt_exp(jwt_token) -- Update the expiration time
+        request_handle:logDebug(log_prefix .. "Fetched JWT length: " .. string.len(jwt_token))
     else
         request_handle:logErr(log_prefix .. "Failed to fetch GitHub OIDC token. Status: " .. response_headers[":status"])
     end
@@ -110,7 +113,10 @@ function refresh_token_if_needed(request_handle)
     local current_time = os.time()
     -- Refresh the token if it's missing or about to expire (within 60 seconds)
     if not jwt_token or jwt_expiration - current_time < 60 then
+        request_handle:logDebug(log_prefix .. "Token missing or expiring soon. Refreshing token.")
         fetch_github_oidc_token(request_handle)
+    else
+        request_handle:logDebug(log_prefix .. "Token is valid. No refresh needed.")
     end
 end
 
@@ -119,33 +125,69 @@ local function ensure_port_443(request_handle)
     local host = request_handle:headers():get(":authority")
     if host and host:find(escaped_main_dns_zone .. ":%d+$") then
         request_handle:headers():remove(":authority")
-        request_handle:headers():add(":authority", host:gsub(":%d+$", ":443"))
+        local new_host = host:gsub(":%d+$", ":443")
+        request_handle:headers():add(":authority", new_host)
+        request_handle:logDebug(log_prefix .. "Updated :authority header to force port 443: " .. new_host)
     end
 end
 
 -- Function to add headers to the request
 local function add_headers(request_handle)
-    -- Remove the existing header if it already exists
-    request_handle:headers():remove(GITHUB_OIDC_TOKEN_HEADER)
-    -- Add the new JWT token to the header
-    request_handle:headers():add(GITHUB_OIDC_TOKEN_HEADER, "Bearer " .. jwt_token)
-    request_handle:logInfo(log_prefix .. "GitHub JWT OIDC token added successfully to the header: " .. GITHUB_OIDC_TOKEN_HEADER)
-
-    -- Add the repository header if it doesn't already exist
-    if not request_handle:headers():get(GITHUB_REPOSITORY_HEADER) then
+    -- Ensure no null or empty x-repository header exists
+    local repoHeader = request_handle:headers():get(GITHUB_REPOSITORY_HEADER)
+    if not repoHeader or repoHeader == "" then
+        request_handle:headers():remove(GITHUB_REPOSITORY_HEADER)
         request_handle:headers():add(GITHUB_REPOSITORY_HEADER, "{{ getenv "GITHUB_REPOSITORY" }}")
+        request_handle:logDebug(log_prefix .. "x-repository header was null or empty. Added default x-repository header.")
     else
-        request_handle:logInfo(log_prefix .. "Skipping addition of '" .. GITHUB_REPOSITORY_HEADER .. "' header as it is already present")
+        request_handle:logDebug(log_prefix .. "x-repository header already present: " .. tostring(repoHeader))
     end
+
+    -- Remove the existing OIDC token header if present
+    request_handle:headers():remove(GITHUB_OIDC_TOKEN_HEADER)
+    -- Add the new JWT token to the header (do not log the token value itself)
+    request_handle:headers():add(GITHUB_OIDC_TOKEN_HEADER, "Bearer " .. jwt_token)
+    request_handle:logInfo(log_prefix .. "Added GitHub JWT OIDC token with length: " .. string.len(jwt_token) ..
+                             " to header: " .. GITHUB_OIDC_TOKEN_HEADER)
 
     -- Ensure that the host header's port will be 443
     ensure_port_443(request_handle)
+
+    -- Prepare complete request information for logging
+    local request_info = {
+        method = request_handle:headers():get(":method"),
+        scheme = request_handle:headers():get(":scheme"),
+        authority = request_handle:headers():get(":authority"),
+        path = request_handle:headers():get(":path"),
+        headers = {}
+    }
+
+    -- Add all headers to the request info, redacting sensitive values
+    for key, value in pairs(request_handle:headers():toTable()) do
+        if key == GITHUB_OIDC_TOKEN_HEADER then
+            request_info.headers[key] = "[REDACTED - LENGTH: " .. string.len(value) .. "]"
+        else
+            request_info.headers[key] = value
+        end
+    end
+
+    -- Log the complete request information
+    request_handle:logDebug(log_prefix .. "Final upstream request: " .. JSON.encode(request_info))
 end
 
 -- Main function for Envoy request interception
 function envoy_on_request(request_handle)
-    -- Get the host/authority from the request headers
     local host = request_handle:headers():get(":authority")
+    request_handle:logDebug(log_prefix .. "Intercepting request for host: " .. (host or "nil"))
+
+    -- Always ensure x-repository is set before any other processing
+    local repoHeader = request_handle:headers():get(GITHUB_REPOSITORY_HEADER)
+    if not repoHeader or repoHeader == "" then
+        request_handle:headers():remove(GITHUB_REPOSITORY_HEADER)
+        request_handle:headers():add(GITHUB_REPOSITORY_HEADER, "{{ getenv "GITHUB_REPOSITORY" }}")
+        request_handle:logDebug(log_prefix .. "Pre-check: Added default x-repository header for user-agent: " .. 
+            (request_handle:headers():get("user-agent") or "nil"))
+    end
 
     -- Check if the host matches the allowed patterns
     if host and (host:find(escaped_main_dns_zone .. "$") or host:find(escaped_main_dns_zone .. ":%d+$") or host:find("^localhost")) then
@@ -156,5 +198,16 @@ function envoy_on_request(request_handle)
     else
         request_handle:logInfo(log_prefix .. "Skipping JWT token addition for host: " .. (host or "nil") ..
                            " (does not end with the <main-dns-zone>, does not end with <main-dns-zone>:<port>, or does not start with localhost)")
+    end
+
+    -- Final verification of x-repository header
+    local finalRepoHeader = request_handle:headers():get(GITHUB_REPOSITORY_HEADER)
+    if not finalRepoHeader or finalRepoHeader == "" then
+        request_handle:logWarn(log_prefix .. "Final check: x-repository header is still null/empty for request: " .. 
+            request_handle:headers():get(":path") .. " with user-agent: " .. 
+            (request_handle:headers():get("user-agent") or "nil"))
+        -- Set header one final time as a safeguard
+        request_handle:headers():remove(GITHUB_REPOSITORY_HEADER)
+        request_handle:headers():add(GITHUB_REPOSITORY_HEADER, "{{ getenv "GITHUB_REPOSITORY" }}")
     end
 end
