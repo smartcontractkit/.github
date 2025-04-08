@@ -178,36 +178,60 @@ end
 -- Main function for Envoy request interception
 function envoy_on_request(request_handle)
     local host = request_handle:headers():get(":authority")
-    request_handle:logDebug(log_prefix .. "Intercepting request for host: " .. (host or "nil"))
+    local user_agent = request_handle:headers():get("user-agent") or "nil"
+    request_handle:logDebug(log_prefix .. "Intercepting request for host: " .. (host or "nil") .. " from user-agent: " .. user_agent)
 
     -- Always ensure x-repository is set before any other processing
     local repoHeader = request_handle:headers():get(GITHUB_REPOSITORY_HEADER)
     if not repoHeader or repoHeader == "" then
         request_handle:headers():remove(GITHUB_REPOSITORY_HEADER)
         request_handle:headers():add(GITHUB_REPOSITORY_HEADER, "{{ getenv "GITHUB_REPOSITORY" }}")
-        request_handle:logDebug(log_prefix .. "Pre-check: Added default x-repository header for user-agent: " .. 
-            (request_handle:headers():get("user-agent") or "nil"))
+        request_handle:logDebug(log_prefix .. "Pre-check: Added default x-repository header for user-agent: " .. user_agent)
     end
 
-    -- Check if the host matches the allowed patterns
-    if host and (host:find(escaped_main_dns_zone .. "$") or host:find(escaped_main_dns_zone .. ":%d+$") or host:find("^localhost")) then
+    -- Always refresh token and add headers for authenticated endpoints
+    local path = request_handle:headers():get(":path")
+    if path and (path:find("^/ethereum/") or host and (host:find(escaped_main_dns_zone .. "$") or host:find(escaped_main_dns_zone .. ":%d+$") or host:find("^localhost"))) then
         -- Refresh the token if necessary
         refresh_token_if_needed(request_handle)
+
+        -- Verify we have a valid token before proceeding
+        if not jwt_token then
+            request_handle:logErr(log_prefix .. "No valid JWT token available for request from user-agent: " .. user_agent)
+            return
+        end
+
         -- Add the required headers to the request
         add_headers(request_handle)
+
+        -- Final JWT verification
+        local final_auth_header = request_handle:headers():get(GITHUB_OIDC_TOKEN_HEADER)
+        if not final_auth_header or final_auth_header == "" then
+            request_handle:logErr(log_prefix .. "Final check: JWT token header is missing for request: " .. 
+                path .. " with user-agent: " .. user_agent)
+            -- Add the token one final time as a safeguard
+            request_handle:headers():remove(GITHUB_OIDC_TOKEN_HEADER)
+            request_handle:headers():add(GITHUB_OIDC_TOKEN_HEADER, "Bearer " .. jwt_token)
+        end
     else
-        request_handle:logInfo(log_prefix .. "Skipping JWT token addition for host: " .. (host or "nil") ..
-                           " (does not end with the <main-dns-zone>, does not end with <main-dns-zone>:<port>, or does not start with localhost)")
+        request_handle:logInfo(log_prefix .. "Skipping JWT token addition for non-authenticated path: " .. (path or "nil"))
     end
 
-    -- Final verification of x-repository header
+    -- Final verification of all required headers
     local finalRepoHeader = request_handle:headers():get(GITHUB_REPOSITORY_HEADER)
+    local finalAuthHeader = request_handle:headers():get(GITHUB_OIDC_TOKEN_HEADER)
+
     if not finalRepoHeader or finalRepoHeader == "" then
         request_handle:logWarn(log_prefix .. "Final check: x-repository header is still null/empty for request: " .. 
-            request_handle:headers():get(":path") .. " with user-agent: " .. 
-            (request_handle:headers():get("user-agent") or "nil"))
+            path .. " with user-agent: " .. user_agent)
         -- Set header one final time as a safeguard
         request_handle:headers():remove(GITHUB_REPOSITORY_HEADER)
         request_handle:headers():add(GITHUB_REPOSITORY_HEADER, "{{ getenv "GITHUB_REPOSITORY" }}")
     end
+
+    -- Log final request state
+    request_handle:logDebug(log_prefix .. "Final request state - Path: " .. (path or "nil") .. 
+        ", User-Agent: " .. user_agent .. 
+        ", Has JWT: " .. (finalAuthHeader and "yes" or "no") .. 
+        ", Has x-repository: " .. (finalRepoHeader and "yes" or "no"))
 end
