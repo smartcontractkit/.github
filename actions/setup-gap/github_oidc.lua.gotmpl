@@ -70,26 +70,53 @@ end
 -- Function to wait for token to be available with timeout
 local function wait_for_token(request_handle, timeout_ms)
     local start_time = os.time() * 1000 -- Convert to milliseconds
-    local current_time = start_time
-    local timeout_seconds = timeout_ms / 1000
+    local end_time = start_time + timeout_ms
     
     request_handle:logDebug(log_prefix .. "Waiting for token to become available")
     
-    -- Wait until token is available or timeout occurs
-    while not jwt_token and (current_time - start_time) < timeout_ms do
-        -- Short delay to prevent tight loop
-        os.execute("sleep 0.1")
-        current_time = os.time() * 1000
-    end
-    
+    -- Check immediately if token is already available
     if jwt_token then
-        request_handle:logInfo(log_prefix .. "Token became available after " .. 
-                             ((current_time - start_time) / 1000) .. " seconds")
+        request_handle:logInfo(log_prefix .. "Token is immediately available")
         return true
-    else
-        request_handle:logErr(log_prefix .. "Timeout waiting for token after " .. timeout_seconds .. " seconds")
-        return false
     end
+
+    -- For first requests that trigger a token fetch, implement a limited wait loop
+    -- This significantly improves the chances of the initial request succeeding
+    local wait_iterations = 10
+    local check_interval = math.min(timeout_ms / wait_iterations, 500) -- Max 500ms per check
+
+    for i = 1, wait_iterations do
+        -- Brief pause using Lua's built-in function
+        request_handle:logDebug(log_prefix .. "Waiting for token iteration " .. i .. "/" .. wait_iterations)
+
+        -- Sleep without OS calls (just busy-waits, but acceptable for short durations)
+        local wait_until = os.time() + (check_interval / 1000)
+        while os.time() < wait_until do
+            -- Empty loop to create a small delay
+        end
+
+        -- Check if token became available during our wait
+        if jwt_token then
+            local elapsed = (os.time() * 1000 - start_time) / 1000
+            request_handle:logInfo(log_prefix .. "Token became available after " .. elapsed .. " seconds")
+            return true
+        end
+
+        -- Check if we've exceeded our total timeout
+        if os.time() * 1000 >= end_time then
+            break
+        end
+    end
+
+    -- If we get here, we still don't have a token after waiting
+    if token_refresh_lock then
+        request_handle:logInfo(log_prefix .. "Token fetch still in progress - returning control to allow request pipeline to continue")
+        -- We return false, but the calling code will retry in subsequent requests
+    else
+        request_handle:logWarn(log_prefix .. "No token available and no token fetch in progress - request will likely fail with 401")
+    end
+
+    return false
 end
 
 -- Function to fetch GitHub OIDC token
@@ -99,12 +126,12 @@ function fetch_github_oidc_token(request_handle)
         request_handle:logDebug(log_prefix .. "Token refresh already in progress, waiting...")
         return wait_for_token(request_handle, 5000) -- Wait up to 5 seconds for the token
     end
-    
+
     -- Acquire the lock
     token_refresh_lock = true
     token_refresh_complete = false
     request_handle:logInfo(log_prefix .. "Starting GitHub OIDC token fetch.")
-    
+
     -- Set the audience and the GitHub OIDC token URL
     local audience = "gap"
     local oidc_url = "{{ getenv "ACTIONS_ID_TOKEN_REQUEST_URL" }}&audience=" .. audience
@@ -119,7 +146,7 @@ function fetch_github_oidc_token(request_handle)
     }
 
     request_handle:logDebug(log_prefix .. "Making HTTP call to GitHub OIDC endpoint")
-    
+
     -- Make the HTTP call to fetch the OIDC token (synchronously)
     local success, result = pcall(function()
         local response_headers, response_body = request_handle:httpCall(
@@ -128,13 +155,13 @@ function fetch_github_oidc_token(request_handle)
             nil, -- No body for GET requests
             10000 -- Timeout in milliseconds (10 seconds)
         )
-        
+
         if response_headers[":status"] == "200" then
             request_handle:logInfo(log_prefix .. "GitHub OIDC token fetched successfully.")
             local success_parse, token_data = pcall(function() 
                 return JSON.decode(response_body)
             end)
-            
+
             if success_parse and token_data and token_data.value then
                 jwt_token = token_data.value -- Store the token
                 local exp = get_jwt_exp(jwt_token)
@@ -158,37 +185,37 @@ function fetch_github_oidc_token(request_handle)
             return false
         end
     end)
-    
+
     -- Release the lock and notify waiters
     token_refresh_complete = true
     token_refresh_lock = false
-    
+
     if not success then
         request_handle:logErr(log_prefix .. "Exception during token fetch: " .. tostring(result))
         return false
     end
-    
+
     return success and jwt_token ~= nil
 end
 
 -- Function to refresh the token if needed and wait for it
 function refresh_token_if_needed(request_handle)
     local current_time = os.time()
-    
+
     -- Refresh if token is missing or expires within 60 seconds
     if not jwt_token or jwt_expiration - current_time < 60 then
         request_handle:logInfo(log_prefix .. "Token missing or expiring soon, refreshing. Current time: " .. 
                              os.date("%Y-%m-%d %H:%M:%S", current_time) .. 
                              ", expiration: " .. (jwt_token and os.date("%Y-%m-%d %H:%M:%S", jwt_expiration) or "none"))
-                             
+                  
         -- First try to fetch a new token
         local success = fetch_github_oidc_token(request_handle)
-        
+
         -- If we're still waiting for a token, wait for it
         if not success and token_refresh_lock then
             success = wait_for_token(request_handle, 5000)
         end
-        
+
         return success
     else
         local remaining = jwt_expiration - current_time
@@ -228,7 +255,7 @@ local function add_headers(request_handle)
 
     -- Remove the existing OIDC token header if present
     request_handle:headers():remove(GITHUB_OIDC_TOKEN_HEADER)
-    
+
     -- Add the new JWT token to the header (do not log the token value itself)
     request_handle:headers():add(GITHUB_OIDC_TOKEN_HEADER, "Bearer " .. jwt_token)
     request_handle:logInfo(log_prefix .. "Added GitHub JWT OIDC token with length: " .. string.len(jwt_token) ..
@@ -236,7 +263,7 @@ local function add_headers(request_handle)
 
     -- Ensure that the host header's port will be 443
     ensure_port_443(request_handle)
-    
+
     return true
 end
 
@@ -246,7 +273,7 @@ function envoy_on_request(request_handle)
     local path = request_handle:headers():get(":path") or ""
     local user_agent = request_handle:headers():get("user-agent") or "unknown"
     local req_id = request_handle:headers():get("x-request-id") or "unknown"
-    
+
     request_handle:logInfo(log_prefix .. "Processing request [" .. req_id .. "]: " .. host .. path)
 
     -- Always ensure x-repository is set for all requests right away
@@ -259,7 +286,7 @@ function envoy_on_request(request_handle)
 
     -- Determine if we need to add auth token
     local needs_auth = false
-    
+
     -- Check authentication patterns
     if path:find("^/ethereum/") or 
        host:find(escaped_main_dns_zone .. "$") or 
@@ -271,10 +298,10 @@ function envoy_on_request(request_handle)
 
     if needs_auth then
         request_handle:logDebug(log_prefix .. "Authentication required for request [" .. req_id .. "]")
-        
+
         -- First refresh the token if needed and wait for it
         local token_success = refresh_token_if_needed(request_handle)
-        
+
         -- Verify we have a valid token before proceeding
         if not token_success or not jwt_token then
             request_handle:logErr(log_prefix .. "No valid JWT token available for request [" .. req_id .. "]")
@@ -287,12 +314,12 @@ function envoy_on_request(request_handle)
             request_handle:logErr(log_prefix .. "Failed to add headers for request [" .. req_id .. "]")
             return
         end
-        
+
         -- Final verification to ensure token was added
         local final_auth_header = request_handle:headers():get(GITHUB_OIDC_TOKEN_HEADER)
         if not final_auth_header or final_auth_header == "" then
             request_handle:logErr(log_prefix .. "Final check: JWT token header is missing for request [" .. req_id .. "]")
-            
+
             -- Emergency token addition if the token is actually available
             if jwt_token then
                 request_handle:headers():remove(GITHUB_OIDC_TOKEN_HEADER)
