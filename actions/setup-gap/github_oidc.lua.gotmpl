@@ -124,7 +124,7 @@ function fetch_github_oidc_token(request_handle)
             "github_oidc_endpoint",
             headers,
             nil, -- No body for GET requests
-            10000 -- Timeout in milliseconds (10 seconds)
+            5000 -- Timeout in milliseconds (5 seconds)
         )
         
         if response_headers[":status"] == "200" then
