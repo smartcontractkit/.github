@@ -1,5 +1,14 @@
 # setup-gap
 
+## 4.2.1
+
+### Patch Changes
+
+- [#993](https://github.com/smartcontractkit/.github/pull/993)
+  [`a1d8681`](https://github.com/smartcontractkit/.github/commit/a1d8681736ba52827bd024fcaa9be195e29f6549)
+  Thanks [@chainchad](https://github.com/chainchad)! - Fix unset JWT and missing
+  headers bugs in setup-gap
+
 ## 4.2.0
 
 ### Minor Changes
