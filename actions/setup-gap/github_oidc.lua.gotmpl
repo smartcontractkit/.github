@@ -6,8 +6,6 @@ local jwt_expiration = 0
 local jwt_token = nil
 local token_refresh_lock = false -- Mutex for token refresh
 local token_refresh_complete = false -- Flag to indicate token is ready
-local token_refresh_waiting = {} -- List of waiting threads
-local request_options = { ["asynchronous"] = true }
 local main_dns_zone = "{{ getenv "MAIN_DNS_ZONE" }}"
 local escaped_main_dns_zone = main_dns_zone:gsub("[%.%+%*%?%^%$%(%)%%]", "%%%1")
 
@@ -70,26 +68,83 @@ end
 -- Function to wait for token to be available with timeout
 local function wait_for_token(request_handle, timeout_ms)
     local start_time = os.time() * 1000 -- Convert to milliseconds
-    local current_time = start_time
     local timeout_seconds = timeout_ms / 1000
     
     request_handle:logDebug(log_prefix .. "Waiting for token to become available")
     
-    -- Wait until token is available or timeout occurs
-    while not jwt_token and (current_time - start_time) < timeout_ms do
-        -- Short delay to prevent tight loop
-        os.execute("sleep 0.1")
-        current_time = os.time() * 1000
+    -- Track in thread-local storage if we're waiting
+    request_handle:streamInfo():dynamicMetadata():set("envoy.filters.http.lua", "waiting_for_token", true)
+    
+    -- Use a semaphore-like approach with a thread-local variable to signal completion
+    local wait_complete = false
+    
+    -- Create a handler for the timer
+    local function check_token(timer_id)
+        local current_time = os.time() * 1000
+        
+        -- Token is available or timeout reached
+        if jwt_token then
+            request_handle:logInfo(log_prefix .. "Token became available after " .. 
+                                 ((current_time - start_time) / 1000) .. " seconds")
+            request_handle:streamInfo():dynamicMetadata():set("envoy.filters.http.lua", "waiting_for_token", false)
+            wait_complete = true
+            return true
+        elseif (current_time - start_time) >= timeout_ms then
+            request_handle:logErr(log_prefix .. "Timeout waiting for token after " .. timeout_seconds .. " seconds")
+            request_handle:streamInfo():dynamicMetadata():set("envoy.filters.http.lua", "waiting_for_token", false)
+            wait_complete = true
+            return false
+        else
+            -- Re-schedule the timer to check again in 100ms
+            request_handle:registerTimer(100, check_token)
+            return true
+        end
     end
     
-    if jwt_token then
-        request_handle:logInfo(log_prefix .. "Token became available after " .. 
-                             ((current_time - start_time) / 1000) .. " seconds")
-        return true
-    else
-        request_handle:logErr(log_prefix .. "Timeout waiting for token after " .. timeout_seconds .. " seconds")
-        return false
+    -- Start the timer
+    request_handle:registerTimer(100, check_token)
+    
+    -- This is a blocking approach required if we need to wait for the token
+    -- Non-CPU intensive approach using only one httpCall with a long timeout
+    -- Since the handler above will keep checking token status, we just need to block here
+    local end_time = start_time + timeout_ms
+    
+    -- Make one call with the full timeout as a blocking wait mechanism
+    -- This won't create log spam since it's only one call per token wait
+    if not jwt_token then
+        -- Using an internal HEAD request with a calculated timeout
+        -- We'll set up the timeout to be slightly shorter than our overall timeout
+        -- to ensure we can properly return the correct status
+        local wait_timeout = math.min(timeout_ms - 100, 30000) -- Cap at 30 seconds for safety
+        
+        -- The httpCall will either:
+        -- 1. Timeout after wait_timeout milliseconds (most likely)
+        -- 2. Return earlier if the server rejects it quickly
+        -- Either way, we'll check our wait_complete flag afterward
+        pcall(function()
+            request_handle:httpCall(
+                "github_oidc_endpoint",  -- Reuse the existing cluster
+                {
+                    [":method"] = "HEAD", -- Minimal request
+                    [":path"] = "/wait", -- Path unlikely to exist to force a 404
+                    [":authority"] = "wait.internal" -- Internal hostname
+                },
+                nil, -- No body
+                wait_timeout, -- Block for most of our timeout period
+                { ["timeout"] = tostring(wait_timeout) }
+            )
+        end)
+        
+        -- After the httpCall returns (timeout or rejection),
+        -- check if our token is available or if wait_complete was set by the timer
+        if wait_complete then
+            request_handle:logDebug(log_prefix .. "Wait completed via timer callback")
+        else
+            request_handle:logDebug(log_prefix .. "Wait completed via httpCall return")
+        end
     end
+    
+    return jwt_token ~= nil
 end
 
 -- Function to fetch GitHub OIDC token
@@ -200,11 +255,15 @@ end
 -- Function to ensure that the host header's port will be 443
 local function ensure_port_443(request_handle)
     local host = request_handle:headers():get(":authority")
-    if host and host:find(escaped_main_dns_zone .. ":%d+$") then
-        request_handle:headers():remove(":authority")
-        local new_host = host:gsub(":%d+$", ":443")
-        request_handle:headers():add(":authority", new_host)
-        request_handle:logDebug(log_prefix .. "Updated :authority header to force port 443: " .. new_host)
+    if host then
+        -- Handle both the exact domain and any subdomain with a port
+        if host:find("%." .. escaped_main_dns_zone .. ":%d+$") or 
+           host:find("^" .. escaped_main_dns_zone .. ":%d+$") then
+            request_handle:headers():remove(":authority")
+            local new_host = host:gsub(":%d+$", ":443")
+            request_handle:headers():add(":authority", new_host)
+            request_handle:logDebug(log_prefix .. "Updated :authority header to force port 443: " .. new_host)
+        end
     end
 end
 
@@ -256,55 +315,38 @@ function envoy_on_request(request_handle)
         request_handle:headers():add(GITHUB_REPOSITORY_HEADER, "{{ getenv "GITHUB_REPOSITORY" }}")
         request_handle:logDebug(log_prefix .. "Initial header set: Added x-repository header")
     end
-
-    -- Determine if we need to add auth token
-    local needs_auth = false
+   
+    request_handle:logDebug(log_prefix .. "Authentication required for request [" .. req_id .. "]")
     
-    -- Check authentication patterns
-    if path:find("^/ethereum/") or 
-       host:find(escaped_main_dns_zone .. "$") or 
-       host:find(escaped_main_dns_zone .. ":%d+$") or 
-       host:find("^gap%-") or
-       host:find("^localhost") then
-        needs_auth = true
+    -- First refresh the token if needed and wait for it
+    local token_success = refresh_token_if_needed(request_handle)
+    
+    -- Verify we have a valid token before proceeding
+    if not token_success or not jwt_token then
+        request_handle:logErr(log_prefix .. "No valid JWT token available for request [" .. req_id .. "]")
+        -- Allow the request to continue, but it will likely fail with 401
+        return
     end
 
-    if needs_auth then
-        request_handle:logDebug(log_prefix .. "Authentication required for request [" .. req_id .. "]")
+    -- Add all required headers
+    if not add_headers(request_handle) then
+        request_handle:logErr(log_prefix .. "Failed to add headers for request [" .. req_id .. "]")
+        return
+    end
+    
+    -- Final verification to ensure token was added
+    local final_auth_header = request_handle:headers():get(GITHUB_OIDC_TOKEN_HEADER)
+    if not final_auth_header or final_auth_header == "" then
+        request_handle:logErr(log_prefix .. "Final check: JWT token header is missing for request [" .. req_id .. "]")
         
-        -- First refresh the token if needed and wait for it
-        local token_success = refresh_token_if_needed(request_handle)
-        
-        -- Verify we have a valid token before proceeding
-        if not token_success or not jwt_token then
-            request_handle:logErr(log_prefix .. "No valid JWT token available for request [" .. req_id .. "]")
-            -- Allow the request to continue, but it will likely fail with 401
-            return
+        -- Emergency token addition if the token is actually available
+        if jwt_token then
+            request_handle:headers():remove(GITHUB_OIDC_TOKEN_HEADER)
+            request_handle:headers():add(GITHUB_OIDC_TOKEN_HEADER, "Bearer " .. jwt_token)
+            request_handle:logInfo(log_prefix .. "Emergency token addition for request [" .. req_id .. "]")
         end
-
-        -- Add all required headers
-        if not add_headers(request_handle) then
-            request_handle:logErr(log_prefix .. "Failed to add headers for request [" .. req_id .. "]")
-            return
-        end
-        
-        -- Final verification to ensure token was added
-        local final_auth_header = request_handle:headers():get(GITHUB_OIDC_TOKEN_HEADER)
-        if not final_auth_header or final_auth_header == "" then
-            request_handle:logErr(log_prefix .. "Final check: JWT token header is missing for request [" .. req_id .. "]")
-            
-            -- Emergency token addition if the token is actually available
-            if jwt_token then
-                request_handle:headers():remove(GITHUB_OIDC_TOKEN_HEADER)
-                request_handle:headers():add(GITHUB_OIDC_TOKEN_HEADER, "Bearer " .. jwt_token)
-                request_handle:logInfo(log_prefix .. "Emergency token addition for request [" .. req_id .. "]")
-            end
-        end
-    else
-        request_handle:logDebug(log_prefix .. "Skipping auth for non-authenticated path [" .. req_id .. "]: " .. path)
     end
 
     -- Final logging
-    request_handle:logInfo(log_prefix .. "Request [" .. req_id .. "] processing complete: " .. 
-                         (needs_auth and "With auth token" or "Without auth token"))
+    request_handle:logInfo(log_prefix .. "Request [" .. req_id .. "] processing complete: With auth token")
 end
