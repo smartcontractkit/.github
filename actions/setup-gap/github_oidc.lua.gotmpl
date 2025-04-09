@@ -6,8 +6,6 @@ local jwt_expiration = 0
 local jwt_token = nil
 local token_refresh_lock = false -- Mutex for token refresh
 local token_refresh_complete = false -- Flag to indicate token is ready
-local token_refresh_waiting = {} -- List of waiting threads
-local request_options = { ["asynchronous"] = true }
 local main_dns_zone = "{{ getenv "MAIN_DNS_ZONE" }}"
 local escaped_main_dns_zone = main_dns_zone:gsub("[%.%+%*%?%^%$%(%)%%]", "%%%1")
 
