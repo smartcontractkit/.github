@@ -1205,6 +1205,7 @@ jobs:
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
+          test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           default_e2e_test_chainlink_image:
             ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_IMAGE ||
             env.CHAINLINK_IMAGE }}
