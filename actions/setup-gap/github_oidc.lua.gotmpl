@@ -255,52 +255,37 @@ function envoy_on_request(request_handle)
         request_handle:logDebug(log_prefix .. "Initial header set: Added x-repository header")
     end
 
-    -- Determine if we need to add auth token
-    local needs_auth = false
+    request_handle:logDebug(log_prefix .. "Authentication required for request [" .. req_id .. "]")
     
-    -- Check authentication patterns
-    if path:find("^/ethereum/") or 
-       host:find(escaped_main_dns_zone .. "$") or 
-       host:find(escaped_main_dns_zone .. ":%d+$") or 
-       host:find("^gap%-") or
-       host:find("^localhost") then
-        needs_auth = true
+    -- First refresh the token if needed and wait for it
+    local token_success = refresh_token_if_needed(request_handle)
+    
+    -- Verify we have a valid token before proceeding
+    if not token_success or not jwt_token then
+        request_handle:logErr(log_prefix .. "No valid JWT token available for request [" .. req_id .. "]")
+        -- Allow the request to continue, but it will likely fail with 401
+        return
     end
 
-    if needs_auth then
-        request_handle:logDebug(log_prefix .. "Authentication required for request [" .. req_id .. "]")
-        
-        -- First refresh the token if needed and wait for it
-        local token_success = refresh_token_if_needed(request_handle)
-        
-        -- Verify we have a valid token before proceeding
-        if not token_success or not jwt_token then
-            request_handle:logErr(log_prefix .. "No valid JWT token available for request [" .. req_id .. "]")
-            -- Allow the request to continue, but it will likely fail with 401
-            return
-        end
-
-        -- Add all required headers
-        if not add_headers(request_handle) then
-            request_handle:logErr(log_prefix .. "Failed to add headers for request [" .. req_id .. "]")
-            return
-        end
-        
-        -- Final verification to ensure token was added
-        local final_auth_header = request_handle:headers():get(GITHUB_OIDC_TOKEN_HEADER)
-        if not final_auth_header or final_auth_header == "" then
-            request_handle:logErr(log_prefix .. "Final check: JWT token header is missing for request [" .. req_id .. "]")
-            
-            -- Emergency token addition if the token is actually available
-            if jwt_token then
-                request_handle:headers():remove(GITHUB_OIDC_TOKEN_HEADER)
-                request_handle:headers():add(GITHUB_OIDC_TOKEN_HEADER, "Bearer " .. jwt_token)
-                request_handle:logInfo(log_prefix .. "Emergency token addition for request [" .. req_id .. "]")
-            end
-        end
-    else
-        request_handle:logDebug(log_prefix .. "Skipping auth for non-authenticated path [" .. req_id .. "]: " .. path)
+    -- Add all required headers
+    if not add_headers(request_handle) then
+        request_handle:logErr(log_prefix .. "Failed to add headers for request [" .. req_id .. "]")
+        return
     end
+    
+    -- Final verification to ensure token was added
+    local final_auth_header = request_handle:headers():get(GITHUB_OIDC_TOKEN_HEADER)
+    if not final_auth_header or final_auth_header == "" then
+        request_handle:logErr(log_prefix .. "Final check: JWT token header is missing for request [" .. req_id .. "]")
+        
+        -- Emergency token addition if the token is actually available
+        if jwt_token then
+            request_handle:headers():remove(GITHUB_OIDC_TOKEN_HEADER)
+            request_handle:headers():add(GITHUB_OIDC_TOKEN_HEADER, "Bearer " .. jwt_token)
+            request_handle:logInfo(log_prefix .. "Emergency token addition for request [" .. req_id .. "]")
+        end
+    end
+
 
     -- Final logging
     request_handle:logInfo(log_prefix .. "Request [" .. req_id .. "] processing complete: " .. 
