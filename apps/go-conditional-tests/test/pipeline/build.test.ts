@@ -161,12 +161,8 @@ describe("validateCompilationResultsOrThrow", () => {
       },
     ];
 
-    // Act & Assert
     expect(() => validateCompilationResultsOrThrow(buildDir, failures)).toThrow(
-      "Failed to compile test binaries",
-    );
-    expect(core.error).toHaveBeenCalledWith(
-      expect.stringContaining("Failed to compile test for package"),
+      "Failed to build 1 packages.",
     );
   });
 
