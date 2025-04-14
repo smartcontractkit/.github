@@ -1,0 +1,54 @@
+services:
+  auth:
+    build:
+      context: ${GITHUB_ACTION_PATH}/authz
+      args:
+        AUTH_SERVICE_PORT: ${AUTH_SERVICE_PORT}
+    container_name: ${GAP_NAME}-authz
+    environment:
+      - AUTH_SERVICE_PORT=${AUTH_SERVICE_PORT}
+      - MAIN_DNS_ZONE=${MAIN_DNS_ZONE}
+      - GITHUB_OIDC_TOKEN_HEADER_NAME=${GITHUB_OIDC_TOKEN_HEADER_NAME}
+      - GITHUB_OIDC_HOSTNAME=${GITHUB_OIDC_HOSTNAME}
+      - ACTIONS_ID_TOKEN_REQUEST_URL=${ACTIONS_ID_TOKEN_REQUEST_URL}
+      - ACTIONS_ID_TOKEN_REQUEST_TOKEN=${ACTIONS_ID_TOKEN_REQUEST_TOKEN}
+      - GITHUB_REPOSITORY=${GITHUB_REPOSITORY}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          "wget -q -O - http://localhost:${AUTH_SERVICE_PORT}/healthz || exit 1",
+        ]
+      interval: 2s
+      timeout: 1s
+      retries: 10
+      start_period: 5s
+    networks:
+      - gap-network
+
+  envoy:
+    image: ${ENVOY_PROXY_IMAGE}
+    container_name: ${GAP_NAME}
+    depends_on:
+      auth:
+        condition: service_healthy
+    ports:
+      - "${DYNAMIC_PROXY_PORT}:${DYNAMIC_PROXY_PORT}"
+      - "${PROXY_PORT}:${PROXY_PORT}"
+      - "${WEBSOCKETS_PROXY_PORT}:${WEBSOCKETS_PROXY_PORT}"
+    volumes:
+      - ${PATH_CERTS_DIR}:/tls
+      - /etc/ssl/certs:/etc/ssl/certs:ro
+      - ${GITHUB_ACTION_PATH}/envoy.yaml:/etc/envoy/envoy.yaml
+    command: >
+      /usr/local/bin/envoy -c /etc/envoy/envoy.yaml --log-level
+      ${PROXY_LOG_LEVEL} ${ENVOY_EXTRA_ARGS}
+    networks:
+      - gap-network
+
+networks:
+  gap-network:
+    # name: ${GAP_NAME}-network
+    driver: bridge

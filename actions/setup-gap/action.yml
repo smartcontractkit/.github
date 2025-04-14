@@ -117,6 +117,11 @@ inputs:
     default: ""
     required: false
 
+  auth-service-port:
+    description: "The port the auth service will listen on."
+    required: false
+    default: "9001"
+
 outputs:
   local-proxy-port:
     description: "The port the local proxy will listen on."
@@ -264,8 +269,9 @@ runs:
         # Verify the installation by checking version
         gomplate --version
 
-    - name: Run local Envoy proxy
-      shell: sh
+    - name: Setup and run services
+      id: setup-services
+      shell: bash
       env:
         GAP_NAME: "gap-${{ inputs.gap-name }}"
         DYNAMIC_PROXY_PORT: ${{ inputs.dynamic-proxy-port }}
@@ -279,9 +285,12 @@ runs:
         PROXY_PORT: ${{ inputs.proxy-port }}
         WEBSOCKETS_PROXY_PORT: ${{ inputs.websockets-proxy-port }}
         WEBSOCKETS_SERVICES: ${{ inputs.websockets-services }}
+        AUTH_SERVICE_PORT: ${{ inputs.auth-service-port }}
+        PATH_CERTS_DIR: ${{ env.PATH_CERTS_DIR }}
       run: |
         # Get the Github OIDC hostname
         export GITHUB_OIDC_HOSTNAME=$(echo $ACTIONS_ID_TOKEN_REQUEST_URL | awk -F[/:] '{print $4}')
+        export AUTH_SERVICE_NAME="${GAP_NAME}-authz"
 
         # Set additional debug flags if debug logging is enabled
         if [ "$ENABLE_PROXY_DEBUG" = "true" ] || [ "$PROXY_LOG_LEVEL" = "debug" ]; then
@@ -295,7 +304,7 @@ runs:
         echo "Using log level: ${PROXY_LOG_LEVEL}"
 
         # List of required ENVs to check
-        required_env_vars="DYNAMIC_PROXY_PORT ENABLE_PROXY_DEBUG GITHUB_OIDC_TOKEN_HEADER_NAME ENVOY_PROXY_IMAGE GITHUB_OIDC_HOSTNAME K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE PROXY_LOG_LEVEL PROXY_PORT GITHUB_REPOSITORY WEBSOCKETS_PROXY_PORT"
+        required_env_vars="DYNAMIC_PROXY_PORT ENABLE_PROXY_DEBUG GITHUB_OIDC_TOKEN_HEADER_NAME ENVOY_PROXY_IMAGE GITHUB_OIDC_HOSTNAME K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE PROXY_LOG_LEVEL PROXY_PORT GITHUB_REPOSITORY WEBSOCKETS_PROXY_PORT AUTH_SERVICE_PORT"
 
         # Loop through each variable and check if it's empty
         for var in $required_env_vars; do
@@ -309,45 +318,28 @@ runs:
         # Generate Envoy config from template
         gomplate -f "${GITHUB_ACTION_PATH}/envoy.yaml.gotmpl" -o "${GITHUB_ACTION_PATH}/envoy.yaml"
 
-        # Generate LUA script from template
-        gomplate -f "${GITHUB_ACTION_PATH}/github_oidc.lua.gotmpl" -o "${GITHUB_ACTION_PATH}/github_oidc.lua"
-
         # Copy AWS CA certs
         cp ${{ github.action_path }}/aws-ca.crt "${PATH_CERTS_DIR}"
         chmod 644 "${PATH_CERTS_DIR}/server.key"
 
         echo "Validating Envoy config..."
         if ! docker run --rm \
-            --name "${GAP_NAME}" \
-            -p "${DYNAMIC_PROXY_PORT}:${DYNAMIC_PROXY_PORT}" \
-            -p "${PROXY_PORT}:${PROXY_PORT}" \
-            -p "${WEBSOCKETS_PROXY_PORT}:${WEBSOCKETS_PROXY_PORT}" \
-            -v "${PATH_CERTS_DIR}":/tls \
-            -v "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
-            -v "${GITHUB_ACTION_PATH}/json.lua":/etc/envoy/json.lua \
-            -v "${GITHUB_ACTION_PATH}/github_oidc.lua":/etc/envoy/github_oidc.lua \
+            --volume "${PATH_CERTS_DIR}":/tls \
+            --volume "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
+            --volume "${GITHUB_ACTION_PATH}/json.lua":/etc/envoy/json.lua \
+            --volume "${GITHUB_ACTION_PATH}/github_oidc.lua":/etc/envoy/github_oidc.lua \
             "${ENVOY_PROXY_IMAGE}" \
             /usr/local/bin/envoy --mode validate -c /etc/envoy/envoy.yaml \
             --log-level "${PROXY_LOG_LEVEL}" \
-            "${ENVOY_EXTRA_ARGS}"; then
+            ${ENVOY_EXTRA_ARGS}; then
           echo "::error::Envoy configuration validation failed."
           exit 1
         fi
 
-        echo "Starting the local Envoy proxy..."
-        docker run --rm -d \
-          --name "${GAP_NAME}" \
-          -p "${DYNAMIC_PROXY_PORT}:${DYNAMIC_PROXY_PORT}" \
-          -p "${PROXY_PORT}:${PROXY_PORT}" \
-          -p "${WEBSOCKETS_PROXY_PORT}:${WEBSOCKETS_PROXY_PORT}" \
-          -v "${PATH_CERTS_DIR}":/tls \
-          -v "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
-          -v "${GITHUB_ACTION_PATH}/json.lua":/etc/envoy/json.lua \
-          -v "${GITHUB_ACTION_PATH}/github_oidc.lua":/etc/envoy/github_oidc.lua \
-          "${ENVOY_PROXY_IMAGE}" \
-          /usr/local/bin/envoy -c /etc/envoy/envoy.yaml \
-          --log-level "${PROXY_LOG_LEVEL}" \
-          "${ENVOY_EXTRA_ARGS}"
+        docker compose -f "${GITHUB_ACTION_PATH}/docker-compose.yml" config
+
+        echo "Starting the auth service and Envoy proxy..."
+        docker compose -f "${GITHUB_ACTION_PATH}/docker-compose.yml" up -d
 
     - name: Verify Envoy Proxy
       shell: bash
@@ -356,12 +348,13 @@ runs:
         PROXY_PORT: ${{ inputs.proxy-port }}
         DYNAMIC_PROXY_PORT: ${{ inputs.dynamic-proxy-port }}
         WEBSOCKETS_PROXY_PORT: ${{ inputs.websockets-proxy-port }}
+        AUTH_SERVICE_IP: ${{ steps.setup-services.outputs.container-ip }}
       run: |
         check_proxy() {
           local port=$1
           local name=$2
 
-          echo "Checking if the ${name} proxy is up and running on [https://localhost:${port}] ..."
+          echo "Checking if the ${name} proxy is up and running on [https://localhost:${port}]"
           for attempt in {1..10}; do
             if curl --silent --cacert "${PATH_CERTS_DIR}/ca.crt" --head https://localhost:${port} > /dev/null 2>&1; then
               echo "${name} proxy is up, and the HTTPS connection is successful."

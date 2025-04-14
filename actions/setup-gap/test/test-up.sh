@@ -1,0 +1,17 @@
+#! /bin/bash
+
+export GAP_NAME="gap-test"
+export AUTH_SERVICE_PORT="9001"
+export GITHUB_OIDC_TOKEN_HEADER_NAME="TEST"
+export GITHUB_OIDC_HOSTNAME="TEST"
+export ACTIONS_ID_TOKEN_REQUEST_URL="TEST"
+export ACTIONS_ID_TOKEN_REQUEST_TOKEN="TEST"
+export GITHUB_REPOSITORY="TEST"
+export PATH_CERTS_DIR="./"
+export DYNAMIC_PROXY_PORT="9002"
+export PROXY_PORT="9003"
+export WEBSOCKETS_PROXY_PORT="9004"
+export ENVOY_PROXY_IMAGE="envoyproxy/envoy:v1.33.0"
+export GITHUB_ACTION_PATH="./"
+
+docker compose config
