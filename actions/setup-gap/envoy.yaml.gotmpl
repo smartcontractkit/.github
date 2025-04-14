@@ -25,8 +25,9 @@ static_resources:
                             cluster: k8s_api_cluster
                             host_rewrite_literal: "gap-k8s-api.{{ getenv "MAIN_DNS_ZONE" }}"
                             retry_policy:
-                              retry_on: connect-failure,refused-stream,gateway-error,deadline-exceeded,unavailable,internal,reset
-                              num_retries: 5
+                              retry_on: connect-failure,refused-stream,gateway-error,deadline-exceeded,unavailable,internal,reset,5xx,retriable-4xx,ssl-failure
+                              num_retries: 10                          # Total number of retry attempts
+                              host_selection_retry_max_attempts: 5     # Max attempts at selecting a new host
                               retry_back_off:
                                 base_interval: "1s"
                                 max_interval: "5s"
@@ -125,9 +126,9 @@ static_resources:
                           route:
                             cluster: dynamic_forward_proxy_cluster
                             retry_policy:
-                              retry_on: connect-failure,refused-stream,gateway-error,deadline-exceeded,unavailable,internal,reset
-                              num_retries: 5
-                              host_selection_retry_max_attempts: 5
+                              retry_on: connect-failure,refused-stream,gateway-error,deadline-exceeded,unavailable,internal,reset,5xx,retriable-4xx,ssl-failure
+                              num_retries: 10                          # Total number of retry attempts
+                              host_selection_retry_max_attempts: 5     # Max attempts at selecting a new host
                               retry_back_off:
                                 base_interval: "1s"
                                 max_interval: "5s"
@@ -209,7 +210,7 @@ static_resources:
                           route:
                             cluster: gap_ws_echo
                             retry_policy:
-                              retry_on: connect-failure,refused-stream,gateway-error,deadline-exceeded,unavailable,internal,reset
+                              retry_on: connect-failure,refused-stream,gateway-error,deadline-exceeded,unavailable,internal,reset,5xx,retriable-4xx,ssl-failure
                               num_retries: 5
                               host_selection_retry_max_attempts: 5
                               retry_back_off:
@@ -226,7 +227,7 @@ static_resources:
                           route:
                             cluster: {{ replaceAll "-" "_" . }}
                             retry_policy:
-                              retry_on: connect-failure,refused-stream,gateway-error,deadline-exceeded,unavailable,internal,reset
+                              retry_on: connect-failure,refused-stream,gateway-error,deadline-exceeded,unavailable,internal,reset,5xx,retriable-4xx,ssl-failure
                               num_retries: 5
                               host_selection_retry_max_attempts: 5
                               retry_back_off:
