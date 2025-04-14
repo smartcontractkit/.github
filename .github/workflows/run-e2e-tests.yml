@@ -394,7 +394,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@30df99c7a18bd7e39ecf8289afb51ae8c4277458 # v1.34.4
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@8ab47907c2f01885db99c2a68ed2e7018e21a2d5 # v1.34.4
       - name: Run Check Tests Command
         env:
           TEST_PATH: ${{ inputs.test_path }}
@@ -451,7 +451,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@30df99c7a18bd7e39ecf8289afb51ae8c4277458 # v1.34.4
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@8ab47907c2f01885db99c2a68ed2e7018e21a2d5 # v1.34.4
       - name: Install jq
         run: sudo apt-get install jq
 
@@ -1385,7 +1385,7 @@ jobs:
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@30df99c7a18bd7e39ecf8289afb51ae8c4277458 # flakguard@0.1.0
+          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@8ab47907c2f01885db99c2a68ed2e7018e21a2d5 # flakguard@0.1.0
 
       - name: Generate Flakeguard Reports
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
