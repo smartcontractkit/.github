@@ -31,11 +31,22 @@ static_resources:
                                 base_interval: "1s"
                                 max_interval: "5s"
                 http_filters:
-                  - name: envoy.filters.http.lua
+                  - name: envoy.filters.http.ext_authz
                     typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
-                      default_source_code:
-                        filename: /etc/envoy/github_oidc.lua
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      http_service:
+                        path_prefix: '/check'
+                        server_uri:
+                          uri: {{ getenv "AUTH_SERVICE_IP" }}:{{ getenv "AUTH_SERVICE_PORT" }}
+                          cluster: ext_authz_service
+                          timeout: 1s
+                        authorization_response:
+                          allowed_upstream_headers:
+                            patterns:
+                              - exact: "x-repository"
+                              - exact: "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
+                              - exact: ":authority"
+                      failure_mode_allow: false
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
@@ -135,11 +146,22 @@ static_resources:
                             envoy.filters.http.dynamic_forward_proxy:
                               '@type': type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.PerRouteConfig
                 http_filters:
-                  - name: envoy.filters.http.lua
+                  - name: envoy.filters.http.ext_authz
                     typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
-                      default_source_code:
-                        filename: /etc/envoy/github_oidc.lua
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      http_service:
+                        path_prefix: '/check'
+                        server_uri:
+                          uri: {{ getenv "AUTH_SERVICE_IP" }}:{{ getenv "AUTH_SERVICE_PORT" }}
+                          cluster: ext_authz_service
+                          timeout: 1s
+                        authorization_response:
+                          allowed_upstream_headers:
+                            patterns:
+                              - exact: "x-repository"
+                              - exact: "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
+                              - exact: ":authority"
+                      failure_mode_allow: false
                   - name: envoy.filters.http.dynamic_forward_proxy
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.FilterConfig
@@ -190,11 +212,22 @@ static_resources:
                 upgrade_configs:
                   - upgrade_type: websocket
                 http_filters:
-                  - name: envoy.filters.http.lua
+                  - name: envoy.filters.http.ext_authz
                     typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
-                      default_source_code:
-                        filename: /etc/envoy/github_oidc.lua
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      http_service:
+                        path_prefix: '/check'
+                        server_uri:
+                          uri: {{ getenv "AUTH_SERVICE_IP" }}:{{ getenv "AUTH_SERVICE_PORT" }}
+                          cluster: ext_authz_service
+                          timeout: 1s
+                        authorization_response:
+                          allowed_upstream_headers:
+                            patterns:
+                              - exact: "x-repository"
+                              - exact: "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
+                              - exact: ":authority"
+                      failure_mode_allow: false
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
@@ -395,3 +428,17 @@ static_resources:
           sni: "{{ . }}.{{ getenv "MAIN_DNS_ZONE" }}"
       {{- end }}
     {{- end }}
+
+    # External authorization service cluster
+    - name: ext_authz_service
+      connect_timeout: 1s
+      type: LOGICAL_DNS
+      load_assignment:
+        cluster_name: ext_authz_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: "{{ getenv "AUTH_SERVICE_IP" }}"
+                      port_value: "{{ getenv "AUTH_SERVICE_PORT" }}"

@@ -117,6 +117,11 @@ inputs:
     default: ""
     required: false
 
+  auth-service-port:
+    description: "The port the auth service will listen on."
+    required: false
+    default: "9001"
+
 outputs:
   local-proxy-port:
     description: "The port the local proxy will listen on."
@@ -264,6 +269,16 @@ runs:
         # Verify the installation by checking version
         gomplate --version
 
+    - name: Build and run auth service
+      id: auth-service
+      uses: smartcontractkit/.github/actions/setup-gap-authz@feat/setup-gap-authz
+      with:
+        gap-name: ${{ inputs.gap-name }}
+        main-dns-zone: ${{ inputs.main-dns-zone }}
+        github-oidc-token-header-name:
+          ${{ inputs.github-oidc-token-header-name }}
+        port: ${{ inputs.auth-service-port }}
+
     - name: Run local Envoy proxy
       shell: sh
       env:
@@ -279,6 +294,8 @@ runs:
         PROXY_PORT: ${{ inputs.proxy-port }}
         WEBSOCKETS_PROXY_PORT: ${{ inputs.websockets-proxy-port }}
         WEBSOCKETS_SERVICES: ${{ inputs.websockets-services }}
+        AUTH_SERVICE_IP: ${{ steps.auth-service.outputs.container-ip }}
+        AUTH_SERVICE_PORT: ${{ inputs.auth-service-port }}
       run: |
         # Get the Github OIDC hostname
         export GITHUB_OIDC_HOSTNAME=$(echo $ACTIONS_ID_TOKEN_REQUEST_URL | awk -F[/:] '{print $4}')
@@ -295,7 +312,7 @@ runs:
         echo "Using log level: ${PROXY_LOG_LEVEL}"
 
         # List of required ENVs to check
-        required_env_vars="DYNAMIC_PROXY_PORT ENABLE_PROXY_DEBUG GITHUB_OIDC_TOKEN_HEADER_NAME ENVOY_PROXY_IMAGE GITHUB_OIDC_HOSTNAME K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE PROXY_LOG_LEVEL PROXY_PORT GITHUB_REPOSITORY WEBSOCKETS_PROXY_PORT"
+        required_env_vars="DYNAMIC_PROXY_PORT ENABLE_PROXY_DEBUG GITHUB_OIDC_TOKEN_HEADER_NAME ENVOY_PROXY_IMAGE GITHUB_OIDC_HOSTNAME K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE PROXY_LOG_LEVEL PROXY_PORT GITHUB_REPOSITORY WEBSOCKETS_PROXY_PORT AUTH_SERVICE_IP AUTH_SERVICE_PORT"
 
         # Loop through each variable and check if it's empty
         for var in $required_env_vars; do
@@ -308,9 +325,6 @@ runs:
 
         # Generate Envoy config from template
         gomplate -f "${GITHUB_ACTION_PATH}/envoy.yaml.gotmpl" -o "${GITHUB_ACTION_PATH}/envoy.yaml"
-
-        # Generate LUA script from template
-        gomplate -f "${GITHUB_ACTION_PATH}/github_oidc.lua.gotmpl" -o "${GITHUB_ACTION_PATH}/github_oidc.lua"
 
         # Copy AWS CA certs
         cp ${{ github.action_path }}/aws-ca.crt "${PATH_CERTS_DIR}"

@@ -1,0 +1,88 @@
+name: setup-gap-authz
+description: "An ext_authz service used by setup-gap to handle authorization"
+
+inputs:
+  gap-name:
+    description: "See setup-gap for more details."
+    required: true
+
+  github-oidc-token-header-name:
+    description: "See setup-gap for more details."
+    required: true
+
+  main-dns-zone:
+    description: "See setup-gap for more details."
+    required: true
+
+  port:
+    description: "The port the auth service will listen on."
+    required: false
+    default: "9001"
+
+outputs:
+  container-ip:
+    description: "The IP address of the auth service container."
+    value: ${{ steps.run-auth-service.outputs.container-ip }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Build and run auth service
+      id: run-auth-service
+      shell: bash
+      env:
+        AUTH_SERVICE_PORT: ${{ inputs.port }}
+        GITHUB_OIDC_TOKEN_HEADER_NAME:
+          ${{ inputs.github-oidc-token-header-name }}
+        GAP_NAME: ${{ inputs.gap-name }}
+        MAIN_DNS_ZONE: ${{ inputs.main-dns-zone }}
+      run: |
+        # Get the Github OIDC hostname
+        export GITHUB_OIDC_HOSTNAME=$(echo "${ACTIONS_ID_TOKEN_REQUEST_URL}" | awk -F[/:] '{print $4}')
+
+        IMAGE_NAME="gap-auth-service-${GAP_NAME}"
+        CONTAINER_NAME="gap-auth-service-${GAP_NAME}-$(uuidgen | cut -d'-' -f1)"
+
+        echo "Building auth service container..."
+        # Pass the port at build time
+        docker build -t "${IMAGE_NAME}" \
+          --build-arg AUTH_SERVICE_PORT="${AUTH_SERVICE_PORT}" \
+          "${GITHUB_ACTION_PATH}"
+
+        echo "Starting auth service on port ${AUTH_SERVICE_PORT}..."
+        docker run -d \
+          --name "${CONTAINER_NAME}" \
+          -p "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}" \
+          -e AUTH_SERVICE_PORT="${AUTH_SERVICE_PORT}" \
+          -e MAIN_DNS_ZONE="${MAIN_DNS_ZONE}" \
+          -e GITHUB_OIDC_TOKEN_HEADER_NAME="${GITHUB_OIDC_TOKEN_HEADER_NAME}" \
+          -e GITHUB_OIDC_HOSTNAME="${GITHUB_OIDC_HOSTNAME}" \
+          -e ACTIONS_ID_TOKEN_REQUEST_URL="${ACTIONS_ID_TOKEN_REQUEST_URL}" \
+          -e ACTIONS_ID_TOKEN_REQUEST_TOKEN="${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+          -e GITHUB_REPOSITORY="${GITHUB_REPOSITORY}" \
+          "${IMAGE_NAME}"
+
+        CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${CONTAINER_NAME}")
+        echo "container-ip=${CONTAINER_IP}" | tee -a $GITHUB_OUTPUT
+
+    - name: Wait for auth service to be ready
+      shell: bash
+      env:
+        AUTH_SERVICE_PORT: ${{ inputs.port }}
+      run: |
+        echo "Waiting for auth service to be ready..."
+        echo "Sending requests to http://localhost:${AUTH_SERVICE_PORT}/healthz"
+        for i in {1..25}; do
+          if curl -s http://localhost:${AUTH_SERVICE_PORT}/healthz | grep -q "OK"; then
+            echo "Auth service is ready."
+            break
+          fi
+
+          if [ $i -eq 25 ]; then
+            echo "::error::Auth service failed to start."
+            exit 1
+          fi
+
+          echo "Waiting for auth service... (attempt $i/25)"
+          sleep 1
+        done
