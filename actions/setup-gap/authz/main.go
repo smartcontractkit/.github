@@ -188,16 +188,6 @@ func addHeader(w http.ResponseWriter, headerName, headerValue string, logValue b
 func handleCheck(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Check: %s %s %s", r.Method, r.URL.Path, r.UserAgent())
 
-	// Get the authority header from the request headers
-	// For HTTP-based ext_authz, Envoy forwards the original headers
-	authority := r.Header.Get(":authority")
-	if authority == "" {
-		// Try the Host header as fallback
-		authority = r.Host
-		log.Printf("No :authority header found, using Host header: %s", authority)
-	}
-	log.Printf("Received Authority header: %s", authority)
-
 	// Fetch or refresh the token
 	token, _, err := fetchGitHubOIDCToken()
 	if err != nil {
@@ -219,6 +209,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	addHeader(w, "x-repository", githubRepository, true)
 
 	// Check and modify the authority header if needed
+	authority := r.Header.Get(":authority")
 	if authority != "" {
 		modifiedAuthority := ensurePort443(authority)
 		addHeader(w, ":authority", modifiedAuthority, true)

@@ -161,6 +161,9 @@ static_resources:
                               - exact: "x-repository"
                               - exact: "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
                               - exact: ":authority"
+                      allowed_headers:
+                        patterns:
+                          - exact: ":authority"
                       failure_mode_allow: false
                   - name: envoy.filters.http.dynamic_forward_proxy
                     typed_config:
@@ -168,6 +171,14 @@ static_resources:
                       dns_cache_config:
                         name: dynamic_forward_proxy_cache_config
                         dns_lookup_family: V4_ONLY
+                        dns_resolution_config:
+                          resolvers:
+                            - socket_address:
+                                address: 8.8.8.8
+                                port_value: 53
+                          dns_resolver_options:
+                            use_tcp_for_dns_lookups: true
+                        host_ttl: 60s
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
@@ -342,11 +353,10 @@ static_resources:
                 filename: "/tls/aws-ca.crt"
               trust_chain_verification: VERIFY_TRUST_CHAIN
 
-    # Cluster for dynamic forward proxy
     - name: dynamic_forward_proxy_cluster
-      lb_policy: CLUSTER_PROVIDED
       connect_timeout: 5s
       http2_protocol_options: {}
+      lb_policy: CLUSTER_PROVIDED
       cluster_type:
         name: envoy.clusters.dynamic_forward_proxy
         typed_config:
@@ -354,6 +364,14 @@ static_resources:
           dns_cache_config:
             name: dynamic_forward_proxy_cache_config
             dns_lookup_family: V4_ONLY
+            dns_resolution_config:
+              resolvers:
+                - socket_address:
+                    address: 8.8.8.8
+                    port_value: 53
+              dns_resolver_options:
+                use_tcp_for_dns_lookups: true
+            host_ttl: 60s
       transport_socket:
         name: envoy.transport_sockets.tls
         typed_config:
@@ -362,7 +380,6 @@ static_resources:
             validation_context:
               trusted_ca:
                 filename: /etc/ssl/certs/ca-certificates.crt
-              trust_chain_verification: ACCEPT_UNTRUSTED
 
     # Cluster for WebSocket echo service
     - name: gap_ws_echo
@@ -414,7 +431,9 @@ static_resources:
     # External authorization service cluster
     - name: ext_authz_service
       connect_timeout: 1s
-      type: LOGICAL_DNS
+      type: STRICT_DNS
+      dns_lookup_family: V4_ONLY
+      lb_policy: ROUND_ROBIN
       load_assignment:
         cluster_name: ext_authz_service
         endpoints:
