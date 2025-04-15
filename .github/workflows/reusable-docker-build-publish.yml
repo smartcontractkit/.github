@@ -12,7 +12,7 @@ name: Reusable Docker Build and Publish
 #   - arm64
 #
 # The workflow also generates pre-defined Docker image tags based on the
-# specified type (branch, nightly, pr, sha, tag).
+# specified type (branch, manual, nightly, pr, sha, tag).
 #
 # Example usage from a calling workflow:
 #
@@ -98,7 +98,8 @@ on:
 
           Valid options (one of):
             - branch
-            - nightly
+            - manual  # workflow dispatch
+            - nightly # schedule
             - pr
             - sha
             - tag
@@ -297,6 +298,10 @@ jobs:
               # Examples: main-d34db33 or main-d34db33-custom-suffix
               tag_value="${GITHUB_REF_NAME}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
               ;;
+            manual)
+              # Examples: manual-d34db33 or manual-d34db33-custom-suffix
+              tag_value="manual-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+              ;;
             nightly)
               # Examples: nightly-20250307 or nightly-20250307-custom-suffix
               tag_value="nightly-${DATE}${DOCKER_TAG_CUSTOM_SUFFIX}"
@@ -315,7 +320,7 @@ jobs:
               tag_value="${GITHUB_REF_NAME}${DOCKER_TAG_CUSTOM_SUFFIX}"
               ;;
             *)
-              echo "::error::Invalid docker image type: ${DOCKER_IMAGE_TYPE}. Must be one of: branch, nightly, pr, sha, tag."
+              echo "::error::Invalid docker image type: ${DOCKER_IMAGE_TYPE}. Must be one of: branch, manual, nightly, pr, sha, tag."
               exit 1
               ;;
           esac
