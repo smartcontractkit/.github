@@ -59,20 +59,34 @@ Here is a major issue with the dynamic proxy. Example request:
 
 ### Resolution
 
+#### Envoy Config
+
 Forcing DNS resolution for the upstream to use a hardcoded DNS server. **Note:**
 The cluster config and listener config need to have similar configs otherwise
 it's an invalid config.
 
 ```
 dns_cache_config:
-name: dynamic_forward_proxy_cache_config
-dns_lookup_family: V4_ONLY
-dns_resolution_config:
-  resolvers:
-    - socket_address:
-        address: 8.8.8.8
-        port_value: 53
-  dns_resolver_options:
-    use_tcp_for_dns_lookups: true
-host_ttl: 60s
+  name: dynamic_forward_proxy_cache_config
+  dns_lookup_family: V4_ONLY
+  dns_resolution_config:
+    resolvers:
+      - socket_address:
+          address: 8.8.8.8
+          port_value: 53
+    dns_resolver_options:
+      use_tcp_for_dns_lookups: true
+  host_ttl: 60s
+```
+
+#### Docker Compose
+
+Add specific DNS servers to the compose configuration. These may not be
+necessary but we believe they ensure that the host system's DNS cache is not
+used.
+
+```
+dns:
+  - 8.8.8.8
+  - 8.8.4.4
 ```
