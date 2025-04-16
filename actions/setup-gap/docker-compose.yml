@@ -4,7 +4,7 @@ services:
       context: ${GITHUB_ACTION_PATH}/authz
       args:
         AUTH_SERVICE_PORT: ${AUTH_SERVICE_PORT}
-    container_name: ${GAP_NAME}-authz
+    container_name: ${AUTH_SERVICE_NAME}
     environment:
       - AUTH_SERVICE_PORT=${AUTH_SERVICE_PORT}
       - MAIN_DNS_ZONE=${MAIN_DNS_ZONE}
