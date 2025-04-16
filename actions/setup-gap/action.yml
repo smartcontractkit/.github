@@ -327,6 +327,8 @@ runs:
 
         echo "Validating Envoy config..."
         if ! docker run --rm \
+            --dns 8.8.8.8
+            --dns 8.8.4.4
             --volume "${PATH_CERTS_DIR}":/tls \
             --volume "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
             "${ENVOY_PROXY_IMAGE}" \

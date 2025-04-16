@@ -31,6 +31,9 @@ services:
   envoy:
     image: ${ENVOY_PROXY_IMAGE}
     container_name: ${GAP_NAME}
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     depends_on:
       auth:
         condition: service_healthy
