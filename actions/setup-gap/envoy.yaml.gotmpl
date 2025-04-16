@@ -149,7 +149,7 @@ static_resources:
                       domains: ["localhost", "127.0.0.1", "localhost:{{ getenv "DYNAMIC_PROXY_PORT" }}", "127.0.0.1:{{ getenv "DYNAMIC_PROXY_PORT" }}"]
                       routes:
                         - match:
-                            prefix: /
+                            prefix: '/'
                           direct_response:
                             status: 200
                             body:
@@ -272,7 +272,7 @@ static_resources:
                       domains: [ "localhost", "127.0.0.1", "localhost:{{ getenv "WEBSOCKETS_PROXY_PORT" }}", "127.0.0.1:{{ getenv "WEBSOCKETS_PROXY_PORT" }}"]
                       routes:
                         - match:
-                            prefix: /
+                            prefix: '/'
                           direct_response:
                             status: 200
                             body:
