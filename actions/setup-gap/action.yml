@@ -360,9 +360,22 @@ runs:
 
           echo "Checking if the ${name} proxy is up and running on [https://localhost:${port}]"
           for attempt in {1..10}; do
-            if curl --silent --cacert "${PATH_CERTS_DIR}/ca.crt" --head https://localhost:${port} > /dev/null 2>&1; then
-              echo "${name} proxy is up, and the HTTPS connection is successful."
+            # Get the status code using curl
+            status_code=$(curl --silent --cacert "${PATH_CERTS_DIR}/ca.crt" \
+                          -o /dev/null -w "%{http_code}" https://localhost:${port})
+
+            echo "Attempt ${attempt}/10: Status code: ${status_code}"
+
+            if [[ $status_code -eq 200 ]]; then
+              echo "${name} proxy is up, and the HTTPS connection is successful with status code 200."
               return 0
+            elif [[ $status_code -ne 000 ]]; then
+              echo "WARNING: ${name} proxy returned non-200 status code: ${status_code}"
+              if [[ $attempt -eq 10 ]]; then
+                echo "::error:: ${name} proxy is responding but with unexpected status code: ${status_code}"
+                return 1
+              fi
+              sleep 3
             else
               echo "Waiting for the ${name} proxy to start... Attempt ${attempt}/10"
               sleep 3
