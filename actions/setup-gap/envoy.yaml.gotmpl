@@ -146,7 +146,7 @@ static_resources:
                             envoy.filters.http.dynamic_forward_proxy:
                               '@type': type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.PerRouteConfig
                     - name: localhost_host
-                      domains: ["localhost", "127.0.0.1"]
+                      domains: ["localhost", "127.0.0.1", "localhost:{{ getenv "DYNAMIC_PROXY_PORT" }}", "127.0.0.1:{{ getenv "DYNAMIC_PROXY_PORT" }}"]
                       routes:
                         - match:
                             prefix: /
@@ -268,6 +268,15 @@ static_resources:
                               retry_back_off:
                                 base_interval: "1s"
                                 max_interval: "5s"
+                    - name: localhost_host
+                      domains: [ "localhost", "127.0.0.1", "localhost:{{ getenv "WEBSOCKETS_PROXY_PORT" }}", "127.0.0.1:{{ getenv "WEBSOCKETS_PROXY_PORT" }}"]
+                      routes:
+                        - match:
+                            prefix: /
+                          direct_response:
+                            status: 200
+                            body:
+                              inline_string: "OK - Envoy is operating normally"
                   {{- if getenv "WEBSOCKETS_SERVICES" }}
                     {{- $services := getenv "WEBSOCKETS_SERVICES" | strings.Split "," }}
                     {{- range $services }}
