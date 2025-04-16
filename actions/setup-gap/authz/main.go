@@ -167,16 +167,22 @@ func ensurePort443(authority string) string {
 	if re.MatchString(authority) {
 		// Replace the port with 443
 		newAuthority := regexp.MustCompile(":\\d+$").ReplaceAllString(authority, ":443")
-		log.Printf("Updated authority header from %s to %s", authority, newAuthority)
+		log.Printf("Updated authority header from %s to %s", sanitizeStr(authority), sanitizeStr(newAuthority))
 		return newAuthority
 	}
 
 	return authority
 }
 
+func sanitizeStr(value string) string {
+	sanitizedValue := strings.ReplaceAll(value, "\n", "")
+	sanitizedValue = strings.ReplaceAll(sanitizedValue, "\r", "")
+	return sanitizedValue
+}
+
 func addHeader(w http.ResponseWriter, headerName, headerValue string, logValue bool) {
 	if logValue {
-		log.Printf("Adding header: %s=%s", headerName, headerValue)
+		log.Printf("Adding header: %s=%s", headerName, sanitizeStr(headerValue))
 	} else {
 		log.Printf("Adding header: %s", headerName)
 	}
@@ -186,7 +192,7 @@ func addHeader(w http.ResponseWriter, headerName, headerValue string, logValue b
 
 // handleCheck processes auth requests from Envoy
 func handleCheck(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Check: %s %s %s", r.Method, r.URL.Path, r.UserAgent())
+	log.Printf("Check: %s %s %s", r.Method, sanitizeStr(r.URL.Path), sanitizeStr(r.UserAgent()))
 
 	// Fetch or refresh the token
 	token, _, err := fetchGitHubOIDCToken()
@@ -222,13 +228,13 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 
 // handleHealthz is a simple health check endpoint
 func handleHealthz(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Health check request: %s", r.URL.Path)
+	log.Printf("Health check request: %s", sanitizeStr(r.URL.Path))
 	fmt.Fprint(w, "OK")
 }
 
 // handleNotFound handles all other paths, logs the request path, and returns a 404
 func handleNotFound(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Not found request: %s %s", r.Method, r.URL.Path)
+	log.Printf("Not found request: %s %s", r.Method, sanitizeStr(r.URL.Path))
 	http.Error(w, "Not Found", http.StatusNotFound)
 }
 
