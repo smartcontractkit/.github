@@ -187,6 +187,11 @@ on:
         type: string
         default: "{}"
         description: "JSON of extra arguments for the workflow."
+      self_hosted_runner_label:
+        required: false
+        type: string
+        default: ""
+        description: "Label for self-hosted runner to run the tests on."
     outputs:
       test_results:
         description: "Test results from all executed tests"
@@ -708,7 +713,7 @@ jobs:
     if:
       ${{ needs.load-test-configurations.outputs.run-docker-tests == 'true' &&
       always() && !failure() && !cancelled() }}
-    runs-on: ${{ matrix.tests.runs_on }}
+    runs-on: ${{ inputs.self_hosted_runner_label || matrix.tests.runs_on }}
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.load-test-configurations.outputs.docker-matrix)}}
@@ -732,6 +737,11 @@ jobs:
       - name: Collect Test Telemetry
         if: inputs.collect_test_telemetry
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
+
+      - name: Enable S3 Cache for Self-Hosted Runners
+        if: ${{ inputs.self_hosted_runner_label != '' }}
+        uses: runs-on/action@66d4449b717b5462159659523d1241051ff470b9 # v1
+
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
         with:
