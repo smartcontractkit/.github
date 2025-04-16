@@ -269,16 +269,52 @@ runs:
         # Verify the installation by checking version
         gomplate --version
 
+    - name: Check Debug Mode
+      id: enable-debug
+      shell: bash
+      env:
+        ENABLE_PROXY_DEBUG: ${{ inputs.enable-proxy-debug }}
+        PROXY_LOG_LEVEL: ${{ inputs.proxy-log-level }}
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        if [[ "$ENABLE_PROXY_DEBUG" == "false" && "$PROXY_LOG_LEVEL" == "info" ]]; then
+          # default inputs
+          echo "Setting debug-mode to false because of default inputs"
+          echo "debug-mode=false" | tee -a $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Get repository visibility using GitHub CLI
+        # either public, private, or internal
+        REPO_VISIBILITY=$(gh api repos/${GITHUB_REPOSITORY} --jq '.visibility')
+
+        if [[ "$REPO_VISIBILITY" == "public" ]]; then
+          echo "Repository is public, debug logging is restricted."
+          echo "debug-mode=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        if [[ "$REPO_VISIBILITY" == "private" || "$REPO_VISIBILITY" == "internal" ]]; then
+          if [ "$ENABLE_PROXY_DEBUG" = "true" ] || [ "$PROXY_LOG_LEVEL" = "debug" ]; then
+            echo "Repo is private and enable-proxy-debug is true or proxy-log-level is debug."
+            echo "debug-mode=true" >> $GITHUB_OUTPUT
+          else
+            echo "debug-mode=false" >> $GITHUB_OUTPUT
+          fi
+          exit 0
+        fi
+
+        echo "::warning::Unknown repository visibility: $REPO_VISIBILITY. Setting debug-mode to false."
+        echo "debug-mode=false" >> $GITHUB_OUTPUT
+
     - name: Setup and run services
       id: setup-services
       shell: bash
       env:
         GAP_NAME: "gap-${{ inputs.gap-name }}"
         DYNAMIC_PROXY_PORT: ${{ inputs.dynamic-proxy-port }}
-        ENABLE_PROXY_DEBUG: ${{ inputs.enable-proxy-debug }}
         GITHUB_OIDC_TOKEN_HEADER_NAME:
           ${{ inputs.github-oidc-token-header-name }}
-        PROXY_LOG_LEVEL: ${{ inputs.proxy-log-level }}
         ENVOY_PROXY_IMAGE: ${{ inputs.envoy-proxy-image }}
         K8S_API_ENDPOINT_PORT: ${{ inputs.k8s-api-endpoint-port }}
         MAIN_DNS_ZONE: ${{ inputs.main-dns-zone }}
@@ -288,26 +324,26 @@ runs:
         AUTH_SERVICE_NAME: ${{ inputs.gap-name }}-authz
         AUTH_SERVICE_PORT: ${{ inputs.auth-service-port }}
         PATH_CERTS_DIR: ${{ env.PATH_CERTS_DIR }}
+        DEBUG_MODE: ${{ steps.enable-debug.outputs.debug-mode }}
         REQUIRED_ENV_VARS: >-
           WEBSOCKETS_PROXY_PORT DYNAMIC_PROXY_PORT PROXY_PORT
-          K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE ENVOY_PROXY_IMAGE
-          ENABLE_PROXY_DEBUG PROXY_LOG_LEVEL AUTH_SERVICE_NAME AUTH_SERVICE_PORT
+          K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE ENVOY_PROXY_IMAGE PROXY_LOG_LEVEL
+          AUTH_LOG_LEVEL AUTH_SERVICE_NAME AUTH_SERVICE_PORT
           ACTIONS_ID_TOKEN_REQUEST_TOKEN ACTIONS_ID_TOKEN_REQUEST_URL
           GITHUB_REPOSITORY GITHUB_OIDC_TOKEN_HEADER_NAME GITHUB_OIDC_HOSTNAME
       run: |
         # Get the Github OIDC hostname
         export GITHUB_OIDC_HOSTNAME=$(echo $ACTIONS_ID_TOKEN_REQUEST_URL | awk -F[/:] '{print $4}')
 
-        # Set additional debug flags if debug logging is enabled
-        if [ "$ENABLE_PROXY_DEBUG" = "true" ] || [ "$PROXY_LOG_LEVEL" = "debug" ]; then
-          export PROXY_LOG_LEVEL="debug"
-          export ENVOY_EXTRA_ARGS="--component-log-level upstream:debug,connection:debug,router:debug,http:debug,filter:debug,client:debug"
+        export PROXY_LOG_LEVEL="info"
+        export AUTH_LOG_LEVEL="info"
+        export ENVOY_EXTRA_ARGS=""
+        if [[ "$DEBUG_MODE" == "true" ]]; then
           echo "Debug logging enabled with component logging"
-        else
-          export ENVOY_EXTRA_ARGS=""
+          export PROXY_LOG_LEVEL="debug"
+          export AUTH_LOG_LEVEL="debug"
+          export ENVOY_EXTRA_ARGS="--component-log-level upstream:debug,connection:debug,router:debug,http:debug,filter:debug,client:debug"
         fi
-
-        echo "Using log level: ${PROXY_LOG_LEVEL}"
 
         # Loop through each variable and check if it's empty
         for var in $REQUIRED_ENV_VARS; do
@@ -327,18 +363,16 @@ runs:
 
         echo "Validating Envoy config..."
         if ! docker run --rm \
-            --dns 8.8.8.8
-            --dns 8.8.4.4
             --volume "${PATH_CERTS_DIR}":/tls \
             --volume "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
             "${ENVOY_PROXY_IMAGE}" \
             /usr/local/bin/envoy --mode validate -c /etc/envoy/envoy.yaml \
-            --log-level "${PROXY_LOG_LEVEL}" "${ENVOY_EXTRA_ARGS}"; then
+            --log-level "${PROXY_LOG_LEVEL}" ${ENVOY_EXTRA_ARGS}; then
           echo "::error::Envoy configuration validation failed."
           exit 1
         fi
 
-        if [ "$ENABLE_PROXY_DEBUG" = "true" ] || [ "$PROXY_LOG_LEVEL" = "debug" ]; then
+        if [[ "$DEBUG_MODE" == "true" ]]; then
           echo "Docker compose configuration:"
           docker compose -f "${GITHUB_ACTION_PATH}/docker-compose.yml" config
         fi
