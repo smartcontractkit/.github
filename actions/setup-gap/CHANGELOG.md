@@ -1,5 +1,21 @@
 # setup-gap
 
+## 5.1.0
+
+### Minor Changes
+
+- [#1000](https://github.com/smartcontractkit/.github/pull/1000)
+  [`3e7b28c`](https://github.com/smartcontractkit/.github/commit/3e7b28cddf837704c64a7071446d254ae45c9072)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: restrict debug
+  logging in public repositories
+
+### Patch Changes
+
+- [#1001](https://github.com/smartcontractkit/.github/pull/1001)
+  [`fa6726f`](https://github.com/smartcontractkit/.github/commit/fa6726fd06000bd64d9b9dbad667b0519791c376)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: health check for K8s
+  API when enabled
+
 ## 5.0.0
 
 ### Major Changes
