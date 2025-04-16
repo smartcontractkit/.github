@@ -1,5 +1,26 @@
 # setup-gap
 
+## 5.0.0
+
+### Major Changes
+
+- [#997](https://github.com/smartcontractkit/.github/pull/997)
+  [`f5ce463`](https://github.com/smartcontractkit/.github/commit/f5ce463d6623c830ecccf6c1c0ff63a2a6e66799)
+  Thanks [@erikburt](https://github.com/erikburt)! - replace docker run with
+  docker compose
+
+- [#997](https://github.com/smartcontractkit/.github/pull/997)
+  [`f5ce463`](https://github.com/smartcontractkit/.github/commit/f5ce463d6623c830ecccf6c1c0ff63a2a6e66799)
+  Thanks [@erikburt](https://github.com/erikburt)! - replace blocking LUA script
+  with authz filter
+
+### Minor Changes
+
+- [#997](https://github.com/smartcontractkit/.github/pull/997)
+  [`f5ce463`](https://github.com/smartcontractkit/.github/commit/f5ce463d6623c830ecccf6c1c0ff63a2a6e66799)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix DNS issue for dynamic
+  proxy
+
 ## 4.2.1
 
 ### Patch Changes

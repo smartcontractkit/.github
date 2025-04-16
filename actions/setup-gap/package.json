@@ -1,6 +1,6 @@
 {
   "name": "setup-gap",
-  "version": "4.2.1",
+  "version": "5.0.0",
   "description": "setup github actions proxy",
   "private": true,
   "scripts": {},
