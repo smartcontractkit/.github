@@ -53,5 +53,5 @@ services:
 
 networks:
   gap-network:
-    # name: ${GAP_NAME}-network
+    name: ${GAP_NAME}-network
     driver: bridge
