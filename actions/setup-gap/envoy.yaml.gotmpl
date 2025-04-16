@@ -31,11 +31,22 @@ static_resources:
                                 base_interval: "1s"
                                 max_interval: "5s"
                 http_filters:
-                  - name: envoy.filters.http.lua
+                  - name: envoy.filters.http.ext_authz
                     typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
-                      default_source_code:
-                        filename: /etc/envoy/github_oidc.lua
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      http_service:
+                        path_prefix: '/check'
+                        server_uri:
+                          uri: {{ getenv "AUTH_SERVICE_NAME" }}:{{ getenv "AUTH_SERVICE_PORT" }}
+                          cluster: ext_authz_service
+                          timeout: 1s
+                        authorization_response:
+                          allowed_upstream_headers:
+                            patterns:
+                              - exact: "x-repository"
+                              - exact: "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
+                              - exact: ":authority"
+                      failure_mode_allow: false
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
@@ -118,7 +129,7 @@ static_resources:
                 route_config:
                   virtual_hosts:
                     - name: dynamic_forward_host
-                      domains: ["*"]
+                      domains: ["*.{{ getenv "MAIN_DNS_ZONE" }}"]
                       routes:
                         - match:
                             prefix: /
@@ -134,18 +145,49 @@ static_resources:
                           typed_per_filter_config:
                             envoy.filters.http.dynamic_forward_proxy:
                               '@type': type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.PerRouteConfig
+                    - name: localhost_host
+                      domains: ["localhost", "127.0.0.1", "localhost:{{ getenv "DYNAMIC_PROXY_PORT" }}", "127.0.0.1:{{ getenv "DYNAMIC_PROXY_PORT" }}"]
+                      routes:
+                        - match:
+                            prefix: /
+                          direct_response:
+                            status: 200
+                            body:
+                              inline_string: "OK - Envoy is operating normally"
                 http_filters:
-                  - name: envoy.filters.http.lua
+                  - name: envoy.filters.http.ext_authz
                     typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
-                      default_source_code:
-                        filename: /etc/envoy/github_oidc.lua
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      http_service:
+                        path_prefix: '/check'
+                        server_uri:
+                          uri: {{ getenv "AUTH_SERVICE_NAME" }}:{{ getenv "AUTH_SERVICE_PORT" }}
+                          cluster: ext_authz_service
+                          timeout: 1s
+                        authorization_response:
+                          allowed_upstream_headers:
+                            patterns:
+                              - exact: "x-repository"
+                              - exact: "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
+                              - exact: ":authority"
+                      allowed_headers:
+                        patterns:
+                          - exact: ":authority"
+                      failure_mode_allow: false
                   - name: envoy.filters.http.dynamic_forward_proxy
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.FilterConfig
                       dns_cache_config:
                         name: dynamic_forward_proxy_cache_config
                         dns_lookup_family: V4_ONLY
+                        dns_resolution_config:
+                          resolvers:
+                            - socket_address:
+                                address: 8.8.8.8
+                                port_value: 53
+                          dns_resolver_options:
+                            use_tcp_for_dns_lookups: true
+                        host_ttl: 60s
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
@@ -190,11 +232,22 @@ static_resources:
                 upgrade_configs:
                   - upgrade_type: websocket
                 http_filters:
-                  - name: envoy.filters.http.lua
+                  - name: envoy.filters.http.ext_authz
                     typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
-                      default_source_code:
-                        filename: /etc/envoy/github_oidc.lua
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      http_service:
+                        path_prefix: '/check'
+                        server_uri:
+                          uri: {{ getenv "AUTH_SERVICE_NAME" }}:{{ getenv "AUTH_SERVICE_PORT" }}
+                          cluster: ext_authz_service
+                          timeout: 1s
+                        authorization_response:
+                          allowed_upstream_headers:
+                            patterns:
+                              - exact: "x-repository"
+                              - exact: "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
+                              - exact: ":authority"
+                      failure_mode_allow: false
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
@@ -215,6 +268,15 @@ static_resources:
                               retry_back_off:
                                 base_interval: "1s"
                                 max_interval: "5s"
+                    - name: localhost_host
+                      domains: [ "localhost", "127.0.0.1", "localhost:{{ getenv "WEBSOCKETS_PROXY_PORT" }}", "127.0.0.1:{{ getenv "WEBSOCKETS_PROXY_PORT" }}"]
+                      routes:
+                        - match:
+                            prefix: /
+                          direct_response:
+                            status: 200
+                            body:
+                              inline_string: "OK - Envoy is operating normally"
                   {{- if getenv "WEBSOCKETS_SERVICES" }}
                     {{- $services := getenv "WEBSOCKETS_SERVICES" | strings.Split "," }}
                     {{- range $services }}
@@ -309,30 +371,10 @@ static_resources:
                 filename: "/tls/aws-ca.crt"
               trust_chain_verification: VERIFY_TRUST_CHAIN
 
-    # Cluster for GitHub OIDC endpoint
-    - name: github_oidc_endpoint
-      connect_timeout: 5s
-      type: LOGICAL_DNS
-      lb_policy: ROUND_ROBIN
-      load_assignment:
-        cluster_name: github_oidc_endpoint
-        endpoints:
-          - lb_endpoints:
-              - endpoint:
-                  address:
-                    socket_address:
-                      address: "{{ getenv "GITHUB_OIDC_HOSTNAME" }}"
-                      port_value: 443
-      transport_socket:
-        name: envoy.transport_sockets.tls
-        typed_config:
-          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
-
-    # Cluster for dynamic forward proxy
     - name: dynamic_forward_proxy_cluster
-      lb_policy: CLUSTER_PROVIDED
       connect_timeout: 5s
       http2_protocol_options: {}
+      lb_policy: CLUSTER_PROVIDED
       cluster_type:
         name: envoy.clusters.dynamic_forward_proxy
         typed_config:
@@ -340,6 +382,14 @@ static_resources:
           dns_cache_config:
             name: dynamic_forward_proxy_cache_config
             dns_lookup_family: V4_ONLY
+            dns_resolution_config:
+              resolvers:
+                - socket_address:
+                    address: 8.8.8.8
+                    port_value: 53
+              dns_resolver_options:
+                use_tcp_for_dns_lookups: true
+            host_ttl: 60s
       transport_socket:
         name: envoy.transport_sockets.tls
         typed_config:
@@ -395,3 +445,19 @@ static_resources:
           sni: "{{ . }}.{{ getenv "MAIN_DNS_ZONE" }}"
       {{- end }}
     {{- end }}
+
+    # External authorization service cluster
+    - name: ext_authz_service
+      connect_timeout: 1s
+      type: STRICT_DNS
+      dns_lookup_family: V4_ONLY
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: ext_authz_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: "{{ getenv "AUTH_SERVICE_NAME" }}"
+                      port_value: "{{ getenv "AUTH_SERVICE_PORT" }}"
