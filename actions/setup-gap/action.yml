@@ -122,6 +122,12 @@ inputs:
     required: false
     default: "9001"
 
+  action-path:
+    description: |
+      The path to the action's directory. Should be used for action development only.
+    required: false
+    default: "${{ github.action_path }}"
+
 outputs:
   local-proxy-port:
     description: "The port the local proxy will listen on."
@@ -331,6 +337,8 @@ runs:
           AUTH_LOG_LEVEL AUTH_SERVICE_NAME AUTH_SERVICE_PORT
           ACTIONS_ID_TOKEN_REQUEST_TOKEN ACTIONS_ID_TOKEN_REQUEST_URL
           GITHUB_REPOSITORY GITHUB_OIDC_TOKEN_HEADER_NAME GITHUB_OIDC_HOSTNAME
+          ACTION_PATH
+        ACTION_PATH: ${{ inputs.action-path || github.action_path }}
       run: |
         # Get the Github OIDC hostname
         export GITHUB_OIDC_HOSTNAME=$(echo $ACTIONS_ID_TOKEN_REQUEST_URL | awk -F[/:] '{print $4}')
@@ -355,16 +363,16 @@ runs:
         done
 
         # Generate Envoy config from template
-        gomplate -f "${GITHUB_ACTION_PATH}/envoy.yaml.gotmpl" -o "${GITHUB_ACTION_PATH}/envoy.yaml"
+        gomplate -f "${ACTION_PATH}/envoy.yaml.gotmpl" -o "${ACTION_PATH}/envoy.yaml"
 
         # Copy AWS CA certs
-        cp ${{ github.action_path }}/aws-ca.crt "${PATH_CERTS_DIR}"
+        cp ${ACTION_PATH}/aws-ca.crt "${PATH_CERTS_DIR}"
         chmod 644 "${PATH_CERTS_DIR}/server.key"
 
         echo "Validating Envoy config..."
         if ! docker run --rm \
             --volume "${PATH_CERTS_DIR}":/tls \
-            --volume "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
+            --volume "${ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
             "${ENVOY_PROXY_IMAGE}" \
             /usr/local/bin/envoy --mode validate -c /etc/envoy/envoy.yaml \
             --log-level "${PROXY_LOG_LEVEL}" ${ENVOY_EXTRA_ARGS}; then
@@ -374,11 +382,11 @@ runs:
 
         if [[ "$DEBUG_MODE" == "true" ]]; then
           echo "Docker compose configuration:"
-          docker compose -f "${GITHUB_ACTION_PATH}/docker-compose.yml" config
+          docker compose -f "${ACTION_PATH}/docker-compose.yml" config
         fi
 
         echo "Starting the auth service and Envoy proxy..."
-        docker compose -f "${GITHUB_ACTION_PATH}/docker-compose.yml" up -d
+        docker compose -f "${ACTION_PATH}/docker-compose.yml" up -d
 
     - name: Verify Envoy Proxy
       shell: bash
