@@ -2,6 +2,21 @@
 
 > setup github actions proxy
 
+## Testing
+
+Any development on this action needs to sufficiently tested before merging. We
+have a workflow configured to test some basic use-cases for the setup-gap
+action.
+
+You can workflow dispatch that workflow here:
+https://github.com/smartcontractkit/releng-test/actions/workflows/setup-gap-test.yml
+
+Or you can run the following to dispatch it using the `gh` CLI.
+
+```
+echo '{"dot-github-ref": "<YOUR FEATURE BRANCH>"}' | gh workflow run --repo smartcontractkit/releng-test --ref main setup-gap-test.yml --json
+```
+
 ## Certificate Authorities
 
 The contents of ./aws-ca.crt are pulled from the PEM files on the
