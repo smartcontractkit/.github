@@ -1,5 +1,15 @@
 # setup-postgres
 
+## 1.0.0
+
+### Major Changes
+
+- [#1005](https://github.com/smartcontractkit/.github/pull/1005)
+  [`570ca28`](https://github.com/smartcontractkit/.github/commit/570ca281405eaf4a7d8cf376b495c5c052cb57b7)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: add configurable
+  image-tag input (note: this is a non-breaking change but wanted to bump it to
+  1.0.0)
+
 ## 0.2.0
 
 ### Minor Changes
