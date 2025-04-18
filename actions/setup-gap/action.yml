@@ -356,6 +356,10 @@ runs:
 
         # Generate Envoy config from template
         gomplate -f "${GITHUB_ACTION_PATH}/envoy.yaml.gotmpl" -o "${GITHUB_ACTION_PATH}/envoy.yaml"
+        if [[ "$DEBUG_MODE" == "true" ]]; then
+          echo "Generated Envoy config:"
+          cat "${GITHUB_ACTION_PATH}/envoy.yaml"
+        fi
 
         # Copy AWS CA certs
         cp ${{ github.action_path }}/aws-ca.crt "${PATH_CERTS_DIR}"

@@ -269,7 +269,7 @@ static_resources:
                                 base_interval: "1s"
                                 max_interval: "5s"
                     - name: localhost_host
-                      domains: [ "localhost", "127.0.0.1", "localhost:{{ getenv "WEBSOCKETS_PROXY_PORT" }}", "127.0.0.1:{{ getenv "WEBSOCKETS_PROXY_PORT" }}"]
+                      domains: ["localhost", "127.0.0.1", "localhost:{{ getenv "WEBSOCKETS_PROXY_PORT" }}", "127.0.0.1:{{ getenv "WEBSOCKETS_PROXY_PORT" }}"]
                       routes:
                         - match:
                             prefix: '/'
