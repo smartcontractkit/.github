@@ -165,6 +165,7 @@ func fetchGitHubOIDCToken() (string, int64, error) {
 func ensurePort443(authority string) string {
 	// If MainDNSZone is not in the authority, no need to process
 	if !strings.Contains(authority, config.MainDNSZone) {
+		logDebug("Authority does not contain MainDNSZone (%s), no changes made: %s", config.MainDNSZone, sanitizeStr(authority))
 		return authority
 	}
 
@@ -198,6 +199,17 @@ func addHeader(w http.ResponseWriter, headerName, headerValue string, logValue b
 func handleCheck(w http.ResponseWriter, r *http.Request) {
 	logDefault("Check: %s %s %s", r.Method, sanitizeStr(r.URL.Path), sanitizeStr(r.UserAgent()))
 
+	for name, values := range r.Header {
+		for _, value := range values {
+			logDebug("  Header: %s=%s", name, sanitizeStr(value))
+		}
+	}
+	logDebug("  Pseudoheader: :method=%s", r.Method)
+	logDebug("  Pseudoheader: :path=%s", sanitizeStr(r.URL.Path))
+	if host := r.Host; host != "" {
+		logDebug("  Pseudoheader: :authority=%s (from Host: %s)", sanitizeStr(host), sanitizeStr(host))
+	}
+
 	// Fetch or refresh the token
 	token, _, err := fetchGitHubOIDCToken()
 	if err != nil {
@@ -221,6 +233,11 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 
 	// Check and modify the authority header if needed
 	authority := r.Header.Get(":authority")
+	if authority == "" {
+		authority = r.Host
+		logDebug("No :authority header found, using host header (%s)", sanitizeStr(authority))
+	}
+
 	if authority != "" {
 		modifiedAuthority := ensurePort443(authority)
 		addHeader(w, ":authority", modifiedAuthority, true)
