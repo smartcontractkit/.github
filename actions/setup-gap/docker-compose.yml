@@ -13,7 +13,7 @@ services:
       - ACTIONS_ID_TOKEN_REQUEST_URL=${ACTIONS_ID_TOKEN_REQUEST_URL}
       - ACTIONS_ID_TOKEN_REQUEST_TOKEN=${ACTIONS_ID_TOKEN_REQUEST_TOKEN}
       - GITHUB_REPOSITORY=${GITHUB_REPOSITORY}
-      - AUTH_LOG_LEVEL=${AUTH_LOG_LEVEL}
+      - LOG_LEVEL=${AUTH_LOG_LEVEL}
     healthcheck:
       test:
         [
@@ -31,7 +31,7 @@ services:
 
   envoy:
     image: ${ENVOY_PROXY_IMAGE}
-    container_name: ${GAP_NAME}
+    container_name: ${ENVOY_SERVICE_NAME}
     dns:
       - 8.8.8.8
       - 8.8.4.4

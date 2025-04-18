@@ -58,6 +58,7 @@ type OIDCResponse struct {
 	Value string `json:"value"`
 }
 
+// https://www.envoyproxy.io/docs/envoy/latest/api-v3/service/auth/v3/external_auth.proto#service-auth-v3-okhttpresponse
 type AuthResponse struct {
 	Status struct {
 		Code int `json:"code"`
@@ -165,6 +166,7 @@ func fetchGitHubOIDCToken() (string, int64, error) {
 func ensurePort443(authority string) string {
 	// If MainDNSZone is not in the authority, no need to process
 	if !strings.Contains(authority, config.MainDNSZone) {
+		logDebug("Authority does not contain MainDNSZone (%s), no changes made: %s", config.MainDNSZone, sanitizeStr(authority))
 		return authority
 	}
 
@@ -184,19 +186,32 @@ func sanitizeStr(value string) string {
 	return sanitizedValue
 }
 
-func addHeader(w http.ResponseWriter, headerName, headerValue string, logValue bool) {
+func addHeader(w http.ResponseWriter, authResp AuthResponse, headerName, headerValue string, logValue bool) {
 	if logValue {
-		logDebug("Adding header: %s=%s", headerName, sanitizeStr(headerValue))
+		logDebug("  Adding header: %s=%s", headerName, sanitizeStr(headerValue))
 	} else {
-		logDebug("Adding header: %s", headerName)
+		logDebug("  Adding header: %s", headerName)
 	}
 
+	// Set both the header in the HTTP response and the HTTP Body
 	w.Header().Set(headerName, headerValue)
+	authResp.HttpResponse.Headers[headerName] = headerValue
 }
 
 // handleCheck processes auth requests from Envoy
 func handleCheck(w http.ResponseWriter, r *http.Request) {
 	logDefault("Check: %s %s %s", r.Method, sanitizeStr(r.URL.Path), sanitizeStr(r.UserAgent()))
+
+	for name, values := range r.Header {
+		for _, value := range values {
+			logDebug("  Header: %s=%s", name, sanitizeStr(value))
+		}
+	}
+	logDebug("  Header: :method=%s", r.Method)
+	logDebug("  Header: :path=%s", sanitizeStr(r.URL.Path))
+	if host := r.Host; host != "" {
+		logDebug("  Header: host=%s", sanitizeStr(host))
+	}
 
 	// Fetch or refresh the token
 	token, _, err := fetchGitHubOIDCToken()
@@ -207,31 +222,37 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Prepare the response
+	// Get the authority header - this is typically the host header, but we check	:authority first
+	authority := r.Header.Get(":authority")
+	if authority == "" {
+		authority = r.Host
+		logDefault("No :authority header found, using host header (%s)", sanitizeStr(authority))
+	}
+
+	// Always modify the authority to ensure port 443
+	if authority != "" {
+		authority = ensurePort443(authority)
+		logDefault("Setting upstream authority to: %s", sanitizeStr(authority))
+	} else {
+		logDefault("Warning: No authority found in request")
+	}
+
 	authResp := AuthResponse{}
 	authResp.Status.Code = 200
 	authResp.HttpResponse.Headers = make(map[string]string)
 
-	// Add the JWT token header
-	headerName := config.GithubOidcTokenHeaderName
-	addHeader(w, headerName, "Bearer "+token, false)
+	addHeader(w, authResp, config.GithubOidcTokenHeaderName, "Bearer "+token, false)
+	addHeader(w, authResp, "x-repository", config.GithubRepository, true)
 
-	githubRepository := config.GithubRepository
-	addHeader(w, "x-repository", githubRepository, true)
-
-	// Check and modify the authority header if needed
-	authority := r.Header.Get(":authority")
 	if authority != "" {
-		modifiedAuthority := ensurePort443(authority)
-		addHeader(w, ":authority", modifiedAuthority, true)
+		addHeader(w, authResp, ":authority", authority, true)
+		addHeader(w, authResp, "host", authority, true)
 	}
 
-	// Send the response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(authResp)
 }
 
-// handleHealthz is a simple health check endpoint
 func handleHealthz(w http.ResponseWriter, r *http.Request) {
 	logDebug("Health check request: %s", sanitizeStr(r.URL.Path))
 	fmt.Fprint(w, "OK")
@@ -243,8 +264,6 @@ func handleNotFound(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Not Found", http.StatusNotFound)
 }
 
-// loadConfig loads all environment variables into the config struct
-// Returns an error if any required environment variables are missing
 func loadConfig() error {
 	var missingVars []string
 
@@ -283,7 +302,7 @@ func loadConfig() error {
 		missingVars = append(missingVars, "AUTH_SERVICE_PORT")
 	}
 
-	// Set log level from environment variable, default to LogLevelInfo
+	// Set log level, default to LogLevelDefault
 	logLevelStr := os.Getenv("LOG_LEVEL")
 	if logLevelStr != "" {
 		switch strings.ToLower(logLevelStr) {
@@ -318,17 +337,13 @@ func main() {
 		logDefault("Initial token fetch failed: %v", err)
 	}
 
-	// Set up HTTP server with custom mux
 	mux := http.NewServeMux()
-
 	// Register /check and /check/* endpoints
 	mux.HandleFunc("/check/", handleCheck)
 	mux.HandleFunc("/check", handleCheck)
 
 	mux.HandleFunc("/healthz", handleHealthz)
-
-	// Set up a catch-all handler for any other paths
-	mux.HandleFunc("/", handleNotFound)
+	mux.HandleFunc("/", handleNotFound) // Catch-all for all other paths
 
 	// Listen on all interfaces - required when containerized
 	address := fmt.Sprintf("0.0.0.0:%s", config.AuthServicePort)
