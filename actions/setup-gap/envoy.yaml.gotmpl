@@ -419,18 +419,30 @@ static_resources:
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
           sni: "gap-ws-echo.{{ getenv "MAIN_DNS_ZONE" }}"
+          dns_cache_config:
+            name: gap_ws_echo_cache_config
+            dns_lookup_family: V4_ONLY
+            dns_resolution_config:
+              resolvers:
+                - socket_address:
+                    address: 8.8.8.8
+                    port_value: 53
+              dns_resolver_options:
+                use_tcp_for_dns_lookups: true
+            host_ttl: 60s
 
     {{- if getenv "WEBSOCKETS_SERVICES" }}
       {{- $services := getenv "WEBSOCKETS_SERVICES" | strings.Split "," }}
       {{- range $services }}
+      {{- $clusterName := replaceAll "-" "_" . }}
       # Cluster for WebSocket {{ . }} service
-    - name: {{ replaceAll "-" "_" . }}
+    - name: {{ $clusterName }}
       connect_timeout: 5s
       type: LOGICAL_DNS
       dns_lookup_family: V4_ONLY
       lb_policy: ROUND_ROBIN
       load_assignment:
-        cluster_name: {{ replaceAll "-" "_" . }}
+        cluster_name: {{ $clusterName }}
         endpoints:
           - lb_endpoints:
               - endpoint:
@@ -443,6 +455,17 @@ static_resources:
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
           sni: "{{ . }}.{{ getenv "MAIN_DNS_ZONE" }}"
+          dns_cache_config:
+            name: {{ $clusterName }}_cache_config
+            dns_lookup_family: V4_ONLY
+            dns_resolution_config:
+              resolvers:
+                - socket_address:
+                    address: 8.8.8.8
+                    port_value: 53
+              dns_resolver_options:
+                use_tcp_for_dns_lookups: true
+            host_ttl: 60s
       {{- end }}
     {{- end }}
 
