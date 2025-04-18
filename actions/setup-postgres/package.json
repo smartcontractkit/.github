@@ -1,6 +1,6 @@
 {
   "name": "setup-postgres",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "",
   "private": true,
   "scripts": {},
