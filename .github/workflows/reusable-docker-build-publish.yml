@@ -88,6 +88,13 @@ on:
         description: "Docker build arguments."
         required: false
         type: string
+      docker-build-cache-disabled:
+        description: |
+          Disable Docker build cache. See `--no-cache` flag in:
+          https://docs.docker.com/engine/reference/commandline/buildx_build/#cache
+        required: false
+        type: string
+        default: "false"
       docker-build-context:
         description: "Path to Docker build context."
         required: true
@@ -359,7 +366,7 @@ jobs:
 
       - name: Docker image build
         id: build
-        uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/0.6.0
+        uses: smartcontractkit/.github/actions/build-push-docker@dx-478/docker-build-nocache-2 # TODO: debug
         with:
           platform: ${{ format('linux/{0}', matrix.arch) }}
           docker-registry-url: >-
@@ -376,6 +383,7 @@ jobs:
           tags: ${{ steps.set-docker-image-tags.outputs.tags }}
           dockerfile: ${{ inputs.dockerfile }}
           docker-build-args: ${{ inputs.docker-build-args }}
+          docker-build-cache-disabled: ${{ inputs.docker-build-cache-disabled }}
           context: ${{ inputs.docker-build-context }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
