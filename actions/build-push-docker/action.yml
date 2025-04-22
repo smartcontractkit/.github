@@ -9,6 +9,12 @@ inputs:
       Build arguments for the docker image build. See:
       https://docs.docker.com/reference/cli/docker/buildx/build/#build-arg
     required: false
+  docker-build-cache-disabled:
+    description: |
+      Disable Docker build cache. See `--no-cache` flag in:
+      https://docs.docker.com/engine/reference/commandline/buildx_build/#cache
+    required: false
+    default: "false"
   # See: https://github.com/moby/buildkit#github-actions-cache-experimental
   docker-build-cache-from:
     description: |
@@ -198,6 +204,7 @@ runs:
         tags: ${{ steps.docker-meta.outputs.tags }}
         labels: ${{ steps.docker-meta.outputs.labels }}
         platforms: ${{ inputs.platform }}
+        no-cache: ${{ inputs.docker-build-cache-disabled }}
         cache-from: >-
           ${{
             format('{0},scope={1}', inputs.docker-build-cache-from, runner.arch)
