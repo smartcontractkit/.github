@@ -20,6 +20,7 @@ type Config struct {
 	GithubOidcHostname         string
 	GithubOidcTokenHeaderName  string
 	GithubRepository           string
+	GithubRunURL               string
 	MainDNSZone                string
 	AuthServicePort            string
 	LogLevel                   int
@@ -243,6 +244,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 
 	addHeader(w, authResp, config.GithubOidcTokenHeaderName, "Bearer "+token, false)
 	addHeader(w, authResp, "x-repository", config.GithubRepository, true)
+	addHeader(w, authResp, "x-run-url", config.GithubRunURL, true)
 
 	if authority != "" {
 		addHeader(w, authResp, ":authority", authority, true)
@@ -290,6 +292,11 @@ func loadConfig() error {
 	config.GithubRepository = os.Getenv("GITHUB_REPOSITORY")
 	if config.GithubRepository == "" {
 		missingVars = append(missingVars, "GITHUB_REPOSITORY")
+	}
+
+	config.GithubRunURL = os.Getenv("GITHUB_RUN_URL")
+	if config.GithubRunURL == "" {
+		missingVars = append(missingVars, "GITHUB_RUN_URL")
 	}
 
 	config.MainDNSZone = os.Getenv("MAIN_DNS_ZONE")

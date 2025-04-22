@@ -13,6 +13,7 @@ export GITHUB_OIDC_HOSTNAME="github-oidc-hostname"
 export ACTIONS_ID_TOKEN_REQUEST_URL="actions-id-token-request-url"
 export ACTIONS_ID_TOKEN_REQUEST_TOKEN="actions-id-token-request-token"
 export GITHUB_REPOSITORY="github-repository"
+export GITHUB_RUN_URL="https://github.com/smartcontractkit/repository/actions/runs/123456789/attempts/1"
 
 export ENVOY_PROXY_IMAGE="envoy-proxy-image:version"
 export ENVOY_SERVICE_NAME="envoy-service-name"
