@@ -45,7 +45,7 @@ static_resources:
                             patterns:
                               - exact: "x-repository"
                               - exact: "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
-                              - exact: ":authority"
+                              - exact: "host"
                       failure_mode_allow: false
                   - name: envoy.filters.http.router
                     typed_config:
@@ -129,7 +129,9 @@ static_resources:
                 route_config:
                   virtual_hosts:
                     - name: dynamic_forward_host
-                      domains: ["*.{{ getenv "MAIN_DNS_ZONE" }}", "*.{{ getenv "MAIN_DNS_ZONE" }}:{{ getenv "DYNAMIC_PROXY_PORT" }}"]
+                      domains:
+                        - "*.{{ getenv "MAIN_DNS_ZONE" }}"
+                        - "*.{{ getenv "MAIN_DNS_ZONE" }}:{{ getenv "DYNAMIC_PROXY_PORT" }}"
                       routes:
                         - match:
                             prefix: /
@@ -146,7 +148,11 @@ static_resources:
                             envoy.filters.http.dynamic_forward_proxy:
                               '@type': type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.PerRouteConfig
                     - name: localhost_host
-                      domains: ["localhost", "127.0.0.1", "localhost:{{ getenv "DYNAMIC_PROXY_PORT" }}", "127.0.0.1:{{ getenv "DYNAMIC_PROXY_PORT" }}"]
+                      domains:
+                        - "localhost"
+                        - "127.0.0.1"
+                        - "localhost:{{ getenv "DYNAMIC_PROXY_PORT" }}"
+                        - "127.0.0.1:{{ getenv "DYNAMIC_PROXY_PORT" }}"
                       routes:
                         - match:
                             prefix: '/'
@@ -169,7 +175,6 @@ static_resources:
                             patterns:
                               - exact: "x-repository"
                               - exact: "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
-                              - exact: ":authority"
                               - exact: "host"
                       failure_mode_allow: false
                   - name: envoy.filters.http.dynamic_forward_proxy
@@ -244,7 +249,7 @@ static_resources:
                             patterns:
                               - exact: "x-repository"
                               - exact: "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
-                              - exact: ":authority"
+                              - exact: "host"
                       failure_mode_allow: false
                   - name: envoy.filters.http.router
                     typed_config:
@@ -253,7 +258,9 @@ static_resources:
                   name: local_route
                   virtual_hosts:
                     - name: gap_ws_echo
-                      domains: ["gap-ws-echo.{{ getenv "MAIN_DNS_ZONE" }}", "gap-ws-echo.{{ getenv "MAIN_DNS_ZONE" }}:{{ getenv "WEBSOCKETS_PROXY_PORT" }}"]
+                      domains:
+                        - "gap-ws-echo.{{ getenv "MAIN_DNS_ZONE" }}"
+                        - "gap-ws-echo.{{ getenv "MAIN_DNS_ZONE" }}:{{ getenv "WEBSOCKETS_PROXY_PORT" }}"
                       routes:
                         - match:
                             prefix: "/"
@@ -267,7 +274,11 @@ static_resources:
                                 base_interval: "1s"
                                 max_interval: "5s"
                     - name: localhost_host
-                      domains: [ "localhost", "127.0.0.1", "localhost:{{ getenv "WEBSOCKETS_PROXY_PORT" }}", "127.0.0.1:{{ getenv "WEBSOCKETS_PROXY_PORT" }}"]
+                      domains:
+                        - "localhost"
+                        - "127.0.0.1"
+                        - "localhost:{{ getenv "WEBSOCKETS_PROXY_PORT" }}"
+                        - "127.0.0.1:{{ getenv "WEBSOCKETS_PROXY_PORT" }}"
                       routes:
                         - match:
                             prefix: '/'
@@ -279,7 +290,9 @@ static_resources:
                     {{- $services := getenv "WEBSOCKETS_SERVICES" | strings.Split "," }}
                     {{- range $services }}
                     - name: {{ replaceAll "-" "_" . }}
-                      domains: ["{{ . }}.{{ getenv "MAIN_DNS_ZONE" }}", "{{ . }}.{{ getenv "MAIN_DNS_ZONE" }}:{{ getenv "WEBSOCKETS_PROXY_PORT" }}"]
+                      domains:
+                        - "{{ . }}.{{ getenv "MAIN_DNS_ZONE" }}"
+                        - "{{ . }}.{{ getenv "MAIN_DNS_ZONE" }}:{{ getenv "WEBSOCKETS_PROXY_PORT" }}"
                       routes:
                         - match:
                             prefix: "/"
