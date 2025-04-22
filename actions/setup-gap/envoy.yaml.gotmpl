@@ -129,7 +129,7 @@ static_resources:
                 route_config:
                   virtual_hosts:
                     - name: dynamic_forward_host
-                      domains: ["*.{{ getenv "MAIN_DNS_ZONE" }}"]
+                      domains: ["*.{{ getenv "MAIN_DNS_ZONE" }}", "*.{{ getenv "MAIN_DNS_ZONE" }}:{{ getenv "DYNAMIC_PROXY_PORT" }}"]
                       routes:
                         - match:
                             prefix: /
@@ -170,9 +170,7 @@ static_resources:
                               - exact: "x-repository"
                               - exact: "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
                               - exact: ":authority"
-                      allowed_headers:
-                        patterns:
-                          - exact: ":authority"
+                              - exact: "host"
                       failure_mode_allow: false
                   - name: envoy.filters.http.dynamic_forward_proxy
                     typed_config:
@@ -255,7 +253,7 @@ static_resources:
                   name: local_route
                   virtual_hosts:
                     - name: gap_ws_echo
-                      domains: ["gap-ws-echo.{{ getenv "MAIN_DNS_ZONE" }}*"]
+                      domains: ["gap-ws-echo.{{ getenv "MAIN_DNS_ZONE" }}", "gap-ws-echo.{{ getenv "MAIN_DNS_ZONE" }}:{{ getenv "WEBSOCKETS_PROXY_PORT" }}"]
                       routes:
                         - match:
                             prefix: "/"
@@ -281,7 +279,7 @@ static_resources:
                     {{- $services := getenv "WEBSOCKETS_SERVICES" | strings.Split "," }}
                     {{- range $services }}
                     - name: {{ replaceAll "-" "_" . }}
-                      domains: ["{{ . }}.{{ getenv "MAIN_DNS_ZONE" }}*"]
+                      domains: ["{{ . }}.{{ getenv "MAIN_DNS_ZONE" }}", "{{ . }}.{{ getenv "MAIN_DNS_ZONE" }}:{{ getenv "WEBSOCKETS_PROXY_PORT" }}"]
                       routes:
                         - match:
                             prefix: "/"
