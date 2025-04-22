@@ -187,12 +187,8 @@ func sanitizeStr(value string) string {
 	return sanitizedValue
 }
 
-func addHeader(w http.ResponseWriter, authResp AuthResponse, headerName, headerValue string, logValue bool) {
-	if logValue {
-		logDebug("  Adding header: %s=%s", headerName, sanitizeStr(headerValue))
-	} else {
-		logDebug("  Adding header: %s", headerName)
-	}
+func addHeader(w http.ResponseWriter, authResp AuthResponse, headerName, headerValue string) {
+	logDebug("  Adding header: %s=%s", headerName, sanitizeStr(headerValue))
 
 	// Set both the header in the HTTP response and the HTTP Body
 	w.Header().Set(headerName, headerValue)
@@ -242,13 +238,13 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	authResp.Status.Code = 200
 	authResp.HttpResponse.Headers = make(map[string]string)
 
-	addHeader(w, authResp, config.GithubOidcTokenHeaderName, "Bearer "+token, false)
-	addHeader(w, authResp, "x-repository", config.GithubRepository, true)
-	addHeader(w, authResp, "x-run-url", config.GithubRunURL, true)
+  addHeader(w, authResp, config.GithubOidcTokenHeaderName, "Bearer "+token)
+	addHeader(w, authResp, "x-repository", config.GithubRepository)
+	addHeader(w, authResp, "x-run-url", config.GithubRunURL)
 
 	if authority != "" {
-		addHeader(w, authResp, ":authority", authority, true)
-		addHeader(w, authResp, "host", authority, true)
+		addHeader(w, authResp, ":authority", authority)
+		addHeader(w, authResp, "host", authority)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
