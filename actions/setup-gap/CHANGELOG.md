@@ -1,5 +1,14 @@
 # setup-gap
 
+## 5.2.1
+
+### Patch Changes
+
+- [#1013](https://github.com/smartcontractkit/.github/pull/1013)
+  [`1e71fc1`](https://github.com/smartcontractkit/.github/commit/1e71fc131bc8c46b95a1090083ad73e5bd97d649)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: respect host header
+  authz rewrites for all listeners
+
 ## 5.2.0
 
 ### Minor Changes
