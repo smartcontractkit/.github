@@ -1,5 +1,14 @@
 # build-push-docker
 
+## 0.6.1
+
+### Patch Changes
+
+- [#1008](https://github.com/smartcontractkit/.github/pull/1008)
+  [`bdfafd5`](https://github.com/smartcontractkit/.github/commit/bdfafd5a849ee9c9f9462827c32e088d835968a4)
+  Thanks [@chainchad](https://github.com/chainchad)! - Create optional input for
+  disabling Docker build cache
+
 ## 0.6.0
 
 ### Minor Changes
