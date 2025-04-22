@@ -1,5 +1,18 @@
 # setup-gap
 
+## 5.2.0
+
+### Minor Changes
+
+- [#1007](https://github.com/smartcontractkit/.github/pull/1007)
+  [`7182d39`](https://github.com/smartcontractkit/.github/commit/7182d39be7661f9ae7e0befb4bd8221181a9b2d5)
+  Thanks [@erikburt](https://github.com/erikburt)! - - fix: (action) add
+  --project parameter for docker compose commands
+  - fix: (envoy config) websocket service routing with explicit port
+  - fix: (authz + envoy config) host header port rewrites
+  - fix: (authz) logging level environment variable name
+  - feat: (authz) better header debug logging
+
 ## 5.1.0
 
 ### Minor Changes
