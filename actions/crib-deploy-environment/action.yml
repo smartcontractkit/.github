@@ -212,6 +212,10 @@ runs:
         main-dns-zone: ${{ inputs.main-dns-zone }}
         websockets-services: ${{ env.WEBSOCKETS_SERVICES }}
 
+    - name: Setup go
+      uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
+      with:
+        cache: false
     - name: Cache ccip-v2-scripts go module
       uses: actions/cache@v4
       if: inputs.enable-cache-ccip-v2-scripts == 'true'
