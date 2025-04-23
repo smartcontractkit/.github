@@ -512,7 +512,6 @@ static_resources:
         connection_keepalive:  # Add HTTP/2 keepalive pings
           interval: 5s
           timeout: 10s
-      per_upstream_preconnect_ratio: 1.5  # Proactively establish connections
       upstream_connection_options:
         tcp_keepalive:
           keepalive_probes: 5
