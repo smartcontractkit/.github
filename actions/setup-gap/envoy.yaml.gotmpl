@@ -44,6 +44,7 @@ static_resources:
                           allowed_upstream_headers:
                             patterns:
                               - exact: "x-repository"
+                              - exact: "x-run-url"
                               - exact: "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
                               - exact: "host"
                       failure_mode_allow: false
@@ -74,7 +75,8 @@ static_resources:
                           response_flags: "%RESPONSE_FLAGS%"  # Envoy response flags (e.g., NR, UH)
                           upstream_cluster: "%UPSTREAM_CLUSTER%"  # Upstream cluster name
                           request_id: "%REQ(X-Request-Id)%"  # Request ID for correlation
-                          x_repository: "%REQ(x-repository)%" # Repo name prefixed with the org
+                          x-repository: "%REQ(x-repository)%" # Repo name prefixed with the org
+                          x-run-url: "%REQ(x-run-url)%" # URL to the GitHub Actions run
           transport_socket:
             name: envoy.transport_sockets.tls
             typed_config:
@@ -174,6 +176,7 @@ static_resources:
                           allowed_upstream_headers:
                             patterns:
                               - exact: "x-repository"
+                              - exact: "x-run-url"
                               - exact: "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
                               - exact: "host"
                       failure_mode_allow: false
@@ -218,7 +221,8 @@ static_resources:
                           response_flags: "%RESPONSE_FLAGS%"  # Envoy response flags (e.g., NR, UH)
                           upstream_cluster: "%UPSTREAM_CLUSTER%"  # Upstream cluster name
                           request_id: "%REQ(X-Request-Id)%"  # Request ID for correlation
-                          x_repository: "%REQ(x-repository)%" # Repo name prefixed with the org
+                          x-repository: "%REQ(x-repository)%" # Repo name prefixed with the org
+                          x-run-url: "%REQ(x-run-url)%" # URL to the GitHub Actions run
 
     # Listener for WebSocket traffic
     - name: webosckets_listener
@@ -248,6 +252,7 @@ static_resources:
                           allowed_upstream_headers:
                             patterns:
                               - exact: "x-repository"
+                              - exact: "x-run-url"
                               - exact: "{{ getenv "GITHUB_OIDC_TOKEN_HEADER_NAME" }}"
                               - exact: "host"
                       failure_mode_allow: false
@@ -332,7 +337,8 @@ static_resources:
                           response_flags: "%RESPONSE_FLAGS%"  # Envoy response flags (e.g., NR, UH)
                           upstream_cluster: "%UPSTREAM_CLUSTER%"  # Upstream cluster name
                           request_id: "%REQ(X-Request-Id)%"  # Request ID for correlation
-                          x_repository: "%REQ(x-repository)%" # Repo name prefixed with the org
+                          x-repository: "%REQ(x-repository)%" # Repo name prefixed with the org
+                          x-run-url: "%REQ(x-run-url)%" # URL to the GitHub Actions run
           transport_socket:
             name: envoy.transport_sockets.tls
             typed_config:
