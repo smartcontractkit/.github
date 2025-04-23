@@ -439,7 +439,7 @@ static_resources:
 
     # Cluster for WebSocket echo service
     - name: gap_ws_echo
-      connect_timeout: 5s
+      connect_timeout: 10s  # Increased from 5s
       type: LOGICAL_DNS
       dns_lookup_family: V4_ONLY
       lb_policy: ROUND_ROBIN
@@ -454,12 +454,11 @@ static_resources:
         dns_resolver_options:
           use_tcp_for_dns_lookups: true
       dns_refresh_rate: 5s
-      common_http_protocol_options:
-        idle_timeout: 60s
-      http2_protocol_options:
-        connection_keepalive:
-          interval: 1s
-          timeout: 10s
+      upstream_connection_options:
+        tcp_keepalive:
+          keepalive_probes: 3
+          keepalive_time: 30
+          keepalive_interval: 5
       circuit_breakers:
         thresholds:
           max_connections: 1024
@@ -479,13 +478,12 @@ static_resources:
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
           sni: "gap-ws-echo.{{ getenv "MAIN_DNS_ZONE" }}"
-
     {{- if getenv "WEBSOCKETS_SERVICES" }}
       {{- $services := getenv "WEBSOCKETS_SERVICES" | strings.Split "," }}
       {{- range $services }}
       # Cluster for WebSocket {{ . }} service
     - name: {{ replaceAll "-" "_" . }}
-      connect_timeout: 20s
+      connect_timeout: 10s
       type: LOGICAL_DNS
       dns_lookup_family: V4_ONLY
       lb_policy: ROUND_ROBIN
@@ -499,28 +497,12 @@ static_resources:
               port_value: 53
         dns_resolver_options:
           use_tcp_for_dns_lookups: true
-      dns_refresh_rate: 5s  # Regular DNS refresh
-      common_http_protocol_options:
-        idle_timeout: 300s
-        max_connection_duration: 3600s  # Max connection lifetime
-        max_requests_per_connection: 10000  # Increased request limit per connection
-        max_stream_duration: 120s  # Maximum stream duration for each request
-      http2_protocol_options:  # Add HTTP/2 specific settings
-        max_concurrent_streams: 100  # Allow more parallel streams
-        initial_stream_window_size: 65536  # 64 KiB
-        initial_connection_window_size: 1048576  # 1 MiB
-        connection_keepalive:  # Add HTTP/2 keepalive pings
-          interval: 5s
-          timeout: 10s
-      per_upstream_preconnect_ratio: 1.5  # Proactively establish connections
+      dns_refresh_rate: 5s
       upstream_connection_options:
         tcp_keepalive:
           keepalive_probes: 5
           keepalive_time: 30
           keepalive_interval: 5
-      connect_timeout: 30s  # Increased connection timeout
-      cluster_protocol_options:  # Optional protocol settings
-        tcp_protocol_options: {}
       circuit_breakers:
         thresholds:
           max_connections: 1024
