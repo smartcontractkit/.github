@@ -135,6 +135,10 @@ inputs:
       'gap-${DEVSPACE_NAMESPACE}-geth, gap-${DEVSPACE_NAMESPACE}-custom-ws'."
     default: ""
     required: false
+  enable-cache-ccip-v2-scripts:
+    description: "Enable go module caching for ccip-v2-scripts binary"
+    default: "false"
+    required: false
 outputs:
   devspace-namespace:
     description: "Kubernetes namespace used to provision a CRIB environment."
@@ -207,6 +211,19 @@ runs:
         dynamic-proxy-port: ${{ inputs.dynamic-proxy-port }}
         main-dns-zone: ${{ inputs.main-dns-zone }}
         websockets-services: ${{ env.WEBSOCKETS_SERVICES }}
+
+    - name: Cache ccip-v2-scripts go module
+      uses: actions/cache@v4
+      if: inputs.enable-cache-ccip-v2-scripts == 'true'
+      with:
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+        key:
+          ${{ runner.os }}-go-ccip-v2-scripts-${{
+          hashFiles('dependencies/ccip-v2-scripts/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-ccip-v2-scripts
 
     - name: Checkout crib repo
       uses: actions/checkout@v4
