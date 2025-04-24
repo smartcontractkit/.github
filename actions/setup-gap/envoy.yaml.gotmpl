@@ -491,10 +491,10 @@ static_resources:
         max_connection_duration: 0
       circuit_breakers:
         thresholds:
-          - max_connections: 1000
-            max_pending_requests: 1000
-            max_requests: 1000
-            max_retries: 1000
+          max_connections: 1000
+          max_pending_requests: 1000
+          max_requests: 1000
+          max_retries: 1000
       type: LOGICAL_DNS
       dns_lookup_family: V4_ONLY
       lb_policy: ROUND_ROBIN
