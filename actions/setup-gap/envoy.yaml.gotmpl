@@ -271,6 +271,7 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: gap_ws_echo
+                            timeout: 0s
                             retry_policy:
                               retry_on: connect-failure,refused-stream,gateway-error,deadline-exceeded,unavailable,internal,reset
                               num_retries: 5
@@ -303,6 +304,7 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: {{ replaceAll "-" "_" . }}
+                            timeout: 0s
                             retry_policy:
                               retry_on: connect-failure,refused-stream,gateway-error,deadline-exceeded,unavailable,internal,reset
                               num_retries: 5
