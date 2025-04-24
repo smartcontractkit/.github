@@ -1,5 +1,14 @@
 # setup-gap
 
+## 5.2.2
+
+### Patch Changes
+
+- [#1012](https://github.com/smartcontractkit/.github/pull/1012)
+  [`3162d34`](https://github.com/smartcontractkit/.github/commit/3162d34c7bd513d04c6650b1c168d25a94acb24a)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: add x-run-url debug
+  header to upstream request
+
 ## 5.2.1
 
 ### Patch Changes
