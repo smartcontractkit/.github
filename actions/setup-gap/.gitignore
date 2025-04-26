@@ -1,0 +1,2 @@
+certs/*
+!certs/aws-ca.crt
