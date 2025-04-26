@@ -167,14 +167,6 @@ runs:
         mask-aws-account-id: true
 
     - name: Setup Certificate Authority
-      # Generate a local ephemeral CA key and cert to sign the local proxy's certificate.
-      # ---
-      # Kubectl requires a TLS connection to it's configured endpoint, and performs certificate
-      # validation through the CA configured in the kubeconfig.
-      # The local envoy container will act as the k8s endpoint for kubectl, and therefore requires a
-      # certificate signed by a trusted CA. Because this is for local TLS we can generate a CA, generate a server
-      # certificate, sign the server certificate with the CA, and update the CA in the kubeconfig to trust it.
-      # Also useful for other use-cases where a local TLS connection is required.
       shell: bash
       env:
         GAP_NAME: ${{ inputs.gap-name }}
@@ -183,55 +175,28 @@ runs:
       run: |
         PATH_CERTS_DIR="${PATH_CERTS_DIR_PREFIX}-${GAP_NAME}"
         echo "PATH_CERTS_DIR=${PATH_CERTS_DIR}" | tee -a $GITHUB_ENV
-        mkdir -p "${PATH_CERTS_DIR}"
-
-        echo "::debug::Generating new CA key+cert. Writing them to ${PATH_CERTS_DIR}/ca.key and ${PATH_CERTS_DIR}/ca.crt"
-        openssl ecparam -genkey -name prime256v1 -out "${PATH_CERTS_DIR}/ca.key"
-        openssl req -x509 -new \
-          -nodes -key "${PATH_CERTS_DIR}/ca.key" \
-          -sha256 \
-          -days "${CA_CERT_VALIDITY_DAYS}" \
-          -out "${PATH_CERTS_DIR}/ca.crt" \
-          -subj "/CN=My CA"
-
-        echo "::debug::Adding new CA to system trust store"
-        sudo mkdir -p /usr/local/share/ca-certificates/extra
-        sudo cp "${PATH_CERTS_DIR}/ca.crt" "/usr/local/share/ca-certificates/extra/setup-gap-${GAP_NAME}.crt"
-        sudo update-ca-certificates
+        "${GITHUB_ACTION_PATH}/scripts/setup_ca.sh" \
+          "${PATH_CERTS_DIR}" \
+          "${CA_CERT_VALIDITY_DAYS}" \
+          "${GAP_NAME}"
 
     - name: Generate and Sign Proxy TLS listener certificate
       shell: bash
       env:
         CERT_VALIDITY_DAYS: ${{ inputs.cert-validity-days}}
         MAIN_DNS_ZONE: ${{ inputs.main-dns-zone }}
+        PATH_CERTS_DIR: ${{ env.PATH_CERTS_DIR }}
       run: |
-        echo "::debug::Generating server key and certificate signing request (CSR)"
-        openssl ecparam -genkey -name prime256v1 -out "${PATH_CERTS_DIR}/server.key"
-        openssl req -new \
-          -key "${PATH_CERTS_DIR}/server.key" \
-          -out "${PATH_CERTS_DIR}/server.csr" \
-          -subj "/CN=localhost" \
-          -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
-
-        echo "::debug::Generating SAN extension file"
-        echo -e "subjectAltName=DNS:localhost,IP:127.0.0.1,DNS:*.${MAIN_DNS_ZONE}" > "${PATH_CERTS_DIR}/san.ext"
-
-        echo "::debug::Signing server certificate with CA"
-        openssl x509 -req -in "${PATH_CERTS_DIR}/server.csr" \
-          -CA "${PATH_CERTS_DIR}/ca.crt" \
-          -CAkey "${PATH_CERTS_DIR}/ca.key" \
-          -CAcreateserial \
-          -out "${PATH_CERTS_DIR}/server.crt" \
-          -days "${CERT_VALIDITY_DAYS}" \
-          -sha256 \
-          -extfile "${PATH_CERTS_DIR}/san.ext"
-
-        echo "::debug::Removing CSR and SAN extension files"
-        rm "${PATH_CERTS_DIR}/server.csr" "${PATH_CERTS_DIR}/san.ext"
+        "${GITHUB_ACTION_PATH}/scripts/generate_server_cert.sh" \
+          "${PATH_CERTS_DIR}" \
+          "${CERT_VALIDITY_DAYS}" \
+          "${MAIN_DNS_ZONE}"
 
     - name: Setup Kubeconfig (K8s only)
       if: inputs.use-k8s == 'true'
       shell: bash
+      env:
+        PATH_CERTS_DIR: ${{ env.PATH_CERTS_DIR }}
       run: |
         echo "::debug::Getting kubeconfig"
         aws eks update-kubeconfig --name ${{ inputs.k8s-cluster-name }} --region ${{ inputs.k8s-cluster-aws-region || inputs.aws-region }}
@@ -361,7 +326,7 @@ runs:
         gomplate -f "${GITHUB_ACTION_PATH}/envoy.yaml.gotmpl" -o "${GITHUB_ACTION_PATH}/envoy.yaml"
 
         # Copy AWS CA certs
-        cp ${{ github.action_path }}/aws-ca.crt "${PATH_CERTS_DIR}"
+        cp "${GITHUB_ACTION_PATH}/certs/aws-ca.crt" "${PATH_CERTS_DIR}"
         chmod 644 "${PATH_CERTS_DIR}/server.key"
 
         echo "Validating Envoy config..."
