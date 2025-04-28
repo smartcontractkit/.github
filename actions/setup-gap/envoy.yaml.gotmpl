@@ -354,9 +354,9 @@ static_resources:
                           upstream_wire_bytes_sent: "%UPSTREAM_WIRE_BYTES_SENT%"  # Bytes sent to the upstream
                           upstream_wire_bytes_received: "%UPSTREAM_WIRE_BYTES_RECEIVED%"  # Bytes received from the upstream
                           upstream_transport_failure_reason: "%UPSTREAM_TRANSPORT_FAILURE_REASON%"  # Reason for transport failure
-                          common_duration_tcp_connect: "%COMMON_DURATION(US_CX_BEG:US_CX_END:us)"  # TCP connection duration
-                          common_duration_tx: "%COMMON_DURATION(US_TX_BEG:US_TX_END:us)"  # Transmission duration
-                          common_duration_rx: "%COMMON_DURATION(US_RX_BEG:US_RX_END:us)"  # Reception duration
+                          common_duration_tcp_connect: "%COMMON_DURATION(US_CX_BEG:US_CX_END:us)%"  # TCP connection duration
+                          common_duration_tx: "%COMMON_DURATION(US_TX_BEG:US_TX_END:us)%"  # Transmission duration
+                          common_duration_rx: "%COMMON_DURATION(US_RX_BEG:US_RX_END:us)%"  # Reception duration
           transport_socket:
             name: envoy.transport_sockets.tls
             typed_config:
