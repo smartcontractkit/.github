@@ -237,11 +237,22 @@ runs:
     - name: Detect if the CLI was changed, only build if needed
       if: github.repository  == 'smartcontractkit/crib'
       uses: dorny/paths-filter@v3
-      id: filter
+      id: cli-changed-filter
       with:
         working-directory: "${{ github.workspace }}/crib"
         filters: |
           cli: './cli/**'
+
+    - name: Cache cli go module
+      uses: actions/cache@v4
+      if: steps.cli-changed-filter.outputs.cli == 'true'
+      with:
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+        key: ${{ runner.os }}-go-cli-${{ hashFiles('./crib/cli/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-cli
 
     - name: Login to AWS ECR for Helm
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
@@ -318,7 +329,7 @@ runs:
         CHAINLINK_CODE_DIR: "../"
         CHAINLINK_PRODUCT: ${{ inputs.chainlink-product }}
         CHAINLINK_TEAM: ${{ inputs.chainlink-team }}
-        CLI_CHANGED: ${{ steps.filter.outputs.cli == 'true' }}
+        CLI_CHANGED: ${{ steps.cli-changed-filter.outputs.cli == 'true' }}
         CRIB_CI_ENV: true
         CRIB_SKIP_DOCKER_ECR_LOGIN: true
         CRIB_SKIP_HELM_ECR_LOGIN: true
