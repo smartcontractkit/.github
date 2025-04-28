@@ -212,12 +212,21 @@ runs:
         main-dns-zone: ${{ inputs.main-dns-zone }}
         websockets-services: ${{ env.WEBSOCKETS_SERVICES }}
 
+    - name: Checkout crib repo
+      uses: actions/checkout@v4
+      with:
+        repository: "smartcontractkit/crib"
+        ref: ${{ inputs.crib-repo-ref }}
+        path: "${{ github.workspace }}/crib"
+        token: ${{ inputs.github-token }}
+
     - name: Setup go
       uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
       if: inputs.enable-cache-ccip-v2-scripts == 'true'
       with:
         cache: false
-        go-version-file: ./dependencies/ccip-v2-scripts/go.mod
+        go-version-file: ./crib/dependencies/ccip-v2-scripts/go.mod
+
     - name: Cache ccip-v2-scripts go module
       uses: actions/cache@v4
       if: inputs.enable-cache-ccip-v2-scripts == 'true'
@@ -227,17 +236,9 @@ runs:
           ~/.cache/go-build
         key:
           ${{ runner.os }}-go-ccip-v2-scripts-${{
-          hashFiles('dependencies/ccip-v2-scripts/go.sum') }}
+          hashFiles('./crib/dependencies/ccip-v2-scripts/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-ccip-v2-scripts
-
-    - name: Checkout crib repo
-      uses: actions/checkout@v4
-      with:
-        repository: "smartcontractkit/crib"
-        ref: ${{ inputs.crib-repo-ref }}
-        path: "${{ github.workspace }}/crib"
-        token: ${{ inputs.github-token }}
 
     # This step is useful only in the context of crib repo
     - name: Detect if the CLI was changed, only build if needed
