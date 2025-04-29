@@ -135,10 +135,6 @@ inputs:
       'gap-${DEVSPACE_NAMESPACE}-geth, gap-${DEVSPACE_NAMESPACE}-custom-ws'."
     default: ""
     required: false
-  enable-cache-ccip-v2-scripts:
-    description: "Enable go module caching for ccip-v2-scripts binary"
-    default: "false"
-    required: false
 outputs:
   devspace-namespace:
     description: "Kubernetes namespace used to provision a CRIB environment."
@@ -220,18 +216,16 @@ runs:
         path: "${{ github.workspace }}/crib"
         token: ${{ inputs.github-token }}
 
-    - name: Cache ccip-v2-scripts go module
+    - name: Cache crib go modules
       uses: actions/cache@v4
-      if: inputs.enable-cache-ccip-v2-scripts == 'true'
       with:
         path: |
           ~/go/pkg/mod
           ~/.cache/go-build
-        key:
-          ${{ runner.os }}-go-ccip-v2-scripts-${{
-          hashFiles('./crib/dependencies/ccip-v2-scripts/go.sum') }}
+        key: ${{ runner.os }}-go-crib-${{ hashFiles('./crib/**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-go-ccip-v2-scripts
+          ${{ runner.os }}-go-crib-${{
+          hashFiles('./crib/**/go.sum') }}
 
     # This step is useful only in the context of crib repo
     - name: Detect if the CLI was changed, only build if needed
@@ -242,17 +236,6 @@ runs:
         working-directory: "${{ github.workspace }}/crib"
         filters: |
           cli: './cli/**'
-
-    - name: Cache cli go module
-      uses: actions/cache@v4
-      if: steps.cli-changed-filter.outputs.cli == 'true'
-      with:
-        path: |
-          ~/go/pkg/mod
-          ~/.cache/go-build
-        key: ${{ runner.os }}-go-cli-${{ hashFiles('./crib/cli/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-cli
 
     - name: Login to AWS ECR for Helm
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
