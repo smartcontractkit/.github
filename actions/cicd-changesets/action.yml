@@ -37,7 +37,7 @@ inputs:
   pnpm-version:
     description: ""
     required: false
-    default: "^8.0.0"
+    default: "^10.0.0"
   pnpm-use-cache:
     description: "Use cache for pnpm"
     required: false
