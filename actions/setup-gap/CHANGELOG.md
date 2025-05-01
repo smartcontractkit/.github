@@ -1,5 +1,19 @@
 # setup-gap
 
+## 5.2.3
+
+### Patch Changes
+
+- [#1016](https://github.com/smartcontractkit/.github/pull/1016)
+  [`0c94826`](https://github.com/smartcontractkit/.github/commit/0c94826667159140926587104d69e9b586628fca)
+  Thanks [@chainchad](https://github.com/chainchad)! - Disabling connection
+  timeouts on the local proxy side
+
+- [#1016](https://github.com/smartcontractkit/.github/pull/1016)
+  [`0c94826`](https://github.com/smartcontractkit/.github/commit/0c94826667159140926587104d69e9b586628fca)
+  Thanks [@chainchad](https://github.com/chainchad)! - Update timeouts and local
+  envoy config for better reliability
+
 ## 5.2.2
 
 ### Patch Changes
