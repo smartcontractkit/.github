@@ -55,6 +55,18 @@ runs:
       id: branch-name
       uses: smartcontractkit/.github/actions/branch-names@branch-names/1.0.0
 
+    - name: Check if branch is in merge queue
+      if: ${{ inputs.only-modules == 'false' }}
+      id: check-merge-queue
+      shell: bash
+      run: |
+        if [[ "${{ steps.branch-name.outputs.current_branch }}" == *"gh-readonly-queue"* ]]; then
+          echo "Branch is in merge queue, will skip cache upload for build outputs"
+          echo "skip_cache_upload=true" >> $GITHUB_OUTPUT
+        else
+          echo "skip_cache_upload=false" >> $GITHUB_OUTPUT
+        fi
+
     - name: Set go cache keys
       shell: bash
       id: go-cache-dir
@@ -89,3 +101,7 @@ runs:
         restore-keys: |
           ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{ hashFiles('./go.sum') }}-
           ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-
+        save-always: false
+        # Skip saving cache for merge queue branches
+        upload-chunk-size: ${{ steps.check-merge-queue.outputs.skip_cache_upload == 'true' && '0' || '104857600' }}
+
