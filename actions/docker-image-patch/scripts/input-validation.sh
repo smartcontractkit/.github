@@ -26,11 +26,11 @@ regex_copy_path_pair='^[^:]+:[^:]+$'
 regex_env_var='^[A-Za-z0-9_]+=.+$'
 
 # Validate ECR registry URLs.
-if [[ ! $DOCKER_REGISTRY_URL_SRC =~ $regex_ecr_private ]] || [[ ! $DOCKER_REGISTRY_URL_SRC =~ $regex_ecr_public ]]; then
+if [[ ! "$DOCKER_REGISTRY_URL_SRC" =~ $regex_ecr_private && ! "$DOCKER_REGISTRY_URL_SRC" =~ $regex_ecr_public ]]; then
   echo "::error::inputs.docker-registry-url-src must be a private or public ECR."
   exit 1
 fi
-if [[ ! "${DOCKER_REGISTRY_URL_DST}" =~ $regex_ecr_private ]]; then
+if [[ ! "$DOCKER_REGISTRY_URL_DST" =~ $regex_ecr_private ]]; then
   echo "::error::inputs.docker-registry-url-dest must be a private ECR."
   exit 1
 fi
