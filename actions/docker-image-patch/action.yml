@@ -114,9 +114,17 @@ runs:
         echo "::group::Set outputs"
         if [[ "${DOCKER_REGISTRY_URL_SRC}" != "public.ecr.aws" ]]; then
           account_id_src="${DOCKER_REGISTRY_URL_SRC%%.*}"
-          account_id_dst="${DOCKER_REGISTRY_URL_DST%%.*}"
           echo "registry-src-aws-account-id=${account_id_src}" | tee -a "$GITHUB_OUTPUT"
+          echo "registry-src-type=private" | tee -a "$GITHUB_OUTPUT"
+        else
+          echo "registry-src-type=public" | tee -a "$GITHUB_OUTPUT"
+        fi
+        if [[ "${DOCKER_REGISTRY_URL_DST}" != "public.ecr.aws" ]]; then
+          account_id_dst="${DOCKER_REGISTRY_URL_DST%%.*}"
           echo "registry-dst-aws-account-id=${account_id_dst}" | tee -a "$GITHUB_OUTPUT"
+          echo "registry-dst-type=private" | tee -a "$GITHUB_OUTPUT"
+        else
+          echo "registry-dst-type=public" | tee -a "$GITHUB_OUTPUT"
         fi
         echo "::endgroup::"
 
@@ -131,6 +139,8 @@ runs:
     - name: Login to ECR for source image
       id: login-ecr-src
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      env:
+        AWS_REGION: ${{ steps.set-outputs.outputs.registry-src-type == 'public' && 'us-east-1' || inputs.aws-region }}
       with:
         registry-type: >-
           ${{
@@ -166,6 +176,8 @@ runs:
     - name: Login to ECR for destination image
       id: login-ecr-dst
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
       with:
         registry-type: private
         registries: ${{ steps.set-outputs.outputs.registry-dst-aws-account-id }}
