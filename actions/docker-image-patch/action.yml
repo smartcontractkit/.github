@@ -118,7 +118,7 @@ runs:
           echo "registry-src-aws-account-id=${account_id_src}" | tee -a "$GITHUB_OUTPUT"
           echo "registry-dst-aws-account-id=${account_id_dst}" | tee -a "$GITHUB_OUTPUT"
         fi
-        echo "::endgroup::
+        echo "::endgroup::"
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
