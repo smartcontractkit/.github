@@ -1,0 +1,19 @@
+name: test-zizmor
+
+on:
+  merge_group:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-zizmor-action:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo (needed to reference local action)
+        uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
+
+      - name: test-zizmor-action
+        uses: ./actions/zizmor-audit
