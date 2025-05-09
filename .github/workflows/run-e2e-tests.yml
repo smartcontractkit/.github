@@ -184,6 +184,15 @@ on:
         description: "Team to run the tests for (e.g. BIX, CCIP)"
         required: false
         type: string
+      use-self-hosted-runners:
+        description: |
+          Whether to use self-hosted runners for the tests, where applicable.
+          The runner label is obtained from the test configuration file.
+          If set to true, the workflow will use the label from runs_on_self_hosted (if available).
+          If set to false, the workflow will use the label from the runs_on field.
+        required: false
+        type: boolean
+        default: false
       extraArgs:
         required: false
         type: string
@@ -392,7 +401,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@b08cab0f49aa13d5adb849554b56086f4dba8984 # v1.34.4
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@e62f3f0a1483d4fa02621a4a6f525b7f7c0b2f67 # May 27, 2025
       - name: Run Check Tests Command
         env:
           TEST_PATH: ${{ inputs.test_path }}
@@ -452,7 +461,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@1f6d929b4a5ffb56a89268339851fe993957d43f # v1.34.4
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@e62f3f0a1483d4fa02621a4a6f525b7f7c0b2f67 # May 27, 2025
 
       - name: Generate Docker Tests Matrix
         id: set-docker-matrix
@@ -707,7 +716,9 @@ jobs:
     if:
       ${{ needs.load-test-configurations.outputs.run-docker-tests == 'true' &&
       always() && !failure() && !cancelled() }}
-    runs-on: ${{ matrix.tests.runs_on }}
+    runs-on:
+      ${{ inputs.use-self-hosted-runners == 'true' &&
+      matrix.tests.runs_on_self_hosted || matrix.tests.runs_on }}
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.load-test-configurations.outputs.docker-matrix)}}
@@ -727,10 +738,18 @@ jobs:
         ${{ matrix.tests.test_config_override_path ||
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
+      IS_SELF_HOSTED_RUNNER:
+        ${{ inputs.use-self-hosted-runners == 'true' &&
+        matrix.tests.runs_on_self_hosted != '' }}
     steps:
+      - name: Enable S3 Cache for Self-Hosted Runners
+        if: ${{ env.IS_SELF_HOSTED_RUNNER }}
+        uses: runs-on/action@66d4449b717b5462159659523d1241051ff470b9 # v1
+
       - name: Collect Test Telemetry
         if: inputs.collect_test_telemetry
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
+
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
         with:
@@ -1077,7 +1096,9 @@ jobs:
       ${{ needs.load-test-configurations.outputs.run-k8s-tests == 'true' &&
       always() && !failure() && !cancelled() }}
     name: ${{ matrix.tests.id }}
-    runs-on: ${{ matrix.tests.runs_on }}
+    runs-on:
+      ${{ inputs.use-self-hosted-runners == 'true' &&
+      matrix.tests.runs_on_self_hosted || matrix.tests.runs_on }}
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.load-test-configurations.outputs.k8s-runner-matrix)}}
@@ -1097,10 +1118,18 @@ jobs:
         ${{ matrix.tests.test_config_override_path ||
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
+      IS_SELF_HOSTED_RUNNER:
+        ${{ inputs.use-self-hosted-runners == 'true' &&
+        matrix.tests.runs_on_self_hosted != '' }}
     steps:
+      - name: Enable S3 Cache for Self-Hosted Runners
+        if: ${{ env.IS_SELF_HOSTED_RUNNER }}
+        uses: runs-on/action@66d4449b717b5462159659523d1241051ff470b9 # v1
+
       - name: Collect Test Telemetry
         if: inputs.collect_test_telemetry
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
+
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
         with:
@@ -1246,7 +1275,9 @@ jobs:
       && always() && !failure() && !cancelled() }}
     needs: load-test-configurations
     # Run when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok)
-    runs-on: ${{ matrix.tests.runs_on }}
+    runs-on:
+      ${{ inputs.use-self-hosted-runners == 'true' &&
+      matrix.tests.runs_on_self_hosted || matrix.tests.runs_on }}
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.load-test-configurations.outputs.in-memory-matrix)}}
@@ -1259,7 +1290,14 @@ jobs:
       contents: read
     env:
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
+      IS_SELF_HOSTED_RUNNER:
+        ${{ inputs.use-self-hosted-runners == 'true' &&
+        matrix.tests.runs_on_self_hosted != '' }}
     steps:
+      - name: Enable S3 Cache for Self-Hosted Runners
+        if: ${{ env.IS_SELF_HOSTED_RUNNER }}
+        uses: runs-on/action@66d4449b717b5462159659523d1241051ff470b9 # v1
+
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
         with:
