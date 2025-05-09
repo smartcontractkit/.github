@@ -346,9 +346,6 @@ jobs:
             echo "Will run tests with custom test secrets from AWS Secrets Manager. AWS Secret ID: $SECRET_ID"
           fi
 
-      - name: Install jq
-        run: sudo apt-get install jq
-
       - name: Create matrix for required Chainlink image versions
         id: set-required-chainlink-image-versions-matrix
         shell: bash
@@ -469,8 +466,6 @@ jobs:
           TEST_IDS: ${{ inputs.test_ids }}
           TEST_TRIGGER: ${{ inputs.test_trigger }}
         run: |
-          cat ${{ github.workspace }}/$TEST_PATH | grep -B 4 -A 4 runs_on_self_hosted
-
           # Check if custom_test_list_json is provided and non-empty
           if [[ -n "$CUSTOM_TEST_LIST_JSON" ]]; then
             echo "Using custom test list JSON"
@@ -479,12 +474,6 @@ jobs:
             echo "Using default test list"
             MATRIX_JSON=$(citool filter --file "${{ github.workspace }}/$TEST_PATH" --test-env-type 'docker' --test-list "$TEST_LIST" --test-ids "$TEST_IDS" --workflow "$TEST_TRIGGER")
           fi
-
-          echo "runs_on:"
-          echo "$MATRIX_JSON" | jq .tests[].runs_on
-
-          echo "runs_on_self_hosted:"
-          echo "$MATRIX_JSON" | jq .tests[].runs_on_self_hosted
 
           echo "Docker tests:"
           echo "$MATRIX_JSON" | jq
@@ -740,17 +729,50 @@ jobs:
         ${{ matrix.tests.test_config_override_path ||
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
+      IS_SELF_HOSTED_RUNNER: ${{ matrix.tests.runs_on_self_hosted != '' }}
     steps:
+      - name: Enable S3 Cache for Self-Hosted Runners
+        if: ${{ env.IS_SELF_HOSTED_RUNNER }}
+        uses: runs-on/action@66d4449b717b5462159659523d1241051ff470b9 # v1
+
+      - name: Setup self-hosted directory mounts
+        # For self-hosted runners - the volume mounted to / is too small to handle everything stored in
+        # /home/runner. So we mount certain directories to the larger volume.
+        if: ${{ env.IS_SELF_HOSTED_RUNNER }}
+        run: |
+          if [ ! -d "/home/runner/_work" ]; then
+            echo "::warning::/home/runner/_work does not exist, skipping mount."
+            exit 0
+          fi
+
+          # Define the directories to mount as tuples of source:destination
+          DIRS=(
+            "/home/runner/_work/runner-go:/home/runner/go"
+            "/home/runner/_work/runner-cache:/home/runner/.cache"
+          )
+
+          # Process each directory pair
+          for DIR_PAIR in "${DIRS[@]}"; do
+            SRC_DIR=$(echo $DIR_PAIR | cut -d':' -f1)
+            DEST_DIR=$(echo $DIR_PAIR | cut -d':' -f2)
+
+            sudo mkdir -m 755 "$SRC_DIR"
+            sudo chown -R $(id -u):$(id -g) "$SRC_DIR"
+
+            mkdir -p "$DEST_DIR"
+            sudo mount --bind "$SRC_DIR" "$DEST_DIR"
+            echo "Successfully mounted $SRC_DIR to $DEST_DIR"
+          done
+
       - name: Collect Test Telemetry
         if: inputs.collect_test_telemetry
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
+
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
-      - name: Install jq
-        run: sudo apt-get install -y jq
 
       - name: Show test config override path in summary
         if: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
@@ -1112,16 +1134,49 @@ jobs:
         ${{ matrix.tests.test_config_override_path ||
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
+      IS_SELF_HOSTED_RUNNER: ${{ matrix.tests.runs_on_self_hosted != '' }}
     steps:
+      - name: Enable S3 Cache for Self-Hosted Runners
+        if: ${{ env.IS_SELF_HOSTED_RUNNER }}
+        uses: runs-on/action@66d4449b717b5462159659523d1241051ff470b9 # v1
+
+      - name: Setup self-hosted directory mounts
+        # For self-hosted runners - the volume mounted to / is too small to handle everything stored in
+        # /home/runner. So we mount certain directories to the larger volume.
+        if: ${{ env.IS_SELF_HOSTED_RUNNER }}
+        run: |
+          if [ ! -d "/home/runner/_work" ]; then
+            echo "::warning::/home/runner/_work does not exist, skipping mount."
+            exit 0
+          fi
+
+          # Define the directories to mount as tuples of source:destination
+          DIRS=(
+            "/home/runner/_work/runner-go:/home/runner/go"
+            "/home/runner/_work/runner-cache:/home/runner/.cache"
+          )
+
+          # Process each directory pair
+          for DIR_PAIR in "${DIRS[@]}"; do
+            SRC_DIR=$(echo $DIR_PAIR | cut -d':' -f1)
+            DEST_DIR=$(echo $DIR_PAIR | cut -d':' -f2)
+
+            sudo mkdir -m 755 "$SRC_DIR"
+            sudo chown -R $(id -u):$(id -g) "$SRC_DIR"
+
+            mkdir -p "$DEST_DIR"
+            sudo mount --bind "$SRC_DIR" "$DEST_DIR"
+            echo "Successfully mounted $SRC_DIR to $DEST_DIR"
+          done
+
       - name: Collect Test Telemetry
         if: inputs.collect_test_telemetry
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
+
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
         with:
           persist-credentials: false
-      - name: Install jq
-        run: sudo apt-get install -y jq
 
       - name: Show test config override path in summary
         if: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
@@ -1287,11 +1342,46 @@ jobs:
       contents: read
     env:
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
+      IS_SELF_HOSTED_RUNNER: ${{ matrix.tests.runs_on_self_hosted != '' }}
     steps:
+      - name: Enable S3 Cache for Self-Hosted Runners
+        if: ${{ env.IS_SELF_HOSTED_RUNNER }}
+        uses: runs-on/action@66d4449b717b5462159659523d1241051ff470b9 # v1
+
+      - name: Setup self-hosted directory mounts
+        # For self-hosted runners - the volume mounted to / is too small to handle everything stored in
+        # /home/runner. So we mount certain directories to the larger volume.
+        if: ${{ env.IS_SELF_HOSTED_RUNNER }}
+        run: |
+          if [ ! -d "/home/runner/_work" ]; then
+            echo "::warning::/home/runner/_work does not exist, skipping mount."
+            exit 0
+          fi
+
+          # Define the directories to mount as tuples of source:destination
+          DIRS=(
+            "/home/runner/_work/runner-go:/home/runner/go"
+            "/home/runner/_work/runner-cache:/home/runner/.cache"
+          )
+
+          # Process each directory pair
+          for DIR_PAIR in "${DIRS[@]}"; do
+            SRC_DIR=$(echo $DIR_PAIR | cut -d':' -f1)
+            DEST_DIR=$(echo $DIR_PAIR | cut -d':' -f2)
+
+            sudo mkdir -m 755 "$SRC_DIR"
+            sudo chown -R $(id -u):$(id -g) "$SRC_DIR"
+
+            mkdir -p "$DEST_DIR"
+            sudo mount --bind "$SRC_DIR" "$DEST_DIR"
+            echo "Successfully mounted $SRC_DIR to $DEST_DIR"
+          done
+
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
         with:
           persist-credentials: false
+
       - name: Wait for postgres to be ready
         run: |
           until pg_isready -h localhost -p 5432 -U postgres; do
