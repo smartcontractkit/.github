@@ -469,6 +469,8 @@ jobs:
           TEST_IDS: ${{ inputs.test_ids }}
           TEST_TRIGGER: ${{ inputs.test_trigger }}
         run: |
+          cat ${{ github.workspace }}/$TEST_PATH | grep -B 4 -A 4 runs_on_self_hosted
+
           # Check if custom_test_list_json is provided and non-empty
           if [[ -n "$CUSTOM_TEST_LIST_JSON" ]]; then
             echo "Using custom test list JSON"
@@ -477,6 +479,12 @@ jobs:
             echo "Using default test list"
             MATRIX_JSON=$(citool filter --file "${{ github.workspace }}/$TEST_PATH" --test-env-type 'docker' --test-list "$TEST_LIST" --test-ids "$TEST_IDS" --workflow "$TEST_TRIGGER")
           fi
+
+          echo "runs_on:"
+          echo "$MATRIX_JSON" | jq .tests[].runs_on
+
+          echo "runs_on_self_hosted:"
+          echo "$MATRIX_JSON" | jq .tests[].runs_on_self_hosted
 
           echo "Docker tests:"
           echo "$MATRIX_JSON" | jq
