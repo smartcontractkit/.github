@@ -712,9 +712,7 @@ jobs:
     if:
       ${{ needs.load-test-configurations.outputs.run-docker-tests == 'true' &&
       always() && !failure() && !cancelled() }}
-    runs-on:
-      ${{ (matrix.tests.runs_on_self_hosted != '') &&
-      matrix.tests.runs_on_self_hosted || matrix.tests.runs_on }}
+    runs-on: ${{ matrix.tests.runs_on_self_hosted || matrix.tests.runs_on }}
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.load-test-configurations.outputs.docker-matrix)}}
@@ -1086,7 +1084,7 @@ jobs:
       ${{ needs.load-test-configurations.outputs.run-k8s-tests == 'true' &&
       always() && !failure() && !cancelled() }}
     name: ${{ matrix.tests.id }}
-    runs-on: ${{ matrix.tests.runs_on }}
+    runs-on: ${{ matrix.tests.runs_on_self_hosted || matrix.tests.runs_on }}
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.load-test-configurations.outputs.k8s-runner-matrix)}}
@@ -1268,7 +1266,7 @@ jobs:
           --health-cmd pg_isready  --health-interval 2s  --health-timeout 5s
           --health-retries 5
     # Run when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok)
-    runs-on: ${{ matrix.tests.runs_on }}
+    runs-on: ${{ matrix.tests.runs_on_self_hosted || matrix.tests.runs_on }}
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.load-test-configurations.outputs.in-memory-matrix)}}
