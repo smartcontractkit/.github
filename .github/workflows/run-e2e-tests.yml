@@ -710,7 +710,9 @@ jobs:
     if:
       ${{ needs.load-test-configurations.outputs.run-docker-tests == 'true' &&
       always() && !failure() && !cancelled() }}
-    runs-on: ${{ matrix.tests.runs_on }}
+    runs-on:
+      ${{ (matrix.tests.runs_on_self_hosted != '') &&
+      matrix.tests.runs_on_self_hosted || matrix.tests.runs_on }}
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.load-test-configurations.outputs.docker-matrix)}}
