@@ -21,15 +21,6 @@ on:
         # deny_licenses list and fails if vulnerabilities are found in the
         # dependency tree with specified severity or greater.
         default: "license-deny-vulnerability-high"
-      ref:
-        description: |
-          The branch, tag or SHA to checkout.
-
-          Defaults to the default branch."
-        required: false
-        type: string
-        # Empty string means the default branch.
-        default: ""
 
 permissions: {}
 
@@ -44,7 +35,6 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-          ref: ${{ inputs.ref }}
 
       - name: Dependency Review
         uses: smartcontractkit/.github/actions/dependency-review@dependency-review/2.0.0
