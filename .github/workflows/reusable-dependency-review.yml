@@ -1,0 +1,52 @@
+name: Reusable Dependency Review
+
+# This workflow analyzes dependencies introduced by pull requests to help identify security vulnerabilities
+# and for invalid dependency licenses.
+#
+# Usage:
+#   jobs:
+#     dependency-review:
+#       uses: smartcontractkit/.github/.github/workflows/reusable-dependency-review.yml@<ref>
+#       with:
+#         config-preset: license-deny-vulnerability-high  # Optional, default value is "license-deny-vulnerability-high"
+
+on:
+  workflow_call:
+    inputs:
+      config-preset:
+        description: "Configuration preset to use for dependency review"
+        required: false
+        type: string
+        # Fails if a dependency is found with a license that is in the
+        # deny_licenses list and fails if vulnerabilities are found in the
+        # dependency tree with specified severity or greater.
+        default: "license-deny-vulnerability-high"
+      ref:
+        description: |
+          The branch, tag or SHA to checkout.
+
+          Defaults to the default branch."
+        required: false
+        type: string
+        # Empty string means the default branch.
+        default: ""
+
+permissions: {}
+
+jobs:
+  dependency-review:
+    name: Review Dependencies
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ inputs.ref }}
+
+      - name: Dependency Review
+        uses: smartcontractkit/.github/actions/dependency-review@dependency-review/2.0.0
+        with:
+          config-preset: ${{ inputs.config-preset }}
