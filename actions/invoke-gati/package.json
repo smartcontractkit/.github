@@ -1,0 +1,17 @@
+{
+  "name": "invoke-gati",
+  "version": "0.0.0",
+  "description": "The github action for interfacing with the token issuer service",
+  "type": "module",
+  "main": "dist/index.mjs",
+  "private": true,
+  "files": [
+    "dist/index.mjs",
+    "action.yml"
+  ],
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {}
+}
