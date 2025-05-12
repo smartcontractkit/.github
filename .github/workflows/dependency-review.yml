@@ -23,7 +23,12 @@ jobs:
         run: |
           CONFIG_DIR='.github/actions/dependency-review/configs'
 
-          # Find all YAML files that contain deny_licenses
+          if [[ ! -d "$CONFIG_DIR" ]]; then
+            echo "::error::Directory $CONFIG_DIR does not exist!"
+            exit 1
+          fi
+
+          echo "Find all YAML files that contain deny_licenses ..."
           FILES=()
           for file in "$CONFIG_DIR"/*.yml; do
             if yq 'has("deny_licenses")' "$file" | grep -q "true"; then
@@ -41,11 +46,11 @@ jobs:
             exit 0
           fi
 
-          # Extract deny_licenses from the first file as reference
+          echo "Extract deny_licenses from the first file as reference ...""
           REFERENCE_FILE="${FILES[0]}"
           REFERENCE_LICENSES=$(yq '.deny_licenses' "$REFERENCE_FILE" | sort)
 
-          # Check all other files against the reference file
+          echo "Check all other files against the reference file ..."
           MISMATCH=false
           for file in "${FILES[@]:1}"; do
             CURRENT_LICENSES=$(yq '.deny_licenses' "$file" | sort)
