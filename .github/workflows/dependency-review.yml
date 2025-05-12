@@ -46,7 +46,7 @@ jobs:
             exit 0
           fi
 
-          echo "Extract deny_licenses from the first file as reference ...""
+          echo "Extract deny_licenses from the first file as reference ..."
           REFERENCE_FILE="${FILES[0]}"
           REFERENCE_LICENSES=$(yq '.deny_licenses' "$REFERENCE_FILE" | sort)
 
