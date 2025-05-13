@@ -1,5 +1,14 @@
 # dependency-review
 
+## 2.0.0
+
+### Major Changes
+
+- [#1028](https://github.com/smartcontractkit/.github/pull/1028)
+  [`7acedba`](https://github.com/smartcontractkit/.github/commit/7acedbabc9e24ac6cb95fbaef1d0c132820bdbac)
+  Thanks [@chainchad](https://github.com/chainchad)! - Create new vuln/license
+  config and rename others
+
 ## 1.0.0
 
 ### Major Changes
