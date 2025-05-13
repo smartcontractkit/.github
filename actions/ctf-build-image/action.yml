@@ -51,7 +51,7 @@ inputs:
     description: private repos needed for go
   GO_COVER_FLAG:
     required: false
-    default: false
+    default: "false"
     description: Build chainlink binary with cover flag
   should_checkout:
     required: false
@@ -89,21 +89,59 @@ runs:
     - name: Replace Solana deps
       if: ${{ inputs.dep_solana_sha }}
       shell: bash
-      run:
-        go get github.com/smartcontractkit/chainlink-solana@${{
-        inputs.dep_solana_sha }}
+      env:
+        DEP_SOLANA_SHA: ${{ inputs.dep_solana_sha }}
+      run: |
+        go get "github.com/smartcontractkit/chainlink-solana@${DEP_SOLANA_SHA}"
+    - name: Update plugin deps
+      shell: bash
+      env:
+        DEP_COSMOS_SHA: ${{ inputs.dep_cosmos_sha }}
+        DEP_SOLANA_SHA: ${{ inputs.dep_solana_sha }}
+        DEP_STARKNET_SHA: ${{ inputs.dep_starknet_sha }}
+        PLUGINS_MANIFEST_PATH:
+          ${{ github.workspace }}/plugins/plugins.public.yaml
+      run: |
+        if [[ ! -f "$PLUGINS_MANIFEST_PATH" ]]; then
+          echo "Plugins manifest $PLUGINS_MANIFEST_PATH not found, skipping update"
+          exit 0
+        fi
+        updated_plugins_manifest=false
+        if [[ -n "${DEP_COSMOS_SHA:-}" ]]; then
+          echo "Updating plugins manifest $PLUGINS_MANIFEST_PATH with chainlink-cosmos@${DEP_COSMOS_SHA}"
+          yq e ".plugins.cosmos[0].gitRef = \"$DEP_COSMOS_SHA\"" -i "$PLUGINS_MANIFEST_PATH"
+          updated_plugins_manifest=true
+        fi
+        if [[ -n "${DEP_STARKNET_SHA:-}" ]]; then
+          echo "Updating plugins manifest $PLUGINS_MANIFEST_PATH with chainlink-starknet@${DEP_STARKNET_SHA}"
+          yq e ".plugins.starknet[0].gitRef = \"$DEP_STARKNET_SHA\"" -i "$PLUGINS_MANIFEST_PATH"
+          updated_plugins_manifest=true
+        fi
+        if [[ -n "${DEP_SOLANA_SHA:-}" ]]; then
+          echo "Updating plugins manifest $PLUGINS_MANIFEST_PATH with chainlink-solana@${DEP_SOLANA_SHA}"
+          yq e ".plugins.solana[0].gitRef = \"$DEP_SOLANA_SHA\"" -i "$PLUGINS_MANIFEST_PATH"
+          updated_plugins_manifest=true
+        fi
+        if [[ "$updated_plugins_manifest" = true ]]; then
+          echo "Plugins manifest updated, contents:"
+          cat "$PLUGINS_MANIFEST_PATH"
+        fi
+
     - name: Replace Atlas deps
       if: ${{ inputs.dep_atlas_sha }}
       shell: bash
       env:
         GOPRIVATE: ${{ inputs.GOPRIVATE }}
-      run: go get github.com/smartcontractkit/atlas@${{ inputs.dep_atlas_sha }}
+        DEP_ATLAS_SHA: ${{ inputs.dep_atlas_sha }}
+      run: |
+        go get "github.com/smartcontractkit/atlas@${DEP_ATLAS_SHA}"
     - name: Replace chainlink-common deps
       if: ${{ inputs.dep_common_sha }}
       shell: bash
-      run:
-        go get github.com/smartcontractkit/chainlink-common@${{
-        inputs.dep_common_sha }}
+      env:
+        DEP_COMMON_SHA: ${{ inputs.dep_common_sha }}
+      run: |
+        go get "github.com/smartcontractkit/chainlink-common@${DEP_COMMON_SHA}"
 
     # TODO: Remove this when it is no longer needed and uncomment the replace lower down.
     - name: Replace the chainlink-integration deps
@@ -171,8 +209,6 @@ runs:
           COMMIT_SHA=${{ github.sha }}
           CHAINLINK_USER=chainlink
           GO_COVER_FLAG=${{ inputs.GO_COVER_FLAG }}
-          COSMOS_SHA=${{ inputs.dep_cosmos_sha }}
-          STARKNET_SHA=${{ inputs.dep_starknet_sha }}
         tags: ${{ inputs.push_tag }}
         push: ${{ steps.push.outputs.push }}
         secrets: ${{ inputs.docker_secrets }}
