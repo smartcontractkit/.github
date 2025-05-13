@@ -1,0 +1,71 @@
+name: Dependency Review
+
+on:
+  pull_request:
+    paths:
+      - ".github/actions/dependency-review/configs/*.yml"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  check-deny-license-sync:
+    name: Check Deny Licenses Sync
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check if deny licenses are in sync
+        id: check-sync
+        run: |
+          CONFIG_DIR='.github/actions/dependency-review/configs'
+
+          if [[ ! -d "$CONFIG_DIR" ]]; then
+            echo "::error::Directory $CONFIG_DIR does not exist!"
+            exit 1
+          fi
+
+          echo "Find all YAML files that contain deny_licenses ..."
+          FILES=()
+          for file in "$CONFIG_DIR"/*.yml; do
+            if yq 'has("deny_licenses")' "$file" | grep -q "true"; then
+              FILES+=("$file")
+            fi
+          done
+
+          echo "Found ${#FILES[@]} files with deny_licenses:"
+          for file in "${FILES[@]}"; do
+            echo "- $file"
+          done
+
+          if [[ ${#FILES[@]} -lt 2 ]]; then
+            echo "Found less than 2 files with deny_licenses, nothing to compare!"
+            exit 0
+          fi
+
+          echo "Extract deny_licenses from the first file as reference ..."
+          REFERENCE_FILE="${FILES[0]}"
+          REFERENCE_LICENSES=$(yq '.deny_licenses' "$REFERENCE_FILE" | sort)
+
+          echo "Check all other files against the reference file ..."
+          MISMATCH=false
+          for file in "${FILES[@]:1}"; do
+            CURRENT_LICENSES=$(yq '.deny_licenses' "$file" | sort)
+            
+            if [[ "$CURRENT_LICENSES" != "$REFERENCE_LICENSES" ]]; then
+              echo "::error::Deny licenses are not in sync between $REFERENCE_FILE and $file"
+              echo "Differences:"
+              diff <(echo "$REFERENCE_LICENSES") <(echo "$CURRENT_LICENSES") || true
+              MISMATCH=true
+            fi
+          done
+
+          if [[ "$MISMATCH" = true ]]; then
+            echo "::error::One or more license files are not in sync!"
+            exit 1
+          else
+            echo "All deny licenses are in sync! ✅"
+          fi
