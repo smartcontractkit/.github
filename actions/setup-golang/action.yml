@@ -21,6 +21,10 @@ inputs:
     description: Set this to cache bust
     required: false
     default: "1"
+  upload-chunk-size:
+    description: Size of chunks for cache upload. Set to 0 to prevent uploads while still allowing downloads.
+    required: false
+    default: "104857600"
 
 runs:
   using: composite
@@ -55,18 +59,6 @@ runs:
       id: branch-name
       uses: smartcontractkit/.github/actions/branch-names@branch-names/1.0.0
 
-    - name: Check if branch is in merge queue
-      if: ${{ inputs.only-modules == 'false' }}
-      id: check-merge-queue
-      shell: bash
-      run: |
-        if [[ "${{ steps.branch-name.outputs.current_branch }}" == *"gh-readonly-queue"* ]]; then
-          echo "Branch is in merge queue, will skip cache upload for build outputs"
-          echo "skip_cache_upload=true" >> $GITHUB_OUTPUT
-        else
-          echo "skip_cache_upload=false" >> $GITHUB_OUTPUT
-        fi
-
     - name: Set go cache keys
       shell: bash
       id: go-cache-dir
@@ -86,6 +78,7 @@ runs:
           hashFiles('./go.sum') }}
         restore-keys: |
           ${{ runner.os }}-gomod-${{ inputs.cache-version }}-
+        upload-chunk-size: ${{ inputs.upload-chunk-size }}
 
     - uses: actions/cache@v4
       if: ${{ inputs.only-modules == 'false' }}
@@ -101,7 +94,4 @@ runs:
         restore-keys: |
           ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{ hashFiles('./go.sum') }}-
           ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-
-        save-always: false
-        # Skip saving cache for merge queue branches
-        upload-chunk-size: ${{ steps.check-merge-queue.outputs.skip_cache_upload == 'true' && '0' || '104857600' }}
-
+        upload-chunk-size: ${{ inputs.upload-chunk-size }}
