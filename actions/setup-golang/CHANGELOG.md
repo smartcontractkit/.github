@@ -1,5 +1,16 @@
 # setup-golang
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1033](https://github.com/smartcontractkit/.github/pull/1033)
+  [`32aa4af`](https://github.com/smartcontractkit/.github/commit/32aa4af511c63ecda71d9e3fbb91e4159f720857)
+  Thanks [@bytesizedroll](https://github.com/bytesizedroll)! - Add ability to
+  skip cache uploads while still allowing downloads via new `skip-cache-save`
+  input parameter. This is particularly useful for merge queue runs where you
+  want to use existing caches but prevent creating new ones.
+
 ## 1.0.0
 
 ### Major Changes
