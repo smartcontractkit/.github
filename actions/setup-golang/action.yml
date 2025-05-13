@@ -22,7 +22,8 @@ inputs:
     required: false
     default: "1"
   skip-cache-save:
-    description: Set to 'true' to skip saving the cache while still allowing restores
+    description:
+      Set to 'true' to skip saving the cache while still allowing restores
     required: false
     default: "false"
 
@@ -72,7 +73,9 @@ runs:
       with:
         path: |
           ${{ steps.go-cache-dir.outputs.gomodcache }}
-        key: ${{ runner.os }}-gomod-${{ inputs.cache-version }}-${{ hashFiles('./go.sum') }}
+        key:
+          ${{ runner.os }}-gomod-${{ inputs.cache-version }}-${{
+          hashFiles('./go.sum') }}
         restore-keys: |
           ${{ runner.os }}-gomod-${{ inputs.cache-version }}-
 
@@ -91,13 +94,18 @@ runs:
       with:
         path: |
           ${{ steps.go-cache-dir.outputs.gobuildcache }}
-        key: ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{ hashFiles('./go.sum') }}-${{ steps.branch-name.outputs.current_branch }}
+        key:
+          ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{
+          hashFiles('./go.sum') }}-${{ steps.branch-name.outputs.current_branch
+          }}
         restore-keys: |
           ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{ hashFiles('./go.sum') }}-
           ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-
 
     - uses: actions/cache/save@v4
-      if: ${{ inputs.only-modules == 'false' && inputs.skip-cache-save != 'true' }}
+      if:
+        ${{ inputs.only-modules == 'false' && inputs.skip-cache-save != 'true'
+        }}
       name: Save Go Build Cache
       with:
         path: |
