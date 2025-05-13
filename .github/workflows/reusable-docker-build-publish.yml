@@ -166,6 +166,14 @@ on:
             - v1.0.0            # tag on push events
         required: true
         type: string
+      github-ref-type:
+        description: |
+          > The type of ref that triggered the workflow run.
+          > Valid values are "branch" or "tag".
+
+          This is required to differentiate between branch push and tag push events.
+        required: false
+        type: string
       github-runner-amd64:
         description: |
           The GitHub Actions runner name for builds on the platform: amd64
@@ -250,12 +258,17 @@ jobs:
         env:
           GITHUB_EVENT_NAME: ${{ inputs.github-event-name }}
           GITHUB_REF_NAME: ${{ inputs.github-ref-name }}
+          GITHUB_REF_TYPE: ${{ inputs.github-ref-type }}
         run: |
           echo "Setting build type outputs..."
           if [[ "${GITHUB_EVENT_NAME}" == "schedule" ]]; then
             echo "build-type=nightly" | tee -a "$GITHUB_OUTPUT"
           elif [[ "${GITHUB_EVENT_NAME}" == 'push' ]]; then
-            echo "build-type=branch" | tee -a "$GITHUB_OUTPUT"
+            if [[ "${GITHUB_REF_TYPE}" == 'tag' ]]; then
+              echo "build-type=tag" | tee -a "$GITHUB_OUTPUT"
+            else
+              echo "build-type=branch" | tee -a "$GITHUB_OUTPUT"
+            fi
           elif [[ "${GITHUB_EVENT_NAME}" == 'pull_request' ]]; then
             pr_number=$(echo "${GITHUB_REF_NAME}" | cut -d'/' -f1)
             echo "pr-number=${pr_number}" | tee -a "${GITHUB_OUTPUT}"
