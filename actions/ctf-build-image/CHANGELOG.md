@@ -1,5 +1,14 @@
 # ctf-build-image
 
+## 0.2.0
+
+### Minor Changes
+
+- [#1031](https://github.com/smartcontractkit/.github/pull/1031)
+  [`e4fe212`](https://github.com/smartcontractkit/.github/commit/e4fe212cb1c8467bbe030cdd5bcd6640d82e9671)
+  Thanks [@chainchad](https://github.com/chainchad)! - Update gitRef in plugins
+  manifest file
+
 ## 0.1.3
 
 ### Patch Changes
