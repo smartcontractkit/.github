@@ -21,12 +21,10 @@ inputs:
     description: Set this to cache bust
     required: false
     default: "1"
-  upload-chunk-size:
-    description:
-      Size of chunks for cache upload. Set to 0 to prevent uploads while still
-      allowing downloads.
+  skip-cache-save:
+    description: Set to 'true' to skip saving the cache while still allowing restores
     required: false
-    default: "104857600"
+    default: "false"
 
 runs:
   using: composite
@@ -68,32 +66,40 @@ runs:
         echo "gomodcache=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
         echo "gobuildcache=$(go env GOCACHE)" >> $GITHUB_OUTPUT
 
-    - uses: actions/cache@v4
-      name: Cache Go Modules
+    - uses: actions/cache/restore@v4
+      name: Restore Go Modules Cache
+      id: restore-gomod
       with:
         path: |
           ${{ steps.go-cache-dir.outputs.gomodcache }}
-        # The lifetime of go modules is much higher than the build outputs, so we increase cache efficiency
-        # here by not having the primary key contain the branch name
-        key:
-          ${{ runner.os }}-gomod-${{ inputs.cache-version }}-${{
-          hashFiles('./go.sum') }}
+        key: ${{ runner.os }}-gomod-${{ inputs.cache-version }}-${{ hashFiles('./go.sum') }}
         restore-keys: |
           ${{ runner.os }}-gomod-${{ inputs.cache-version }}-
-        upload-chunk-size: ${{ inputs.upload-chunk-size }}
 
-    - uses: actions/cache@v4
+    - uses: actions/cache/save@v4
+      if: ${{ inputs.skip-cache-save != 'true' }}
+      name: Save Go Modules Cache
+      with:
+        path: |
+          ${{ steps.go-cache-dir.outputs.gomodcache }}
+        key: ${{ steps.restore-gomod.outputs.cache-primary-key }}
+
+    - uses: actions/cache/restore@v4
       if: ${{ inputs.only-modules == 'false' }}
-      name: Cache Go Build Outputs
+      name: Restore Go Build Cache
+      id: restore-gobuild
       with:
         path: |
           ${{ steps.go-cache-dir.outputs.gobuildcache }}
-        # The lifetime of go build outputs is pretty short, so we make our primary cache key be the branch name
-        key:
-          ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{
-          hashFiles('./go.sum') }}-${{ steps.branch-name.outputs.current_branch
-          }}
+        key: ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{ hashFiles('./go.sum') }}-${{ steps.branch-name.outputs.current_branch }}
         restore-keys: |
           ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{ hashFiles('./go.sum') }}-
           ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-
-        upload-chunk-size: ${{ inputs.upload-chunk-size }}
+
+    - uses: actions/cache/save@v4
+      if: ${{ inputs.only-modules == 'false' && inputs.skip-cache-save != 'true' }}
+      name: Save Go Build Cache
+      with:
+        path: |
+          ${{ steps.go-cache-dir.outputs.gobuildcache }}
+        key: ${{ steps.restore-gobuild.outputs.cache-primary-key }}
