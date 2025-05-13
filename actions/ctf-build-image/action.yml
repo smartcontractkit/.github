@@ -107,11 +107,13 @@ runs:
           echo "Updating plugins manifest $PLUGINS_MANIFEST_PATH with chainlink-cosmos@${DEP_COSMOS_SHA}"
           yq e ".plugins.cosmos[0].gitRef = \"$DEP_COSMOS_SHA\"" -i "$PLUGINS_MANIFEST_PATH"
           updated_plugins_manifest=true
-        elif [[ -n "${DEP_STARKNET_SHA:-}" ]]; then
+        fi
+        if [[ -n "${DEP_STARKNET_SHA:-}" ]]; then
           echo "Updating plugins manifest $PLUGINS_MANIFEST_PATH with chainlink-starknet@${DEP_STARKNET_SHA}"
           yq e ".plugins.starknet[0].gitRef = \"$DEP_STARKNET_SHA\"" -i "$PLUGINS_MANIFEST_PATH"
           updated_plugins_manifest=true
-        elif [[ -n "${DEP_SOLANA_SHA:-}" ]]; then
+        fi
+        if [[ -n "${DEP_SOLANA_SHA:-}" ]]; then
           echo "Updating plugins manifest $PLUGINS_MANIFEST_PATH with chainlink-solana@${DEP_SOLANA_SHA}"
           yq e ".plugins.solana[0].gitRef = \"$DEP_SOLANA_SHA\"" -i "$PLUGINS_MANIFEST_PATH"
           updated_plugins_manifest=true
