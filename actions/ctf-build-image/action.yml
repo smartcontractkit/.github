@@ -102,6 +102,10 @@ runs:
         PLUGINS_MANIFEST_PATH:
           ${{ github.workspace }}/plugins/plugins.public.yaml
       run: |
+        if [[ ! -f "$PLUGINS_MANIFEST_PATH" ]]; then
+          echo "Plugins manifest $PLUGINS_MANIFEST_PATH not found, skipping update"
+          exit 0
+        fi
         updated_plugins_manifest=false
         if [[ -n "${DEP_COSMOS_SHA:-}" ]]; then
           echo "Updating plugins manifest $PLUGINS_MANIFEST_PATH with chainlink-cosmos@${DEP_COSMOS_SHA}"
