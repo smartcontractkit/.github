@@ -22,7 +22,9 @@ inputs:
     required: false
     default: "1"
   upload-chunk-size:
-    description: Size of chunks for cache upload. Set to 0 to prevent uploads while still allowing downloads.
+    description:
+      Size of chunks for cache upload. Set to 0 to prevent uploads while still
+      allowing downloads.
     required: false
     default: "104857600"
 
