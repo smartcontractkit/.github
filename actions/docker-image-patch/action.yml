@@ -1,0 +1,192 @@
+name: docker-image-patch
+description: "Patch a Docker image and re-publish to ECR."
+
+inputs:
+  aws-region:
+    description: "AWS region for ECR."
+    required: true
+  aws-role-arn:
+    description: "AWS role ARN to assume for ECR access."
+    required: true
+  copy-paths:
+    description: |
+      List of file paths to update in the Docker image.
+
+      Each path should be in the format `path/to/file:destination/path`.
+      The colon (:) separates the source path from the destination path.
+      The destination path should be absolute. Can be a file or directory.
+
+      Examples:
+        copy-paths: |
+          # Copy all files from the local directory to the Docker image
+          bin/:/usr/local/bin/
+          # Copy a single file from the local directory to the Docker image
+          config.yaml:/app/config.yaml
+    required: false
+  docker-envs:
+    description: |
+      List of environment variables to set in the Docker image.
+
+      Each variable should be in the format `KEY=VALUE`.
+
+      Examples:
+        docker-envs: |
+          ENV_VAR_1=value1
+          ENV_VAR_2=value2
+    required: false
+  docker-image-tag-src:
+    description: |
+      Source Docker image tag.
+
+      Examples:
+        latest
+        1.0.0
+        1.0.0-rc.1
+    required: true
+  docker-image-tag-dst:
+    description: |
+      Destination Docker image tag.
+
+      Examples:
+        latest
+        1.0.0
+        1.0.0-rc.1
+    required: true
+  docker-registry-url-dst:
+    required: true
+    description: |
+      Hostname for the destination Docker image registry.
+
+      Currently only supports public and private ECR.
+
+      Examples:
+        public.ecr.aws
+        <account-id>.dkr.ecr.<region>.amazonaws.com
+  docker-registry-url-src:
+    required: true
+    description: |
+      Hostname for the source Docker image registry.
+
+      Currently only supports public and private ECR.
+
+      Examples:
+        <account-id>.dkr.ecr.<region>.amazonaws.com
+  docker-repository-name-dst:
+    required: true
+    description: |
+      Name of the destination Docker repository excluding hostname. Excludes any tags. Public ECR's will include a registry alias and a forward slash.
+
+      Examples:
+        chainlink/chainlink # Public ECR
+        chainlink/ccip # Public ECR
+        my-repo-name # Private ECR
+  docker-repository-name-src:
+    required: true
+    description: |
+      Name of the source Docker repository excluding hostname. Excludes any tags. Public ECR's will include a registry alias and a forward slash.
+
+      Examples:
+        chainlink/chainlink # Public ECR
+        chainlink/ccip # Public ECR
+        my-repo-name # Private ECR
+
+runs:
+  using: composite
+  steps:
+    - name: Validate inputs
+      shell: bash
+      env:
+        COPY_PATHS: ${{ inputs.copy-paths }}
+        DOCKER_ENVS: ${{ inputs.docker-envs }}
+        DOCKER_REGISTRY_URL_DST: ${{ inputs.docker-registry-url-dst }}
+        DOCKER_REGISTRY_URL_SRC: ${{ inputs.docker-registry-url-src }}
+      run: |
+        echo "::group::Validate inputs"
+        ${GITHUB_ACTION_PATH}/scripts/input-validation.sh
+        echo "::endgroup::"
+
+    - name: Set outputs
+      id: set-outputs
+      shell: bash
+      env:
+        DOCKER_REGISTRY_URL_SRC: ${{ inputs.docker-registry-url-src }}
+      run: |
+        echo "::group::Set outputs"
+        if [[ "${DOCKER_REGISTRY_URL_SRC}" != "public.ecr.aws" ]]; then
+          account_id_src="${DOCKER_REGISTRY_URL_SRC%%.*}"
+          echo "registry-src-aws-account-id=${account_id_src}" | tee -a "$GITHUB_OUTPUT"
+          echo "registry-src-type=private" | tee -a "$GITHUB_OUTPUT"
+        else
+          echo "registry-src-type=public" | tee -a "$GITHUB_OUTPUT"
+        fi
+        if [[ "${DOCKER_REGISTRY_URL_DST}" != "public.ecr.aws" ]]; then
+          account_id_dst="${DOCKER_REGISTRY_URL_DST%%.*}"
+          echo "registry-dst-aws-account-id=${account_id_dst}" | tee -a "$GITHUB_OUTPUT"
+          echo "registry-dst-type=private" | tee -a "$GITHUB_OUTPUT"
+        else
+          echo "registry-dst-type=public" | tee -a "$GITHUB_OUTPUT"
+        fi
+        echo "::endgroup::"
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        role-duration-seconds: 900
+        aws-region: ${{ inputs.aws-region }}
+        mask-aws-account-id: true
+
+    - name: Login to ECR for source image
+      id: login-ecr-src
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      env:
+        AWS_REGION: ${{ steps.set-outputs.outputs.registry-src-type == 'public' && 'us-east-1' || inputs.aws-region }}
+      with:
+        registry-type: >-
+          ${{
+            startsWith(
+              inputs.docker-registry-url-src,
+              'public.ecr.aws'
+            ) && 'public' || 'private'
+          }}
+        # This is ignored by the action if the registry type is public.
+        registries: ${{ steps.set-outputs.outputs.registry-src-aws-account-id }}
+
+    - name: Pull source Docker image
+      shell: bash
+      env:
+        DOCKER_FULL_IMAGE_SRC: ${{ format('{0}/{1}:{2}', inputs.docker-registry-url-src, inputs.docker-repository-name-src, inputs.docker-image-tag-src) }}
+      run: |
+        echo "::group::Pull source Docker image"
+        docker pull "$DOCKER_FULL_IMAGE_SRC"
+        echo "::endgroup::"
+
+    - name: Patch Docker image
+      shell: bash
+      env:
+        COPY_PATHS: ${{ inputs.copy-paths }}
+        DOCKER_ENVS: ${{ inputs.docker-envs }}
+        DOCKER_FULL_IMAGE_SRC: ${{ format('{0}/{1}:{2}', inputs.docker-registry-url-src, inputs.docker-repository-name-src, inputs.docker-image-tag-src) }}
+        DOCKER_FULL_IMAGE_DST: ${{ format('{0}/{1}:{2}', inputs.docker-registry-url-dst, inputs.docker-repository-name-dst, inputs.docker-image-tag-dst) }}
+      run: |
+        echo "::group::Add paths to patched Docker image"
+        ${GITHUB_ACTION_PATH}/scripts/docker-patch.sh
+        echo "::endgroup::"
+
+    - name: Login to ECR for destination image
+      id: login-ecr-dst
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
+      with:
+        registry-type: private
+        registries: ${{ steps.set-outputs.outputs.registry-dst-aws-account-id }}
+
+    - name: Publish patched Docker image
+      shell: bash
+      env:
+        DOCKER_FULL_IMAGE_DST: ${{ format('{0}/{1}:{2}', inputs.docker-registry-url-dst, inputs.docker-repository-name-dst, inputs.docker-image-tag-dst) }}
+      run: |
+        echo "::group::Publish patched Docker image"
+        docker push "$DOCKER_FULL_IMAGE_DST"
+        echo "::endgroup::"
