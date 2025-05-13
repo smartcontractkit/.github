@@ -1,6 +1,6 @@
 {
   "name": "invoke-gati",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "The github action for interfacing with the token issuer service",
   "type": "module",
   "main": "dist/index.mjs",
