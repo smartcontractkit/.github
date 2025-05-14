@@ -37,6 +37,6 @@ jobs:
           persist-credentials: false
 
       - name: Dependency Review
-        uses: smartcontractkit/.github/actions/dependency-review@dependency-review/2.0.0
+        uses: smartcontractkit/.github/actions/dependency-review@dependency-review/v2
         with:
           config-preset: ${{ inputs.config-preset }}
