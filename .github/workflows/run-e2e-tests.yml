@@ -187,6 +187,16 @@ on:
         type: string
         default: "{}"
         description: "JSON of extra arguments for the workflow."
+      install-plugins-public:
+        required: false
+        type: boolean
+        default: false
+        description: "Set to true to install the public LOOP plugins"
+      aptos-cli:
+        required: false
+        type: string
+        default: ""
+        description: "Set to a specific Aptos CLI version to install (e.g. 7.2.0, latest)"
     outputs:
       test_results:
         description: "Test results from all executed tests"
@@ -1290,6 +1300,16 @@ jobs:
         run: go run . local db preparetest
         env:
           CL_DATABASE_URL: ${{  env.DB_URL }}
+      - name: Install LOOP Plugins
+        if: ${{ matrix.type.install-plugins-public }}
+        run: |
+          make install-loopinstall
+          make install-plugins-public
+      - name: Install Aptos CLI
+        if: ${{ matrix.tests.aptos-cli != '' }}
+        uses: aptos-labs/actions/install-aptos-cli@63740b290d839b87ecfafbcf75ed03a36a54a29f # jan 15, 2025
+        with:
+          CLI_VERSION: ${{ matrix.tests.aptos-cli }}
       - name: Set dynamic env vars for tests
         shell: bash
         run: |
