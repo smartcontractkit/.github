@@ -187,12 +187,12 @@ on:
         type: string
         default: "{}"
         description: "JSON of extra arguments for the workflow."
-      install-plugins-public:
+      install_plugins_public:
         required: false
         type: boolean
         default: false
         description: "Set to true to install the public LOOP plugins"
-      aptos-cli:
+      aptos_cli:
         required: false
         type: string
         default: ""
@@ -461,7 +461,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@b08cab0f49aa13d5adb849554b56086f4dba8984 # v1.34.4
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@7f51663048dd42bd0e5755e105b795961d40743c # v1.34.4
       - name: Install jq
         run: sudo apt-get install jq
 
@@ -1301,12 +1301,12 @@ jobs:
         env:
           CL_DATABASE_URL: ${{  env.DB_URL }}
       - name: Install LOOP Plugins
-        if: ${{ matrix.type.install-plugins-public }}
+        if: ${{ matrix.tests.install_plugins_public }}
         run: |
           make install-loopinstall
           make install-plugins-public
       - name: Install Aptos CLI
-        if: ${{ matrix.tests.aptos-cli != '' }}
+        if: ${{ matrix.tests.aptos_cli != '' }}
         uses: aptos-labs/actions/install-aptos-cli@63740b290d839b87ecfafbcf75ed03a36a54a29f # jan 15, 2025
         with:
           CLI_VERSION: ${{ matrix.tests.aptos-cli }}
