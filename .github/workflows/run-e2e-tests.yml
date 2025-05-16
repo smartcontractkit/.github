@@ -88,7 +88,9 @@ on:
         description: "Suites to build in the test image. Space separated"
         required: false
         type: string
-        default: chaos migration reorg smoke soak benchmark load ccip-tests/load ccip-tests/smoke ccip-tests/chaos
+        default:
+          chaos migration reorg smoke soak benchmark load ccip-tests/load
+          ccip-tests/smoke ccip-tests/chaos
       require_chainlink_image_versions_in_qa_ecr:
         description:
           'Check Chainlink image versions to be present in QA ECR. If not, build
