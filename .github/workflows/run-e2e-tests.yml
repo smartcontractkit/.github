@@ -187,16 +187,6 @@ on:
         type: string
         default: "{}"
         description: "JSON of extra arguments for the workflow."
-      install_plugins_public:
-        required: false
-        type: boolean
-        default: false
-        description: "Set to true to install the public LOOP plugins"
-      aptos_cli:
-        required: false
-        type: string
-        default: ""
-        description: "Set to a specific Aptos CLI version to install (e.g. 7.2.0, latest)"
     outputs:
       test_results:
         description: "Test results from all executed tests"
@@ -1300,16 +1290,6 @@ jobs:
         run: go run . local db preparetest
         env:
           CL_DATABASE_URL: ${{  env.DB_URL }}
-      - name: Install LOOP Plugins
-        if: ${{ matrix.tests.install_plugins_public }}
-        run: |
-          make install-loopinstall
-          make install-plugins-public
-      - name: Install Aptos CLI
-        if: ${{ matrix.tests.aptos_cli != '' }}
-        uses: aptos-labs/actions/install-aptos-cli@63740b290d839b87ecfafbcf75ed03a36a54a29f # jan 15, 2025
-        with:
-          CLI_VERSION: ${{ matrix.tests.aptos-cli }}
       - name: Set dynamic env vars for tests
         shell: bash
         run: |
@@ -1327,7 +1307,7 @@ jobs:
           fi
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@30b46ee5e5a5be9ae091fda296bbef605df01afd # ctf-run-tests@v0.6.2
+        uses: smartcontractkit/.github/actions/ctf-run-tests@5f3f3306d8dc7da519208953dfb58b5bafcade67 # ctf-run-tests@v0.6.2
         env:
           CL_DATABASE_URL: ${{ env.DB_URL }}
         with:
@@ -1359,6 +1339,8 @@ jobs:
           main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
           k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
           enable-gap: false
+          install_plugins_public: ${{ matrix.tests.install_plugins_public }}
+          aptos_cli_version: ${{ matrix.tests.aptos-cli }}
 
   after_tests:
     needs:
