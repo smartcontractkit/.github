@@ -73,7 +73,7 @@ runs:
         dynamic-proxy-port: ${{ inputs.dynamic-proxy-port }}
         enable-proxy-debug: ${{ inputs.enable-proxy-debug }}
 
-    - name: Validate .policy.yml (GAP)
+    - name: Validate ${{ inputs.policy-yml-path }}
       shell: bash
       env:
         POLICY_BOT_HOST: ${{ inputs.policy-bot-host }}
