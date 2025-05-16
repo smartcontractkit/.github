@@ -19,19 +19,9 @@ inputs:
   aws-region:
     description: |
       The AWS region for the api gateway and other resources unless specified
-      in other inputs.
-      Required if setup-gap is true.
+      in other inputs. Required if setup-gap is true - defaults to us-west-2.
     required: false
-  aws-role-arn:
-    description: |
-      The AWS role with permissions to run aws eks update-kubeconfig.
-      Required if setup-gap is true.
-    required: false
-  k8s-cluster-name:
-    description: |
-      The EKS cluster name to target.
-      Required if setup-gap is true.
-    required: false
+    default: "us-west-2"
   main-dns-zone:
     description: |
       The DNS zone is used for exposing services. It is required when using the
@@ -63,14 +53,6 @@ runs:
             echo "::error::aws-region is required if setup-gap is true"
             exit 1
           fi
-          if [ -z ${{ inputs.aws-role-arn }} ]; then
-            echo "::error::aws-role-arn is required if setup-gap is true"
-            exit 1
-          fi
-          if [ -z ${{ inputs.k8s-cluster-name }} ]; then
-            echo "::error::k8s-cluster-name is required if setup-gap is true"
-            exit 1
-          fi
           if [ -z ${{ inputs.main-dns-zone }} ]; then
             echo "::error::main-dns-zone is required if setup-gap is true"
             exit 1
@@ -84,33 +66,35 @@ runs:
 
     - name: Setup GAP
       if: inputs.setup-gap == 'true'
-      uses: smartcontractkit/.github/actions/setup-gap@495d349ba13c395defc974be85747dae450eb3d7 # setup-gap@3.5.1
+      uses: smartcontractkit/.github/actions/setup-gap@setup-gap/v5
       with:
         aws-region: ${{ inputs.aws-region }}
-        aws-role-arn: ${{ inputs.aws-role-arn }}
-        use-k8s: true
-        k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
         main-dns-zone: ${{ inputs.main-dns-zone }}
         dynamic-proxy-port: ${{ inputs.dynamic-proxy-port }}
         enable-proxy-debug: ${{ inputs.enable-proxy-debug }}
 
-    - name: Validate .policy.yml
+    - name: Validate .policy.yml (GAP)
       shell: bash
       env:
+        POLICY_BOT_HOST: ${{ inputs.policy-bot-host }}
+        SETUP_GAP: ${{ inputs.setup-gap }}
         GAP_POLICY_BOT_HOST: "gap-policy-bot.${{ inputs.main-dns-zone }}"
+        GAP_PROXY_PORT: ${{ inputs.dynamic-proxy-port }}
+        POLICY_YML_PATH: ${{ inputs.policy-yml-path }}
       run: |
-        endpoint="https://127.0.0.1:9090"
+        # GAP parameters
+        endpoint="https://127.0.0.1:${GAP_PROXY_PORT}"
         extra_curl_opts=(-H "Host: $GAP_POLICY_BOT_HOST" -k)
 
-        if [ ${{ inputs.setup-gap }} == 'false' ]; then
-          endpoint=${{ inputs.policy-bot-host }}
+        if [ "${SETUP_GAP}" != 'true' ]; then
+          endpoint=${POLICY_BOT_HOST}
           extra_curl_opts=()
         fi
 
-        http_response=$(curl "${extra_curl_opts[@]}" -s -o body.txt -w "%{response_code}" "$endpoint/api/validate" -XPUT -T ${{ inputs.policy-yml-path }})
+        http_response=$(curl "${extra_curl_opts[@]}" -s -o body.txt -w "%{response_code}" "$endpoint/api/validate" -XPUT -T ${POLICY_YML_PATH})
         message=$(jq --raw-output --join-output .message body.txt | tr -d '\n')
         if [ $http_response != "200" ]; then
-          echo "::error file=${{ inputs.policy-yml-path }}::$message"
+          echo "::error file=${POLICY_YML_PATH}::$message"
           exit 1
         else
           echo "::info::$message"
