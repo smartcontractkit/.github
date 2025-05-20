@@ -34,7 +34,7 @@
     "@snyk/go-semver": "^1.4.0",
     "execa": "^9.5.1",
     "p-limit": "^6.1.0",
-    "vitest": "^2.0.0",
+    "vitest": "^2.1.9",
     "zx": "^8.1.2"
   },
   "author": "@smartcontractkit",
