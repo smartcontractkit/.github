@@ -9,7 +9,7 @@ inputs:
   pnpm-version:
     description: The pnpm version to use
     required: true
-    default: ^8.0.0
+    default: "^10.0.0"
   use-cache:
     description: Enable github actions cache
     required: true

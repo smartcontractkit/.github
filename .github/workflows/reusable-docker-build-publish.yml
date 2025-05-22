@@ -29,7 +29,6 @@ name: Reusable Docker Build and Publish
 #         aws-region-gati: us-west-2
 #         dockerfile: Dockerfile
 #         docker-build-context: .
-#         docker-image-type: branch
 #         docker-manifest-sign: true
 #         git-sha: $\{{ github.sha }}
 #         github-event-name: $\{{ github.event_name }}
@@ -99,18 +98,12 @@ on:
         description: "Path to Docker build context."
         required: true
         type: string
-      docker-image-type:
+      docker-image-tag-override:
         description: |
-          Generate pre-defined Docker image tags based on specified type.
+          When set, this will override the default Docker image tag.
 
-          Valid options (one of):
-            - branch
-            - manual  # workflow dispatch
-            - nightly # schedule
-            - pr
-            - sha
-            - tag
-        required: true
+          Otherwise, the tag will be generated based on the input.github-event-name.
+        required: false
         type: string
       docker-manifest-sign:
         description: "Sign docker manifest or not."
@@ -137,6 +130,8 @@ on:
           Examples:
             - "-ccip"
             - "-plugins"
+
+          NOTE: This will not be added when docker-image-tag-override is set.
         required: false
         type: string
       docker-target:
@@ -170,6 +165,14 @@ on:
             - feature-branch-1  # branch on push events
             - v1.0.0            # tag on push events
         required: true
+        type: string
+      github-ref-type:
+        description: |
+          > The type of ref that triggered the workflow run.
+          > Valid values are "branch" or "tag".
+
+          This is required to differentiate between branch push and tag push events.
+        required: false
         type: string
       github-runner-amd64:
         description: |
@@ -221,6 +224,7 @@ jobs:
       date: ${{ steps.get-date.outputs.date }}
       git-short-sha: ${{ steps.git-short-sha.outputs.short-sha }}
       pr-number: ${{ steps.set-extra-outputs.outputs.pr-number }}
+      build-type: ${{ steps.set-extra-outputs.outputs.build-type }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -254,11 +258,26 @@ jobs:
         env:
           GITHUB_EVENT_NAME: ${{ inputs.github-event-name }}
           GITHUB_REF_NAME: ${{ inputs.github-ref-name }}
+          GITHUB_REF_TYPE: ${{ inputs.github-ref-type }}
         run: |
-          echo "Setting extra outputs..."
-          if [[ "${GITHUB_EVENT_NAME:-}" == "pull_request" ]]; then
+          echo "Setting build type outputs..."
+          if [[ "${GITHUB_EVENT_NAME}" == "schedule" ]]; then
+            echo "build-type=nightly" | tee -a "$GITHUB_OUTPUT"
+          elif [[ "${GITHUB_EVENT_NAME}" == 'push' ]]; then
+            if [[ "${GITHUB_REF_TYPE}" == 'tag' ]]; then
+              echo "build-type=tag" | tee -a "$GITHUB_OUTPUT"
+            else
+              echo "build-type=branch" | tee -a "$GITHUB_OUTPUT"
+            fi
+          elif [[ "${GITHUB_EVENT_NAME}" == 'pull_request' ]]; then
             pr_number=$(echo "${GITHUB_REF_NAME}" | cut -d'/' -f1)
             echo "pr-number=${pr_number}" | tee -a "${GITHUB_OUTPUT}"
+            echo "build-type=pr" | tee -a "$GITHUB_OUTPUT"
+          elif [[ "${GITHUB_EVENT_NAME}" == 'workflow_dispatch' ]]; then
+            echo "build-type=manual" | tee -a "$GITHUB_OUTPUT"
+          else
+            echo "::error::Unsupported GitHub event name: ${GITHUB_EVENT_NAME}"
+            exit 1
           fi
 
   build-publish:
@@ -293,44 +312,52 @@ jobs:
         id: set-docker-image-tags
         env:
           DATE: ${{ needs.init.outputs.date }}
-          DOCKER_IMAGE_TYPE: ${{ inputs.docker-image-type }}
+          DOCKER_IMAGE_TAG_OVERRIDE: ${{ inputs.docker-image-tag-override }}
+          DOCKER_IMAGE_TYPE: ${{ needs.init.outputs.build-type }}
           DOCKER_TAG_CUSTOM_SUFFIX: ${{ inputs.docker-tag-custom-suffix }}
           GIT_SHORT_SHA: ${{ needs.init.outputs.git-short-sha }}
           GITHUB_REF_NAME: ${{ inputs.github-ref-name }}
           MATRIX_ARCH: ${{ matrix.arch }}
           PR_NUMBER: ${{ needs.init.outputs.pr-number }}
         run: |
-          case "${DOCKER_IMAGE_TYPE:-}" in
-            branch)
-              # Examples: main-d34db33 or main-d34db33-custom-suffix
-              tag_value="${GITHUB_REF_NAME}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
-              ;;
-            manual)
-              # Examples: manual-d34db33 or manual-d34db33-custom-suffix
-              tag_value="manual-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
-              ;;
-            nightly)
-              # Examples: nightly-20250307 or nightly-20250307-custom-suffix
-              tag_value="nightly-${DATE}${DOCKER_TAG_CUSTOM_SUFFIX}"
-              ;;
-            pr)
-              # Examples: pr-123-d34db33 or pr-123-d34db33-custom-suffix
-              if [[ -z "${PR_NUMBER:-}" ]]; then echo "::error::GITHUB_EVENT_NAME is pull_request but PR_NUMBER is not set"; exit 1; fi
-              tag_value="pr-${PR_NUMBER}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
-              ;;
-            sha)
-              # Examples: sha-d34db33 or sha-d34db33-custom-suffix
-              tag_value="sha-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
-              ;;
-            tag)
-              # Examples: v1.0.0 or v1.0.0-custom-suffix
-              tag_value="${GITHUB_REF_NAME}${DOCKER_TAG_CUSTOM_SUFFIX}"
-              ;;
-            *)
-              echo "::error::Invalid docker image type: ${DOCKER_IMAGE_TYPE}. Must be one of: branch, manual, nightly, pr, sha, tag."
-              exit 1
-              ;;
-          esac
+          if [[ -n "${DOCKER_IMAGE_TAG_OVERRIDE:-}" ]]; then
+            echo "Using override tag: ${DOCKER_IMAGE_TAG_OVERRIDE}"
+            tag_value="${DOCKER_IMAGE_TAG_OVERRIDE}"
+          else
+            # If no override, determine tag based on build type
+            case "${DOCKER_IMAGE_TYPE:-}" in
+              branch)
+                # Examples: main-d34db33 or main-d34db33-custom-suffix
+                tag_value="${GITHUB_REF_NAME}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              manual)
+                # Examples: manual-d34db33 or manual-d34db33-custom-suffix
+                tag_value="manual-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              nightly)
+                # Examples: nightly-20250307 or nightly-20250307-custom-suffix
+                tag_value="nightly-${DATE}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              pr)
+                # Examples: pr-123-d34db33 or pr-123-d34db33-custom-suffix
+                if [[ -z "${PR_NUMBER:-}" ]]; then echo "::error::GITHUB_EVENT_NAME is pull_request but PR_NUMBER is not set"; exit 1; fi
+                tag_value="pr-${PR_NUMBER}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              sha)
+                # Examples: sha-d34db33 or sha-d34db33-custom-suffix
+                tag_value="sha-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              tag)
+                # Examples: v1.0.0 or v1.0.0-custom-suffix
+                tag_value="${GITHUB_REF_NAME}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              *)
+                echo "::error::Invalid docker image type: ${DOCKER_IMAGE_TYPE}. Must be one of: branch, manual, nightly, pr, sha, tag."
+                exit 1
+                ;;
+            esac
+          fi
+
           if ! [[ "${tag_value}-${MATRIX_ARCH}" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
             echo "::error::Invalid Docker tag value: ${tag_value}-${MATRIX_ARCH}."
             exit 1
