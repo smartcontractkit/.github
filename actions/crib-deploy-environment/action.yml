@@ -13,6 +13,10 @@ inputs:
   aws-role-arn:
     description: "AWS Role ARN to be used for setting up GAP."
     required: true
+  aws-role-duration-seconds:
+    description: "Duration in seconds for the AWS role session."
+    required: false
+    default: "1800"
   devspace-ingress-cidrs:
     default: "0.0.0.0/0"
     description: "DevSpace ingress CIDRs."
@@ -195,6 +199,7 @@ runs:
       with:
         aws-region: ${{ inputs.aws-region }}
         aws-role-arn: ${{ inputs.aws-role-arn }}
+        aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
         enable-proxy-debug: ${{ inputs.enable-proxy-debug }}
         github-oidc-token-header-name:
           ${{ inputs.github-oidc-token-header-name }}
