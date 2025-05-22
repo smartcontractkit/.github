@@ -48,16 +48,19 @@ on:
 jobs:
   example:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
     steps:
       - name: Get PR Labels
         id: get-pr-labels
         uses: smartcontractkit/.github/actions/get-pr-labels@<tag>
         with:
           check-label: 'documentation'
-          check-type: 'event'
+          check-type: 'current'
 
       - name: Outputs
         run: |
+          # Checked for the 'documentation' label on the current pr labels
           echo "Check Label: ${{ steps.get-pr-labels.outputs.check-label-found }}"
 
           echo "PR Labels: ${{ steps.get-pr-labels.outputs.event-labels }}"
