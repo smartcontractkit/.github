@@ -1,5 +1,14 @@
 # policy-bot-config-validator
 
+## 2.0.0
+
+### Major Changes
+
+- [#1038](https://github.com/smartcontractkit/.github/pull/1038)
+  [`0d1ca83`](https://github.com/smartcontractkit/.github/commit/0d1ca8361b60c804370019731b72c0ba95719a9a)
+  Thanks [@erikburt](https://github.com/erikburt)! - simplify inputs for updated
+  version of setup-gap
+
 ## 1.0.1
 
 ### Patch Changes
