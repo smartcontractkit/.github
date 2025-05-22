@@ -23,6 +23,14 @@ inputs:
     required: false
     default: "current"
 
+  skip-merge-group:
+    description: |
+      Whether to skip the merge group event. If true, the action will not
+      attempt to get the pull request number from the merge group event.
+      All outputs will be 'false' or empty.
+    required: false
+    default: "false"
+
 outputs:
   check-label-found:
     description: |
@@ -38,7 +46,7 @@ outputs:
       and it contains the labels of the pull request when the event was triggered.
       If labels were added or removed after the event was triggered, this output
       will not reflect those changes. Also, retried workflows maintain the labels from the original event.
-    value: ${{ steps.get-pr-labels.outputs.event-labels }}
+    value: ${{ steps.get-pr-labels.outputs.event-labels || '' }}
 
   current-labels:
     description: |
@@ -46,12 +54,12 @@ outputs:
       This output will always reflect the state of the pull request at the time
       the action was run, regardless of when the event was triggered. Useful, if you add a label
       to the PR after the event was triggered.
-    value: ${{ steps.get-pr-labels.outputs.api-labels }}
+    value: ${{ steps.get-pr-labels.outputs.api-labels || '' }}
 
   all-labels:
     description: |
       The combined list from event-labels and current-labels.
-    value: ${{ steps.get-pr-labels.outputs.all-labels }}
+    value: ${{ steps.get-pr-labels.outputs.all-labels || '' }}
 
 runs:
   using: composite
@@ -77,6 +85,9 @@ runs:
         echo "::endgroup::"
 
     - name: Get PR number
+      if:
+        ${{ github.event_name != 'merge_group' || inputs.skip-merge-group ==
+        'false' }}
       id: get-pr-number
       shell: bash
       env:
@@ -110,6 +121,9 @@ runs:
         exit 1
 
     - name: Get PR Labels
+      if:
+        ${{ github.event_name != 'merge_group' || inputs.skip-merge-group ==
+        'false' }}
       id: get-pr-labels
       shell: bash
       env:
@@ -140,19 +154,29 @@ runs:
 
     - name: Check for label
       id: check-label
-      if: ${{ inputs.check-label != '' }}
+      if:
+        ${{ inputs.check-label != '' && (github.event_name != 'merge_group' ||
+        inputs.skip-merge-group == 'false') }}
       shell: bash
       env:
-        EXISTS_API_LABELS:
-          ${{ contains(fromJson(steps.get-pr-labels.outputs.api-labels-json),
+        EXISTS_API_LABELS: >-
+          ${{
+            steps.get-pr-labels.outputs.api-labels-json != '' &&
+            contains(fromJson(steps.get-pr-labels.outputs.api-labels-json),
           inputs.check-label) }}
-        EXISTS_EVENT_LABELS:
-          ${{ contains(fromJson(steps.get-pr-labels.outputs.event-labels-json),
+        EXISTS_EVENT_LABELS: >-
+          ${{
+            steps.get-pr-labels.outputs.event-labels-json != '' &&
+            contains(fromJson(steps.get-pr-labels.outputs.event-labels-json),
           inputs.check-label) }}
-        EXISTS_ALL_LABELS:
-          ${{ contains(fromJson(steps.get-pr-labels.outputs.all-labels-json),
+        EXISTS_ALL_LABELS: >-
+          ${{
+            steps.get-pr-labels.outputs.all-labels-json != '' &&
+            contains(fromJson(steps.get-pr-labels.outputs.all-labels-json),
           inputs.check-label) }}
         INPUT_CHECK_TYPE: ${{ inputs.check-type }}
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
+        SKIP_MERGE_GROUP: ${{ inputs.skip-merge-group }}
       run: |
         if [ "${INPUT_CHECK_TYPE}" == "event" ]; then
           echo "check-label-found=${EXISTS_EVENT_LABELS}" | tee -a $GITHUB_OUTPUT

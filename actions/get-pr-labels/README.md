@@ -14,6 +14,8 @@ event.
   above label's existence.
   - There are three possible sources: `event`, `current`, `all`. See below for
     more context.
+- `skip-merge-group` (optional boolean - defaults to `false`) - Whether to skip
+  processing for `merge_group` events.
 
 ## Outputs
 
