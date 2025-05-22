@@ -1,0 +1,74 @@
+name: zizmor-audit
+description: "Run zizmor audit"
+
+inputs:
+  zizmor-version:
+    description: "Version of zizmor to install. Defauts to 1.5.1."
+    required: false
+    default: "1.5.1"
+
+  zizmor-min-severity:
+    description: |
+      Minimum severity to report. Defaults to high.
+      Possible options:
+        - unknown
+        - informational
+        - low
+        - medium
+        - high
+    required: false
+    default: "high"
+
+  workflows-path:
+    description: "Path to the workflows to audit."
+    required: false
+    default: ".github/workflows/"
+
+runs:
+  using: composite
+  steps:
+    # - name: Install zizmor
+    #   shell: bash
+    #   env:
+    #     VERSION: ${{ inputs.zizmor-version }}
+    #   run: cargo install --quiet --locked zizmor --version ${VERSION}
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.x"
+
+    - name: Install Zizmor from PyPI
+      shell: bash
+      env:
+        VERSION: ${{ inputs.zizmor-version }}
+      run: |
+        pip install zizmor==${VERSION}
+
+    - name: Debug
+      shell: bash
+      run: |
+        ls -la ${{ github.action_path }}
+
+    - name: Setup nodejs
+      uses: smartcontractkit/.github/actions/setup-nodejs@main
+      with:
+        node-version-file: ./actions/zizmor-audit/.tool-versions
+        pnpm-version: "^10.0.0"
+        package-json-directory: ./actions/zizmor-audit
+
+      # - name: Run Zizmor
+      #   shell: bash
+      env:
+        MIN_SEVERITY: ${{ inputs.zizmor-min-severity }}
+        WORKFLOWS_PATH: ${{ inputs.workflows-path }}
+    #   run: |
+    #     zizmor ${WORKFLOWS_PATH} --min-severity ${MIN_SEVERITY} --quiet --format json
+
+    - name: Run action
+      shell: bash
+      env:
+        MIN_SEVERITY: ${{ inputs.zizmor-min-severity }}
+        WORKFLOWS_PATH: ${{ inputs.workflows-path }}
+      run: |
+        node ${GITHUB_ACTION_PATH}/annotate.mts ${WORKFLOWS_PATH} ${MIN_SEVERITY}
