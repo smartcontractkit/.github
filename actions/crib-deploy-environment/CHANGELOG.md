@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 8.8.1
+
+### Patch Changes
+
+- [#1044](https://github.com/smartcontractkit/.github/pull/1044)
+  [`7c29b54`](https://github.com/smartcontractkit/.github/commit/7c29b54e23ffac9912b2c4126bdecfec7d7e22b4)
+  Thanks [@chainchad](https://github.com/chainchad)! - Allow
+  crib-deploy-environment to set AWS IAM session expiry'
+
 ## 8.8.0
 
 ### Minor Changes
