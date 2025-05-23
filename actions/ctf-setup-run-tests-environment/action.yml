@@ -143,14 +143,14 @@ runs:
         aws-role-arn: ${{ inputs.prod_aws_role_to_assume }}
         image-url: ${{ inputs.gauntlet_plus_plus_image }}
         aws-account-number: ${{ inputs.prod_aws_account_number }}
-  
+
     - name: Install LOOP Plugins
       if: inputs.install_plugins_public == 'true'
       shell: bash
       run: |
         make install-loopinstall
         make install-plugins-public
-    
+
     - name: Install Aptos CLI
       if: inputs.aptos_cli_version
       uses: aptos-labs/actions/install-aptos-cli@63740b290d839b87ecfafbcf75ed03a36a54a29f # jan 15, 2025
