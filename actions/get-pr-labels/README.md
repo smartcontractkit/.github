@@ -1,7 +1,7 @@
 # Get PR Labels
 
 Will get the labels on a PR, for a `pull_request` event or a `merge_group`
-event.
+event. All other events will return nothing.
 
 ## Inputs
 
