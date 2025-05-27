@@ -71,14 +71,14 @@ runs:
         CHECK_TYPE: ${{ inputs.check-type }}
       run: |
         echo "::group::Validate event type"
-        if [ ${GITHUB_EVENT_NAME} != 'merge_group' ] && [ ${GITHUB_EVENT_NAME} != 'pull_request' ]; then
+        if [[ "${GITHUB_EVENT_NAME}" != 'merge_group' ]] && [[ "${GITHUB_EVENT_NAME}" != 'pull_request' ]]; then
           echo ":error::This action only works with merge_group and pull_request events. Not ${GITHUB_EVENT_NAME}."
           exit 1
         fi
         echo "::endgroup::"
 
         echo "::group::Validate Check Type"
-        if [ "${CHECK_TYPE}" != "event" ] && [ "${CHECK_TYPE}" != "current" ] && [ "${CHECK_TYPE}" != "all" ]; then
+        if [[ "${CHECK_TYPE}" != "event" ]] && [[ "${CHECK_TYPE}" != "current" ]] && [[ "${CHECK_TYPE}" != "all" ]]; then
           echo "::error::Invalid check-type: ${CHECK_TYPE}. Must be 'event', 'current', or 'all'."
           exit 1
         fi
@@ -97,13 +97,13 @@ runs:
           ${{ github.event.merge_group.head_ref || '' }}
         EVENT_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number || '' }}
       run: |
-        if [ -n "${INPUT_PR_NUMBER}" ]; then
+        if [[ -n "${INPUT_PR_NUMBER}" ]]; then
           echo "PR number provided through input: ${INPUT_PR_NUMBER}"
           echo "pr-number=${INPUT_PR_NUMBER}" | tee -a $GITHUB_OUTPUT
           exit 0
         fi
 
-        if [ "${GITHUB_EVENT_NAME}" == "merge_group" ] && [ -n "${EVENT_MERGE_GROUP_HEAD_REF}" ]; then
+        if [[ "${GITHUB_EVENT_NAME}" == "merge_group" ]] && [[ -n "${EVENT_MERGE_GROUP_HEAD_REF}" ]]; then
           # extract the PR number from a merge group branch name (queue/<base branch>/pr-<pr number>)
           PR_NUMBER=$(echo ${EVENT_MERGE_GROUP_HEAD_REF} | grep -Eo "queue/[^/]+/pr-[0-9]+" | cut -d '/' -f3 | cut -d '-' -f2)
           echo "PR number from merge group event: ${PR_NUMBER}"
@@ -111,7 +111,7 @@ runs:
           exit 0
         fi
 
-        if [ "${GITHUB_EVENT_NAME}" == "pull_request" ] && [ -n "${EVENT_PULL_REQUEST_NUMBER}" ]; then
+        if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]] && [[ -n "${EVENT_PULL_REQUEST_NUMBER}" ]]; then
           echo "PR number from pull request event: ${EVENT_PULL_REQUEST_NUMBER}"
           echo "pr-number=${EVENT_PULL_REQUEST_NUMBER}" | tee -a $GITHUB_OUTPUT
           exit 0
@@ -178,10 +178,10 @@ runs:
         GITHUB_EVENT_NAME: ${{ github.event_name }}
         SKIP_MERGE_GROUP: ${{ inputs.skip-merge-group }}
       run: |
-        if [ "${INPUT_CHECK_TYPE}" == "event" ]; then
+        if [[ "${INPUT_CHECK_TYPE}" == "event" ]]; then
           echo "check-label-found=${EXISTS_EVENT_LABELS}" | tee -a $GITHUB_OUTPUT
-        elif [ "${INPUT_CHECK_TYPE}" == "current" ]; then
+        elif [[ "${INPUT_CHECK_TYPE}" == "current" ]]; then
           echo "check-label-found=${EXISTS_API_LABELS}" | tee -a $GITHUB_OUTPUT
-        elif [ "${INPUT_CHECK_TYPE}" == "all" ]; then
+        elif [[ "${INPUT_CHECK_TYPE}" == "all" ]]; then
           echo "check-label-found=${EXISTS_ALL_LABELS}" | tee -a $GITHUB_OUTPUT
         fi
