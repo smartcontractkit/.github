@@ -205,11 +205,11 @@ on:
     outputs:
       docker-image-sha-digest-amd64:
         description: "Docker image SHA digest for amd64 architecture"
-        value: ${{ jobs.docker-manifest.outputs.amd64_digest }}
+        value: ${{ jobs.build-publish.outputs.docker-image-sha-digest-amd64 }}
       docker-image-sha-digest-arm64:
         description:
           "Docker image SHA digest for arm64 architecture (empty if disabled)"
-        value: ${{ jobs.docker-manifest.outputs.arm64_digest }}
+        value: ${{ jobs.build-publish.outputs.docker-image-sha-digest-arm64 }}
       docker-manifest-digest:
         description: "Docker manifest digest"
         value: ${{ jobs.docker-manifest.outputs.digest }}
