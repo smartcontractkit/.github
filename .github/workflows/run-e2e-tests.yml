@@ -184,6 +184,15 @@ on:
         description: "Team to run the tests for (e.g. BIX, CCIP)"
         required: false
         type: string
+      use-self-hosted-runners:
+        description: |
+          Whether to use self-hosted runners for the tests, where applicable.
+          The runner label is obtained from the test configuration file.
+          If set to true, the workflow will use the label from runs_on_self_hosted (if available).
+          If set to false, the workflow will use the label from the runs_on field.
+        required: false
+        type: boolean
+        default: true
       extraArgs:
         required: false
         type: string
@@ -709,7 +718,9 @@ jobs:
     if:
       ${{ needs.load-test-configurations.outputs.run-docker-tests == 'true' &&
       always() && !failure() && !cancelled() }}
-    runs-on: ${{ matrix.tests.runs_on_self_hosted || matrix.tests.runs_on }}
+    runs-on:
+      ${{ inputs.use-self-hosted-runners == 'true' &&
+      matrix.tests.runs_on_self_hosted || matrix.tests.runs_on }}
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.load-test-configurations.outputs.docker-matrix)}}
@@ -729,40 +740,13 @@ jobs:
         ${{ matrix.tests.test_config_override_path ||
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
-      IS_SELF_HOSTED_RUNNER: ${{ matrix.tests.runs_on_self_hosted != '' }}
+      IS_SELF_HOSTED_RUNNER:
+        ${{ inputs.use-self-hosted-runners == 'true' &&
+        matrix.tests.runs_on_self_hosted != '' }}
     steps:
       - name: Enable S3 Cache for Self-Hosted Runners
         if: ${{ env.IS_SELF_HOSTED_RUNNER }}
         uses: runs-on/action@66d4449b717b5462159659523d1241051ff470b9 # v1
-
-      - name: Setup self-hosted directory mounts
-        # For self-hosted runners - the volume mounted to / is too small to handle everything stored in
-        # /home/runner. So we mount certain directories to the larger volume.
-        if: ${{ env.IS_SELF_HOSTED_RUNNER }}
-        run: |
-          if [ ! -d "/home/runner/_work" ]; then
-            echo "::warning::/home/runner/_work does not exist, skipping mount."
-            exit 0
-          fi
-
-          # Define the directories to mount as tuples of source:destination
-          DIRS=(
-            "/home/runner/_work/runner-go:/home/runner/go"
-            "/home/runner/_work/runner-cache:/home/runner/.cache"
-          )
-
-          # Process each directory pair
-          for DIR_PAIR in "${DIRS[@]}"; do
-            SRC_DIR=$(echo $DIR_PAIR | cut -d':' -f1)
-            DEST_DIR=$(echo $DIR_PAIR | cut -d':' -f2)
-
-            sudo mkdir -m 755 "$SRC_DIR"
-            sudo chown -R $(id -u):$(id -g) "$SRC_DIR"
-
-            mkdir -p "$DEST_DIR"
-            sudo mount --bind "$SRC_DIR" "$DEST_DIR"
-            echo "Successfully mounted $SRC_DIR to $DEST_DIR"
-          done
 
       - name: Collect Test Telemetry
         if: inputs.collect_test_telemetry
