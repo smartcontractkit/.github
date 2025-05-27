@@ -287,21 +287,32 @@ jobs:
             exit 1
           fi
 
+  set-build-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        env:
+          GITHUB_RUNNER_AMD64: ${{ inputs.github-runner-amd64 }}
+          GITHUB_RUNNER_ARM64: ${{ inputs.github-runner-arm64 }}
+          GITHUB_RUNNER_ARM64_ENABLE: ${{ inputs.github-runner-arm64-enable }}
+        run: |
+          matrix="[{\"runner\":\"${GITHUB_RUNNER_AMD64}\",\"arch\":\"amd64\"}"
+          if [[ "${GITHUB_RUNNER_ARM64_ENABLE}" == "true" ]]; then
+            matrix+="},{\"runner\":\"${GITHUB_RUNNER_ARM64}\",\"arch\":\"arm64\"}"
+          fi
+          matrix+="]"
+          echo "matrix=$matrix" | tee -a "$GITHUB_OUTPUT"
+
   build-publish:
     name: build-publish-${{ matrix.arch }}
-    needs: init
-    if:
-      ${{ matrix.arch == 'amd64' || (matrix.arch == 'arm64' &&
-      inputs.github-runner-arm64-enable == 'true') }}
+    needs: [init, set-build-matrix]
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     strategy:
       matrix:
-        include:
-          - runner: ${{ inputs.github-runner-amd64 }}
-            arch: amd64
-          - runner: ${{ inputs.github-runner-arm64}}
-            arch: arm64
+        include: ${{ fromJson(needs.set-build-matrix.outputs.matrix) }}
     outputs:
       docker-image-sha-digest-amd64:
         ${{ steps.build.outputs.docker-image-sha-digest-amd64 }}
