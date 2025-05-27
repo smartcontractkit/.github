@@ -192,7 +192,7 @@ on:
           If set to false, the workflow will use the label from the runs_on field.
         required: false
         type: boolean
-        default: true
+        default: false
       extraArgs:
         required: false
         type: string
