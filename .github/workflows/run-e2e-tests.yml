@@ -1098,7 +1098,9 @@ jobs:
       ${{ needs.load-test-configurations.outputs.run-k8s-tests == 'true' &&
       always() && !failure() && !cancelled() }}
     name: ${{ matrix.tests.id }}
-    runs-on: ${{ matrix.tests.runs_on_self_hosted || matrix.tests.runs_on }}
+    runs-on:
+      ${{ inputs.use-self-hosted-runners == 'true' &&
+      matrix.tests.runs_on_self_hosted || matrix.tests.runs_on }}
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.load-test-configurations.outputs.k8s-runner-matrix)}}
@@ -1118,40 +1120,13 @@ jobs:
         ${{ matrix.tests.test_config_override_path ||
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
-      IS_SELF_HOSTED_RUNNER: ${{ matrix.tests.runs_on_self_hosted != '' }}
+      IS_SELF_HOSTED_RUNNER:
+        ${{ inputs.use-self-hosted-runners == 'true' &&
+        matrix.tests.runs_on_self_hosted != '' }}
     steps:
       - name: Enable S3 Cache for Self-Hosted Runners
         if: ${{ env.IS_SELF_HOSTED_RUNNER }}
         uses: runs-on/action@66d4449b717b5462159659523d1241051ff470b9 # v1
-
-      - name: Setup self-hosted directory mounts
-        # For self-hosted runners - the volume mounted to / is too small to handle everything stored in
-        # /home/runner. So we mount certain directories to the larger volume.
-        if: ${{ env.IS_SELF_HOSTED_RUNNER }}
-        run: |
-          if [ ! -d "/home/runner/_work" ]; then
-            echo "::warning::/home/runner/_work does not exist, skipping mount."
-            exit 0
-          fi
-
-          # Define the directories to mount as tuples of source:destination
-          DIRS=(
-            "/home/runner/_work/runner-go:/home/runner/go"
-            "/home/runner/_work/runner-cache:/home/runner/.cache"
-          )
-
-          # Process each directory pair
-          for DIR_PAIR in "${DIRS[@]}"; do
-            SRC_DIR=$(echo $DIR_PAIR | cut -d':' -f1)
-            DEST_DIR=$(echo $DIR_PAIR | cut -d':' -f2)
-
-            sudo mkdir -m 755 "$SRC_DIR"
-            sudo chown -R $(id -u):$(id -g) "$SRC_DIR"
-
-            mkdir -p "$DEST_DIR"
-            sudo mount --bind "$SRC_DIR" "$DEST_DIR"
-            echo "Successfully mounted $SRC_DIR to $DEST_DIR"
-          done
 
       - name: Collect Test Telemetry
         if: inputs.collect_test_telemetry
@@ -1313,7 +1288,9 @@ jobs:
           --health-cmd pg_isready  --health-interval 2s  --health-timeout 5s
           --health-retries 5
     # Run when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok)
-    runs-on: ${{ matrix.tests.runs_on_self_hosted || matrix.tests.runs_on }}
+    runs-on:
+      ${{ inputs.use-self-hosted-runners == 'true' &&
+      matrix.tests.runs_on_self_hosted || matrix.tests.runs_on }}
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.load-test-configurations.outputs.in-memory-matrix)}}
@@ -1326,40 +1303,13 @@ jobs:
       contents: read
     env:
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
-      IS_SELF_HOSTED_RUNNER: ${{ matrix.tests.runs_on_self_hosted != '' }}
+      IS_SELF_HOSTED_RUNNER:
+        ${{ inputs.use-self-hosted-runners == 'true' &&
+        matrix.tests.runs_on_self_hosted != '' }}
     steps:
       - name: Enable S3 Cache for Self-Hosted Runners
         if: ${{ env.IS_SELF_HOSTED_RUNNER }}
         uses: runs-on/action@66d4449b717b5462159659523d1241051ff470b9 # v1
-
-      - name: Setup self-hosted directory mounts
-        # For self-hosted runners - the volume mounted to / is too small to handle everything stored in
-        # /home/runner. So we mount certain directories to the larger volume.
-        if: ${{ env.IS_SELF_HOSTED_RUNNER }}
-        run: |
-          if [ ! -d "/home/runner/_work" ]; then
-            echo "::warning::/home/runner/_work does not exist, skipping mount."
-            exit 0
-          fi
-
-          # Define the directories to mount as tuples of source:destination
-          DIRS=(
-            "/home/runner/_work/runner-go:/home/runner/go"
-            "/home/runner/_work/runner-cache:/home/runner/.cache"
-          )
-
-          # Process each directory pair
-          for DIR_PAIR in "${DIRS[@]}"; do
-            SRC_DIR=$(echo $DIR_PAIR | cut -d':' -f1)
-            DEST_DIR=$(echo $DIR_PAIR | cut -d':' -f2)
-
-            sudo mkdir -m 755 "$SRC_DIR"
-            sudo chown -R $(id -u):$(id -g) "$SRC_DIR"
-
-            mkdir -p "$DEST_DIR"
-            sudo mount --bind "$SRC_DIR" "$DEST_DIR"
-            echo "Successfully mounted $SRC_DIR to $DEST_DIR"
-          done
 
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
