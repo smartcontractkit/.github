@@ -402,7 +402,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@44a3a497c575bb623da2dca787fc7b9329ff9215 # citool/self-hosted-runners
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@e62f3f0a1483d4fa02621a4a6f525b7f7c0b2f67 # may 27, 2025
       - name: Run Check Tests Command
         env:
           TEST_PATH: ${{ inputs.test_path }}
@@ -460,7 +460,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@a20cc0c18660ae404990e634547ddcd97592d0d0 # citool/self-hosted-runners
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@e62f3f0a1483d4fa02621a4a6f525b7f7c0b2f67 # may 27, 2025
 
       - name: Install jq
         run: sudo apt-get install jq
