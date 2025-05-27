@@ -79,6 +79,13 @@ on:
         description: "AWS region for GATI (GitHub Actions Token Issuer)."
         required: false
         type: string
+      build-arm64-image:
+        description:
+          "Enable arm64 Docker image build. Set to 'false' to disable which only
+          builds amd64 images."
+        required: false
+        type: string
+        default: "true"
       dockerfile:
         description: "Path to Dockerfile."
         required: true
@@ -188,12 +195,6 @@ on:
         # NOTE: This runner is not yet available on non-public repos.
         # Will require an override for private/internal repos.
         default: "ubuntu-24.04-arm"
-      github-runner-arm64-enable:
-        description:
-          "Enable arm64 Docker image build. Set to 'false' to disable."
-        required: false
-        type: string
-        default: "true"
       github-workflow-repository:
         description: |
           The repository name of the workflow that triggered the workflow run.
@@ -296,10 +297,10 @@ jobs:
         env:
           GITHUB_RUNNER_AMD64: ${{ inputs.github-runner-amd64 }}
           GITHUB_RUNNER_ARM64: ${{ inputs.github-runner-arm64 }}
-          GITHUB_RUNNER_ARM64_ENABLE: ${{ inputs.github-runner-arm64-enable }}
+          BUILD_ARM64_IMAGE: ${{ inputs.build-arm64-image }}
         run: |
           matrix="[{\"runner\":\"${GITHUB_RUNNER_AMD64}\",\"arch\":\"amd64\"}"
-          if [[ "${GITHUB_RUNNER_ARM64_ENABLE}" == "true" ]]; then
+          if [[ "${BUILD_ARM64_IMAGE}" == "true" ]]; then
             matrix+="},{\"runner\":\"${GITHUB_RUNNER_ARM64}\",\"arch\":\"arm64\"}"
           fi
           matrix+="]"
@@ -455,7 +456,7 @@ jobs:
             ${{ needs.build-publish.outputs.docker-image-sha-digest-amd64 }}
           DOCKER_IMAGE_SHA_DIGEST_ARM64:
             ${{ needs.build-publish.outputs.docker-image-sha-digest-arm64 }}
-          GITHUB_RUNNER_ARM64_ENABLE: ${{ inputs.github-runner-arm64-enable }}
+          BUILD_ARM64_IMAGE: ${{ inputs.build-arm64-image }}
         run: |
           # Set default empty arm64 digest
           echo "arm64_digest=" >> "$GITHUB_OUTPUT"
@@ -467,7 +468,7 @@ jobs:
           image_digests="$amd64_digest"
 
           # Only include ARM64 if enabled and build succeeded
-          if [[ "${GITHUB_RUNNER_ARM64_ENABLE}" == "true" ]]; then
+          if [[ "${BUILD_ARM64_IMAGE}" == "true" ]]; then
             arm64_digest="${DOCKER_IMAGE_SHA_DIGEST_ARM64}"
             if [[ -n "$arm64_digest" ]]; then
               image_digests="$image_digests,$arm64_digest"
