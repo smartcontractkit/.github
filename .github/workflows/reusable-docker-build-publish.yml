@@ -188,6 +188,12 @@ on:
         # NOTE: This runner is not yet available on non-public repos.
         # Will require an override for private/internal repos.
         default: "ubuntu-24.04-arm"
+      github-runner-arm64-enable:
+        description:
+          "Enable arm64 Docker image build. Set to 'false' to disable."
+        required: false
+        type: string
+        default: "true"
       github-workflow-repository:
         description: |
           The repository name of the workflow that triggered the workflow run.
@@ -199,10 +205,11 @@ on:
     outputs:
       docker-image-sha-digest-amd64:
         description: "Docker image SHA digest for amd64 architecture"
-        value: ${{ jobs.build-publish.outputs.docker-image-sha-digest-amd64 }}
+        value: ${{ jobs.docker-manifest.outputs.amd64_digest }}
       docker-image-sha-digest-arm64:
-        description: "Docker image SHA digest for arm64 architecture"
-        value: ${{ jobs.build-publish.outputs.docker-image-sha-digest-arm64 }}
+        description:
+          "Docker image SHA digest for arm64 architecture (empty if disabled)"
+        value: ${{ jobs.docker-manifest.outputs.arm64_digest }}
       docker-manifest-digest:
         description: "Docker manifest digest"
         value: ${{ jobs.docker-manifest.outputs.digest }}
@@ -271,7 +278,7 @@ jobs:
             fi
           elif [[ "${GITHUB_EVENT_NAME}" == 'pull_request' ]]; then
             pr_number=$(echo "${GITHUB_REF_NAME}" | cut -d'/' -f1)
-            echo "pr-number=${pr_number}" | tee -a "${GITHUB_OUTPUT}"
+            echo "pr-number=${pr_number}" | tee -a "$GITHUB_OUTPUT"
             echo "build-type=pr" | tee -a "$GITHUB_OUTPUT"
           elif [[ "${GITHUB_EVENT_NAME}" == 'workflow_dispatch' ]]; then
             echo "build-type=manual" | tee -a "$GITHUB_OUTPUT"
@@ -283,6 +290,9 @@ jobs:
   build-publish:
     name: build-publish-${{ matrix.arch }}
     needs: init
+    if:
+      ${{ matrix.arch == 'amd64' || (matrix.arch == 'arm64' &&
+      inputs.github-runner-arm64-enable == 'true') }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     strategy:
@@ -427,6 +437,35 @@ jobs:
       name: ${{ steps.docker-manifest.outputs.manifest-name }}
       tag: ${{ steps.docker-manifest.outputs.manifest-tag }}
     steps:
+      - name: Prepare image digests for manifest
+        id: prepare-digests
+        env:
+          DOCKER_IMAGE_SHA_DIGEST_AMD64:
+            ${{ needs.build-publish.outputs.docker-image-sha-digest-amd64 }}
+          DOCKER_IMAGE_SHA_DIGEST_ARM64:
+            ${{ needs.build-publish.outputs.docker-image-sha-digest-arm64 }}
+          GITHUB_RUNNER_ARM64_ENABLE: ${{ inputs.github-runner-arm64-enable }}
+        run: |
+          # Set default empty arm64 digest
+          echo "arm64_digest=" >> $GITHUB_OUTPUT
+
+          # Always include the AMD64 build
+          amd64_digest="${DOCKER_IMAGE_SHA_DIGEST_AMD64}"
+          echo "amd64_digest=$amd64_digest" | tee -a $GITHUB_OUTPUT
+
+          image_digests="$amd64_digest"
+
+          # Only include ARM64 if enabled and build succeeded
+          if [[ "${GITHUB_RUNNER_ARM64_ENABLE}" == "true" ]]; then
+            arm64_digest="${DOCKER_IMAGE_SHA_DIGEST_ARM64}"
+            if [[ -n "$arm64_digest" ]]; then
+              image_digests="$image_digests,$arm64_digest"
+              echo "arm64_digest=$arm64_digest" | tee -a $GITHUB_OUTPUT
+            fi
+          fi
+
+          echo "image_digests=$image_digests" | tee -a $GITHUB_OUTPUT
+
       - uses: smartcontractkit/.github/actions/build-push-docker-manifest@build-push-docker-manifest/0.2.0
         id: docker-manifest
         with:
@@ -447,13 +486,8 @@ jobs:
           docker-manifest-sign: ${{ inputs.docker-manifest-sign }}
           docker-manifest-tag:
             ${{ needs.build-publish.outputs.docker-manifest-tag }}
-          docker-image-name-digests: >-
-            ${{
-                format('{0},{1}',
-                  needs.build-publish.outputs.docker-image-sha-digest-amd64,
-                  needs.build-publish.outputs.docker-image-sha-digest-arm64
-                )
-            }}
+          docker-image-name-digests:
+            ${{ steps.prepare-digests.outputs.image_digests }}
           github-workflow-repository: ${{ inputs.github-workflow-repository }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
