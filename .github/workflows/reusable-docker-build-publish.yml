@@ -301,7 +301,7 @@ jobs:
         run: |
           matrix="[{\"runner\":\"${GITHUB_RUNNER_AMD64}\",\"arch\":\"amd64\"}"
           if [[ "${BUILD_ARM64_IMAGE}" == "true" ]]; then
-            matrix+="},{\"runner\":\"${GITHUB_RUNNER_ARM64}\",\"arch\":\"arm64\"}"
+            matrix+=",{\"runner\":\"${GITHUB_RUNNER_ARM64}\",\"arch\":\"arm64\"}"
           fi
           matrix+="]"
           echo "matrix=$matrix" | tee -a "$GITHUB_OUTPUT"
