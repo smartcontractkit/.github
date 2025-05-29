@@ -119,7 +119,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node.js 20
-        uses: smartcontractkit/.github/actions/setup-nodejs@main
+        uses: smartcontractkit/.github/actions/setup-nodejs@<tag>
         with:
           pnpm-version: "^10.0.0"
           node-version-file: .tool-versions
@@ -186,7 +186,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node.js 20
-        uses: smartcontractkit/.github/actions/setup-nodejs@main
+        uses: smartcontractkit/.github/actions/setup-nodejs@<tag>
         with:
           pnpm-version: "^10.0.0"
           node-version-file: .tool-versions
@@ -195,7 +195,7 @@ jobs:
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
-        uses: smartcontractkit/.github/actions/signed-commits@main
+        uses: smartcontractkit/.github/actions/signed-commits@<tag>
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -329,11 +329,10 @@ jobs:
         id: changesets
         uses: smartcontractkit/.github/actions/signed-commits@main
         with:
-          publish: pnpm release
           rootVersionPackagePath: ./package.json
+          # ... other inputs as needed ...
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
 With this configuration:
