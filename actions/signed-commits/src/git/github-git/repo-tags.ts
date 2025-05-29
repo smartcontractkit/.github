@@ -17,6 +17,7 @@ export async function pushTags(
   tagSeparator: string,
   createMajorVersionTags: boolean,
   cwd?: string,
+  rootPackageInfo?: { name: string; version: string },
 ) {
   const localTags = await getLocalTags(cwd);
   const remoteTagNames = await getRemoteTagNames(cwd);
@@ -29,8 +30,12 @@ export async function pushTags(
   // But the remote's tags may have been rewritten with a different separator.
   const rewrittenTags = replaceTagSeparator(newTags, tagSeparator);
 
+  const finalTags = rootPackageInfo
+    ? rewriteRootPackageTags(rewrittenTags, rootPackageInfo)
+    : rewrittenTags;
+
   // Filter out rewritten tags that are already present on the remote.
-  const filteredRewrittenTags = computeTagDiff(rewrittenTags, remoteTagNames);
+  const filteredRewrittenTags = computeTagDiff(finalTags, remoteTagNames);
   const createdTags = await createLightweightTags(filteredRewrittenTags, cwd);
   await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
 
@@ -38,6 +43,7 @@ export async function pushTags(
     const majorVersionTags = getMajorVersionTags(
       filteredRewrittenTags,
       tagSeparator,
+      rootPackageInfo,
     );
     const createdMajorTags = await createLightweightTags(majorVersionTags, cwd);
 
@@ -165,19 +171,51 @@ export function replaceTagSeparator(
 }
 
 /**
+ * Rewrites tags for root packages to use v<version> format instead of <name><separator><version>
+ * @param tags The list of tags to update.
+ * @param rootPackageInfo The root package information.
+ * @returns The updated list of tags.
+ */
+export function rewriteRootPackageTags(
+  tags: GitTag[],
+  rootPackageInfo: { name: string; version: string },
+): GitTag[] {
+  return tags.map((tag) => {
+    const tagParts = tag.name.split(/@|\/(?:v)?/);
+    if (tagParts.length >= 2 && tagParts[0] === rootPackageInfo.name) {
+      const version = tagParts.slice(1).join(".");
+      return {
+        name: `v${version}`,
+        ref: tag.ref,
+        originalName: tag.originalName || tag.name,
+      };
+    }
+    // Not a root package tag, return as-is
+    return tag;
+  });
+}
+
+/**
  * Gets the list of major version tags from the list of tags.
  * @param tags The list of tags to filter
  * @param separator The separator for the list of tags
+ * @param rootPackageInfo Optional root package info to exclude from major version tag creation
  * @returns The list of major version tags
  */
 export function getMajorVersionTags(
   tags: GitTag[],
   separator: string,
+  rootPackageInfo?: { name: string; version: string },
 ): GitTag[] {
   const tagNamesSeen = new Set<string>();
   return tags.reduce((acc, tag) => {
     const info = parseTagName(tag.name, separator);
     if (!info) {
+      return acc;
+    }
+
+    // Skip major version tag creation for root packages since they use v<version> format
+    if (rootPackageInfo && info.pkg === rootPackageInfo.name) {
       return acc;
     }
 

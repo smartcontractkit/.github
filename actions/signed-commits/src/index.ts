@@ -22,6 +22,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   }
 
   const createMajorVersionTags = core.getBooleanInput("createMajorVersionTags");
+  const rootVersionPackagePath = getOptionalInput("rootVersionPackagePath");
 
   const inputCwd = core.getInput("cwd");
   if (inputCwd) {
@@ -98,6 +99,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         createGithubReleases: core.getBooleanInput("createGithubReleases"),
         tagSeparator,
         createMajorVersionTags,
+        rootVersionPackagePath,
       });
 
       if (result.published) {
@@ -127,6 +129,5 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       return;
   }
 })().catch((err) => {
-  core.error(err);
   core.setFailed(err.message);
 });

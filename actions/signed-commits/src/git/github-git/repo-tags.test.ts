@@ -10,6 +10,7 @@ import {
   replaceTagSeparator,
   getMajorVersionTags,
   parseTagName,
+  rewriteRootPackageTags,
 } from "./repo-tags";
 import { createRepo, createCommit } from "./utils.testutils";
 
