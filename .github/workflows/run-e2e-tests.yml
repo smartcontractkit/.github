@@ -277,7 +277,6 @@ env:
   TEST_LOG_LEVEL: ${{ inputs.test_log_level }}
   METRICS_COLLECTION_ID: chainlink-e2e-tests
   SLACK_API_KEY: ${{ secrets.SLACK_API_KEY }}
-  DB_URL: postgresql://postgres:postgres@localhost:5432/chainlink_test?sslmode=disable
   CHAINLINK_USER_TEAM: ${{ inputs.team }}
   E2E_JD_IMAGE:
     ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
@@ -1252,17 +1251,6 @@ jobs:
       ${{ needs.load-test-configurations.outputs.run-in-memory-tests == 'true'
       && always() && !failure() && !cancelled() }}
     needs: load-test-configurations
-    services:
-      postgres:
-        image: postgres:14-alpine
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        options: >-
-          --health-cmd pg_isready  --health-interval 2s  --health-timeout 5s
-          --health-retries 5
     # Run when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok)
     runs-on: ${{ matrix.tests.runs_on }}
     strategy:
@@ -1282,16 +1270,7 @@ jobs:
         uses: actions/checkout@v4.2.1
         with:
           persist-credentials: false
-      - name: Wait for postgres to be ready
-        run: |
-          until pg_isready -h localhost -p 5432 -U postgres; do
-            echo "Waiting for postgres to be ready..."
-            sleep 1
-          done
-      - name: Setup DB
-        run: go run . local db preparetest
-        env:
-          CL_DATABASE_URL: ${{  env.DB_URL }}
+
       - name: Set dynamic env vars for tests
         shell: bash
         run: |
@@ -1307,11 +1286,10 @@ jobs:
               echo "$key=$value" >> "$GITHUB_ENV"
             done
           fi
+
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@e01e0004fd0c96c55adc8c421c4e867c781487bc # ctf-run-tests@v0.6.2
-        env:
-          CL_DATABASE_URL: ${{ env.DB_URL }}
+        uses: smartcontractkit/.github/actions/ctf-run-tests@feat/speed-up-in-memory-tests-run-tests
         with:
           flakeguard_enable: ${{ env.FLAKEGUARD_ENABLE }}
           flakeguard_run_count: ${{ env.FLAKEGUARD_RUN_COUNT }}
@@ -1343,6 +1321,7 @@ jobs:
           enable-gap: false
           install_plugins_public: ${{ matrix.tests.install_plugins_public }}
           aptos_cli_version: ${{ matrix.tests.aptos_cli_version }}
+          setup_db: "true"
 
   after_tests:
     needs:
