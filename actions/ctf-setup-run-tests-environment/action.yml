@@ -104,6 +104,15 @@ inputs:
     required: false
     default: ""
     description: "Set to an Aptos CLI version to install (e.g. 7.2.0, latest)"
+  setup_db:
+    required: false
+    default: "false"
+    description: "Set to true to setup the database for the tests"
+
+outputs:
+  database_url:
+    description: The database URL for the tests
+    value: ${{ steps.setup-pg.outputs.database_url }}
 
 runs:
   using: composite
@@ -120,6 +129,7 @@ runs:
           echo "Error: k8s-cluster-name is required when enable-gap is true."
           exit 1
         fi
+
     # Go setup and caching
     - name: Setup Go
       if: inputs.go_necessary == 'true'
@@ -134,6 +144,21 @@ runs:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
         gati_token: ${{ inputs.gati_token }}
+
+    - name: Setup postgres container
+      id: setup-pg
+      if: inputs.setup_db == 'true'
+      uses: smartcontractkit/.github/actions/setup-postgres@setup-postgres/v1
+      with:
+        tmpfs: true
+
+    - name: Setup database
+      if: inputs.setup_db == 'true'
+      shell: bash
+      env:
+        CL_DATABASE_URL: ${{ steps.pg-setup.outputs.database_url }}
+      run: |
+        go run . local db preparetest
 
     - name: Setup gauntlet plus plus
       if: inputs.gauntlet_plus_plus_image
