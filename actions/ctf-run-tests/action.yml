@@ -230,6 +230,11 @@ inputs:
     required: false
     default: ""
     description: "Set to an Aptos CLI version to install (e.g. 7.2.0, latest)"
+  setup_db:
+    required: false
+    description: |
+      Whether to setup the database before running the tests. Typically used for in-memory tests.
+    default: "false"
 
 runs:
   using: composite
@@ -237,7 +242,8 @@ runs:
     # Setup Tools and libraries
     - name: Setup environment
       if: inputs.run_setup == 'true'
-      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@0e45310c4e5f3f270599b82e9c608ebc4a7dd330 # ctf-setup-run-tests-environment@v0.6.0
+      id: setup-env
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@feat/speed-up-in-memory-tests-setup-env
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
@@ -264,6 +270,7 @@ runs:
         enable-proxy-debug: ${{ inputs.enable-proxy-debug }}
         install_plugins_public: ${{ inputs.install_plugins_public }}
         aptos_cli_version: ${{ inputs.aptos_cli_version }}
+        setup_db: ${{ inputs.setup_db }}
 
     - name: Replace chainlink/integration-tests deps
       if: ${{ inputs.dep_chainlink_integration_tests }}
@@ -366,6 +373,7 @@ runs:
         CGO_ENABLED: ${{ inputs.CGO_ENABLED }}
         GO_COVERAGE_SRC_DIR: ${{ inputs.go_coverage_src_dir }}
         GO_COVERAGE_DEST_DIR: ${{ inputs.go_coverage_dest_dir }}
+        CL_DATABASE_URL: ${{ steps.setup-env.outputs.database_url }}
       run: |
         # Install Flakeguard
         go install github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@b08cab0f49aa13d5adb849554b56086f4dba8984
@@ -401,6 +409,7 @@ runs:
         CGO_ENABLED: ${{ inputs.CGO_ENABLED }}
         GO_COVERAGE_SRC_DIR: ${{ inputs.go_coverage_src_dir }}
         GO_COVERAGE_DEST_DIR: ${{ inputs.go_coverage_dest_dir }}
+        CL_DATABASE_URL: ${{ steps.setup-env.outputs.database_url }}
       run: |
         PATH=$PATH:$(go env GOPATH)/bin
         export PATH
@@ -412,7 +421,7 @@ runs:
           echo "Changing directory to ${{ inputs.test_go_project_path }}"
           cd "${{ inputs.test_go_project_path }}"
         fi
-                
+
         # Run the test command
         ${{ inputs.test_command_to_run }} 2>&1 | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage -hidepassingtests=false
 
