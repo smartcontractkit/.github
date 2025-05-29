@@ -129,5 +129,6 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       return;
   }
 })().catch((err) => {
+  core.error(err);
   core.setFailed(err.message);
 });
