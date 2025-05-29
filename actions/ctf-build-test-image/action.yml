@@ -18,7 +18,7 @@ inputs:
     required: false
   suites:
     description: The test suites to build into the image
-    default: chaos migration reorg smoke soak benchmark load
+    default: chaos migration reorg smoke soak benchmark ccip-tests/load
     required: false
   QA_AWS_ROLE_TO_ASSUME:
     description:
