@@ -112,7 +112,7 @@ inputs:
 outputs:
   database_url:
     description: The database URL for the tests
-    value: ${{ steps.setup-pg.outputs.database_url }}
+    value: ${{ steps.setup-pg.outputs.database-url }}
 
 runs:
   using: composite
@@ -156,9 +156,9 @@ runs:
       if: inputs.setup_db == 'true'
       shell: bash
       env:
-        CL_DATABASE_URL: ${{ steps.pg-setup.outputs.database_url }}
+        CL_DATABASE_URL: ${{ steps.setup-pg.outputs.database-url }}
       run: |
-        go run . local db preparetest
+        go run ./core/store/cmd/preparetest
 
     - name: Setup gauntlet plus plus
       if: inputs.gauntlet_plus_plus_image
