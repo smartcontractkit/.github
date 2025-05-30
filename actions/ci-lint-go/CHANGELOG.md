@@ -1,5 +1,15 @@
 # ci-lint-go
 
+## 2.0.0
+
+### Major Changes
+
+- [#1064](https://github.com/smartcontractkit/.github/pull/1064)
+  [`5ef875a`](https://github.com/smartcontractkit/.github/commit/5ef875a78da521085ad768ecf2ed5e25009496f7)
+  Thanks [@chainchad](https://github.com/chainchad)! - Use latest version of
+  golangci-lint action to fix GHA cache issue.
+  - Note: requires golangci-lint version >= `v2.1.0`
+
 ## 1.0.0
 
 ### Major Changes
