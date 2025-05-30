@@ -174,8 +174,8 @@ export function replaceTagSeparator(
  * Detects the separator between the package name and version in a tag string.
  * Supports tags like foo@1.2.3, foo/1.2.3, foo~1.2.3, foo/v1.2.3, etc.
  *
- * The strategy is to match the package name greedily, then capture everything
- * until we hit the semantic version pattern.
+ * The strategy is to find the semantic version first, then work backwards to
+ * identify the package name and separator.
  *
  * Examples:
  *   foo@1.2.3      => '@'
@@ -183,7 +183,7 @@ export function replaceTagSeparator(
  *   foo~1.2.3      => '~'
  *   foo/v1.2.3     => '/v'
  *   foo-bar@1.2.3  => '@'
- *   foo_bar/v1.2.3 => '/v'
+ *   foo-bar/v1.2.3 => '/v'
  *   foo1.2.3       => undefined (no separator)
  *   foo@1.2        => undefined (invalid version format)
  *   foo            => undefined (no version)
@@ -199,9 +199,9 @@ export function detectTagSeparator(tag: string): string | undefined {
   const versionStart = tag.lastIndexOf(versionMatch[1]);
   const beforeVersion = tag.substring(0, versionStart);
 
-  // The package name should end with a letter, number, dash, or underscore
+  // The package name should end with a letter, number, or dash
   // Everything after that (and before the version) is the separator
-  const packageMatch = beforeVersion.match(/^([a-z0-9_-]+)(.*)$/i);
+  const packageMatch = beforeVersion.match(/^([a-z0-9-]+)(.*)$/i);
   if (packageMatch && packageMatch[2]) {
     // Ensure the separator doesn't start with a digit (would be part of version)
     if (/^\d/.test(packageMatch[2])) {
