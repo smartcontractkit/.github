@@ -11,6 +11,7 @@ import {
   getMajorVersionTags,
   parseTagName,
   rewriteRootPackageTags,
+  detectTagSeparator,
 } from "./repo-tags";
 import { createRepo, createCommit } from "./utils.testutils";
 
@@ -617,3 +618,40 @@ async function listTagTypes(tagNames: string[], cwd: string) {
 
   return Promise.all(types);
 }
+
+describe("detectTagSeparator", () => {
+  it("should detect single-character separators", () => {
+    expect(detectTagSeparator("foo@1.2.3")).toBe("@");
+    expect(detectTagSeparator("foo/1.2.3")).toBe("/");
+    expect(detectTagSeparator("foo~1.2.3")).toBe("~");
+  });
+
+  it("should detect multi-character separators", () => {
+    expect(detectTagSeparator("foo/v1.2.3")).toBe("/v");
+  });
+
+  it("should handle package names with hyphens", () => {
+    expect(detectTagSeparator("foo-bar@1.2.3")).toBe("@");
+    expect(detectTagSeparator("foo-bar/1.2.3")).toBe("/");
+    expect(detectTagSeparator("foo-bar/v1.2.3")).toBe("/v");
+    expect(detectTagSeparator("foo-bar~1.2.3")).toBe("~");
+  });
+
+  it("should handle package names with underscores", () => {
+    expect(detectTagSeparator("foo_bar@1.2.3")).toBe("@");
+    expect(detectTagSeparator("foo_bar/1.2.3")).toBe("/");
+    expect(detectTagSeparator("foo_bar/v1.2.3")).toBe("/v");
+    expect(detectTagSeparator("foo_bar~1.2.3")).toBe("~");
+  });
+
+  it("should handle complex package names", () => {
+    expect(detectTagSeparator("foo-bar_baz@1.2.3")).toBe("@");
+    expect(detectTagSeparator("foo_bar-baz/v1.2.3")).toBe("/v");
+  });
+
+  it("should return undefined for tags without a separator", () => {
+    expect(detectTagSeparator("foo1.2.3")).toBeUndefined();
+    expect(detectTagSeparator("foo@1.2")).toBeUndefined();
+    expect(detectTagSeparator("foo")).toBeUndefined();
+  });
+});
