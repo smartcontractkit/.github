@@ -59,7 +59,7 @@ inputs:
   golangci-lint-args:
     description: ""
     required: false
-    default: --out-format checkstyle:golangci-lint-report.xml
+    default: --output.checkstyle.path=golangci-lint-report.xml
   only-new-issues:
     description: "Report only the new issues introduced in your code"
     required: false
