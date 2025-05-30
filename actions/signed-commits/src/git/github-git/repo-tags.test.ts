@@ -11,7 +11,6 @@ import {
   getMajorVersionTags,
   parseTagName,
   rewriteRootPackageTags,
-  detectTagSeparator,
 } from "./repo-tags";
 import { createRepo, createCommit } from "./utils.testutils";
 
@@ -619,31 +618,6 @@ async function listTagTypes(tagNames: string[], cwd: string) {
   return Promise.all(types);
 }
 
-describe("detectTagSeparator", () => {
-  it("should detect single-character separators", () => {
-    expect(detectTagSeparator("foo@1.2.3")).toBe("@");
-    expect(detectTagSeparator("foo/1.2.3")).toBe("/");
-    expect(detectTagSeparator("foo~1.2.3")).toBe("~");
-  });
-
-  it("should detect multi-character separators", () => {
-    expect(detectTagSeparator("foo/v1.2.3")).toBe("/v");
-  });
-
-  it("should handle package names with hyphens", () => {
-    expect(detectTagSeparator("foo-bar@1.2.3")).toBe("@");
-    expect(detectTagSeparator("foo-bar/1.2.3")).toBe("/");
-    expect(detectTagSeparator("foo-bar/v1.2.3")).toBe("/v");
-    expect(detectTagSeparator("foo-bar~1.2.3")).toBe("~");
-  });
-
-  it("should return undefined for tags without a separator", () => {
-    expect(detectTagSeparator("foo1.2.3")).toBeUndefined();
-    expect(detectTagSeparator("foo@1.2")).toBeUndefined();
-    expect(detectTagSeparator("foo")).toBeUndefined();
-  });
-});
-
 describe("rewriteRootPackageTags", () => {
   it("should rewrite root package tags to v<version> format", () => {
     const tags: GitTag[] = [
@@ -652,51 +626,13 @@ describe("rewriteRootPackageTags", () => {
       { name: "my-package@9.0.1", ref: "ref3" },
     ];
     const rootPackageInfo = { name: "my-package", version: "1.2.3" };
-
-    const result = rewriteRootPackageTags(tags, rootPackageInfo);
+    const tagSeparator = "@";
+    const result = rewriteRootPackageTags(tags, tagSeparator, rootPackageInfo);
 
     expect(result).toEqual([
       { name: "v1.2.3", ref: "ref1", originalName: "my-package@1.2.3" },
       { name: "other-package@2.3.4", ref: "ref2" },
       { name: "v9.0.1", ref: "ref3", originalName: "my-package@9.0.1" },
-    ]);
-  });
-
-  it("should handle different separators", () => {
-    const tags: GitTag[] = [
-      { name: "my-package/1.2.3", ref: "ref1" },
-      { name: "my-package/v2.3.4", ref: "ref2" },
-      { name: "other-package~1.0.0", ref: "ref3" },
-    ];
-    const rootPackageInfo = { name: "my-package", version: "1.2.3" };
-
-    const result = rewriteRootPackageTags(tags, rootPackageInfo);
-
-    expect(result).toEqual([
-      { name: "v1.2.3", ref: "ref1", originalName: "my-package/1.2.3" },
-      { name: "v2.3.4", ref: "ref2", originalName: "my-package/v2.3.4" },
-      { name: "other-package~1.0.0", ref: "ref3" },
-    ]);
-  });
-
-  it("should handle package names with hyphens", () => {
-    const tags: GitTag[] = [
-      { name: "my-complex-package@1.2.3", ref: "ref1" },
-      { name: "other-package@2.3.4", ref: "ref2" },
-      { name: "my-complex-package/v9.0.1", ref: "ref3" },
-    ];
-    const rootPackageInfo = { name: "my-complex-package", version: "1.2.3" };
-
-    const result = rewriteRootPackageTags(tags, rootPackageInfo);
-
-    expect(result).toEqual([
-      { name: "v1.2.3", ref: "ref1", originalName: "my-complex-package@1.2.3" },
-      { name: "other-package@2.3.4", ref: "ref2" },
-      {
-        name: "v9.0.1",
-        ref: "ref3",
-        originalName: "my-complex-package/v9.0.1",
-      },
     ]);
   });
 
@@ -706,8 +642,9 @@ describe("rewriteRootPackageTags", () => {
       { name: "other-package@2.3.4", ref: "ref2" },
     ];
     const rootPackageInfo = { name: "my-package", version: "1.2.3" };
+    const tagSeparator = "@";
 
-    const result = rewriteRootPackageTags(tags, rootPackageInfo);
+    const result = rewriteRootPackageTags(tags, tagSeparator, rootPackageInfo);
 
     expect(result).toEqual([
       { name: "v1.2.3", ref: "ref1", originalName: "original-name" },
@@ -717,26 +654,26 @@ describe("rewriteRootPackageTags", () => {
 
   it("should not rewrite tags that don't match the root package name", () => {
     const tags: GitTag[] = [
-      { name: "other-package@1.2.3", ref: "ref1" },
+      { name: "other-package/v1.2.3", ref: "ref1" },
       { name: "different-package/v2.3.4", ref: "ref2" },
-      { name: "unrelated~3.4.5", ref: "ref3" },
+      { name: "unrelated/v3.4.5", ref: "ref3" },
     ];
     const rootPackageInfo = { name: "my-package", version: "1.2.3" };
-
-    const result = rewriteRootPackageTags(tags, rootPackageInfo);
+    const tagSeparator = "/v";
+    const result = rewriteRootPackageTags(tags, tagSeparator, rootPackageInfo);
 
     expect(result).toEqual([
-      { name: "other-package@1.2.3", ref: "ref1" },
+      { name: "other-package/v1.2.3", ref: "ref1" },
       { name: "different-package/v2.3.4", ref: "ref2" },
-      { name: "unrelated~3.4.5", ref: "ref3" },
+      { name: "unrelated/v3.4.5", ref: "ref3" },
     ]);
   });
 
   it("should handle empty tag list", () => {
     const tags: GitTag[] = [];
     const rootPackageInfo = { name: "my-package", version: "1.2.3" };
-
-    const result = rewriteRootPackageTags(tags, rootPackageInfo);
+    const tagSeparator = "@";
+    const result = rewriteRootPackageTags(tags, tagSeparator, rootPackageInfo);
 
     expect(result).toEqual([]);
   });
@@ -747,8 +684,8 @@ describe("rewriteRootPackageTags", () => {
       { name: "my-package@2.3.4", ref: "ref2" }, // Normal tag
     ];
     const rootPackageInfo = { name: "my-package", version: "1.2.3" };
-
-    const result = rewriteRootPackageTags(tags, rootPackageInfo);
+    const tagSeparator = "@";
+    const result = rewriteRootPackageTags(tags, tagSeparator, rootPackageInfo);
 
     // The first tag won't be rewritten because parseTagName with "@" won't match "my-package1.2.3"
     // The second tag will be rewritten normally

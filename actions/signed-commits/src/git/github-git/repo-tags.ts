@@ -31,7 +31,7 @@ export async function pushTags(
   const rewrittenTags = replaceTagSeparator(newTags, tagSeparator);
 
   const finalTags = rootPackageInfo
-    ? rewriteRootPackageTags(rewrittenTags, rootPackageInfo)
+    ? rewriteRootPackageTags(rewrittenTags, tagSeparator, rootPackageInfo)
     : rewrittenTags;
 
   // Filter out rewritten tags that are already present on the remote.
@@ -171,49 +171,6 @@ export function replaceTagSeparator(
 }
 
 /**
- * Detects the separator between the package name and version in a tag string.
- * Supports tags like foo@1.2.3, foo/1.2.3, foo~1.2.3, foo/v1.2.3, etc.
- *
- * The strategy is to find the semantic version first, then work backwards to
- * identify the package name and separator.
- *
- * Examples:
- *   foo@1.2.3      => '@'
- *   foo/1.2.3      => '/'
- *   foo~1.2.3      => '~'
- *   foo/v1.2.3     => '/v'
- *   foo-bar@1.2.3  => '@'
- *   foo-bar/v1.2.3 => '/v'
- *   foo1.2.3       => undefined (no separator)
- *   foo@1.2        => undefined (invalid version format)
- *   foo            => undefined (no version)
- */
-export function detectTagSeparator(tag: string): string | undefined {
-  // Look for pattern: package-name + separator + version
-  // Split on the version pattern and work backwards
-  const versionMatch = tag.match(/(\d+\.\d+\.\d+)$/);
-  if (!versionMatch) {
-    return undefined;
-  }
-
-  const versionStart = tag.lastIndexOf(versionMatch[1]);
-  const beforeVersion = tag.substring(0, versionStart);
-
-  // The package name should end with a letter, number, or dash
-  // Everything after that (and before the version) is the separator
-  const packageMatch = beforeVersion.match(/^([a-z0-9-]+)(.*)$/i);
-  if (packageMatch && packageMatch[2]) {
-    // Ensure the separator doesn't start with a digit (would be part of version)
-    if (/^\d/.test(packageMatch[2])) {
-      return undefined;
-    }
-    return packageMatch[2];
-  }
-
-  return undefined;
-}
-
-/**
  * Rewrites tags for root packages to use v<version> format instead of <name><separator><version>.
  * Dynamically detects the separator for each tag.
  * @param tags The list of tags to update.
@@ -222,11 +179,11 @@ export function detectTagSeparator(tag: string): string | undefined {
  */
 export function rewriteRootPackageTags(
   tags: GitTag[],
+  tagSeparator: string,
   rootPackageInfo: { name: string; version: string },
 ): GitTag[] {
   return tags.map((tag) => {
-    const separator = detectTagSeparator(tag.name) || "@";
-    const info = parseTagName(tag.name, separator);
+    const info = parseTagName(tag.name, tagSeparator);
     if (info && info.pkg === rootPackageInfo.name) {
       return {
         name: `v${info.version}`,

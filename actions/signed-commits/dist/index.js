@@ -753,18 +753,18 @@ var require_tunnel = __commonJS({
             res.statusCode
           );
           socket.destroy();
-          var error = new Error("tunneling socket could not be established, statusCode=" + res.statusCode);
-          error.code = "ECONNRESET";
-          options.request.emit("error", error);
+          var error2 = new Error("tunneling socket could not be established, statusCode=" + res.statusCode);
+          error2.code = "ECONNRESET";
+          options.request.emit("error", error2);
           self2.removeSocket(placeholder);
           return;
         }
         if (head.length > 0) {
           debug4("got illegal response body from proxy");
           socket.destroy();
-          var error = new Error("got illegal response body from proxy");
-          error.code = "ECONNRESET";
-          options.request.emit("error", error);
+          var error2 = new Error("got illegal response body from proxy");
+          error2.code = "ECONNRESET";
+          options.request.emit("error", error2);
           self2.removeSocket(placeholder);
           return;
         }
@@ -779,9 +779,9 @@ var require_tunnel = __commonJS({
           cause.message,
           cause.stack
         );
-        var error = new Error("tunneling socket could not be established, cause=" + cause.message);
-        error.code = "ECONNRESET";
-        options.request.emit("error", error);
+        var error2 = new Error("tunneling socket could not be established, cause=" + cause.message);
+        error2.code = "ECONNRESET";
+        options.request.emit("error", error2);
         self2.removeSocket(placeholder);
       }
     };
@@ -5117,7 +5117,7 @@ Content-Type: ${value.type || "application/octet-stream"}\r
         throw new TypeError("Body is unusable");
       }
       const promise = createDeferredPromise();
-      const errorSteps = (error) => promise.reject(error);
+      const errorSteps = (error2) => promise.reject(error2);
       const successSteps = (data) => {
         try {
           promise.resolve(convertBytesToJSValue(data));
@@ -5390,16 +5390,16 @@ var require_request = __commonJS({
         }
         return this[kHandler].onComplete(trailers);
       }
-      onError(error) {
+      onError(error2) {
         this.onFinally();
         if (channels.error.hasSubscribers) {
-          channels.error.publish({ request: this, error });
+          channels.error.publish({ request: this, error: error2 });
         }
         if (this.aborted) {
           return;
         }
         this.aborted = true;
-        return this[kHandler].onError(error);
+        return this[kHandler].onError(error2);
       }
       onFinally() {
         if (this.errorHandler) {
@@ -6262,8 +6262,8 @@ var require_RedirectHandler = __commonJS({
       onUpgrade(statusCode, headers, socket) {
         this.handler.onUpgrade(statusCode, headers, socket);
       }
-      onError(error) {
-        this.handler.onError(error);
+      onError(error2) {
+        this.handler.onError(error2);
       }
       onHeaders(statusCode, headers, resume, statusText) {
         this.location = this.history.length >= this.maxRedirections || util2.isDisturbed(this.opts.body) ? null : parseLocation(statusCode, headers);
@@ -9997,13 +9997,13 @@ var require_mock_utils = __commonJS({
       if (mockDispatch2.data.callback) {
         mockDispatch2.data = { ...mockDispatch2.data, ...mockDispatch2.data.callback(opts) };
       }
-      const { data: { statusCode, data, headers, trailers, error }, delay, persist } = mockDispatch2;
+      const { data: { statusCode, data, headers, trailers, error: error2 }, delay, persist } = mockDispatch2;
       const { timesInvoked, times } = mockDispatch2;
       mockDispatch2.consumed = !persist && timesInvoked >= times;
       mockDispatch2.pending = timesInvoked < times;
-      if (error !== null) {
+      if (error2 !== null) {
         deleteMockDispatch(this[kDispatches], key);
-        handler.onError(error);
+        handler.onError(error2);
         return true;
       }
       if (typeof delay === "number" && delay > 0) {
@@ -10041,19 +10041,19 @@ var require_mock_utils = __commonJS({
         if (agent.isMockActive) {
           try {
             mockDispatch.call(this, opts, handler);
-          } catch (error) {
-            if (error instanceof MockNotMatchedError) {
+          } catch (error2) {
+            if (error2 instanceof MockNotMatchedError) {
               const netConnect = agent[kGetNetConnect]();
               if (netConnect === false) {
-                throw new MockNotMatchedError(`${error.message}: subsequent request to origin ${origin} was not allowed (net.connect disabled)`);
+                throw new MockNotMatchedError(`${error2.message}: subsequent request to origin ${origin} was not allowed (net.connect disabled)`);
               }
               if (checkNetConnect(netConnect, origin)) {
                 originalDispatch.call(this, opts, handler);
               } else {
-                throw new MockNotMatchedError(`${error.message}: subsequent request to origin ${origin} was not allowed (net.connect is not enabled for this origin)`);
+                throw new MockNotMatchedError(`${error2.message}: subsequent request to origin ${origin} was not allowed (net.connect is not enabled for this origin)`);
               }
             } else {
-              throw error;
+              throw error2;
             }
           }
         } else {
@@ -10216,11 +10216,11 @@ var require_mock_interceptor = __commonJS({
       /**
        * Mock an undici request with a defined error.
        */
-      replyWithError(error) {
-        if (typeof error === "undefined") {
+      replyWithError(error2) {
+        if (typeof error2 === "undefined") {
           throw new InvalidArgumentError("error must be defined");
         }
-        const newMockDispatch = addMockDispatch(this[kDispatches], this[kDispatchKey], { error });
+        const newMockDispatch = addMockDispatch(this[kDispatches], this[kDispatchKey], { error: error2 });
         return new MockScope(newMockDispatch);
       }
       /**
@@ -12238,17 +12238,17 @@ var require_fetch = __commonJS({
         this.emit("terminated", reason);
       }
       // https://fetch.spec.whatwg.org/#fetch-controller-abort
-      abort(error) {
+      abort(error2) {
         if (this.state !== "ongoing") {
           return;
         }
         this.state = "aborted";
-        if (!error) {
-          error = new DOMException2("The operation was aborted.", "AbortError");
+        if (!error2) {
+          error2 = new DOMException2("The operation was aborted.", "AbortError");
         }
-        this.serializedAbortReason = error;
-        this.connection?.destroy(error);
-        this.emit("terminated", error);
+        this.serializedAbortReason = error2;
+        this.connection?.destroy(error2);
+        this.emit("terminated", error2);
       }
     };
     function fetch(input, init = {}) {
@@ -12352,13 +12352,13 @@ var require_fetch = __commonJS({
         performance.markResourceTiming(timingInfo, originalURL.href, initiatorType, globalThis2, cacheState);
       }
     }
-    function abortFetch(p, request2, responseObject, error) {
-      if (!error) {
-        error = new DOMException2("The operation was aborted.", "AbortError");
+    function abortFetch(p, request2, responseObject, error2) {
+      if (!error2) {
+        error2 = new DOMException2("The operation was aborted.", "AbortError");
       }
-      p.reject(error);
+      p.reject(error2);
       if (request2.body != null && isReadable(request2.body?.stream)) {
-        request2.body.stream.cancel(error).catch((err) => {
+        request2.body.stream.cancel(error2).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
           }
@@ -12370,7 +12370,7 @@ var require_fetch = __commonJS({
       }
       const response = responseObject[kState];
       if (response.body != null && isReadable(response.body?.stream)) {
-        response.body.stream.cancel(error).catch((err) => {
+        response.body.stream.cancel(error2).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
           }
@@ -13149,13 +13149,13 @@ var require_fetch = __commonJS({
               fetchParams.controller.ended = true;
               this.body.push(null);
             },
-            onError(error) {
+            onError(error2) {
               if (this.abort) {
                 fetchParams.controller.off("terminated", this.abort);
               }
-              this.body?.destroy(error);
-              fetchParams.controller.terminate(error);
-              reject(error);
+              this.body?.destroy(error2);
+              fetchParams.controller.terminate(error2);
+              reject(error2);
             },
             onUpgrade(status, headersList, socket) {
               if (status !== 101) {
@@ -13621,8 +13621,8 @@ var require_util4 = __commonJS({
                   }
                   fr[kResult] = result;
                   fireAProgressEvent("load", fr);
-                } catch (error) {
-                  fr[kError] = error;
+                } catch (error2) {
+                  fr[kError] = error2;
                   fireAProgressEvent("error", fr);
                 }
                 if (fr[kState] !== "loading") {
@@ -13631,13 +13631,13 @@ var require_util4 = __commonJS({
               });
               break;
             }
-          } catch (error) {
+          } catch (error2) {
             if (fr[kAborted]) {
               return;
             }
             queueMicrotask(() => {
               fr[kState] = "done";
-              fr[kError] = error;
+              fr[kError] = error2;
               fireAProgressEvent("error", fr);
               if (fr[kState] !== "loading") {
                 fireAProgressEvent("loadend", fr);
@@ -15651,11 +15651,11 @@ var require_connection = __commonJS({
         });
       }
     }
-    function onSocketError(error) {
+    function onSocketError(error2) {
       const { ws } = this;
       ws[kReadyState] = states.CLOSING;
       if (channels.socketError.hasSubscribers) {
-        channels.socketError.publish(error);
+        channels.socketError.publish(error2);
       }
       this.destroy();
     }
@@ -17288,12 +17288,12 @@ var require_oidc_utils = __commonJS({
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
           const httpclient = _OidcClient.createHttpClient();
-          const res = yield httpclient.getJson(id_token_url).catch((error) => {
+          const res = yield httpclient.getJson(id_token_url).catch((error2) => {
             throw new Error(`Failed to get ID Token. 
  
-        Error Code : ${error.statusCode}
+        Error Code : ${error2.statusCode}
  
-        Error Message: ${error.message}`);
+        Error Message: ${error2.message}`);
           });
           const id_token = (_a = res.result) === null || _a === void 0 ? void 0 : _a.value;
           if (!id_token) {
@@ -17314,8 +17314,8 @@ var require_oidc_utils = __commonJS({
             const id_token = yield _OidcClient.getCall(id_token_url);
             core_1.setSecret(id_token);
             return id_token;
-          } catch (error) {
-            throw new Error(`Error message: ${error.message}`);
+          } catch (error2) {
+            throw new Error(`Error message: ${error2.message}`);
           }
         });
       }
@@ -17800,7 +17800,7 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
     exports2.setCommandEcho = setCommandEcho;
     function setFailed2(message) {
       process.exitCode = ExitCode.Failure;
-      error(message);
+      error2(message);
     }
     exports2.setFailed = setFailed2;
     function isDebug() {
@@ -17811,10 +17811,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       command_1.issueCommand("debug", {}, message);
     }
     exports2.debug = debug4;
-    function error(message, properties = {}) {
+    function error2(message, properties = {}) {
       command_1.issueCommand("error", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
-    exports2.error = error;
+    exports2.error = error2;
     function warning2(message, properties = {}) {
       command_1.issueCommand("warning", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
@@ -18816,9 +18816,9 @@ var require_utils3 = __commonJS({
       if (process.platform === "win32") {
         const pathHasInvalidWinCharacters = /[<>:"|?*]/.test(pth.replace(path4.parse(pth).root, ""));
         if (pathHasInvalidWinCharacters) {
-          const error = new Error(`Path contains invalid characters: ${pth}`);
-          error.code = "EINVAL";
-          throw error;
+          const error2 = new Error(`Path contains invalid characters: ${pth}`);
+          error2.code = "EINVAL";
+          throw error2;
         }
       }
     };
@@ -20775,7 +20775,7 @@ var require_toolrunner = __commonJS({
               this._debug(`STDIO streams have closed for tool '${this.toolPath}'`);
               state.CheckComplete();
             });
-            state.on("done", (error, exitCode) => {
+            state.on("done", (error2, exitCode) => {
               if (stdbuffer.length > 0) {
                 this.emit("stdline", stdbuffer);
               }
@@ -20783,8 +20783,8 @@ var require_toolrunner = __commonJS({
                 this.emit("errline", errbuffer);
               }
               cp.removeAllListeners();
-              if (error) {
-                reject(error);
+              if (error2) {
+                reject(error2);
               } else {
                 resolve(exitCode);
               }
@@ -20879,14 +20879,14 @@ var require_toolrunner = __commonJS({
         this.emit("debug", message);
       }
       _setResult() {
-        let error;
+        let error2;
         if (this.processExited) {
           if (this.processError) {
-            error = new Error(`There was an error when attempting to execute the process '${this.toolPath}'. This may indicate the process failed to start. Error: ${this.processError}`);
+            error2 = new Error(`There was an error when attempting to execute the process '${this.toolPath}'. This may indicate the process failed to start. Error: ${this.processError}`);
           } else if (this.processExitCode !== 0 && !this.options.ignoreReturnCode) {
-            error = new Error(`The process '${this.toolPath}' failed with exit code ${this.processExitCode}`);
+            error2 = new Error(`The process '${this.toolPath}' failed with exit code ${this.processExitCode}`);
           } else if (this.processStderr && this.options.failOnStdErr) {
-            error = new Error(`The process '${this.toolPath}' failed because one or more lines were written to the STDERR stream`);
+            error2 = new Error(`The process '${this.toolPath}' failed because one or more lines were written to the STDERR stream`);
           }
         }
         if (this.timeout) {
@@ -20894,7 +20894,7 @@ var require_toolrunner = __commonJS({
           this.timeout = null;
         }
         this.done = true;
-        this.emit("done", error, this.processExitCode);
+        this.emit("done", error2, this.processExitCode);
       }
       static HandleTimeout(state) {
         if (state.done) {
@@ -21246,8 +21246,8 @@ var require_add = __commonJS({
       }
       if (kind === "error") {
         hook2 = function(method, options) {
-          return Promise.resolve().then(method.bind(null, options)).catch(function(error) {
-            return orig(error, options);
+          return Promise.resolve().then(method.bind(null, options)).catch(function(error2) {
+            return orig(error2, options);
           });
         };
       }
@@ -21983,7 +21983,7 @@ var require_dist_node5 = __commonJS({
         }
         if (status >= 400) {
           const data = await getResponseData2(response);
-          const error = new import_request_error2.RequestError(toErrorMessage2(data), status, {
+          const error2 = new import_request_error2.RequestError(toErrorMessage2(data), status, {
             response: {
               url,
               status,
@@ -21992,7 +21992,7 @@ var require_dist_node5 = __commonJS({
             },
             request: requestOptions
           });
-          throw error;
+          throw error2;
         }
         return parseSuccessResponseBody ? await getResponseData2(response) : response.body;
       }).then((data) => {
@@ -22002,17 +22002,17 @@ var require_dist_node5 = __commonJS({
           headers,
           data
         };
-      }).catch((error) => {
-        if (error instanceof import_request_error2.RequestError)
-          throw error;
-        else if (error.name === "AbortError")
-          throw error;
-        let message = error.message;
-        if (error.name === "TypeError" && "cause" in error) {
-          if (error.cause instanceof Error) {
-            message = error.cause.message;
-          } else if (typeof error.cause === "string") {
-            message = error.cause;
+      }).catch((error2) => {
+        if (error2 instanceof import_request_error2.RequestError)
+          throw error2;
+        else if (error2.name === "AbortError")
+          throw error2;
+        let message = error2.message;
+        if (error2.name === "TypeError" && "cause" in error2) {
+          if (error2.cause instanceof Error) {
+            message = error2.cause.message;
+          } else if (typeof error2.cause === "string") {
+            message = error2.cause;
           }
         }
         throw new import_request_error2.RequestError(message, 500, {
@@ -24619,9 +24619,9 @@ var require_dist_node10 = __commonJS({
                 /<([^>]+)>;\s*rel="next"/
               ) || [])[1];
               return { value: normalizedResponse };
-            } catch (error) {
-              if (error.status !== 409)
-                throw error;
+            } catch (error2) {
+              if (error2.status !== 409)
+                throw error2;
               url = "";
               return {
                 value: {
@@ -25117,11 +25117,11 @@ var require_p_locate = __commonJS({
       const checkLimit = pLimit(options.preserveOrder ? 1 : Infinity);
       try {
         await Promise.all(items.map((element) => checkLimit(finder, element)));
-      } catch (error) {
-        if (error instanceof EndError) {
-          return error.value;
+      } catch (error2) {
+        if (error2 instanceof EndError) {
+          return error2.value;
         }
-        throw error;
+        throw error2;
       }
     };
     module2.exports = pLocate;
@@ -26010,7 +26010,7 @@ var require_copy3 = __commonJS({
       Promise.resolve(opts.filter(src, dest)).then((include) => {
         if (include) return onInclude(destStat, src, dest, opts, cb);
         return cb();
-      }, (error) => cb(error));
+      }, (error2) => cb(error2));
     }
     function startCopy(destStat, src, dest, opts, cb) {
       if (opts.filter) return handleFilter(getStats, destStat, src, dest, opts, cb);
@@ -27322,8 +27322,8 @@ var require_errno = __commonJS({
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.isEnoentCodeError = void 0;
-    function isEnoentCodeError(error) {
-      return error.code === "ENOENT";
+    function isEnoentCodeError(error2) {
+      return error2.code === "ENOENT";
     }
     exports2.isEnoentCodeError = isEnoentCodeError;
   }
@@ -30487,7 +30487,7 @@ var require_stream = __commonJS({
     function merge3(streams) {
       const mergedStream = merge2(streams);
       streams.forEach((stream) => {
-        stream.once("error", (error) => mergedStream.emit("error", error));
+        stream.once("error", (error2) => mergedStream.emit("error", error2));
       });
       mergedStream.once("close", () => propagateCloseEventToSources(streams));
       mergedStream.once("end", () => propagateCloseEventToSources(streams));
@@ -30669,8 +30669,8 @@ var require_async = __commonJS({
       });
     }
     exports2.read = read;
-    function callFailureCallback(callback, error) {
-      callback(error);
+    function callFailureCallback(callback, error2) {
+      callback(error2);
     }
     function callSuccessCallback(callback, result) {
       callback(null, result);
@@ -30695,11 +30695,11 @@ var require_sync = __commonJS({
           stat.isSymbolicLink = () => true;
         }
         return stat;
-      } catch (error) {
+      } catch (error2) {
         if (!settings.throwErrorOnBrokenSymbolicLink) {
           return lstat2;
         }
-        throw error;
+        throw error2;
       }
     }
     exports2.read = read;
@@ -30991,9 +30991,9 @@ var require_async2 = __commonJS({
         const tasks = names.map((name) => {
           const path4 = common.joinPathSegments(directory, name, settings.pathSegmentSeparator);
           return (done) => {
-            fsStat.stat(path4, settings.fsStatSettings, (error, stats) => {
-              if (error !== null) {
-                done(error);
+            fsStat.stat(path4, settings.fsStatSettings, (error2, stats) => {
+              if (error2 !== null) {
+                done(error2);
                 return;
               }
               const entry = {
@@ -31018,8 +31018,8 @@ var require_async2 = __commonJS({
       });
     }
     exports2.readdir = readdir;
-    function callFailureCallback(callback, error) {
-      callback(error);
+    function callFailureCallback(callback, error2) {
+      callback(error2);
     }
     function callSuccessCallback(callback, result) {
       callback(null, result);
@@ -31056,9 +31056,9 @@ var require_sync2 = __commonJS({
           try {
             const stats = settings.fs.statSync(entry.path);
             entry.dirent = utils.fs.createDirentFromStats(entry.name, stats);
-          } catch (error) {
+          } catch (error2) {
             if (settings.throwErrorOnBrokenSymbolicLink) {
-              throw error;
+              throw error2;
             }
           }
         }
@@ -31252,7 +31252,7 @@ var require_queue = __commonJS({
         empty: noop2,
         kill,
         killAndDrain,
-        error
+        error: error2
       };
       return self2;
       function running() {
@@ -31371,7 +31371,7 @@ var require_queue = __commonJS({
         self2.drain();
         self2.drain = noop2;
       }
-      function error(handler) {
+      function error2(handler) {
         errorHandler = handler;
       }
     }
@@ -31469,11 +31469,11 @@ var require_common2 = __commonJS({
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.joinPathSegments = exports2.replacePathSegmentSeparator = exports2.isAppliedFilter = exports2.isFatalError = void 0;
-    function isFatalError(settings, error) {
+    function isFatalError(settings, error2) {
       if (settings.errorFilter === null) {
         return true;
       }
-      return !settings.errorFilter(error);
+      return !settings.errorFilter(error2);
     }
     exports2.isFatalError = isFatalError;
     function isAppliedFilter(filter, value) {
@@ -31568,16 +31568,16 @@ var require_async3 = __commonJS({
       }
       _pushToQueue(directory, base) {
         const queueItem = { directory, base };
-        this._queue.push(queueItem, (error) => {
-          if (error !== null) {
-            this._handleError(error);
+        this._queue.push(queueItem, (error2) => {
+          if (error2 !== null) {
+            this._handleError(error2);
           }
         });
       }
       _worker(item, done) {
-        this._scandir(item.directory, this._settings.fsScandirSettings, (error, entries) => {
-          if (error !== null) {
-            done(error, void 0);
+        this._scandir(item.directory, this._settings.fsScandirSettings, (error2, entries) => {
+          if (error2 !== null) {
+            done(error2, void 0);
             return;
           }
           for (const entry of entries) {
@@ -31586,13 +31586,13 @@ var require_async3 = __commonJS({
           done(null, void 0);
         });
       }
-      _handleError(error) {
-        if (this._isDestroyed || !common.isFatalError(this._settings, error)) {
+      _handleError(error2) {
+        if (this._isDestroyed || !common.isFatalError(this._settings, error2)) {
           return;
         }
         this._isFatalError = true;
         this._isDestroyed = true;
-        this._emitter.emit("error", error);
+        this._emitter.emit("error", error2);
       }
       _handleEntry(entry, base) {
         if (this._isDestroyed || this._isFatalError) {
@@ -31631,8 +31631,8 @@ var require_async4 = __commonJS({
         this._storage = [];
       }
       read(callback) {
-        this._reader.onError((error) => {
-          callFailureCallback(callback, error);
+        this._reader.onError((error2) => {
+          callFailureCallback(callback, error2);
         });
         this._reader.onEntry((entry) => {
           this._storage.push(entry);
@@ -31644,8 +31644,8 @@ var require_async4 = __commonJS({
       }
     };
     exports2.default = AsyncProvider;
-    function callFailureCallback(callback, error) {
-      callback(error);
+    function callFailureCallback(callback, error2) {
+      callback(error2);
     }
     function callSuccessCallback(callback, entries) {
       callback(null, entries);
@@ -31677,8 +31677,8 @@ var require_stream2 = __commonJS({
         });
       }
       read() {
-        this._reader.onError((error) => {
-          this._stream.emit("error", error);
+        this._reader.onError((error2) => {
+          this._stream.emit("error", error2);
         });
         this._reader.onEntry((entry) => {
           this._stream.push(entry);
@@ -31728,15 +31728,15 @@ var require_sync3 = __commonJS({
           for (const entry of entries) {
             this._handleEntry(entry, base);
           }
-        } catch (error) {
-          this._handleError(error);
+        } catch (error2) {
+          this._handleError(error2);
         }
       }
-      _handleError(error) {
-        if (!common.isFatalError(this._settings, error)) {
+      _handleError(error2) {
+        if (!common.isFatalError(this._settings, error2)) {
           return;
         }
-        throw error;
+        throw error2;
       }
       _handleEntry(entry, base) {
         const fullpath = entry.path;
@@ -31881,8 +31881,8 @@ var require_reader2 = __commonJS({
         }
         return entry;
       }
-      _isFatalError(error) {
-        return !utils.errno.isEnoentCodeError(error) && !this._settings.suppressErrors;
+      _isFatalError(error2) {
+        return !utils.errno.isEnoentCodeError(error2) && !this._settings.suppressErrors;
       }
     };
     exports2.default = Reader;
@@ -31927,17 +31927,17 @@ var require_stream3 = __commonJS({
         return stream;
       }
       _getEntry(filepath, pattern, options) {
-        return this._getStat(filepath).then((stats) => this._makeEntry(stats, pattern)).catch((error) => {
-          if (options.errorFilter(error)) {
+        return this._getStat(filepath).then((stats) => this._makeEntry(stats, pattern)).catch((error2) => {
+          if (options.errorFilter(error2)) {
             return null;
           }
-          throw error;
+          throw error2;
         });
       }
       _getStat(filepath) {
         return new Promise((resolve, reject) => {
-          this._stat(filepath, this._fsStatSettings, (error, stats) => {
-            return error === null ? resolve(stats) : reject(error);
+          this._stat(filepath, this._fsStatSettings, (error2, stats) => {
+            return error2 === null ? resolve(stats) : reject(error2);
           });
         });
       }
@@ -31962,11 +31962,11 @@ var require_async5 = __commonJS({
       }
       dynamic(root, options) {
         return new Promise((resolve, reject) => {
-          this._walkAsync(root, options, (error, entries) => {
-            if (error === null) {
+          this._walkAsync(root, options, (error2, entries) => {
+            if (error2 === null) {
               resolve(entries);
             } else {
-              reject(error);
+              reject(error2);
             }
           });
         });
@@ -32215,10 +32215,10 @@ var require_error = __commonJS({
         this._settings = _settings;
       }
       getFilter() {
-        return (error) => this._isNonFatalError(error);
+        return (error2) => this._isNonFatalError(error2);
       }
-      _isNonFatalError(error) {
-        return utils.errno.isEnoentCodeError(error) || this._settings.suppressErrors;
+      _isNonFatalError(error2) {
+        return utils.errno.isEnoentCodeError(error2) || this._settings.suppressErrors;
       }
     };
     exports2.default = ErrorFilter;
@@ -32359,7 +32359,7 @@ var require_stream4 = __commonJS({
         const source = this.api(root, task, options);
         const destination = new stream_1.Readable({ objectMode: true, read: () => {
         } });
-        source.once("error", (error) => destination.emit("error", error)).on("data", (entry) => destination.emit("data", options.transform(entry))).once("end", () => destination.emit("end"));
+        source.once("error", (error2) => destination.emit("error", error2)).on("data", (entry) => destination.emit("data", options.transform(entry))).once("end", () => destination.emit("end"));
         destination.once("close", () => source.destroy());
         return destination;
       }
@@ -32407,11 +32407,11 @@ var require_sync5 = __commonJS({
         try {
           const stats = this._getStat(filepath);
           return this._makeEntry(stats, pattern);
-        } catch (error) {
-          if (options.errorFilter(error)) {
+        } catch (error2) {
+          if (options.errorFilter(error2)) {
             return null;
           }
-          throw error;
+          throw error2;
         }
       }
       _getStat(filepath) {
@@ -32625,11 +32625,11 @@ var require_path_type = __commonJS({
       try {
         const stats = await promisify(fs5[fsStatType])(filePath);
         return stats[statsMethodName]();
-      } catch (error) {
-        if (error.code === "ENOENT") {
+      } catch (error2) {
+        if (error2.code === "ENOENT") {
           return false;
         }
-        throw error;
+        throw error2;
       }
     }
     function isTypeSync(fsStatType, statsMethodName, filePath) {
@@ -32638,11 +32638,11 @@ var require_path_type = __commonJS({
       }
       try {
         return fs5[fsStatType](filePath)[statsMethodName]();
-      } catch (error) {
-        if (error.code === "ENOENT") {
+      } catch (error2) {
+        if (error2.code === "ENOENT") {
           return false;
         }
-        throw error;
+        throw error2;
       }
     }
     exports2.isFile = isType.bind(null, "stat", "isFile");
@@ -33411,9 +33411,9 @@ var require_pify = __commonJS({
             }
           });
         } else if (options.errorFirst) {
-          args.push((error, result) => {
-            if (error) {
-              reject(error);
+          args.push((error2, result) => {
+            if (error2) {
+              reject(error2);
             } else {
               resolve(result);
             }
@@ -36428,10 +36428,10 @@ var require_parse4 = __commonJS({
             if (!msg) msg = "Unexpected end of input";
           }
         }
-        var error = SyntaxError(formatError(input, msg, position, lineno, column, json5));
-        error.row = lineno + 1;
-        error.column = column + 1;
-        throw error;
+        var error2 = SyntaxError(formatError(input, msg, position, lineno, column, json5));
+        error2.row = lineno + 1;
+        error2.column = column + 1;
+        throw error2;
       }
       function newline(chr) {
         if (chr === "\r" && input[position] === "\n") position++;
@@ -37336,24 +37336,24 @@ var require_document = __commonJS({
       return self2;
     }
     function check_if_can_be_placed(key, object, is_unset) {
-      function error(add) {
+      function error2(add) {
         return Error("You can't " + (is_unset ? "unset" : "set") + " key '" + key + "'" + add);
       }
       if (!isObject(object)) {
-        throw error(" of an non-object");
+        throw error2(" of an non-object");
       }
       if (Array.isArray(object)) {
         if (String(key).match(/^\d+$/)) {
           key = Number(String(key));
           if (object.length < key || is_unset && object.length === key) {
-            throw error(", out of bounds");
+            throw error2(", out of bounds");
           } else if (is_unset && object.length !== key + 1) {
-            throw error(" in the middle of an array");
+            throw error2(" in the middle of an array");
           } else {
             return true;
           }
         } else {
-          throw error(" of an array");
+          throw error2(" of an array");
         }
       } else {
         return true;
@@ -41320,11 +41320,11 @@ var require_wrap = __commonJS({
         }
         try {
           result = fn.apply(null, params);
-        } catch (error) {
+        } catch (error2) {
           if (callback2 && invoked) {
-            throw error;
+            throw error2;
           }
-          return done(error);
+          return done(error2);
         }
         if (!callback2) {
           if (result && typeof result.then === "function") {
@@ -51171,7 +51171,7 @@ var require_copy5 = __commonJS({
           return onInclude(src, dest, opts, cb);
         }
         return cb();
-      }, (error) => cb(error));
+      }, (error2) => cb(error2));
     }
     function startCopy(destStat, src, dest, opts, cb) {
       if (opts.filter) return handleFilter(getStats, destStat, src, dest, opts, cb);
@@ -58238,9 +58238,9 @@ var require_p_map = __commonJS({
             resolvingCount--;
             next();
           },
-          (error) => {
+          (error2) => {
             isRejected = true;
-            reject(error);
+            reject(error2);
           }
         );
       };
@@ -58290,13 +58290,13 @@ var require_resolve_from = __commonJS({
       }
       try {
         fromDirectory = fs5.realpathSync(fromDirectory);
-      } catch (error) {
-        if (error.code === "ENOENT") {
+      } catch (error2) {
+        if (error2.code === "ENOENT") {
           fromDirectory = path4.resolve(fromDirectory);
         } else if (silent) {
           return;
         } else {
-          throw error;
+          throw error2;
         }
       }
       const fromFile = path4.join(fromDirectory, "noop.js");
@@ -58308,7 +58308,7 @@ var require_resolve_from = __commonJS({
       if (silent) {
         try {
           return resolveFileName();
-        } catch (error) {
+        } catch (error2) {
           return;
         }
       }
@@ -58500,8 +58500,8 @@ var require_light = __commonJS({
                 } else {
                   return returned;
                 }
-              } catch (error) {
-                e2 = error;
+              } catch (error2) {
+                e2 = error2;
                 {
                   this.trigger("error", e2);
                 }
@@ -58511,8 +58511,8 @@ var require_light = __commonJS({
             return (await Promise.all(promises)).find(function(x) {
               return x != null;
             });
-          } catch (error) {
-            e = error;
+          } catch (error2) {
+            e = error2;
             {
               this.trigger("error", e);
             }
@@ -58624,10 +58624,10 @@ var require_light = __commonJS({
         _randomIndex() {
           return Math.random().toString(36).slice(2);
         }
-        doDrop({ error, message = "This job has been dropped by Bottleneck" } = {}) {
+        doDrop({ error: error2, message = "This job has been dropped by Bottleneck" } = {}) {
           if (this._states.remove(this.options.id)) {
             if (this.rejectOnDrop) {
-              this._reject(error != null ? error : new BottleneckError$1(message));
+              this._reject(error2 != null ? error2 : new BottleneckError$1(message));
             }
             this.Events.trigger("dropped", { args: this.args, options: this.options, task: this.task, promise: this.promise });
             return true;
@@ -58661,7 +58661,7 @@ var require_light = __commonJS({
           return this.Events.trigger("scheduled", { args: this.args, options: this.options });
         }
         async doExecute(chained, clearGlobalState, run, free) {
-          var error, eventInfo, passed;
+          var error2, eventInfo, passed;
           if (this.retryCount === 0) {
             this._assertStatus("RUNNING");
             this._states.next(this.options.id);
@@ -58679,24 +58679,24 @@ var require_light = __commonJS({
               return this._resolve(passed);
             }
           } catch (error1) {
-            error = error1;
-            return this._onFailure(error, eventInfo, clearGlobalState, run, free);
+            error2 = error1;
+            return this._onFailure(error2, eventInfo, clearGlobalState, run, free);
           }
         }
         doExpire(clearGlobalState, run, free) {
-          var error, eventInfo;
+          var error2, eventInfo;
           if (this._states.jobStatus(this.options.id === "RUNNING")) {
             this._states.next(this.options.id);
           }
           this._assertStatus("EXECUTING");
           eventInfo = { args: this.args, options: this.options, retryCount: this.retryCount };
-          error = new BottleneckError$1(`This job timed out after ${this.options.expiration} ms.`);
-          return this._onFailure(error, eventInfo, clearGlobalState, run, free);
+          error2 = new BottleneckError$1(`This job timed out after ${this.options.expiration} ms.`);
+          return this._onFailure(error2, eventInfo, clearGlobalState, run, free);
         }
-        async _onFailure(error, eventInfo, clearGlobalState, run, free) {
+        async _onFailure(error2, eventInfo, clearGlobalState, run, free) {
           var retry, retryAfter;
           if (clearGlobalState()) {
-            retry = await this.Events.trigger("failed", error, eventInfo);
+            retry = await this.Events.trigger("failed", error2, eventInfo);
             if (retry != null) {
               retryAfter = ~~retry;
               this.Events.trigger("retry", `Retrying ${this.options.id} after ${retryAfter} ms`, eventInfo);
@@ -58706,7 +58706,7 @@ var require_light = __commonJS({
               this.doDone(eventInfo);
               await free(this.options, eventInfo);
               this._assertStatus("DONE");
-              return this._reject(error);
+              return this._reject(error2);
             }
           }
         }
@@ -58985,7 +58985,7 @@ var require_light = __commonJS({
           return this._queue.length === 0;
         }
         async _tryToRun() {
-          var args, cb, error, reject, resolve, returned, task;
+          var args, cb, error2, reject, resolve, returned, task;
           if (this._running < 1 && this._queue.length > 0) {
             this._running++;
             ({ task, args, resolve, reject } = this._queue.shift());
@@ -58996,9 +58996,9 @@ var require_light = __commonJS({
                   return resolve(returned);
                 };
               } catch (error1) {
-                error = error1;
+                error2 = error1;
                 return function() {
-                  return reject(error);
+                  return reject(error2);
                 };
               }
             }();
@@ -59132,8 +59132,8 @@ var require_light = __commonJS({
                   } else {
                     results.push(void 0);
                   }
-                } catch (error) {
-                  e = error;
+                } catch (error2) {
+                  e = error2;
                   results.push(v.Events.trigger("error", e));
                 }
               }
@@ -59466,14 +59466,14 @@ var require_light = __commonJS({
             return done;
           }
           async _addToQueue(job) {
-            var args, blocked, error, options, reachedHWM, shifted, strategy;
+            var args, blocked, error2, options, reachedHWM, shifted, strategy;
             ({ args, options } = job);
             try {
               ({ reachedHWM, blocked, strategy } = await this._store.__submit__(this.queued(), options.weight));
             } catch (error1) {
-              error = error1;
-              this.Events.trigger("debug", `Could not queue ${options.id}`, { args, options, error });
-              job.doDrop({ error });
+              error2 = error1;
+              this.Events.trigger("debug", `Could not queue ${options.id}`, { args, options, error: error2 });
+              job.doDrop({ error: error2 });
               return false;
             }
             if (blocked) {
@@ -59707,8 +59707,8 @@ function addHook(state, kind, name, hook2) {
   }
   if (kind === "error") {
     hook2 = (method, options) => {
-      return Promise.resolve().then(method.bind(null, options)).catch((error) => {
-        return orig(error, options);
+      return Promise.resolve().then(method.bind(null, options)).catch((error2) => {
+        return orig(error2, options);
       });
     };
   }
@@ -60283,26 +60283,26 @@ async function fetchWrapper(requestOptions) {
       // See https://fetch.spec.whatwg.org/#dom-requestinit-duplex.
       ...requestOptions.body && { duplex: "half" }
     });
-  } catch (error) {
+  } catch (error2) {
     let message = "Unknown Error";
-    if (error instanceof Error) {
-      if (error.name === "AbortError") {
-        error.status = 500;
-        throw error;
+    if (error2 instanceof Error) {
+      if (error2.name === "AbortError") {
+        error2.status = 500;
+        throw error2;
       }
-      message = error.message;
-      if (error.name === "TypeError" && "cause" in error) {
-        if (error.cause instanceof Error) {
-          message = error.cause.message;
-        } else if (typeof error.cause === "string") {
-          message = error.cause;
+      message = error2.message;
+      if (error2.name === "TypeError" && "cause" in error2) {
+        if (error2.cause instanceof Error) {
+          message = error2.cause.message;
+        } else if (typeof error2.cause === "string") {
+          message = error2.cause;
         }
       }
     }
     const requestError = new RequestError(message, 500, {
       request: requestOptions
     });
-    requestError.cause = error;
+    requestError.cause = error2;
     throw requestError;
   }
   const status = fetchResponse.status;
@@ -60813,12 +60813,12 @@ var require_dist_node11 = __commonJS({
       const req = state.global.key(state.id).schedule(jobOptions, request2, options);
       if (isGraphQL) {
         const res = await req;
-        if (res.data.errors != null && res.data.errors.some((error) => error.type === "RATE_LIMITED")) {
-          const error = Object.assign(new Error("GraphQL Rate Limit Exceeded"), {
+        if (res.data.errors != null && res.data.errors.some((error2) => error2.type === "RATE_LIMITED")) {
+          const error2 = Object.assign(new Error("GraphQL Rate Limit Exceeded"), {
             response: res,
             data: res.data
           });
-          throw error;
+          throw error2;
         }
       }
       return req;
@@ -60926,19 +60926,19 @@ var require_dist_node11 = __commonJS({
         "error",
         (e) => octokit.log.warn("Error in throttling-plugin limit handler", e)
       );
-      state.retryLimiter.on("failed", async function(error, info4) {
+      state.retryLimiter.on("failed", async function(error2, info4) {
         const [state2, request2, options] = info4.args;
         const { pathname } = new URL(options.url, "http://github.test");
-        const shouldRetryGraphQL = pathname.startsWith("/graphql") && error.status !== 401;
-        if (!(shouldRetryGraphQL || error.status === 403)) {
+        const shouldRetryGraphQL = pathname.startsWith("/graphql") && error2.status !== 401;
+        if (!(shouldRetryGraphQL || error2.status === 403)) {
           return;
         }
         const retryCount = ~~request2.retryCount;
         request2.retryCount = retryCount;
         options.request.retryCount = retryCount;
         const { wantRetry, retryAfter = 0 } = await async function() {
-          if (/\bsecondary rate\b/i.test(error.message)) {
-            const retryAfter2 = Number(error.response.headers["retry-after"]) || state2.fallbackSecondaryRateRetryAfter;
+          if (/\bsecondary rate\b/i.test(error2.message)) {
+            const retryAfter2 = Number(error2.response.headers["retry-after"]) || state2.fallbackSecondaryRateRetryAfter;
             const wantRetry2 = await emitter.trigger(
               "secondary-limit",
               retryAfter2,
@@ -60948,11 +60948,11 @@ var require_dist_node11 = __commonJS({
             );
             return { wantRetry: wantRetry2, retryAfter: retryAfter2 };
           }
-          if (error.response.headers != null && error.response.headers["x-ratelimit-remaining"] === "0" || (error.response.data?.errors ?? []).some(
-            (error2) => error2.type === "RATE_LIMITED"
+          if (error2.response.headers != null && error2.response.headers["x-ratelimit-remaining"] === "0" || (error2.response.data?.errors ?? []).some(
+            (error22) => error22.type === "RATE_LIMITED"
           )) {
             const rateLimitReset = new Date(
-              ~~error.response.headers["x-ratelimit-reset"] * 1e3
+              ~~error2.response.headers["x-ratelimit-reset"] * 1e3
             ).getTime();
             const retryAfter2 = Math.max(
               // Add one second so we retry _after_ the reset time
@@ -61231,7 +61231,7 @@ async function pushTags(tagSeparator, createMajorVersionTags, cwd, rootPackageIn
   const newTags = computeTagDiff(localTags, remoteTagNames);
   await deleteTags(newTags, cwd);
   const rewrittenTags = replaceTagSeparator(newTags, tagSeparator);
-  const finalTags = rootPackageInfo ? rewriteRootPackageTags(rewrittenTags, rootPackageInfo) : rewrittenTags;
+  const finalTags = rootPackageInfo ? rewriteRootPackageTags(rewrittenTags, tagSeparator, rootPackageInfo) : rewrittenTags;
   const filteredRewrittenTags = computeTagDiff(finalTags, remoteTagNames);
   const createdTags = await createLightweightTags(filteredRewrittenTags, cwd);
   await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
@@ -61314,13 +61314,12 @@ function replaceTagSeparator(tags, separator) {
     };
   });
 }
-function rewriteRootPackageTags(tags, rootPackageInfo) {
+function rewriteRootPackageTags(tags, tagSeparator, rootPackageInfo) {
   return tags.map((tag) => {
-    const tagParts = tag.name.split(/@|\/(?:v)?/);
-    if (tagParts.length >= 2 && tagParts[0] === rootPackageInfo.name) {
-      const version2 = tagParts.slice(1).join(".");
+    const info4 = parseTagName(tag.name, tagSeparator);
+    if (info4 && info4.pkg === rootPackageInfo.name) {
       return {
-        name: `v${version2}`,
+        name: `v${info4.version}`,
         ref: tag.ref,
         originalName: tag.originalName || tag.name
       };
@@ -61423,8 +61422,8 @@ async function createCommitOnBranch(client, input) {
       input
     });
     return response;
-  } catch (error) {
-    throw error;
+  } catch (error2) {
+    throw error2;
   }
 }
 async function getRemoteHeadOid(client, opts) {
@@ -62194,6 +62193,7 @@ password ${githubToken}`
       return;
   }
 })().catch((err) => {
+  core4.error(err);
   core4.setFailed(err.message);
 });
 /*! Bundled license information:
