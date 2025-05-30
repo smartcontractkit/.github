@@ -171,7 +171,23 @@ export function replaceTagSeparator(
 }
 
 /**
- * Rewrites tags for root packages to use v<version> format instead of <name><separator><version>
+ * Detects the separator between the package name and version in a tag string.
+ * Supports tags like foo@1.2.3, foo/1.2.3, foo~1.2.3, foo/v1.2.3, etc.
+ * @param tag The tag string to analyze
+ * @returns The separator string, or undefined if not detected
+ */
+function detectTagSeparator(tag: string): string | undefined {
+  // Match: <pkg><sep><version> (e.g. foo@1.2.3, foo/1.2.3, foo~1.2.3, foo/v1.2.3)
+  const match = tag.match(/^([a-z0-9-]+)(.+)\d+\.\d+\.\d+$/i);
+  if (match) {
+    return match[2];
+  }
+  return undefined;
+}
+
+/**
+ * Rewrites tags for root packages to use v<version> format instead of <name><separator><version>.
+ * Dynamically detects the separator for each tag.
  * @param tags The list of tags to update.
  * @param rootPackageInfo The root package information.
  * @returns The updated list of tags.
@@ -181,11 +197,11 @@ export function rewriteRootPackageTags(
   rootPackageInfo: { name: string; version: string },
 ): GitTag[] {
   return tags.map((tag) => {
-    const tagParts = tag.name.split(/@|\/(?:v)?/);
-    if (tagParts.length >= 2 && tagParts[0] === rootPackageInfo.name) {
-      const version = tagParts.slice(1).join(".");
+    const separator = detectTagSeparator(tag.name) || "@";
+    const info = parseTagName(tag.name, separator);
+    if (info && info.pkg === rootPackageInfo.name) {
       return {
-        name: `v${version}`,
+        name: `v${info.version}`,
         ref: tag.ref,
         originalName: tag.originalName || tag.name,
       };
