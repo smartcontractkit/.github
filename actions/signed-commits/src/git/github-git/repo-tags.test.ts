@@ -169,6 +169,79 @@ describe("repo-tags", () => {
         { name: "foo/v3", ref: "ref4", majorVersion: true },
       ]);
     });
+
+    it("should explicitly skip creating major version tags if major version is '0'", () => {
+      const testScenarios = [
+        {
+          description: "using '@' separator",
+          separator: "@",
+          tags: [
+            { name: "pkg-a@0.1.2", ref: "ref1" }, // Skip
+            { name: "pkg-b@1.2.3", ref: "ref2" }, // Keep
+            { name: "pkg-c@0.4.5", ref: "ref3" }, // Skip
+          ],
+          expected: [{ name: "pkg-b@v1", ref: "ref2", majorVersion: true }],
+        },
+        {
+          description: "using '/' separator",
+          separator: "/",
+          tags: [
+            { name: "pkg-d/0.6.7", ref: "ref4" }, // Skip
+            { name: "pkg-e/2.3.4", ref: "ref5" }, // Keep
+            { name: "pkg-f/0.0.0", ref: "refX" }, // Skip
+          ],
+          expected: [{ name: "pkg-e/v2", ref: "ref5", majorVersion: true }],
+        },
+        {
+          description: "using '/v' separator",
+          separator: "/v",
+          tags: [
+            { name: "pkg-g/v0.8.9", ref: "ref6" }, // Skip
+            { name: "pkg-h/v3.4.5", ref: "ref7" }, // Keep
+            { name: "pkg-i/v0.0.1", ref: "ref8" }, // Skip
+          ],
+          expected: [{ name: "pkg-h/v3", ref: "ref7", majorVersion: true }],
+        },
+        {
+          description: "using '--' separator",
+          separator: "--",
+          tags: [
+            { name: "complex-pkg--0.1.0", ref: "ref9" }, // Skip
+            { name: "complex-pkg--4.0.0", ref: "ref10" }, // Keep
+            { name: "another-pkg--0.0.0", ref: "ref11" }, // Skip
+          ],
+          expected: [
+            { name: "complex-pkg--v4", ref: "ref10", majorVersion: true },
+          ],
+        },
+        {
+          description: "with no tags resulting in major versions",
+          separator: "@",
+          tags: [
+            { name: "zeromajor@0.1.2", ref: "refA" },
+            { name: "anotherzero@0.3.4", ref: "refB" },
+          ],
+          expected: [],
+        },
+        {
+          description: "with only tags that should result in major versions",
+          separator: "/",
+          tags: [
+            { name: "onemajor/1.1.2", ref: "refC" },
+            { name: "twomajor/2.3.4", ref: "refD" },
+          ],
+          expected: [
+            { name: "onemajor/v1", ref: "refC", majorVersion: true },
+            { name: "twomajor/v2", ref: "refD", majorVersion: true },
+          ],
+        },
+      ];
+
+      for (const { description, separator, tags, expected } of testScenarios) {
+        const result = getMajorVersionTags(tags, separator);
+        expect(result, description).toEqual(expected);
+      }
+    });
   });
 
   describe("parseTagName", () => {
@@ -210,8 +283,15 @@ describe("repo-tags", () => {
       expect(parseTagName("foo@1.2", "@")).toBeUndefined();
     });
 
-    it("should return undefined for tags with major version 0", () => {
-      expect(parseTagName("foo@0.1.2", "@")).toBeUndefined();
+    it("should parse tags with major version 0", () => {
+      const result = parseTagName("foo@0.1.2", "@");
+      expect(result).toEqual({
+        pkg: "foo",
+        version: "0.1.2",
+        major: "0",
+        minor: "1",
+        patch: "2",
+      });
     });
   });
 
