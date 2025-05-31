@@ -1,4 +1,3 @@
-import { parse } from "path";
 import * as core from "@actions/core";
 import { execWithOutput } from "../../utils";
 
@@ -192,14 +191,20 @@ export function rewriteRootPackageTags(
   rootPackageInfo: { name: string; version: string },
 ): GitTag[] {
   return tags.map((tag) => {
+    core.debug(
+      `Analyzing tag: ${tag.name} with separator: ${tagSeparator} for root package: ${rootPackageInfo.name}`,
+    );
     const info = parseTagName(tag.name, tagSeparator);
+    core.debug(`Parsed tag info: ${JSON.stringify(info)} for tag: ${tag.name}`);
     if (info && info.pkg === rootPackageInfo.name) {
+      core.debug(`Rewriting root package tag ${tag.name} to v${info.version}`);
       return {
         name: `v${info.version}`,
         ref: tag.ref,
         originalName: tag.originalName || tag.name,
       };
     }
+    core.debug(`Tag ${tag.name} is not a root package tag, returning as-is`);
     // Not a root package tag, return as-is
     return tag;
   });
