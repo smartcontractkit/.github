@@ -111,6 +111,7 @@ type PublishOptions = {
   createGithubReleases: boolean;
   tagSeparator: string;
   createMajorVersionTags: boolean;
+  rootVersionPackagePath?: string;
   cwd?: string;
 };
 
@@ -131,8 +132,40 @@ export async function runPublish({
   createGithubReleases,
   tagSeparator,
   createMajorVersionTags,
+  rootVersionPackagePath,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
+  // Validate root package configuration if rootVersionPackagePath is provided
+  let rootPackageInfo: { name: string; version: string } | undefined;
+  if (rootVersionPackagePath) {
+    const packageJsonPath = path.resolve(cwd, rootVersionPackagePath);
+
+    if (!(await fs.pathExists(packageJsonPath))) {
+      throw new Error(
+        `Root package path ${rootVersionPackagePath} does not exist`,
+      );
+    }
+
+    const packageJson = await fs.readJson(packageJsonPath);
+    const hasRootVersionFlag =
+      packageJson?.chainlink?.changesets?.rootVersion === true;
+
+    if (!hasRootVersionFlag) {
+      throw new Error(
+        `Package at ${rootVersionPackagePath} must have chainlink.changesets.rootVersion set to true to use simplified v<version> tags`,
+      );
+    }
+
+    rootPackageInfo = {
+      name: packageJson.name,
+      version: packageJson.version,
+    };
+
+    core.info(
+      `Root package configured: ${rootPackageInfo.name}@${rootPackageInfo.version} will use v<version> tags`,
+    );
+  }
+
   const octokit = setupOctokit(githubToken);
 
   let [publishCommand, ...publishArgs] = script.split(/\s+/);
@@ -143,7 +176,12 @@ export async function runPublish({
     { cwd },
   );
 
-  await githubGitUtils.pushTags(tagSeparator, createMajorVersionTags);
+  await githubGitUtils.pushTags(
+    tagSeparator,
+    createMajorVersionTags,
+    cwd,
+    rootPackageInfo,
+  );
 
   let { packages, tool } = await getPackages(cwd);
   let releasedPackages: Package[] = [];
@@ -173,12 +211,19 @@ export async function runPublish({
 
     if (createGithubReleases) {
       await Promise.all(
-        releasedPackages.map((pkg) =>
-          createRelease(octokit, {
+        releasedPackages.map((pkg) => {
+          // Use simplified v<version> tag for root packages, otherwise use standard format
+          const isRootPackage =
+            rootPackageInfo && pkg.packageJson.name === rootPackageInfo.name;
+          const tagName = isRootPackage
+            ? `v${pkg.packageJson.version}`
+            : `${pkg.packageJson.name}${tagSeparator}${pkg.packageJson.version}`;
+
+          return createRelease(octokit, {
             pkg,
-            tagName: `${pkg.packageJson.name}${tagSeparator}${pkg.packageJson.version}`,
-          }),
-        ),
+            tagName,
+          });
+        }),
       );
     }
   } else {

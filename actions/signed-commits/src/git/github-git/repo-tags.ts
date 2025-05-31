@@ -1,4 +1,4 @@
-import { parse } from "path";
+import * as core from "@actions/core";
 import { execWithOutput } from "../../utils";
 
 export interface GitTag {
@@ -17,6 +17,7 @@ export async function pushTags(
   tagSeparator: string,
   createMajorVersionTags: boolean,
   cwd?: string,
+  rootPackageInfo?: { name: string; version: string },
 ) {
   const localTags = await getLocalTags(cwd);
   const remoteTagNames = await getRemoteTagNames(cwd);
@@ -29,8 +30,20 @@ export async function pushTags(
   // But the remote's tags may have been rewritten with a different separator.
   const rewrittenTags = replaceTagSeparator(newTags, tagSeparator);
 
+  const finalTags = rootPackageInfo
+    ? rewriteRootPackageTags(rewrittenTags, tagSeparator, rootPackageInfo)
+    : rewrittenTags;
+  core.debug(
+    `Final tags to push: ${finalTags.map((tag) => tag.name).join(", ")}`,
+  );
+
   // Filter out rewritten tags that are already present on the remote.
-  const filteredRewrittenTags = computeTagDiff(rewrittenTags, remoteTagNames);
+  const filteredRewrittenTags = computeTagDiff(finalTags, remoteTagNames);
+  core.debug(
+    `Filtered rewritten tags to push: ${filteredRewrittenTags
+      .map((tag) => tag.name)
+      .join(", ")}`,
+  );
   const createdTags = await createLightweightTags(filteredRewrittenTags, cwd);
   await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
 
@@ -38,6 +51,7 @@ export async function pushTags(
     const majorVersionTags = getMajorVersionTags(
       filteredRewrittenTags,
       tagSeparator,
+      rootPackageInfo,
     );
     const createdMajorTags = await createLightweightTags(majorVersionTags, cwd);
 
@@ -165,19 +179,66 @@ export function replaceTagSeparator(
 }
 
 /**
+ * Rewrites tags for root packages to use v<version> format instead of <name><separator><version>.
+ * Dynamically detects the separator for each tag.
+ * @param tags The list of tags to update.
+ * @param rootPackageInfo The root package information.
+ * @returns The updated list of tags.
+ */
+export function rewriteRootPackageTags(
+  tags: GitTag[],
+  tagSeparator: string,
+  rootPackageInfo: { name: string; version: string },
+): GitTag[] {
+  return tags.map((tag) => {
+    core.debug(
+      `Analyzing tag: ${tag.name} with separator: ${tagSeparator} for root package: ${rootPackageInfo.name}`,
+    );
+    const info = parseTagName(tag.name, tagSeparator);
+    core.debug(`Parsed tag info: ${JSON.stringify(info)} for tag: ${tag.name}`);
+    if (info && info.pkg === rootPackageInfo.name) {
+      core.debug(`Rewriting root package tag ${tag.name} to v${info.version}`);
+      return {
+        name: `v${info.version}`,
+        ref: tag.ref,
+        originalName: tag.originalName || tag.name,
+      };
+    }
+    core.debug(`Tag ${tag.name} is not a root package tag, returning as-is`);
+    // Not a root package tag, return as-is
+    return tag;
+  });
+}
+
+/**
  * Gets the list of major version tags from the list of tags.
  * @param tags The list of tags to filter
  * @param separator The separator for the list of tags
+ * @param rootPackageInfo Optional root package info to exclude from major version tag creation
  * @returns The list of major version tags
  */
 export function getMajorVersionTags(
   tags: GitTag[],
   separator: string,
+  rootPackageInfo?: { name: string; version: string },
 ): GitTag[] {
   const tagNamesSeen = new Set<string>();
   return tags.reduce((acc, tag) => {
     const info = parseTagName(tag.name, separator);
     if (!info) {
+      return acc;
+    }
+
+    // Skip major version tag creation for root packages since they use v<version> format
+    if (rootPackageInfo && info.pkg === rootPackageInfo.name) {
+      return acc;
+    }
+
+    // Do not create major version tags for version 0 (e.g., pkg/v0 from pkg/v0.1.2)
+    if (info.major === "0") {
+      core.debug(
+        `Skipping major version tag creation for ${tag.name} as its major version is 0.`,
+      );
       return acc;
     }
 
@@ -206,21 +267,23 @@ export function getMajorVersionTags(
  * @returns The parsed tag
  */
 export function parseTagName(tagName: string, separator: string) {
-  // [a-z-]+ is the package name
-  // (\d+) is the major/minor/patch version
-  const tagRegex = new RegExp(`([a-z0-9-]+)${separator}(\\d+).(\\d+).(\\d+)`);
+  // [a-z0-9-]+ is the package name
+  // (\\d+) is the major/minor/patch version
+  const escapedSeparator = separator.replace(/[.*+?^${}()|[\]\\]/g, "\\\\$&");
+  const tagRegex = new RegExp(
+    `^([a-z0-9-]+)${escapedSeparator}(\\d+)\\.(\\d+)\\.(\\d+)`,
+  );
   const match = tagRegex.exec(tagName);
   if (!match || match.length < 5) {
+    core.debug(
+      `parseTagName: No match for tagName "${tagName}" with separator "${separator}" using regex "${tagRegex}"`,
+    );
     return;
   }
 
   const name = match[1];
   const version = `${match[2]}.${match[3]}.${match[4]}`;
   const majorVersion = match[2] ?? "0";
-  if (majorVersion == "0") {
-    // Don't create major version tags for version 0
-    return;
-  }
 
   return {
     pkg: name,
