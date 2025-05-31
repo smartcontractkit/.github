@@ -234,6 +234,14 @@ export function getMajorVersionTags(
       return acc;
     }
 
+    // Do not create major version tags for version 0 (e.g., pkg/v0 from pkg/v0.1.2)
+    if (info.major === "0") {
+      core.debug(
+        `Skipping major version tag creation for ${tag.name} as its major version is 0.`,
+      );
+      return acc;
+    }
+
     // Don't add a v to the tag, if the separator already ends with a v
     const majorTag = separator.endsWith("v")
       ? `${info.pkg}${separator}${info.major}`
@@ -259,21 +267,23 @@ export function getMajorVersionTags(
  * @returns The parsed tag
  */
 export function parseTagName(tagName: string, separator: string) {
-  // [a-z-]+ is the package name
-  // (\d+) is the major/minor/patch version
-  const tagRegex = new RegExp(`([a-z0-9-]+)${separator}(\\d+).(\\d+).(\\d+)`);
+  // [a-z0-9-]+ is the package name
+  // (\\d+) is the major/minor/patch version
+  const escapedSeparator = separator.replace(/[.*+?^${}()|[\]\\]/g, "\\\\$&");
+  const tagRegex = new RegExp(
+    `^([a-z0-9-]+)${escapedSeparator}(\\d+)\\.(\\d+)\\.(\\d+)`,
+  );
   const match = tagRegex.exec(tagName);
   if (!match || match.length < 5) {
+    core.debug(
+      `parseTagName: No match for tagName "${tagName}" with separator "${separator}" using regex "${tagRegex}"`,
+    );
     return;
   }
 
   const name = match[1];
   const version = `${match[2]}.${match[3]}.${match[4]}`;
   const majorVersion = match[2] ?? "0";
-  if (majorVersion == "0") {
-    // Don't create major version tags for version 0
-    return;
-  }
 
   return {
     pkg: name,
