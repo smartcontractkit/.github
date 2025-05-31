@@ -376,6 +376,15 @@ importers:
 
   actions/wait-for-workflows: {}
 
+  actions/zizmor-audit:
+    dependencies:
+      '@actions/core':
+        specifier: ^1.10.1
+        version: 1.11.1
+      tsx:
+        specifier: ^4.16.2
+        version: 4.19.1
+
   apps/actions-dependencies-updater:
     dependencies:
       dotenv:
@@ -1003,6 +1012,7 @@ packages:
   '@babel/plugin-proposal-class-properties@7.18.6':
     resolution: {integrity: sha512-cumfXOF0+nzZrrN8Rf0t7M+tF6sZc7vhQwYQck9q1/5w2OExlD+b4v4RpMJFaV1Z7WcDRgO6FqvxqxGlwo+RHQ==}
     engines: {node: '>=6.9.0'}
+    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-class-properties instead.
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
@@ -1015,6 +1025,7 @@ packages:
   '@babel/plugin-proposal-object-rest-spread@7.20.7':
     resolution: {integrity: sha512-d2S98yCiLxDVmBmE8UjGcfPvNEUbA1U5q5WxaWFUGRzJSVAZqm5W6MbPct0jxnegUZ0niLeNX+IOzEs7wYg9Dg==}
     engines: {node: '>=6.9.0'}
+    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-object-rest-spread instead.
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
@@ -2176,6 +2187,7 @@ packages:
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
     engines: {node: '>=10.10.0'}
+    deprecated: Use @eslint/config-array instead
 
   '@humanwhocodes/module-importer@1.0.1':
     resolution: {integrity: sha512-bxveV4V8v5Yb4ncFTT3rPSgZBOpCkjfK0y4oVVVJwIuDVBRMDXrPyXRL988i5ap9m9bnyEEjWfm5WkBmtffLfA==}
@@ -2183,6 +2195,7 @@ packages:
 
   '@humanwhocodes/object-schema@2.0.2':
     resolution: {integrity: sha512-6EwiSjwWYP7pTckG6I5eyFANjPhmPjUX9JRLUSfNPC7FX7zK9gyZAfUEaECL6ALTpGX5AjnBq3C9XmVWPitNpw==}
+    deprecated: Use @eslint/object-schema instead
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -2982,6 +2995,7 @@ packages:
 
   '@types/loud-rejection@2.0.0':
     resolution: {integrity: sha512-oTHISsIybJGoh3b3Ay/10csbAd2k0su7G7DGrE1QWciC+IdydPm0WMw1+Gr9YMYjPiJ5poB3g5Ev73IlLoavLw==}
+    deprecated: This is a stub types definition. loud-rejection provides its own type definitions, so you do not need this installed.
 
   '@types/minimist@1.2.5':
     resolution: {integrity: sha512-hov8bUuiLiyFPGyFPE1lwWhmzYbirOXQNNo40+y3zow8aFVTeyn3VWL0VFFfdNddA8S4Vf0Tc062rzyNr7Paag==}
@@ -4014,6 +4028,7 @@ packages:
   eslint@8.57.0:
     resolution: {integrity: sha512-dZ6+mexnaTIbSBZWgou51U6OmzIhYM2VcNdtiTtI7qPNZm35Akpr0f6vtw3w1Kmn5PYo+tZVfh13WrhpS6oLqQ==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   espree@9.6.1:
@@ -4342,10 +4357,12 @@ packages:
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
+    deprecated: Glob versions prior to v9 are no longer supported
 
   glob@8.1.0:
     resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
     engines: {node: '>=12'}
+    deprecated: Glob versions prior to v9 are no longer supported
 
   globals@11.12.0:
     resolution: {integrity: sha512-WOBp/EEGUiIsJSp7wcv/y6MO+lV9UoncWqxuFfm8eBwzWNgyfBd6Gz+IeKQ9jCmyhoH99g15M3T+QaVHFjizVA==}
@@ -4541,6 +4558,7 @@ packages:
 
   inflight@1.0.6:
     resolution: {integrity: sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA==}
+    deprecated: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
 
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
@@ -4551,6 +4569,7 @@ packages:
 
   intl-messageformat-parser@6.1.2:
     resolution: {integrity: sha512-4GQDEPhl/ZMNDKwMsLqyw1LG2IAWjmLJXdmnRcHKeLQzpgtNYZI6lVw1279pqIkRk2MfKb9aDsVFzm565azK5A==}
+    deprecated: We've written a new parser that's 6x faster and is backwards compatible. Please use @formatjs/icu-messageformat-parser
 
   invariant@2.2.4:
     resolution: {integrity: sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==}
@@ -5784,6 +5803,7 @@ packages:
 
   rimraf@3.0.2:
     resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
+    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
   rimraf@6.0.1:
@@ -6175,6 +6195,7 @@ packages:
 
   trim@0.0.1:
     resolution: {integrity: sha512-YzQV+TZg4AxpKxaTHK3c3D+kRDCGVEE7LemdlQZoQXn0iennk10RsIoY6ikzAqJTc9Xjl9C1/waHom/J86ziAQ==}
+    deprecated: Use String.prototype.trim() instead
 
   trough@1.0.5:
     resolution: {integrity: sha512-rvuRbTarPXmMb79SmzEp8aqXNKcK+y0XaB298IXueQ8I2PsrATcPBCSPyK/dDNa2iWOhKlfNnOjdAOTBU/nkFA==}
@@ -6697,7 +6718,7 @@ snapshots:
 
   '@actions/artifact@2.1.11':
     dependencies:
-      '@actions/core': 1.10.1
+      '@actions/core': 1.11.1
       '@actions/github': 5.1.1
       '@actions/http-client': 2.2.0
       '@azure/storage-blob': 12.25.0
@@ -6770,7 +6791,7 @@ snapshots:
 
   '@actions/glob@0.4.0':
     dependencies:
-      '@actions/core': 1.10.1
+      '@actions/core': 1.11.1
       minimatch: 3.1.2
 
   '@actions/http-client@2.2.0':
@@ -9445,21 +9466,6 @@ snapshots:
       - typescript
       - verdaccio
 
-  '@nrwl/js@17.3.2(@babel/traverse@7.24.7)(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11))(@types/node@20.14.13)(nx@17.3.2(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11)))(typescript@5.3.3)':
-    dependencies:
-      '@nx/js': 17.3.2(@babel/traverse@7.24.7)(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11))(@types/node@20.14.13)(nx@17.3.2(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11)))(typescript@5.3.3)
-    transitivePeerDependencies:
-      - '@babel/traverse'
-      - '@swc-node/register'
-      - '@swc/core'
-      - '@swc/wasm'
-      - '@types/node'
-      - debug
-      - nx
-      - supports-color
-      - typescript
-      - verdaccio
-
   '@nrwl/js@17.3.2(@babel/traverse@7.24.7)(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11))(@types/node@20.14.13)(nx@17.3.2(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11)))(typescript@5.5.3)':
     dependencies:
       '@nx/js': 17.3.2(@babel/traverse@7.24.7)(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11))(@types/node@20.14.13)(nx@17.3.2(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11)))(typescript@5.5.3)
@@ -9636,7 +9642,7 @@ snapshots:
       '@babel/preset-env': 7.24.7(@babel/core@7.23.9)
       '@babel/preset-typescript': 7.22.5(@babel/core@7.23.9)
       '@babel/runtime': 7.23.9
-      '@nrwl/js': 17.3.2(@babel/traverse@7.24.7)(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11))(@types/node@20.14.13)(nx@17.3.2(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11)))(typescript@5.3.3)
+      '@nrwl/js': 17.3.2(@babel/traverse@7.24.7)(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11))(@types/node@20.14.13)(nx@17.3.2(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11)))(typescript@5.5.3)
       '@nx/devkit': 17.3.2(nx@17.3.2(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11)))
       '@nx/workspace': 17.3.2(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11))
       '@phenomnomnominal/tsquery': 5.0.1(typescript@5.3.3)
