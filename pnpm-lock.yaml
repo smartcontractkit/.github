@@ -181,6 +181,8 @@ importers:
 
   actions/get-latest-github-release: {}
 
+  actions/get-pr-labels: {}
+
   actions/gha-find-ref-for-checks:
     dependencies:
       '@actions/core':
