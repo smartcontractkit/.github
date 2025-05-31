@@ -393,7 +393,7 @@ var require_tunnel = __commonJS({
         connectOptions.headers = connectOptions.headers || {};
         connectOptions.headers["Proxy-Authorization"] = "Basic " + new Buffer(connectOptions.proxyAuth).toString("base64");
       }
-      debug4("making CONNECT request");
+      debug5("making CONNECT request");
       var connectReq = self2.request(connectOptions);
       connectReq.useChunkedEncodingByDefault = false;
       connectReq.once("response", onResponse);
@@ -413,7 +413,7 @@ var require_tunnel = __commonJS({
         connectReq.removeAllListeners();
         socket.removeAllListeners();
         if (res.statusCode !== 200) {
-          debug4(
+          debug5(
             "tunneling socket could not be established, statusCode=%d",
             res.statusCode
           );
@@ -425,7 +425,7 @@ var require_tunnel = __commonJS({
           return;
         }
         if (head.length > 0) {
-          debug4("got illegal response body from proxy");
+          debug5("got illegal response body from proxy");
           socket.destroy();
           var error2 = new Error("got illegal response body from proxy");
           error2.code = "ECONNRESET";
@@ -433,13 +433,13 @@ var require_tunnel = __commonJS({
           self2.removeSocket(placeholder);
           return;
         }
-        debug4("tunneling connection has established");
+        debug5("tunneling connection has established");
         self2.sockets[self2.sockets.indexOf(placeholder)] = socket;
         return cb(socket);
       }
       function onError(cause) {
         connectReq.removeAllListeners();
-        debug4(
+        debug5(
           "tunneling socket could not be established, cause=%s\n",
           cause.message,
           cause.stack
@@ -501,9 +501,9 @@ var require_tunnel = __commonJS({
       }
       return target;
     }
-    var debug4;
+    var debug5;
     if (process.env.NODE_DEBUG && /\btunnel\b/.test(process.env.NODE_DEBUG)) {
-      debug4 = function() {
+      debug5 = function() {
         var args = Array.prototype.slice.call(arguments);
         if (typeof args[0] === "string") {
           args[0] = "TUNNEL: " + args[0];
@@ -513,10 +513,10 @@ var require_tunnel = __commonJS({
         console.error.apply(console, args);
       };
     } else {
-      debug4 = function() {
+      debug5 = function() {
       };
     }
-    exports2.debug = debug4;
+    exports2.debug = debug5;
   }
 });
 
@@ -19720,10 +19720,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       return process.env["RUNNER_DEBUG"] === "1";
     }
     exports2.isDebug = isDebug;
-    function debug4(message) {
+    function debug5(message) {
       (0, command_1.issueCommand)("debug", {}, message);
     }
-    exports2.debug = debug4;
+    exports2.debug = debug5;
     function error2(message, properties = {}) {
       (0, command_1.issueCommand)("error", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
@@ -20265,11 +20265,11 @@ var require_graceful_fs = __commonJS({
         }
       });
     }
-    var debug4 = noop;
+    var debug5 = noop;
     if (util2.debuglog)
-      debug4 = util2.debuglog("gfs4");
+      debug5 = util2.debuglog("gfs4");
     else if (/\bgfs4\b/i.test(process.env.NODE_DEBUG || ""))
-      debug4 = function() {
+      debug5 = function() {
         var m = util2.format.apply(util2, arguments);
         m = "GFS4: " + m.split(/\n/).join("\nGFS4: ");
         console.error(m);
@@ -20304,7 +20304,7 @@ var require_graceful_fs = __commonJS({
       }(fs5.closeSync);
       if (/\bgfs4\b/i.test(process.env.NODE_DEBUG || "")) {
         process.on("exit", function() {
-          debug4(fs5[gracefulQueue]);
+          debug5(fs5[gracefulQueue]);
           require("assert").equal(fs5[gracefulQueue].length, 0);
         });
       }
@@ -20557,7 +20557,7 @@ var require_graceful_fs = __commonJS({
       return fs6;
     }
     function enqueue(elem) {
-      debug4("ENQUEUE", elem[0].name, elem[1]);
+      debug5("ENQUEUE", elem[0].name, elem[1]);
       fs5[gracefulQueue].push(elem);
       retry();
     }
@@ -20584,10 +20584,10 @@ var require_graceful_fs = __commonJS({
       var startTime = elem[3];
       var lastTime = elem[4];
       if (startTime === void 0) {
-        debug4("RETRY", fn.name, args);
+        debug5("RETRY", fn.name, args);
         fn.apply(null, args);
       } else if (Date.now() - startTime >= 6e4) {
-        debug4("TIMEOUT", fn.name, args);
+        debug5("TIMEOUT", fn.name, args);
         var cb = args.pop();
         if (typeof cb === "function")
           cb.call(null, err);
@@ -20596,7 +20596,7 @@ var require_graceful_fs = __commonJS({
         var sinceStart = Math.max(lastTime - startTime, 1);
         var desiredDelay = Math.min(sinceStart * 1.2, 100);
         if (sinceAttempt >= desiredDelay) {
-          debug4("RETRY", fn.name, args);
+          debug5("RETRY", fn.name, args);
           fn.apply(null, args.concat([startTime]));
         } else {
           fs5[gracefulQueue].push(elem);
@@ -37089,9 +37089,9 @@ var require_constants9 = __commonJS({
 var require_debug = __commonJS({
   "node_modules/.pnpm/semver@7.7.2/node_modules/semver/internal/debug.js"(exports2, module2) {
     "use strict";
-    var debug4 = typeof process === "object" && process.env && process.env.NODE_DEBUG && /\bsemver\b/i.test(process.env.NODE_DEBUG) ? (...args) => console.error("SEMVER", ...args) : () => {
+    var debug5 = typeof process === "object" && process.env && process.env.NODE_DEBUG && /\bsemver\b/i.test(process.env.NODE_DEBUG) ? (...args) => console.error("SEMVER", ...args) : () => {
     };
-    module2.exports = debug4;
+    module2.exports = debug5;
   }
 });
 
@@ -37104,7 +37104,7 @@ var require_re = __commonJS({
       MAX_SAFE_BUILD_LENGTH,
       MAX_LENGTH
     } = require_constants9();
-    var debug4 = require_debug();
+    var debug5 = require_debug();
     exports2 = module2.exports = {};
     var re = exports2.re = [];
     var safeRe = exports2.safeRe = [];
@@ -37127,7 +37127,7 @@ var require_re = __commonJS({
     var createToken = (name, value, isGlobal) => {
       const safe = makeSafeRegex(value);
       const index = R++;
-      debug4(name, index, value);
+      debug5(name, index, value);
       t[name] = index;
       src[index] = value;
       safeSrc[index] = safe;
@@ -37228,7 +37228,7 @@ var require_identifiers = __commonJS({
 var require_semver = __commonJS({
   "node_modules/.pnpm/semver@7.7.2/node_modules/semver/classes/semver.js"(exports2, module2) {
     "use strict";
-    var debug4 = require_debug();
+    var debug5 = require_debug();
     var { MAX_LENGTH, MAX_SAFE_INTEGER } = require_constants9();
     var { safeRe: re, t } = require_re();
     var parseOptions = require_parse_options();
@@ -37250,7 +37250,7 @@ var require_semver = __commonJS({
             `version is longer than ${MAX_LENGTH} characters`
           );
         }
-        debug4("SemVer", version, options);
+        debug5("SemVer", version, options);
         this.options = options;
         this.loose = !!options.loose;
         this.includePrerelease = !!options.includePrerelease;
@@ -37298,7 +37298,7 @@ var require_semver = __commonJS({
         return this.version;
       }
       compare(other) {
-        debug4("SemVer.compare", this.version, this.options, other);
+        debug5("SemVer.compare", this.version, this.options, other);
         if (!(other instanceof _SemVer)) {
           if (typeof other === "string" && other === this.version) {
             return 0;
@@ -37331,7 +37331,7 @@ var require_semver = __commonJS({
         do {
           const a = this.prerelease[i];
           const b = other.prerelease[i];
-          debug4("prerelease compare", i, a, b);
+          debug5("prerelease compare", i, a, b);
           if (a === void 0 && b === void 0) {
             return 0;
           } else if (b === void 0) {
@@ -37353,7 +37353,7 @@ var require_semver = __commonJS({
         do {
           const a = this.build[i];
           const b = other.build[i];
-          debug4("build compare", i, a, b);
+          debug5("build compare", i, a, b);
           if (a === void 0 && b === void 0) {
             return 0;
           } else if (b === void 0) {
@@ -37977,21 +37977,21 @@ var require_range = __commonJS({
         const loose = this.options.loose;
         const hr = loose ? re[t.HYPHENRANGELOOSE] : re[t.HYPHENRANGE];
         range = range.replace(hr, hyphenReplace(this.options.includePrerelease));
-        debug4("hyphen replace", range);
+        debug5("hyphen replace", range);
         range = range.replace(re[t.COMPARATORTRIM], comparatorTrimReplace);
-        debug4("comparator trim", range);
+        debug5("comparator trim", range);
         range = range.replace(re[t.TILDETRIM], tildeTrimReplace);
-        debug4("tilde trim", range);
+        debug5("tilde trim", range);
         range = range.replace(re[t.CARETTRIM], caretTrimReplace);
-        debug4("caret trim", range);
+        debug5("caret trim", range);
         let rangeList = range.split(" ").map((comp) => parseComparator(comp, this.options)).join(" ").split(/\s+/).map((comp) => replaceGTE0(comp, this.options));
         if (loose) {
           rangeList = rangeList.filter((comp) => {
-            debug4("loose invalid filter", comp, this.options);
+            debug5("loose invalid filter", comp, this.options);
             return !!comp.match(re[t.COMPARATORLOOSE]);
           });
         }
-        debug4("range list", rangeList);
+        debug5("range list", rangeList);
         const rangeMap = /* @__PURE__ */ new Map();
         const comparators = rangeList.map((comp) => new Comparator(comp, this.options));
         for (const comp of comparators) {
@@ -38046,7 +38046,7 @@ var require_range = __commonJS({
     var cache = new LRU();
     var parseOptions = require_parse_options();
     var Comparator = require_comparator();
-    var debug4 = require_debug();
+    var debug5 = require_debug();
     var SemVer = require_semver();
     var {
       safeRe: re,
@@ -38071,15 +38071,15 @@ var require_range = __commonJS({
       return result;
     };
     var parseComparator = (comp, options) => {
-      debug4("comp", comp, options);
+      debug5("comp", comp, options);
       comp = replaceCarets(comp, options);
-      debug4("caret", comp);
+      debug5("caret", comp);
       comp = replaceTildes(comp, options);
-      debug4("tildes", comp);
+      debug5("tildes", comp);
       comp = replaceXRanges(comp, options);
-      debug4("xrange", comp);
+      debug5("xrange", comp);
       comp = replaceStars(comp, options);
-      debug4("stars", comp);
+      debug5("stars", comp);
       return comp;
     };
     var isX = (id) => !id || id.toLowerCase() === "x" || id === "*";
@@ -38089,7 +38089,7 @@ var require_range = __commonJS({
     var replaceTilde = (comp, options) => {
       const r = options.loose ? re[t.TILDELOOSE] : re[t.TILDE];
       return comp.replace(r, (_, M, m, p, pr) => {
-        debug4("tilde", comp, _, M, m, p, pr);
+        debug5("tilde", comp, _, M, m, p, pr);
         let ret;
         if (isX(M)) {
           ret = "";
@@ -38098,12 +38098,12 @@ var require_range = __commonJS({
         } else if (isX(p)) {
           ret = `>=${M}.${m}.0 <${M}.${+m + 1}.0-0`;
         } else if (pr) {
-          debug4("replaceTilde pr", pr);
+          debug5("replaceTilde pr", pr);
           ret = `>=${M}.${m}.${p}-${pr} <${M}.${+m + 1}.0-0`;
         } else {
           ret = `>=${M}.${m}.${p} <${M}.${+m + 1}.0-0`;
         }
-        debug4("tilde return", ret);
+        debug5("tilde return", ret);
         return ret;
       });
     };
@@ -38111,11 +38111,11 @@ var require_range = __commonJS({
       return comp.trim().split(/\s+/).map((c) => replaceCaret(c, options)).join(" ");
     };
     var replaceCaret = (comp, options) => {
-      debug4("caret", comp, options);
+      debug5("caret", comp, options);
       const r = options.loose ? re[t.CARETLOOSE] : re[t.CARET];
       const z = options.includePrerelease ? "-0" : "";
       return comp.replace(r, (_, M, m, p, pr) => {
-        debug4("caret", comp, _, M, m, p, pr);
+        debug5("caret", comp, _, M, m, p, pr);
         let ret;
         if (isX(M)) {
           ret = "";
@@ -38128,7 +38128,7 @@ var require_range = __commonJS({
             ret = `>=${M}.${m}.0${z} <${+M + 1}.0.0-0`;
           }
         } else if (pr) {
-          debug4("replaceCaret pr", pr);
+          debug5("replaceCaret pr", pr);
           if (M === "0") {
             if (m === "0") {
               ret = `>=${M}.${m}.${p}-${pr} <${M}.${m}.${+p + 1}-0`;
@@ -38139,7 +38139,7 @@ var require_range = __commonJS({
             ret = `>=${M}.${m}.${p}-${pr} <${+M + 1}.0.0-0`;
           }
         } else {
-          debug4("no pr");
+          debug5("no pr");
           if (M === "0") {
             if (m === "0") {
               ret = `>=${M}.${m}.${p}${z} <${M}.${m}.${+p + 1}-0`;
@@ -38150,19 +38150,19 @@ var require_range = __commonJS({
             ret = `>=${M}.${m}.${p} <${+M + 1}.0.0-0`;
           }
         }
-        debug4("caret return", ret);
+        debug5("caret return", ret);
         return ret;
       });
     };
     var replaceXRanges = (comp, options) => {
-      debug4("replaceXRanges", comp, options);
+      debug5("replaceXRanges", comp, options);
       return comp.split(/\s+/).map((c) => replaceXRange(c, options)).join(" ");
     };
     var replaceXRange = (comp, options) => {
       comp = comp.trim();
       const r = options.loose ? re[t.XRANGELOOSE] : re[t.XRANGE];
       return comp.replace(r, (ret, gtlt, M, m, p, pr) => {
-        debug4("xRange", comp, ret, gtlt, M, m, p, pr);
+        debug5("xRange", comp, ret, gtlt, M, m, p, pr);
         const xM = isX(M);
         const xm = xM || isX(m);
         const xp = xm || isX(p);
@@ -38209,16 +38209,16 @@ var require_range = __commonJS({
         } else if (xp) {
           ret = `>=${M}.${m}.0${pr} <${M}.${+m + 1}.0-0`;
         }
-        debug4("xRange return", ret);
+        debug5("xRange return", ret);
         return ret;
       });
     };
     var replaceStars = (comp, options) => {
-      debug4("replaceStars", comp, options);
+      debug5("replaceStars", comp, options);
       return comp.trim().replace(re[t.STAR], "");
     };
     var replaceGTE0 = (comp, options) => {
-      debug4("replaceGTE0", comp, options);
+      debug5("replaceGTE0", comp, options);
       return comp.trim().replace(re[options.includePrerelease ? t.GTE0PRE : t.GTE0], "");
     };
     var hyphenReplace = (incPr) => ($0, from, fM, fm, fp, fpr, fb, to, tM, tm, tp, tpr) => {
@@ -38256,7 +38256,7 @@ var require_range = __commonJS({
       }
       if (version.prerelease.length && !options.includePrerelease) {
         for (let i = 0; i < set.length; i++) {
-          debug4(set[i].semver);
+          debug5(set[i].semver);
           if (set[i].semver === Comparator.ANY) {
             continue;
           }
@@ -38293,7 +38293,7 @@ var require_comparator = __commonJS({
           }
         }
         comp = comp.trim().split(/\s+/).join(" ");
-        debug4("comparator", comp, options);
+        debug5("comparator", comp, options);
         this.options = options;
         this.loose = !!options.loose;
         this.parse(comp);
@@ -38302,7 +38302,7 @@ var require_comparator = __commonJS({
         } else {
           this.value = this.operator + this.semver.version;
         }
-        debug4("comp", this);
+        debug5("comp", this);
       }
       parse(comp) {
         const r = this.options.loose ? re[t.COMPARATORLOOSE] : re[t.COMPARATOR];
@@ -38324,7 +38324,7 @@ var require_comparator = __commonJS({
         return this.value;
       }
       test(version) {
-        debug4("Comparator.test", version, this.options.loose);
+        debug5("Comparator.test", version, this.options.loose);
         if (this.semver === ANY || version === ANY) {
           return true;
         }
@@ -38381,7 +38381,7 @@ var require_comparator = __commonJS({
     var parseOptions = require_parse_options();
     var { safeRe: re, t } = require_re();
     var cmp = require_cmp();
-    var debug4 = require_debug();
+    var debug5 = require_debug();
     var SemVer = require_semver();
     var Range = require_range();
   }
@@ -57916,11 +57916,11 @@ var require_isexe = __commonJS({
   "node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js"(exports2, module2) {
     "use strict";
     var fs5 = require("fs");
-    var core5;
+    var core6;
     if (process.platform === "win32" || global.TESTING_WINDOWS) {
-      core5 = require_windows();
+      core6 = require_windows();
     } else {
-      core5 = require_mode();
+      core6 = require_mode();
     }
     module2.exports = isexe;
     isexe.sync = sync;
@@ -57943,7 +57943,7 @@ var require_isexe = __commonJS({
           });
         });
       }
-      core5(path4, options || {}, function(er, is) {
+      core6(path4, options || {}, function(er, is) {
         if (er) {
           if (er.code === "EACCES" || options && options.ignoreErrors) {
             er = null;
@@ -57955,7 +57955,7 @@ var require_isexe = __commonJS({
     }
     function sync(path4, options) {
       try {
-        return core5.sync(path4, options || {});
+        return core6.sync(path4, options || {});
       } catch (er) {
         if (options && options.ignoreErrors || er.code === "EACCES") {
           return false;
@@ -60497,7 +60497,7 @@ var require_dist_node11 = __commonJS({
 });
 
 // actions/signed-commits/src/index.ts
-var core4 = __toESM(require_core());
+var core5 = __toESM(require_core());
 var import_fs_extra3 = __toESM(require_lib2());
 
 // actions/signed-commits/src/git/local-git.ts
@@ -60546,7 +60546,7 @@ var checkIfClean = async () => {
 var import_exec3 = __toESM(require_exec());
 var import_utils3 = __toESM(require_utils6());
 var github = __toESM(require_github());
-var core3 = __toESM(require_core());
+var core4 = __toESM(require_core());
 var import_fs_extra2 = __toESM(require_lib2());
 var import_get_packages4 = __toESM(require_manypkg_get_packages_cjs());
 var import_path5 = __toESM(require("path"));
@@ -60656,7 +60656,7 @@ function nodeHasDepthProperty(node) {
 }
 
 // actions/signed-commits/src/git/github-git/index.ts
-var core2 = __toESM(require_core());
+var core3 = __toESM(require_core());
 var import_path2 = require("path");
 
 // actions/signed-commits/src/git/github-git/repo-status.ts
@@ -60737,6 +60737,7 @@ async function calculateFileChanges(changes, cwd = "") {
 }
 
 // actions/signed-commits/src/git/github-git/repo-tags.ts
+var core2 = __toESM(require_core());
 async function pushTags(tagSeparator, createMajorVersionTags, cwd, rootPackageInfo) {
   const localTags = await getLocalTags(cwd);
   const remoteTagNames = await getRemoteTagNames(cwd);
@@ -60744,7 +60745,13 @@ async function pushTags(tagSeparator, createMajorVersionTags, cwd, rootPackageIn
   await deleteTags(newTags, cwd);
   const rewrittenTags = replaceTagSeparator(newTags, tagSeparator);
   const finalTags = rootPackageInfo ? rewriteRootPackageTags(rewrittenTags, tagSeparator, rootPackageInfo) : rewrittenTags;
+  core2.debug(
+    `Final tags to push: ${finalTags.map((tag) => tag.name).join(", ")}`
+  );
   const filteredRewrittenTags = computeTagDiff(finalTags, remoteTagNames);
+  core2.debug(
+    `Filtered rewritten tags to push: ${filteredRewrittenTags.map((tag) => tag.name).join(", ")}`
+  );
   const createdTags = await createLightweightTags(filteredRewrittenTags, cwd);
   await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
   if (createMajorVersionTags) {
@@ -60885,11 +60892,11 @@ function parseTagName(tagName, separator) {
 
 // actions/signed-commits/src/git/github-git/index.ts
 async function commitAll(client, branch, owner, repo, message, cwd) {
-  core2.debug(`Committing all changes in ${cwd} to ${owner}/${repo}:${branch}`);
+  core3.debug(`Committing all changes in ${cwd} to ${owner}/${repo}:${branch}`);
   const fileChanges = await getFileChanges(cwd);
   const commits = compileCommits(fileChanges, message);
   if (commits.length === 0) {
-    core2.info("No changes to commit. Skipping.");
+    core3.info("No changes to commit. Skipping.");
   }
   let expectedHeadOid = await getRemoteHeadOid(client, {
     branch,
@@ -60897,9 +60904,9 @@ async function commitAll(client, branch, owner, repo, message, cwd) {
     repo
   });
   let commitNumber = 1;
-  core2.info(`Creating ${commits.length} commits.`);
+  core3.info(`Creating ${commits.length} commits.`);
   for (const commit of commits) {
-    core2.debug(
+    core3.debug(
       `Commit ${commitNumber++}/${commits.length} - ${commit.message}`
     );
     const input = {
@@ -60919,7 +60926,7 @@ async function commitAll(client, branch, owner, repo, message, cwd) {
   }
 }
 async function createCommitOnBranch(client, input) {
-  core2.debug(`Creating commit on branch ${input.branch.branchName}`);
+  core3.debug(`Creating commit on branch ${input.branch.branchName}`);
   const query = `
     mutation($input: CreateCommitOnBranchInput!) {
       createCommitOnBranch(input: $input) {
@@ -60939,7 +60946,7 @@ async function createCommitOnBranch(client, input) {
   }
 }
 async function getRemoteHeadOid(client, opts) {
-  core2.debug(
+  core3.debug(
     `Getting remote head oid for ${opts?.owner}/${opts?.repo}:${opts?.branch}`
   );
   const res = await client.rest.repos.getBranch(opts);
@@ -61239,20 +61246,20 @@ var setupOctokit = (githubToken) => {
     (0, import_utils3.getOctokitOptions)(githubToken, {
       throttle: {
         onRateLimit: (retryAfter, options, _octokit, retryCount) => {
-          core3.warning(
+          core4.warning(
             `Request quota exhausted for request ${options.method} ${options.url}`
           );
           if (retryCount <= 2) {
-            core3.info(`Retrying after ${retryAfter} seconds!`);
+            core4.info(`Retrying after ${retryAfter} seconds!`);
             return true;
           }
         },
         onSecondaryRateLimit: (retryAfter, options, _octokit, retryCount) => {
-          core3.warning(
+          core4.warning(
             `SecondaryRateLimit detected for request ${options.method} ${options.url}`
           );
           if (retryCount <= 2) {
-            core3.info(`Retrying after ${retryAfter} seconds!`);
+            core4.info(`Retrying after ${retryAfter} seconds!`);
             return true;
           }
         }
@@ -61262,7 +61269,7 @@ var setupOctokit = (githubToken) => {
 };
 var createRelease = async (octokit, { pkg, tagName }) => {
   try {
-    core3.debug(
+    core4.debug(
       `Creating release for ${pkg.packageJson.name}@${pkg.packageJson.version}`
     );
     let changelogFileName = import_path5.default.join(pkg.dir, "CHANGELOG.md");
@@ -61314,7 +61321,7 @@ async function runPublish({
       name: packageJson.name,
       version: packageJson.version
     };
-    core3.info(
+    core4.info(
       `Root package configured: ${rootPackageInfo.name}@${rootPackageInfo.version} will use v<version> tags`
     );
   }
@@ -61527,7 +61534,7 @@ async function runVersion({
       `This action only works if "commit:false" is set within .changeset/config.json`
     );
   }
-  core3.info(JSON.stringify(searchResult.data, null, 2));
+  core4.info(JSON.stringify(searchResult.data, null, 2));
   const changedPackagesInfo = (await changedPackagesInfoPromises).filter((x) => x).sort(sortTheThings);
   let prBody = await getVersionPrBody({
     hasPublishScript,
@@ -61538,7 +61545,7 @@ async function runVersion({
     prBodyMaxCharacters
   });
   if (searchResult.data.items.length === 0) {
-    core3.info("creating pull request");
+    core4.info("creating pull request");
     const { data: newPullRequest } = await octokit.rest.pulls.create({
       base: branch,
       head: versionBranch,
@@ -61552,7 +61559,7 @@ async function runVersion({
     };
   } else {
     const [pullRequest] = searchResult.data.items;
-    core3.info(`updating found pull request #${pullRequest.number}`);
+    core4.info(`updating found pull request #${pullRequest.number}`);
     await octokit.rest.pulls.update({
       pull_number: pullRequest.number,
       title: finalPrTitle,
@@ -61567,33 +61574,33 @@ async function runVersion({
 }
 
 // actions/signed-commits/src/index.ts
-var getOptionalInput = (name) => core4.getInput(name) || void 0;
+var getOptionalInput = (name) => core5.getInput(name) || void 0;
 (async () => {
   const githubToken = process.env.GITHUB_TOKEN;
   if (!githubToken) {
-    core4.setFailed("Please add the GITHUB_TOKEN to the changesets action");
+    core5.setFailed("Please add the GITHUB_TOKEN to the changesets action");
     return;
   }
-  const tagSeparator = core4.getInput("tagSeparator");
+  const tagSeparator = core5.getInput("tagSeparator");
   if (tagSeparator !== "@" && tagSeparator !== "/" && tagSeparator !== "/v") {
-    core4.setFailed(
+    core5.setFailed(
       `Tag separator must be either '@', '/', or '/v', ${tagSeparator} is not supported`
     );
     return;
   }
-  const createMajorVersionTags = core4.getBooleanInput("createMajorVersionTags");
+  const createMajorVersionTags = core5.getBooleanInput("createMajorVersionTags");
   const rootVersionPackagePath = getOptionalInput("rootVersionPackagePath");
-  const inputCwd = core4.getInput("cwd");
+  const inputCwd = core5.getInput("cwd");
   if (inputCwd) {
-    core4.info("changing directory to the one given as the input");
+    core5.info("changing directory to the one given as the input");
     process.chdir(inputCwd);
   }
-  const setupGitUser = core4.getBooleanInput("setupGitUser");
+  const setupGitUser = core5.getBooleanInput("setupGitUser");
   if (setupGitUser) {
-    core4.info("setting git user");
+    core5.info("setting git user");
     await setupUser();
   }
-  core4.info("setting GitHub credentials");
+  core5.info("setting GitHub credentials");
   await import_fs_extra3.default.writeFile(
     `${process.env.HOME}/.netrc`,
     `machine github.com
@@ -61601,36 +61608,36 @@ login github-actions[bot]
 password ${githubToken}`
   );
   let { changesets } = await readChangesetState();
-  let publishScript = core4.getInput("publish");
+  let publishScript = core5.getInput("publish");
   let hasChangesets = changesets.length !== 0;
   const hasNonEmptyChangesets = changesets.some(
     (changeset) => changeset.releases.length > 0
   );
   let hasPublishScript = !!publishScript;
-  core4.setOutput("published", "false");
-  core4.setOutput("publishedPackages", "[]");
-  core4.setOutput("hasChangesets", String(hasChangesets));
+  core5.setOutput("published", "false");
+  core5.setOutput("publishedPackages", "[]");
+  core5.setOutput("hasChangesets", String(hasChangesets));
   switch (true) {
     case (!hasChangesets && !hasPublishScript):
-      core4.info("No changesets found");
+      core5.info("No changesets found");
       return;
     case (!hasChangesets && hasPublishScript): {
-      core4.info(
+      core5.info(
         "No changesets found, attempting to publish any unpublished packages to npm"
       );
       let userNpmrcPath = `${process.env.HOME}/.npmrc`;
       if (import_fs_extra3.default.existsSync(userNpmrcPath)) {
-        core4.info("Found existing user .npmrc file");
+        core5.info("Found existing user .npmrc file");
         const userNpmrcContent = await import_fs_extra3.default.readFile(userNpmrcPath, "utf8");
         const authLine = userNpmrcContent.split("\n").find((line) => {
           return /^\s*\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);
         });
         if (authLine) {
-          core4.info(
+          core5.info(
             "Found existing auth token for the npm registry in the user .npmrc file"
           );
         } else {
-          core4.info(
+          core5.info(
             "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one"
           );
           import_fs_extra3.default.appendFileSync(
@@ -61641,7 +61648,7 @@ password ${githubToken}`
           );
         }
       } else {
-        core4.info("No user .npmrc file found, creating one");
+        core5.info("No user .npmrc file found, creating one");
         import_fs_extra3.default.writeFileSync(
           userNpmrcPath,
           `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}
@@ -61651,14 +61658,14 @@ password ${githubToken}`
       const result = await runPublish({
         script: publishScript,
         githubToken,
-        createGithubReleases: core4.getBooleanInput("createGithubReleases"),
+        createGithubReleases: core5.getBooleanInput("createGithubReleases"),
         tagSeparator,
         createMajorVersionTags,
         rootVersionPackagePath
       });
       if (result.published) {
-        core4.setOutput("published", "true");
-        core4.setOutput(
+        core5.setOutput("published", "true");
+        core5.setOutput(
           "publishedPackages",
           JSON.stringify(result.publishedPackages)
         );
@@ -61666,7 +61673,7 @@ password ${githubToken}`
       return;
     }
     case (hasChangesets && !hasNonEmptyChangesets):
-      core4.info("All changesets are empty; not creating PR");
+      core5.info("All changesets are empty; not creating PR");
       return;
     case hasChangesets:
       const { pullRequestNumber } = await runVersion({
@@ -61674,15 +61681,15 @@ password ${githubToken}`
         githubToken,
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
-        prDraft: core4.getBooleanInput("prDraft"),
+        prDraft: core5.getBooleanInput("prDraft"),
         hasPublishScript
       });
-      core4.setOutput("pullRequestNumber", String(pullRequestNumber));
+      core5.setOutput("pullRequestNumber", String(pullRequestNumber));
       return;
   }
 })().catch((err) => {
-  core4.error(err);
-  core4.setFailed(err.message);
+  core5.error(err);
+  core5.setFailed(err.message);
 });
 /*! Bundled license information:
 
