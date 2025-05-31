@@ -221,11 +221,22 @@ runs:
         path: "${{ github.workspace }}/crib"
         token: ${{ inputs.github-token }}
 
+    - name: Cache crib go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+        key: ${{ runner.os }}-go-crib-${{ hashFiles('./crib/**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-crib-${{
+          hashFiles('./crib/**/go.sum') }}
+
     # This step is useful only in the context of crib repo
     - name: Detect if the CLI was changed, only build if needed
       if: github.repository  == 'smartcontractkit/crib'
       uses: dorny/paths-filter@v3
-      id: filter
+      id: cli-changed-filter
       with:
         working-directory: "${{ github.workspace }}/crib"
         filters: |
@@ -241,6 +252,7 @@ runs:
     - uses: actions/setup-go@v5
       with:
         go-version-file: "${{ github.workspace }}/crib/cli/go.mod"
+        cache: "false"
         cache-dependency-path: "${{ github.workspace }}/crib/**/*.sum"
 
     - name: Setup Nix
@@ -305,7 +317,7 @@ runs:
         CHAINLINK_CODE_DIR: "../"
         CHAINLINK_PRODUCT: ${{ inputs.chainlink-product }}
         CHAINLINK_TEAM: ${{ inputs.chainlink-team }}
-        CLI_CHANGED: ${{ steps.filter.outputs.cli == 'true' }}
+        CLI_CHANGED: ${{ steps.cli-changed-filter.outputs.cli == 'true' }}
         CRIB_CI_ENV: true
         CRIB_SKIP_DOCKER_ECR_LOGIN: true
         CRIB_SKIP_HELM_ECR_LOGIN: true
