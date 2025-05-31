@@ -222,6 +222,14 @@ inputs:
   gauntlet_plus_plus_image:
     required: false
     description: Gauntlet-plus-plus image link
+  install_plugins_public:
+    required: false
+    default: "false"
+    description: "Set to true to install the public LOOP plugins"
+  aptos_cli_version:
+    required: false
+    default: ""
+    description: "Set to an Aptos CLI version to install (e.g. 7.2.0, latest)"
 
 runs:
   using: composite
@@ -229,7 +237,7 @@ runs:
     # Setup Tools and libraries
     - name: Setup environment
       if: inputs.run_setup == 'true'
-      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@ctf-setup-run-tests-environment/0.6.0 # ctf-setup-run-tests-environment@v0.6.0
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@0e45310c4e5f3f270599b82e9c608ebc4a7dd330 # ctf-setup-run-tests-environment@v0.6.0
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
@@ -254,6 +262,8 @@ runs:
         k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
         enable-gap: ${{ inputs.enable-gap }}
         enable-proxy-debug: ${{ inputs.enable-proxy-debug }}
+        install_plugins_public: ${{ inputs.install_plugins_public }}
+        aptos_cli_version: ${{ inputs.aptos_cli_version }}
 
     - name: Replace chainlink/integration-tests deps
       if: ${{ inputs.dep_chainlink_integration_tests }}

@@ -96,6 +96,23 @@ inputs:
   prod_aws_account_number:
     required: false
     description: AWS Account number that holds the gauntlet_plus_plus
+  install_plugins_public:
+    required: false
+    default: "false"
+    description: "Set to true to install the public LOOP plugins"
+  aptos_cli_version:
+    required: false
+    default: ""
+    description: "Set to an Aptos CLI version to install (e.g. 7.2.0, latest)"
+  setup_db:
+    required: false
+    default: "false"
+    description: "Set to true to setup the database for the tests"
+
+outputs:
+  database_url:
+    description: The database URL for the tests
+    value: ${{ steps.setup-pg.outputs.database-url }}
 
 runs:
   using: composite
@@ -112,6 +129,7 @@ runs:
           echo "Error: k8s-cluster-name is required when enable-gap is true."
           exit 1
         fi
+
     # Go setup and caching
     - name: Setup Go
       if: inputs.go_necessary == 'true'
@@ -127,6 +145,21 @@ runs:
           ${{ inputs.test_download_vendor_packages_command }}
         gati_token: ${{ inputs.gati_token }}
 
+    - name: Setup postgres container
+      id: setup-pg
+      if: inputs.setup_db == 'true'
+      uses: smartcontractkit/.github/actions/setup-postgres@setup-postgres/v1
+      with:
+        tmpfs: true
+
+    - name: Setup database
+      if: inputs.setup_db == 'true'
+      shell: bash
+      env:
+        CL_DATABASE_URL: ${{ steps.setup-pg.outputs.database-url }}
+      run: |
+        go run ./core/store/cmd/preparetest
+
     - name: Setup gauntlet plus plus
       if: inputs.gauntlet_plus_plus_image
       uses: smartcontractkit/.github/actions/pull-private-ecr-image@pull-private-ecr-image/1.0.0 # pull-private-ecr-image@1.0.0
@@ -135,6 +168,19 @@ runs:
         aws-role-arn: ${{ inputs.prod_aws_role_to_assume }}
         image-url: ${{ inputs.gauntlet_plus_plus_image }}
         aws-account-number: ${{ inputs.prod_aws_account_number }}
+
+    - name: Install LOOP Plugins
+      if: inputs.install_plugins_public == 'true'
+      shell: bash
+      run: |
+        make install-loopinstall
+        make install-plugins-public
+
+    - name: Install Aptos CLI
+      if: inputs.aptos_cli_version
+      uses: aptos-labs/actions/install-aptos-cli@63740b290d839b87ecfafbcf75ed03a36a54a29f # jan 15, 2025
+      with:
+        CLI_VERSION: ${{ inputs.aptos_cli_version }}
 
     # Setup AWS cred and K8s context
     - name: Configure AWS Credentials

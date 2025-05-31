@@ -453,7 +453,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@b08cab0f49aa13d5adb849554b56086f4dba8984 # v1.34.4
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@1f6d929b4a5ffb56a89268339851fe993957d43f # v1.34.4
       - name: Install jq
         run: sudo apt-get install jq
 
@@ -1309,7 +1309,7 @@ jobs:
           fi
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@30b46ee5e5a5be9ae091fda296bbef605df01afd # ctf-run-tests@v0.6.2
+        uses: smartcontractkit/.github/actions/ctf-run-tests@e01e0004fd0c96c55adc8c421c4e867c781487bc # ctf-run-tests@v0.6.2
         env:
           CL_DATABASE_URL: ${{ env.DB_URL }}
         with:
@@ -1341,6 +1341,8 @@ jobs:
           main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
           k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
           enable-gap: false
+          install_plugins_public: ${{ matrix.tests.install_plugins_public }}
+          aptos_cli_version: ${{ matrix.tests.aptos_cli_version }}
 
   after_tests:
     needs:

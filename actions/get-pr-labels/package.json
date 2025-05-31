@@ -1,6 +1,6 @@
 {
-  "name": "ctf-setup-run-tests-environment",
-  "version": "0.7.0",
+  "name": "get-pr-labels",
+  "version": "1.1.0",
   "description": "",
   "private": true,
   "scripts": {},
