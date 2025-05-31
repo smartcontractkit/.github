@@ -60835,14 +60835,20 @@ function replaceTagSeparator(tags, separator) {
 }
 function rewriteRootPackageTags(tags, tagSeparator, rootPackageInfo) {
   return tags.map((tag) => {
+    core2.debug(
+      `Analyzing tag: ${tag.name} with separator: ${tagSeparator} for root package: ${rootPackageInfo.name}`
+    );
     const info4 = parseTagName(tag.name, tagSeparator);
+    core2.debug(`Parsed tag info: ${JSON.stringify(info4)} for tag: ${tag.name}`);
     if (info4 && info4.pkg === rootPackageInfo.name) {
+      core2.debug(`Rewriting root package tag ${tag.name} to v${info4.version}`);
       return {
         name: `v${info4.version}`,
         ref: tag.ref,
         originalName: tag.originalName || tag.name
       };
     }
+    core2.debug(`Tag ${tag.name} is not a root package tag, returning as-is`);
     return tag;
   });
 }
@@ -60854,6 +60860,12 @@ function getMajorVersionTags(tags, separator, rootPackageInfo) {
       return acc;
     }
     if (rootPackageInfo && info4.pkg === rootPackageInfo.name) {
+      return acc;
+    }
+    if (info4.major === "0") {
+      core2.debug(
+        `Skipping major version tag creation for ${tag.name} as its major version is 0.`
+      );
       return acc;
     }
     const majorTag = separator.endsWith("v") ? `${info4.pkg}${separator}${info4.major}` : `${info4.pkg}${separator}v${info4.major}`;
@@ -60870,17 +60882,20 @@ function getMajorVersionTags(tags, separator, rootPackageInfo) {
   }, []);
 }
 function parseTagName(tagName, separator) {
-  const tagRegex = new RegExp(`([a-z0-9-]+)${separator}(\\d+).(\\d+).(\\d+)`);
+  const escapedSeparator = separator.replace(/[.*+?^${}()|[\]\\]/g, "\\\\$&");
+  const tagRegex = new RegExp(
+    `^([a-z0-9-]+)${escapedSeparator}(\\d+)\\.(\\d+)\\.(\\d+)`
+  );
   const match = tagRegex.exec(tagName);
   if (!match || match.length < 5) {
+    core2.debug(
+      `parseTagName: No match for tagName "${tagName}" with separator "${separator}" using regex "${tagRegex}"`
+    );
     return;
   }
   const name = match[1];
   const version = `${match[2]}.${match[3]}.${match[4]}`;
   const majorVersion = match[2] ?? "0";
-  if (majorVersion == "0") {
-    return;
-  }
   return {
     pkg: name,
     version,
