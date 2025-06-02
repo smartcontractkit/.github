@@ -7,6 +7,6 @@
   "typings": "./src/index.d.ts",
   "generators": "./generators.json",
   "devDependencies": {
-    "vitest": "^2.0.0"
+    "vitest": "^2.1.9"
   }
 }
