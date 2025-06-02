@@ -1,5 +1,14 @@
 # cicd-changesets
 
+## 1.1.1
+
+### Patch Changes
+
+- [#1066](https://github.com/smartcontractkit/.github/pull/1066)
+  [`762b619`](https://github.com/smartcontractkit/.github/commit/762b61909a8bbf032b013474540b2bab10849d48)
+  Thanks [@chainchad](https://github.com/chainchad)! - Update dependency for
+  changesets signed commits action
+
 ## 1.1.0
 
 ### Minor Changes
