@@ -1,5 +1,14 @@
 # ctf-run-tests
 
+## 0.8.0
+
+### Minor Changes
+
+- [#1061](https://github.com/smartcontractkit/.github/pull/1061)
+  [`5f14d34`](https://github.com/smartcontractkit/.github/commit/5f14d34c3731300c76f711a5ce6c5697a4824df3)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: use setup_db param in
+  setup, then use output for DB env var
+
 ## 0.7.0
 
 ### Minor Changes
