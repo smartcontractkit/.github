@@ -1,5 +1,14 @@
 # changesets-signed-commits
 
+## 1.6.0
+
+### Minor Changes
+
+- [#1059](https://github.com/smartcontractkit/.github/pull/1059)
+  [`53922da`](https://github.com/smartcontractkit/.github/commit/53922da1e74d5047320d49bd4ab584ed4a7f78cf)
+  Thanks [@chainchad](https://github.com/chainchad)! - Support a designated root
+  package to use a git tag without package name prefix
+
 ## 1.5.0
 
 ### Minor Changes
