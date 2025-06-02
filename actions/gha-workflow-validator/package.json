@@ -1,6 +1,6 @@
 {
   "name": "gha-workflow-validator",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "main": "dist/index.js",
   "private": true,
   "engines": {
