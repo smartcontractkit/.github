@@ -838,7 +838,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ fromJson(env.DOCKER_TESTS_TIMEOUT_MINUTES) }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@feat/speed-up-in-memory-tests-run-tests
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.8.0
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION:
@@ -1156,7 +1156,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@feat/speed-up-in-memory-tests-run-tests
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.8.0
         env:
           DETACH_RUNNER: true
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
@@ -1283,7 +1283,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@feat/speed-up-in-memory-tests-run-tests
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.8.0
         with:
           flakeguard_enable: ${{ env.FLAKEGUARD_ENABLE }}
           flakeguard_run_count: ${{ env.FLAKEGUARD_RUN_COUNT }}
