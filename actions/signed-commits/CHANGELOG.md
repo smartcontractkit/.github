@@ -1,5 +1,14 @@
 # changesets-signed-commits
 
+## 1.7.0
+
+### Minor Changes
+
+- [#1069](https://github.com/smartcontractkit/.github/pull/1069)
+  [`5dbee42`](https://github.com/smartcontractkit/.github/commit/5dbee425073faf71d4aaad45e43a436d9498db92)
+  Thanks [@chainchad](https://github.com/chainchad)! - Support scoped name
+  package git tags
+
 ## 1.6.0
 
 ### Minor Changes
