@@ -142,7 +142,7 @@ runs:
 
     - name: Run changesets
       id: changesets
-      uses: smartcontractkit/.github/actions/signed-commits@dx-906/changesets-root-package # TODO
+      uses: smartcontractkit/.github/actions/signed-commits@changesets-signed-commits/1.6.0
       env:
         GITHUB_TOKEN: ${{ steps.get-gh-token.outputs.access-token }}
       with:
