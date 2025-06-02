@@ -447,7 +447,7 @@ jobs:
         with:
           go-version: "1.24.0"
           check-latest: true
-          cache: false # disable caching as this job benefit from it
+          cache: false # disable caching as this job doesn't benefit from it
 
       - name: Install citool
         shell: bash
