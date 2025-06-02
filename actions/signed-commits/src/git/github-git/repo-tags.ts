@@ -174,7 +174,10 @@ export function replaceTagSeparator(
     const lastAtIndex = tag.name.lastIndexOf("@");
     let newTagName = tag.name;
     if (lastAtIndex !== -1) {
-      newTagName = tag.name.substring(0, lastAtIndex) + separator + tag.name.substring(lastAtIndex + 1);
+      newTagName =
+        tag.name.substring(0, lastAtIndex) +
+        separator +
+        tag.name.substring(lastAtIndex + 1);
     }
     return {
       ...tag,
