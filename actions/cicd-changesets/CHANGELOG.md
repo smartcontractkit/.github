@@ -1,5 +1,14 @@
 # cicd-changesets
 
+## 1.1.2
+
+### Patch Changes
+
+- [#1071](https://github.com/smartcontractkit/.github/pull/1071)
+  [`74e0d7d`](https://github.com/smartcontractkit/.github/commit/74e0d7dd554230852b7b7a9037ab4269a463da70)
+  Thanks [@chainchad](https://github.com/chainchad)! - Use latest changesets
+  action with fix to scoped package names
+
 ## 1.1.1
 
 ### Patch Changes
