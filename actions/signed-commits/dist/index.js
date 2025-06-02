@@ -60825,7 +60825,11 @@ function replaceTagSeparator(tags, separator) {
     return tags;
   }
   return tags.map((tag) => {
-    const newTagName = tag.name.replace("@", separator);
+    const lastAtIndex = tag.name.lastIndexOf("@");
+    let newTagName = tag.name;
+    if (lastAtIndex !== -1) {
+      newTagName = tag.name.substring(0, lastAtIndex) + separator + tag.name.substring(lastAtIndex + 1);
+    }
     return {
       ...tag,
       name: newTagName,
@@ -60882,9 +60886,9 @@ function getMajorVersionTags(tags, separator, rootPackageInfo) {
   }, []);
 }
 function parseTagName(tagName, separator) {
-  const escapedSeparator = separator.replace(/[.*+?^${}()|[\]\\]/g, "\\\\$&");
+  const escapedSeparator = separator.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const tagRegex = new RegExp(
-    `^([a-z0-9-]+)${escapedSeparator}(\\d+)\\.(\\d+)\\.(\\d+)`
+    `^((?:@[a-zA-Z0-9-]+/)?[a-zA-Z0-9-]+)${escapedSeparator}(\\d+)\\.(\\d+)\\.(\\d+)$`
   );
   const match = tagRegex.exec(tagName);
   if (!match || match.length < 5) {
