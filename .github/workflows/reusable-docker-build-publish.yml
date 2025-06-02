@@ -94,13 +94,15 @@ on:
         description: "Docker build arguments."
         required: false
         type: string
-      docker-build-cache-disabled:
+      docker-cache-behaviour:
         description: |
-          Disable Docker build cache. See `--no-cache` flag in:
-          https://docs.docker.com/engine/reference/commandline/buildx_build/#cache
+          Controls how the docker build cache is used.
+          - "disable" completely disables the cache.
+          - "enable" enables the cache, reading from and writing to it on every event.
+          - "write-on-trunk" enables the cache, but only writes to it on pushes to the default branch. (default)
         required: false
         type: string
-        default: "false"
+        default: "write-on-trunk"
       docker-build-context:
         description: "Path to Docker build context."
         required: true
@@ -181,6 +183,15 @@ on:
           This is required to differentiate between branch push and tag push events.
         required: false
         type: string
+      github-trunk-branch:
+        description: |
+          The default branch of the repository, used to determine if the
+          workflow run is on the trunk branch.
+
+          Example: main
+        required: false
+        type: string
+        default: "main"
       github-runner-amd64:
         description: |
           The GitHub Actions runner name for builds on the platform: amd64
@@ -233,6 +244,9 @@ jobs:
       git-short-sha: ${{ steps.git-short-sha.outputs.short-sha }}
       pr-number: ${{ steps.set-extra-outputs.outputs.pr-number }}
       build-type: ${{ steps.set-extra-outputs.outputs.build-type }}
+      docker-restore-cache:
+        ${{ steps.should-cache.outputs.docker-restore-cache }}
+      docker-save-cache: ${{ steps.should-cache.outputs.docker-save-cache }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -285,6 +299,32 @@ jobs:
             echo "build-type=manual" | tee -a "$GITHUB_OUTPUT"
           else
             echo "::error::Unsupported GitHub event name: ${GITHUB_EVENT_NAME}"
+            exit 1
+          fi
+
+      - name: Check docker cache constraints
+        id: should-cache
+        env:
+          GITHUB_REF_NAME: ${{ inputs.github-ref-name }}
+          GITHUB_EVENT_NAME: ${{ inputs.github-event-name }}
+          GITHUB_TRUNK_BRANCH: ${{ inputs.github-trunk-branch }}
+          DOCKER_CACHE_BEHAVIOUR: ${{ inputs.docker-cache-behaviour }}
+        run: |
+          if [[ "${DOCKER_CACHE_BEHAVIOUR}" == "disable" ]]; then
+            echo "docker-restore-cache=false" | tee -a "${GITHUB_OUTPUT}"
+            echo "docker-save-cache=false" | tee -a "${GITHUB_OUTPUT}"
+          elif [[ "${DOCKER_CACHE_BEHAVIOUR}" == "enable" ]]; then
+            echo "docker-restore-cache=true" | tee -a "${GITHUB_OUTPUT}"
+            echo "docker-save-cache=true" | tee -a "${GITHUB_OUTPUT}"
+          elif [[ "${DOCKER_CACHE_BEHAVIOUR}" == "write-on-trunk" ]]; then
+              echo "docker-restore-cache=true" | tee -a "${GITHUB_OUTPUT}"
+            if [[ "${GITHUB_REF_NAME}" == "${GITHUB_TRUNK_BRANCH}" ]] && [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+              echo "docker-save-cache=true" | tee -a "${GITHUB_OUTPUT}"
+            else
+              echo "docker-save-cache=false" | tee -a "${GITHUB_OUTPUT}"
+            fi
+          else
+            echo "::error::Invalid DOCKER_CACHE_BEHAVIOUR: ${DOCKER_CACHE_BEHAVIOUR}. Must be one of: disabled, enabled, write-on-trunk."
             exit 1
           fi
 
@@ -385,7 +425,7 @@ jobs:
             exit 1
           fi
           # Append the arch (example: "-arm64") to the tag value.
-          tags="type=raw,value=${tag_value}-${MATRIX_ARCH}"                
+          tags="type=raw,value=${tag_value}-${MATRIX_ARCH}"
           echo "tags=${tags}" | tee -a "${GITHUB_OUTPUT}"
           # This will be used to generate the docker manifest tag in a future
           # job (without the arch suffix).
@@ -415,7 +455,7 @@ jobs:
 
       - name: Docker image build
         id: build
-        uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/0.6.1
+        uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/0.7.0
         with:
           platform: ${{ format('linux/{0}', matrix.arch) }}
           docker-registry-url: >-
@@ -432,7 +472,8 @@ jobs:
           tags: ${{ steps.set-docker-image-tags.outputs.tags }}
           dockerfile: ${{ inputs.dockerfile }}
           docker-build-args: ${{ inputs.docker-build-args }}
-          docker-build-cache-disabled: ${{ inputs.docker-build-cache-disabled }}
+          docker-restore-cache: ${{ needs.init.outputs.docker-restore-cache }}
+          docker-save-cache: ${{ needs.init.outputs.docker-save-cache }}
           context: ${{ inputs.docker-build-context }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
