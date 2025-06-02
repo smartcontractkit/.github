@@ -19,7 +19,7 @@
     "package": "pnpm nx run-many --target=package --verbose",
     "package:affected": "pnpm nx affected --target=package --verbose",
     "ci:changeset:publish": "pnpm changeset publish",
-    "ci:changeset:version": "pnpm changeset version && pnpm version --patch"
+    "ci:changeset:version": "pnpm changeset version"
   },
   "private": true,
   "devDependencies": {
