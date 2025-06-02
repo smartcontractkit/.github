@@ -169,7 +169,13 @@ export function replaceTagSeparator(
   }
 
   return tags.map((tag) => {
-    const newTagName = tag.name.replace("@", separator);
+    // For scoped packages like @scope/foo@1.0.0, we need to replace only the last @
+    // which is the separator between package name and version, not the @ in the scope
+    const lastAtIndex = tag.name.lastIndexOf("@");
+    let newTagName = tag.name;
+    if (lastAtIndex !== -1) {
+      newTagName = tag.name.substring(0, lastAtIndex) + separator + tag.name.substring(lastAtIndex + 1);
+    }
     return {
       ...tag,
       name: newTagName,
@@ -267,11 +273,16 @@ export function getMajorVersionTags(
  * @returns The parsed tag
  */
 export function parseTagName(tagName: string, separator: string) {
-  // [a-z0-9-]+ is the package name
-  // (\\d+) is the major/minor/patch version
-  const escapedSeparator = separator.replace(/[.*+?^${}()|[\]\\]/g, "\\\\$&");
+  // Package name patterns:
+  // - Regular package: [a-zA-Z0-9-]+
+  // - Scoped package: @[a-zA-Z0-9-]+/[a-zA-Z0-9-]+
+  // Combined pattern: (?:@[a-zA-Z0-9-]+/)?[a-zA-Z0-9-]+
+  // Should match tags like:
+  // - foo@1.2.3, foo/1.2.3, foo/v1.2.3
+  // - @scope/foo@1.2.3, @scope/foo/1.2.3, @scope/foo/v1.2.3
+  const escapedSeparator = separator.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const tagRegex = new RegExp(
-    `^([a-z0-9-]+)${escapedSeparator}(\\d+)\\.(\\d+)\\.(\\d+)`,
+    `^((?:@[a-zA-Z0-9-]+/)?[a-zA-Z0-9-]+)${escapedSeparator}(\\d+)\\.(\\d+)\\.(\\d+)$`,
   );
   const match = tagRegex.exec(tagName);
   if (!match || match.length < 5) {

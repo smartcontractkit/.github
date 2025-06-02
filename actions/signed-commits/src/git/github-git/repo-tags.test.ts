@@ -137,6 +137,43 @@ describe("repo-tags", () => {
         { name: "bar/v2.0.0", ref: "def", originalName: "bar@2.0.0" },
       ]);
     });
+
+    it("should handle scoped packages correctly", () => {
+      const input = [
+        { name: "@scope/foo@1.0.0", ref: "abc" },
+        { name: "@other/bar@2.0.0", ref: "def" },
+      ];
+
+      // Test with / separator
+      const result1 = replaceTagSeparator(input, "/");
+      expect(result1).toEqual([
+        {
+          name: "@scope/foo/1.0.0",
+          ref: "abc",
+          originalName: "@scope/foo@1.0.0",
+        },
+        {
+          name: "@other/bar/2.0.0",
+          ref: "def",
+          originalName: "@other/bar@2.0.0",
+        },
+      ]);
+
+      // Test with /v separator
+      const result2 = replaceTagSeparator(input, "/v");
+      expect(result2).toEqual([
+        {
+          name: "@scope/foo/v1.0.0",
+          ref: "abc",
+          originalName: "@scope/foo@1.0.0",
+        },
+        {
+          name: "@other/bar/v2.0.0",
+          ref: "def",
+          originalName: "@other/bar@2.0.0",
+        },
+      ]);
+    });
   });
 
   describe("getMajorVersionTags", () => {
@@ -198,7 +235,6 @@ describe("repo-tags", () => {
           tags: [
             { name: "pkg-g/v0.8.9", ref: "ref6" }, // Skip
             { name: "pkg-h/v3.4.5", ref: "ref7" }, // Keep
-            { name: "pkg-i/v0.0.1", ref: "ref8" }, // Skip
           ],
           expected: [{ name: "pkg-h/v3", ref: "ref7", majorVersion: true }],
         },
@@ -242,6 +278,144 @@ describe("repo-tags", () => {
         expect(result, description).toEqual(expected);
       }
     });
+
+    it("should handle scoped packages correctly", () => {
+      const input = [
+        { name: "@scope/foo@1.2.3", ref: "ref1" },
+        { name: "@scope/bar@2.3.4", ref: "ref2" },
+        { name: "@other/baz@0.1.0", ref: "ref3" }, // skipped: major === "0"
+      ];
+      const result = getMajorVersionTags(input, "@");
+      expect(result).toEqual([
+        { name: "@scope/foo@v1", ref: "ref1", majorVersion: true },
+        { name: "@scope/bar@v2", ref: "ref2", majorVersion: true },
+      ]);
+    });
+
+    it("should handle scoped packages with different separators", () => {
+      const input = [
+        { name: "@scope/foo/1.2.3", ref: "ref1" },
+        { name: "@scope/bar/v2.3.4", ref: "ref2" },
+      ];
+
+      // Test with / separator
+      const result1 = getMajorVersionTags(input.slice(0, 1), "/");
+      expect(result1).toEqual([
+        { name: "@scope/foo/v1", ref: "ref1", majorVersion: true },
+      ]);
+
+      // Test with /v separator
+      const result2 = getMajorVersionTags(input.slice(1, 2), "/v");
+      expect(result2).toEqual([
+        { name: "@scope/bar/v2", ref: "ref2", majorVersion: true },
+      ]);
+    });
+
+    it("should explicitly skip creating major version tags if major version is '0'", () => {
+      const testScenarios = [
+        {
+          description: "using '@' separator",
+          separator: "@",
+          tags: [
+            { name: "pkg-a@0.1.2", ref: "ref1" }, // Skip
+            { name: "pkg-b@1.2.3", ref: "ref2" }, // Keep
+            { name: "pkg-c@0.4.5", ref: "ref3" }, // Skip
+          ],
+          expected: [{ name: "pkg-b@v1", ref: "ref2", majorVersion: true }],
+        },
+        {
+          description: "using '/' separator",
+          separator: "/",
+          tags: [
+            { name: "pkg-d/0.6.7", ref: "ref4" }, // Skip
+            { name: "pkg-e/2.3.4", ref: "ref5" }, // Keep
+            { name: "pkg-f/0.0.0", ref: "refX" }, // Skip
+          ],
+          expected: [{ name: "pkg-e/v2", ref: "ref5", majorVersion: true }],
+        },
+        {
+          description: "using '/v' separator",
+          separator: "/v",
+          tags: [
+            { name: "pkg-g/v0.8.9", ref: "ref6" }, // Skip
+            { name: "pkg-h/v3.4.5", ref: "ref7" }, // Keep
+          ],
+          expected: [{ name: "pkg-h/v3", ref: "ref7", majorVersion: true }],
+        },
+        {
+          description: "using '--' separator",
+          separator: "--",
+          tags: [
+            { name: "complex-pkg--0.1.0", ref: "ref9" }, // Skip
+            { name: "complex-pkg--4.0.0", ref: "ref10" }, // Keep
+            { name: "another-pkg--0.0.0", ref: "ref11" }, // Skip
+          ],
+          expected: [
+            { name: "complex-pkg--v4", ref: "ref10", majorVersion: true },
+          ],
+        },
+        {
+          description: "with no tags resulting in major versions",
+          separator: "@",
+          tags: [
+            { name: "zeromajor@0.1.2", ref: "refA" },
+            { name: "anotherzero@0.3.4", ref: "refB" },
+          ],
+          expected: [],
+        },
+        {
+          description: "with only tags that should result in major versions",
+          separator: "/",
+          tags: [
+            { name: "onemajor/1.1.2", ref: "refC" },
+            { name: "twomajor/2.3.4", ref: "refD" },
+          ],
+          expected: [
+            { name: "onemajor/v1", ref: "refC", majorVersion: true },
+            { name: "twomajor/v2", ref: "refD", majorVersion: true },
+          ],
+        },
+        {
+          description: "using '@' separator with scoped packages",
+          separator: "@",
+          tags: [
+            { name: "@scope/pkg-a@0.1.2", ref: "ref1" }, // Skip
+            { name: "@scope/pkg-b@1.2.3", ref: "ref2" }, // Keep
+            { name: "@other/pkg-c@0.4.5", ref: "ref3" }, // Skip
+          ],
+          expected: [
+            { name: "@scope/pkg-b@v1", ref: "ref2", majorVersion: true },
+          ],
+        },
+        {
+          description: "using '/' separator with scoped packages",
+          separator: "/",
+          tags: [
+            { name: "@scope/pkg-d/0.6.7", ref: "ref4" }, // Skip
+            { name: "@scope/pkg-e/2.3.4", ref: "ref5" }, // Keep
+          ],
+          expected: [
+            { name: "@scope/pkg-e/v2", ref: "ref5", majorVersion: true },
+          ],
+        },
+        {
+          description: "using '/v' separator with scoped packages",
+          separator: "/v",
+          tags: [
+            { name: "@scope/pkg-g/v0.8.9", ref: "ref6" }, // Skip
+            { name: "@scope/pkg-h/v3.4.5", ref: "ref7" }, // Keep
+          ],
+          expected: [
+            { name: "@scope/pkg-h/v3", ref: "ref7", majorVersion: true },
+          ],
+        },
+      ];
+
+      for (const { description, separator, tags, expected } of testScenarios) {
+        const result = getMajorVersionTags(tags, separator);
+        expect(result, description).toEqual(expected);
+      }
+    });
   });
 
   describe("parseTagName", () => {
@@ -271,6 +445,39 @@ describe("repo-tags", () => {
       const result = parseTagName("foo/v1.2.3", "/v");
       expect(result).toEqual({
         pkg: "foo",
+        version: "1.2.3",
+        major: "1",
+        minor: "2",
+        patch: "3",
+      });
+    });
+
+    it("should parse valid scoped tag names correctly (@)", () => {
+      const result = parseTagName("@scope/foo@1.2.3", "@");
+      expect(result).toEqual({
+        pkg: "@scope/foo",
+        version: "1.2.3",
+        major: "1",
+        minor: "2",
+        patch: "3",
+      });
+    });
+
+    it("should parse valid scoped tag names correctly (/)", () => {
+      const result = parseTagName("@scope/foo/1.2.3", "/");
+      expect(result).toEqual({
+        pkg: "@scope/foo",
+        version: "1.2.3",
+        major: "1",
+        minor: "2",
+        patch: "3",
+      });
+    });
+
+    it("should parse valid scoped tag names correctly (/v)", () => {
+      const result = parseTagName("@scope/foo/v1.2.3", "/v");
+      expect(result).toEqual({
+        pkg: "@scope/foo",
         version: "1.2.3",
         major: "1",
         minor: "2",
@@ -772,6 +979,58 @@ describe("rewriteRootPackageTags", () => {
     expect(result).toEqual([
       { name: "my-package1.2.3", ref: "ref1" }, // Unchanged because parseTagName fails
       { name: "v2.3.4", ref: "ref2", originalName: "my-package@2.3.4" },
+    ]);
+  });
+
+  it("should handle scoped root package tags correctly", () => {
+    const tags: GitTag[] = [
+      { name: "@scope/my-package@1.2.3", ref: "ref1" },
+      { name: "@other/package@2.3.4", ref: "ref2" },
+      { name: "@scope/my-package@9.0.1", ref: "ref3" },
+    ];
+    const rootPackageInfo = { name: "@scope/my-package", version: "1.2.3" };
+    const tagSeparator = "@";
+    const result = rewriteRootPackageTags(tags, tagSeparator, rootPackageInfo);
+
+    expect(result).toEqual([
+      { name: "v1.2.3", ref: "ref1", originalName: "@scope/my-package@1.2.3" },
+      { name: "@other/package@2.3.4", ref: "ref2" },
+      { name: "v9.0.1", ref: "ref3", originalName: "@scope/my-package@9.0.1" },
+    ]);
+  });
+
+  it("should handle scoped root packages with different separators", () => {
+    const tags: GitTag[] = [
+      { name: "@scope/my-package/1.2.3", ref: "ref1" },
+      { name: "@scope/my-package/v9.0.1", ref: "ref2" },
+    ];
+    const rootPackageInfo = { name: "@scope/my-package", version: "1.2.3" };
+
+    // Test with / separator
+    const result1 = rewriteRootPackageTags([tags[0]], "/", rootPackageInfo);
+    expect(result1).toEqual([
+      { name: "v1.2.3", ref: "ref1", originalName: "@scope/my-package/1.2.3" },
+    ]);
+
+    // Test with /v separator
+    const result2 = rewriteRootPackageTags([tags[1]], "/v", rootPackageInfo);
+    expect(result2).toEqual([
+      { name: "v9.0.1", ref: "ref2", originalName: "@scope/my-package/v9.0.1" },
+    ]);
+  });
+
+  it("should not rewrite scoped tags that don't match the root package name", () => {
+    const tags: GitTag[] = [
+      { name: "@other/package/v1.2.3", ref: "ref1" },
+      { name: "@different/package/v2.3.4", ref: "ref2" },
+    ];
+    const rootPackageInfo = { name: "@scope/my-package", version: "1.2.3" };
+    const tagSeparator = "/v";
+    const result = rewriteRootPackageTags(tags, tagSeparator, rootPackageInfo);
+
+    expect(result).toEqual([
+      { name: "@other/package/v1.2.3", ref: "ref1" },
+      { name: "@different/package/v2.3.4", ref: "ref2" },
     ]);
   });
 });
