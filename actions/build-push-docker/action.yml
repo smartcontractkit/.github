@@ -9,10 +9,19 @@ inputs:
       Build arguments for the docker image build. See:
       https://docs.docker.com/reference/cli/docker/buildx/build/#build-arg
     required: false
-  docker-build-cache-disabled:
+  docker-restore-cache:
     description: |
-      Disable Docker build cache. See `--no-cache` flag in:
+      Toggles the docker cache for builds. If set to `false`, the cache will not be used.
+      Configure source with `docker-build-cache-from` input parameter.
+      See `--no-cache` flag in:
       https://docs.docker.com/engine/reference/commandline/buildx_build/#cache
+    required: false
+    default: "true"
+  docker-save-cache:
+    description: |
+      Whether to save the Docker build cache after the build. If set to `false`,
+      the cache will not be saved. Configure destination with `docker-build-cache-to`
+      input parameter.
     required: false
     default: "false"
   # See: https://github.com/moby/buildkit#github-actions-cache-experimental
@@ -32,7 +41,7 @@ inputs:
       ",scope=buildkit-<runner arch>" is appended to this input in order to set
       caching for the specific runner architecture.
     required: false
-    default: "type=gha,timeout=10m,mode=max,ignore-error=false"
+    default: "type=gha,timeout=10m,mode=max,ignore-error=true"
   docker-push:
     description: "Push the docker image. Build only (no push) if: false."
     required: false
@@ -122,7 +131,7 @@ runs:
         if [[ "${RUNNER_OS}" != "Linux" ]]; then
           echo "::error::Runner OS is not Linux; only Linux is supported."
           exit 1
-        elif [[ "${RUNNER_ARCH}" == "X64" && "${INPUT_PLATFORM}" == "linux/amd64" ]] || 
+        elif [[ "${RUNNER_ARCH}" == "X64" && "${INPUT_PLATFORM}" == "linux/amd64" ]] ||
            [[ "${RUNNER_ARCH}" == "ARM64" && "${INPUT_PLATFORM}" == "linux/arm64" ]]; then
           echo "Runner arch (${RUNNER_ARCH}) and platform (${INPUT_PLATFORM}) are compatible."
         else
@@ -183,6 +192,32 @@ runs:
         fi
         echo "upload=${build_record_artifact_upload}" | tee -a "${GITHUB_OUTPUT}"
 
+    - name: Docker cache configuration
+      id: docker-cache
+      shell: bash
+      env:
+        DOCKER_RESTORE_CACHE: ${{ inputs.docker-restore-cache }}
+        DOCKER_SAVE_CACHE: ${{ inputs.docker-save-cache }}
+        DOCKER_BUILD_CACHE_FROM: >-
+          ${{
+            format('{0},scope={1}', inputs.docker-build-cache-from, runner.arch)
+          }}
+        DOCKER_BUILD_CACHE_TO: >-
+          ${{
+            format('{0},scope={1}', inputs.docker-build-cache-to, runner.arch)
+          }}
+      run: |
+        if [[ "${DOCKER_RESTORE_CACHE}" == "true" ]]; then
+          echo "no-cache=false" | tee -a "${GITHUB_OUTPUT}"
+          echo "cache-from=${DOCKER_BUILD_CACHE_FROM}" | tee -a "${GITHUB_OUTPUT}"
+        else
+          echo "no-cache=true" | tee -a "${GITHUB_OUTPUT}"
+        fi
+
+        if [[ "${DOCKER_SAVE_CACHE}" == "true" ]]; then
+          echo "cache-to=${DOCKER_BUILD_CACHE_TO}" | tee -a "${GITHUB_OUTPUT}"
+        fi
+
     - name: Build & push image
       id: build-image
       uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6.13.0
@@ -204,15 +239,9 @@ runs:
         tags: ${{ steps.docker-meta.outputs.tags }}
         labels: ${{ steps.docker-meta.outputs.labels }}
         platforms: ${{ inputs.platform }}
-        no-cache: ${{ inputs.docker-build-cache-disabled }}
-        cache-from: >-
-          ${{
-            format('{0},scope={1}', inputs.docker-build-cache-from, runner.arch)
-          }}
-        cache-to: >-
-          ${{
-            format('{0},scope={1}', inputs.docker-build-cache-to, runner.arch)
-          }}
+        no-cache: ${{ steps.docker-cache.outputs.no-cache }}
+        cache-from: ${{ steps.docker-cache.outputs.docker-cache-from }}
+        cache-to: ${{ steps.docker-cache.outputs.docker-cache-to }}
         secrets: |
           GIT_AUTH_TOKEN=${{ inputs.github-token || ''}}
 
