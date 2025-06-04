@@ -271,6 +271,6 @@ export function extractActionReferenceFromLine(
     ref: gitRef,
     comment: comment.join().trim(),
     isWorkflowFile: repoPath.endsWith(".yml") || repoPath.endsWith(".yaml"),
-    trusted: owner === "actions" || owner === "smartcontractkit",
+    trusted: owner === "actions" || owner === "smartcontractkit" || owner === "github",
   };
 }
