@@ -19,7 +19,7 @@
     "package": "pnpm nx run-many --target=package --verbose",
     "package:affected": "pnpm nx affected --target=package --verbose",
     "ci:changeset:publish": "pnpm changeset publish",
-    "ci:changeset:version": "pnpm changeset version && pnpm version --patch"
+    "ci:changeset:version": "pnpm changeset version"
   },
   "private": true,
   "devDependencies": {
@@ -50,7 +50,7 @@
     "tslib": "^2.6.3",
     "typescript": "^5.4.5",
     "update-ts-references": "^3.3.0",
-    "vitest": "^2.0.0"
+    "vitest": "^2.1.9"
   },
   "repository": "https://github.com/smartcontractkit/.github"
 }

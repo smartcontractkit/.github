@@ -1,5 +1,23 @@
 # gha-workflow-validator
 
+## 0.5.2
+
+### Patch Changes
+
+- [#1079](https://github.com/smartcontractkit/.github/pull/1079)
+  [`f0a1243`](https://github.com/smartcontractkit/.github/commit/f0a1243d4ddc3ecee633e62d28433fe3e3ba3a06)
+  Thanks [@erikburt](https://github.com/erikburt)! - add github as trusted
+  actions owner
+
+## 0.5.1
+
+### Patch Changes
+
+- [#1042](https://github.com/smartcontractkit/.github/pull/1042)
+  [`29c7cf2`](https://github.com/smartcontractkit/.github/commit/29c7cf2f07b2280c7ca2e04883b2b32b5d0d9972)
+  Thanks [@chainchad](https://github.com/chainchad)! - Update to patched version
+  of vitest
+
 ## 0.5.0
 
 ### Minor Changes

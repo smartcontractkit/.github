@@ -1,5 +1,15 @@
 # build-push-docker
 
+## 0.7.0
+
+### Minor Changes
+
+- [#1076](https://github.com/smartcontractkit/.github/pull/1076)
+  [`507bb3d`](https://github.com/smartcontractkit/.github/commit/507bb3de1440721a364bc734b6f2b45fcdaf8ec5)
+  Thanks [@erikburt](https://github.com/erikburt)! - remove
+  docker-build-cache-disabled input parameter in lieu of docker-restore-cache,
+  docker-save-cache parameters
+
 ## 0.6.1
 
 ### Patch Changes

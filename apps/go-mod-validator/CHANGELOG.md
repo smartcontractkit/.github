@@ -1,5 +1,14 @@
 # go-mod-validator
 
+## 0.5.3
+
+### Patch Changes
+
+- [#1042](https://github.com/smartcontractkit/.github/pull/1042)
+  [`29c7cf2`](https://github.com/smartcontractkit/.github/commit/29c7cf2f07b2280c7ca2e04883b2b32b5d0d9972)
+  Thanks [@chainchad](https://github.com/chainchad)! - Update to patched version
+  of vitest
+
 ## 0.5.2
 
 ### Patch Changes
