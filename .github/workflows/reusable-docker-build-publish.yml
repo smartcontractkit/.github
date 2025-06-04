@@ -300,7 +300,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
         run: |
-          trunk=$(gh repo view ${GITHUB_WORKFLOW_REPOSITORY} --json defaultBranchRef --jq .defaultBranchRef.name)
+          trunk=$(gh repo view "${GITHUB_WORKFLOW_REPOSITORY}" --json defaultBranchRef --jq .defaultBranchRef.name)
           if [[ -z "${trunk}" ]]; then
             echo "::warn::Failed to get trunk branch using gh cli. Defaulting to 'main'."
             trunk="main"
