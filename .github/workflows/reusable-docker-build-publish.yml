@@ -183,15 +183,6 @@ on:
           This is required to differentiate between branch push and tag push events.
         required: false
         type: string
-      github-trunk-branch:
-        description: |
-          The default branch of the repository, used to determine if the
-          workflow run is on the trunk branch.
-
-          Example: main
-        required: false
-        type: string
-        default: "main"
       github-runner-amd64:
         description: |
           The GitHub Actions runner name for builds on the platform: amd64
@@ -302,12 +293,26 @@ jobs:
             exit 1
           fi
 
+      - name: Get repo trunk branch
+        id: get-trunk
+        if: ${{ inputs.docker-cache-behaviour == 'write-on-trunk' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
+        run: |
+          trunk=$(gh repo view ${GITHUB_WORKFLOW_REPOSITORY} --json defaultBranchRef --jq .defaultBranchRef.name)
+          if [[ -z "${trunk}" ]]; then
+            echo "::warn::Failed to get trunk branch using gh cli. Defaulting to 'main'."
+            trunk="main"
+          fi
+          echo "trunk=${trunk}" | tee -a "${GITHUB_OUTPUT}"
+
       - name: Check docker cache constraints
         id: should-cache
         env:
           GITHUB_REF_NAME: ${{ inputs.github-ref-name }}
           GITHUB_EVENT_NAME: ${{ inputs.github-event-name }}
-          GITHUB_TRUNK_BRANCH: ${{ inputs.github-trunk-branch }}
+          REPO_TRUNK: ${{ steps.get-trunk.outputs.trunk }}
           DOCKER_CACHE_BEHAVIOUR: ${{ inputs.docker-cache-behaviour }}
         run: |
           if [[ "${DOCKER_CACHE_BEHAVIOUR}" == "disable" ]]; then
@@ -318,7 +323,7 @@ jobs:
             echo "docker-save-cache=true" | tee -a "${GITHUB_OUTPUT}"
           elif [[ "${DOCKER_CACHE_BEHAVIOUR}" == "write-on-trunk" ]]; then
               echo "docker-restore-cache=true" | tee -a "${GITHUB_OUTPUT}"
-            if [[ "${GITHUB_REF_NAME}" == "${GITHUB_TRUNK_BRANCH}" ]] && [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+            if [[ "${GITHUB_REF_NAME}" == "${REPO_TRUNK}" ]] && [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
               echo "docker-save-cache=true" | tee -a "${GITHUB_OUTPUT}"
             else
               echo "docker-save-cache=false" | tee -a "${GITHUB_OUTPUT}"
