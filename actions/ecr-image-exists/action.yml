@@ -1,0 +1,64 @@
+name: ecr-image-exists
+description: Checks if a docker image tag exists in an ECR
+
+inputs:
+  repository:
+    required: true
+    description: The ecr repository to check, example - chainlink-tests
+  tag:
+    required: true
+    description: The docker image tag to check
+
+  # AWS Role Inputs
+  aws-region:
+    required: false
+    description: |
+      The AWS region to use ie. 'us-west-2'
+    default: us-west-2
+  aws-role-arn:
+    required: true
+    description: The AWS role to assume
+  aws-role-duration-seconds:
+    required: false
+    default: "3600"
+    description: The duration to be logged into the aws role for.
+
+outputs:
+  exists:
+    description: |
+      Whether the image tag exists in the ECR repository
+    value: ${{ steps.check.outputs.exists }}
+
+runs:
+  using: composite
+  steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
+      with:
+        aws-region: ${{ inputs.aws-region }}
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+        mask-aws-account-id: true
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      with:
+        mask-password: "true"
+
+    - name: Check if image tag exists
+      id: check
+      shell: bash
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
+        REPOSITORY: ${{ inputs.repository }}
+        TAG: ${{ inputs.tag }}
+      run: |
+        # see if the tag exists in ecr
+        TAG_FOUND=$(aws ecr describe-images --repository-name ${REPOSITORY} --region ${AWS_REGION} --image-ids=imageTag=${TAG} --output json | jq '.imageDetails | length' || echo "0")
+        echo "Debug: TAG_FOUND='${TAG_FOUND}'"
+        if [[ "${TAG_FOUND}" == "0" ]] || [[ -z "${TAG_FOUND}" ]]; then
+          echo "exists=false" | tee -a $GITHUB_OUTPUT
+        else
+          echo "exists=true" | tee -a $GITHUB_OUTPUT
+        fi
