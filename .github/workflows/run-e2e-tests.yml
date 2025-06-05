@@ -188,11 +188,11 @@ on:
         description: |
           Whether to use self-hosted runners for the tests, where applicable.
           The runner label is obtained from the test configuration file.
-          If set to true, the workflow will use the label from runs_on_self_hosted (if available).
-          If set to false, the workflow will use the label from the runs_on field.
+          If set to 'true', the workflow will use the label from runs_on_self_hosted (if available).
+          For all other values: the workflow will use the label from the runs_on field.
         required: false
-        type: boolean
-        default: false
+        type: string
+        default: "false"
       extraArgs:
         required: false
         type: string
@@ -353,6 +353,18 @@ jobs:
             echo "aws_test_secrets_key=$SECRET_ID" >> "$GITHUB_OUTPUT"
             echo "Will run tests with custom test secrets from AWS Secrets Manager. AWS Secret ID: $SECRET_ID"
           fi
+
+      - name: Debug Inputs
+        env:
+          WORKFLOW_NAME: ${{ inputs.workflow_name }}
+          CHAINLINK_VERSION: ${{ inputs.chainlink_version }}
+          USE_SELF_HOSTED_RUNNERS: ${{ inputs.use-self-hosted-runners }}
+          EXTRA_ARGS: ${{ inputs.extraArgs }}
+        run: |
+          echo "Workflow Name: ${WORKFLOW_NAME}"
+          echo "Chainlink Version: ${CHAINLINK_VERSION}"
+          echo "Use Self-Hosted Runners: ${USE_SELF_HOSTED_RUNNERS}"
+          echo "Extra Args: ${EXTRA_ARGS}"
 
       - name: Create matrix for required Chainlink image versions
         id: set-required-chainlink-image-versions-matrix
