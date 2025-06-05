@@ -2,10 +2,6 @@ name: ctf-build-image
 description: "Common action for building chainlink test images"
 
 inputs:
-  GOPRIVATE:
-    required: false
-    description: private repos needed for go
-
   # Docker inputs
   dockerfile:
     required: true
@@ -22,10 +18,7 @@ inputs:
 
   image-tag:
     required: false
-    description: |
-      The tag to use for the image.
-      If not specified, the image will not be pushed.
-      If specified, the image will be tagged with this tag and pushed to the registry.
+    description: The tag to use for the image.
     default: sha-${{ github.sha }}
 
   # Registry/ECR inputs
@@ -44,7 +37,6 @@ inputs:
   aws-account-number:
     description: |
       The AWS account number for the ECR registry.
-      For public images, use: 525559772430
     required: true
 
   aws-region:
@@ -94,8 +86,6 @@ runs:
   using: composite
   steps:
     - uses: actions/setup-go@v5
-      env:
-        GOPRIVATE: ${{ inputs.GOPRIVATE }}
       with:
         go-version-file: "go.mod"
         check-latest: true
@@ -105,7 +95,6 @@ runs:
       shell: bash
       env:
         GO_OVERRIDES: ${{ inputs.go-get-overrides }}
-        GOPRIVATE: ${{ inputs.GOPRIVATE || '' }}
         ACTIONS_PATH: ${{ github.action_path }}
       run: ${ACTIONS_PATH}/scripts/go-get-overrides.sh
 
@@ -120,8 +109,6 @@ runs:
 
     - name: Tidy and Output go.mod
       shell: bash
-      env:
-        GOPRIVATE: ${{ inputs.GOPRIVATE }}
       run: |
         echo "::group::Tidy go.mod"
         go mod tidy
