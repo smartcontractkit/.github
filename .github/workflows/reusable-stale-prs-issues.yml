@@ -16,7 +16,7 @@ name: Reusable Stale PRs and Stale Issues
 #     stale-prs:
 #       uses: smartcontractkit/.github/.github/workflows/reusable-stale-prs.yml@<ref>
 #       with:
-#         stale-duration: 30d  # Optional, default value is "30d"
+#         stale-duration: 30  # Optional, default value is "30"
 #       secrets:
 #         GH_TOKEN: $\{{ secrets.GITHUB_TOKEN }} # Remove the \ char to unescape.
 
