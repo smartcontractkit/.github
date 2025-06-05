@@ -13,6 +13,11 @@ name: Reusable Stale PRs and Stale Issues
 #   schedule:
 #     - cron: "0 0 * * *" # Will be triggered every day at midnight UTC
 #   jobs:
+#     permissions:
+#       actions: write
+#       contents: write
+#       issues: write
+#       pull-requests: write
 #     stale-prs:
 #       uses: smartcontractkit/.github/.github/workflows/reusable-stale-prs.yml@<ref>
 #       with:
