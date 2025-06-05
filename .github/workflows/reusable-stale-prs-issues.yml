@@ -1,0 +1,100 @@
+name: Reusable Stale PRs and Stale Issues
+
+# This workflow analyzes pull requests and issues to identify and close stale ones that have not had any activity for
+# a specified period. It will first add a stale label to the issue or PR, and if there is still no activity
+# after a specified duration, it will close the issue or PR. It can also delete the branch if the PR is closed.
+# It should be run on a nightly schedule. It's a thin wrapper with defaults set for https://github.com/actions/stale.
+#
+# Usage:
+#
+# name: Manage stale Issues and PRs
+#
+# on:
+#   schedule:
+#     - cron: "0 0 * * *" # Will be triggered every day at midnight UTC
+#   jobs:
+#     stale-prs:
+#       uses: smartcontractkit/.github/.github/workflows/reusable-stale-prs.yml@<ref>
+#       with:
+#         stale-duration: 30d  # Optional, default value is "30d"
+#       secrets:
+#         GH_TOKEN: $\{{ secrets.GITHUB_TOKEN }} # Remove the \ char to unescape.
+
+on:
+  workflow_call:
+    # See: https://github.com/actions/stale?tab=readme-ov-file#list-of-input-options for inputs.
+    inputs:
+      delete-branch:
+        description: "Delete the branch if the PR is closed"
+        required: false
+        type: boolean
+        default: true
+      days-before-issue-close:
+        description: "Duration after which a stale issue will be closed"
+        required: false
+        type: string
+        default: "" # unset
+      days-before-issue-stale:
+        description: "Duration after which an issue is considered stale"
+        required: false
+        type: string
+        default: "-1" # disables marking issues as stale automatically
+      days-before-pr-close:
+        description: "Duration after which a stale PR will be closed"
+        required: false
+        type: string
+        default: "7"
+      days-before-pr-stale:
+        description: "Duration after which a PR is considered stale"
+        required: false
+        type: string
+        default: "30" # days
+      exempt-all-pr-assignees:
+        description: "Exempt all PRs with assignees from being considered stale"
+        required: false
+        type: boolean
+        default: true
+      exempt-draft-pr:
+        description: "Exempt all draft PRs from being considered stale"
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      GH_TOKEN:
+        description: "GitHub token for authentication"
+        required: true
+
+permissions: {}
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    # See: https://github.com/actions/stale?tab=readme-ov-file#recommended-permissions
+    permissions:
+      actions: write
+      contents: write # only for delete-branch option
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/stale@v9
+        env:
+          DAYS_BEFORE_PR_CLOSE: ${{ inputs.days-before-pr-close }}
+          DAYS_BEFORE_PR_STALE: ${{ inputs.days-before-pr-stale}}
+        with:
+          repo-token: ${{ secrets.GH_TOKEN }}
+          close-pr-message: |
+            This PR has been automatically closed because it has been stale for > ${{ env.DAYS_BEFORE_PR_STALE }} days.
+            If you wish to continue working on this PR, please reopen it and make any necessary changes.
+          exempt-all-pr-assignees: ${{ inputs.exempt-all-pr-assignees }}
+          exempt-draft-pr: ${{ inputs.exempt-draft-pr }}
+          stale-pr-message: |
+            This PR is stale because it has been open ${{ env.DAYS_BEFORE_PR_STALE }} days with no activity.
+            Remove the `stale` label or comment or this will be closed in ${{ env.DAYS_BEFORE_PR_CLOSE }} days.
+          days-before-issue-close: ${{ inputs.days-before-issue-close }}
+          days-before-issue-stale: ${{ inputs.days-before-issue-stale }}
+          days-before-pr-close: ${{ inputs.days-before-pr-close }}
+          days-before-pr-stale: ${{ inputs.days-before-pr-stale }}
+          delete-branch: ${{ inputs.delete-branch }}
+          # Comma separated list of labels that exempt issues from being considered stale.
+          exempt-pr-labels: "stale-exempt"
