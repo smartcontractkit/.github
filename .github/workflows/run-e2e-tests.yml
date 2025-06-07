@@ -407,7 +407,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
         with:
           persist-credentials: false
       - name: Install citool
@@ -459,14 +459,14 @@ jobs:
       workflow_id: ${{ steps.gen_id.outputs.workflow_id }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
         with:
           persist-credentials: false
 
       - name: Setup Go
-        uses: actions/setup-go@v5.0.2
+        uses: actions/setup-go@v5.5.0
         with:
-          go-version: "1.24.0"
+          go-version: "1.24.4"
           check-latest: true
           cache: false # disable caching as this job doesn't benefit from it
 
@@ -658,7 +658,7 @@ jobs:
           }}
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -698,7 +698,7 @@ jobs:
           }}
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -761,7 +761,7 @@ jobs:
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
 
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -961,13 +961,13 @@ jobs:
         if:
           inputs.enable_otel_traces_for_ocr2_plugins &&
           matrix.tests.test_env_vars.ENABLE_OTEL_TRACES == 'true'
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: trace-data
           path: ./integration-tests/smoke/traces/trace-data.json
 
       - name: Upload test log as artifact
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         if: inputs.test_log_upload_on_failure && failure()
         with:
           name: test_log_${{ env.TEST_ID }}
@@ -977,7 +977,7 @@ jobs:
 
       - name: Upload cl node coverage data as artifact
         if: inputs.upload_cl_node_coverage_artifact
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         timeout-minutes: 2
         continue-on-error: true
         with:
@@ -996,7 +996,7 @@ jobs:
 
       - name: Upload test result as artifact
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         with:
           name:
             test_result_${{ needs.load-test-configurations.outputs.workflow_id
@@ -1006,7 +1006,7 @@ jobs:
 
       - name: Upload Flakeguard Main Run Results
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         with:
           name:
             flakeguard_main_run_results_${{
@@ -1017,7 +1017,7 @@ jobs:
 
       - name: Upload Flakeguard Rerun Results
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         with:
           name:
             flakeguard_rerun_results_${{
@@ -1028,7 +1028,7 @@ jobs:
 
       - name: Upload custom test artifacts
         if: failure() && matrix.tests.test_artifacts_on_failure != ''
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         with:
           name:
             custom_test_artifacts_${{ env.TEST_ID }}_${{
@@ -1065,7 +1065,7 @@ jobs:
         }}.amazonaws.com/chainlink-tests
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
         with:
           persist-credentials: false
       - name: Build Test Runner Image
@@ -1139,7 +1139,7 @@ jobs:
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
 
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
         with:
           persist-credentials: false
 
@@ -1253,7 +1253,7 @@ jobs:
           k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
 
       - name: Upload test log as artifact
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         if: inputs.test_log_upload_on_failure && failure()
         with:
           name: test_log_${{ env.TEST_ID }}
@@ -1263,7 +1263,7 @@ jobs:
 
       - name: Upload custom test artifacts
         if: failure() && matrix.tests.test_artifacts_on_failure != ''
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         with:
           name:
             custom_test_artifacts_${{ env.TEST_ID }}_${{
@@ -1305,7 +1305,7 @@ jobs:
         uses: runs-on/action@66d4449b717b5462159659523d1241051ff470b9 # v1
 
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
         with:
           persist-credentials: false
 
@@ -1380,13 +1380,13 @@ jobs:
       # Needed for codeowners in Flakeguard
       - name: Checkout repository
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
         with:
           persist-credentials: false
 
       - name: Download All Flakeguard Main Run Results
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
-        uses: actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@v4.3.0
         with:
           path: flakeguard_main_results
           pattern:
@@ -1395,7 +1395,7 @@ jobs:
 
       - name: Download All Flakeguard Rerun Results
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
-        uses: actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@v4.3.0
         with:
           path: flakeguard_rerun_results
           pattern:
@@ -1572,7 +1572,7 @@ jobs:
       - name: Upload Failed Main Test Report With Logs as Artifact
         id: upload-failed-report-with-logs
         if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         with:
           path: ./flakeguard_run_report/main/failed-test-report-with-logs.json
           name: failed-main-test-report-with-logs.json
@@ -1727,7 +1727,7 @@ jobs:
           fi
 
       - name: Download all test result artifacts
-        uses: actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@v4.3.0
         with:
           path: test_results
           pattern:
@@ -1779,7 +1779,7 @@ jobs:
           { echo "cl_ref=$cl_ref"; echo "cl_short_ref=$cl_short_ref"; echo "cl_ref_path=$cl_ref_path"; } >> "$GITHUB_OUTPUT"
 
       - name: Send Slack notification
-        uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # v1.25.0
+        uses: slackapi/slack-github-action@fcfb566f8b0aab22203f066d80ca1d7e4b5d05b3 # v1.27.1
         if:
           ${{ inputs.slack_notification_after_tests == 'true' ||
           inputs.slack_notification_after_tests == 'always' ||
@@ -1823,7 +1823,7 @@ jobs:
           contains(join(needs.*.result, ','), 'failure') &&
           inputs.slack_notification_after_tests_notify_user_id_on_failure != ''
           }}
-        uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # v1.25.0
+        uses: slackapi/slack-github-action@fcfb566f8b0aab22203f066d80ca1d7e4b5d05b3 # v1.27.1
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         with:

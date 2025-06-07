@@ -184,7 +184,7 @@ runs:
         fi
     - name: Configure AWS Credentials
       if: steps.push.outputs.push == 'true'
-      uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
+      uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
       with:
         aws-region: ${{ inputs.QA_AWS_REGION }}
         role-to-assume: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
@@ -198,9 +198,9 @@ runs:
         mask-password: "true"
     - name: Set up Docker Buildx
       if: steps.push.outputs.push == 'true'
-      uses: docker/setup-buildx-action@0d103c3126aa41d772a8362f6aa67afac040f80c # v3.1.0
+      uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
     - name: Build and Push
-      uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
+      uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
       with:
         context: .
         file: ${{ inputs.cl_dockerfile }}
