@@ -184,7 +184,7 @@ runs:
 
     # Setup AWS cred and K8s context
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
+      uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
       with:
         aws-region: ${{ inputs.QA_AWS_REGION }}
         role-to-assume: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
@@ -218,13 +218,13 @@ runs:
     # To avoid rate limiting from Docker Hub, we can login with a paid user account.
     - name: Login to Docker Hub
       if: inputs.dockerhub_username && inputs.dockerhub_password
-      uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+      uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
       with:
         username: ${{ inputs.dockerhub_username }}
         password: ${{ inputs.dockerhub_password }}
 
     # Helm Setup
-    - uses: azure/setup-helm@29960d0f5f19214b88e1d9ba750a9914ab0f1a2f # v4.0.0
+    - uses: azure/setup-helm@b9e51907a09c216f16ebe8536097933489208112 # v4.3.0
       with:
         version: v3.13.1
     - name: Add required helm charts including chainlink-qa
