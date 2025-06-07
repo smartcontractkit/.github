@@ -19,7 +19,7 @@ name: Reusable Stale PRs and Stale Issues
 #       issues: write
 #       pull-requests: write
 #     stale-prs:
-#       uses: smartcontractkit/.github/.github/workflows/reusable-stale-prs.yml@<ref>
+#       uses: smartcontractkit/.github/.github/workflows/reusable-stale-prs-issues.yml@<ref>
 #       with:
 #         days-before-pr-stale: 30  # Optional, default value is "30"
 #       secrets:
