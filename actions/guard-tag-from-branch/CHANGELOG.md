@@ -1,5 +1,14 @@
 # guard-tag-from-branch
 
+## 0.1.4
+
+### Patch Changes
+
+- [#1086](https://github.com/smartcontractkit/.github/pull/1086)
+  [`847464c`](https://github.com/smartcontractkit/.github/commit/847464c77d8f3f6f95d928509006c7121ffa00e2)
+  Thanks [@chainchad](https://github.com/chainchad)! - Fix filtering for
+  branches from tag commit
+
 ## 0.1.3
 
 ### Patch Changes
