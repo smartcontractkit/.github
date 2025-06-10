@@ -8,7 +8,8 @@ The V1 action has been heavily refactored. If there is some functionality that
 has been removed during the refactor, please reach out on `#team-devex`.
 
 Most of the override functionality has been minimally tested in actual CI
-environments. If you need
+environments. If you find something broken, and need support reach out on
+`#team-devex`.
 
 ### Input Changes
 
@@ -34,7 +35,6 @@ environments. If you need
 - `GOPRIVATE` - this was being used to pass into specific actions. If needed,
   I'd recommend passing this in as an env to this action, instead.
 - `docker_secrets` - this had no active usages AFAICT.
--
 
 #### Renamed
 
