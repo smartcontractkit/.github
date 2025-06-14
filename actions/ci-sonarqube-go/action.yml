@@ -65,7 +65,7 @@ runs:
 
     - name: Download test-report artifact using workflow file name
       if: inputs.test-report-workflow != ''
-      uses: dawidd6/action-download-artifact@bf251b5aa9c2f7eeb574a96ee720e24f801b7c11 # v6
+      uses: dawidd6/action-download-artifact@4c1e823582f43b179e2cbb49c3eade4e41f992e2 # v10
       with:
         workflow: ${{ inputs.test-report-workflow }}
         name: ${{ inputs.test-report-artifact }}
@@ -75,7 +75,7 @@ runs:
 
     - name: Download lint-report artifact using workflow file name
       if: inputs.lint-report-workflow != ''
-      uses: dawidd6/action-download-artifact@bf251b5aa9c2f7eeb574a96ee720e24f801b7c11 # v6
+      uses: dawidd6/action-download-artifact@4c1e823582f43b179e2cbb49c3eade4e41f992e2 # v10
       with:
         workflow: ${{ inputs.lint-report-workflow }}
         name: ${{ inputs.lint-report-artifact }}
