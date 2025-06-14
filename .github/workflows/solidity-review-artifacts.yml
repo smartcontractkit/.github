@@ -8,8 +8,8 @@ on:
     inputs:
       product:
         description:
-          "product for which to generate artifacts; should be the same as
-          Foundry profile"
+          "product for which to generate artifacts; will be used as foundry
+          profile unless foundry_profile_override is set"
         type: string
         required: true
       commit_to_use:
@@ -54,6 +54,11 @@ on:
         description: "foundry version to use"
         type: string
         required: true
+      foundry_profile_override:
+        description:
+          "foundry profile to use. If empty, input.product will be used"
+        type: string
+        required: false
       contracts_directory:
         description:
           "root of directory, in which contracts and foundry.toml is located"
@@ -119,6 +124,15 @@ on:
         required: false
       jira_api_token:
         required: false
+      # these are generic secrets that can be used by the caller to pass in secrets that are not specific to the product
+      generic_secret_1:
+        required: false
+      generic_secret_2:
+        required: false
+      generic_secret_3:
+        required: false
+      generic_secret_4:
+        required: false
 
 env:
   FOUNDRY_PROFILE: ci
@@ -126,6 +140,10 @@ env:
   # access to the workflow context
   head_ref: ${{ inputs.commit_to_use || github.sha }}
   artifacts_dir: review_artifacts
+  GENERIC_SECRET_1: ${{ secrets.GENERIC_SECRET_1 }}
+  GENERIC_SECRET_2: ${{ secrets.GENERIC_SECRET_2 }}
+  GENERIC_SECRET_3: ${{ secrets.GENERIC_SECRET_3 }}
+  GENERIC_SECRET_4: ${{ secrets.GENERIC_SECRET_4 }}
 
 jobs:
   gather-basic-info:
@@ -236,14 +254,18 @@ jobs:
           forge build
         working-directory: ${{ inputs.contracts_directory }}
         env:
-          FOUNDRY_PROFILE: ${{ inputs.product }}
+          FOUNDRY_PROFILE:
+            ${{ inputs.foundry_profile_override != '' &&
+            inputs.foundry_profile_override || inputs.product }}
 
       - name: Run coverage for product contracts
         if: ${{ inputs.generate_code_coverage == true }}
         working-directory: ${{ inputs.contracts_directory }}
         run: forge coverage --report lcov --report-file code-coverage/lcov.info
         env:
-          FOUNDRY_PROFILE: ${{ inputs.product }}
+          FOUNDRY_PROFILE:
+            ${{ inputs.foundry_profile_override != '' &&
+            inputs.foundry_profile_override || inputs.product }}
 
       - name: Prune lcov report
         if:
@@ -274,7 +296,9 @@ jobs:
         run: forge doc --build -o forge_book
         working-directory: ${{ inputs.contracts_directory }}
         env:
-          FOUNDRY_PROFILE: ${{ inputs.product }}
+          FOUNDRY_PROFILE:
+            ${{ inputs.foundry_profile_override != '' &&
+            inputs.foundry_profile_override || inputs.product }}
 
       - name: Upload Artifacts for product contracts
         uses: actions/upload-artifact@v4.6.2
