@@ -29,6 +29,7 @@ name: Reusable Docker Build and Publish
 #         aws-region-gati: us-west-2
 #         dockerfile: Dockerfile
 #         docker-build-context: .
+#         docker-image-tag-strip-prefix: v  # Optional: strip "v" prefix from tags
 #         docker-manifest-sign: true
 #         git-sha: $\{{ github.sha }}
 #         github-event-name: $\{{ github.event_name }}
@@ -112,6 +113,16 @@ on:
           When set, this will override the default Docker image tag.
 
           Otherwise, the tag will be generated based on the input.github-event-name.
+        required: false
+        type: string
+      docker-image-tag-strip-prefix:
+        description: |
+          When set, this prefix will be stripped from the GITHUB_REF_NAME when generating Docker image tags.
+
+          Useful for removing version prefixes like "v" from tag names.
+
+          Examples:
+            - "v" (strips "v" from "v1.0.0" to produce "1.0.0")
         required: false
         type: string
       docker-manifest-sign:
@@ -380,6 +391,8 @@ jobs:
         env:
           DATE: ${{ needs.init.outputs.date }}
           DOCKER_IMAGE_TAG_OVERRIDE: ${{ inputs.docker-image-tag-override }}
+          DOCKER_IMAGE_TAG_STRIP_PREFIX:
+            ${{ inputs.docker-image-tag-strip-prefix }}
           DOCKER_IMAGE_TYPE: ${{ needs.init.outputs.build-type }}
           DOCKER_TAG_CUSTOM_SUFFIX: ${{ inputs.docker-tag-custom-suffix }}
           GIT_SHORT_SHA: ${{ needs.init.outputs.git-short-sha }}
@@ -387,6 +400,14 @@ jobs:
           MATRIX_ARCH: ${{ matrix.arch }}
           PR_NUMBER: ${{ needs.init.outputs.pr-number }}
         run: |
+          # Apply tag prefix stripping if specified
+          ref_name="${GITHUB_REF_NAME}"
+          if [[ -n "${DOCKER_IMAGE_TAG_STRIP_PREFIX:-}" ]]; then
+            echo "Stripping prefix '${DOCKER_IMAGE_TAG_STRIP_PREFIX}' from ref name '${ref_name}'"
+            ref_name="${ref_name#${DOCKER_IMAGE_TAG_STRIP_PREFIX}}"
+            echo "Ref name after stripping: '${ref_name}'"
+          fi
+
           if [[ -n "${DOCKER_IMAGE_TAG_OVERRIDE:-}" ]]; then
             echo "Using override tag: ${DOCKER_IMAGE_TAG_OVERRIDE}"
             tag_value="${DOCKER_IMAGE_TAG_OVERRIDE}"
@@ -395,7 +416,7 @@ jobs:
             case "${DOCKER_IMAGE_TYPE:-}" in
               branch)
                 # Examples: main-d34db33 or main-d34db33-custom-suffix
-                tag_value="${GITHUB_REF_NAME}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                tag_value="${ref_name}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
                 ;;
               manual)
                 # Examples: manual-d34db33 or manual-d34db33-custom-suffix
@@ -415,8 +436,8 @@ jobs:
                 tag_value="sha-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
                 ;;
               tag)
-                # Examples: v1.0.0 or v1.0.0-custom-suffix
-                tag_value="${GITHUB_REF_NAME}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                # Examples: v1.0.0 or v1.0.0-custom-suffix (or 1.0.0 if prefix stripped)
+                tag_value="${ref_name}${DOCKER_TAG_CUSTOM_SUFFIX}"
                 ;;
               *)
                 echo "::error::Invalid docker image type: ${DOCKER_IMAGE_TYPE}. Must be one of: branch, manual, nightly, pr, sha, tag."
