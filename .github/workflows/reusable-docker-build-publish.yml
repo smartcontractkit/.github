@@ -404,7 +404,7 @@ jobs:
           ref_name="${GITHUB_REF_NAME}"
           if [[ -n "${DOCKER_IMAGE_TAG_STRIP_PREFIX:-}" ]]; then
             echo "Stripping prefix '${DOCKER_IMAGE_TAG_STRIP_PREFIX}' from ref name '${ref_name}'"
-            ref_name="${ref_name#${DOCKER_IMAGE_TAG_STRIP_PREFIX}}"
+            ref_name="${ref_name#"${DOCKER_IMAGE_TAG_STRIP_PREFIX}"}"
             echo "Ref name after stripping: '${ref_name}'"
           fi
 
