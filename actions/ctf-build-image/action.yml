@@ -149,7 +149,7 @@ runs:
         echo "::endgroup::"
 
     - name: Build push docker image
-      uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/0.7.0
+      uses: smartcontractkit/.github/actions/build-push-docker@feat/optional-attestation-build-push-docker
       with:
         context: .
         platform: linux/amd64
@@ -159,7 +159,7 @@ runs:
           COMMIT_SHA=${{ github.sha }}
           CHAINLINK_USER=chainlink
           ${{ inputs.docker-additional-build-args }}
-
+        docker-attestations: "false"
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
 
