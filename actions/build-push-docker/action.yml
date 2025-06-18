@@ -199,16 +199,18 @@ runs:
         echo "upload=${build_record_artifact_upload}" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Docker attestations configuration
-      id: docker-attestations
+      id: docker-attest
       shell: bash
       env:
         DOCKER_ATTESTATIONS: ${{ inputs.docker-attestations }}
       run: |
         if [[ "${DOCKER_ATTESTATIONS}" == "true" ]]; then
-          echo "docker-sbom=true" | tee -a "${GITHUB_OUTPUT}
+          echo "::info::Docker attestations enabled."
+          echo "docker-sbom=true" | tee -a "${GITHUB_OUTPUT}"
           echo "docker-provenance=mode=max" | tee -a "${GITHUB_OUTPUT}"
         else
-          echo "docker-sbom=false" | tee -a "${GITHUB_OUTPUT}
+          echo "::info::Docker attestations disabled."
+          echo "docker-sbom=false" | tee -a "${GITHUB_OUTPUT}"
           echo "docker-provenance=false" | tee -a "${GITHUB_OUTPUT}"
         fi
 
@@ -250,8 +252,8 @@ runs:
         DOCKER_BUILD_RECORD_RETENTION_DAYS: 0
       with:
         push: ${{ inputs.docker-push }}
-        sbom: ${{ steps.docker-attestations.outputs.docker-sbom }}
-        provenance: ${{ steps.docker-attestations.outputs.docker-provenance }}
+        sbom: ${{ steps.docker-attest.outputs.docker-sbom }}
+        provenance: ${{ steps.docker-attest.outputs.docker-provenance }}
         file: ${{ inputs.dockerfile }}
         context: ${{ inputs.context }}
         build-args: ${{ inputs.docker-build-args }}
