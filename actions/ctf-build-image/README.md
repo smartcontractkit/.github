@@ -26,9 +26,7 @@ environments. If you find something broken, and need support reach out on
   - See `plugin-manifest-overrides`, and `go-get-overrides` below.
 - `QA_PRIVATE_GHA_PULL` - This updated the global git config, for authenticating
   to private GH repositories. Update this yourself in your workflow if needed,
-  or if using
-  [`setup-github-token` action](https://github.com/smartcontractkit/.github/blob/main/actions/setup-github-token/action.yml),
-  you can use `set-git-config: true`.
+  or use the `gati-*` inputs below.
 - `GO_COVER_FLAG`
   - This was being passed into the docker build args. Can now be passed in
     through the `docker-additional-build-args` input parameter.
@@ -59,3 +57,10 @@ environments. If you find something broken, and need support reach out on
   [`docker/build-push-action`](https://github.com/docker/build-push-action#customizing).
   - `COMMIT_SHA=${{ github.sha }}`, and `CHAINLINK_USER=chainlink` are passed in
     as build args by default.
+- `gati-role-arn` - Optional - The ARN of the IAM role capable of calling the
+  corresponding GATI lambda.
+  - Must be present along with `gati-lambda-url`
+- `gati-lambda-url` - The lambda url of the GATI
+  - Must be present along with `gati-role-arn`
+- `gati-aws-region` - Optional - defaults to `us-west-2`. You should probably
+  leave this alone.

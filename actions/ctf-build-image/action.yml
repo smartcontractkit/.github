@@ -49,6 +49,25 @@ inputs:
       The AWS role ARN to assume for pushing the image to ECR.
     required: true
 
+  # GATI inputs
+  gati-role-arn:
+    description: |
+      The GATI role ARN to assume for granting read access to private repositories.
+      If not specified, the action will not attempt to grant access.
+    required: false
+
+  gati-lambda-url:
+    description: |
+      The GATI Lambda URL to use for granting read access to private repositories.
+      If not specified, the action will not attempt to grant access.
+    required: false
+
+  gati-aws-region:
+    description: |
+      Optional: The AWS region to use for GATI.
+    required: false
+    default: "us-west-2"
+
   # Dependency/plugin override inputs
   plugin-manifest-overrides:
     required: false
@@ -90,6 +109,17 @@ runs:
         go-version-file: "go.mod"
         check-latest: true
         cache: false
+
+    - name: Setup GitHub token using GATI
+      if: inputs.gati-role-arn != '' && inputs.gati-lambda-url != ''
+      id: github-token
+      uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/1.0.0
+      with:
+        aws-role-arn: ${{ inputs.gati-role-arn }}
+        aws-lambda-url: ${{ inputs.gati-lambda-url }}
+        aws-region: ${{ inputs.gati-aws-region }}
+        aws-role-duration-seconds: "1800"
+        set-git-config: "true"
 
     - name: Process go get overrides
       shell: bash
@@ -142,3 +172,5 @@ runs:
         aws-account-number: ${{ inputs.aws-account-number }}
         aws-role-arn: ${{ inputs.aws-role-arn }}
         aws-region: ${{ inputs.aws-region }}
+
+        github-token: ${{ steps.github-token.outputs.access-token || '' }}
