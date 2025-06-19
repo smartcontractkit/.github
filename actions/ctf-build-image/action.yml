@@ -149,7 +149,7 @@ runs:
         echo "::endgroup::"
 
     - name: Build push docker image
-      uses: smartcontractkit/.github/actions/build-push-docker@feat/optional-attestation-build-push-docker
+      uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/0.7.1
       with:
         context: .
         platform: linux/amd64
