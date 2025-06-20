@@ -33,11 +33,10 @@ on:
         description: |
           The message to post on the pull request when closing it.
           If none provided, will not comment when closing a pull requests.
+
+          We default to one within the action if this is not provided.
         required: false
         type: string
-        default: |
-          This PR has been automatically closed because it had been stale for > ${{ env.DAYS_BEFORE_PR_STALE }} days.
-          If you wish to continue working on this PR, please reopen it to make any necessary changes.
       delete-branch:
         description: "Delete the branch if the PR is closed"
         required: false
@@ -84,11 +83,10 @@ on:
         description: |
           The message to post on the pull request when tagging it. If none
           provided, will not mark pull requests stale.
+
+          We default to one within the action if this is not provided.
         required: false
         type: string
-        default: |
-          This PR is stale because it has been open ${{ env.DAYS_BEFORE_PR_STALE }} days with no activity.
-          Remove the `stale` label, comment, or update this PR to prevent this PR from being closed in ${{ env.DAYS_BEFORE_PR_CLOSE }} days.
     secrets:
       GH_TOKEN:
         description: "GitHub token for authentication"
@@ -109,11 +107,17 @@ jobs:
     steps:
       - uses: actions/stale@v9
         env:
+          CLOSE_PR_MESSAGE: |
+            This PR has been automatically closed because it had been stale for > ${{ env.DAYS_BEFORE_PR_STALE }} days.
+            If you wish to continue working on this PR, please reopen it to make any necessary changes.
           DAYS_BEFORE_PR_CLOSE: ${{ inputs.days-before-pr-close }}
           DAYS_BEFORE_PR_STALE: ${{ inputs.days-before-pr-stale}}
+          STALE_PR_MESSAGE: |
+            This PR is stale because it has been open ${{ env.DAYS_BEFORE_PR_STALE }} days with no activity.
+            Remove the `stale` label, comment, or update this PR to prevent this PR from being closed in ${{ env.DAYS_BEFORE_PR_CLOSE }} days.
         with:
           repo-token: ${{ secrets.GH_TOKEN }}
-          close-pr-message: ${{ inputs.close-pr-message }}
+          close-pr-message: ${{ inputs.close-pr-message || env.CLOSE_PR_MESSAGE }}
           days-before-issue-close: ${{ inputs.days-before-issue-close }}
           days-before-issue-stale: ${{ inputs.days-before-issue-stale }}
           days-before-pr-close: ${{ inputs.days-before-pr-close }}
@@ -124,4 +128,4 @@ jobs:
           # Comma separated list of labels that exempt issues from being considered stale.
           exempt-pr-labels: "stale-exempt"
           operations-per-run: ${{ inputs.operations-per-run }}
-          stale-pr-message: ${{ inputs.stale-pr-message }}
+          stale-pr-message: ${{ inputs.stale-pr-message || env.STALE_PR_MESSAGE }}
