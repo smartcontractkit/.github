@@ -7,45 +7,38 @@ on:
   workflow_call:
     inputs:
       product:
-        description:
-          "product for which to generate artifacts; will be used as foundry
+        description: "product for which to generate artifacts; will be used as foundry
           profile unless foundry_profile_override is set"
         type: string
         required: true
       commit_to_use:
-        description:
-          "commit SHA to use for artifact generation; if empty HEAD will be used"
+        description: "commit SHA to use for artifact generation; if empty HEAD will be used"
         type: string
         required: false
       base_ref:
-        description:
-          "commit or tag to use as base reference, when looking for modified
+        description: "commit or tag to use as base reference, when looking for modified
           Solidity files; for a new repository use empty tree commit
           4b825dc642cb6eb9a060e54bf8d69288fbee4904 to select all files"
         type: string
         required: true
       product_changes:
-        description:
-          "true or false, indicates whether there were any changes in the
+        description: "true or false, indicates whether there were any changes in the
           product contracts, designed to work with dorny/paths-filter"
         type: string
         required: true
       product_files:
-        description:
-          "comma-separated list of modified files in the product contracts,
+        description: "comma-separated list of modified files in the product contracts,
           designed to work with dorny/paths-filter"
         type: string
         required: true
       changeset_changes:
-        description:
-          "true or false, indicates whether there were any changes in the
+        description: "true or false, indicates whether there were any changes in the
           changeset files, designed to work with dorny/paths-filter. Set to
           false if your project does not use changesets"
         type: string
         required: true
       changeset_files:
-        description:
-          "comma-separated list of modified files in the changeset folder,
+        description: "comma-separated list of modified files in the changeset folder,
           designed to work with dorny/paths-filter. Set to empty string if your
           project does not use changesets"
         type: string
@@ -55,13 +48,11 @@ on:
         type: string
         required: true
       foundry_profile_override:
-        description:
-          "foundry profile to use. If empty, input.product will be used"
+        description: "foundry profile to use. If empty, input.product will be used"
         type: string
         required: false
       contracts_directory:
-        description:
-          "root of directory, in which contracts and foundry.toml is located"
+        description: "root of directory, in which contracts and foundry.toml is located"
         default: "."
         type: string
         required: false
@@ -95,8 +86,7 @@ on:
         type: string
         required: false
       default_solc_version:
-        description:
-          "solc version to install and use as default. defaults to 0.8.24"
+        description: "solc version to install and use as default. defaults to 0.8.24"
         type: string
         required: false
         default: "0.8.24"
@@ -105,8 +95,7 @@ on:
         type: string
         required: true
       lcov_prune_script_path:
-        description:
-          "path to the lcov_prune script (used to prune lcov report from files
+        description: "path to the lcov_prune script (used to prune lcov report from files
           that we are not interested in); path should be relative to
           contracts_directory; set to empty string to skip pruning the lcov
           report"
@@ -114,8 +103,7 @@ on:
         required: false
         default: ""
       install_semver:
-        description:
-          "install semver?; set to false if you already have it in your project"
+        description: "install semver?; set to false if you already have it in your project"
         type: boolean
         required: false
         default: true
@@ -211,8 +199,7 @@ jobs:
   # some of the artifacts can only be generated on product level, and we cannot scope them to single contracts, so we need to generate them for the whole product
   # use inputs.generate_code_coverage and inputs.generate_forge_book to control which artifacts to generate
   coverage-and-book:
-    if:
-      ${{ inputs.product_changes == 'true' && (inputs.generate_code_coverage ==
+    if: ${{ inputs.product_changes == 'true' && (inputs.generate_code_coverage ==
       true || inputs.generate_forge_book == true) }}
     name: Generate Docs and Code Coverage reports
     runs-on: ubuntu-22.04
@@ -254,8 +241,7 @@ jobs:
           forge build
         working-directory: ${{ inputs.contracts_directory }}
         env:
-          FOUNDRY_PROFILE:
-            ${{ inputs.foundry_profile_override != '' &&
+          FOUNDRY_PROFILE: ${{ inputs.foundry_profile_override != '' &&
             inputs.foundry_profile_override || inputs.product }}
 
       - name: Run coverage for product contracts
@@ -263,13 +249,11 @@ jobs:
         working-directory: ${{ inputs.contracts_directory }}
         run: forge coverage --report lcov --report-file code-coverage/lcov.info
         env:
-          FOUNDRY_PROFILE:
-            ${{ inputs.foundry_profile_override != '' &&
+          FOUNDRY_PROFILE: ${{ inputs.foundry_profile_override != '' &&
             inputs.foundry_profile_override || inputs.product }}
 
       - name: Prune lcov report
-        if:
-          ${{ inputs.generate_code_coverage == true &&
+        if: ${{ inputs.generate_code_coverage == true &&
           inputs.lcov_prune_script_path != '' }}
         shell: bash
         working-directory: ${{ inputs.contracts_directory }}
@@ -296,8 +280,7 @@ jobs:
         run: forge doc --build -o forge_book
         working-directory: ${{ inputs.contracts_directory }}
         env:
-          FOUNDRY_PROFILE:
-            ${{ inputs.foundry_profile_override != '' &&
+          FOUNDRY_PROFILE: ${{ inputs.foundry_profile_override != '' &&
             inputs.foundry_profile_override || inputs.product }}
 
       - name: Upload Artifacts for product contracts
@@ -315,8 +298,7 @@ jobs:
   # we scope UML class diagrams generations and Slither reports to modified or added contracts only
   # use inputs.generate_uml_diagrams and inputs.generate_slither_reports to control which artifacts to generate
   uml-static-analysis:
-    if:
-      ${{ inputs.product_changes == 'true' && ( inputs.generate_uml_diagrams ==
+    if: ${{ inputs.product_changes == 'true' && ( inputs.generate_uml_diagrams ==
       true || inputs.generate_slither_reports == true) }}
     name: Generate UML and Slither reports for modified contracts
     runs-on: ubuntu-22.04
@@ -374,8 +356,7 @@ jobs:
         uses: smartcontractkit/.github/actions/setup-slither@10bec6ef7e8fefdcd9bf55f853e9e15835f61c8f # v0.0.0
 
       - name: Install semver
-        if:
-          ${{ inputs.generate_slither_reports == true && inputs.install_semver
+        if: ${{ inputs.generate_slither_reports == true && inputs.install_semver
           == true }}
         run: |
           pnpm add -g semver
@@ -441,8 +422,7 @@ jobs:
 
   gather-all-artifacts:
     name: Gather all artifacts
-    if:
-      ${{ always() && inputs.product_changes == 'true' &&
+    if: ${{ always() && inputs.product_changes == 'true' &&
       needs.gather-basic-info.result != 'failure' &&
       needs.coverage-and-book.result != 'failure' &&
       needs.uml-static-analysis.result != 'failure' }}
@@ -459,8 +439,7 @@ jobs:
       - name: Upload all artifacts as single package
         uses: actions/upload-artifact@v4.6.2
         with:
-          name:
-            review-artifacts-${{ inputs.product }}-${{ inputs.base_ref }}-${{
+          name: review-artifacts-${{ inputs.product }}-${{ inputs.base_ref }}-${{
             env.head_ref }}
           path: review_artifacts
 
@@ -537,8 +516,7 @@ jobs:
           BASE_REF: ${{ inputs.base_ref }}
           HEAD_REF: ${{ env.head_ref }}
           ARTIFACT_URL: ${{ steps.gather-all-artifacts.outputs.artifact-url }}
-          GIT_TOP_LEVEL_DIR:
-            ${{ steps.find-git-top-level-dir.outputs.top_level_dir }}
+          GIT_TOP_LEVEL_DIR: ${{ steps.find-git-top-level-dir.outputs.top_level_dir }}
 
           JIRA_HOST: ${{ inputs.jira_host }}
           JIRA_USERNAME: ${{ secrets.jira_username }}
