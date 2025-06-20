@@ -68,8 +68,9 @@ on:
         description: |
           The maximum number of operations per run, used to control rate
           limiting (GitHub API CRUD related).
-        default: "30"
         required: false
+        type: string
+        default: "30"
     secrets:
       GH_TOKEN:
         description: "GitHub token for authentication"
