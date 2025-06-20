@@ -310,7 +310,7 @@ jobs:
         run: |
           trunk=$(gh repo view "${GITHUB_WORKFLOW_REPOSITORY}" --json defaultBranchRef --jq .defaultBranchRef.name)
           if [[ -z "${trunk}" ]]; then
-            echo "::warn::Failed to get trunk branch using gh cli. Defaulting to 'main'."
+            echo "::warning::Failed to get trunk branch using gh cli. Defaulting to 'main'."
             trunk="main"
           fi
           echo "trunk=${trunk}" | tee -a "${GITHUB_OUTPUT}"
