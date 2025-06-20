@@ -1,5 +1,14 @@
 # ctf-build-image
 
+## 1.0.0
+
+### Major Changes
+
+- [#1107](https://github.com/smartcontractkit/.github/pull/1107)
+  [`d7e9d58`](https://github.com/smartcontractkit/.github/commit/d7e9d58a2d9a0f18fa1d6c9e472e16f164e6178e)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: refactor
+  ctf-build-image - see readme for upgrade instructions
+
 ## 0.2.0
 
 ### Minor Changes
