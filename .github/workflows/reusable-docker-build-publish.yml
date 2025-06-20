@@ -81,8 +81,7 @@ on:
         required: false
         type: string
       build-arm64-image:
-        description:
-          "Enable arm64 Docker image build. Set to 'false' to disable which only
+        description: "Enable arm64 Docker image build. Set to 'false' to disable which only
           builds amd64 images."
         required: false
         type: string
@@ -221,8 +220,7 @@ on:
         description: "Docker image SHA digest for amd64 architecture"
         value: ${{ jobs.build-publish.outputs.docker-image-sha-digest-amd64 }}
       docker-image-sha-digest-arm64:
-        description:
-          "Docker image SHA digest for arm64 architecture (empty if disabled)"
+        description: "Docker image SHA digest for arm64 architecture (empty if disabled)"
         value: ${{ jobs.build-publish.outputs.docker-image-sha-digest-arm64 }}
       docker-manifest-digest:
         description: "Docker manifest digest"
@@ -246,8 +244,7 @@ jobs:
       git-short-sha: ${{ steps.git-short-sha.outputs.short-sha }}
       pr-number: ${{ steps.set-extra-outputs.outputs.pr-number }}
       build-type: ${{ steps.set-extra-outputs.outputs.build-type }}
-      docker-restore-cache:
-        ${{ steps.should-cache.outputs.docker-restore-cache }}
+      docker-restore-cache: ${{ steps.should-cache.outputs.docker-restore-cache }}
       docker-save-cache: ${{ steps.should-cache.outputs.docker-save-cache }}
     steps:
       - uses: actions/checkout@v4
@@ -371,12 +368,9 @@ jobs:
       matrix:
         include: ${{ fromJson(needs.set-build-matrix.outputs.matrix) }}
     outputs:
-      docker-image-sha-digest-amd64:
-        ${{ steps.build.outputs.docker-image-sha-digest-amd64 }}
-      docker-image-sha-digest-arm64:
-        ${{ steps.build.outputs.docker-image-sha-digest-arm64 }}
-      docker-manifest-tag:
-        ${{ steps.set-docker-image-tags.outputs.docker-manifest-tag }}
+      docker-image-sha-digest-amd64: ${{ steps.build.outputs.docker-image-sha-digest-amd64 }}
+      docker-image-sha-digest-arm64: ${{ steps.build.outputs.docker-image-sha-digest-arm64 }}
+      docker-manifest-tag: ${{ steps.set-docker-image-tags.outputs.docker-manifest-tag }}
     steps:
       - uses: actions/checkout@v4
         id: checkout
@@ -391,8 +385,7 @@ jobs:
         env:
           DATE: ${{ needs.init.outputs.date }}
           DOCKER_IMAGE_TAG_OVERRIDE: ${{ inputs.docker-image-tag-override }}
-          DOCKER_IMAGE_TAG_STRIP_PREFIX:
-            ${{ inputs.docker-image-tag-strip-prefix }}
+          DOCKER_IMAGE_TAG_STRIP_PREFIX: ${{ inputs.docker-image-tag-strip-prefix }}
           DOCKER_IMAGE_TYPE: ${{ needs.init.outputs.build-type }}
           DOCKER_TAG_CUSTOM_SUFFIX: ${{ inputs.docker-tag-custom-suffix }}
           GIT_SHORT_SHA: ${{ needs.init.outputs.git-short-sha }}
@@ -519,10 +512,8 @@ jobs:
       - name: Prepare image digests for manifest
         id: prepare-digests
         env:
-          DOCKER_IMAGE_SHA_DIGEST_AMD64:
-            ${{ needs.build-publish.outputs.docker-image-sha-digest-amd64 }}
-          DOCKER_IMAGE_SHA_DIGEST_ARM64:
-            ${{ needs.build-publish.outputs.docker-image-sha-digest-arm64 }}
+          DOCKER_IMAGE_SHA_DIGEST_AMD64: ${{ needs.build-publish.outputs.docker-image-sha-digest-amd64 }}
+          DOCKER_IMAGE_SHA_DIGEST_ARM64: ${{ needs.build-publish.outputs.docker-image-sha-digest-arm64 }}
           BUILD_ARM64_IMAGE: ${{ inputs.build-arm64-image }}
         run: |
           # Set default empty arm64 digest
@@ -563,10 +554,8 @@ jobs:
             }}
           docker-repository-name: ${{ inputs.aws-ecr-name }}
           docker-manifest-sign: ${{ inputs.docker-manifest-sign }}
-          docker-manifest-tag:
-            ${{ needs.build-publish.outputs.docker-manifest-tag }}
-          docker-image-name-digests:
-            ${{ steps.prepare-digests.outputs.image_digests }}
+          docker-manifest-tag: ${{ needs.build-publish.outputs.docker-manifest-tag }}
+          docker-image-name-digests: ${{ steps.prepare-digests.outputs.image_digests }}
           github-workflow-repository: ${{ inputs.github-workflow-repository }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
