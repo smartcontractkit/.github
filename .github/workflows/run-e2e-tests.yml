@@ -636,8 +636,8 @@ jobs:
           aws-account-number: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}
           aws-region: ${{ secrets.QA_AWS_REGION }}
           aws-role-arn: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
-          gati-role-arn: ${{ secrets.AWS_OIDC_GLOBAL_READ_ONLY_TOKEN_ISSUER_ROLE_ARN }}
-          gati-lambda-url: ${{ secrets.AWS_INFRA_RELENG_TOKEN_ISSUER_LAMBDA_URL }}
+          gati-role-arn: ${{ secrets.OPTIONAL_GATI_AWS_ROLE_ARN }}
+          gati-lambda-url: ${{ secrets.OPTIONAL_GATI_LAMBDA_URL }}
 
   # Check if Chainlink plugins required for the tests exist. If not, build and push the images to QA ECR
   require-chainlink-plugin-versions-in-qa-ecr:
