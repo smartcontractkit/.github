@@ -95,6 +95,12 @@ on:
           "5733cdcda9a9fc6da6343798b119b2ae136146cd,0b7d2c497a508efa5a827714780d908b7b8eda19"'
         required: false
         type: string
+      skip_image_build:
+        description: 'Set to "true" to skip building Chainlink image. Useful running tests which
+          do not require Chainlink image to be built. Example: "true"'
+        required: false
+        type: boolean
+        default: false
       slack_notification_after_tests:
         description: 'Set to "always" to always send a slack notification after the tests.
           Set "on_failure" to send a notification only on test failure'
@@ -605,7 +611,7 @@ jobs:
     needs: [validate-inputs, load-test-configurations]
     if: ${{
       fromJson(needs.validate-inputs.outputs.require_chainlink_image_versions_in_qa_ecr_matrix)
-      != '' }}
+      != '' && !inputs.skip_image_build }}
     runs-on: ubuntu-latest
     environment: integration
     permissions:
