@@ -64,6 +64,12 @@ on:
         required: false
         type: boolean
         default: false
+      operations-per-run:
+        description: |
+          The maximum number of operations per run, used to control rate
+          limiting (GitHub API CRUD related).
+        default: "30"
+        required: false
     secrets:
       GH_TOKEN:
         description: "GitHub token for authentication"
@@ -103,3 +109,4 @@ jobs:
           delete-branch: ${{ inputs.delete-branch }}
           # Comma separated list of labels that exempt issues from being considered stale.
           exempt-pr-labels: "stale-exempt"
+          operations-per-run: ${{ inputs.operations-per-run }}
