@@ -29,6 +29,15 @@ on:
   workflow_call:
     # See: https://github.com/actions/stale?tab=readme-ov-file#list-of-input-options for inputs.
     inputs:
+      close-pr-message:
+        description: |
+          The message to post on the pull request when closing it.
+          If none provided, will not comment when closing a pull requests.
+        required: false
+        type: string
+        default: |
+          This PR has been automatically closed because it had been stale for > ${{ env.DAYS_BEFORE_PR_STALE }} days.
+          If you wish to continue working on this PR, please reopen it to make any necessary changes.
       delete-branch:
         description: "Delete the branch if the PR is closed"
         required: false
@@ -71,6 +80,15 @@ on:
         required: false
         type: string
         default: "30"
+      stale-pr-message:
+        description: |
+          The message to post on the pull request when tagging it. If none
+          provided, will not mark pull requests stale.
+        required: false
+        type: string
+        default: |
+          This PR is stale because it has been open ${{ env.DAYS_BEFORE_PR_STALE }} days with no activity.
+          Remove the `stale` label, comment, or update this PR to prevent this PR from being closed in ${{ env.DAYS_BEFORE_PR_CLOSE }} days.
     secrets:
       GH_TOKEN:
         description: "GitHub token for authentication"
@@ -95,19 +113,15 @@ jobs:
           DAYS_BEFORE_PR_STALE: ${{ inputs.days-before-pr-stale}}
         with:
           repo-token: ${{ secrets.GH_TOKEN }}
-          close-pr-message: |
-            This PR has been automatically closed because it has been stale for > ${{ env.DAYS_BEFORE_PR_STALE }} days.
-            If you wish to continue working on this PR, please reopen it and make any necessary changes.
-          exempt-all-pr-assignees: ${{ inputs.exempt-all-pr-assignees }}
-          exempt-draft-pr: ${{ inputs.exempt-draft-pr }}
-          stale-pr-message: |
-            This PR is stale because it has been open ${{ env.DAYS_BEFORE_PR_STALE }} days with no activity.
-            Remove the `stale` label or comment or this will be closed in ${{ env.DAYS_BEFORE_PR_CLOSE }} days.
+          close-pr-message: ${{ inputs.close-pr-message }}
           days-before-issue-close: ${{ inputs.days-before-issue-close }}
           days-before-issue-stale: ${{ inputs.days-before-issue-stale }}
           days-before-pr-close: ${{ inputs.days-before-pr-close }}
           days-before-pr-stale: ${{ inputs.days-before-pr-stale }}
           delete-branch: ${{ inputs.delete-branch }}
+          exempt-all-pr-assignees: ${{ inputs.exempt-all-pr-assignees }}
+          exempt-draft-pr: ${{ inputs.exempt-draft-pr }}
           # Comma separated list of labels that exempt issues from being considered stale.
           exempt-pr-labels: "stale-exempt"
           operations-per-run: ${{ inputs.operations-per-run }}
+          stale-pr-message: ${{ inputs.stale-pr-message }}
