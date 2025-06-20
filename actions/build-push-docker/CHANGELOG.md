@@ -1,5 +1,14 @@
 # build-push-docker
 
+## 0.7.1
+
+### Patch Changes
+
+- [#1101](https://github.com/smartcontractkit/.github/pull/1101)
+  [`655ec9a`](https://github.com/smartcontractkit/.github/commit/655ec9a0c2199787efbe964a9a10d960fcebbaf6)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: optional input to
+  disable attestations
+
 ## 0.7.0
 
 ### Minor Changes

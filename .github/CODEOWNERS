@@ -1,6 +1,8 @@
 * @smartcontractkit/devex-cicd
 
 # Chainlink Testing Framework (CTF)
-/actions/ctf-*/** @smartcontractkit/devex-tooling
+/actions/ctf-*/** @smartcontractkit/devex-tooling @smartcontractkit/devex-cicd
+.github/workflows/run-e2e-tests.yml @smartcontractkit/devex-tooling @smartcontractkit/devex-cicd
+
+# CRIB
 /actions/crib-*/** @smartcontractkit/cl-orchestration
-.github/workflows/run-e2e-tests.yml @smartcontractkit/devex-tooling
