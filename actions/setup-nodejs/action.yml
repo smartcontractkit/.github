@@ -22,6 +22,10 @@ inputs:
     description: Run npm/yarn/pnpm install
     required: true
     default: "true"
+  install-command:
+    description: The command to run to install dependencies
+    required: false
+    default: "pnpm install"
   package-json-directory:
     description:
       The sub-directory of the package.json, if not at the root of the
@@ -76,4 +80,12 @@ runs:
       if: inputs.run-install == 'true'
       shell: bash
       working-directory: ${{ inputs.package-json-directory }}
-      run: pnpm install
+      env:
+        INSTALL_COMMAND: ${{ inputs.install-command }}
+      run: |
+        if [ -z "$INSTALL_COMMAND" ]; then
+          echo "::error::No install command provided, skipping install step."
+          exit 1
+        fi
+
+        $INSTALL_COMMAND
