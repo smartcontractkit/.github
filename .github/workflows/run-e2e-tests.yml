@@ -387,7 +387,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@e62f3f0a1483d4fa02621a4a6f525b7f7c0b2f67 # May 27, 2025
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@d12aaf98c18c7711bdb211e4d0bc0a5317c80e02 # 23-06-2025
       - name: Run Check Tests Command
         env:
           TEST_PATH: ${{ inputs.test_path }}
@@ -445,7 +445,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@e62f3f0a1483d4fa02621a4a6f525b7f7c0b2f67 # May 27, 2025
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@d12aaf98c18c7711bdb211e4d0bc0a5317c80e02 # 23-06-2025
 
       - name: Generate Docker Tests Matrix
         id: set-docker-matrix
