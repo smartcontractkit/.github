@@ -75,8 +75,7 @@ configuration file:
     - PR E2E Core Tests
     - Merge Queue E2E Core Tests
     - Nightly E2E Tests
-  test_cmd:
-    go test smoke/ocr_test.go -timeout 30m -count=1 -test.parallel=2 -json
+  test_cmd: go test smoke/ocr_test.go -timeout 30m -count=1 -test.parallel=2 -json
   test_go_project_path: integration-tests
   pyroscope_env: ci-smoke-ocr-evm-simulated
 ```
@@ -88,11 +87,9 @@ configuration file:
   path: integration-tests/soak/ocr_test.go
   test_env_type: k8s-remote-runner
   runs_on: ubuntu-latest
-  test_cmd:
-    go test soak/ocr_test.go -v -test.run ^TestOCRv1Soak$ -test.parallel=1
+  test_cmd: go test soak/ocr_test.go -v -test.run ^TestOCRv1Soak$ -test.parallel=1
     -timeout 900h -count=1 -json
-  test_cmd_opts:
-    2>&1 | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage
+  test_cmd_opts: 2>&1 | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage
     -hidepassingtests=false
   test_go_project_path: integration-tests
   test_env_vars:
@@ -170,15 +167,13 @@ follow these simple steps:
          GRAFANA_INTERNAL_TENANT_ID: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
          GRAFANA_INTERNAL_BASIC_AUTH: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
          GRAFANA_INTERNAL_HOST: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-         GRAFANA_INTERNAL_URL_SHORTENER_TOKEN:
-           ${{ secrets.GRAFANA_INTERNAL_URL_SHORTENER_TOKEN }}
+         GRAFANA_INTERNAL_URL_SHORTENER_TOKEN: ${{ secrets.GRAFANA_INTERNAL_URL_SHORTENER_TOKEN }}
          LOKI_TENANT_ID: ${{ secrets.LOKI_TENANT_ID }}
          LOKI_URL: ${{ secrets.LOKI_URL }}
          LOKI_BASIC_AUTH: ${{ secrets.LOKI_BASIC_AUTH }}
          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
          AWS_REGION: ${{ secrets.QA_AWS_REGION }}
-         AWS_OIDC_IAM_ROLE_VALIDATION_PROD_ARN:
-           ${{ secrets.AWS_OIDC_IAM_ROLE_VALIDATION_PROD_ARN }}
+         AWS_OIDC_IAM_ROLE_VALIDATION_PROD_ARN: ${{ secrets.AWS_OIDC_IAM_ROLE_VALIDATION_PROD_ARN }}
          AWS_API_GW_HOST_GRAFANA: ${{ secrets.AWS_API_GW_HOST_GRAFANA }}
          SLACK_BOT_TOKEN: ${{ secrets.QA_SLACK_API_KEY }}
          main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}

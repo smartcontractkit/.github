@@ -14,28 +14,24 @@ on:
         type: string
         default: "Run E2E Tests"
       chainlink_version:
-        description:
-          "Enter Chainlink version to use for the tests. Example: v2.10.0,
+        description: "Enter Chainlink version to use for the tests. Example: v2.10.0,
           develop or commit sha"
         required: false
         type: string
       test_path:
-        description:
-          "Path to the YAML test configuration file. Example:
+        description: "Path to the YAML test configuration file. Example:
           .github/e2e-tests.yml. Not required when custom_test_list_json is
           provided"
         required: false
         type: string
       test_ids:
-        description:
-          'Run tests by test ids separated by commas. Example:
+        description: 'Run tests by test ids separated by commas. Example:
           "run_all_in_ocr_tests_go,run_TestOCRv2Request_in_ocr2_test_go". Check
           all test IDs in .github/e2e-tests.yml'
         required: false
         type: string
       test_list:
-        description:
-          "Base64-encoded list (YML objects) specifying the tests to run"
+        description: "Base64-encoded list (YML objects) specifying the tests to run"
         required: false
         type: string
       custom_test_list_json:
@@ -56,31 +52,26 @@ on:
       #   ]
       # }
       test_trigger:
-        description:
-          'Run tests by trigger name. Example: "Run Nightly E2E Tests"'
+        description: 'Run tests by trigger name. Example: "Run Nightly E2E Tests"'
         required: false
         type: string
       test_secrets_override_key:
-        description:
-          'Key to use for overriding the default test secrets. Use "aws:" prefix
+        description: 'Key to use for overriding the default test secrets. Use "aws:" prefix
           for AWS secrets. Example:
           "aws:testsecrets/TEST_SECRETS_OVERRIDE_BASE64"'
         required: false
         type: string
       test_config_override_path:
-        description:
-          "Path to a test config file used to override the default test config"
+        description: "Path to a test config file used to override the default test config"
         required: false
         type: string
       check_test_path:
-        description:
-          "Path to the test folder to check for tests missing definition in
+        description: "Path to the test folder to check for tests missing definition in
           .github/e2e-tests.yml"
         required: false
         type: string
       with_existing_remote_runner_version:
-        description:
-          'Use the existing remote runner version for k8s tests. Example:
+        description: 'Use the existing remote runner version for k8s tests. Example:
           "d3bf5044af33e08be788a2df31c4a745cf69d787"'
         required: false
         type: string
@@ -88,28 +79,30 @@ on:
         description: "Suites to build in the test image. Space separated"
         required: false
         type: string
-        default:
-          chaos migration reorg smoke soak benchmark load ccip-tests/load
+        default: chaos migration reorg smoke soak benchmark load ccip-tests/load
           ccip-tests/smoke ccip-tests/chaos
       require_chainlink_image_versions_in_qa_ecr:
-        description:
-          'Check Chainlink image versions to be present in QA ECR. If not, build
+        description: 'Check Chainlink image versions to be present in QA ECR. If not, build
           and push the image to QA ECR. Takes comma separated list of Chainlink
           image versions. Example:
           "5733cdcda9a9fc6da6343798b119b2ae136146cd,0b7d2c497a508efa5a827714780d908b7b8eda19"'
         required: false
         type: string
       require_chainlink_plugin_versions_in_qa_ecr:
-        description:
-          'Check Chainlink plugins versions to be present in QA ECR. If not,
+        description: 'Check Chainlink plugins versions to be present in QA ECR. If not,
           build and push the image to QA ECR. Takes comma separated list of
           Chainlink image versions. Example:
           "5733cdcda9a9fc6da6343798b119b2ae136146cd,0b7d2c497a508efa5a827714780d908b7b8eda19"'
         required: false
         type: string
+      skip_image_build:
+        description: 'Set to "true" to skip building Chainlink image. Useful running tests which
+          do not require Chainlink image to be built. Example: "true"'
+        required: false
+        type: boolean
+        default: false
       slack_notification_after_tests:
-        description:
-          'Set to "always" to always send a slack notification after the tests.
+        description: 'Set to "always" to always send a slack notification after the tests.
           Set "on_failure" to send a notification only on test failure'
         required: false
         type: string
@@ -126,8 +119,7 @@ on:
         required: false
         type: string
       test_log_upload_on_failure:
-        description:
-          'Set to "true" to upload the test log on failure as Github artifact'
+        description: 'Set to "true" to upload the test log on failure as Github artifact'
         required: false
         type: boolean
         default: true
@@ -142,8 +134,7 @@ on:
         type: string
         default: debug
       upload_cl_node_coverage_artifact:
-        description:
-          'Set to "true" to upload Chainlink node coverage artifact to as Github
+        description: 'Set to "true" to upload Chainlink node coverage artifact to as Github
           artifact'
         required: false
         type: boolean
@@ -153,19 +144,16 @@ on:
         required: false
         type: string
       enable_otel_traces_for_ocr2_plugins:
-        description:
-          'Set to "true" to enable OpenTelemetry traces for OCR2 plugins tests'
+        description: 'Set to "true" to enable OpenTelemetry traces for OCR2 plugins tests'
         required: false
         type: boolean
         default: false
       SLACK_CHANNEL:
-        description:
-          "SLACK_CHANNEL env used to send Slack notifications from test code"
+        description: "SLACK_CHANNEL env used to send Slack notifications from test code"
         required: false
         type: string
       SLACK_USER:
-        description:
-          "SLACK_USER env used to send Slack notifications from test code"
+        description: "SLACK_USER env used to send Slack notifications from test code"
         required: false
         type: string
       setup_gap:
@@ -174,8 +162,7 @@ on:
         type: boolean
         default: false
       collect_test_telemetry:
-        description:
-          'Set to "true" to collect telemetry data for E2E tests, helpful for
+        description: 'Set to "true" to collect telemetry data for E2E tests, helpful for
           debugging resource issues.'
         required: false
         type: boolean
@@ -269,15 +256,12 @@ on:
         required: false
 
 env:
-  CHAINLINK_IMAGE:
-    ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
+  CHAINLINK_IMAGE: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
     }}.amazonaws.com/chainlink
-  QA_CHAINLINK_IMAGE:
-    ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
+  QA_CHAINLINK_IMAGE: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
     }}.amazonaws.com/chainlink
   DEFAULT_CHAINLINK_VERSION: ${{ inputs.chainlink_version }}
-  DEFAULT_CHAINLINK_PLUGINS_VERSION:
-    ${{ inputs.chainlink_version != '' && format('{0}-plugins',
+  DEFAULT_CHAINLINK_PLUGINS_VERSION: ${{ inputs.chainlink_version != '' && format('{0}-plugins',
     inputs.chainlink_version) }}
   DEFAULT_CHAINLINK_UPGRADE_VERSION: ${{ inputs.chainlink_version }}
   CHAINLINK_ENV_USER: ${{ github.actor }}
@@ -287,30 +271,23 @@ env:
   METRICS_COLLECTION_ID: chainlink-e2e-tests
   SLACK_API_KEY: ${{ secrets.SLACK_API_KEY }}
   CHAINLINK_USER_TEAM: ${{ inputs.team }}
-  E2E_JD_IMAGE:
-    ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
+  E2E_JD_IMAGE: ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
     secrets.AWS_REGION}}.amazonaws.com/job-distributor
-  E2E_RMN_RAGEPROXY_IMAGE:
-    ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
+  E2E_RMN_RAGEPROXY_IMAGE: ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
     secrets.AWS_REGION}}.amazonaws.com/rageproxy
-  E2E_RMN_AFN2PROXY_IMAGE:
-    ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
+  E2E_RMN_AFN2PROXY_IMAGE: ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
     secrets.AWS_REGION}}.amazonaws.com/afn2proxy
+  E2E_FAST_FILLER_IMAGE: ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
+    secrets.AWS_REGION}}.amazonaws.com/ccip-fast-transfer-filler
   SLACK_USER: ${{ inputs.SLACK_USER }}
-  SLACK_CHANNEL:
-    ${{ inputs.slack_notification_after_tests_channel_id || inputs.SLACK_CHANNEL
+  SLACK_CHANNEL: ${{ inputs.slack_notification_after_tests_channel_id || inputs.SLACK_CHANNEL
     || secrets.SLACK_CHANNEL }}
 
-  FLAKEGUARD_ENABLE:
-    ${{ fromJSON(inputs.extraArgs)['flakeguard_enable'] || 'false' }}
-  FLAKEGUARD_MAX_PASS_RATIO:
-    ${{ fromJSON(inputs.extraArgs)['flakeguard_max_pass_ratio'] || '1.0' }}
-  FLAKEGUARD_RUN_COUNT:
-    ${{ fromJSON(inputs.extraArgs)['flakeguard_run_count'] || '3' }}
-  FLAKEGUARD_RERUN_FAILED_COUNT:
-    ${{ fromJSON(inputs.extraArgs)['flakeguard_rerun_failed_count'] || '0' }}
-  DOCKER_TESTS_TIMEOUT_MINUTES:
-    ${{ fromJSON(inputs.extraArgs)['docker_tests_timeout_minutes'] || 60 }}
+  FLAKEGUARD_ENABLE: ${{ fromJSON(inputs.extraArgs)['flakeguard_enable'] || 'false' }}
+  FLAKEGUARD_MAX_PASS_RATIO: ${{ fromJSON(inputs.extraArgs)['flakeguard_max_pass_ratio'] || '1.0' }}
+  FLAKEGUARD_RUN_COUNT: ${{ fromJSON(inputs.extraArgs)['flakeguard_run_count'] || '3' }}
+  FLAKEGUARD_RERUN_FAILED_COUNT: ${{ fromJSON(inputs.extraArgs)['flakeguard_rerun_failed_count'] || '0' }}
+  DOCKER_TESTS_TIMEOUT_MINUTES: ${{ fromJSON(inputs.extraArgs)['docker_tests_timeout_minutes'] || 60 }}
 
 jobs:
   validate-inputs:
@@ -323,8 +300,7 @@ jobs:
       require_chainlink_plugin_versions_in_qa_ecr_matrix:
         ${{ steps.set-required-chainlink-plugin-versions-matrix.outputs.versions
         }}
-      aws_test_secrets_key:
-        ${{ steps.check-inputs.outputs.aws_test_secrets_key }}
+      aws_test_secrets_key: ${{ steps.check-inputs.outputs.aws_test_secrets_key }}
     steps:
       - name: Check input conditions
         id: check-inputs
@@ -370,8 +346,7 @@ jobs:
         id: set-required-chainlink-image-versions-matrix
         shell: bash
         env:
-          REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR:
-            ${{ inputs.require_chainlink_image_versions_in_qa_ecr }}
+          REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR: ${{ inputs.require_chainlink_image_versions_in_qa_ecr }}
         run: |
           image_versions="$REQUIRE_CHAINLINK_IMAGE_VERSIONS_IN_QA_ECR"
           default_version="${{ env.DEFAULT_CHAINLINK_VERSION }}"
@@ -393,8 +368,7 @@ jobs:
         id: set-required-chainlink-plugin-versions-matrix
         shell: bash
         env:
-          REQUIRED_VERSIONS:
-            ${{ inputs.require_chainlink_plugin_versions_in_qa_ecr }}
+          REQUIRED_VERSIONS: ${{ inputs.require_chainlink_plugin_versions_in_qa_ecr }}
         run: |
           image_versions=$(echo "$REQUIRED_VERSIONS" | jq -Rc 'if . == "" then "" else split(",") | if . == [""] then "" else . end end')
           echo "Required Chainlink plugin image versions: $image_versions"
@@ -428,8 +402,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: integration
     outputs:
-      latest_chainlink_release_version:
-        ${{ steps.get_latest_version.outputs.latest_version }}
+      latest_chainlink_release_version: ${{ steps.get_latest_version.outputs.latest_version }}
     steps:
       - name: Get Latest Version
         id: get_latest_version
@@ -451,8 +424,7 @@ jobs:
     outputs:
       run-docker-tests: ${{ steps.check-matrices.outputs.run-docker-tests }}
       run-k8s-tests: ${{ steps.check-matrices.outputs.run-k8s-tests }}
-      run-in-memory-tests:
-        ${{ steps.check-matrices.outputs.run-in-memory-tests }}
+      run-in-memory-tests: ${{ steps.check-matrices.outputs.run-in-memory-tests }}
       docker-matrix: ${{ steps.set-docker-matrix.outputs.matrix }}
       k8s-runner-matrix: ${{ steps.set-k8s-runner-matrix.outputs.matrix }}
       in-memory-matrix: ${{ steps.set-in-memory-matrix.outputs.matrix }}
@@ -637,48 +609,57 @@ jobs:
   require-chainlink-image-versions-in-qa-ecr:
     name: Get Chainlink image
     needs: [validate-inputs, load-test-configurations]
-    if:
-      ${{
+    if: ${{
       fromJson(needs.validate-inputs.outputs.require_chainlink_image_versions_in_qa_ecr_matrix)
-      != '' }}
+      != '' && !inputs.skip_image_build }}
     runs-on: ubuntu-latest
     environment: integration
     permissions:
       id-token: write
       contents: read
     env:
-      CHAINLINK_IMAGE:
-        ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
+      CHAINLINK_IMAGE: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
         }}.amazonaws.com/chainlink
     strategy:
       matrix:
-        version:
-          ${{
+        version: ${{
           fromJson(needs.validate-inputs.outputs.require_chainlink_image_versions_in_qa_ecr_matrix)
           }}
     steps:
+      - name: Check if image exists in ECR
+        id: check-image-exists
+        uses: smartcontractkit/.github/actions/ecr-image-exists@ecr-image-exists/0.0.1
+        with:
+          repository: "chainlink"
+          tag: ${{ matrix.version }}
+          aws-role-arn: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
+
       - name: Checkout the repo
+        if: ${{ steps.check-image-exists.outputs.exists != 'true' }}
         uses: actions/checkout@v4.2.1
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
 
-      - name: Get Chainlink image
-        uses: ./.github/actions/build-chainlink-image
+      - name: Build Chainlink Image
+        if: ${{ steps.check-image-exists.outputs.exists != 'true' }}
+        uses: smartcontractkit/.github/actions/ctf-build-image@ctf-build-image/v1
         with:
+          image-tag: ${{ matrix.version }}
           dockerfile: core/chainlink.Dockerfile
-          git_commit_sha: ${{ matrix.version }}
-          tag_suffix: ""
-          check_image_exists: "true"
-          AWS_REGION: ${{ secrets.QA_AWS_REGION }}
-          AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
+          docker-registry-url: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION }}.amazonaws.com
+          docker-repository-name: "chainlink"
+          aws-account-number: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}
+          aws-region: ${{ secrets.QA_AWS_REGION }}
+          aws-role-arn: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
+          gati-role-arn: ${{ secrets.OPTIONAL_GATI_AWS_ROLE_ARN }}
+          gati-lambda-url: ${{ secrets.OPTIONAL_GATI_LAMBDA_URL }}
 
   # Check if Chainlink plugins required for the tests exist. If not, build and push the images to QA ECR
   require-chainlink-plugin-versions-in-qa-ecr:
     name: Get Chainlink plugins image
     needs: [validate-inputs, load-test-configurations]
-    if:
-      ${{
+    if: ${{
       fromJson(needs.validate-inputs.outputs.require_chainlink_plugin_versions_in_qa_ecr_matrix)
       != '' }}
     runs-on: ubuntu-latest
@@ -687,13 +668,11 @@ jobs:
       id-token: write
       contents: read
     env:
-      CHAINLINK_IMAGE:
-        ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
+      CHAINLINK_IMAGE: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
         }}.amazonaws.com/chainlink
     strategy:
       matrix:
-        version:
-          ${{
+        version: ${{
           fromJson(needs.validate-inputs.outputs.require_chainlink_plugin_versions_in_qa_ecr_matrix)
           }}
     steps:
@@ -725,11 +704,9 @@ jobs:
         get_latest_chainlink_release_version,
       ]
     # Run when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok)
-    if:
-      ${{ needs.load-test-configurations.outputs.run-docker-tests == 'true' &&
+    if: ${{ needs.load-test-configurations.outputs.run-docker-tests == 'true' &&
       always() && !failure() && !cancelled() }}
-    runs-on:
-      ${{ inputs.use-self-hosted-runners == 'true' &&
+    runs-on: ${{ inputs.use-self-hosted-runners == 'true' &&
       matrix.tests.runs_on_self_hosted || matrix.tests.runs_on }}
     strategy:
       fail-fast: false
@@ -742,12 +719,10 @@ jobs:
       id-token: write
       contents: read
     env:
-      LATEST_CHAINLINK_RELEASE_VERSION:
-        ${{
+      LATEST_CHAINLINK_RELEASE_VERSION: ${{
         needs.get_latest_chainlink_release_version.outputs.latest_chainlink_release_version
         }}
-      TEST_CONFIG_OVERRIDE_PATH:
-        ${{ matrix.tests.test_config_override_path ||
+      TEST_CONFIG_OVERRIDE_PATH: ${{ matrix.tests.test_config_override_path ||
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
     steps:
@@ -774,8 +749,7 @@ jobs:
           echo "[${{ env.TEST_CONFIG_OVERRIDE_PATH }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/${{ inputs.chainlink_version }}/${{ env.TEST_CONFIG_OVERRIDE_PATH }})" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Show chainlink version in summary
-        if:
-          ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
+        if: ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
           env.DEFAULT_CHAINLINK_VERSION }}
         shell: bash
         run: |
@@ -798,8 +772,7 @@ jobs:
 
       - name: Setup Grafana and OpenTelemetry
         id: docker-setup
-        if:
-          inputs.enable_otel_traces_for_ocr2_plugins &&
+        if: inputs.enable_otel_traces_for_ocr2_plugins &&
           matrix.tests.test_env_vars.ENABLE_OTEL_TRACES == 'true'
         shell: bash
         run: |
@@ -855,8 +828,7 @@ jobs:
         env:
           OPTIONAL_GATI_AWS_ROLE_ARN: ${{ secrets.OPTIONAL_GATI_AWS_ROLE_ARN }}
           OPTIONAL_GATI_LAMBDA_URL: ${{ secrets.OPTIONAL_GATI_LAMBDA_URL }}
-        if:
-          ${{ env.OPTIONAL_GATI_AWS_ROLE_ARN && env.OPTIONAL_GATI_LAMBDA_URL }}
+        if: ${{ env.OPTIONAL_GATI_AWS_ROLE_ARN && env.OPTIONAL_GATI_LAMBDA_URL }}
         uses: smartcontractkit/.github/actions/setup-github-token@ef78fa97bf3c77de6563db1175422703e9e6674f # setup-github-token@0.2.1
         with:
           aws-role-arn: ${{ secrets.OPTIONAL_GATI_AWS_ROLE_ARN }}
@@ -870,40 +842,31 @@ jobs:
         uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.8.0
         env:
           DETACH_RUNNER: true
-          E2E_TEST_CHAINLINK_VERSION:
-            ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
+          E2E_TEST_CHAINLINK_VERSION: ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
             env.DEFAULT_CHAINLINK_VERSION }}
           E2E_TEST_LOKI_TENANT_ID: ${{ secrets.LOKI_TENANT_ID }}
           E2E_TEST_LOKI_ENDPOINT: ${{ secrets.LOKI_URL }}
           E2E_TEST_LOKI_BASIC_AUTH: ${{ secrets.LOKI_BASIC_AUTH }}
-          E2E_TEST_GRAFANA_BEARER_TOKEN:
-            ${{ secrets.GRAFANA_INTERNAL_URL_SHORTENER_TOKEN }}
+          E2E_TEST_GRAFANA_BEARER_TOKEN: ${{ secrets.GRAFANA_INTERNAL_URL_SHORTENER_TOKEN }}
           E2E_TEST_PYROSCOPE_ENVIRONMENT: ${{ matrix.tests.pyroscope_env }}
-          E2E_TEST_PYROSCOPE_SERVER_URL:
-            ${{ matrix.tests.pyroscope_env != '' &&
+          E2E_TEST_PYROSCOPE_SERVER_URL: ${{ matrix.tests.pyroscope_env != '' &&
             secrets.QA_PYROSCOPE_INSTANCE || '' }}
           E2E_TEST_PYROSCOPE_KEY:
             ${{ matrix.tests.pyroscope_env != '' && secrets.QA_PYROSCOPE_KEY ||
             '' }}
-          INTERNAL_DOCKER_REPO:
-            ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
+          INTERNAL_DOCKER_REPO: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
             secrets.QA_AWS_REGION }}.amazonaws.com
-          GITHUB_API_TOKEN:
-            ${{ steps.setup-optional-gati-token.outputs.access-token || ''}}
+          GITHUB_API_TOKEN: ${{ steps.setup-optional-gati-token.outputs.access-token || ''}}
         with:
           flakeguard_enable: ${{ env.FLAKEGUARD_ENABLE }}
           flakeguard_run_count: ${{ env.FLAKEGUARD_RUN_COUNT }}
-          flakeguard_rerun_failed_count:
-            ${{ env.FLAKEGUARD_RERUN_FAILED_COUNT }}
+          flakeguard_rerun_failed_count: ${{ env.FLAKEGUARD_RERUN_FAILED_COUNT }}
           flakeguard_main_results_path: ./flakeguard_run_results/main/flakeguard_results.json
           flakeguard_rerun_results_path: ./flakeguard_run_results/rerun/flakeguard_results.json
           test_go_project_path: ${{ matrix.tests.test_go_project_path }}
-          test_command_to_run:
-            ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
-          test_download_vendor_packages_command:
-            cd $(dirname ${{ matrix.tests.path }}) && go mod download
-          test_secrets_override_base64:
-            ${{ steps.aws-test-secrets.outputs.secret_value ||
+          test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
+          test_download_vendor_packages_command: cd $(dirname ${{ matrix.tests.path }}) && go mod download
+          test_secrets_override_base64: ${{ steps.aws-test-secrets.outputs.secret_value ||
             secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
@@ -911,10 +874,8 @@ jobs:
           default_e2e_test_chainlink_image:
             ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_IMAGE ||
             env.CHAINLINK_IMAGE }}
-          default_e2e_test_chainlink_upgrade_image:
-            ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_UPGRADE_IMAGE }}
-          aws_registries:
-            ${{ secrets.QA_AWS_ACCOUNT_NUMBER }},${{
+          default_e2e_test_chainlink_upgrade_image: ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_UPGRADE_IMAGE }}
+          aws_registries: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }},${{
             secrets.PROD_AWS_ACCOUNT_NUMBER }}
           artifacts_name: ${{ env.TEST_ID }}-test-logs
           artifacts_location: |
@@ -937,29 +898,25 @@ jobs:
           k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
           # enable GAP only if tests explicitly set k8s-related secrets
           # since GAP is required only, when running tests in k8s
-          enable-gap:
-            ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }} != '' && ${{
+          enable-gap: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }} != '' && ${{
             secrets.AWS_K8S_CLUSTER_NAME_SDLC }} != ''
 
       - name: Show Otel-Collector logs
-        if:
-          inputs.enable_otel_traces_for_ocr2_plugins &&
+        if: inputs.enable_otel_traces_for_ocr2_plugins &&
           matrix.tests.test_env_vars.ENABLE_OTEL_TRACES == 'true'
         shell: bash
         run: |
           docker logs otel-collector
 
       - name: Permissions on traces
-        if:
-          inputs.enable_otel_traces_for_ocr2_plugins &&
+        if: inputs.enable_otel_traces_for_ocr2_plugins &&
           matrix.tests.test_env_vars.ENABLE_OTEL_TRACES == 'true'
         shell: bash
         run: |
           ls -l ./integration-tests/smoke/traces
 
       - name: Upload trace data as artifact
-        if:
-          inputs.enable_otel_traces_for_ocr2_plugins &&
+        if: inputs.enable_otel_traces_for_ocr2_plugins &&
           matrix.tests.test_env_vars.ENABLE_OTEL_TRACES == 'true'
         uses: actions/upload-artifact@v4.4.3
         with:
@@ -981,8 +938,7 @@ jobs:
         timeout-minutes: 2
         continue-on-error: true
         with:
-          name:
-            ${{ inputs.upload_cl_node_coverage_artifact_prefix }}${{ env.TEST_ID
+          name: ${{ inputs.upload_cl_node_coverage_artifact_prefix }}${{ env.TEST_ID
             }}
           path: .covdata
           retention-days: 1
@@ -998,8 +954,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v4.4.3
         with:
-          name:
-            test_result_${{ needs.load-test-configurations.outputs.workflow_id
+          name: test_result_${{ needs.load-test-configurations.outputs.workflow_id
             }}_${{ env.TEST_ID }}
           path: test_result.json
           retention-days: 1
@@ -1008,8 +963,7 @@ jobs:
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         uses: actions/upload-artifact@v4.4.3
         with:
-          name:
-            flakeguard_main_run_results_${{
+          name: flakeguard_main_run_results_${{
             needs.load-test-configurations.outputs.workflow_id }}_${{
             env.TEST_ID }}
           path: flakeguard_run_results/main/*
@@ -1019,8 +973,7 @@ jobs:
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
         uses: actions/upload-artifact@v4.4.3
         with:
-          name:
-            flakeguard_rerun_results_${{
+          name: flakeguard_rerun_results_${{
             needs.load-test-configurations.outputs.workflow_id }}_${{
             env.TEST_ID }}
           path: flakeguard_run_results/rerun/*
@@ -1030,8 +983,7 @@ jobs:
         if: failure() && matrix.tests.test_artifacts_on_failure != ''
         uses: actions/upload-artifact@v4.4.3
         with:
-          name:
-            custom_test_artifacts_${{ env.TEST_ID }}_${{
+          name: custom_test_artifacts_${{ env.TEST_ID }}_${{
             needs.load-test-configurations.outputs.workflow_id }}
           path: ${{ matrix.tests.test_artifacts_on_failure }}
           retention-days: 1
@@ -1044,8 +996,7 @@ jobs:
 
   get-remote-runner-test-image:
     needs: [load-test-configurations]
-    if:
-      ${{ needs.load-test-configurations.outputs.run-k8s-tests == 'true' &&
+    if: ${{ needs.load-test-configurations.outputs.run-k8s-tests == 'true' &&
       always() && !failure() && !cancelled() }}
     name: Get remote runner test image
     runs-on: ubuntu-latest
@@ -1057,11 +1008,9 @@ jobs:
       id-token: write
       contents: read
     outputs:
-      remote-runner-version:
-        ${{ steps.set-remote-runner-version.outputs.remote-runner-version }}
+      remote-runner-version: ${{ steps.set-remote-runner-version.outputs.remote-runner-version }}
     env:
-      ENV_JOB_IMAGE_BASE:
-        ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
+      ENV_JOB_IMAGE_BASE: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
         }}.amazonaws.com/chainlink-tests
     steps:
       - name: Checkout repository
@@ -1080,8 +1029,7 @@ jobs:
       - name: Set Remote Runner Version
         id: set-remote-runner-version
         env:
-          WITH_EXISTING_REMOTE_RUNNER_VERSION:
-            ${{ inputs.with_existing_remote_runner_version }}
+          WITH_EXISTING_REMOTE_RUNNER_VERSION: ${{ inputs.with_existing_remote_runner_version }}
         run: |
           # shellcheck disable=SC2129
           if [[ -z "$WITH_EXISTING_REMOTE_RUNNER_VERSION" ]]; then
@@ -1102,12 +1050,10 @@ jobs:
         require-chainlink-plugin-versions-in-qa-ecr,
         get_latest_chainlink_release_version,
       ]
-    if:
-      ${{ needs.load-test-configurations.outputs.run-k8s-tests == 'true' &&
+    if: ${{ needs.load-test-configurations.outputs.run-k8s-tests == 'true' &&
       always() && !failure() && !cancelled() }}
     name: ${{ matrix.tests.id }}
-    runs-on:
-      ${{ inputs.use-self-hosted-runners == 'true' &&
+    runs-on: ${{ inputs.use-self-hosted-runners == 'true' &&
       matrix.tests.runs_on_self_hosted || matrix.tests.runs_on }}
     strategy:
       fail-fast: false
@@ -1120,12 +1066,10 @@ jobs:
       id-token: write
       contents: read
     env:
-      LATEST_CHAINLINK_RELEASE_VERSION:
-        ${{
+      LATEST_CHAINLINK_RELEASE_VERSION: ${{
         needs.get_latest_chainlink_release_version.outputs.latest_chainlink_release_version
         }}
-      TEST_CONFIG_OVERRIDE_PATH:
-        ${{ matrix.tests.test_config_override_path ||
+      TEST_CONFIG_OVERRIDE_PATH: ${{ matrix.tests.test_config_override_path ||
         inputs.test_config_override_path }}
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
     steps:
@@ -1150,8 +1094,7 @@ jobs:
           echo "[${{ env.TEST_CONFIG_OVERRIDE_PATH }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/${{ inputs.chainlink_version }}/${{ env.TEST_CONFIG_OVERRIDE_PATH }})" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Show chainlink version in summary
-        if:
-          ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
+        if: ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
           env.DEFAULT_CHAINLINK_VERSION }}
         run: |
           echo "### Chainlink version" >> "$GITHUB_STEP_SUMMARY"
@@ -1197,42 +1140,34 @@ jobs:
         env:
           DETACH_RUNNER: true
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
-          TEST_ARGS:
-            -test.timeout 900h -test.memprofile memprofile.out -test.cpuprofile
+          TEST_ARGS: -test.timeout 900h -test.memprofile memprofile.out -test.cpuprofile
             profile.out
-          ENV_JOB_IMAGE:
-            ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
+          ENV_JOB_IMAGE: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
             secrets.QA_AWS_REGION }}.amazonaws.com/chainlink-tests:${{
             needs.get-remote-runner-test-image.outputs.remote-runner-version }}
-          INTERNAL_DOCKER_REPO:
-            ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
+          INTERNAL_DOCKER_REPO: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
             secrets.QA_AWS_REGION }}.amazonaws.com
           # We can comment these out when we have a stable soak test and aren't worried about resource consumption
           REF_NAME: ${{ github.head_ref || github.ref_name }}
-          E2E_TEST_CHAINLINK_VERSION:
-            ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
+          E2E_TEST_CHAINLINK_VERSION: ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
             env.DEFAULT_CHAINLINK_VERSION }}
           E2E_TEST_LOKI_TENANT_ID: ${{ secrets.LOKI_TENANT_ID }}
           E2E_TEST_LOKI_ENDPOINT: ${{ secrets.LOKI_URL }}
           E2E_TEST_LOKI_BASIC_AUTH: ${{ secrets.LOKI_BASIC_AUTH }}
-          E2E_TEST_GRAFANA_BEARER_TOKEN:
-            ${{ secrets.GRAFANA_INTERNAL_URL_SHORTENER_TOKEN }}
+          E2E_TEST_GRAFANA_BEARER_TOKEN: ${{ secrets.GRAFANA_INTERNAL_URL_SHORTENER_TOKEN }}
           E2E_TEST_PYROSCOPE_ENVIRONMENT: ${{ matrix.tests.pyroscope_env }}
-          E2E_TEST_PYROSCOPE_SERVER_URL:
-            ${{ matrix.tests.pyroscope_env != '' &&
+          E2E_TEST_PYROSCOPE_SERVER_URL: ${{ matrix.tests.pyroscope_env != '' &&
             secrets.QA_PYROSCOPE_INSTANCE || '' }}
           E2E_TEST_PYROSCOPE_KEY:
             ${{ matrix.tests.pyroscope_env != '' && secrets.QA_PYROSCOPE_KEY ||
             '' }}
           DATABASE_URL: postgresql://postgres:node@localhost:5432/chainlink_test?sslmode=disable
         with:
-          test_command_to_run:
-            ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1
+          test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1
             | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage
             -hidepassingtests=false' }}
           test_download_vendor_packages_command: make gomod
-          test_secrets_override_base64:
-            ${{ steps.aws-test-secrets.outputs.secret_value ||
+          test_secrets_override_base64: ${{ steps.aws-test-secrets.outputs.secret_value ||
             secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
@@ -1241,8 +1176,7 @@ jobs:
           default_e2e_test_chainlink_image:
             ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_IMAGE ||
             env.CHAINLINK_IMAGE }}
-          default_e2e_test_chainlink_upgrade_image:
-            ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_UPGRADE_IMAGE }}
+          default_e2e_test_chainlink_upgrade_image: ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_UPGRADE_IMAGE }}
           token: ${{ secrets.GH_TOKEN }}
           should_cleanup: false
           cache_key_id: e2e-tests
@@ -1265,8 +1199,7 @@ jobs:
         if: failure() && matrix.tests.test_artifacts_on_failure != ''
         uses: actions/upload-artifact@v4.4.3
         with:
-          name:
-            custom_test_artifacts_${{ env.TEST_ID }}_${{
+          name: custom_test_artifacts_${{ env.TEST_ID }}_${{
             needs.load-test-configurations.outputs.workflow_id }}
           path: ${{ matrix.tests.test_artifacts_on_failure }}
           retention-days: 1
@@ -1278,13 +1211,11 @@ jobs:
   # Run tests that us only in-memory components
   run-in-memory-tests:
     name: ${{ matrix.tests.id }}
-    if:
-      ${{ needs.load-test-configurations.outputs.run-in-memory-tests == 'true'
+    if: ${{ needs.load-test-configurations.outputs.run-in-memory-tests == 'true'
       && always() && !failure() && !cancelled() }}
     needs: load-test-configurations
     # Run when none of the needed jobs fail or are cancelled (skipped or successful jobs are ok)
-    runs-on:
-      ${{ inputs.use-self-hosted-runners == 'true' &&
+    runs-on: ${{ inputs.use-self-hosted-runners == 'true' &&
       matrix.tests.runs_on_self_hosted || matrix.tests.runs_on }}
     strategy:
       fail-fast: false
@@ -1331,15 +1262,12 @@ jobs:
         with:
           flakeguard_enable: ${{ env.FLAKEGUARD_ENABLE }}
           flakeguard_run_count: ${{ env.FLAKEGUARD_RUN_COUNT }}
-          flakeguard_rerun_failed_count:
-            ${{ env.FLAKEGUARD_RERUN_FAILED_COUNT }}
+          flakeguard_rerun_failed_count: ${{ env.FLAKEGUARD_RERUN_FAILED_COUNT }}
           flakeguard_main_results_path: ./flakeguard_run_results/main/flakeguard_results.json
           flakeguard_rerun_results_path: ./flakeguard_run_results/rerun/flakeguard_results.json
           test_go_project_path: ${{ matrix.tests.test_go_project_path }}
-          test_command_to_run:
-            ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
-          test_download_vendor_packages_command:
-            cd $(dirname ${{ matrix.tests.path }}) && go mod download
+          test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
+          test_download_vendor_packages_command: cd $(dirname ${{ matrix.tests.path }}) && go mod download
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
           artifacts_name: ${{ env.TEST_ID }}-test-logs
@@ -1362,13 +1290,7 @@ jobs:
           setup_db: "true"
 
   after_tests:
-    needs:
-      [
-        load-test-configurations,
-        run-docker-tests,
-        run-k8s-runner-tests,
-        run-in-memory-tests,
-      ]
+    needs: [load-test-configurations, run-docker-tests, run-k8s-runner-tests, run-in-memory-tests]
     if: always()
     name: After tests
     runs-on: ubuntu-latest
@@ -1389,8 +1311,7 @@ jobs:
         uses: actions/download-artifact@v4.1.8
         with:
           path: flakeguard_main_results
-          pattern:
-            flakeguard_main_run_results_${{
+          pattern: flakeguard_main_run_results_${{
             needs.load-test-configurations.outputs.workflow_id }}_*
 
       - name: Download All Flakeguard Rerun Results
@@ -1398,8 +1319,7 @@ jobs:
         uses: actions/download-artifact@v4.1.8
         with:
           path: flakeguard_rerun_results
-          pattern:
-            flakeguard_rerun_results_${{
+          pattern: flakeguard_rerun_results_${{
             needs.load-test-configurations.outputs.workflow_id }}_*
 
       - name: Install flakeguard
@@ -1564,8 +1484,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: ./flakeguard_run_report
-          name:
-            flakeguard_report_${{
+          name: flakeguard_report_${{
             needs.load-test-configurations.outputs.workflow_id }}
           retention-days: 14
 
@@ -1585,15 +1504,12 @@ jobs:
         env:
           MAIN_REPORT_PATH: "./flakeguard_run_report/main/all-test-report.json"
           RERUN_REPORT_PATH: "./flakeguard_run_report/rerun/all-test-report.json"
-          FAILED_LOGS_URL:
-            ${{ steps.upload-failed-report-with-logs.outputs.artifact-url }}
+          FAILED_LOGS_URL: ${{ steps.upload-failed-report-with-logs.outputs.artifact-url }}
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
-          GH_EVENT_PULL_REQUEST_BASE_REF:
-            ${{ github.event.pull_request.base.ref }}
-          GH_EVENT_PULL_REQUEST_HEAD_SHA:
-            ${{ github.event.pull_request.head.sha }}
+          GH_EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          GH_EVENT_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           FLAKEGUARD_SPLUNK_ENDPOINT: ${{ secrets.FLAKEGUARD_SPLUNK_ENDPOINT }}
           FLAKEGUARD_SPLUNK_HEC: ${{ secrets.FLAKEGUARD_SPLUNK_HEC }}
         run: |
@@ -1666,12 +1582,9 @@ jobs:
           GH_HEAD_REF: ${{ github.head_ref || github.ref_name }}
           GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
           GH_EVENT_NAME: ${{ github.event_name }}
-          GH_EVENT_PULL_REQUEST_BASE_REF:
-            ${{ github.event.pull_request.base.ref }}
-          GH_EVENT_PULL_REQUEST_HEAD_SHA:
-            ${{ github.event.pull_request.head.sha }}
-          FAILED_LOGS_URL:
-            ${{ steps.upload-failed-report-with-logs.outputs.artifact-url }}
+          GH_EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          GH_EVENT_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          FAILED_LOGS_URL: ${{ steps.upload-failed-report-with-logs.outputs.artifact-url }}
         run: |
           #!/usr/bin/env bash
           set -euo pipefail
@@ -1730,8 +1643,7 @@ jobs:
         uses: actions/download-artifact@v4.1.8
         with:
           path: test_results
-          pattern:
-            test_result_${{ needs.load-test-configurations.outputs.workflow_id
+          pattern: test_result_${{ needs.load-test-configurations.outputs.workflow_id
             }}_*
 
       - name: Set detailed test results
@@ -1780,8 +1692,7 @@ jobs:
 
       - name: Send Slack notification
         uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # v1.25.0
-        if:
-          ${{ inputs.slack_notification_after_tests == 'true' ||
+        if: ${{ inputs.slack_notification_after_tests == 'true' ||
           inputs.slack_notification_after_tests == 'always' ||
           (inputs.slack_notification_after_tests == 'on_failure' &&
           contains(join(needs.*.result, ','), 'failure')) }}
@@ -1789,8 +1700,7 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         with:
-          channel-id:
-            ${{ inputs.slack_notification_after_tests_channel_id ||
+          channel-id: ${{ inputs.slack_notification_after_tests_channel_id ||
             secrets.SLACK_NOTIFICATION_AFTER_TESTS_CHANNEL_ID }}
           payload: |
             {
@@ -1818,8 +1728,7 @@ jobs:
             }
 
       - name: Notify user in Slack message if tests failed
-        if:
-          ${{ inputs.slack_notification_after_tests != '' &&
+        if: ${{ inputs.slack_notification_after_tests != '' &&
           contains(join(needs.*.result, ','), 'failure') &&
           inputs.slack_notification_after_tests_notify_user_id_on_failure != ''
           }}
@@ -1827,8 +1736,7 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         with:
-          channel-id:
-            ${{ inputs.slack_notification_after_tests_channel_id ||
+          channel-id: ${{ inputs.slack_notification_after_tests_channel_id ||
             secrets.SLACK_NOTIFICATION_AFTER_TESTS_CHANNEL_ID }}
           payload: |
             {

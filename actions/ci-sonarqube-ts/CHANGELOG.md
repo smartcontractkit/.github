@@ -1,5 +1,15 @@
 # ci-sonarqube-ts
 
+## 0.4.0
+
+### Minor Changes
+
+- [#1099](https://github.com/smartcontractkit/.github/pull/1099)
+  [`1ac7cf1`](https://github.com/smartcontractkit/.github/commit/1ac7cf12ac4183fae65dfe6c2ff208111f684ba1)
+  Thanks
+  [@app-token-issuer-releng-renovate](https://github.com/apps/app-token-issuer-releng-renovate)! -
+  Update dep for action-download-artifact
+
 ## 0.3.1
 
 ### Patch Changes
