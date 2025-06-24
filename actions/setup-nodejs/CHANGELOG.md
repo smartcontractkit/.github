@@ -1,5 +1,38 @@
 # setup-nodejs
 
+## 1.2.0
+
+### Minor Changes
+
+- [#1113](https://github.com/smartcontractkit/.github/pull/1113)
+  [`12c73e8`](https://github.com/smartcontractkit/.github/commit/12c73e87249a6c9cd83b4cd4c51a88b53bfeeeb3)
+  Thanks [@erikburt](https://github.com/erikburt)! - Removed default value from
+  `pnpm-version` input (was originally ^10.0.0), this is now a fallback default.
+
+  The action will determine what version to use through the following means:
+
+  1. If `pnpm-version` was explicitly passed, it will use that
+  2. If not passed, it will attempt to pull the version from the
+     `.tool-versions` file
+  3. If this file doesn't exist, or doesn't declare `pnpm` then it will default
+     to `^10.0.0`.
+
+- [#1113](https://github.com/smartcontractkit/.github/pull/1113)
+  [`12c73e8`](https://github.com/smartcontractkit/.github/commit/12c73e87249a6c9cd83b4cd4c51a88b53bfeeeb3)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: restore-cache-only
+  input to skip saving caches when unnecessary (like merge queues)
+
+- [#1113](https://github.com/smartcontractkit/.github/pull/1113)
+  [`12c73e8`](https://github.com/smartcontractkit/.github/commit/12c73e87249a6c9cd83b4cd4c51a88b53bfeeeb3)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: add install-command
+  input, useful for when overriding the default install command of "pnpm
+  install"
+
+- [#1113](https://github.com/smartcontractkit/.github/pull/1113)
+  [`12c73e8`](https://github.com/smartcontractkit/.github/commit/12c73e87249a6c9cd83b4cd4c51a88b53bfeeeb3)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: registry-url input
+  for @actions/setup-node
+
 ## 1.1.0
 
 ### Minor Changes
