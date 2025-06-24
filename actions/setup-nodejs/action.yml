@@ -132,7 +132,7 @@ runs:
 
     - name: Setup yarn cache
       if:
-        inputs.use-cache == 'true' && inputs.restore-cache-only == 'false &&
+        inputs.use-cache == 'true' && inputs.restore-cache-only == 'false' &&
         inputs.package-manager == 'yarn'
       uses: actions/cache@v4
       with:
