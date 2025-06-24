@@ -24,6 +24,10 @@ inputs:
       repository
     required: false
     default: "."
+  package-manager:
+    description: Which package manager to use (pnpm, npm, yarn)
+    required: false
+    default: pnpm
 
 runs:
   using: composite
@@ -34,20 +38,35 @@ runs:
         node-version-file: ${{ inputs.node-version-file }}
 
     - name: Install pnpm
+      if: inputs.package-manager == 'pnpm'
       uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
       with:
         version: ${{ inputs.pnpm-version }}
         run_install: false
 
+    - name: Validate package manager input
+      shell: bash
+      env:
+        PACKAGE_MANAGER: ${{ inputs.package-manager }}
+      run: |
+        case "${PACKAGE_MANAGER}" in
+          pnpm|npm|yarn)
+            ;;
+          *)
+            echo "::error::Invalid package manager '${PACKAGE_MANAGER}'. Must be one of: pnpm, npm, yarn."
+            exit 1
+            ;;
+        esac
+
     - name: Get pnpm store directory
-      if: inputs.use-cache == 'true'
+      if: inputs.use-cache == 'true' && inputs.package-manager == 'pnpm'
       id: pnpm-cache
       shell: bash
       run: |
         echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
 
     - name: Setup pnpm cache
-      if: inputs.use-cache == 'true'
+      if: inputs.use-cache == 'true' && inputs.package-manager == 'pnpm'
       uses: actions/cache@v4
       with:
         path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
@@ -55,8 +74,30 @@ runs:
         restore-keys: |
           ${{ runner.os }}-pnpm-store-
 
+    - name: Setup npm cache
+      if: inputs.use-cache == 'true' && inputs.package-manager == 'npm'
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-npm-cache-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-npm-cache-
+
+    - name: Setup yarn cache
+      if: inputs.use-cache == 'true' && inputs.package-manager == 'yarn'
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/yarn
+          .yarn/cache
+        key: ${{ runner.os }}-yarn-cache-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-cache-
+
     - name: Run package manager install
       if: inputs.run-install == 'true'
       shell: bash
+      env:
+        PACKAGE_MANAGER: ${{ inputs.package-manager }}
       working-directory: ${{ inputs.package-json-directory }}
-      run: pnpm install
+      run: "${PACKAGE_MANAGER} install"
