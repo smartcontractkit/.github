@@ -1,5 +1,13 @@
 # setup-nodejs
 
+## 1.2.1
+
+### Patch Changes
+
+- [#1117](https://github.com/smartcontractkit/.github/pull/1117)
+  [`5d9a25a`](https://github.com/smartcontractkit/.github/commit/5d9a25a86814b655bff999556331632308c9e4d6)
+  Thanks [@chainchad](https://github.com/chainchad)! - Fix typo
+
 ## 1.2.0
 
 ### Minor Changes
