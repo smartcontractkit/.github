@@ -6,10 +6,17 @@ inputs:
     description: The node version
     required: false
     default: .tool-versions
+  pnpm-version-file:
+    description: |
+      The pnpm 'version file'. Defaults to .tool-versions.
+      Use pnpm-version input to override this value.
+    required: false
+    default: .tool-versions
   pnpm-version:
-    description: The pnpm version to use
-    required: true
-    default: "^10.0.0"
+    description:
+      The pnpm version to use. This value takes precedence over the
+      pnpm-version-file input. eg. ^10.0.0
+    required: false"
   use-cache:
     description: Enable github actions cache
     required: true
@@ -45,10 +52,30 @@ runs:
         node-version-file: ${{ inputs.node-version-file }}
         registry-url: ${{ inputs.registry-url }}
 
+    - name: Get pnpm version from file
+      if: inputs.pnpm-version-file != '' && inputs.pnpm-version == ''
+      id: pnpm-version
+      shell: bash
+      env:
+        PNPM_VERSION_FILE_INPUT: ${{ inputs.pnpm-version-file }}
+      run: |
+        if [[ -f "${PNPM_VERSION_FILE_INPUT}" ]]; then
+          PNPM_VERSION_FROM_FILE=$(grep '^pnpm ' ${PNPM_VERSION_FILE_INPUT} | cut -d' ' -f2-)
+        fi
+
+        if [[ -z "${PNPM_VERSION_FROM_FILE}" ]]; then
+          echo ":error::No pnpm version found in file ${PNPM_VERSION_FILE_INPUT}, and no pnpm-version input provided. Failing."
+          exit 1
+        else
+          echo "Found pnpm version in file: ${PNPM_VERSION_FROM_FILE}"
+          echo "pnpm-version=${PNPM_VERSION_FROM_FILE}" | tee -a "${GITHUB_OUTPUT}"
+        fi
+
     - name: Install pnpm
       uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
       with:
-        version: ${{ inputs.pnpm-version }}
+        version:
+          ${{ inputs.pnpm-version || steps.pnpm-version.outputs.pnpm-version }}
         run_install: false
 
     - name: Get pnpm store directory
@@ -56,7 +83,7 @@ runs:
       id: pnpm-cache
       shell: bash
       run: |
-        echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+        echo "STORE_PATH=$(pnpm store path)" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Setup pnpm cache
       if: inputs.use-cache == 'true' && inputs.restore-cache-only == 'false'
