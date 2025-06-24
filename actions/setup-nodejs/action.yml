@@ -148,7 +148,6 @@ runs:
       shell: bash
       env:
         INSTALL_COMMAND: ${{ inputs.install-command }}
-        PACKAGE_MANAGER: ${{ inputs.package-manager }}
       working-directory: ${{ inputs.package-json-directory }}
       run: |
         if [[ -z "$INSTALL_COMMAND" ]]; then
