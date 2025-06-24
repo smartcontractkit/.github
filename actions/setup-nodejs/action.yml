@@ -52,18 +52,19 @@ runs:
       env:
         PNPM_VERSION_INPUT: ${{ inputs.pnpm-version }}
         PNPM_FALLBACK_VERSION: "^10.0.0"
+        DOT_TOOL_VERSIONS: ".tool-versions"
       run: |
         echo "Attempting to determine pnpm version to use..."
 
-        if [[ ! -z ${PNPM_VERSION_INPUT}]]; then
+        if [[ ! -z "${PNPM_VERSION_INPUT}" ]]; then
           echo "Using pnpm version from input: ${PNPM_VERSION_INPUT}"
           echo "pnpm-version=${PNPM_VERSION_INPUT}" | tee -a "${GITHUB_OUTPUT}"
           exit 0
         fi
 
-        if [[ -f ".tool-versions" ]]; then
-          echo "Found .tool-versions file, checking for pnpm version..."
-          PNPM_VERSION_FROM_FILE=$(grep '^pnpm ' ${PNPM_VERSION_FILE_INPUT} | cut -d' ' -f2-)
+        if [[ -f "${DOT_TOOL_VERSIONS}" ]]; then
+          echo "Found ${DOT_TOOL_VERSIONS} file, checking for pnpm version..."
+          PNPM_VERSION_FROM_FILE=$(grep '^pnpm ' "${DOT_TOOL_VERSIONS}" | cut -d' ' -f2-)
         fi
 
         if [[ -z "${PNPM_VERSION_FROM_FILE}" ]]; then
