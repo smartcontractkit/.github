@@ -7,17 +7,26 @@ inputs:
     required: false
     default: .tool-versions
   pnpm-version:
-    description: The pnpm version to use
-    required: true
-    default: "^10.0.0"
+    description:
+      The pnpm version to use. This value takes precedence over the
+      pnpm-version-file input. Pseudo-default is ^10.0.0.
+    required: false
   use-cache:
     description: Enable github actions cache
     required: true
     default: "true"
+  restore-cache-only:
+    description: Restore cache only, do not create a new cache
+    required: true
+    default: "false"
   run-install:
     description: Run npm/yarn/pnpm install
     required: true
     default: "true"
+  install-command:
+    description: The command to run to install dependencies
+    required: false
+    default: "pnpm install"
   package-json-directory:
     description:
       The sub-directory of the package.json, if not at the root of the
@@ -28,20 +37,54 @@ inputs:
     description: Which package manager to use (pnpm, npm, yarn)
     required: false
     default: pnpm
+  registry-url:
+    description: The npm registry URL to use
+    required: false
 
 runs:
   using: composite
   steps:
     - name: Install node
-      uses: actions/setup-node@v4.0.4
+      uses: actions/setup-node@v4
       with:
         node-version-file: ${{ inputs.node-version-file }}
+        registry-url: ${{ inputs.registry-url }}
+
+    - name: Get pnpm version
+      id: pnpm-version
+      shell: bash
+      env:
+        PNPM_VERSION_INPUT: ${{ inputs.pnpm-version }}
+        PNPM_FALLBACK_VERSION: "^10.0.0"
+        DOT_TOOL_VERSIONS: ".tool-versions"
+      run: |
+        echo "Attempting to determine pnpm version to use..."
+
+        if [[ ! -z "${PNPM_VERSION_INPUT}" ]]; then
+          echo "Using pnpm version from input: ${PNPM_VERSION_INPUT}"
+          echo "pnpm-version=${PNPM_VERSION_INPUT}" | tee -a "${GITHUB_OUTPUT}"
+          exit 0
+        fi
+
+        if [[ -f "${DOT_TOOL_VERSIONS}" ]]; then
+          echo "Found ${DOT_TOOL_VERSIONS} file, checking for pnpm version..."
+          PNPM_VERSION_FROM_FILE=$(grep '^pnpm ' "${DOT_TOOL_VERSIONS}" | cut -d' ' -f2-)
+        fi
+
+        if [[ -z "${PNPM_VERSION_FROM_FILE}" ]]; then
+          echo "::info:: No pnpm version found in .tool-versions file (or it may not exist). Using default version."
+          echo "pnpm-version=${PNPM_FALLBACK_VERSION}" | tee -a "${GITHUB_OUTPUT}"
+          exit 0
+        fi
+
+        echo "Found pnpm version in file. Using: ${PNPM_VERSION_FROM_FILE}"
+        echo "pnpm-version=${PNPM_VERSION_FROM_FILE}" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Install pnpm
       if: inputs.package-manager == 'pnpm'
       uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
       with:
-        version: ${{ inputs.pnpm-version }}
+        version: ${{ steps.pnpm-version.outputs.pnpm-version }}
         run_install: false
 
     - name: Validate package manager input
@@ -63,10 +106,12 @@ runs:
       id: pnpm-cache
       shell: bash
       run: |
-        echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+        echo "STORE_PATH=$(pnpm store path)" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Setup pnpm cache
-      if: inputs.use-cache == 'true' && inputs.package-manager == 'pnpm'
+      if:
+        inputs.use-cache == 'true' && inputs.restore-cache-only == 'false' &&
+        inputs.package-manager == 'pnpm'
       uses: actions/cache@v4
       with:
         path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
@@ -75,7 +120,9 @@ runs:
           ${{ runner.os }}-pnpm-store-
 
     - name: Setup npm cache
-      if: inputs.use-cache == 'true' && inputs.package-manager == 'npm'
+      if:
+        inputs.use-cache == 'true' && inputs.restore-cache-only == 'false' &&
+        inputs.package-manager == 'npm'
       uses: actions/cache@v4
       with:
         path: ~/.npm
@@ -84,7 +131,9 @@ runs:
           ${{ runner.os }}-npm-cache-
 
     - name: Setup yarn cache
-      if: inputs.use-cache == 'true' && inputs.package-manager == 'yarn'
+      if:
+        inputs.use-cache == 'true' && inputs.restore-cache-only == 'false &&
+        inputs.package-manager == 'yarn'
       uses: actions/cache@v4
       with:
         path: |
@@ -98,6 +147,13 @@ runs:
       if: inputs.run-install == 'true'
       shell: bash
       env:
+        INSTALL_COMMAND: ${{ inputs.install-command }}
         PACKAGE_MANAGER: ${{ inputs.package-manager }}
       working-directory: ${{ inputs.package-json-directory }}
-      run: "${PACKAGE_MANAGER} install"
+      run: |
+        if [[ -z "$INSTALL_COMMAND" ]]; then
+          echo "::error::No install command provided, skipping install step."
+          exit 1
+        fi
+
+        $INSTALL_COMMAND
