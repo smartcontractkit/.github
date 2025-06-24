@@ -10,7 +10,7 @@ inputs:
     description:
       The pnpm version to use. This value takes precedence over the
       pnpm-version-file input. Pseudo-default is ^10.0.0.
-    required: false"
+    required: false
   use-cache:
     description: Enable github actions cache
     required: true
