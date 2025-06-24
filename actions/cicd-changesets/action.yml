@@ -84,6 +84,15 @@ inputs:
     description: "whether to put the PR in draft mode or not"
     required: false
     default: "false"
+  package-manager:
+    description: Which package manager to use (pnpm, npm, yarn)
+    required: false
+    default: pnpm
+  install-command:
+    description:
+      The install command to run (e.g. pnpm install, npm install, yarn install)
+    required: false
+    default: pnpm install
 outputs:
   published:
     description:
@@ -139,6 +148,8 @@ runs:
         pnpm-version: ${{ inputs.pnpm-version }}
         use-cache: ${{ inputs.pnpm-use-cache }}
         run-install: "true"
+        package-manager: ${{ inputs.package-manager }}
+        install-command: ${{ inputs.install-command }}
 
     - name: Run changesets
       id: changesets
