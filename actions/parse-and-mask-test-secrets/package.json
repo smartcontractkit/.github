@@ -1,6 +1,6 @@
 {
   "name": "parse-and-mask-test-secrets",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Parse and mask test secrets from a base64-encoded file and set them as environment variables",
   "private": true,
   "scripts": {},
