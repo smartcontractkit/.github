@@ -606,12 +606,13 @@ jobs:
         run: echo "workflow_id=$(uuidgen)" >> "$GITHUB_OUTPUT"
 
   # Check if Chainlink images required for the tests exist. If not, build and push the images to QA ECR
+  # Skip if public registry used in test secrets or image build is explicitly skipped
   require-chainlink-image-versions-in-qa-ecr:
     name: Get Chainlink image
     needs: [validate-inputs, load-test-configurations]
     if: ${{
-      fromJson(needs.validate-inputs.outputs.require_chainlink_image_versions_in_qa_ecr_matrix)
-      != '' && !inputs.skip_image_build }}
+      fromJson(needs.validate-inputs.outputs.require_chainlink_image_versions_in_qa_ecr_matrix) != ''
+      && !inputs.skip_image_build }}
     runs-on: ubuntu-latest
     environment: integration
     permissions:
@@ -839,7 +840,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ fromJson(env.DOCKER_TESTS_TIMEOUT_MINUTES) }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.8.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.9.0
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION: ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
@@ -1136,7 +1137,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.8.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.9.0
         env:
           DETACH_RUNNER: true
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
@@ -1258,7 +1259,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.8.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.9.0
         with:
           flakeguard_enable: ${{ env.FLAKEGUARD_ENABLE }}
           flakeguard_run_count: ${{ env.FLAKEGUARD_RUN_COUNT }}
