@@ -1,5 +1,14 @@
 # ctf-run-tests
 
+## 0.9.0
+
+### Minor Changes
+
+- [#1124](https://github.com/smartcontractkit/.github/pull/1124)
+  [`1449142`](https://github.com/smartcontractkit/.github/commit/1449142cf43c5e2e8efe2d50a13729ef4fcffd82)
+  Thanks [@chudilka1](https://github.com/chudilka1)! - Update ctf-run-tests
+  action to use parse-and-mask action instead of go script
+
 ## 0.8.0
 
 ### Minor Changes
