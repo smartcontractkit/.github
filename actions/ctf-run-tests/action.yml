@@ -323,18 +323,16 @@ runs:
     # If default and/or custom secrets provided, decode them, mask them and set them as env vars to override the default secrets
     - name: Set default test secrets from dotenv file
       if: inputs.test_secrets_defaults_base64 != ''
-      shell: bash
-      run:
-        go run ${{ github.action_path }}/mask-testsecrets/main.go "${{
-        inputs.test_secrets_defaults_base64 }}"
+      uses: smartcontractkit/.github/actions/parse-and-mask-test-secrets@parse-and-mask-test-secrets/0.1.0
+      with:
+        encoded_test_secrets: ${{ inputs.test_secrets_defaults_base64 }}
 
     # Custom secrets override the default secrets
     - name: Set custom test secrets from dotenv file
       if: inputs.test_secrets_override_base64 != ''
-      shell: bash
-      run:
-        go run ${{ github.action_path }}/mask-testsecrets/main.go "${{
-        inputs.test_secrets_override_base64 }}"
+      uses: smartcontractkit/.github/actions/parse-and-mask-test-secrets@parse-and-mask-test-secrets/0.1.0
+      with:
+        encoded_test_secrets: ${{ inputs.test_secrets_override_base64 }}
 
     - name: Set default E2E_TEST_* env vars if they are not set already
       shell: bash
