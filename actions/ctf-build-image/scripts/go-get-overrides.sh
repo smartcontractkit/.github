@@ -11,7 +11,7 @@ if ! command -v go &> /dev/null; then
 fi
 
 # Validate environment variables
-if [[ -z "${OVERRIDES}" ]]; then
+if [[ -z "${GO_OVERRIDES}" ]]; then
     echo "::info:: No go get overrides specified, skipping."
     exit 0
 fi
@@ -21,6 +21,12 @@ echo "::info:: Processing go get overrides..."
 while IFS= read -r line || [[ -n "$line" ]]; do
     # Skip empty lines
     [[ -z "$line" ]] && continue
+
+    # Check if line contains '=' character
+    if [[ "$line" != *"="* ]]; then
+        echo "::warning::Invalid format for line '$line', expected 'dependency=sha', skipping."
+        continue
+    fi
 
     # Extract dependency name and SHA
     dependency="${line%%=*}"
@@ -48,6 +54,6 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         }
         echo "::info::Successfully updated ${dependency} to ${sha}"
     fi
-done <<< "$OVERRIDES"
+done <<< "$GO_OVERRIDES"
 
 echo "Go get overrides processing completed."
