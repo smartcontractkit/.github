@@ -1,5 +1,14 @@
 # ctf-build-image
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1127](https://github.com/smartcontractkit/.github/pull/1127)
+  [`80b7059`](https://github.com/smartcontractkit/.github/commit/80b70596aaf1d29f7aff3890381aabf35401fd75)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: go-get-overrides
+  input, and script
+
 ## 1.0.0
 
 ### Major Changes
