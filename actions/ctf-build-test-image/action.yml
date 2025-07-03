@@ -6,7 +6,7 @@ description:
 inputs:
   repository:
     description: The docker repository for the image
-    default: chainlink-tests
+    default: test-base-image
     required: false
   tag:
     description:
