@@ -1020,7 +1020,7 @@ jobs:
           persist-credentials: false
       - name: Build Test Runner Image
         id: build-test-runner-image
-        uses: smartcontractkit/.github/actions/ctf-build-test-image@main # main branch
+        uses: smartcontractkit/.github/actions/ctf-build-test-image@22907ae351c35e7631ca20960ea80f908d248ad9 # main branch
         if: ${{ inputs.with_existing_remote_runner_version == '' }}
         with:
           QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
