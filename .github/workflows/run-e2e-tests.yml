@@ -639,7 +639,7 @@ jobs:
         id: check-image-exists
         uses: smartcontractkit/.github/actions/ecr-image-exists@ecr-image-exists/0.0.1
         with:
-          repository: "chainlink"
+          repository: ${{ inputs.ecr_name }}
           tag: ${{ matrix.version }}
           aws-role-arn: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
 
@@ -657,7 +657,7 @@ jobs:
           image-tag: ${{ matrix.version }}
           dockerfile: core/chainlink.Dockerfile
           docker-registry-url: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION }}.amazonaws.com
-          docker-repository-name: "chainlink"
+          docker-repository-name: ${{ inputs.ecr_name }}
           aws-account-number: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}
           aws-region: ${{ secrets.QA_AWS_REGION }}
           aws-role-arn: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
