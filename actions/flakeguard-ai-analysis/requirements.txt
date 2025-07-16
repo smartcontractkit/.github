@@ -14,7 +14,7 @@ click==8.1.8 ; python_version >= "3.11" and python_version < "3.14"
 cloudpickle==3.1.1 ; python_version >= "3.11" and python_version < "3.14"
 colorama==0.4.6 ; python_version >= "3.11" and python_version < "3.14" and (sys_platform == "win32" or platform_system == "Windows")
 colorlog==6.9.0 ; python_version >= "3.11" and python_version < "3.14"
-datasets==2.21.0 ; python_version >= "3.11" and python_version < "3.14"
+datasets==4.0.0 ; python_version >= "3.11" and python_version < "3.14"
 dill==0.3.8 ; python_version >= "3.11" and python_version < "3.14"
 diskcache==5.6.3 ; python_version >= "3.11" and python_version < "3.14"
 distro==1.9.0 ; python_version >= "3.11" and python_version < "3.14"
