@@ -89,8 +89,10 @@ runs:
     - name: Set output path
       id: set_path
       shell: bash
+      env:
+        MCMS_PATH: ${{ steps.extract.outputs.mcms_path }}
       run: |
-        echo "binary_path=${{ steps.extract.outputs.mcms_path }}" >> $GITHUB_OUTPUT
+        echo "binary_path=$MCMS_PATH" >> $GITHUB_OUTPUT
 
     - name: Debug binary path
       shell: bash
