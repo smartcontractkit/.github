@@ -33,6 +33,13 @@ inputs:
       Defaults to the repository name.
     required: true
 
+  docker-push:
+    description: |
+      Whether to push the image to the registry.
+      If false, the image will not be pushed. Defaults to true.
+    required: false
+    default: true
+
   # AWS inputs
   aws-account-number:
     description: |
@@ -155,6 +162,7 @@ runs:
         platform: linux/amd64
 
         dockerfile: ${{ inputs.dockerfile }}
+        docker-push: ${{ inputs.docker-push }}
         docker-build-args: |
           COMMIT_SHA=${{ github.sha }}
           CHAINLINK_USER=chainlink
