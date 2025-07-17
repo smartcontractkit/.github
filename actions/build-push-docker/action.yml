@@ -53,17 +53,19 @@ inputs:
     required: false
     default: "true"
   docker-registry-url:
-    required: true
+    required: false
     description: |
       Hostname for the docker image registry.
+      Required if `docker-push` is true.
 
       Examples:
         public.ecr.aws
         <account-id>.dkr.ecr.<region>.amazonaws.com
   docker-repository-name:
-    required: true
+    required: false
     description: |
       Name of the Docker repository excluding hostname. Excludes any tags. Public ECR's will include a registry alias and a forward slash.
+      Required if `docker-push` is true.
 
       Examples:
         chainlink/chainlink # Public ECR
@@ -103,11 +105,15 @@ inputs:
     required: false
     default: "us-east-1"
   aws-account-number:
-    description: "AWS account number for the ECR registry."
-    required: true
+    description: |
+      AWS account number for the ECR registry.
+      Required if `docker-push` is true.
+    required: false
   aws-role-arn:
-    description: "AWS role ARN with permissions to push ECR images."
-    required: true
+    description: |
+      AWS role ARN with permissions to push ECR images.
+      Required if `docker-push` is true.
+    required: false
 
 outputs:
   docker-repository-name:
@@ -145,7 +151,38 @@ runs:
           exit 1
         fi
 
+    - name: Validate inputs
+      shell: bash
+      env:
+        DOCKER_PUSH: ${{ inputs.docker-push }}
+        AWS_ACCOUNT_NUMBER: ${{ inputs.aws-account-number }}
+        AWS_ROLE_ARN: ${{ inputs.aws-role-arn }}
+        AWS_REGION: ${{ inputs.aws-region }}
+        DOCKER_REGISTRY_URL: ${{ inputs.docker-registry-url }}
+        DOCKER_REPOSITORY_NAME: ${{ inputs.docker-repository-name }}
+      run: |
+        if [[ "${DOCKER_PUSH}" == "false" ]]; then
+          echo "::info::Docker push is disabled. Skipping AWS credentials configuration."
+          exit 0
+        elif [[ -z "${AWS_ACCOUNT_NUMBER}" ]]; then
+          echo "::error::aws-account-number input is not set and docker-push is enabled."
+          exit 1
+        elif [[ -z "${AWS_ROLE_ARN}" ]]; then
+          echo "::error::aws-role-arn input is not set and docker-push is enabled."
+          exit 1
+        elif [[ -z "${AWS_REGION}" ]]; then
+          echo "::error::aws-region input is not set and docker-push is enabled."
+          exit 1
+        elif [[ -z "${DOCKER_REGISTRY_URL}" ]]; then
+          echo "::error::docker-registry-url input is not set and docker-push is enabled."
+          exit 1
+        elif [[ -z "${DOCKER_REPOSITORY_NAME}" ]]; then
+          echo "::error::docker-repository-name input is not set and docker-push is enabled."
+          exit 1
+        fi
+
     - name: Configure AWS credentials
+      if: ${{ inputs.docker-push != 'false' }}
       uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
@@ -155,6 +192,7 @@ runs:
 
     - name: Login to ECR
       id: login-ecr
+      if: ${{ inputs.docker-push != 'false' }}
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
       with:
         registry-type: >-
@@ -174,9 +212,13 @@ runs:
       id: docker-meta
       uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
       with:
-        images:
-          ${{ format('{0}/{1}', inputs.docker-registry-url,
-          inputs.docker-repository-name) }}
+        images: >-
+          ${{
+            inputs.docker-push != 'false' &&
+            format('{0}/{1}', inputs.docker-registry-url,
+          inputs.docker-repository-name) ||
+            ''
+          }}
         tags: ${{ inputs.tags }}
         flavor: |
           latest=false
@@ -187,6 +229,7 @@ runs:
     # ECR is public.
     - name: Docker build record
       id: docker-build-record
+      if: ${{ inputs.docker-push != 'false' }}
       shell: bash
       env:
         DOCKER_REGISTRY_URL: ${{ inputs.docker-registry-url }}
