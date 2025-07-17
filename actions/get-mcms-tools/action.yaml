@@ -58,7 +58,7 @@ runs:
         set -e
         REPO="smartcontractkit/mcms-tools"
         VERSION="$INPUT_VERSION"
-        ASSET_NAME="${{ steps.platform.outputs.asset_name }}"
+        export ASSET_NAME="${{ steps.platform.outputs.asset_name }}"
 
         if [ -z "$VERSION" ]; then
           # Get the latest release tag
