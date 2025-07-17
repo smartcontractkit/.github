@@ -54,11 +54,11 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.github_token }}
         INPUT_VERSION: ${{ inputs.version }}
+        REPO: "smartcontractkit/mcms-tools"
+        ASSET_NAME: ${{ steps.platform.outputs.asset_name }}
       run: |
         set -e
-        REPO="smartcontractkit/mcms-tools"
         VERSION="$INPUT_VERSION"
-        export ASSET_NAME="${{ steps.platform.outputs.asset_name }}"
 
         if [ -z "$VERSION" ]; then
           # Get the latest release tag
@@ -76,9 +76,10 @@ runs:
     - name: Extract mcms binary
       id: extract
       shell: bash
+      env:
+        ASSET: ${{ steps.platform.outputs.asset_name }}
+        OUT_DIR: ${{ github.workspace }}/mcms-tools/bin
       run: |
-        ASSET="${{ steps.platform.outputs.asset_name }}"
-        OUT_DIR="$GITHUB_WORKSPACE/mcms-tools/bin"
         mkdir -p "$OUT_DIR"
         tar -xzf "$GITHUB_WORKSPACE/mcms-tools/$ASSET" -C "$OUT_DIR"
         # Find the mcms binary
