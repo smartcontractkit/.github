@@ -25,13 +25,14 @@ inputs:
   docker-registry-url:
     description: |
       The docker registry to push the image to.
-    required: true
+      Required if `docker-push` is true.
+    required: false
 
   docker-repository-name:
     description: |
       The name of the docker repository to push the image to.
-      Defaults to the repository name.
-    required: true
+      Required if `docker-push` is true.
+    required: false
 
   docker-push:
     description: |
@@ -44,17 +45,20 @@ inputs:
   aws-account-number:
     description: |
       The AWS account number for the ECR registry.
-    required: true
+      Required if `docker-push` is true.
+    required: false
 
   aws-region:
     description: |
       The AWS region to use for the ECR registry.
-    required: true
+      Required if `docker-push` is true.
+    required: false
 
   aws-role-arn:
     description: |
       The AWS role ARN to assume for pushing the image to ECR.
-    required: true
+      Required if `docker-push` is true.
+    required: false
 
   # GATI inputs
   gati-role-arn:
