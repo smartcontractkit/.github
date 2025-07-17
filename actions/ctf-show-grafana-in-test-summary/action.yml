@@ -1,15 +1,73 @@
 name: ctf-show-grafana-in-test-summary
-description: "Show Grafana url in test summary"
+description: "Show Grafana URL in a summary"
 
 inputs:
   test_directories:
     required: true
     description: Comma-separated directories in which the tests are located
     default: ./integration-tests/smoke
+  test_suite:
+    required: false
+    description: Type of the test (e.g. 'smoke', 'soak')
+  test_runner_log:
+    required: false
+    description: Path to the test runner log file
+    default: /tmp/gotest.log
+  grafana_base_url:
+    required: true
+    description: Base URL of the Grafana instance
+    default: https://grafana.ops.prod.cldev.sh/
 
 runs:
   using: composite
   steps:
+    - name: Get Grafana URL based on test type
+      # The list of Grafana dashboard identifiers for different test types
+      env:
+        GRAFANA_BASE_URL: ${{ inputs.grafana_base_url }}
+        TEST_RUNNER_LOG_FILE: ${{ inputs.test_runner_log }}
+        TEST_SUITE: ${{ inputs.test_suite }}
+        SOAK_DASHBOARD_ID: "d/f79f39c0-da94-4979-bbff-4e3b638f442a/ocr-soak-test"
+      shell: bash
+      run: |
+        echo "### Grafana URL" >> "$GITHUB_STEP_SUMMARY"
+        if [ ! -f "$TEST_RUNNER_LOG_FILE" ]; then
+          echo "Warning: Test runner log file (with a namespace) not found, skipping Grafana URL generation." >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+        fi
+
+        case "$TEST_SUITE" in
+          "soak")
+            GRAFANA_DASHBOARD_ID="$SOAK_DASHBOARD_ID"
+            ;;
+          "smoke")
+            GRAFANA_DASHBOARD_ID=""
+            echo "Register Smoke test Grafana dashboard ID as env variable in 'ctf-show-grafana-in-test-summary' action." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+            ;;
+          *)
+            echo "Warning: Test suite '$TEST_SUITE' is not supported, skipping Grafana URL generation. Register new type in 'ctf-show-grafana-in-test-summary' action." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+            ;;
+        esac
+
+        # 1. Extract the first occurrence of "Namespace=..." from the log file
+        raw_namespace=$(grep -o 'Namespace=[^[:space:]]*' "$TEST_RUNNER_LOG_FILE" | head -1)
+        # 2. Remove the "Namespace=" prefix
+        namespace_value=$(echo "$raw_namespace" | cut -d'=' -f2)
+        # 3. Remove ANSI escape bytes (that pollute a link with symbols)
+        NAMESPACE=$(echo "$namespace_value" | sed $'s/\x1b\\[[0-9;]*[a-zA-Z]//g')
+        if [ -z "$NAMESPACE" ]; then
+          echo "Error: No K8S namespace found in the test runner log." >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+        fi
+
+        echo "K8S namespace in use: $NAMESPACE"
+        # Timestamp in milliseconds (minus 2 minutes to catch a full test run)
+        TIMESTAMP=$(date -d '2 minutes ago' +%s%3N)
+        GRAFANA_URL="${GRAFANA_BASE_URL}${GRAFANA_DASHBOARD_ID}?orgId=1&var-namespace=${NAMESPACE}&from=${TIMESTAMP}&to=now"
+        echo "[Grafana]($GRAFANA_URL)" >> "$GITHUB_STEP_SUMMARY"
+
     - name: Print failed test summary
       shell: bash
       run: |
