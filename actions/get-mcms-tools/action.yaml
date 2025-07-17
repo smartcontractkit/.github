@@ -46,7 +46,7 @@ runs:
           echo "::error::Unsupported OS: $OS"
           exit 1
         fi
-        echo "asset_name=$ASSET" >> $GITHUB_OUTPUT
+        echo "asset_name=$ASSET" | tee -a $GITHUB_OUTPUT
 
     - name: Download mcms-tools Release Asset
       id: download
@@ -84,7 +84,7 @@ runs:
         # Find the mcms binary
         MCMS_PATH=$(find "$OUT_DIR" -type f -name mcms | head -n1)
         chmod +x "$MCMS_PATH"
-        echo "mcms_path=$MCMS_PATH" >> $GITHUB_OUTPUT
+        echo "mcms_path=$MCMS_PATH" | tee -a $GITHUB_OUTPUT
 
     - name: Set output path
       id: set_path
@@ -92,9 +92,4 @@ runs:
       env:
         MCMS_PATH: ${{ steps.extract.outputs.mcms_path }}
       run: |
-        echo "binary_path=$MCMS_PATH" >> $GITHUB_OUTPUT
-
-    - name: Debug binary path
-      shell: bash
-      run: |
-        echo "Binary path: ${{ steps.set_path.outputs.binary_path }}"
+        echo "binary_path=$MCMS_PATH" | tee -a $GITHUB_OUTPUT
