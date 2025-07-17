@@ -1,5 +1,14 @@
 # ctf-show-grafana-in-test-summary
 
+## 0.2.0
+
+### Minor Changes
+
+- [#1140](https://github.com/smartcontractkit/.github/pull/1140)
+  [`ae3be0d`](https://github.com/smartcontractkit/.github/commit/ae3be0df63659f7bbb8c54706125452cd803020c)
+  Thanks [@chudilka1](https://github.com/chudilka1)! - Generate K8S Grafana URL
+  in a summary based on a test type.
+
 ## 0.1.0
 
 ### Minor Changes
