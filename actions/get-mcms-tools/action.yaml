@@ -53,10 +53,11 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github_token }}
+        INPUT_VERSION: ${{ inputs.version }}
       run: |
         set -e
         REPO="smartcontractkit/mcms-tools"
-        VERSION="${{ inputs.version }}"
+        VERSION="$INPUT_VERSION"
         ASSET_NAME="${{ steps.platform.outputs.asset_name }}"
 
         if [ -z "$VERSION" ]; then
