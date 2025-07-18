@@ -1195,6 +1195,12 @@ jobs:
           main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
           k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
 
+      - name: Show Grafana URL in the test summary
+        if: always()
+        uses: smartcontractkit/.github/actions/ctf-show-grafana-in-test-summary@ctf-show-grafana-in-test-summary/0.2.0
+        with:
+          test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
+
       - name: Upload test log as artifact
         uses: actions/upload-artifact@v4.4.3
         if: inputs.test_log_upload_on_failure && failure()
@@ -1212,10 +1218,6 @@ jobs:
             needs.load-test-configurations.outputs.workflow_id }}
           path: ${{ matrix.tests.test_artifacts_on_failure }}
           retention-days: 1
-
-      - name: Show Grafana url in test summary
-        if: always()
-        uses: smartcontractkit/.github/actions/ctf-show-grafana-in-test-summary@b6e37806737eef87e8c9137ceeb23ef0bff8b1db # ctf-show-grafana-in-test-summary@0.1.0
 
   # Run tests that us only in-memory components
   run-in-memory-tests:
