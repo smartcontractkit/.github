@@ -1198,6 +1198,7 @@ jobs:
       - name: Show Grafana URL in the test summary
         if: always()
         uses: smartcontractkit/.github/actions/ctf-show-grafana-in-test-summary@ctf-show-grafana-in-test-summary/0.2.0
+        continue-on-error: true
         with:
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
 
