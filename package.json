@@ -52,5 +52,10 @@
     "update-ts-references": "^3.3.0",
     "vitest": "^2.1.9"
   },
-  "repository": "https://github.com/smartcontractkit/.github"
+  "repository": "https://github.com/smartcontractkit/.github",
+  "pnpm": {
+    "overrides": {
+      "axios>form-data": "4.0.4"
+    }
+  }
 }
