@@ -143,26 +143,26 @@ runs:
         DOCKER_REGISTRY_URL: ${{ inputs.docker-registry-url }}
         DOCKER_REPOSITORY_NAME: ${{ inputs.docker-repository-name }}
       run: |
-        if [[ "${DOCKER_PUSH}" == true ]]; then
-          if [[ -z "${AWS_ACCOUNT_NUMBER}" ]]; then
-            echo "::error::aws-account-number input is required when docker-push is true."
-            exit 1
-          fi
-
-          if [[ -z "${AWS_ROLE_ARN}" ]]; then
-            echo "::error::aws-role-arn input is required when docker-push is true."
-            exit 1
-          fi
-
-          if [[ -z "${DOCKER_REGISTRY_URL}" ]]; then
-            echo "::error::docker-registry-url input is required when docker-push is true."
-            exit 1
-          fi
-
-          if [[ -z "${DOCKER_REPOSITORY_NAME}" ]]; then
-            echo "::error::docker-repository-name input is required when docker-push is true."
-            exit 1
-          fi
+        if [[ "${DOCKER_PUSH}" != "true" ]]; then
+          echo "::info::docker-push is not true; skipping validation of AWS inputs."
+          exit 0
+        fi
+        # We only need these inputs if we're pushing the Docker image.
+        if [[ -z "${AWS_ACCOUNT_NUMBER}" ]]; then
+          echo "::error::aws-account-number input is required when docker-push is true."
+          exit 1
+        fi
+        if [[ -z "${AWS_ROLE_ARN}" ]]; then
+          echo "::error::aws-role-arn input is required when docker-push is true."
+          exit 1
+        fi
+        if [[ -z "${DOCKER_REGISTRY_URL}" ]]; then
+          echo "::error::docker-registry-url input is required when docker-push is true."
+          exit 1
+        fi
+        if [[ -z "${DOCKER_REPOSITORY_NAME}" ]]; then
+          echo "::error::docker-repository-name input is required when docker-push is true."
+          exit 1
         fi
 
     - name: Check runner arch and platform compatibility
@@ -185,6 +185,7 @@ runs:
         fi
 
     - name: Configure AWS credentials
+      if: ${{ inputs.docker-push == 'true' }}
       uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
@@ -193,6 +194,7 @@ runs:
         mask-aws-account-id: true
 
     - name: Login to ECR
+      if: ${{ inputs.docker-push == 'true' }}
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
       with:
@@ -210,6 +212,7 @@ runs:
         version: latest
 
     - name: Docker meta
+      if: ${{ inputs.docker-push == 'true' }}
       id: docker-meta
       uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
       with:
@@ -225,6 +228,7 @@ runs:
     # Avoid including the build record as a GitHub Actions artifact unless the
     # ECR is public.
     - name: Docker build record
+      if: ${{ inputs.docker-push == 'true' }}
       id: docker-build-record
       shell: bash
       env:
