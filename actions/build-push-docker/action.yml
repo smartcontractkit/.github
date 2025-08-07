@@ -139,6 +139,8 @@ runs:
     - name: Validate input combinations
       shell: bash
       env:
+        AWS_ACCOUNT_NUMBER: ${{ inputs.aws-account-number }}
+        AWS_ROLE_ARN: ${{ inputs.aws-role-arn }}
         DOCKER_PUSH: ${{ inputs.docker-push }}
         DOCKER_REGISTRY_URL: ${{ inputs.docker-registry-url }}
         DOCKER_REPOSITORY_NAME: ${{ inputs.docker-repository-name }}
