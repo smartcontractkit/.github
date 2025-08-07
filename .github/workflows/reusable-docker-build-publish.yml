@@ -157,6 +157,18 @@ on:
         description: "Target stage in the Dockerfile to build."
         required: false
         type: string
+      git-checkout-repository:
+        description: |
+          The repository name where the code to build is located.
+
+          Example: smartcontractkit/chainlink
+
+          NOTE: Currently only works with public repositories or 'self'.
+                Leave empty to default to the invoking repository (self).
+                If using a separate repository, it must be: <org>/<repo> format.
+        required: false
+        type: string
+        default: ""
       git-sha:
         description: |
           The full git SHA to build from.
@@ -247,11 +259,6 @@ jobs:
       docker-restore-cache: ${{ steps.should-cache.outputs.docker-restore-cache }}
       docker-save-cache: ${{ steps.should-cache.outputs.docker-save-cache }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          fetch-depth: 1
-          ref: ${{ inputs.git-sha }}
       - name: Get Date
         id: get-date
         run: |
@@ -378,6 +385,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 1
           ref: ${{ inputs.git-sha }}
+          repository: ${{ inputs.git-checkout-repository }}
       # Generated tags must be compatible with:
       # https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
       - name: Set Docker image tags
