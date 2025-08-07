@@ -1,5 +1,14 @@
 # build-push-docker
 
+## 0.8.0
+
+### Minor Changes
+
+- [#1154](https://github.com/smartcontractkit/.github/pull/1154)
+  [`a9213e5`](https://github.com/smartcontractkit/.github/commit/a9213e52c37357810fd6e3612a31d98733c22785)
+  Thanks [@chainchad](https://github.com/chainchad)! - Support optional inputs
+  when not pushing to ECR
+
 ## 0.7.1
 
 ### Patch Changes
