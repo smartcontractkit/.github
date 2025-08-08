@@ -25,9 +25,17 @@ export async function setupWorktree(
 
   // Debug: Show current git state
   try {
-    const { stdout: currentHead } = await execa("git", ["rev-parse", "HEAD"], { cwd: directory });
-    const { stdout: currentBranch } = await execa("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd: directory });
-    const { stdout: remotes } = await execa("git", ["remote", "-v"], { cwd: directory });
+    const { stdout: currentHead } = await execa("git", ["rev-parse", "HEAD"], {
+      cwd: directory,
+    });
+    const { stdout: currentBranch } = await execa(
+      "git",
+      ["rev-parse", "--abbrev-ref", "HEAD"],
+      { cwd: directory },
+    );
+    const { stdout: remotes } = await execa("git", ["remote", "-v"], {
+      cwd: directory,
+    });
     core.info(`Current HEAD: ${currentHead.trim()}`);
     core.info(`Current branch: ${currentBranch.trim()}`);
     core.info(`Available remotes:\n${remotes}`);
@@ -123,11 +131,15 @@ async function resolveRef(repoDir: string, ref: string): Promise<string> {
     // If that fails, try with origin/ prefix for remote branches
     const remoteRef = `origin/${ref}`;
     try {
-      await execa("git", ["rev-parse", "--verify", remoteRef], { cwd: repoDir });
+      await execa("git", ["rev-parse", "--verify", remoteRef], {
+        cwd: repoDir,
+      });
       core.info(`Resolved ${ref} to ${remoteRef}`);
       return remoteRef;
     } catch (remoteError) {
-      throw new Error(`Could not resolve ref: ${ref}. Tried both '${ref}' and '${remoteRef}'`);
+      throw new Error(
+        `Could not resolve ref: ${ref}. Tried both '${ref}' and '${remoteRef}'`,
+      );
     }
   }
 }
@@ -248,7 +260,9 @@ async function checkoutRef(repoDir: string, ref: string): Promise<void> {
     );
 
     if (currentShaRef.trim() === targetSha.trim()) {
-      core.info(`Already at ref: ${ref} (${targetSha.trim()}) - skipping checkout`);
+      core.info(
+        `Already at ref: ${ref} (${targetSha.trim()}) - skipping checkout`,
+      );
       return;
     }
 
