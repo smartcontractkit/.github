@@ -14,10 +14,10 @@
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.1",
     "@actions/glob": "^0.4.0",
-    "execa": "^9.5.1"
+    "execa": "^9.6.0"
   },
   "devDependencies": {
-    "@octokit/types": "^13.5.0",
-    "@types/node": "^24.2.0"
+    "@octokit/types": "^13.10.0",
+    "@types/node": "^24.2.1"
   }
 }

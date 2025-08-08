@@ -20046,9 +20046,9 @@ var require_path_key = __commonJS({
   }
 });
 
-// node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/util/resolveCommand.js
+// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js
 var require_resolveCommand = __commonJS({
-  "node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports2, module2) {
+  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports2, module2) {
     "use strict";
     var path7 = require("path");
     var which = require_which();
@@ -20088,9 +20088,9 @@ var require_resolveCommand = __commonJS({
   }
 });
 
-// node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/util/escape.js
+// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js
 var require_escape = __commonJS({
-  "node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/util/escape.js"(exports2, module2) {
+  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js"(exports2, module2) {
     "use strict";
     var metaCharsRegExp = /([()\][%!^"`<>&|;, *?])/g;
     function escapeCommand(arg) {
@@ -20099,8 +20099,8 @@ var require_escape = __commonJS({
     }
     function escapeArgument(arg, doubleEscapeMetaChars) {
       arg = `${arg}`;
-      arg = arg.replace(/(\\*)"/g, '$1$1\\"');
-      arg = arg.replace(/(\\*)$/, "$1$1");
+      arg = arg.replace(/(?=(\\+?)?)\1"/g, '$1$1\\"');
+      arg = arg.replace(/(?=(\\+?)?)\1$/, "$1$1");
       arg = `"${arg}"`;
       arg = arg.replace(metaCharsRegExp, "^$1");
       if (doubleEscapeMetaChars) {
@@ -20141,9 +20141,9 @@ var require_shebang_command = __commonJS({
   }
 });
 
-// node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/util/readShebang.js
+// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js
 var require_readShebang = __commonJS({
-  "node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/util/readShebang.js"(exports2, module2) {
+  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js"(exports2, module2) {
     "use strict";
     var fs3 = require("fs");
     var shebangCommand = require_shebang_command();
@@ -20163,9 +20163,9 @@ var require_readShebang = __commonJS({
   }
 });
 
-// node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/parse.js
+// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js
 var require_parse2 = __commonJS({
-  "node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/parse.js"(exports2, module2) {
+  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js"(exports2, module2) {
     "use strict";
     var path7 = require("path");
     var resolveCommand = require_resolveCommand();
@@ -20225,9 +20225,9 @@ var require_parse2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/enoent.js
+// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js
 var require_enoent = __commonJS({
-  "node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/enoent.js"(exports2, module2) {
+  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js"(exports2, module2) {
     "use strict";
     var isWin = process.platform === "win32";
     function notFoundError(original, syscall) {
@@ -20246,7 +20246,7 @@ var require_enoent = __commonJS({
       const originalEmit = cp.emit;
       cp.emit = function(name, arg1) {
         if (name === "exit") {
-          const err = verifyENOENT(arg1, parsed, "spawn");
+          const err = verifyENOENT(arg1, parsed);
           if (err) {
             return originalEmit.call(cp, "error", err);
           }
@@ -20275,9 +20275,9 @@ var require_enoent = __commonJS({
   }
 });
 
-// node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/index.js
+// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js
 var require_cross_spawn = __commonJS({
-  "node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/index.js"(exports2, module2) {
+  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js"(exports2, module2) {
     "use strict";
     var cp = require("child_process");
     var parse = require_parse2();
@@ -24386,7 +24386,7 @@ function isPlainObject(value) {
   return (prototype === null || prototype === Object.prototype || Object.getPrototypeOf(prototype) === null) && !(Symbol.toStringTag in value) && !(Symbol.iterator in value);
 }
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/arguments/file-url.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/arguments/file-url.js
 var import_node_url = require("node:url");
 var safeNormalizeFileUrl = (file, name) => {
   const fileString = normalizeFileUrl(normalizeDenoExecPath(file));
@@ -24399,7 +24399,7 @@ var normalizeDenoExecPath = (file) => isDenoExecPath(file) ? file.toString() : f
 var isDenoExecPath = (file) => typeof file !== "string" && file && Object.getPrototypeOf(file) === String.prototype;
 var normalizeFileUrl = (file) => file instanceof URL ? (0, import_node_url.fileURLToPath)(file) : file;
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/methods/parameters.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/methods/parameters.js
 var normalizeParameters = (rawFile, rawArguments = [], rawOptions = {}) => {
   const filePath = safeNormalizeFileUrl(rawFile, "First argument");
   const [commandArguments, options] = isPlainObject(rawArguments) ? [[], rawArguments] : [rawArguments, rawOptions];
@@ -24420,10 +24420,10 @@ var normalizeParameters = (rawFile, rawArguments = [], rawOptions = {}) => {
   return [filePath, normalizedArguments, options];
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/methods/template.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/methods/template.js
 var import_node_child_process = require("node:child_process");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/utils/uint-array.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/utils/uint-array.js
 var import_node_string_decoder = require("node:string_decoder");
 var { toString: objectToString } = Object.prototype;
 var isArrayBuffer = (value) => objectToString.call(value) === "[object ArrayBuffer]";
@@ -24470,7 +24470,7 @@ var getJoinLength = (uint8Arrays) => {
   return joinLength;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/methods/template.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/methods/template.js
 var isTemplateString = (templates) => Array.isArray(templates) && Array.isArray(templates.raw);
 var parseTemplates = (templates, expressions) => {
   let tokens = [];
@@ -24518,7 +24518,10 @@ var splitByWhitespaces = (template, rawTemplate) => {
       templateStart = templateIndex + 1;
     } else if (rawCharacter === "\\") {
       const nextRawCharacter = rawTemplate[rawIndex + 1];
-      if (nextRawCharacter === "u" && rawTemplate[rawIndex + 2] === "{") {
+      if (nextRawCharacter === "\n") {
+        templateIndex -= 1;
+        rawIndex += 1;
+      } else if (nextRawCharacter === "u" && rawTemplate[rawIndex + 2] === "{") {
         rawIndex = rawTemplate.indexOf("}", rawIndex + 3);
       } else {
         rawIndex += ESCAPE_LENGTH[nextRawCharacter] ?? 1;
@@ -24567,20 +24570,20 @@ var getSubprocessResult = ({ stdout }) => {
   throw new TypeError(`Unexpected "${typeof stdout}" stdout in template expression`);
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/methods/main-sync.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/methods/main-sync.js
 var import_node_child_process3 = require("node:child_process");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/arguments/specific.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/arguments/specific.js
 var import_node_util = require("node:util");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/utils/standard-stream.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/utils/standard-stream.js
 var import_node_process = __toESM(require("node:process"), 1);
 var isStandardStream = (stream) => STANDARD_STREAMS.includes(stream);
 var STANDARD_STREAMS = [import_node_process.default.stdin, import_node_process.default.stdout, import_node_process.default.stderr];
 var STANDARD_STREAMS_ALIASES = ["stdin", "stdout", "stderr"];
 var getStreamName = (fdNumber) => STANDARD_STREAMS_ALIASES[fdNumber] ?? `stdio[${fdNumber}]`;
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/arguments/specific.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/arguments/specific.js
 var normalizeFdSpecificOptions = (options) => {
   const optionsCopy = { ...options };
   for (const optionName of FD_SPECIFIC_OPTIONS) {
@@ -24650,7 +24653,7 @@ var DEFAULT_OPTIONS = {
 var FD_SPECIFIC_OPTIONS = ["lines", "buffer", "maxBuffer", "verbose", "stripFinalNewline"];
 var getFdSpecificValue = (optionArray, fdNumber) => fdNumber === "ipc" ? optionArray.at(-1) : optionArray[fdNumber];
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/verbose/values.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/verbose/values.js
 var isVerbose = ({ verbose }, fdNumber) => getFdVerbose(verbose, fdNumber) !== "none";
 var isFullVerbose = ({ verbose }, fdNumber) => !["none", "short"].includes(getFdVerbose(verbose, fdNumber));
 var getVerboseFunction = ({ verbose }, fdNumber) => {
@@ -24662,10 +24665,10 @@ var getFdGenericVerbose = (verbose) => verbose.find((fdVerbose) => isVerboseFunc
 var isVerboseFunction = (fdVerbose) => typeof fdVerbose === "function";
 var VERBOSE_VALUES = ["none", "short", "full"];
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/verbose/log.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/verbose/log.js
 var import_node_util3 = require("node:util");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/arguments/escape.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/arguments/escape.js
 var import_node_process2 = require("node:process");
 var import_node_util2 = require("node:util");
 var joinCommand = (filePath, rawArguments) => {
@@ -25065,7 +25068,7 @@ var bgMagentaBright = format(105, 49);
 var bgCyanBright = format(106, 49);
 var bgWhiteBright = format(107, 49);
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/verbose/default.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/verbose/default.js
 var defaultVerboseFunction = ({
   type,
   message,
@@ -25104,7 +25107,7 @@ var COLORS = {
   duration: () => gray
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/verbose/custom.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/verbose/custom.js
 var applyVerboseOnLines = (printedLines, verboseInfo, fdNumber) => {
   const verboseFunction = getVerboseFunction(verboseInfo, fdNumber);
   return printedLines.map(({ verboseLine, verboseObject }) => applyVerboseFunction(verboseLine, verboseObject, verboseFunction)).filter((printedLine) => printedLine !== void 0).map((printedLine) => appendNewline(printedLine)).join("");
@@ -25121,7 +25124,7 @@ var applyVerboseFunction = (verboseLine, verboseObject, verboseFunction) => {
 var appendNewline = (printedLine) => printedLine.endsWith("\n") ? printedLine : `${printedLine}
 `;
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/verbose/log.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/verbose/log.js
 var verboseLog = ({ type, verboseMessage, fdNumber, verboseInfo, result }) => {
   const verboseObject = getVerboseObject({ type, result, verboseInfo });
   const printedLines = getPrintedLines(verboseMessage, verboseObject);
@@ -25155,7 +25158,7 @@ var serializeVerboseMessage = (message) => {
 };
 var TAB_SIZE = 2;
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/verbose/start.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/verbose/start.js
 var logCommand = (escapedCommand, verboseInfo) => {
   if (!isVerbose(verboseInfo)) {
     return;
@@ -25167,7 +25170,7 @@ var logCommand = (escapedCommand, verboseInfo) => {
   });
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/verbose/info.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/verbose/info.js
 var getVerboseInfo = (verbose, escapedCommand, rawOptions) => {
   validateVerbose(verbose);
   const commandId = getCommandId(verbose);
@@ -25195,12 +25198,12 @@ var validateVerbose = (verbose) => {
   }
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/return/duration.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/return/duration.js
 var import_node_process4 = require("node:process");
 var getStartTime = () => import_node_process4.hrtime.bigint();
 var getDurationMs = (startTime) => Number(import_node_process4.hrtime.bigint() - startTime) / 1e6;
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/arguments/command.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/arguments/command.js
 var handleCommand = (filePath, rawArguments, rawOptions) => {
   const startTime = getStartTime();
   const { command, escapedCommand } = joinCommand(filePath, rawArguments);
@@ -25215,7 +25218,7 @@ var handleCommand = (filePath, rawArguments, rawOptions) => {
   };
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/arguments/options.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/arguments/options.js
 var import_node_path5 = __toESM(require("node:path"), 1);
 var import_node_process8 = __toESM(require("node:process"), 1);
 var import_cross_spawn = __toESM(require_cross_spawn(), 1);
@@ -25301,10 +25304,10 @@ var npmRunPathEnv = ({ env = import_node_process5.default.env, ...options } = {}
   return env;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/terminate/kill.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/terminate/kill.js
 var import_promises = require("node:timers/promises");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/return/final-error.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/return/final-error.js
 var getFinalError = (originalError, message, isSync) => {
   const ErrorClass = isSync ? ExecaSyncError : ExecaError;
   const options = originalError instanceof DiscardedError ? {} : { cause: originalError };
@@ -25336,13 +25339,13 @@ var ExecaSyncError = class extends Error {
 };
 setErrorName(ExecaSyncError, ExecaSyncError.name);
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/terminate/signal.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/terminate/signal.js
 var import_node_os3 = require("node:os");
 
-// node_modules/.pnpm/human-signals@8.0.0/node_modules/human-signals/build/src/main.js
+// node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/main.js
 var import_node_os2 = require("node:os");
 
-// node_modules/.pnpm/human-signals@8.0.0/node_modules/human-signals/build/src/realtime.js
+// node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/realtime.js
 var getRealtimeSignals = () => {
   const length = SIGRTMAX - SIGRTMIN + 1;
   return Array.from({ length }, getRealtimeSignal);
@@ -25357,10 +25360,10 @@ var getRealtimeSignal = (value, index) => ({
 var SIGRTMIN = 34;
 var SIGRTMAX = 64;
 
-// node_modules/.pnpm/human-signals@8.0.0/node_modules/human-signals/build/src/signals.js
+// node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/signals.js
 var import_node_os = require("node:os");
 
-// node_modules/.pnpm/human-signals@8.0.0/node_modules/human-signals/build/src/core.js
+// node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/core.js
 var SIGNALS = [
   {
     name: "SIGHUP",
@@ -25633,7 +25636,7 @@ var SIGNALS = [
   }
 ];
 
-// node_modules/.pnpm/human-signals@8.0.0/node_modules/human-signals/build/src/signals.js
+// node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/signals.js
 var getSignals = () => {
   const realtimeSignals = getRealtimeSignals();
   const signals2 = [...SIGNALS, ...realtimeSignals].map(normalizeSignal);
@@ -25655,7 +25658,7 @@ var normalizeSignal = ({
   return { name, number, description, supported, action, forced, standard };
 };
 
-// node_modules/.pnpm/human-signals@8.0.0/node_modules/human-signals/build/src/main.js
+// node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/main.js
 var getSignalsByName = () => {
   const signals2 = getSignals();
   return Object.fromEntries(signals2.map(getSignalByName));
@@ -25706,7 +25709,7 @@ var findSignalByNumber = (number, signals2) => {
 };
 var signalsByNumber = getSignalsByNumber();
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/terminate/signal.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/terminate/signal.js
 var normalizeKillSignal = (killSignal) => {
   const optionName = "option `killSignal`";
   if (killSignal === 0) {
@@ -25750,7 +25753,7 @@ var getAvailableSignalNames = () => Object.keys(import_node_os3.constants.signal
 var getAvailableSignalIntegers = () => [...new Set(Object.values(import_node_os3.constants.signals).sort((signalInteger, signalIntegerTwo) => signalInteger - signalIntegerTwo))].join(", ");
 var getSignalDescription = (signal) => signalsByName[signal].description;
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/terminate/kill.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/terminate/kill.js
 var normalizeForceKillAfterDelay = (forceKillAfterDelay) => {
   if (forceKillAfterDelay === false) {
     return forceKillAfterDelay;
@@ -25817,7 +25820,7 @@ var killOnTimeout = async ({ kill, forceKillAfterDelay, context: context3, contr
   }
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/utils/abort-signal.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/utils/abort-signal.js
 var import_node_events = require("node:events");
 var onAbortedSignal = async (mainSignal, stopSignal) => {
   if (!mainSignal.aborted) {
@@ -25825,7 +25828,7 @@ var onAbortedSignal = async (mainSignal, stopSignal) => {
   }
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/terminate/cancel.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/terminate/cancel.js
 var validateCancelSignal = ({ cancelSignal }) => {
   if (cancelSignal !== void 0 && Object.prototype.toString.call(cancelSignal) !== "[object AbortSignal]") {
     throw new Error(`The \`cancelSignal\` option must be an AbortSignal: ${String(cancelSignal)}`);
@@ -25839,13 +25842,13 @@ var terminateOnCancel = async (subprocess, cancelSignal, context3, { signal }) =
   throw cancelSignal.reason;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/graceful.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/graceful.js
 var import_promises3 = require("node:timers/promises");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/send.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/send.js
 var import_node_util5 = require("node:util");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/validation.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/validation.js
 var validateIpcMethod = ({ methodName, isSubprocess, ipc, isConnected: isConnected2 }) => {
   validateIpcOption(methodName, isSubprocess, ipc);
   validateConnection(methodName, isSubprocess, isConnected2);
@@ -25917,7 +25920,7 @@ var disconnect = (anyProcess) => {
   }
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/utils/deferred.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/utils/deferred.js
 var createDeferred = () => {
   const methods = {};
   const promise = new Promise((resolve2, reject) => {
@@ -25926,7 +25929,7 @@ var createDeferred = () => {
   return Object.assign(promise, methods);
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/arguments/fd-options.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/arguments/fd-options.js
 var getToStream = (destination, to = "stdin") => {
   const isWritable = true;
   const { options, fileDescriptors } = SUBPROCESS_OPTIONS.get(destination);
@@ -26006,10 +26009,10 @@ var serializeOptionValue = (value) => {
   return typeof value === "number" ? `${value}` : "Stream";
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/strict.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/strict.js
 var import_node_events5 = require("node:events");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/utils/max-listeners.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/utils/max-listeners.js
 var import_node_events2 = require("node:events");
 var incrementMaxListeners = (eventEmitter, maxListenersIncrement, signal) => {
   const maxListeners = eventEmitter.getMaxListeners();
@@ -26022,14 +26025,14 @@ var incrementMaxListeners = (eventEmitter, maxListenersIncrement, signal) => {
   });
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/forward.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/forward.js
 var import_node_events4 = require("node:events");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/incoming.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/incoming.js
 var import_node_events3 = require("node:events");
 var import_promises2 = require("node:timers/promises");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/reference.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/reference.js
 var addReference = (channel, reference) => {
   if (reference) {
     addReferenceCount(channel);
@@ -26059,7 +26062,7 @@ var redoAddedReferences = (channel, isSubprocess) => {
   }
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/incoming.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/incoming.js
 var onMessage = async ({ anyProcess, channel, isSubprocess, ipcEmitter }, wrappedMessage) => {
   if (handleStrictResponse(wrappedMessage) || handleAbort(wrappedMessage)) {
     return;
@@ -26100,7 +26103,7 @@ var onDisconnect = async ({ anyProcess, channel, isSubprocess, ipcEmitter, bound
 };
 var INCOMING_MESSAGES = /* @__PURE__ */ new WeakMap();
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/forward.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/forward.js
 var getIpcEmitter = (anyProcess, channel, isSubprocess) => {
   if (IPC_EMITTERS.has(anyProcess)) {
     return IPC_EMITTERS.get(anyProcess);
@@ -26139,7 +26142,7 @@ var isConnected = (anyProcess) => {
   return ipcEmitter === void 0 ? anyProcess.channel !== null : ipcEmitter.connected;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/strict.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/strict.js
 var handleSendStrict = ({ anyProcess, channel, isSubprocess, message, strict }) => {
   if (!strict) {
     return message;
@@ -26222,7 +26225,7 @@ var throwOnDisconnect = async (anyProcess, isSubprocess, { signal }) => {
 var REQUEST_TYPE = "execa:ipc:request";
 var RESPONSE_TYPE = "execa:ipc:response";
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/outgoing.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/outgoing.js
 var startSendMessage = (anyProcess, wrappedMessage, strict) => {
   if (!OUTGOING_MESSAGES.has(anyProcess)) {
     OUTGOING_MESSAGES.set(anyProcess, /* @__PURE__ */ new Set());
@@ -26249,7 +26252,7 @@ var OUTGOING_MESSAGES = /* @__PURE__ */ new WeakMap();
 var hasMessageListeners = (anyProcess, ipcEmitter) => ipcEmitter.listenerCount("message") > getMinListenerCount(anyProcess);
 var getMinListenerCount = (anyProcess) => SUBPROCESS_OPTIONS.has(anyProcess) && !getFdSpecificValue(SUBPROCESS_OPTIONS.get(anyProcess).options.buffer, "ipc") ? 1 : 0;
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/send.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/send.js
 var sendMessage = ({ anyProcess, channel, isSubprocess, ipc }, message, { strict = false } = {}) => {
   const methodName = "sendMessage";
   validateIpcMethod({
@@ -26319,7 +26322,7 @@ var getSendMethod = (anyProcess) => {
 };
 var PROCESS_SEND_METHODS = /* @__PURE__ */ new WeakMap();
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/graceful.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/graceful.js
 var sendAbort = (subprocess, message) => {
   const methodName = "cancelSignal";
   validateConnection(methodName, false, subprocess.connected);
@@ -26370,7 +26373,7 @@ var abortOnDisconnect = () => {
 };
 var cancelController = new AbortController();
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/terminate/graceful.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/terminate/graceful.js
 var validateGracefulCancel = ({ gracefulCancel, cancelSignal, ipc, serialization }) => {
   if (!gracefulCancel) {
     return;
@@ -26426,7 +26429,7 @@ var getReason = ({ reason }) => {
   return error2;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/terminate/timeout.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/terminate/timeout.js
 var import_promises4 = require("node:timers/promises");
 var validateTimeout = ({ timeout }) => {
   if (timeout !== void 0 && (!Number.isFinite(timeout) || timeout < 0)) {
@@ -26441,7 +26444,7 @@ var killAfterTimeout = async (subprocess, timeout, context3, { signal }) => {
   throw new DiscardedError();
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/methods/node.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/methods/node.js
 var import_node_process6 = require("node:process");
 var import_node_path3 = __toESM(require("node:path"), 1);
 var mapNode = ({ options }) => {
@@ -26482,7 +26485,7 @@ var handleNodeOption = (file, commandArguments, {
   ];
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/ipc-input.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/ipc-input.js
 var import_node_v8 = require("node:v8");
 var validateIpcInputOption = ({ ipcInput, ipc, serialization }) => {
   if (ipcInput === void 0) {
@@ -26518,7 +26521,7 @@ var sendIpcInput = async (subprocess, ipcInput) => {
   await subprocess.sendMessage(ipcInput);
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/arguments/encoding-option.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/arguments/encoding-option.js
 var validateEncoding = ({ encoding }) => {
   if (ENCODINGS.has(encoding)) {
     return;
@@ -26560,7 +26563,7 @@ var ENCODING_ALIASES = {
 };
 var serializeEncoding = (encoding) => typeof encoding === "string" ? `"${encoding}"` : String(encoding);
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/arguments/cwd.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/arguments/cwd.js
 var import_node_fs = require("node:fs");
 var import_node_path4 = __toESM(require("node:path"), 1);
 var import_node_process7 = __toESM(require("node:process"), 1);
@@ -26596,7 +26599,7 @@ ${originalMessage}`;
   return originalMessage;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/arguments/options.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/arguments/options.js
 var normalizeOptions = (filePath, rawArguments, rawOptions) => {
   rawOptions.cwd = normalizeCwd(rawOptions.cwd);
   const [processedFile, processedArguments, processedOptions] = handleNodeOption(filePath, rawArguments, rawOptions);
@@ -26667,7 +26670,10 @@ var getEnv = ({ env: envOption, extendEnv, preferLocal, node, localDirectory, no
   return env;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/return/message.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/arguments/shell.js
+var concatenateShell = (file, commandArguments, options) => options.shell && commandArguments.length > 0 ? [[file, ...commandArguments].join(" "), [], options] : [file, commandArguments, options];
+
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/return/message.js
 var import_node_util6 = require("node:util");
 
 // node_modules/.pnpm/strip-final-newline@4.0.0/node_modules/strip-final-newline/index.js
@@ -27057,7 +27063,7 @@ var stringMethods = {
 // node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/index.js
 Object.assign(nodeImports, { on: import_node_events6.on, finished: import_promises5.finished });
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/io/max-buffer.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/io/max-buffer.js
 var handleMaxBuffer = ({ error: error2, stream, readableObjectMode, lines, encoding, fdNumber }) => {
   if (!(error2 instanceof MaxBufferError)) {
     throw error2;
@@ -27116,7 +27122,7 @@ var truncateMaxBufferSync = (result, isMaxBuffer, maxBuffer) => {
 };
 var getMaxBufferSync = ([, stdoutMaxBuffer]) => stdoutMaxBuffer;
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/return/message.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/return/message.js
 var createMessages = ({
   stdio,
   all,
@@ -27234,7 +27240,7 @@ var serializeMessageItem = (messageItem) => {
   return "";
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/return/result.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/return/result.js
 var makeSuccessResult = ({
   command,
   escapedCommand,
@@ -27545,7 +27551,7 @@ function prettyMilliseconds(milliseconds, options) {
   return sign + result.join(separator);
 }
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/verbose/error.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/verbose/error.js
 var logError = (result, verboseInfo) => {
   if (result.failed) {
     verboseLog({
@@ -27557,7 +27563,7 @@ var logError = (result, verboseInfo) => {
   }
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/verbose/complete.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/verbose/complete.js
 var logResult = (result, verboseInfo) => {
   if (!isVerbose(verboseInfo)) {
     return;
@@ -27575,7 +27581,7 @@ var logDuration = (result, verboseInfo) => {
   });
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/return/reject.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/return/reject.js
 var handleResult = (result, verboseInfo, { reject }) => {
   logResult(result, verboseInfo);
   if (result.failed && reject) {
@@ -27584,10 +27590,10 @@ var handleResult = (result, verboseInfo, { reject }) => {
   return result;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/stdio/handle-sync.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/stdio/handle-sync.js
 var import_node_fs3 = require("node:fs");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/stdio/type.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/stdio/type.js
 var getStdioItemType = (value, optionName) => {
   if (isAsyncGenerator(value)) {
     return "asyncGenerator";
@@ -27713,7 +27719,7 @@ var TYPE_TO_MESSAGE = {
   uint8Array: "a Uint8Array"
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/transform/object-mode.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/transform/object-mode.js
 var getTransformObjectModes = (objectMode, index, newTransforms, direction) => direction === "output" ? getOutputObjectModes(objectMode, index, newTransforms) : getInputObjectModes(objectMode, index, newTransforms);
 var getOutputObjectModes = (objectMode, index, newTransforms) => {
   const writableObjectMode = index !== 0 && newTransforms[index - 1].value.readableObjectMode;
@@ -27733,7 +27739,7 @@ var getFdObjectMode = (stdioItems, direction) => {
   return direction === "input" ? lastTransform.value.writableObjectMode : lastTransform.value.readableObjectMode;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/transform/normalize.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/transform/normalize.js
 var normalizeTransforms = (stdioItems, optionName, direction, options) => [
   ...stdioItems.filter(({ type }) => !TRANSFORM_TYPES.has(type)),
   ...getTransforms(stdioItems, optionName, direction, options)
@@ -27827,7 +27833,7 @@ var normalizeGenerator = ({ stdioItem, stdioItem: { value }, index, newTransform
 };
 var sortTransforms = (newTransforms, direction) => direction === "input" ? newTransforms.reverse() : newTransforms;
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/stdio/direction.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/stdio/direction.js
 var import_node_process9 = __toESM(require("node:process"), 1);
 var getStreamDirection = (stdioItems, fdNumber, optionName) => {
   const directions = stdioItems.map((stdioItem) => getStdioItemDirection(stdioItem, fdNumber));
@@ -27877,10 +27883,10 @@ var getStandardStreamDirection = (value) => {
 };
 var DEFAULT_DIRECTION = "output";
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/array.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/array.js
 var normalizeIpcStdioArray = (stdioArray, ipc) => ipc && !stdioArray.includes("ipc") ? [...stdioArray, "ipc"] : stdioArray;
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/stdio/stdio-option.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/stdio/stdio-option.js
 var normalizeStdioOption = ({ stdio, ipc, buffer, ...options }, verboseInfo, isSync) => {
   const stdioArray = getStdioArray(stdio, options).map((stdioOption, fdNumber) => addDefaultValue2(stdioOption, fdNumber));
   return isSync ? normalizeStdioSync(stdioArray, buffer, verboseInfo) : normalizeIpcStdioArray(stdioArray, ipc);
@@ -27914,7 +27920,7 @@ var addDefaultValue2 = (stdioOption, fdNumber) => {
 var normalizeStdioSync = (stdioArray, buffer, verboseInfo) => stdioArray.map((stdioOption, fdNumber) => !buffer[fdNumber] && fdNumber !== 0 && !isFullVerbose(verboseInfo, fdNumber) && isOutputPipeOnly(stdioOption) ? "ignore" : stdioOption);
 var isOutputPipeOnly = (stdioOption) => stdioOption === "pipe" || Array.isArray(stdioOption) && stdioOption.every((item) => item === "pipe");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/stdio/native.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/stdio/native.js
 var import_node_fs2 = require("node:fs");
 var import_node_tty2 = __toESM(require("node:tty"), 1);
 var handleNativeStream = ({ stdioItem, stdioItem: { type }, isStdioArray, fdNumber, direction, isSync }) => {
@@ -27983,7 +27989,7 @@ var getStandardStream = (fdNumber, value, optionName) => {
   return standardStream;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/stdio/input-option.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/stdio/input-option.js
 var handleInputOptions = ({ input, inputFile }, fdNumber) => fdNumber === 0 ? [
   ...handleInputOption(input),
   ...handleInputFileOption(inputFile)
@@ -28019,7 +28025,7 @@ var getInputFileType = (inputFile) => {
   throw new Error("The `inputFile` option must be a file path string or a file URL.");
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/stdio/duplicate.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/stdio/duplicate.js
 var filterDuplicates = (stdioItems) => stdioItems.filter((stdioItemOne, indexOne) => stdioItems.every((stdioItemTwo, indexTwo) => stdioItemOne.value !== stdioItemTwo.value || indexOne >= indexTwo || stdioItemOne.type === "generator" || stdioItemOne.type === "asyncGenerator"));
 var getDuplicateStream = ({ stdioItem: { type, value, optionName }, direction, fileDescriptors, isSync }) => {
   const otherStdioItems = getOtherStdioItems(fileDescriptors, type);
@@ -28094,7 +28100,7 @@ var throwOnDuplicateStream = (stdioItem, optionName, type) => {
   }
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/stdio/handle.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/stdio/handle.js
 var handleStdio = (addProperties3, options, verboseInfo, isSync) => {
   const stdio = normalizeStdioOption(options, verboseInfo, isSync);
   const initialFileDescriptors = stdio.map((stdioOption, fdNumber) => getFileDescriptor({
@@ -28254,7 +28260,7 @@ var forwardStdio = (stdioItems) => {
   return type === "native" ? value : "pipe";
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/stdio/handle-sync.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/stdio/handle-sync.js
 var handleStdioSync = (options, verboseInfo) => handleStdio(addPropertiesSync, options, verboseInfo, true);
 var forbiddenIfSync = ({ type, optionName }) => {
   throwInvalidSyncValue(optionName, TYPE_TO_MESSAGE[type]);
@@ -28300,14 +28306,14 @@ var addPropertiesSync = {
   }
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/io/strip-newline.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/io/strip-newline.js
 var stripNewline = (value, { stripFinalNewline: stripFinalNewline2 }, fdNumber) => getStripFinalNewline(stripFinalNewline2, fdNumber) && value !== void 0 && !Array.isArray(value) ? stripFinalNewline(value) : value;
 var getStripFinalNewline = (stripFinalNewline2, fdNumber) => fdNumber === "all" ? stripFinalNewline2[1] || stripFinalNewline2[2] : stripFinalNewline2[fdNumber];
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/transform/generator.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/transform/generator.js
 var import_node_stream = require("node:stream");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/transform/split.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/transform/split.js
 var getSplitLinesGenerator = (binary, preserveNewlines, skipped, state) => binary || skipped ? void 0 : initializeSplitLines(preserveNewlines, state);
 var splitLinesSync = (chunk, preserveNewlines, objectMode) => objectMode ? chunk.flatMap((item) => splitLinesItemSync(item, preserveNewlines)) : splitLinesItemSync(chunk, preserveNewlines);
 var splitLinesItemSync = (chunk, preserveNewlines) => {
@@ -28387,7 +28393,7 @@ var linesUint8ArrayInfo = {
   concatBytes: concatUint8Array
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/transform/validate.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/transform/validate.js
 var import_node_buffer = require("node:buffer");
 var getValidateTransformInput = (writableObjectMode, optionName) => writableObjectMode ? void 0 : validateStringTransformInput.bind(void 0, optionName);
 var validateStringTransformInput = function* (optionName, chunk) {
@@ -28416,7 +28422,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
   }
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/transform/encoding-transform.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/transform/encoding-transform.js
 var import_node_buffer2 = require("node:buffer");
 var import_node_string_decoder2 = require("node:string_decoder");
 var getEncodingTransformGenerator = (binary, encoding, skipped) => {
@@ -28451,7 +28457,7 @@ var encodingStringFinal = function* (stringDecoder) {
   }
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/transform/run-async.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/transform/run-async.js
 var import_node_util7 = require("node:util");
 var pushChunks = (0, import_node_util7.callbackify)(async (getChunks, state, getChunksArguments, transformStream) => {
   state.currentIterable = getChunks(...getChunksArguments);
@@ -28499,7 +28505,7 @@ var identityGenerator = function* (chunk) {
   yield chunk;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/transform/run-sync.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/transform/run-sync.js
 var pushChunksSync = (getChunksSync, getChunksArguments, transformStream, done) => {
   try {
     for (const chunk of getChunksSync(...getChunksArguments)) {
@@ -28541,7 +28547,7 @@ var identityGenerator2 = function* (chunk) {
   yield chunk;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/transform/generator.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/transform/generator.js
 var generatorToStream = ({
   value,
   value: { transform, final, writableObjectMode, readableObjectMode },
@@ -28595,7 +28601,7 @@ var addInternalGenerators = ({ transform, final, binary, writableObjectMode, rea
   ].filter(Boolean);
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/io/input-sync.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/io/input-sync.js
 var addInputOptionsSync = (fileDescriptors, options) => {
   for (const fdNumber of getInputFdNumbers(fileDescriptors)) {
     addInputOptionSync(fileDescriptors, fdNumber, options);
@@ -28628,10 +28634,10 @@ var validateSerializable = (newContents) => {
   }
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/io/output-sync.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/io/output-sync.js
 var import_node_fs4 = require("node:fs");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/verbose/output.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/verbose/output.js
 var shouldLogOutput = ({ stdioItems, encoding, verboseInfo, fdNumber }) => fdNumber !== "all" && isFullVerbose(verboseInfo, fdNumber) && !BINARY_ENCODINGS.has(encoding) && fdUsesVerbose(fdNumber) && (stdioItems.some(({ type, value }) => type === "native" && PIPED_STDIO_VALUES.has(value)) || stdioItems.every(({ type }) => TRANSFORM_TYPES.has(type)));
 var fdUsesVerbose = (fdNumber) => fdNumber === 1 || fdNumber === 2;
 var PIPED_STDIO_VALUES = /* @__PURE__ */ new Set(["pipe", "overlapped"]);
@@ -28658,7 +28664,7 @@ var logLine = (line, fdNumber, verboseInfo) => {
   });
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/io/output-sync.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/io/output-sync.js
 var transformOutputSync = ({ fileDescriptors, syncResult: { output }, options, isMaxBuffer, verboseInfo }) => {
   if (output === null) {
     return { output: Array.from({ length: 3 }) };
@@ -28761,7 +28767,7 @@ var writeToFiles = (serializedResult, stdioItems, outputFiles) => {
   }
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/resolve/all-sync.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/resolve/all-sync.js
 var getAllSync = ([, stdout, stderr], options) => {
   if (!options.all) {
     return;
@@ -28784,7 +28790,7 @@ var getAllSync = ([, stdout, stderr], options) => {
   return `${stdout}${stderr}`;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/resolve/exit-async.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/resolve/exit-async.js
 var import_node_events7 = require("node:events");
 var waitForExit = async (subprocess, context3) => {
   const [exitCode, signal] = await waitForExitOrError(subprocess);
@@ -28818,7 +28824,7 @@ var waitForSuccessfulExit = async (exitPromise) => {
 var isSubprocessErrorExit = (exitCode, signal) => exitCode === void 0 && signal === void 0;
 var isFailedExit = (exitCode, signal) => exitCode !== 0 || signal !== null;
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/resolve/exit-sync.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/resolve/exit-sync.js
 var getExitResultSync = ({ error: error2, status: exitCode, signal, output }, { maxBuffer }) => {
   const resultError = getResultError(error2, exitCode, signal);
   const timedOut = resultError?.code === "ETIMEDOUT";
@@ -28838,7 +28844,7 @@ var getResultError = (error2, exitCode, signal) => {
   return isFailedExit(exitCode, signal) ? new DiscardedError() : void 0;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/methods/main-sync.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/methods/main-sync.js
 var execaCoreSync = (rawFile, rawArguments, rawOptions) => {
   const { file, commandArguments, command, escapedCommand, startTime, verboseInfo, options, fileDescriptors } = handleSyncArguments(rawFile, rawArguments, rawOptions);
   const result = spawnSubprocessSync({
@@ -28929,7 +28935,7 @@ var runSubprocessSync = ({ file, commandArguments, options, command, escapedComm
   try {
     addInputOptionsSync(fileDescriptors, options);
     const normalizedOptions = normalizeSpawnSyncOptions(options);
-    return (0, import_node_child_process3.spawnSync)(file, commandArguments, normalizedOptions);
+    return (0, import_node_child_process3.spawnSync)(...concatenateShell(file, commandArguments, normalizedOptions));
   } catch (error2) {
     return makeEarlyError({
       error: error2,
@@ -28970,14 +28976,14 @@ var getSyncResult = ({ error: error2, exitCode, signal, timedOut, isMaxBuffer, s
   isSync: true
 });
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/methods/main-async.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/methods/main-async.js
 var import_node_events14 = require("node:events");
 var import_node_child_process5 = require("node:child_process");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/methods.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/methods.js
 var import_node_process10 = __toESM(require("node:process"), 1);
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/get-one.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/get-one.js
 var import_node_events8 = require("node:events");
 var getOneMessage = ({ anyProcess, channel, isSubprocess, ipc }, { reference = true, filter } = {}) => {
   validateIpcMethod({
@@ -29032,7 +29038,7 @@ var throwOnStrictError = async (ipcEmitter, isSubprocess, { signal }) => {
   throw getStrictResponseError(error2, isSubprocess);
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/get-each.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/get-each.js
 var import_node_events9 = require("node:events");
 var getEachMessage = ({ anyProcess, channel, isSubprocess, ipc }, { reference = true } = {}) => loopOnMessages({
   anyProcess,
@@ -29111,7 +29117,7 @@ var throwIfStrictError = ({ error: error2 }) => {
   }
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/methods.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/methods.js
 var addIpcMethods = (subprocess, { ipc }) => {
   Object.assign(subprocess, getIpcMethods(subprocess, false, ipc));
 };
@@ -29150,7 +29156,7 @@ var getIpcMethods = (anyProcess, isSubprocess, ipc) => ({
   })
 });
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/return/early-error.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/return/early-error.js
 var import_node_child_process4 = require("node:child_process");
 var import_node_stream2 = require("node:stream");
 var handleEarlyError = ({ error: error2, command, escapedCommand, fileDescriptors, options, startTime, verboseInfo }) => {
@@ -29199,7 +29205,7 @@ var duplex = () => new import_node_stream2.Duplex({ read() {
 } });
 var handleDummyPromise = async (error2, verboseInfo, options) => handleResult(error2, verboseInfo, options);
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/stdio/handle-async.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/stdio/handle-async.js
 var import_node_fs5 = require("node:fs");
 var import_node_buffer3 = require("node:buffer");
 var import_node_stream3 = require("node:stream");
@@ -29461,7 +29467,7 @@ var updateMaxListeners = (passThroughStream, increment2) => {
 var PASSTHROUGH_LISTENERS_COUNT = 2;
 var PASSTHROUGH_LISTENERS_PER_STREAM = 1;
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/io/pipeline.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/io/pipeline.js
 var import_promises7 = require("node:stream/promises");
 var pipeStreams = (source, destination) => {
   source.pipe(destination);
@@ -29499,7 +29505,7 @@ var abortSourceStream = (source) => {
   }
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/io/output-async.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/io/output-async.js
 var pipeOutputAsync = (subprocess, fileDescriptors, controller) => {
   const pipeGroups = /* @__PURE__ */ new Map();
   for (const [fdNumber, { stdioItems, direction }] of Object.entries(fileDescriptors)) {
@@ -29551,7 +29557,7 @@ var setStandardStreamMaxListeners = (stream, { signal }) => {
 };
 var MAX_LISTENERS_INCREMENT = 2;
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/terminate/cleanup.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/terminate/cleanup.js
 var import_node_events11 = require("node:events");
 
 // node_modules/.pnpm/signal-exit@4.1.0/node_modules/signal-exit/dist/mjs/signals.js
@@ -29805,7 +29811,7 @@ var {
   unload
 } = signalExitWrap(processOk(process9) ? new SignalExit(process9) : new SignalExitFallback());
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/terminate/cleanup.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/terminate/cleanup.js
 var cleanupOnExit = (subprocess, { cleanup, detached }, { signal }) => {
   if (!cleanup || detached) {
     return;
@@ -29818,7 +29824,7 @@ var cleanupOnExit = (subprocess, { cleanup, detached }, { signal }) => {
   });
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/pipe/pipe-arguments.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/pipe/pipe-arguments.js
 var normalizePipeArguments = ({ source, sourcePromise, boundOptions, createNested }, ...pipeArguments) => {
   const startTime = getStartTime();
   const {
@@ -29891,7 +29897,7 @@ var getSourceStream = (source, from) => {
   }
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/pipe/throw.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/pipe/throw.js
 var handlePipeArgumentsError = ({
   sourceStream,
   sourceError,
@@ -29940,7 +29946,7 @@ var createNonCommandError = ({ error: error2, fileDescriptors, sourceOptions, st
 });
 var PIPE_COMMAND_MESSAGE = "source.pipe(destination)";
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/pipe/sequence.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/pipe/sequence.js
 var waitForBothSubprocesses = async (subprocessPromises) => {
   const [
     { status: sourceStatus, reason: sourceReason, value: sourceResult = sourceReason },
@@ -29958,7 +29964,7 @@ var waitForBothSubprocesses = async (subprocessPromises) => {
   return destinationResult;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/pipe/streaming.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/pipe/streaming.js
 var import_promises8 = require("node:stream/promises");
 var pipeSubprocessStream = (sourceStream, destinationStream, maxListenersController) => {
   const mergedStream = MERGED_STREAMS.has(destinationStream) ? pipeMoreSubprocessStream(sourceStream, destinationStream) : pipeFirstSubprocessStream(sourceStream, destinationStream);
@@ -29989,7 +29995,7 @@ var MERGED_STREAMS = /* @__PURE__ */ new WeakMap();
 var SOURCE_LISTENERS_PER_PIPE = 2;
 var DESTINATION_LISTENERS_PER_PIPE = 1;
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/pipe/abort.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/pipe/abort.js
 var import_node_util8 = require("node:util");
 var unpipeOnAbort = (unpipeSignal, unpipeContext) => unpipeSignal === void 0 ? [] : [unpipeOnSignalAbort(unpipeSignal, unpipeContext)];
 var unpipeOnSignalAbort = async (unpipeSignal, { sourceStream, mergedStream, fileDescriptors, sourceOptions, startTime }) => {
@@ -30004,7 +30010,7 @@ var unpipeOnSignalAbort = async (unpipeSignal, { sourceStream, mergedStream, fil
   });
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/pipe/setup.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/pipe/setup.js
 var pipeToSubprocess = (sourceInfo, ...pipeArguments) => {
   if (isPlainObject(pipeArguments[0])) {
     return pipeToSubprocess.bind(void 0, {
@@ -30063,10 +30069,10 @@ var handlePipePromise = async ({
 };
 var getSubprocessPromises = (sourcePromise, destination) => Promise.allSettled([sourcePromise, destination]);
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/io/contents.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/io/contents.js
 var import_promises9 = require("node:timers/promises");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/io/iterate.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/io/iterate.js
 var import_node_events12 = require("node:events");
 var import_node_stream5 = require("node:stream");
 var iterateOnSubprocessStream = ({ subprocessStdout, subprocess, binary, shouldEncode, encoding, preserveNewlines }) => {
@@ -30159,7 +30165,7 @@ var getGenerators = ({ binary, shouldEncode, encoding, shouldSplit, preserveNewl
   getSplitLinesGenerator(binary, preserveNewlines, !shouldSplit, {})
 ].filter(Boolean);
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/io/contents.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/io/contents.js
 var getStreamOutput = async ({ stream, onStreamEnd, fdNumber, encoding, buffer, maxBuffer, lines, allMixed, stripFinalNewline: stripFinalNewline2, verboseInfo, streamInfo }) => {
   const logPromise = logOutputAsync({
     stream,
@@ -30250,7 +30256,7 @@ var getBufferedData = async (streamPromise) => {
 };
 var handleBufferedData = ({ bufferedData }) => isArrayBuffer(bufferedData) ? new Uint8Array(bufferedData) : bufferedData;
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/resolve/wait-stream.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/resolve/wait-stream.js
 var import_promises10 = require("node:stream/promises");
 var waitForStream = async (stream, fdNumber, streamInfo, { isSameDirection, stopOnExit = false } = {}) => {
   const state = handleStdinDestroy(stream, streamInfo);
@@ -30303,7 +30309,7 @@ var isInputFileDescriptor = ({ fileDescriptors }, fdNumber) => fdNumber !== "all
 var isStreamAbort = (error2) => error2?.code === "ERR_STREAM_PREMATURE_CLOSE";
 var isStreamEpipe = (error2) => error2?.code === "EPIPE";
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/resolve/stdio.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/resolve/stdio.js
 var waitForStdioStreams = ({ subprocess, encoding, buffer, maxBuffer, lines, stripFinalNewline: stripFinalNewline2, verboseInfo, streamInfo }) => subprocess.stdio.map((stream, fdNumber) => waitForSubprocessStream({
   stream,
   fdNumber,
@@ -30344,7 +30350,7 @@ var waitForSubprocessStream = async ({ stream, fdNumber, encoding, buffer, maxBu
   return output;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/resolve/all-async.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/resolve/all-async.js
 var makeAllStream = ({ stdout, stderr }, { all }) => all && (stdout || stderr) ? mergeStreams([stdout, stderr].filter(Boolean)) : void 0;
 var waitForAllStream = ({ subprocess, encoding, buffer, maxBuffer, lines, stripFinalNewline: stripFinalNewline2, verboseInfo, streamInfo }) => waitForSubprocessStream({
   ...getAllStream(subprocess, buffer),
@@ -30372,10 +30378,10 @@ var getAllStream = ({ stdout, stderr, all }, [, bufferStdout, bufferStderr]) => 
 };
 var getAllMixed = ({ all, stdout, stderr }) => all && stdout && stderr && stdout.readableObjectMode !== stderr.readableObjectMode;
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/resolve/wait-subprocess.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/resolve/wait-subprocess.js
 var import_node_events13 = require("node:events");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/verbose/ipc.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/verbose/ipc.js
 var shouldLogIpc = (verboseInfo) => isFullVerbose(verboseInfo, "ipc");
 var logIpcOutput = (message, verboseInfo) => {
   const verboseMessage = serializeVerboseMessage(message);
@@ -30387,7 +30393,7 @@ var logIpcOutput = (message, verboseInfo) => {
   });
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/ipc/buffer-messages.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/buffer-messages.js
 var waitForIpcOutput = async ({
   subprocess,
   buffer: bufferArray,
@@ -30425,7 +30431,7 @@ var getBufferedIpcOutput = async (ipcOutputPromise, ipcOutput) => {
   return ipcOutput;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/resolve/wait-subprocess.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/resolve/wait-subprocess.js
 var waitForSubprocessResult = async ({
   subprocess,
   options: {
@@ -30541,7 +30547,7 @@ var throwOnSubprocessError = async (subprocess, { signal }) => {
   throw error2;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/convert/concurrent.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/convert/concurrent.js
 var initializeConcurrentStreams = () => ({
   readableDestroy: /* @__PURE__ */ new WeakMap(),
   writableFinal: /* @__PURE__ */ new WeakMap(),
@@ -30567,11 +30573,11 @@ var waitForConcurrentStreams = async ({ resolve: resolve2, promises }, subproces
   return !isSubprocessExit;
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/convert/readable.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/convert/readable.js
 var import_node_stream6 = require("node:stream");
 var import_node_util9 = require("node:util");
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/convert/shared.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/convert/shared.js
 var import_promises11 = require("node:stream/promises");
 var safeWaitForSubprocessStdin = async (subprocessStdin) => {
   if (subprocessStdin === void 0) {
@@ -30611,7 +30617,7 @@ var destroyOtherStream = (stream, isOpen, error2) => {
   }
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/convert/readable.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/convert/readable.js
 var createReadable = ({ subprocess, concurrentStreams, encoding }, { from, binary: binaryOption = true, preserveNewlines = true } = {}) => {
   const binary = binaryOption || BINARY_ENCODINGS.has(encoding);
   const { subprocessStdout, waitReadableDestroy } = getSubprocessStdout(subprocess, from, concurrentStreams);
@@ -30696,7 +30702,7 @@ var destroyOtherReadable = (stream, error2) => {
   destroyOtherStream(stream, stream.readable, error2);
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/convert/writable.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/convert/writable.js
 var import_node_stream7 = require("node:stream");
 var import_node_util10 = require("node:util");
 var createWritable = ({ subprocess, concurrentStreams }, { to } = {}) => {
@@ -30762,7 +30768,7 @@ var destroyOtherWritable = (stream, error2) => {
   destroyOtherStream(stream, stream.writable, error2);
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/convert/duplex.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/convert/duplex.js
 var import_node_stream8 = require("node:stream");
 var import_node_util11 = require("node:util");
 var createDuplex = ({ subprocess, concurrentStreams, encoding }, { from, to, binary: binaryOption = true, preserveNewlines = true } = {}) => {
@@ -30816,7 +30822,7 @@ var onDuplexDestroy = async ({ subprocessStdout, subprocessStdin, subprocess, wa
   ]);
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/convert/iterable.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/convert/iterable.js
 var createIterable = (subprocess, encoding, {
   from,
   binary: binaryOption = false,
@@ -30845,7 +30851,7 @@ var iterateOnStdoutData = async function* (onStdoutData, subprocessStdout, subpr
   }
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/convert/add.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/convert/add.js
 var addConvertedStreams = (subprocess, { encoding }) => {
   const concurrentStreams = initializeConcurrentStreams();
   subprocess.readable = createReadable.bind(void 0, { subprocess, concurrentStreams, encoding });
@@ -30855,7 +30861,7 @@ var addConvertedStreams = (subprocess, { encoding }) => {
   subprocess[Symbol.asyncIterator] = createIterable.bind(void 0, subprocess, encoding, {});
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/methods/promise.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/methods/promise.js
 var mergePromise = (subprocess, promise) => {
   for (const [property, descriptor] of descriptors) {
     const value = descriptor.value.bind(promise);
@@ -30869,7 +30875,7 @@ var descriptors = ["then", "catch", "finally"].map((property) => [
   Reflect.getOwnPropertyDescriptor(nativePromisePrototype, property)
 ]);
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/methods/main-async.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/methods/main-async.js
 var execaCoreAsync = (rawFile, rawArguments, rawOptions, createNested) => {
   const { file, commandArguments, command, escapedCommand, startTime, verboseInfo, options, fileDescriptors } = handleAsyncArguments(rawFile, rawArguments, rawOptions);
   const { subprocess, promise } = spawnSubprocessAsync({
@@ -30917,7 +30923,7 @@ var handleAsyncOptions = ({ timeout, signal, ...options }) => {
 var spawnSubprocessAsync = ({ file, commandArguments, options, startTime, verboseInfo, command, escapedCommand, fileDescriptors }) => {
   let subprocess;
   try {
-    subprocess = (0, import_node_child_process5.spawn)(file, commandArguments, options);
+    subprocess = (0, import_node_child_process5.spawn)(...concatenateShell(file, commandArguments, options));
   } catch (error2) {
     return handleEarlyError({
       error: error2,
@@ -31024,7 +31030,7 @@ var getAsyncResult = ({ errorInfo, exitCode, signal, stdio, all, ipcOutput, cont
   startTime
 });
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/methods/bind.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/methods/bind.js
 var mergeOptions = (boundOptions, options) => {
   const newOptions = Object.fromEntries(
     Object.entries(options).map(([optionName, optionValue]) => [
@@ -31042,7 +31048,7 @@ var mergeOption = (optionName, boundOptionValue, optionValue) => {
 };
 var DEEP_OPTIONS = /* @__PURE__ */ new Set(["env", ...FD_SPECIFIC_OPTIONS]);
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/methods/create.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/methods/create.js
 var createExeca = (mapArguments, boundOptions, deepOptions, setBoundExeca) => {
   const createNested = (mapArguments2, boundOptions2, setBoundExeca2) => createExeca(mapArguments2, boundOptions2, deepOptions, setBoundExeca2);
   const boundExeca = (...execaArguments) => callBoundExeca({
@@ -31088,7 +31094,7 @@ var parseArguments = ({ mapArguments, firstArgument, nextArguments, deepOptions,
   };
 };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/methods/command.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/methods/command.js
 var mapCommandAsync = ({ file, commandArguments }) => parseCommand(file, commandArguments);
 var mapCommandSync = ({ file, commandArguments }) => ({ ...parseCommand(file, commandArguments), isSync: true });
 var parseCommand = (command, unusedArguments) => {
@@ -31119,7 +31125,7 @@ var parseCommandString = (command) => {
 };
 var SPACES_REGEXP = / +/g;
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/lib/methods/script.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/methods/script.js
 var setScriptSync = (boundExeca, createNested, boundOptions) => {
   boundExeca.sync = createNested(mapScriptSync, boundOptions);
   boundExeca.s = boundExeca.sync;
@@ -31130,7 +31136,7 @@ var getScriptOptions = (options) => ({ options: { ...getScriptStdinOption(option
 var getScriptStdinOption = ({ input, inputFile, stdio }) => input === void 0 && inputFile === void 0 && stdio === void 0 ? { stdin: "inherit" } : {};
 var deepScriptOptions = { preferLocal: true };
 
-// node_modules/.pnpm/execa@9.5.1/node_modules/execa/index.js
+// node_modules/.pnpm/execa@9.6.0/node_modules/execa/index.js
 var execa = createExeca(() => ({}));
 var execaSync = createExeca(() => ({ isSync: true }));
 var execaCommand = createExeca(mapCommandAsync);
@@ -31235,9 +31241,17 @@ async function setupWorktree(directory, base, head, repoName) {
   core2.info(`Head ref: ${head}`);
   core2.info(`Base ref: ${base}`);
   try {
-    const { stdout: currentHead } = await execa("git", ["rev-parse", "HEAD"], { cwd: directory });
-    const { stdout: currentBranch } = await execa("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd: directory });
-    const { stdout: remotes } = await execa("git", ["remote", "-v"], { cwd: directory });
+    const { stdout: currentHead } = await execa("git", ["rev-parse", "HEAD"], {
+      cwd: directory
+    });
+    const { stdout: currentBranch } = await execa(
+      "git",
+      ["rev-parse", "--abbrev-ref", "HEAD"],
+      { cwd: directory }
+    );
+    const { stdout: remotes } = await execa("git", ["remote", "-v"], {
+      cwd: directory
+    });
     core2.info(`Current HEAD: ${currentHead.trim()}`);
     core2.info(`Current branch: ${currentBranch.trim()}`);
     core2.info(`Available remotes:
@@ -31300,11 +31314,15 @@ async function resolveRef(repoDir, ref) {
   } catch (error2) {
     const remoteRef = `origin/${ref}`;
     try {
-      await execa("git", ["rev-parse", "--verify", remoteRef], { cwd: repoDir });
+      await execa("git", ["rev-parse", "--verify", remoteRef], {
+        cwd: repoDir
+      });
       core2.info(`Resolved ${ref} to ${remoteRef}`);
       return remoteRef;
     } catch (remoteError) {
-      throw new Error(`Could not resolve ref: ${ref}. Tried both '${ref}' and '${remoteRef}'`);
+      throw new Error(
+        `Could not resolve ref: ${ref}. Tried both '${ref}' and '${remoteRef}'`
+      );
     }
   }
 }
@@ -31377,7 +31395,9 @@ async function checkoutRef(repoDir, ref) {
       }
     );
     if (currentShaRef.trim() === targetSha.trim()) {
-      core2.info(`Already at ref: ${ref} (${targetSha.trim()}) - skipping checkout`);
+      core2.info(
+        `Already at ref: ${ref} (${targetSha.trim()}) - skipping checkout`
+      );
       return;
     }
     await execa("git", ["checkout", resolvedRef], { cwd: repoDir });
