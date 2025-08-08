@@ -1,5 +1,14 @@
 # go-mod-validator
 
+## 0.5.4
+
+### Patch Changes
+
+- [#1157](https://github.com/smartcontractkit/.github/pull/1157)
+  [`521bc44`](https://github.com/smartcontractkit/.github/commit/521bc449ab3e07be22d841146de0e75a81c7ee38)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump depedency
+  @octokit/plugin-throttling
+
 ## 0.5.3
 
 ### Patch Changes
