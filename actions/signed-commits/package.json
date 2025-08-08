@@ -34,7 +34,7 @@
     "@changesets/read": "^0.6.5",
     "@manypkg/get-packages": "^2.2.2",
     "@octokit/graphql": "^7.1.1",
-    "@octokit/plugin-throttling": "^8.2.0",
+    "@octokit/plugin-throttling": "^11.0.1",
     "fs-extra": "^11.3.0",
     "graphql": "^16.11.0",
     "mdast-util-to-string": "^1.1.0",
