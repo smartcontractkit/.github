@@ -7,6 +7,9 @@
   "engines": {
     "node": ">= 20"
   },
+  "scripts": {
+    "test": "vitest"
+  },
   "author": "@smartcontractkit",
   "license": "MIT",
   "repository": "https://github.com/smartcontractkit/.github",
@@ -18,6 +21,7 @@
   },
   "devDependencies": {
     "@octokit/types": "^13.10.0",
-    "@types/node": "^24.2.1"
+    "@types/node": "^24.2.1",
+    "vitest": "^2.1.9"
   }
 }
