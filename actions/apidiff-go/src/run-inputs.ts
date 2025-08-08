@@ -93,21 +93,20 @@ const runInputsConfiguration: {
 };
 
 function getRunInput(input: keyof RunInputs) {
-  const config = runInputsConfiguration[input];
-  if (!config) {
-    // this should never happen due to type safety
-    throw new Error(`No configuration found for input: ${input}`);
-  }
-
-  // Use local debug input key if local debugging is enabled
-  const isLocalDebug = process.env.CL_LOCAL_DEBUG;
-  const inputKey = isLocalDebug ? config.localParameter : config.parameter;
+  const inputKey = getInputKey(input);
   return core.getInput(inputKey, {
-    required: false, // todo
+    required: true,
   });
 }
 
 function getBooleanRunInput(input: keyof RunInputs) {
+  const inputKey = getInputKey(input);
+  return core.getBooleanInput(inputKey, {
+    required: true,
+  });
+}
+
+function getInputKey(input: keyof RunInputs) {
   const config = runInputsConfiguration[input];
   if (!config) {
     // this should never happen due to type safety
@@ -117,7 +116,5 @@ function getBooleanRunInput(input: keyof RunInputs) {
   // Use local debug input key if local debugging is enabled
   const isLocalDebug = process.env.CL_LOCAL_DEBUG;
   const inputKey = isLocalDebug ? config.localParameter : config.parameter;
-  return core.getBooleanInput(inputKey, {
-    required: false, // todo
-  });
+  return inputKey;
 }

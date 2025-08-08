@@ -23,7 +23,6 @@ inputs:
     description: "Base branch or commit to compare against"
     required: false
     default: "${{ github.event.pull_request.base.ref }}"
-
   head-ref:
     description: "Head branch or commit to compare against"
     required: false
@@ -36,9 +35,3 @@ inputs:
       incompatible changes are detected."
     required: false
     default: true
-
-outputs:
-  apidiff-result:
-    description: "The output from the apidiff tool"
-  has-changes:
-    description: "Whether API changes were detected (true/false)"

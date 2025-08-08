@@ -64,7 +64,7 @@ export async function getSummaryUrl(
       run_id: runId,
     });
 
-    if (data.jobs.length != 1) {
+    if (data.jobs.length !== 1) {
       core.warning(
         `Expected exactly one job in workflow run, found ${data.jobs.length}. Cannot determine summary URL.`,
       );
