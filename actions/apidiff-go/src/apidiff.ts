@@ -97,21 +97,29 @@ async function getModuleName(goModDir: string): Promise<string> {
  * Installs apidiff via Go if not already available
  */
 export async function installApidiff(): Promise<void> {
-  try {
-    // Check if apidiff is on PATH
-    await execa("which", ["apidiff"], { stderr: "ignore", stdout: "ignore" });
+  const isInstalled = await checkApidiffInstalled();
+  if (isInstalled) {
     core.info("apidiff is already installed");
+    return;
+  }
+
+  core.info("Installing apidiff...");
+  await execa("go", ["install", "golang.org/x/exp/cmd/apidiff@latest"], {
+    reject: false,
+  });
+
+  const goPath = process.env.GOPATH || join(process.env.HOME || "", "go");
+  const goBin = join(goPath, "bin");
+  core.addPath(goBin);
+
+  core.info("apidiff installed successfully");
+}
+
+async function checkApidiffInstalled(): Promise<boolean> {
+  try {
+    await execa("which", ["apidiff"], { stderr: "ignore", stdout: "ignore" });
+    return true;
   } catch {
-    core.info("Installing apidiff...");
-    await execa("go", ["install", "golang.org/x/exp/cmd/apidiff@latest"], {
-      reject: false,
-    });
-
-    // Add Go bin to PATH
-    const goPath = process.env.GOPATH || join(process.env.HOME || "", "go");
-    const goBin = join(goPath, "bin");
-    core.addPath(goBin);
-
-    core.info("apidiff installed successfully");
+    return false;
   }
 }

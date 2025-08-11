@@ -31216,18 +31216,26 @@ async function getModuleName(goModDir) {
   }
 }
 async function installApidiff() {
+  const isInstalled = await checkApidiffInstalled();
+  if (isInstalled) {
+    core.info("apidiff is already installed");
+    return;
+  }
+  core.info("Installing apidiff...");
+  await execa("go", ["install", "golang.org/x/exp/cmd/apidiff@latest"], {
+    reject: false
+  });
+  const goPath = process.env.GOPATH || (0, import_path.join)(process.env.HOME || "", "go");
+  const goBin = (0, import_path.join)(goPath, "bin");
+  core.addPath(goBin);
+  core.info("apidiff installed successfully");
+}
+async function checkApidiffInstalled() {
   try {
     await execa("which", ["apidiff"], { stderr: "ignore", stdout: "ignore" });
-    core.info("apidiff is already installed");
+    return true;
   } catch {
-    core.info("Installing apidiff...");
-    await execa("go", ["install", "golang.org/x/exp/cmd/apidiff@latest"], {
-      reject: false
-    });
-    const goPath = process.env.GOPATH || (0, import_path.join)(process.env.HOME || "", "go");
-    const goBin = (0, import_path.join)(goPath, "bin");
-    core.addPath(goBin);
-    core.info("apidiff installed successfully");
+    return false;
   }
 }
 

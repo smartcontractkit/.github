@@ -26,25 +26,48 @@ vi.mock("@actions/core", () => ({
 describe("apidiff", () => {
   let tempDir: string;
   let testGoModulesDir: string;
-  let hasApidiff: boolean;
+  let shouldRunTest: boolean;
 
   beforeAll(async () => {
-    // Check if apidiff is available
-    try {
-      await execa("which", ["apidiff"], { stderr: "ignore", stdout: "ignore" });
-      hasApidiff = true;
-    } catch {
-      hasApidiff = false;
-    }
-
-    // Also check if Go is available for testing
+    // Check if Go is available for testing first
     try {
       await execa("which", ["go"], { stderr: "ignore", stdout: "ignore" });
     } catch {
       console.warn("Go not available, skipping apidiff tests");
-      hasApidiff = false;
+      shouldRunTest = false;
+      return;
     }
-  });
+
+    // Check if apidiff is available
+    try {
+      await execa("which", ["apidiff"], { stderr: "ignore", stdout: "ignore" });
+      shouldRunTest = true;
+    } catch {
+      // apidiff not available, attempt to install if in CI
+      const isCIEnv =
+        process.env.CI === "true" && process.env.GITHUB_ACTIONS === "true";
+      if (!isCIEnv) {
+        console.log("apidiff not available locally, tests will be skipped");
+        shouldRunTest = false;
+        return;
+      }
+
+      console.log("Running in GitHub Actions CI, installing apidiff...");
+      try {
+        await installApidiff();
+        shouldRunTest = true;
+
+        // Add to current process PATH
+        const goPath =
+          process.env.GOPATH || path.join(process.env.HOME || "", "go");
+        const goBin = path.join(goPath, "bin");
+        process.env.PATH = `${goBin}:${process.env.PATH}`;
+      } catch (error) {
+        console.warn(`Failed to install apidiff in CI: ${error}`);
+        shouldRunTest = false;
+      }
+    }
+  }, 60000); // 60 second timeout for installation
 
   beforeEach(async () => {
     // Create a temporary directory for our tests
@@ -67,15 +90,33 @@ describe("apidiff", () => {
   });
 
   describe("installApidiff", () => {
-    it("should detect existing apidiff installation", async (context) => {
-      if (!hasApidiff) {
+    it("should handle apidiff installation properly", async (context) => {
+      if (!shouldRunTest) {
         console.log("Skipping test - apidiff not available");
         return context.skip();
       }
 
       await installApidiff();
 
-      expect(core.info).toHaveBeenCalledWith("apidiff is already installed");
+      // In CI, it will install, so check for installation messages
+      // Locally, if apidiff is already available, it will detect existing installation
+      const infoMessages = (core.info as any).mock.calls.map(
+        (call: any[]) => call[0],
+      );
+
+      // Should either detect existing installation OR successfully install
+      const hasExistingMessage = infoMessages.some((msg: string) =>
+        msg.includes("apidiff is already installed"),
+      );
+      const hasInstallationMessages =
+        infoMessages.some((msg: string) =>
+          msg.includes("Installing apidiff..."),
+        ) &&
+        infoMessages.some((msg: string) =>
+          msg.includes("apidiff installed successfully"),
+        );
+
+      expect(hasExistingMessage || hasInstallationMessages).toBe(true);
     });
   });
 
@@ -84,7 +125,7 @@ describe("apidiff", () => {
     let headDir: string;
 
     beforeEach(async () => {
-      if (!hasApidiff) {
+      if (!shouldRunTest) {
         return;
       }
 
@@ -97,7 +138,7 @@ describe("apidiff", () => {
     });
 
     it("should handle modules with no changes", async (context) => {
-      if (!hasApidiff) {
+      if (!shouldRunTest) {
         console.log("Skipping test - apidiff not available");
         return context.skip();
       }
@@ -116,7 +157,7 @@ describe("apidiff", () => {
     });
 
     it("should detect compatible changes", async (context) => {
-      if (!hasApidiff) {
+      if (!shouldRunTest) {
         console.log("Skipping test - apidiff not available");
         return context.skip();
       }
@@ -139,7 +180,7 @@ describe("apidiff", () => {
     });
 
     it("should detect incompatible changes", async (context) => {
-      if (!hasApidiff) {
+      if (!shouldRunTest) {
         console.log("Skipping test - apidiff not available");
         return context.skip();
       }
@@ -162,7 +203,7 @@ describe("apidiff", () => {
     });
 
     it("should handle custom go module path", async (context) => {
-      if (!hasApidiff) {
+      if (!shouldRunTest) {
         console.log("Skipping test - apidiff not available");
         return context.skip();
       }
@@ -184,7 +225,7 @@ describe("apidiff", () => {
     });
 
     it("should sanitize module names for export file naming", async (context) => {
-      if (!hasApidiff) {
+      if (!shouldRunTest) {
         console.log("Skipping test - apidiff not available");
         return context.skip();
       }
@@ -200,7 +241,7 @@ describe("apidiff", () => {
     });
 
     it("should clean up export files after execution", async (context) => {
-      if (!hasApidiff) {
+      if (!shouldRunTest) {
         console.log("Skipping test - apidiff not available");
         return context.skip();
       }
@@ -220,7 +261,7 @@ describe("apidiff", () => {
     });
 
     it("should handle stderr warnings gracefully", async (context) => {
-      if (!hasApidiff) {
+      if (!shouldRunTest) {
         console.log("Skipping test - apidiff not available");
         return context.skip();
       }
@@ -237,7 +278,7 @@ describe("apidiff", () => {
     });
 
     it("should handle non-zero exit codes appropriately", async (context) => {
-      if (!hasApidiff) {
+      if (!shouldRunTest) {
         console.log("Skipping test - apidiff not available");
         return context.skip();
       }
@@ -255,7 +296,7 @@ describe("apidiff", () => {
     });
 
     it("should throw error for apidiff execution failure", async (context) => {
-      if (!hasApidiff) {
+      if (!shouldRunTest) {
         console.log("Skipping test - apidiff not available");
         return context.skip();
       }
@@ -276,7 +317,7 @@ describe("apidiff", () => {
 
   describe("getModuleName", () => {
     it("should extract module name from go.mod file", async (context) => {
-      if (!hasApidiff) {
+      if (!shouldRunTest) {
         console.log("Skipping test - apidiff not available");
         return context.skip();
       }
@@ -289,7 +330,7 @@ describe("apidiff", () => {
     });
 
     it("should handle missing go.mod file", async (context) => {
-      if (!hasApidiff) {
+      if (!shouldRunTest) {
         console.log("Skipping test - apidiff not available");
         return context.skip();
       }
@@ -317,7 +358,7 @@ describe("apidiff", () => {
     });
 
     it("should handle malformed go.mod file", async (context) => {
-      if (!hasApidiff) {
+      if (!shouldRunTest) {
         console.log("Skipping test - apidiff not available");
         return context.skip();
       }
@@ -345,7 +386,7 @@ describe("apidiff", () => {
     });
 
     it("should sanitize module names with special characters", async (context) => {
-      if (!hasApidiff) {
+      if (!shouldRunTest) {
         console.log("Skipping test - apidiff not available");
         return context.skip();
       }
@@ -359,7 +400,7 @@ describe("apidiff", () => {
 
   describe("error handling and edge cases", () => {
     it("should handle file system errors during cleanup", async (context) => {
-      if (!hasApidiff) {
+      if (!shouldRunTest) {
         console.log("Skipping test - apidiff not available");
         return context.skip();
       }
@@ -391,7 +432,7 @@ describe("apidiff", () => {
     });
 
     it("should handle concurrent executions with different module names", async (context) => {
-      if (!hasApidiff) {
+      if (!shouldRunTest) {
         console.log("Skipping test - apidiff not available");
         return context.skip();
       }
