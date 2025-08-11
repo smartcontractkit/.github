@@ -31513,7 +31513,7 @@ async function getSummaryUrl(token, owner, repo) {
       repo,
       run_id: runId
     });
-    if (data.jobs.length != 1) {
+    if (data.jobs.length !== 1) {
       core3.warning(
         `Expected exactly one job in workflow run, found ${data.jobs.length}. Cannot determine summary URL.`
       );
@@ -31582,28 +31582,25 @@ var runInputsConfiguration = {
   }
 };
 function getRunInput(input) {
-  const config = runInputsConfiguration[input];
-  if (!config) {
-    throw new Error(`No configuration found for input: ${input}`);
-  }
-  const isLocalDebug = process.env.CL_LOCAL_DEBUG;
-  const inputKey = isLocalDebug ? config.localParameter : config.parameter;
+  const inputKey = getInputKey(input);
   return core4.getInput(inputKey, {
-    required: false
-    // todo
+    required: true
   });
 }
 function getBooleanRunInput(input) {
+  const inputKey = getInputKey(input);
+  return core4.getBooleanInput(inputKey, {
+    required: true
+  });
+}
+function getInputKey(input) {
   const config = runInputsConfiguration[input];
   if (!config) {
     throw new Error(`No configuration found for input: ${input}`);
   }
   const isLocalDebug = process.env.CL_LOCAL_DEBUG;
   const inputKey = isLocalDebug ? config.localParameter : config.parameter;
-  return core4.getBooleanInput(inputKey, {
-    required: false
-    // todo
-  });
+  return inputKey;
 }
 
 // actions/apidiff-go/src/string-processor.ts
