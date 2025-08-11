@@ -1,5 +1,62 @@
 # ci-lint-go
 
+## 2.0.0
+
+### Major Changes
+
+- [#1064](https://github.com/smartcontractkit/.github/pull/1064)
+  [`5ef875a`](https://github.com/smartcontractkit/.github/commit/5ef875a78da521085ad768ecf2ed5e25009496f7)
+  Thanks [@chainchad](https://github.com/chainchad)! - Use latest version of
+  golangci-lint action to fix GHA cache issue.
+  - Note: requires golangci-lint version >= `v2.1.0`
+
+## 1.0.0
+
+### Major Changes
+
+- [#966](https://github.com/smartcontractkit/.github/pull/966)
+  [`eeb76b5`](https://github.com/smartcontractkit/.github/commit/eeb76b5870e3c17856d5a60fd064a053c023b5f5)
+  Thanks [@erikburt](https://github.com/erikburt)! - - Bumping major version to
+  create 1.0.0 release. This release in itself is non-breaking major version
+  bump.
+  - Note: previous 0.x minor version bumps may have included breaking changes.
+    If you were already fully up-to-date before this version bump, then it's ok
+    to upgrade.
+
+## 0.3.1
+
+### Patch Changes
+
+- [#855](https://github.com/smartcontractkit/.github/pull/855)
+  [`18a8a89`](https://github.com/smartcontractkit/.github/commit/18a8a89b23006355003b705d55acaf329c384d94)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: pin actions/\*
+  dependencies to major version tag
+
+## 0.3.0
+
+### Minor Changes
+
+- [#677](https://github.com/smartcontractkit/.github/pull/677)
+  [`2ac9d97`](https://github.com/smartcontractkit/.github/commit/2ac9d97a83a5edded09af7fcf4ea5bce7a4473a4)
+  Thanks [@chudilka1](https://github.com/chudilka1)! - Added `only-new-issues`
+  flag to be set to `true` in golangci-lint (ci-lint-go). This setting is
+  critical. Without it, we cannot enable new rules without first resolving
+  outstanding debt.
+
+## 0.2.5
+
+### Patch Changes
+
+- [#663](https://github.com/smartcontractkit/.github/pull/663)
+  [`dca9ab8`](https://github.com/smartcontractkit/.github/commit/dca9ab89d734e82738b8aa52bd25d09b205ec6ee)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: remove metrics
+  inputs and step (push-gha-metrics-action)
+
+- [#664](https://github.com/smartcontractkit/.github/pull/664)
+  [`c4705bf`](https://github.com/smartcontractkit/.github/commit/c4705bfdbf6c8e57c080d82a3c4f013aa96a2dfb)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump actions/\*
+  references to latest version
+
 ## 0.2.4
 
 ### Patch Changes

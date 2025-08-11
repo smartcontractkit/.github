@@ -15,43 +15,32 @@ inputs:
   setup-gap:
     description: "setup-gap action"
     required: false
-    default: false
-  api-gateway-host:
-    description: |
-      The AWS API Gateway host for the target service.
-      Usually of the form <gateway id>.execute-api.<region>.amazonaws.com.
-      Required if setup-gap is true.
-    required: false
+    default: "false"
   aws-region:
     description: |
       The AWS region for the api gateway and other resources unless specified
-      in other inputs.
-      Required if setup-gap is true.
+      in other inputs. Required if setup-gap is true - defaults to us-west-2.
     required: false
-  aws-role-arn:
+    default: "us-west-2"
+  main-dns-zone:
     description: |
-      The AWS role with API Gateway invoke permissions.
+      The DNS zone is used for exposing services. It is required when using the
+      dynamic local proxy to prevent sending requests and exposing sensitive
+      information to random external endpoints. This ensures that the dynamic
+      local proxy is used only for the specific DNS zone.
       Required if setup-gap is true.
     required: false
-  # grafana inputs (optional)
-  metrics-job-name:
-    description: "grafana metrics job name"
+  dynamic-proxy-port:
+    description: "The port the dynamic proxy will listen on. Defaults to 9090."
+    default: "9090"
     required: false
-  metrics-id:
-    description:
-      "grafana metrics id, used for continuity of metrics during job name
-      changes  - required if metrics-job-name is passed"
+  enable-proxy-debug:
+    description: |
+      Enable or disable detailed Envoy proxy logs used for K8s API access. When
+      enabled, debug logs are generated locally, and container logs are streamed
+      to the console for troubleshooting.
     required: false
-  gc-host:
-    description: "grafana hostname - required if metrics-job-name is passed"
-    required: false
-  gc-basic-auth:
-    description: "grafana basic auth - required if metrics-job-name is passed"
-    required: false
-  gc-org-id:
-    description:
-      "grafana org/tenant id - required if metrics-job-name is passed"
-    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -60,16 +49,12 @@ runs:
       shell: bash
       run: |
         if [ ${{ inputs.setup-gap }} == 'true' ]; then
-          if [ -z ${{ inputs.api-gateway-host }} ]; then
-            echo "::error::api-gateway-host is required if setup-gap is true"
-            exit 1
-          fi
           if [ -z ${{ inputs.aws-region }} ]; then
             echo "::error::aws-region is required if setup-gap is true"
             exit 1
           fi
-          if [ -z ${{ inputs.aws-role-arn }} ]; then
-            echo "::error::aws-role-arn is required if setup-gap is true"
+          if [ -z ${{ inputs.main-dns-zone }} ]; then
+            echo "::error::main-dns-zone is required if setup-gap is true"
             exit 1
           fi
         else
@@ -81,38 +66,36 @@ runs:
 
     - name: Setup GAP
       if: inputs.setup-gap == 'true'
-      uses: smartcontractkit/.github/actions/setup-gap@d316f66b2990ea4daa479daa3de6fc92b00f863e # setup-gap@0.3.2
+      uses: smartcontractkit/.github/actions/setup-gap@setup-gap/v5
       with:
-        api-gateway-host: ${{ inputs.api-gateway-host }}
         aws-region: ${{ inputs.aws-region }}
-        aws-role-arn: ${{ inputs.aws-role-arn }}
+        main-dns-zone: ${{ inputs.main-dns-zone }}
+        dynamic-proxy-port: ${{ inputs.dynamic-proxy-port }}
+        enable-proxy-debug: ${{ inputs.enable-proxy-debug }}
 
-    - name: Validate .policy.yml
+    - name: Validate ${{ inputs.policy-yml-path }}
       shell: bash
+      env:
+        POLICY_BOT_HOST: ${{ inputs.policy-bot-host }}
+        SETUP_GAP: ${{ inputs.setup-gap }}
+        GAP_POLICY_BOT_HOST: "gap-policy-bot.${{ inputs.main-dns-zone }}"
+        GAP_PROXY_PORT: ${{ inputs.dynamic-proxy-port }}
+        POLICY_YML_PATH: ${{ inputs.policy-yml-path }}
       run: |
-        endpoint="http://localhost:8080/primary"
+        # GAP parameters
+        endpoint="https://127.0.0.1:${GAP_PROXY_PORT}"
+        extra_curl_opts=(-H "Host: $GAP_POLICY_BOT_HOST" -k)
 
-        if [ ${{ inputs.setup-gap }} == 'false' ]; then
-          endpoint=${{ inputs.policy-bot-host }}
+        if [ "${SETUP_GAP}" != 'true' ]; then
+          endpoint=${POLICY_BOT_HOST}
+          extra_curl_opts=()
         fi
 
-        http_response=$(curl -s -o body.txt -w "%{response_code}" "$endpoint/api/validate" -XPUT -T ${{ inputs.policy-yml-path }})
+        http_response=$(curl "${extra_curl_opts[@]}" -s -o body.txt -w "%{response_code}" "$endpoint/api/validate" -XPUT -T ${POLICY_YML_PATH})
         message=$(jq --raw-output --join-output .message body.txt | tr -d '\n')
         if [ $http_response != "200" ]; then
-          echo "::error file=${{ inputs.policy-yml-path }}::$message"
+          echo "::error file=${POLICY_YML_PATH}::$message"
           exit 1
         else
           echo "::info::$message"
         fi
-
-    - name: Collect metrics
-      if: always() && inputs.metrics-job-name != ''
-      id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-      with:
-        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
-        basic-auth: ${{ inputs.gc-basic-auth }}
-        hostname: ${{ inputs.gc-host }}
-        org-id: ${{ inputs.gc-org-id}}
-        this-job-name: ${{ inputs.metrics-job-name }}
-      continue-on-error: true

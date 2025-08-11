@@ -33,17 +33,57 @@ inputs:
   test_download_vendor_packages_command:
     required: false
     description: The command to download the go modules
+  gati_token:
+    required: false
+    description: GATI token used to pull private repos
 
 runs:
   using: composite
   steps:
+    - name: Setup tar default options
+      shell: bash
+      # Do not overwrite existing files when extracting files from a cache archive.
+      # Since actions/cache does not support this option, we set it here as a default.
+      run: echo "TAR_OPTIONS=--skip-old-files" >> $GITHUB_ENV
+
+    # This change is based on the modifications done by @erikburt in the `chainlink` repo
+    # https://github.com/smartcontractkit/chainlink/pull/15645
+    - name: Get Go Version
+      shell: bash
+      if: ${{ inputs.go_mod_path }}
+      id: go-version
+      run: |
+        version=$(sed -ne '/^toolchain /s/^toolchain go//p' ${{ inputs.go_mod_path }})
+        if [ -z "$version" ]; then
+          version=$(sed -ne '/^go /s/^go //p' ${{ inputs.go_mod_path }})
+          echo "Toolchain version not found in ${{ inputs.go_mod_path }}, using go directive instead."
+        fi
+        echo "Go Version: $version"
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+    - name: Export Go version
+      id: export-go-version
+      shell: bash
+      run: |
+        if [[ "${{ inputs.go_mod_path }}" == "" ]]; then
+          echo "No go mod path provided, using go version provided"
+          echo "go_version=${{ inputs.go_version }}" >> "$GITHUB_OUTPUT"
+        else
+          echo "go_version=${{ steps.go-version.outputs.version }}" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Setup Go
-      uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+      uses: actions/setup-go@v5
       with:
-        go-version: ${{ inputs.go_version }}
-        go-version-file: ${{ inputs.go_mod_path }}
+        go-version: ${{ steps.export-go-version.outputs.go_version }}
         check-latest: true
         cache: false
+
+    - name: Setup Go with private repo access
+      shell: bash
+      if: ${{ inputs.gati_token != '' }}
+      run: |
+        git config --global url."https://x-access-token:${{ inputs.gati_token }}@github.com/".insteadOf "https://github.com/"
+        go env -w GOPRIVATE=github.com/smartcontractkit/*
 
     - name: Set go cache keys
       shell: bash
@@ -54,7 +94,7 @@ runs:
 
     - name: Cache Go Modules
       if: inputs.cache_restore_only == 'false' && inputs.no_cache == 'false'
-      uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+      uses: actions/cache@v4
       id: cache-packages
       with:
         path: ${{ steps.go-cache-dir.outputs.gomodcache }}
@@ -64,7 +104,7 @@ runs:
         restore-keys: |
           ${{ runner.os }}-${{ inputs.cache_key_id }}-gomod-
 
-    - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+    - uses: actions/cache@v4
       if: inputs.cache_restore_only == 'false' && inputs.cache_builds == 'true'
       name: Cache Go Builds
       with:
@@ -78,7 +118,7 @@ runs:
 
     - name: Restore Go Modules
       if: inputs.cache_restore_only != 'false' && inputs.no_cache == 'false'
-      uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+      uses: actions/cache/restore@v4
       id: restore-cache-packages
       with:
         path: |

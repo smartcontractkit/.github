@@ -37,7 +37,7 @@ inputs:
   pnpm-version:
     description: ""
     required: false
-    default: "^8.0.0"
+    default: "^10.0.0"
   pnpm-use-cache:
     description: "Use cache for pnpm"
     required: false
@@ -55,6 +55,28 @@ inputs:
     description: ""
     required: false
     default: "false"
+  changesets-tag-separator:
+    description: |
+      What character to use to separate the package name and version in the tag.
+      For example:
+        - Using `@`, the resulting git tag will be <package>@<version>
+        - Using `/`, the resulting git tag will be <package>/<version>
+        - Using `/v` the resulting git tag will be <package>/v<version>
+    required: false
+    default: "@"
+  changesets-major-version-tags:
+    description: |
+      Create and mutate major version tags for each package.
+      Uses the same separator as above.
+    required: false
+    default: "false"
+  changesets-root-version-package-path:
+    description: |
+      Path to a package.json file that should use simplified v<version> tags
+      instead of <name><separator><version> tags. The package.json must have
+      chainlink.changesets.rootVersion set to true. If this path is provided
+      but the field is not set correctly, the action will fail.
+    required: false
   pr-title:
     description: "title of the PR"
     required: false
@@ -62,25 +84,6 @@ inputs:
     description: "whether to put the PR in draft mode or not"
     required: false
     default: "false"
-  # grafana inputs (optional)
-  metrics-job-name:
-    description: "grafana metrics job name"
-    required: false
-  metrics-id:
-    description:
-      "grafana metrics id, used for continuity of metrics during job name
-      changes - required if metrics-job-name is passed"
-    required: false
-  gc-host:
-    description: "grafana hostname - required if metrics-job-name is passed"
-    required: false
-  gc-basic-auth:
-    description: "grafana basic auth - required if metrics-job-name is passed"
-    required: false
-  gc-org-id:
-    description:
-      "grafana org/tenant id - required if metrics-job-name is passed"
-    required: false
 outputs:
   published:
     description:
@@ -118,7 +121,7 @@ runs:
         url: ${{ inputs.aws-lambda-url }}
 
     - name: Checkout repo
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      uses: actions/checkout@v4
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
         token: ${{ steps.get-gh-token.outputs.access-token }}
@@ -139,16 +142,20 @@ runs:
 
     - name: Run changesets
       id: changesets
-      uses: smartcontractkit/.github/actions/signed-commits@ff80d56f5301dc8a65f66c4d47d746ee956beed9 # changesets-signed-commits@1.2.3
+      uses: smartcontractkit/.github/actions/signed-commits@changesets-signed-commits/1.7.0
       env:
         GITHUB_TOKEN: ${{ steps.get-gh-token.outputs.access-token }}
       with:
         publish: ${{ inputs.changesets-publish-cmd }}
         version: ${{ inputs.changesets-version-cmd }}
         createGithubReleases: ${{ inputs.changesets-create-gh-release }}
+        rootVersionPackagePath:
+          ${{ inputs.changesets-root-version-package-path }}
         setupGitUser: false
         title: ${{ inputs.pr-title }}
         prDraft: ${{ inputs.pr-draft }}
+        tagSeparator: ${{ inputs.changesets-tag-separator }}
+        createMajorVersionTags: ${{ inputs.changesets-major-version-tags }}
 
     - name: Check changesets output
       shell: bash
@@ -157,15 +164,3 @@ runs:
         echo "publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}"
         echo "hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}"
         echo "pullRequestNumber: ${{ steps.changesets.outputs.pullRequestNumber }}"
-
-    - name: Collect metrics
-      if: always() && inputs.metrics-job-name != ''
-      id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-      with:
-        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
-        basic-auth: ${{ inputs.gc-basic-auth }}
-        hostname: ${{ inputs.gc-host }}
-        org-id: ${{ inputs.gc-org-id}}
-        this-job-name: ${{ inputs.metrics-job-name }}
-      continue-on-error: true

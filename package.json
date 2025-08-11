@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "license": "MIT",
   "engines": {
-    "pnpm": "9"
+    "pnpm": "10"
   },
   "scripts": {
     "prettier:check": "prettier --check \"**/*.{json,md,js,ts,yml,yaml}\" --ignore-path=.prettierignore",
@@ -19,7 +19,7 @@
     "package": "pnpm nx run-many --target=package --verbose",
     "package:affected": "pnpm nx affected --target=package --verbose",
     "ci:changeset:publish": "pnpm changeset publish",
-    "ci:changeset:version": "pnpm changeset version && pnpm version --patch"
+    "ci:changeset:version": "pnpm changeset version"
   },
   "private": true,
   "devDependencies": {
@@ -33,9 +33,9 @@
     "@nx/plugin": "^17.3.2",
     "@swc-node/register": "~1.10.0",
     "@swc/cli": "~0.4.0",
-    "@swc/core": "~1.6.0",
+    "@swc/core": "~1.7.0",
     "@swc/helpers": "~0.5.11",
-    "@types/node": "20.14.9",
+    "@types/node": "20.14.13",
     "@typescript-eslint/eslint-plugin": "^7.13.0",
     "@typescript-eslint/parser": "^7.13.0",
     "esbuild": "^0.23.0",
@@ -50,7 +50,12 @@
     "tslib": "^2.6.3",
     "typescript": "^5.4.5",
     "update-ts-references": "^3.3.0",
-    "vitest": "^2.0.0"
+    "vitest": "^2.1.9"
   },
-  "repository": "https://github.com/smartcontractkit/.github"
+  "repository": "https://github.com/smartcontractkit/.github",
+  "pnpm": {
+    "overrides": {
+      "form-data": "4.0.4"
+    }
+  }
 }

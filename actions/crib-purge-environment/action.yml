@@ -1,38 +1,25 @@
 name: crib-purge-environment
 description: |
-  Action to destroy CRIB epehemeral environment.
-  It requires to run crib-deployment-environment beforehand
+  Action to destroy the CRIB ephemeral environment.
+  It requires running `crib-deployment-environment` beforehand
   and depends on the environment setup from a dependent composite action.
 
 inputs:
   namespace:
     description: "The CRIB namespace that should be destroyed."
     required: true
-  # Grafana inputs (optional)
-  metrics-job-name:
+  gracefully-terminate:
     description:
-      "The name of the Grafana metrics job. Required if other Grafana metrics
-      inputs are provided."
+      "Whether to gracefully terminate the namespace. Defaults to false. If set
+      to true, please also provide the termination period."
     required: false
-  metrics-id:
-    description:
-      "The Grafana metrics ID used for continuity of metrics during job name
-      changes. Required if `metrics-job-name` is provided."
+    default: "false"
+  gracefully-terminate-period:
+    description: |
+      "The grace period (in seconds) for gracefully terminating the namespace.
+      Default is 0 seconds."
     required: false
-  gc-host:
-    description:
-      "The Grafana hostname. Required if `metrics-job-name` is provided."
-    required: false
-  gc-basic-auth:
-    description:
-      "The basic authentication credentials for Grafana. Required if
-      `metrics-job-name` is provided."
-    required: false
-  gc-org-id:
-    description:
-      "The Grafana organization or tenant ID. Required if `metrics-job-name` is
-      provided."
-    required: false
+    default: "0"
 
 runs:
   using: composite
@@ -44,23 +31,13 @@ runs:
         KUBECACHEDIR: /dev/null
       run: |
         NAMESPACE="${{ inputs.namespace }}"
+        GRACEFULLY_TERMINATE="${{ inputs.gracefully-terminate }}"
+        GRACEFULLY_TERMINATE_PERIOD="${{ inputs.gracefully-terminate-period }}"
 
         # Check if the namespace exists
         if kubectl get ns "$NAMESPACE" > /dev/null 2>&1; then
           echo "Namespace $NAMESPACE exists. Proceeding with deletion.."
-          kubectl delete ns "$NAMESPACE" --grace-period=0 --wait=false
+          kubectl delete ns "$NAMESPACE" --grace-period="$GRACEFULLY_TERMINATE_PERIOD" --wait="$GRACEFULLY_TERMINATE"
         else
           echo "Namespace $NAMESPACE does not exist. Skipping deletion."
         fi
-
-    - name: Collect metrics
-      if: always() && inputs.metrics-job-name != ''
-      id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-      with:
-        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
-        basic-auth: ${{ inputs.gc-basic-auth }}
-        hostname: ${{ inputs.gc-host }}
-        org-id: ${{ inputs.gc-org-id}}
-        this-job-name: ${{ inputs.metrics-job-name }}
-      continue-on-error: true

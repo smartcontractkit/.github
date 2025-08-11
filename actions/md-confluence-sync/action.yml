@@ -3,11 +3,12 @@ description: "Sync Markdown documentation to Confluence"
 
 inputs:
   files:
-    description:
-      "use specified markdown file(s) for converting to html. Supports file
-      globbing patterns"
+    description: |
+      Use specified markdown file(s) for converting to html. Supports file
+      globbing patterns. GLOB pattern is used for linting as well, so make
+      sure to filter files with .md extension.
     required: true
-  base_url:
+  base-url:
     description: "Confluence base url e.g: https://example.com/wiki/"
     required: true
   user:
@@ -33,59 +34,51 @@ inputs:
     description: "Enabled debug mode"
     default: "false"
 
-  # grafana inputs (optional)
-  metrics-job-name:
-    description: "grafana metrics job name"
-    required: false
-  metrics-id:
-    description:
-      "grafana metrics id, used for continuity of metrics during job name
-      changes  - required if metrics-job-name is passed"
-    required: false
-  gc-host:
-    description: "grafana hostname - required if metrics-job-name is passed"
-    required: false
-  gc-basic-auth:
-    description: "grafana basic auth - required if metrics-job-name is passed"
-    required: false
-  gc-org-id:
-    description:
-      "grafana org/tenant id - required if metrics-job-name is passed"
-    required: false
-
 runs:
   using: composite
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@v4
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Lint MD files using Prettier
+      uses: smartcontractkit/.github/actions/ci-prettier@a738d4cfa4826d6f44dbebcc3724385f6de58d42 # ci-prettier@0.1.1
+      with:
+        checkout-repo: "false"
+        prettier-command: pnpm prettier --check ${{ inputs.files }}
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
 
     - name: Setup tools
       shell: bash
       run: |
         go install github.com/kovetskiy/mark@11.1.0
 
+    - name: Get default branch
+      id: get_default_branch
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const repo = await github.rest.repos.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo
+          });
+          return repo.data.default_branch;
+        result-encoding: string
+
     - name: Sync docs
       env:
         FILES: ${{ inputs.files }}
-        BASE_URL: ${{ inputs.base_url }}
+        BASE_URL: ${{ inputs.base-url }}
         USER: ${{ inputs.user }}
         TOKEN: ${{ inputs.token }}
         SPACE: ${{ inputs.space }}
         PARENT: ${{ inputs.parent }}
+        MARK_DEBUG: ${{ inputs.debug }}
+        MARK_DRY_RUN: ${{ inputs.dry-run }}
+        DEFAULT_BRANCH: ${{ steps.get_default_branch.outputs.result }}
       shell: bash
       run: ${{ github.action_path }}/mark-sync.sh
-
-    - name: Collect metrics
-      if: always() && inputs.metrics-job-name != ''
-      id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-      with:
-        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
-        basic-auth: ${{ inputs.gc-basic-auth }}
-        hostname: ${{ inputs.gc-host }}
-        org-id: ${{ inputs.gc-org-id}}
-        this-job-name: ${{ inputs.metrics-job-name }}
-      continue-on-error: true

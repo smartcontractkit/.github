@@ -1,5 +1,51 @@
 # gha-workflow-validator
 
+## 0.5.2
+
+### Patch Changes
+
+- [#1079](https://github.com/smartcontractkit/.github/pull/1079)
+  [`f0a1243`](https://github.com/smartcontractkit/.github/commit/f0a1243d4ddc3ecee633e62d28433fe3e3ba3a06)
+  Thanks [@erikburt](https://github.com/erikburt)! - add github as trusted
+  actions owner
+
+## 0.5.1
+
+### Patch Changes
+
+- [#1042](https://github.com/smartcontractkit/.github/pull/1042)
+  [`29c7cf2`](https://github.com/smartcontractkit/.github/commit/29c7cf2f07b2280c7ca2e04883b2b32b5d0d9972)
+  Thanks [@chainchad](https://github.com/chainchad)! - Update to patched version
+  of vitest
+
+## 0.5.0
+
+### Minor Changes
+
+- [#843](https://github.com/smartcontractkit/.github/pull/843)
+  [`781b8f0`](https://github.com/smartcontractkit/.github/commit/781b8f07726ed9554fe55242510ac756f65e6824)
+  Thanks [@erikburt](https://github.com/erikburt)! - logical refactors, and new
+  actions/cache validation
+
+## 0.4.8
+
+### Patch Changes
+
+- [#758](https://github.com/smartcontractkit/.github/pull/758)
+  [`24d9351`](https://github.com/smartcontractkit/.github/commit/24d9351ac0c5cc7ad12de5bcd4a6e4eeaf083a96)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: action reference
+  validation bug producing false positives for lines which contain "uses:"
+  substring, but is not an action reference
+
+## 0.4.7
+
+### Patch Changes
+
+- [#664](https://github.com/smartcontractkit/.github/pull/664)
+  [`c4705bf`](https://github.com/smartcontractkit/.github/commit/c4705bfdbf6c8e57c080d82a3c4f013aa96a2dfb)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump actions/\*
+  references to latest version
+
 ## 0.4.6
 
 ### Patch Changes

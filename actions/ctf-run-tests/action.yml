@@ -13,6 +13,10 @@ inputs:
   test_command_to_run:
     required: true
     description: The command to run the tests
+  test_go_project_path:
+    required: false
+    description: The path to the go project with the tests
+    default: .
   test_download_vendor_packages_command:
     required: false
     description: The command to download the go modules
@@ -137,9 +141,6 @@ inputs:
   QA_AWS_ROLE_TO_ASSUME:
     required: true
     description: The AWS role to assume
-  QA_KUBECONFIG:
-    required: false
-    description: The kubernetes configuration to use
   CGO_ENABLED:
     required: false
     description: Whether to have cgo enabled, defaults to enabled
@@ -162,6 +163,78 @@ inputs:
     required: false
     description: Do not use a go cache
     default: "false"
+  gati_token:
+    required: false
+    description: Token provided by GATI to pull from private repos
+  enable-gap:
+    required: false
+    default: "true"
+    description: Configure and enable GAP for accessing internal services.
+  main-dns-zone:
+    required: false
+    default: ""
+    description:
+      The primary DNS zone used in the hostname of the Kubernetes API endpoint.
+      Required if GAP is enabled.
+  k8s-cluster-name:
+    required: false
+    default: ""
+    description:
+      The name of the Kubernetes cluster to be used in the `kubectl`
+      configuration for accessing the desired cluster. Required if GAP is
+      enabled.
+  enable-proxy-debug:
+    description:
+      "Enable or disable detailed Envoy proxy logs used for K8s API access. When
+      enabled, debug logs are generated locally, and container logs are streamed
+      to the console for troubleshooting."
+    required: false
+    default: "false"
+  flakeguard_enable:
+    required: false
+    description: Whether to run tests with Flakeguard
+    default: "false"
+  flakeguard_run_count:
+    required: false
+    description: Number of times to re-run tests under flakeguard
+    default: "3"
+  flakeguard_rerun_failed_count:
+    required: false
+    description: Number of times to re-run failed tests under flakeguard
+    default: "0"
+  flakeguard_main_results_path:
+    required: false
+    description: Path to the main results file for flakeguard
+    default: "main/flakeguard_results.json"
+  flakeguard_rerun_results_path:
+    required: false
+    description: Path to the rerun results file for flakeguard
+    default: "rerun/flakeguard_results.json"
+  prod_aws_region:
+    required: false
+    description: The AWS region to use for prod ECR
+  prod_aws_role_to_assume:
+    required: false
+    description: The AWS role to assume for prod ECR
+  prod_aws_account_number:
+    required: false
+    description: The AWS Account number for the prod AWS account
+  gauntlet_plus_plus_image:
+    required: false
+    description: Gauntlet-plus-plus image link
+  install_plugins_public:
+    required: false
+    default: "false"
+    description: "Set to true to install the public LOOP plugins"
+  aptos_cli_version:
+    required: false
+    default: ""
+    description: "Set to an Aptos CLI version to install (e.g. 7.2.0, latest)"
+  setup_db:
+    required: false
+    description: |
+      Whether to setup the database before running the tests. Typically used for in-memory tests.
+    default: "false"
 
 runs:
   using: composite
@@ -169,7 +242,8 @@ runs:
     # Setup Tools and libraries
     - name: Setup environment
       if: inputs.run_setup == 'true'
-      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@49cb1613e96c9ce17f7290e4dabd38f43aa9bd4d # ctf-setup-run-tests-environment@0.0.0
+      id: setup-env
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@ctf-setup-run-tests-environment/0.7.0
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
@@ -183,9 +257,20 @@ runs:
         dockerhub_password: ${{ inputs.dockerhub_password }}
         QA_AWS_REGION: ${{ inputs.QA_AWS_REGION }}
         QA_AWS_ROLE_TO_ASSUME: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
-        QA_KUBECONFIG: ${{ inputs.QA_KUBECONFIG }}
         should_tidy: ${{ inputs.should_tidy }}
         no_cache: ${{ inputs.no_cache }}
+        prod_aws_role_to_assume: ${{ inputs.prod_aws_role_to_assume }}
+        prod_aws_region: ${{ inputs.prod_aws_region }}
+        gauntlet_plus_plus_image: ${{ inputs.gauntlet_plus_plus_image }}
+        prod_aws_account_number: ${{ inputs.prod_aws_account_number }}
+        gati_token: ${{ inputs.gati_token }}
+        main-dns-zone: ${{ inputs.main-dns-zone }}
+        k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+        enable-gap: ${{ inputs.enable-gap }}
+        enable-proxy-debug: ${{ inputs.enable-proxy-debug }}
+        install_plugins_public: ${{ inputs.install_plugins_public }}
+        aptos_cli_version: ${{ inputs.aptos_cli_version }}
+        setup_db: ${{ inputs.setup_db }}
 
     - name: Replace chainlink/integration-tests deps
       if: ${{ inputs.dep_chainlink_integration_tests }}
@@ -205,7 +290,7 @@ runs:
     # Download any external artifacts
     - name: Download Artifacts
       if: inputs.download_contract_artifacts_path != 'none'
-      uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
+      uses: actions/download-artifact@v4
       with:
         name: artifacts
         path: ${{ inputs.download_contract_artifacts_path }}
@@ -216,13 +301,7 @@ runs:
       shell: bash
       run: ${{ inputs.build_gauntlet_command }}
 
-    # TODO: Remove this once gotestloghelper has replaced all usages of gotestfmt
-    - name: Set Up gotestfmt
-      uses: GoTestTools/gotestfmt-action@8b4478c7019be847373babde9300210e7de34bfb # v2.2.0
-      with:
-        token: ${{ inputs.token }} # Avoids rate-limiting
-
-    # gotestfmt gives us pretty test output
+    # gotestloghelper gives us pretty test output
     - name: Set Up gotestloghelper
       shell: bash
       run:
@@ -244,18 +323,16 @@ runs:
     # If default and/or custom secrets provided, decode them, mask them and set them as env vars to override the default secrets
     - name: Set default test secrets from dotenv file
       if: inputs.test_secrets_defaults_base64 != ''
-      shell: bash
-      run:
-        go run ${{ github.action_path }}/mask-testsecrets/main.go "${{
-        inputs.test_secrets_defaults_base64 }}"
+      uses: smartcontractkit/.github/actions/parse-and-mask-test-secrets@parse-and-mask-test-secrets/0.1.0
+      with:
+        encoded_test_secrets: ${{ inputs.test_secrets_defaults_base64 }}
 
     # Custom secrets override the default secrets
     - name: Set custom test secrets from dotenv file
       if: inputs.test_secrets_override_base64 != ''
-      shell: bash
-      run:
-        go run ${{ github.action_path }}/mask-testsecrets/main.go "${{
-        inputs.test_secrets_override_base64 }}"
+      uses: smartcontractkit/.github/actions/parse-and-mask-test-secrets@parse-and-mask-test-secrets/0.1.0
+      with:
+        encoded_test_secrets: ${{ inputs.test_secrets_override_base64 }}
 
     - name: Set default E2E_TEST_* env vars if they are not set already
       shell: bash
@@ -284,8 +361,8 @@ runs:
         echo ::add-mask::$BASE64_CONFIG_OVERRIDE
         echo "BASE64_CONFIG_OVERRIDE=$BASE64_CONFIG_OVERRIDE" >> $GITHUB_ENV
 
-    # Run the tests
-    - name: Run Tests
+    - name: Run Tests With Flakeguard
+      if: inputs.flakeguard_enable == 'true'
       shell: bash
       env:
         CHAINLINK_IMAGE: ${{ inputs.cl_repo }} # TODO: to remove
@@ -294,20 +371,81 @@ runs:
         CGO_ENABLED: ${{ inputs.CGO_ENABLED }}
         GO_COVERAGE_SRC_DIR: ${{ inputs.go_coverage_src_dir }}
         GO_COVERAGE_DEST_DIR: ${{ inputs.go_coverage_dest_dir }}
+        CL_DATABASE_URL: ${{ steps.setup-env.outputs.database_url }}
+      run: |
+        # Install Flakeguard
+        go install github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@b08cab0f49aa13d5adb849554b56086f4dba8984
+        PATH=$PATH:$(go env GOPATH)/bin
+        export PATH
+
+        export TEST_TRIGGERED_BY=${{ inputs.triggered_by }}-${{ github.event.pull_request.number || github.run_id }}
+        # Handle bots as users
+        export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}
+
+        # Install gotestsum to parse JSON test outputs from flakeguard to console outputs
+        go install gotest.tools/gotestsum@latest
+
+        flakeguard run \
+          --ignore-parent-failures-on-subtests=true \
+          --rerun-failed-count=${{ inputs.flakeguard_rerun_failed_count }} \
+          --project-path=${{ inputs.test_go_project_path }} \
+          --test-cmd bash \
+          --test-cmd -c \
+          --test-cmd '${{ inputs.test_command_to_run }}' \
+          --run-count=${{ inputs.flakeguard_run_count }} \
+          --omit-test-outputs-on-success=true \
+          --main-results-path=${{ inputs.flakeguard_main_results_path }} \
+          --rerun-results-path=${{ inputs.flakeguard_rerun_results_path }}
+
+    - name: Run Tests Without Flakeguard
+      if: inputs.flakeguard_enable != 'true'
+      shell: bash
+      env:
+        CHAINLINK_IMAGE: ${{ inputs.cl_repo }} # TODO: to remove
+        CHAINLINK_VERSION: ${{ inputs.cl_image_tag }} # TODO: to remove
+        CHAINLINK_ENV_USER: ${{ github.actor }}
+        CGO_ENABLED: ${{ inputs.CGO_ENABLED }}
+        GO_COVERAGE_SRC_DIR: ${{ inputs.go_coverage_src_dir }}
+        GO_COVERAGE_DEST_DIR: ${{ inputs.go_coverage_dest_dir }}
+        CL_DATABASE_URL: ${{ steps.setup-env.outputs.database_url }}
       run: |
         PATH=$PATH:$(go env GOPATH)/bin
         export PATH
         export TEST_TRIGGERED_BY=${{ inputs.triggered_by }}-${{ github.event.pull_request.number || github.run_id }}
-        # Handle bots as users
         export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}
-        ${{ inputs.test_command_to_run }}
+
+        # If 'test_go_project_path' is provided and not empty, cd into it
+        if [ -n "${{ inputs.test_go_project_path }}" ]; then
+          echo "Changing directory to ${{ inputs.test_go_project_path }}"
+          cd "${{ inputs.test_go_project_path }}"
+        fi
+
+        # Run the test command
+        ${{ inputs.test_command_to_run }} 2>&1 | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage -hidepassingtests=false
 
     - name: Publish Artifacts
       if: failure()
-      uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifacts_name }}
         path: ${{ inputs.artifacts_location }}
+
+    - name: Upload Flakeguard raw test outputs
+      if: failure() && inputs.flakeguard_enable == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifacts_name }}_flakeguard_raw_output
+        path: flakeguard_raw_output
+
+    - name: Collect local GAP (Envoy) proxy logs
+      if:
+        failure() && inputs.flakeguard_enable != 'true' || inputs.enable-gap ==
+        'true' && inputs.enable-proxy-debug == 'true'
+      uses: jwalton/gh-docker-logs@2741064ab9d7af54b0b1ffb6076cf64c16f0220e # v2.2.2
+      with:
+        images: "envoy"
+        # Only show last 1000
+        tail: "1000"
 
     - name: cleanup
       if: always()

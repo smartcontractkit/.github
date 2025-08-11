@@ -1,0 +1,23 @@
+{
+  "name": "apidiff-go",
+  "main": "dist/index.js",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "engines": {
+    "node": ">= 20"
+  },
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "repository": "https://github.com/smartcontractkit/.github",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1",
+    "@actions/glob": "^0.4.0",
+    "execa": "^9.6.0"
+  },
+  "devDependencies": {
+    "@octokit/types": "^13.10.0",
+    "@types/node": "^24.2.1"
+  }
+}

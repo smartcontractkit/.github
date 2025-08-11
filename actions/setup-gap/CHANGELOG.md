@@ -1,5 +1,331 @@
 # setup-gap
 
+## 5.2.3
+
+### Patch Changes
+
+- [#1016](https://github.com/smartcontractkit/.github/pull/1016)
+  [`0c94826`](https://github.com/smartcontractkit/.github/commit/0c94826667159140926587104d69e9b586628fca)
+  Thanks [@chainchad](https://github.com/chainchad)! - Disabling connection
+  timeouts on the local proxy side
+
+- [#1016](https://github.com/smartcontractkit/.github/pull/1016)
+  [`0c94826`](https://github.com/smartcontractkit/.github/commit/0c94826667159140926587104d69e9b586628fca)
+  Thanks [@chainchad](https://github.com/chainchad)! - Update timeouts and local
+  envoy config for better reliability
+
+## 5.2.2
+
+### Patch Changes
+
+- [#1012](https://github.com/smartcontractkit/.github/pull/1012)
+  [`3162d34`](https://github.com/smartcontractkit/.github/commit/3162d34c7bd513d04c6650b1c168d25a94acb24a)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: add x-run-url debug
+  header to upstream request
+
+## 5.2.1
+
+### Patch Changes
+
+- [#1013](https://github.com/smartcontractkit/.github/pull/1013)
+  [`1e71fc1`](https://github.com/smartcontractkit/.github/commit/1e71fc131bc8c46b95a1090083ad73e5bd97d649)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: respect host header
+  authz rewrites for all listeners
+
+## 5.2.0
+
+### Minor Changes
+
+- [#1007](https://github.com/smartcontractkit/.github/pull/1007)
+  [`7182d39`](https://github.com/smartcontractkit/.github/commit/7182d39be7661f9ae7e0befb4bd8221181a9b2d5)
+  Thanks [@erikburt](https://github.com/erikburt)! - - fix: (action) add
+  --project parameter for docker compose commands
+  - fix: (envoy config) websocket service routing with explicit port
+  - fix: (authz + envoy config) host header port rewrites
+  - fix: (authz) logging level environment variable name
+  - feat: (authz) better header debug logging
+
+## 5.1.0
+
+### Minor Changes
+
+- [#1000](https://github.com/smartcontractkit/.github/pull/1000)
+  [`3e7b28c`](https://github.com/smartcontractkit/.github/commit/3e7b28cddf837704c64a7071446d254ae45c9072)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: restrict debug
+  logging in public repositories
+
+### Patch Changes
+
+- [#1001](https://github.com/smartcontractkit/.github/pull/1001)
+  [`fa6726f`](https://github.com/smartcontractkit/.github/commit/fa6726fd06000bd64d9b9dbad667b0519791c376)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: health check for K8s
+  API when enabled
+
+## 5.0.0
+
+### Major Changes
+
+- [#997](https://github.com/smartcontractkit/.github/pull/997)
+  [`f5ce463`](https://github.com/smartcontractkit/.github/commit/f5ce463d6623c830ecccf6c1c0ff63a2a6e66799)
+  Thanks [@erikburt](https://github.com/erikburt)! - replace docker run with
+  docker compose
+
+- [#997](https://github.com/smartcontractkit/.github/pull/997)
+  [`f5ce463`](https://github.com/smartcontractkit/.github/commit/f5ce463d6623c830ecccf6c1c0ff63a2a6e66799)
+  Thanks [@erikburt](https://github.com/erikburt)! - replace blocking LUA script
+  with authz filter
+
+### Minor Changes
+
+- [#997](https://github.com/smartcontractkit/.github/pull/997)
+  [`f5ce463`](https://github.com/smartcontractkit/.github/commit/f5ce463d6623c830ecccf6c1c0ff63a2a6e66799)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix DNS issue for dynamic
+  proxy
+
+## 4.2.1
+
+### Patch Changes
+
+- [#993](https://github.com/smartcontractkit/.github/pull/993)
+  [`a1d8681`](https://github.com/smartcontractkit/.github/commit/a1d8681736ba52827bd024fcaa9be195e29f6549)
+  Thanks [@chainchad](https://github.com/chainchad)! - Fix unset JWT and missing
+  headers bugs in setup-gap
+
+## 4.2.0
+
+### Minor Changes
+
+- [#898](https://github.com/smartcontractkit/.github/pull/898)
+  [`ff8424c`](https://github.com/smartcontractkit/.github/commit/ff8424cee6a09c7d6d9d0d90c466acfc1e8178fb)
+  Thanks [@DimitriosNaikopoulos](https://github.com/DimitriosNaikopoulos)! -
+  Adds ALPN support, uses dynamic container name and ensures the HOST header
+  will always direct traffic to port 443 for the dynamic forward proxy
+
+## 4.1.0
+
+### Minor Changes
+
+- [#892](https://github.com/smartcontractkit/.github/pull/892)
+  [`0fe263c`](https://github.com/smartcontractkit/.github/commit/0fe263cbc76c76823fffa2132f9db552fa8ce0c0)
+  Thanks [@DimitriosNaikopoulos](https://github.com/DimitriosNaikopoulos)! -
+  Retry HTTP upgrade requests for WS endpoints
+
+## 4.0.1
+
+### Patch Changes
+
+- [#867](https://github.com/smartcontractkit/.github/pull/867)
+  [`5518299`](https://github.com/smartcontractkit/.github/commit/5518299de5c13d9fb9bf7f57122ae2fa78cccfa1)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Fixing the hostname
+  matching pattern in the LUA script.
+
+## 4.0.0
+
+### Major Changes
+
+- [#848](https://github.com/smartcontractkit/.github/pull/848)
+  [`519b719`](https://github.com/smartcontractkit/.github/commit/519b719d1b283c6c768cddbd45b86086c8b5750a)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Migrating to go
+  template and adding support for websockets.
+
+### Minor Changes
+
+- [#831](https://github.com/smartcontractkit/.github/pull/831)
+  [`bba3537`](https://github.com/smartcontractkit/.github/commit/bba3537561a9f9a368c71db2109839fd6334572b)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Set the default
+  port for the dynamic proxy to 443
+
+## 3.5.6
+
+### Patch Changes
+
+- [#827](https://github.com/smartcontractkit/.github/pull/827)
+  [`b900b78`](https://github.com/smartcontractkit/.github/commit/b900b78853c33c55bcb0b3f6bbafd95f124fe97e)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Ensure the local
+  proxy always sets the JWT header even if it's provided by the client
+
+## 3.5.5
+
+### Patch Changes
+
+- [#823](https://github.com/smartcontractkit/.github/pull/823)
+  [`c79f5cd`](https://github.com/smartcontractkit/.github/commit/c79f5cd567593ff08e35424a760fdd7ff3b298ba)
+  Thanks [@JooKop](https://github.com/JooKop)! - Add all wildcard subdomains of
+  a zone, e.g. `*.<DNS-ZONE>` to the SANs of the self-signed certs provided by
+  the local proxy. This allows any client to utilize any service even if they
+  can't submit custom host headers or use insecure connections.
+
+  Usage:
+
+  1. Re-route a specific domain to go to localhost:
+     `echo "127.0.0.1 my-service.my-dns-zone" | sudo tee -a /etc/hosts`
+  2. Afterwards, any client can use `https://my-service.my-dns-zone` to access a
+     service, without setting up insecure connectivity or overriding host
+     headers.
+
+## 3.5.4
+
+### Patch Changes
+
+- [#821](https://github.com/smartcontractkit/.github/pull/821)
+  [`7d8eceb`](https://github.com/smartcontractkit/.github/commit/7d8eceb13a564baaeff9d445baf70cd2a9cf5e71)
+  Thanks [@JooKop](https://github.com/JooKop)! - Fix the `setup-gap` action to
+  work without passing an AWS IAM Role ARN argument when no k8s API server
+  access is needed.
+
+## 3.5.3
+
+### Patch Changes
+
+- [#819](https://github.com/smartcontractkit/.github/pull/819)
+  [`0c1e820`](https://github.com/smartcontractkit/.github/commit/0c1e8206f6a55aa9304e7ee458889ed68f4f23aa)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Fixing the
+  x-repository header handling to avoid breaking the Lua filter.
+
+## 3.5.2
+
+### Patch Changes
+
+- [#817](https://github.com/smartcontractkit/.github/pull/817)
+  [`f73da48`](https://github.com/smartcontractkit/.github/commit/f73da48a9c58b1711311d97fc0492aaae25420e6)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Make sure we always
+  Generate SSL cert because we need to it for local proxy.
+
+## 3.5.1
+
+### Patch Changes
+
+- [#808](https://github.com/smartcontractkit/.github/pull/808)
+  [`f00a6a6`](https://github.com/smartcontractkit/.github/commit/f00a6a61af9004a16390bfa340ceb9c1277a1468)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Upgrade Envoy image
+  for setup-gap to v1.33.0
+
+## 3.5.0
+
+### Minor Changes
+
+- [#806](https://github.com/smartcontractkit/.github/pull/806)
+  [`815c244`](https://github.com/smartcontractkit/.github/commit/815c244aa5e805017d3c9e80fa374f5426c3ab47)
+  Thanks [@chainchad](https://github.com/chainchad)! - Add repository header for
+  GAP route matching
+
+## 3.4.1
+
+### Patch Changes
+
+- [#800](https://github.com/smartcontractkit/.github/pull/800)
+  [`3df8e1a`](https://github.com/smartcontractkit/.github/commit/3df8e1a3b2767e85d9032d1dcc4df0545d65b225)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Improve the role
+  input parameter description.
+
+## 3.4.0
+
+### Minor Changes
+
+- [#794](https://github.com/smartcontractkit/.github/pull/794)
+  [`a55cafe`](https://github.com/smartcontractkit/.github/commit/a55cafe1807f8f600b77035cb39200957fcadf1b)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Improve the
+  setup-gap action and ensure the local proxy always runs
+
+## 3.3.0
+
+### Minor Changes
+
+- [#787](https://github.com/smartcontractkit/.github/pull/787)
+  [`10454c3`](https://github.com/smartcontractkit/.github/commit/10454c3bd43936749f573d2c35eabaf6786722b8)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding the retry
+  configuration for Envoy routes
+
+## 3.2.0
+
+### Minor Changes
+
+- [#781](https://github.com/smartcontractkit/.github/pull/781)
+  [`f6fff64`](https://github.com/smartcontractkit/.github/commit/f6fff64d270165a5a910a34f0edace5bd3747b5c)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding the local
+  dynamic proxy configuration
+
+## 3.1.1
+
+### Patch Changes
+
+- [#773](https://github.com/smartcontractkit/.github/pull/773)
+  [`f5c8523`](https://github.com/smartcontractkit/.github/commit/f5c852359226075141a962b29b859568dcd4746e)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Upgrade local Envoy
+  proxy image for GAP to v1.32.3
+
+## 3.1.0
+
+### Minor Changes
+
+- [#769](https://github.com/smartcontractkit/.github/pull/769)
+  [`93ed59c`](https://github.com/smartcontractkit/.github/commit/93ed59c177312a15a4aef08057c891f4c6bc7c12)
+  Thanks [@chainchad](https://github.com/chainchad)! - Add self-signed CA to
+  system store
+
+## 3.0.1
+
+### Patch Changes
+
+- [#761](https://github.com/smartcontractkit/.github/pull/761)
+  [`3923445`](https://github.com/smartcontractkit/.github/commit/3923445e3a872cb7ec0ba4a93910217662122f24)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Removing unused JWT
+  ENV and output parameter
+
+## 3.0.0
+
+### Major Changes
+
+- [#727](https://github.com/smartcontractkit/.github/pull/727)
+  [`7c8f5e3`](https://github.com/smartcontractkit/.github/commit/7c8f5e3be69447676751d2dc1af0704b340c1186)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding support for
+  dynamically fetching the JWT token for Kubernetes API access
+
+## 2.0.0
+
+### Major Changes
+
+- [#721](https://github.com/smartcontractkit/.github/pull/721)
+  [`28c5937`](https://github.com/smartcontractkit/.github/commit/28c593733260ac5e607d8bdeef8aedb2d0f273dc)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding support for
+  using a custom header for passing Github OIDC JWT token.
+
+## 1.2.0
+
+### Minor Changes
+
+- [#711](https://github.com/smartcontractkit/.github/pull/711)
+  [`9f8d357`](https://github.com/smartcontractkit/.github/commit/9f8d357c514dbcb16a1c2cbac592d540c419d861)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Improving Envoy
+  config and add support for debugging
+
+## 1.1.0
+
+### Minor Changes
+
+- [#707](https://github.com/smartcontractkit/.github/pull/707)
+  [`acf60c4`](https://github.com/smartcontractkit/.github/commit/acf60c433f412c1a671ddd014e1d699379b8292f)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Adding a check to
+  ensure that Envoy proxy is up and running.
+
+## 1.0.0
+
+### Major Changes
+
+- [#693](https://github.com/smartcontractkit/.github/pull/693)
+  [`cd10ac2`](https://github.com/smartcontractkit/.github/commit/cd10ac239d5332f3a5333940dfa449b953157cb4)
+  Thanks [@chainchad](https://github.com/chainchad)! - Switch over to GAP v2
+  compatibility
+
+## 0.6.1
+
+### Patch Changes
+
+- [#663](https://github.com/smartcontractkit/.github/pull/663)
+  [`dca9ab8`](https://github.com/smartcontractkit/.github/commit/dca9ab89d734e82738b8aa52bd25d09b205ec6ee)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: remove metrics
+  inputs and step (push-gha-metrics-action)
+
 ## 0.6.0
 
 ### Minor Changes

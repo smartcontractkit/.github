@@ -1,0 +1,15 @@
+name: invoke-gati
+runs:
+  using: node20
+  main: dist/index.mjs
+description:
+  Get an installation access token based on the current environmental AWS role
+inputs:
+  url:
+    description: "The lambda function URL to invoke"
+    required: true
+outputs:
+  access-token:
+    description:
+      The github access token that has permissions reflecting the current AWS
+      role value

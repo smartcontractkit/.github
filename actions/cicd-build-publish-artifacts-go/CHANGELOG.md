@@ -1,5 +1,46 @@
 # cicd-build-publish-artifacts-go
 
+## 0.4.0
+
+### Minor Changes
+
+- [#870](https://github.com/smartcontractkit/.github/pull/870)
+  [`222afc0`](https://github.com/smartcontractkit/.github/commit/222afc0601b7d6c298f90b82c6267d8c214595a9)
+  Thanks [@njegosrailic](https://github.com/njegosrailic)! - Bumping the
+  goreleaser GHA version to v6.2.1
+
+## 0.3.1
+
+### Patch Changes
+
+- [#855](https://github.com/smartcontractkit/.github/pull/855)
+  [`18a8a89`](https://github.com/smartcontractkit/.github/commit/18a8a89b23006355003b705d55acaf329c384d94)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: pin actions/\*
+  dependencies to major version tag
+
+## 0.3.0
+
+### Minor Changes
+
+- [#738](https://github.com/smartcontractkit/.github/pull/738)
+  [`f83d2ae`](https://github.com/smartcontractkit/.github/commit/f83d2aeb7dc8dc9ca4f38a93fa1792463bda5fb9)
+  Thanks [@rafaelfelix](https://github.com/rafaelfelix)! - Allow passing
+  `workdir` to goreleaser action (backwards-compatible, defaults to `.`)
+
+## 0.2.5
+
+### Patch Changes
+
+- [#663](https://github.com/smartcontractkit/.github/pull/663)
+  [`dca9ab8`](https://github.com/smartcontractkit/.github/commit/dca9ab89d734e82738b8aa52bd25d09b205ec6ee)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: remove metrics
+  inputs and step (push-gha-metrics-action)
+
+- [#664](https://github.com/smartcontractkit/.github/pull/664)
+  [`c4705bf`](https://github.com/smartcontractkit/.github/commit/c4705bfdbf6c8e57c080d82a3c4f013aa96a2dfb)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump actions/\*
+  references to latest version
+
 ## 0.2.4
 
 ### Patch Changes

@@ -1,5 +1,0 @@
-* @smartcontractkit/releng
-
-# Chainlink Testing Framework (CTF)
-/actions/ctf-*/** @smartcontractkit/test-tooling-team
-.github/workflows/run-e2e-tests.yml @smartcontractkit/test-tooling-team

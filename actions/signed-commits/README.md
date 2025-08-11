@@ -10,7 +10,7 @@ for you.
 
 Note: this action was forked from
 [changesets/action](https://github.com/changesets/action/) but was modified to
-include commit signing.
+include commit signing and to support the `rootVersionPackagePath` input.
 
 ## Usage
 
@@ -27,6 +27,17 @@ include commit signing.
   releases after `publish` or not. Default to `true`
 - `cwd` - Changes node's `process.cwd()` if the project is not located on the
   root. Default to `process.cwd()`
+- `tagSeparator` - The tag separator to use. Defaults to `@`. For example git
+  tags will be formatted like `<pkg>@<version>`.
+- `createMajorVersionTags` - Create mutable major version tags alongside the
+  specific versions. For example will maintain the `<pkg>@v1` tag for subsequent
+  updates to a package.
+- `rootVersionPackagePath` - Optional path to a root package that should use
+  simplified `v<version>` tags instead of `<pkg><separator><version>` format.
+  The package must have `chainlink.changesets.rootVersion: true` in its
+  package.json. When specified, major version tags are not created for the root
+  package. This allows monorepos to designate one primary package to use
+  simplified versioning while other packages continue using namespaced tags.
 
 ### Outputs
 
@@ -66,7 +77,7 @@ jobs:
       - name: Setup Node.js 20
         uses: smartcontractkit/.github/actions/setup-nodejs@main
         with:
-          pnpm-version: ^8.0.0
+          pnpm-version: "^10.0.0"
           node-version-file: .tool-versions
           run-install: true
           use-cache: true
@@ -108,9 +119,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node.js 20
-        uses: smartcontractkit/.github/actions/setup-nodejs@main
+        uses: smartcontractkit/.github/actions/setup-nodejs@<tag>
         with:
-          pnpm-version: ^8.0.0
+          pnpm-version: "^10.0.0"
           node-version-file: .tool-versions
           run-install: true
           use-cache: true
@@ -175,16 +186,16 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node.js 20
-        uses: smartcontractkit/.github/actions/setup-nodejs@main
+        uses: smartcontractkit/.github/actions/setup-nodejs@<tag>
         with:
-          pnpm-version: ^8.0.0
+          pnpm-version: "^10.0.0"
           node-version-file: .tool-versions
           run-install: true
           use-cache: true
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
-        uses: smartcontractkit/.github/actions/signed-commits@main
+        uses: smartcontractkit/.github/actions/signed-commits@<tag>
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -225,7 +236,7 @@ jobs:
       - name: Setup Node.js 20
         uses: smartcontractkit/.github/actions/setup-nodejs@main
         with:
-          pnpm-version: ^8.0.0
+          pnpm-version: "^10.0.0"
           node-version-file: .tool-versions
           run-install: true
           use-cache: true
@@ -238,6 +249,108 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+#### With Root Package Support
+
+For repositories that want to use simplified `v<version>` tags for a root
+package instead of the standard `<pkg><separator><version>` format, you can
+configure a root package. This is useful for monorepos where you want to
+designate one primary package to use simplified versioning while other packages
+continue using the standard namespaced format.
+
+##### Root Package Configuration
+
+To enable root package support, you must add the
+`chainlink.changesets.rootVersion` flag to your package's `package.json`. This
+flag serves as both a safety mechanism and an explicit opt-in to the simplified
+versioning behavior.
+
+**Why is this flag required?**
+
+- **Safety**: Prevents accidental misconfiguration that could affect your
+  versioning strategy
+- **Explicit intent**: Makes it clear which package should use simplified tags
+- **Validation**: The action validates this flag exists before applying root
+  package behavior
+
+Configure your root package's `package.json`:
+
+```json
+{
+  "name": "my-project",
+  "version": "1.0.0",
+  "chainlink": {
+    "changesets": {
+      "rootVersion": true
+    }
+  }
+}
+```
+
+**Important Notes:**
+
+- The `chainlink.changesets.rootVersion: true` flag is **required** for root
+  package functionality
+- If you specify `rootVersionPackagePath` but the package doesn't have this
+  flag, the action will fail with a clear error message
+- This configuration should only be added to the package you want to use
+  simplified versioning
+- Other packages in your monorepo should **not** have this flag
+
+Then use the action with the `rootVersionPackagePath` input:
+
+```yml
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: smartcontractkit/.github/actions/setup-nodejs@main
+        with:
+          pnpm-version: "^10.0.0"
+          node-version-file: .tool-versions
+          run-install: true
+          use-cache: true
+
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: smartcontractkit/.github/actions/signed-commits@main
+        with:
+          rootVersionPackagePath: ./package.json
+          # ... other inputs as needed ...
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+With this configuration:
+
+- Tags for the root package will be created as `v1.0.0`, `v1.1.0`, etc.
+- Other packages will still use the standard format like `package-name@1.0.0` or
+  `package-name/v1.0.0`
+- Major version mutable git tags like `v1` are not created for root packages
+- GitHub releases will use the simplified tag format for the root package
+
+**Important Note:** Root package support is designed for monorepos that want to
+designate one primary package to use simplified `v<version>` tags while other
+packages continue using the standard `<package-name><separator><version>`
+format. This allows you to have a "main" package with clean version tags (like
+`v1.0.0`) alongside other packages that use namespaced tags (like
+`package-name@1.0.0`). For more information about changesets in different
+repository structures, see the
+[changesets documentation](https://github.com/changesets/changesets/blob/main/docs/intro-to-using-changesets.md).
 
 ### Testing
 
@@ -253,3 +366,27 @@ You can run the action locally by doing the following:
 ```
 DEBUG=true INPUT_SETUPGITUSER=false INPUT_CWD="<path to local repo>" GITHUB_TOKEN=(gh auth token) INPUT_PRDRAFT=true GITHUB_REPOSITORY="<repo with changesets>" GITHUB_REF="refs/heads/main" GITHUB_SHA="<head SHA>" node actions/signed-commits/dist/index.js
 ```
+
+### Notes on Tagging
+
+`changesets` by default creates annotated git tags for versioning. However,
+these tags are not signed.
+
+So this action also rewrites the annotated tags into lightweight tags, which
+point directly at a commit. Lightweight tags do not need to be signed because
+they include no metadata. They are considered 'verified' by Github if the commit
+in which they reference is signed/verified.
+
+As of March 24, 2025 there is no way to create signed annotated tags using
+Github's REST or GQL API.
+
+All other methods are insecure or are debatably too much work for little return.
+The general idea is to create a service account within the Github org, and
+generate a signing key for it.
+
+1. Inject key as a GHA secret, and sign annotated tags (insecure as it exposes
+   signing key to runner).
+2. Create a lambda service that can create signed annotated tags on request (a
+   lot of work).
+   - Secure because the signing key could be within AWK KMS, and the lambda
+     function would be the only thing with access.

@@ -1,5 +1,23 @@
 # license-checker
 
+## 0.1.3
+
+### Patch Changes
+
+- [#791](https://github.com/smartcontractkit/.github/pull/791)
+  [`50f027a`](https://github.com/smartcontractkit/.github/commit/50f027aa97f496b947930e2faae2caa94d909cea)
+  Thanks [@afelisatti](https://github.com/afelisatti)! - Chore: add permitted
+  license
+
+## 0.1.2
+
+### Patch Changes
+
+- [#663](https://github.com/smartcontractkit/.github/pull/663)
+  [`dca9ab8`](https://github.com/smartcontractkit/.github/commit/dca9ab89d734e82738b8aa52bd25d09b205ec6ee)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: remove metrics
+  inputs and step (push-gha-metrics-action)
+
 ## 0.1.1
 
 ### Patch Changes

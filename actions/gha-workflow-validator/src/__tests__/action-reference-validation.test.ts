@@ -1,8 +1,8 @@
 import {
-  ActionReferenceValidation,
+  ActionRefValidation,
   extractActionReferenceFromLine,
 } from "../validations/action-reference-validations.js";
-import { FileLine, ParsedFile } from "../utils.js";
+import { FileLine } from "../parse-files.js";
 import { getNock, getTestOctokit } from "./__helpers__/test-utils.js";
 
 import { vi, describe, it, expect } from "vitest";
@@ -20,37 +20,23 @@ const JOB_STEP_LINE: FileLine = {
   ignored: false,
 };
 
-describe(ActionReferenceValidation.name, () => {
-  it("should validate no changes", async () => {
+describe(ActionRefValidation.name, () => {
+  it("should validate no action references (statuses:write) ", async () => {
     const octokit = getTestOctokit(nockBack.currentMode);
-    const subject = new ActionReferenceValidation(octokit);
-    const result = await subject.validate({
-      filename: "foo.yml",
-      lines: [],
-    });
-    expect(result).toEqual({ filename: "foo.yml", lineValidations: [] });
-  });
-
-  it("should validate no action references", async () => {
-    const octokit = getTestOctokit(nockBack.currentMode);
-    const subject = new ActionReferenceValidation(octokit);
-    const noWorkflowChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [
-        { lineNumber: 1, content: "line 1", operation: "add", ignored: false },
-        { lineNumber: 2, content: "line 2", operation: "add", ignored: false },
-      ],
+    const subject = new ActionRefValidation(octokit);
+    const line: FileLine = {
+      lineNumber: 1,
+      content: "        statuses: write",
+      operation: "add",
+      ignored: false,
     };
-    const result = await subject.validate(noWorkflowChanges);
-    expect(result).toEqual({
-      filename: ".github/workflows/test.yml",
-      lineValidations: [],
-    });
+    const messages = await subject.validateLine(line);
+    expect(messages).toEqual([]);
   });
 
   it("should validate single action reference (untrusted)", async () => {
     const octokit = getTestOctokit(nockBack.currentMode);
-    const subject = new ActionReferenceValidation(octokit, {
+    const subject = new ActionRefValidation(octokit, {
       validateNodeVersion: false,
     });
 
@@ -62,22 +48,14 @@ describe(ActionReferenceValidation.name, () => {
       ignored: false,
     };
 
-    const simpleChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [JOB_STEP_LINE, untrustedActionValid],
-    };
-
-    const result = await subject.validate(simpleChanges);
-    expect(result).toEqual({
-      filename: ".github/workflows/test.yml",
-      lineValidations: [],
-    });
+    const messages = await subject.validateLine(untrustedActionValid);
+    expect(messages).toEqual([]);
   });
 
   it("should validate action reference (trusted actions/*)", async () => {
     const { nockDone } = await nockBack("actions-checkout-validation.json");
     const octokit = getTestOctokit(nockBack.currentMode);
-    const subject = new ActionReferenceValidation(octokit);
+    const subject = new ActionRefValidation(octokit);
 
     const actionsCheckoutLineBadRef: FileLine = {
       lineNumber: 2,
@@ -86,22 +64,14 @@ describe(ActionReferenceValidation.name, () => {
       ignored: false,
     };
 
-    const simpleChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [JOB_STEP_LINE, actionsCheckoutLineBadRef],
-    };
-
-    const result = await subject.validate(simpleChanges);
-    expect(result).toEqual({
-      filename: ".github/workflows/test.yml",
-      lineValidations: [],
-    });
+    const messages = await subject.validateLine(actionsCheckoutLineBadRef);
+    expect(messages).toEqual([]);
     nockDone();
   });
 
   it("should validate action reference (trusted smartcontractkit/*)", async () => {
     const octokit = getTestOctokit(nockBack.currentMode);
-    const subject = new ActionReferenceValidation(octokit, {
+    const subject = new ActionRefValidation(octokit, {
       validateNodeVersion: false,
     });
 
@@ -112,21 +82,13 @@ describe(ActionReferenceValidation.name, () => {
       ignored: false,
     };
 
-    const simpleChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [JOB_STEP_LINE, smartcontractKitLineBadRef],
-    };
-
-    const result = await subject.validate(simpleChanges);
-    expect(result).toEqual({
-      filename: ".github/workflows/test.yml",
-      lineValidations: [],
-    });
+    const messages = await subject.validateLine(smartcontractKitLineBadRef);
+    expect(messages).toEqual([]);
   });
 
   it("should invalidate action reference (sha-ref / no comment)", async () => {
     const octokit = getTestOctokit(nockBack.currentMode);
-    const subject = new ActionReferenceValidation(octokit, {
+    const subject = new ActionRefValidation(octokit, {
       validateNodeVersion: false,
     });
 
@@ -138,18 +100,8 @@ describe(ActionReferenceValidation.name, () => {
       ignored: false,
     };
 
-    const simpleChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [JOB_STEP_LINE, actionsCheckoutLineBadRef],
-    };
-
-    const result = await subject.validate(simpleChanges);
-    const lineValidations = result.lineValidations.filter(
-      (lv) => lv.messages.length > 0,
-    );
-    expect(lineValidations.length).toEqual(1);
-    const lineValidation = lineValidations[0];
-    expect(lineValidation.messages).toMatchSnapshot();
+    const messages = await subject.validateLine(actionsCheckoutLineBadRef);
+    expect(messages).toMatchSnapshot();
   });
 
   it("should invalidate single action reference (no version comment)", async () => {
@@ -158,7 +110,7 @@ describe(ActionReferenceValidation.name, () => {
     );
 
     const octokit = getTestOctokit(nockBack.currentMode);
-    const subject = new ActionReferenceValidation(octokit);
+    const subject = new ActionRefValidation(octokit);
 
     const untrustedActionNoComment: FileLine = {
       lineNumber: 2,
@@ -168,18 +120,8 @@ describe(ActionReferenceValidation.name, () => {
       ignored: false,
     };
 
-    const simpleChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [JOB_STEP_LINE, untrustedActionNoComment],
-    };
-
-    const result = await subject.validate(simpleChanges);
-    const lineValidations = result.lineValidations.filter(
-      (lv) => lv.messages.length > 0,
-    );
-    expect(lineValidations.length).toEqual(1);
-    const lineValidation = lineValidations[0];
-    expect(lineValidation.messages).toMatchSnapshot();
+    const messages = await subject.validateLine(untrustedActionNoComment);
+    expect(messages).toMatchSnapshot();
     nockDone();
   });
 
@@ -187,7 +129,7 @@ describe(ActionReferenceValidation.name, () => {
     const { nockDone } = await nockBack("dory-paths-filter-v3-0-2.json");
 
     const octokit = getTestOctokit(nockBack.currentMode);
-    const subject = new ActionReferenceValidation(octokit);
+    const subject = new ActionRefValidation(octokit);
 
     const untrustedActionBadRef: FileLine = {
       lineNumber: 2,
@@ -196,18 +138,8 @@ describe(ActionReferenceValidation.name, () => {
       ignored: false,
     };
 
-    const simpleChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [JOB_STEP_LINE, untrustedActionBadRef],
-    };
-
-    const result = await subject.validate(simpleChanges);
-    const lineValidations = result.lineValidations.filter(
-      (lv) => lv.messages.length > 0,
-    );
-    expect(lineValidations.length).toEqual(1);
-    const lineValidation = lineValidations[0];
-    expect(lineValidation.messages).toMatchSnapshot();
+    const messages = await subject.validateLine(untrustedActionBadRef);
+    expect(messages).toMatchSnapshot();
     nockDone();
   });
 
@@ -216,7 +148,7 @@ describe(ActionReferenceValidation.name, () => {
       "actions-checkout-validation-node16.json",
     );
     const octokit = getTestOctokit(nockBack.currentMode);
-    const subject = new ActionReferenceValidation(octokit);
+    const subject = new ActionRefValidation(octokit);
 
     const actionsCheckoutLineOutdatedRef: FileLine = {
       lineNumber: 2,
@@ -226,26 +158,15 @@ describe(ActionReferenceValidation.name, () => {
       ignored: false,
     };
 
-    const simpleChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [JOB_STEP_LINE, actionsCheckoutLineOutdatedRef],
-    };
-
-    const result = await subject.validate(simpleChanges);
-    const lineValidations = result.lineValidations.filter(
-      (lv) => lv.messages.length > 0,
-    );
-
-    expect(lineValidations.length).toEqual(1);
-    const lineValidation = lineValidations[0];
-    expect(lineValidation.messages).toMatchSnapshot();
+    const messages = await subject.validateLine(actionsCheckoutLineOutdatedRef);
+    expect(messages).toMatchSnapshot();
     nockDone();
   });
 
   it("should invalidate single action reference (all errors)", async () => {
     const { nockDone } = await nockBack("dorny-paths-filter-v2_11_0.json");
     const octokit = getTestOctokit(nockBack.currentMode);
-    const subject = new ActionReferenceValidation(octokit);
+    const subject = new ActionRefValidation(octokit);
 
     const untrustedActionAllErrors: FileLine = {
       lineNumber: 2,
@@ -254,18 +175,8 @@ describe(ActionReferenceValidation.name, () => {
       ignored: false,
     };
 
-    const simpleChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [JOB_STEP_LINE, untrustedActionAllErrors],
-    };
-
-    const result = await subject.validate(simpleChanges);
-    const lineValidations = result.lineValidations.filter(
-      (lv) => lv.messages.length > 0,
-    );
-    expect(lineValidations.length).toEqual(1);
-    const lineValidation = lineValidations[0];
-    expect(lineValidation.messages).toMatchSnapshot();
+    const messages = await subject.validateLine(untrustedActionAllErrors);
+    expect(messages).toMatchSnapshot();
     nockDone();
   });
 });

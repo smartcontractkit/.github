@@ -1,0 +1,562 @@
+name: Reusable Docker Build and Publish
+##
+# Build and publish Docker images to AWS ECR.
+#
+# This workflow is reusable and can be called from other workflows.
+#
+# It builds and publishes Docker images to AWS ECR, and generates a Docker
+# manifest for multi-architecture support.
+#
+# The workflow supports the following Linux architectures:
+#   - amd64
+#   - arm64
+#
+# The workflow also generates pre-defined Docker image tags based on the
+# specified type (branch, manual, nightly, pr, sha, tag).
+#
+# Example usage from a calling workflow:
+#
+#   jobs:
+#     docker-build-publish:
+#       permissions:
+#         contents: read  # needed to checkout repo.
+#         id-token: write # needed to assume AWS IAM role via OIDC.
+#       uses: smartcontractkit/.github/.github/workflows/reusable-docker-build-publish.yml@<git-sha>
+#       with:
+#         # NOTE: Remove the "\" escape character for every: $\{{ when implementing.
+#         aws-ecr-name: chainlink
+#         aws-region-ecr: us-east-1
+#         aws-region-gati: us-west-2
+#         dockerfile: Dockerfile
+#         docker-build-context: .
+#         docker-image-tag-strip-prefix: v  # Optional: strip "v" prefix from tags
+#         docker-manifest-sign: true
+#         git-sha: $\{{ github.sha }}
+#         github-event-name: $\{{ github.event_name }}
+#         github-ref-name: $\{{ github.ref_name }}
+#       secrets:
+#         AWS_ACCOUNT_ID: $\{{ secrets.AWS_ACCOUNT_ID }}
+#         AWS_ROLE_PUBLISH_ARN: $\{{ secrets.AWS_ROLE_PUBLISH_ARN }} # Remove the "\" escape character.
+#         AWS_ROLE_GATI_ARN: $\{{ secrets.AWS_ROLE_GATI_ARN }} # Remove the "\" escape character.
+#         AWS_LAMBDA_GATI_URL: $\{{ secrets.AWS_LAMBDA_GATI_URL }} # Remove the "\" escape character.
+##
+on:
+  workflow_call:
+    secrets:
+      AWS_ACCOUNT_ID:
+        description: "AWS account ID for AWS ECR."
+        required: true
+      AWS_ROLE_PUBLISH_ARN:
+        description: "AWS OIDC role ARN used for publishing to AWS ECR."
+        required: true
+      AWS_ROLE_GATI_ARN:
+        description: |
+          AWS OIDC role ARN used for getting token from GATI.
+
+          Use this and AWS_LAMBDA_GATI_URL if building a Docker image with private GitHub repo dependencies.
+
+          The token will be mounted as a secret within the Docker build context.
+        required: false
+      AWS_LAMBDA_GATI_URL:
+        description: "AWS Lambda URL for GATI."
+        required: false
+    inputs:
+      aws-ecr-name:
+        description: |
+          AWS ECR repository name.
+
+          Does not include the registry URL or any image tag.
+
+          Examples:
+            - chainlink
+            - ccip
+        required: true
+        type: string
+      aws-region-ecr:
+        description: "AWS region for AWS ECR."
+        required: true
+        type: string
+      aws-region-gati:
+        description: "AWS region for GATI (GitHub Actions Token Issuer)."
+        required: false
+        type: string
+      build-arm64-image:
+        description: "Enable arm64 Docker image build. Set to 'false' to disable which only
+          builds amd64 images."
+        required: false
+        type: string
+        default: "true"
+      dockerfile:
+        description: "Path to Dockerfile."
+        required: true
+        type: string
+      docker-build-args:
+        description: "Docker build arguments."
+        required: false
+        type: string
+      docker-cache-behaviour:
+        description: |
+          Controls how the docker build cache is used.
+          - "disable" completely disables the cache.
+          - "enable" enables the cache, reading from and writing to it on every event.
+          - "write-on-trunk" enables the cache, but only writes to it on pushes to the default branch. (default)
+        required: false
+        type: string
+        default: "write-on-trunk"
+      docker-build-context:
+        description: "Path to Docker build context."
+        required: true
+        type: string
+      docker-image-tag-override:
+        description: |
+          When set, this will override the default Docker image tag.
+
+          Otherwise, the tag will be generated based on the input.github-event-name.
+        required: false
+        type: string
+      docker-image-tag-strip-prefix:
+        description: |
+          When set, this prefix will be stripped from the GITHUB_REF_NAME when generating Docker image tags.
+
+          Useful for removing version prefixes like "v" from tag names.
+
+          Examples:
+            - "v" (strips "v" from "v1.0.0" to produce "1.0.0")
+        required: false
+        type: string
+      docker-manifest-sign:
+        description: "Sign docker manifest or not."
+        required: false
+        type: string
+        default: "true"
+      docker-registry-url-override:
+        description: |
+          Override the default docker registry URL.
+
+          Otherwise use the private AWS ECR registry URL.
+
+          For public ECR, include the hostname and the registry alias.
+
+          Example: public.ecr.aws/chainlink
+        required: false
+        type: string
+      docker-tag-custom-suffix:
+        description: |
+          This is an optional input that can be used to add a custom suffix to
+          the docker tag. Useful to label different images sharing the same AWS
+          ECR repository. Recommended to prefix input string with a hyphen "-".
+
+          Examples:
+            - "-ccip"
+            - "-plugins"
+
+          NOTE: This will not be added when docker-image-tag-override is set.
+        required: false
+        type: string
+      docker-target:
+        description: "Target stage in the Dockerfile to build."
+        required: false
+        type: string
+      git-sha:
+        description: |
+          The full git SHA to build from.
+
+          Example: 604b8b878253b4cce2d0dba37b53644b67abbf97
+        required: true
+        type: string
+      github-event-name:
+        description: |
+          > The name of the event that triggered the workflow run.
+
+          Examples:
+            - pull_request
+            - push
+            - schedule
+        required: true
+        type: string
+      github-ref-name:
+        description: |
+          > The short ref name of the branch or tag that triggered the workflow
+          > run. This value matches the branch or tag name shown on GitHub.
+
+          Examples:
+            - <pr_number>/merge # branch on pull_request events
+            - feature-branch-1  # branch on push events
+            - v1.0.0            # tag on push events
+        required: true
+        type: string
+      github-ref-type:
+        description: |
+          > The type of ref that triggered the workflow run.
+          > Valid values are "branch" or "tag".
+
+          This is required to differentiate between branch push and tag push events.
+        required: false
+        type: string
+      github-runner-amd64:
+        description: |
+          The GitHub Actions runner name for builds on the platform: amd64
+        required: false
+        type: string
+        default: "ubuntu-24.04"
+      github-runner-arm64:
+        description: |
+          The GitHub Actions runner name for builds on the platform: arm64
+        required: false
+        type: string
+        # NOTE: This runner is not yet available on non-public repos.
+        # Will require an override for private/internal repos.
+        default: "ubuntu-24.04-arm"
+      github-workflow-repository:
+        description: |
+          The repository name of the workflow that triggered the workflow run.
+
+          Example: smartcontractkit/chainlink
+        required: true
+        type: string
+
+    outputs:
+      docker-image-sha-digest-amd64:
+        description: "Docker image SHA digest for amd64 architecture"
+        value: ${{ jobs.build-publish.outputs.docker-image-sha-digest-amd64 }}
+      docker-image-sha-digest-arm64:
+        description: "Docker image SHA digest for arm64 architecture (empty if disabled)"
+        value: ${{ jobs.build-publish.outputs.docker-image-sha-digest-arm64 }}
+      docker-manifest-digest:
+        description: "Docker manifest digest"
+        value: ${{ jobs.docker-manifest.outputs.digest }}
+      docker-manifest-name:
+        description: "Docker manifest name"
+        value: ${{ jobs.docker-manifest.outputs.name }}
+      docker-manifest-tag:
+        description: "Docker manifest tag"
+        value: ${{ jobs.docker-manifest.outputs.tag }}
+jobs:
+  init:
+    name: init
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      date: ${{ steps.get-date.outputs.date }}
+      git-short-sha: ${{ steps.git-short-sha.outputs.short-sha }}
+      pr-number: ${{ steps.set-extra-outputs.outputs.pr-number }}
+      build-type: ${{ steps.set-extra-outputs.outputs.build-type }}
+      docker-restore-cache: ${{ steps.should-cache.outputs.docker-restore-cache }}
+      docker-save-cache: ${{ steps.should-cache.outputs.docker-save-cache }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          ref: ${{ inputs.git-sha }}
+      - name: Get Date
+        id: get-date
+        run: |
+          echo "Getting today's date..."
+          date=$(date +%Y%m%d) # YYYYMMDD
+          echo "date=${date}" | tee -a "${GITHUB_OUTPUT}"
+      - name: Get Short SHA
+        id: git-short-sha
+        run: |
+          echo "Getting 7 character git short SHA from HEAD..."
+          short_sha=$(git rev-parse --short=7 HEAD)
+          echo "short-sha=${short_sha}" | tee -a "${GITHUB_OUTPUT}"
+      - name: Validate inputs
+        env:
+          GITHUB_EVENT_NAME: ${{ inputs.github-event-name }}
+          GITHUB_REF_NAME: ${{ inputs.github-ref-name }}
+        run: |
+          echo "Validating event and ref inputs..."
+          if [[ "${GITHUB_EVENT_NAME:-}" == "pull_request" && ! "${GITHUB_REF_NAME:-}" =~ ^[0-9]+/merge$ ]]; then
+            echo "::error::GITHUB_EVENT_NAME is pull_request but GITHUB_REF_NAME does not match expected format of: <pr_number>/merge."
+            exit 1
+          fi
+      - name: Set extra outputs
+        id: set-extra-outputs
+        env:
+          GITHUB_EVENT_NAME: ${{ inputs.github-event-name }}
+          GITHUB_REF_NAME: ${{ inputs.github-ref-name }}
+          GITHUB_REF_TYPE: ${{ inputs.github-ref-type }}
+        run: |
+          echo "Setting build type outputs..."
+          if [[ "${GITHUB_EVENT_NAME}" == "schedule" ]]; then
+            echo "build-type=nightly" | tee -a "$GITHUB_OUTPUT"
+          elif [[ "${GITHUB_EVENT_NAME}" == 'push' ]]; then
+            if [[ "${GITHUB_REF_TYPE}" == 'tag' ]]; then
+              echo "build-type=tag" | tee -a "$GITHUB_OUTPUT"
+            else
+              echo "build-type=branch" | tee -a "$GITHUB_OUTPUT"
+            fi
+          elif [[ "${GITHUB_EVENT_NAME}" == 'pull_request' ]]; then
+            pr_number=$(echo "${GITHUB_REF_NAME}" | cut -d'/' -f1)
+            echo "pr-number=${pr_number}" | tee -a "$GITHUB_OUTPUT"
+            echo "build-type=pr" | tee -a "$GITHUB_OUTPUT"
+          elif [[ "${GITHUB_EVENT_NAME}" == 'workflow_dispatch' ]]; then
+            echo "build-type=manual" | tee -a "$GITHUB_OUTPUT"
+          else
+            echo "::error::Unsupported GitHub event name: ${GITHUB_EVENT_NAME}"
+            exit 1
+          fi
+
+      - name: Get repo trunk branch
+        id: get-trunk
+        if: ${{ inputs.docker-cache-behaviour == 'write-on-trunk' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
+        run: |
+          trunk=$(gh repo view "${GITHUB_WORKFLOW_REPOSITORY}" --json defaultBranchRef --jq .defaultBranchRef.name)
+          if [[ -z "${trunk}" ]]; then
+            echo "::warning::Failed to get trunk branch using gh cli. Defaulting to 'main'."
+            trunk="main"
+          fi
+          echo "trunk=${trunk}" | tee -a "${GITHUB_OUTPUT}"
+
+      - name: Check docker cache constraints
+        id: should-cache
+        env:
+          GITHUB_REF_NAME: ${{ inputs.github-ref-name }}
+          GITHUB_EVENT_NAME: ${{ inputs.github-event-name }}
+          REPO_TRUNK: ${{ steps.get-trunk.outputs.trunk }}
+          DOCKER_CACHE_BEHAVIOUR: ${{ inputs.docker-cache-behaviour }}
+        run: |
+          if [[ "${DOCKER_CACHE_BEHAVIOUR}" == "disable" ]]; then
+            echo "docker-restore-cache=false" | tee -a "${GITHUB_OUTPUT}"
+            echo "docker-save-cache=false" | tee -a "${GITHUB_OUTPUT}"
+          elif [[ "${DOCKER_CACHE_BEHAVIOUR}" == "enable" ]]; then
+            echo "docker-restore-cache=true" | tee -a "${GITHUB_OUTPUT}"
+            echo "docker-save-cache=true" | tee -a "${GITHUB_OUTPUT}"
+          elif [[ "${DOCKER_CACHE_BEHAVIOUR}" == "write-on-trunk" ]]; then
+              echo "docker-restore-cache=true" | tee -a "${GITHUB_OUTPUT}"
+            if [[ "${GITHUB_REF_NAME}" == "${REPO_TRUNK}" ]] && [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+              echo "docker-save-cache=true" | tee -a "${GITHUB_OUTPUT}"
+            else
+              echo "docker-save-cache=false" | tee -a "${GITHUB_OUTPUT}"
+            fi
+          else
+            echo "::error::Invalid DOCKER_CACHE_BEHAVIOUR: ${DOCKER_CACHE_BEHAVIOUR}. Must be one of: disabled, enabled, write-on-trunk."
+            exit 1
+          fi
+
+  set-build-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        env:
+          GITHUB_RUNNER_AMD64: ${{ inputs.github-runner-amd64 }}
+          GITHUB_RUNNER_ARM64: ${{ inputs.github-runner-arm64 }}
+          BUILD_ARM64_IMAGE: ${{ inputs.build-arm64-image }}
+        run: |
+          matrix="[{\"runner\":\"${GITHUB_RUNNER_AMD64}\",\"arch\":\"amd64\"}"
+          if [[ "${BUILD_ARM64_IMAGE}" == "true" ]]; then
+            matrix+=",{\"runner\":\"${GITHUB_RUNNER_ARM64}\",\"arch\":\"arm64\"}"
+          fi
+          matrix+="]"
+          echo "matrix=$matrix" | tee -a "$GITHUB_OUTPUT"
+
+  build-publish:
+    name: build-publish-${{ matrix.arch }}
+    needs: [init, set-build-matrix]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.set-build-matrix.outputs.matrix) }}
+    outputs:
+      docker-image-sha-digest-amd64: ${{ steps.build.outputs.docker-image-sha-digest-amd64 }}
+      docker-image-sha-digest-arm64: ${{ steps.build.outputs.docker-image-sha-digest-arm64 }}
+      docker-manifest-tag: ${{ steps.set-docker-image-tags.outputs.docker-manifest-tag }}
+    steps:
+      - uses: actions/checkout@v4
+        id: checkout
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          ref: ${{ inputs.git-sha }}
+      # Generated tags must be compatible with:
+      # https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
+      - name: Set Docker image tags
+        id: set-docker-image-tags
+        env:
+          DATE: ${{ needs.init.outputs.date }}
+          DOCKER_IMAGE_TAG_OVERRIDE: ${{ inputs.docker-image-tag-override }}
+          DOCKER_IMAGE_TAG_STRIP_PREFIX: ${{ inputs.docker-image-tag-strip-prefix }}
+          DOCKER_IMAGE_TYPE: ${{ needs.init.outputs.build-type }}
+          DOCKER_TAG_CUSTOM_SUFFIX: ${{ inputs.docker-tag-custom-suffix }}
+          GIT_SHORT_SHA: ${{ needs.init.outputs.git-short-sha }}
+          GITHUB_REF_NAME: ${{ inputs.github-ref-name }}
+          MATRIX_ARCH: ${{ matrix.arch }}
+          PR_NUMBER: ${{ needs.init.outputs.pr-number }}
+        run: |
+          # Apply tag prefix stripping if specified
+          ref_name="${GITHUB_REF_NAME}"
+          if [[ -n "${DOCKER_IMAGE_TAG_STRIP_PREFIX:-}" ]]; then
+            echo "Stripping prefix '${DOCKER_IMAGE_TAG_STRIP_PREFIX}' from ref name '${ref_name}'"
+            ref_name="${ref_name#"${DOCKER_IMAGE_TAG_STRIP_PREFIX}"}"
+            echo "Ref name after stripping: '${ref_name}'"
+          fi
+
+          if [[ -n "${DOCKER_IMAGE_TAG_OVERRIDE:-}" ]]; then
+            echo "Using override tag: ${DOCKER_IMAGE_TAG_OVERRIDE}"
+            tag_value="${DOCKER_IMAGE_TAG_OVERRIDE}"
+          else
+            # If no override, determine tag based on build type
+            case "${DOCKER_IMAGE_TYPE:-}" in
+              branch)
+                # Examples: main-d34db33 or main-d34db33-custom-suffix
+                tag_value="${ref_name}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              manual)
+                # Examples: manual-d34db33 or manual-d34db33-custom-suffix
+                tag_value="manual-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              nightly)
+                # Examples: nightly-20250307 or nightly-20250307-custom-suffix
+                tag_value="nightly-${DATE}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              pr)
+                # Examples: pr-123-d34db33 or pr-123-d34db33-custom-suffix
+                if [[ -z "${PR_NUMBER:-}" ]]; then echo "::error::GITHUB_EVENT_NAME is pull_request but PR_NUMBER is not set"; exit 1; fi
+                tag_value="pr-${PR_NUMBER}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              sha)
+                # Examples: sha-d34db33 or sha-d34db33-custom-suffix
+                tag_value="sha-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              tag)
+                # Examples: v1.0.0 or v1.0.0-custom-suffix (or 1.0.0 if prefix stripped)
+                tag_value="${ref_name}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              *)
+                echo "::error::Invalid docker image type: ${DOCKER_IMAGE_TYPE}. Must be one of: branch, manual, nightly, pr, sha, tag."
+                exit 1
+                ;;
+            esac
+          fi
+
+          if ! [[ "${tag_value}-${MATRIX_ARCH}" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+            echo "::error::Invalid Docker tag value: ${tag_value}-${MATRIX_ARCH}."
+            exit 1
+          fi
+          # Append the arch (example: "-arm64") to the tag value.
+          tags="type=raw,value=${tag_value}-${MATRIX_ARCH}"
+          echo "tags=${tags}" | tee -a "${GITHUB_OUTPUT}"
+          # This will be used to generate the docker manifest tag in a future
+          # job (without the arch suffix).
+          echo "docker-manifest-tag=${tag_value}" | tee -a "${GITHUB_OUTPUT}"
+
+      - name: Check for GATI
+        id: check-gati
+        env:
+          AWS_ROLE_GATI_ARN: ${{ secrets.AWS_ROLE_GATI_ARN }}
+          AWS_LAMBDA_GATI_URL: ${{ secrets.AWS_LAMBDA_GATI_URL }}
+        run: |
+          if [[ -n "${AWS_ROLE_GATI_ARN}" && -n "${AWS_LAMBDA_GATI_URL}" ]]; then
+            echo "use-gati=true" | tee -a "${GITHUB_OUTPUT}"
+          else
+            echo "Skipping GATI because secrets.AWS_ROLE_GATI_ARN and/or secrets.AWS_LAMBDA_GATI_URL is not set."
+          fi
+
+      - name: Setup GitHub token using GATI
+        if: steps.check-gati.outputs.use-gati == 'true'
+        id: token
+        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/1.0.0
+        with:
+          aws-role-arn: ${{ secrets.AWS_ROLE_GATI_ARN }}
+          aws-lambda-url: ${{ secrets.AWS_LAMBDA_GATI_URL }}
+          aws-region: ${{ inputs.aws-region-gati }}
+          aws-role-duration-seconds: "1800"
+
+      - name: Docker image build
+        id: build
+        uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/0.7.0
+        with:
+          platform: ${{ format('linux/{0}', matrix.arch) }}
+          docker-registry-url: >-
+            ${{
+              inputs.docker-registry-url-override ||
+              format(
+                '{0}.dkr.ecr.{1}.amazonaws.com',
+                secrets.AWS_ACCOUNT_ID,
+                inputs.aws-region-ecr
+              )
+            }}
+          docker-target: ${{ inputs.docker-target }}
+          docker-repository-name: ${{ inputs.aws-ecr-name }}
+          tags: ${{ steps.set-docker-image-tags.outputs.tags }}
+          dockerfile: ${{ inputs.dockerfile }}
+          docker-build-args: ${{ inputs.docker-build-args }}
+          docker-restore-cache: ${{ needs.init.outputs.docker-restore-cache }}
+          docker-save-cache: ${{ needs.init.outputs.docker-save-cache }}
+          context: ${{ inputs.docker-build-context }}
+          aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
+          aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
+          aws-region: ${{ inputs.aws-region-ecr }}
+          github-token: ${{ steps.token.outputs.access-token || '' }}
+
+  docker-manifest:
+    name: docker-manifest
+    needs: [init, build-publish]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      digest: ${{ steps.docker-manifest.outputs.manifest-digest}}
+      name: ${{ steps.docker-manifest.outputs.manifest-name }}
+      tag: ${{ steps.docker-manifest.outputs.manifest-tag }}
+    steps:
+      - name: Prepare image digests for manifest
+        id: prepare-digests
+        env:
+          DOCKER_IMAGE_SHA_DIGEST_AMD64: ${{ needs.build-publish.outputs.docker-image-sha-digest-amd64 }}
+          DOCKER_IMAGE_SHA_DIGEST_ARM64: ${{ needs.build-publish.outputs.docker-image-sha-digest-arm64 }}
+          BUILD_ARM64_IMAGE: ${{ inputs.build-arm64-image }}
+        run: |
+          # Set default empty arm64 digest
+          echo "arm64_digest=" >> "$GITHUB_OUTPUT"
+
+          # Always include the AMD64 build
+          amd64_digest="${DOCKER_IMAGE_SHA_DIGEST_AMD64}"
+          echo "amd64_digest=$amd64_digest" | tee -a "$GITHUB_OUTPUT"
+
+          image_digests="$amd64_digest"
+
+          # Only include ARM64 if enabled and build succeeded
+          if [[ "${BUILD_ARM64_IMAGE}" == "true" ]]; then
+            arm64_digest="${DOCKER_IMAGE_SHA_DIGEST_ARM64}"
+            if [[ -n "$arm64_digest" ]]; then
+              image_digests="$image_digests,$arm64_digest"
+              echo "arm64_digest=$arm64_digest" | tee -a "$GITHUB_OUTPUT"
+            fi
+          fi
+
+          echo "image_digests=$image_digests" | tee -a "$GITHUB_OUTPUT"
+
+      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@build-push-docker-manifest/0.2.0
+        id: docker-manifest
+        with:
+          # Avoid using `github.workflow_ref` here because the `cosign sign`
+          # command will use the reusable workflow path for its identity and
+          # not the calling workflow path.
+          cosign-oidc-identity-regexp: "^https://github.com/smartcontractkit/.*$"
+          docker-registry-url: >-
+            ${{
+              inputs.docker-registry-url-override ||
+              format(
+                '{0}.dkr.ecr.{1}.amazonaws.com',
+                secrets.AWS_ACCOUNT_ID,
+                inputs.aws-region-ecr
+              )
+            }}
+          docker-repository-name: ${{ inputs.aws-ecr-name }}
+          docker-manifest-sign: ${{ inputs.docker-manifest-sign }}
+          docker-manifest-tag: ${{ needs.build-publish.outputs.docker-manifest-tag }}
+          docker-image-name-digests: ${{ steps.prepare-digests.outputs.image_digests }}
+          github-workflow-repository: ${{ inputs.github-workflow-repository }}
+          aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
+          aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
+          aws-region: ${{ inputs.aws-region-ecr }}

@@ -1,0 +1,12 @@
+{
+  "name": "branch-names",
+  "version": "1.0.1",
+  "description": "",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "orginal-author": "@tj-actions",
+  "license": "MIT",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}

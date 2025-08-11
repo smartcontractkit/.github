@@ -50,9 +50,6 @@ inputs:
   QA_AWS_ROLE_TO_ASSUME:
     required: true
     description: The AWS role to assume
-  QA_KUBECONFIG:
-    required: false
-    description: The kubernetes configuration to use
   should_tidy:
     required: false
     description: Should we check go mod tidy
@@ -61,14 +58,82 @@ inputs:
     required: false
     description: Do not use a go cache
     default: "false"
+  gati_token:
+    required: false
+    description: Token provided by GATI to pull from private repos
+  enable-gap:
+    required: false
+    default: "true"
+    description: Configure and enable GAP for accessing internal services.
+  main-dns-zone:
+    required: false
+    default: ""
+    description:
+      The primary DNS zone used in the hostname of the Kubernetes API endpoint.
+      Required if GAP is enabled.
+  k8s-cluster-name:
+    required: false
+    default: ""
+    description:
+      The name of the Kubernetes cluster to be used in the `kubectl`
+      configuration for accessing the desired cluster.
+  enable-proxy-debug:
+    description:
+      "Enable or disable detailed Envoy proxy logs used for K8s API access. When
+      enabled, debug logs are generated locally, and container logs are streamed
+      to the console for troubleshooting."
+    required: false
+    default: "false"
+  prod_aws_region:
+    required: false
+    description: The AWS region to use for prod ECR
+  prod_aws_role_to_assume:
+    required: false
+    description: The AWS role to assume for prod ECR
+  gauntlet_plus_plus_image:
+    required: false
+    description: Gauntlet-plus-plus image link
+  prod_aws_account_number:
+    required: false
+    description: AWS Account number that holds the gauntlet_plus_plus
+  install_plugins_public:
+    required: false
+    default: "false"
+    description: "Set to true to install the public LOOP plugins"
+  aptos_cli_version:
+    required: false
+    default: ""
+    description: "Set to an Aptos CLI version to install (e.g. 7.2.0, latest)"
+  setup_db:
+    required: false
+    default: "false"
+    description: "Set to true to setup the database for the tests"
+
+outputs:
+  database_url:
+    description: The database URL for the tests
+    value: ${{ steps.setup-pg.outputs.database-url }}
 
 runs:
   using: composite
   steps:
+    - name: Validate GAP inputs
+      shell: bash
+      if: inputs.enable-gap == 'true'
+      run: |
+        if [ -z "${{ inputs.main-dns-zone }}" ]; then
+          echo "Error: main-dns-zone is required when enable-gap is true."
+          exit 1
+        fi
+        if [ -z "${{ inputs.k8s-cluster-name }}" ]; then
+          echo "Error: k8s-cluster-name is required when enable-gap is true."
+          exit 1
+        fi
+
     # Go setup and caching
     - name: Setup Go
       if: inputs.go_necessary == 'true'
-      uses: smartcontractkit/.github/actions/ctf-setup-go@b0d756c57fcdbcff187e74166562a029fdd5d1b9 # ctf-setup-go@0.0.0
+      uses: smartcontractkit/.github/actions/ctf-setup-go@c83a1867f404a79db873b55f1a5fd30b42569bbb # ctf-setup-go@0.2.0
       with:
         go_version: ${{ inputs.go_version }}
         go_mod_path: ${{ inputs.go_mod_path }}
@@ -78,6 +143,44 @@ runs:
         no_cache: ${{ inputs.no_cache }}
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
+        gati_token: ${{ inputs.gati_token }}
+
+    - name: Setup postgres container
+      id: setup-pg
+      if: inputs.setup_db == 'true'
+      uses: smartcontractkit/.github/actions/setup-postgres@setup-postgres/v1
+      with:
+        tmpfs: true
+
+    - name: Setup database
+      if: inputs.setup_db == 'true'
+      shell: bash
+      env:
+        CL_DATABASE_URL: ${{ steps.setup-pg.outputs.database-url }}
+      run: |
+        go run ./core/store/cmd/preparetest
+
+    - name: Setup gauntlet plus plus
+      if: inputs.gauntlet_plus_plus_image
+      uses: smartcontractkit/.github/actions/pull-private-ecr-image@pull-private-ecr-image/1.0.0 # pull-private-ecr-image@1.0.0
+      with:
+        aws-region: ${{ inputs.prod_aws_region }}
+        aws-role-arn: ${{ inputs.prod_aws_role_to_assume }}
+        image-url: ${{ inputs.gauntlet_plus_plus_image }}
+        aws-account-number: ${{ inputs.prod_aws_account_number }}
+
+    - name: Install LOOP Plugins
+      if: inputs.install_plugins_public == 'true'
+      shell: bash
+      run: |
+        make install-loopinstall
+        make install-plugins-public
+
+    - name: Install Aptos CLI
+      if: inputs.aptos_cli_version
+      uses: aptos-labs/actions/install-aptos-cli@63740b290d839b87ecfafbcf75ed03a36a54a29f # jan 15, 2025
+      with:
+        CLI_VERSION: ${{ inputs.aptos_cli_version }}
 
     # Setup AWS cred and K8s context
     - name: Configure AWS Credentials
@@ -88,12 +191,19 @@ runs:
         role-duration-seconds: ${{ inputs.aws_role_duration_seconds }}
         mask-aws-account-id: true
 
-    - name: Set Kubernetes Context
-      if: inputs.QA_KUBECONFIG
-      uses: azure/k8s-set-context@27bfb387305b8f0ab5495d692e4a3304db7d0669 # v4.0.0
+    - name: Configure local GAP proxy for accessing (Kubernetes) services
+      uses: smartcontractkit/.github/actions/setup-gap@858d6785a9cce58359f5d6f9481902f2d0a331ac # setup-gap@4.0.1
+      if: inputs.enable-gap == 'true'
       with:
-        method: kubeconfig
-        kubeconfig: ${{ inputs.QA_KUBECONFIG }}
+        aws-region: ${{ inputs.QA_AWS_REGION }}
+        aws-role-arn: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
+        aws-role-duration-seconds: 3600 # 1 hour
+        gap-name: k8s
+        k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+        main-dns-zone: ${{ inputs.main-dns-zone }}
+        proxy-port: 9339
+        use-k8s: true
+        enable-proxy-debug: ${{ inputs.enable-proxy-debug }}
 
     # Login to AWS ECR registries if needed
     - name: Login to Amazon ECR

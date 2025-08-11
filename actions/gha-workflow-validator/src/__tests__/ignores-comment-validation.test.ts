@@ -1,11 +1,7 @@
 import { IgnoresCommentValidation } from "../validations/ignores-comment-validation.js";
 import { VALIDATOR_IGNORE_LINE } from "../strings.js";
-import { FileLine, ParsedFile } from "../utils.js";
-import { getNock } from "./__helpers__/test-utils.js";
-
+import { FileLine } from "../parse-files.js";
 import { vi, describe, it, expect } from "vitest";
-
-const nockBack = getNock();
 
 vi.mock("@actions/core", async () => {
   return (await import("./__helpers__/test-utils.js")).coreLoggingStubs();
@@ -42,109 +38,59 @@ const actionsReferenceLineWithIgnore: FileLine = {
 describe(IgnoresCommentValidation.name, () => {
   it("should validate no changes", async () => {
     const subject = new IgnoresCommentValidation();
-    const result = await subject.validate({
-      filename: "foo.yml",
-      lines: [],
+    const messages = await subject.validateLine({
+      lineNumber: 0,
+      content: "",
+      operation: "unchanged",
+      ignored: false,
     });
-    expect(result).toEqual({ filename: "foo.yml", lineValidations: [] });
+    expect(messages).toEqual([]);
   });
 
-  it("should validate ignore comment changes", async () => {
+  it("should validate no ignore comment changes", async () => {
     const subject = new IgnoresCommentValidation();
-    const noWorkflowChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [
-        { lineNumber: 1, content: "line 1", operation: "add", ignored: false },
-        { lineNumber: 2, content: "line 2", operation: "add", ignored: false },
-      ],
+    const line: FileLine = {
+      lineNumber: 1,
+      content: "line 1",
+      operation: "add",
+      ignored: false,
     };
-    const result = await subject.validate(noWorkflowChanges);
-    expect(result).toEqual({
-      filename: ".github/workflows/test.yml",
-      lineValidations: [],
-    });
+    const messages = await subject.validateLine(line);
+    expect(messages).toEqual([]);
   });
 
   it("should not error with unchanged ignore", async () => {
     const subject = new IgnoresCommentValidation();
-
-    const simpleChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [
-        jobLine,
-        { ...actionsRunnerLineWithIgnore, operation: "unchanged" },
-      ],
+    const line: FileLine = {
+      ...actionsRunnerLineWithIgnore,
+      operation: "unchanged",
     };
-
-    const result = await subject.validate(simpleChanges);
-    const lineValidationsWithErrors = result.lineValidations.filter(
-      (lv) => lv.messages.length > 0,
-    );
-    expect(lineValidationsWithErrors.length).toEqual(0);
+    const messages = await subject.validateLine(line);
+    expect(messages).toEqual([]);
   });
 
   it("should not error with malformed ignore", async () => {
     const subject = new IgnoresCommentValidation();
-
-    const simpleChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [jobLine, actionsRunnerLineWithBadIgnore],
-    };
-
-    const result = await subject.validate(simpleChanges);
-    const lineValidationsWithErrors = result.lineValidations.filter(
-      (lv) => lv.messages.length > 0,
-    );
-    expect(lineValidationsWithErrors.length).toEqual(0);
+    const line: FileLine = actionsRunnerLineWithBadIgnore;
+    const messages = await subject.validateLine(line);
+    expect(messages).toEqual([]);
   });
 
   it("should error on action reference with new ignore", async () => {
     const subject = new IgnoresCommentValidation();
-
-    const simpleChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [jobLine, actionsReferenceLineWithIgnore],
-    };
-
-    const result = await subject.validate(simpleChanges);
-    const lineValidationsWithErrors = result.lineValidations.filter(
-      (lv) => lv.messages.length > 0,
-    );
-    expect(lineValidationsWithErrors.length).toEqual(1);
-
-    const lineValidation = lineValidationsWithErrors[0];
-    expect(lineValidation.line.lineNumber).toEqual(
-      simpleChanges.lines[1].lineNumber,
-    );
-    expect(lineValidation.messages.length).toEqual(1);
-    expect(lineValidation.messages[0].message).toEqual(
-      `new ignore comment found`,
-    );
-    expect(lineValidation.messages[0].severity).toEqual("error");
+    const line: FileLine = actionsReferenceLineWithIgnore;
+    const messages = await subject.validateLine(line);
+    expect(messages.length).toEqual(1);
+    expect(messages[0].message).toEqual(`new ignore comment found`);
+    expect(messages[0].severity).toEqual("error");
   });
 
   it("should error with added ignore", async () => {
     const subject = new IgnoresCommentValidation();
-
-    const simpleChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [jobLine, actionsRunnerLineWithIgnore],
-    };
-
-    const result = await subject.validate(simpleChanges);
-    const lineValidationsWithErrors = result.lineValidations.filter(
-      (lv) => lv.messages.length > 0,
-    );
-    expect(lineValidationsWithErrors.length).toEqual(1);
-
-    const lineValidation = lineValidationsWithErrors[0];
-    expect(lineValidation.line.lineNumber).toEqual(
-      simpleChanges.lines[1].lineNumber,
-    );
-    expect(lineValidation.messages.length).toEqual(1);
-    expect(lineValidation.messages[0].message).toEqual(
-      `new ignore comment found`,
-    );
-    expect(lineValidation.messages[0].severity).toEqual("error");
+    const line: FileLine = actionsRunnerLineWithIgnore;
+    const messages = await subject.validateLine(line);
+    expect(messages.length).toEqual(1);
+    expect(messages[0].message).toEqual(`new ignore comment found`);
+    expect(messages[0].severity).toEqual("error");
   });
 });

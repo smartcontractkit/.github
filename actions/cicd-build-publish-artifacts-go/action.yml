@@ -91,6 +91,10 @@ inputs:
   goreleaser-key:
     description: ""
     required: false
+  goreleaser-workdir:
+    description: ""
+    required: false
+    default: "."
   # zig inputs
   use-zig:
     description: ""
@@ -100,32 +104,13 @@ inputs:
     description: ""
     required: false
     default: "0.10.1"
-  # grafana inputs (optional)
-  metrics-job-name:
-    description: "grafana metrics job name"
-    required: false
-  metrics-id:
-    description:
-      "grafana metrics id, used for continuity of metrics during job name
-      changes - required if metrics-job-name is passed"
-    required: false
-  gc-host:
-    description: "grafana hostname - required if metrics-job-name is passed"
-    required: false
-  gc-basic-auth:
-    description: "grafana basic auth - required if metrics-job-name is passed"
-    required: false
-  gc-org-id:
-    description:
-      "grafana org/tenant id - required if metrics-job-name is passed"
-    required: false
 
 runs:
   using: composite
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      uses: actions/checkout@v4
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
         ref: ${{ inputs.checkout-ref }}
@@ -155,7 +140,7 @@ runs:
           "https://github.com/"
 
     - name: Setup go
-      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+      uses: actions/setup-go@v5
       with:
         go-version-file: ${{ inputs.go-version-file }}
         cache: ${{ inputs.use-go-cache }}
@@ -215,26 +200,15 @@ runs:
         GITHUB_TOKEN: ${{ github.token }} # ${{ steps.get-gh-token.outputs.access-token }}
 
     - name: Run goreleaser release
-      uses: goreleaser/goreleaser-action@5742e2a039330cbb23ebf35f046f814d4c6ff811 # v5.1.0
+      uses: goreleaser/goreleaser-action@90a3faa9d0182683851fbfa97ca1a2cb983bfca3 # v6.2.1
       with:
         version: ${{ inputs.goreleaser-version }}
         distribution: ${{ inputs.goreleaser-dist }}
         args: release ${{ inputs.goreleaser-args }} --clean
+        workdir: ${{ inputs.goreleaser-workdir }}
       env:
         IMAGE_REPO: ${{ steps.process-params.outputs.image-repo }}
         IMAGE_TAG: ${{ inputs.docker-image-tag }}
         GORELEASER_KEY: ${{ inputs.goreleaser-key }}
         GITHUB_TOKEN: ${{ github.token }} # ${{ steps.get-gh-token.outputs.access-token }}
         ZIG_EXEC: ${{ steps.process-params.outputs.zig-exec }}
-
-    - name: Collect metrics
-      if: always() && inputs.metrics-job-name != ''
-      id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-      with:
-        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
-        basic-auth: ${{ inputs.gc-basic-auth }}
-        hostname: ${{ inputs.gc-host }}
-        org-id: ${{ inputs.gc-org-id}}
-        this-job-name: ${{ inputs.metrics-job-name }}
-      continue-on-error: true

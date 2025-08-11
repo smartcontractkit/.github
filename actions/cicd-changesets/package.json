@@ -1,6 +1,6 @@
 {
   "name": "cicd-changesets",
-  "version": "0.3.4",
+  "version": "1.1.2",
   "description": "changesets",
   "private": true,
   "scripts": {},

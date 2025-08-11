@@ -1,5 +1,96 @@
 # cicd-changesets
 
+## 1.1.2
+
+### Patch Changes
+
+- [#1071](https://github.com/smartcontractkit/.github/pull/1071)
+  [`74e0d7d`](https://github.com/smartcontractkit/.github/commit/74e0d7dd554230852b7b7a9037ab4269a463da70)
+  Thanks [@chainchad](https://github.com/chainchad)! - Use latest changesets
+  action with fix to scoped package names
+
+## 1.1.1
+
+### Patch Changes
+
+- [#1066](https://github.com/smartcontractkit/.github/pull/1066)
+  [`762b619`](https://github.com/smartcontractkit/.github/commit/762b61909a8bbf032b013474540b2bab10849d48)
+  Thanks [@chainchad](https://github.com/chainchad)! - Update dependency for
+  changesets signed commits action
+
+## 1.1.0
+
+### Minor Changes
+
+- [#1022](https://github.com/smartcontractkit/.github/pull/1022)
+  [`e663727`](https://github.com/smartcontractkit/.github/commit/e6637277f985dc4e37a7dd4edcc7e4519d96afcb)
+  Thanks [@chainchad](https://github.com/chainchad)! - Bump default version of
+  pnpm to 10
+
+## 1.0.0
+
+### Major Changes
+
+- [#966](https://github.com/smartcontractkit/.github/pull/966)
+  [`eeb76b5`](https://github.com/smartcontractkit/.github/commit/eeb76b5870e3c17856d5a60fd064a053c023b5f5)
+  Thanks [@erikburt](https://github.com/erikburt)! - - Bumping major version to
+  create 1.0.0 release. This release in itself is non-breaking major version
+  bump.
+  - Note: previous 0.x minor version bumps may have included breaking changes.
+    If you were already fully up-to-date before this version bump, then it's ok
+    to upgrade.
+
+## 0.3.9
+
+### Patch Changes
+
+- [#962](https://github.com/smartcontractkit/.github/pull/962)
+  [`4381a1e`](https://github.com/smartcontractkit/.github/commit/4381a1ef1956ff6153952eb19d3a84615f57ab95)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump
+  changesets-signed-commits version, pass through optional parameter
+  changesets-major-version-tags
+
+## 0.3.8
+
+### Patch Changes
+
+- [#922](https://github.com/smartcontractkit/.github/pull/922)
+  [`ced0b32`](https://github.com/smartcontractkit/.github/commit/ced0b32325f63b17612babca89f44dcef5045d9c)
+  Thanks [@erikburt](https://github.com/erikburt)! - deps: bump
+  changesets-signed-commits to v1.4.0
+
+## 0.3.7
+
+### Patch Changes
+
+- [#919](https://github.com/smartcontractkit/.github/pull/919)
+  [`c2b68a1`](https://github.com/smartcontractkit/.github/commit/c2b68a1fea6b10827dbdbb77a48c5544cbb129e0)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: allow for custom git
+  tag separators in monorepos
+
+## 0.3.6
+
+### Patch Changes
+
+- [#855](https://github.com/smartcontractkit/.github/pull/855)
+  [`18a8a89`](https://github.com/smartcontractkit/.github/commit/18a8a89b23006355003b705d55acaf329c384d94)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: pin actions/\*
+  dependencies to major version tag
+
+## 0.3.5
+
+### Patch Changes
+
+- [#663](https://github.com/smartcontractkit/.github/pull/663)
+  [`dca9ab8`](https://github.com/smartcontractkit/.github/commit/dca9ab89d734e82738b8aa52bd25d09b205ec6ee)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: remove metrics
+  inputs and step (push-gha-metrics-action)
+
+- [#664](https://github.com/smartcontractkit/.github/pull/664)
+  [`c4705bf`](https://github.com/smartcontractkit/.github/commit/c4705bfdbf6c8e57c080d82a3c4f013aa96a2dfb)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump actions/\*
+  references to latest version
+
 ## 0.3.4
 
 ### Patch Changes

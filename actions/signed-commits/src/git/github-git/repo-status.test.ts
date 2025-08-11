@@ -5,7 +5,7 @@ import {
 } from "./repo-status";
 import { execSync } from "child_process";
 import * as fs from "fs";
-import { createRepo } from "./utilts.testutils";
+import { createRepo } from "./utils.testutils";
 
 import { describe, it, expect } from "vitest";
 

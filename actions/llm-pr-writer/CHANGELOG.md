@@ -1,5 +1,53 @@
 # llm-pr-writer
 
+## 0.7.0
+
+### Minor Changes
+
+- [#1027](https://github.com/smartcontractkit/.github/pull/1027)
+  [`2ba16f3`](https://github.com/smartcontractkit/.github/commit/2ba16f39ae332105da20468e8855685ae2483a1e)
+  Thanks [@kalanyuz](https://github.com/kalanyuz)! - bump model version to
+  o4-mini
+
+## 0.6.0
+
+### Minor Changes
+
+- [#952](https://github.com/smartcontractkit/.github/pull/952)
+  [`c7a8eb5`](https://github.com/smartcontractkit/.github/commit/c7a8eb5856479cd4c8b66e5fd3421f430d2c7649)
+  Thanks [@kalanyuz](https://github.com/kalanyuz)! - Add o3 mini support +
+  prompt adjustment
+
+## 0.5.1
+
+### Patch Changes
+
+- [#855](https://github.com/smartcontractkit/.github/pull/855)
+  [`18a8a89`](https://github.com/smartcontractkit/.github/commit/18a8a89b23006355003b705d55acaf329c384d94)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: pin actions/\*
+  dependencies to major version tag
+
+## 0.5.0
+
+### Minor Changes
+
+- [#666](https://github.com/smartcontractkit/.github/pull/666)
+  [`b565920`](https://github.com/smartcontractkit/.github/commit/b565920d0948d70a74c9555791ecff002924af4d)
+  Thanks [@kalanyuz](https://github.com/kalanyuz)! - update default model +
+  improve format consistencies
+
+### Patch Changes
+
+- [#663](https://github.com/smartcontractkit/.github/pull/663)
+  [`dca9ab8`](https://github.com/smartcontractkit/.github/commit/dca9ab89d734e82738b8aa52bd25d09b205ec6ee)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: remove metrics
+  inputs and step (push-gha-metrics-action)
+
+- [#664](https://github.com/smartcontractkit/.github/pull/664)
+  [`c4705bf`](https://github.com/smartcontractkit/.github/commit/c4705bfdbf6c8e57c080d82a3c4f013aa96a2dfb)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump actions/\*
+  references to latest version
+
 ## 0.4.1
 
 ### Patch Changes

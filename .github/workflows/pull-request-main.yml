@@ -11,54 +11,45 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: ci-lint
         uses: ./actions/ci-lint-ts
         with:
           # general inputs
           checkout-repo: "false"
-          # grafana inputs
-          metrics-job-name: ci-lint
-          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
-          pnpm-version: "^9.0.0"
+          pnpm-version: "^10.0.0"
 
   ci-prettier:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: ci-prettier
         uses: ./actions/ci-prettier
         with:
           # general inputs
           checkout-repo: "false"
-          # grafana inputs
-          metrics-job-name: ci-prettier
-          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
-          pnpm-version: "^9.0.0"
+          pnpm-version: "^10.0.0"
 
   ci-lint-misc:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: ci-lint-misc
         uses: ./actions/ci-lint-misc
         with:
           # general inputs
           checkout-repo: "false"
-          # grafana inputs
-          metrics-job-name: ci-lint-misc
-          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
 
   cd-signed-commits:
     # Disable this job until it's updated to be:
@@ -68,16 +59,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
         with:
           # Commit back any changes based on the commit that triggered this action
           # rather than merge commit of main into the PR branch
           ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
 
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
         with:
-          pnpm-version: "^9.0.0"
+          pnpm-version: "^10.0.0"
 
       - name: Build signed-commits
         run: pnpm nx run signed-commits:build
@@ -95,12 +87,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
         with:
-          pnpm-version: "^9.0.0"
+          pnpm-version: "^10.0.0"
 
       - name: Run tests for signed-commits
         run: pnpm nx run signed-commits:test
@@ -109,48 +103,44 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: ci-test
         uses: ./actions/ci-test-ts
         with:
           # general inputs
           checkout-repo: "false"
-          # grafana inputs
-          metrics-job-name: ci-test
-          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
-          pnpm-version: "^9.0.0"
+          pnpm-version: "^10.0.0"
 
   ci-build-artifacts:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: ci-build-artifacts
         uses: ./actions/cicd-build-publish-artifacts-ts
         with:
           # general inputs
           checkout-repo: "false"
-          # grafana inputs
-          metrics-job-name: ci-build-artifacts
-          gc-basic-auth: ${{ secrets.GRAFANA_INTERNAL_BASIC_AUTH }}
-          gc-host: ${{ secrets.GRAFANA_INTERNAL_HOST }}
-          gc-org-id: ${{ secrets.GRAFANA_INTERNAL_TENANT_ID }}
-          pnpm-version: "^9.0.0"
+          pnpm-version: "^10.0.0"
 
   ci-actions-dependencies-updater:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
         with:
-          pnpm-version: "^9.0.0"
+          pnpm-version: "^10.0.0"
 
       - name: Run typecheck for actions-dependencies-updater
         shell: bash
@@ -164,12 +154,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
         with:
-          pnpm-version: "^9.0.0"
+          pnpm-version: "^10.0.0"
 
       - name: Run build for gha-workflow-validator
         shell: bash
@@ -178,16 +170,3 @@ jobs:
       - name: Run unit tests for gha-workflow-validator
         shell: bash
         run: pnpm nx run gha-workflow-validator:test
-
-  validate-worfklow-changes:
-    permissions:
-      contents: read
-      pull-requests: write
-    runs-on: ubuntu-latest
-    steps:
-      - name: GHA Workflow Validator
-        uses: smartcontractkit/.github/actions/gha-workflow-validator@d316f66b2990ea4daa479daa3de6fc92b00f863e # gha-workflow-validator@0.2.0
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          include-all-action-definitions: true

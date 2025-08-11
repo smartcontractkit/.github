@@ -1,0 +1,230 @@
+name: build-push-docker-manifest
+description: |
+  Reusable action to create docker manifest for multi-platform. Use this after
+  the `build-push-docker` action to create and push the manifest.
+inputs:
+  cosign-oidc-identity-regexp:
+    description: |
+      > The identity expected in a valid Fulcio certificate.
+
+      NOTE: Always prefix this with a `^` to match the start of the string
+      and end with a `$` to match the end of the string for security.
+
+      This is used to verify the cosigned image.
+
+      Accepts the Go regular expression syntax described at:
+      https://github.com/google/re2/wiki/Syntax.
+
+      If this action is used in a reusable workflow, the identity will be the
+      reusable workflow itself and not the calling workflow.
+
+      Examples:
+        - ^https://github.com/smartcontractkit/chainlink/.github/.github/workflows/.*$
+        - ^https://github.com/smartcontractkit/.*$
+    required: false
+  cosign-oidc-issuer:
+    description: "OIDC issuer for cosign"
+    required: false
+    default: "https://token.actions.githubusercontent.com"
+  docker-manifest-sign:
+    required: false
+    description: "Sign the docker manifest"
+    default: "true"
+  docker-manifest-tag:
+    required: true
+    description: "Tag for the docker manifest"
+  docker-registry-url:
+    required: true
+    description: |
+      Hostname for the docker image registry.
+
+      Example:
+        public.ecr.aws
+  docker-repository-name:
+    required: true
+    description: |
+      Name of the Docker repository excluding hostname. Excludes any tags. Public ECR's will include a registry alias and a forward slash.
+
+      Example:
+        chainlink/chainlink # Public ECR
+        chainlink/ccip # Public ECR
+        my-repo-name # Private ECR
+  docker-image-name-digests:
+    required: true
+    description: |
+      Docker sha digests which will become added to this manifest. Comma separated list.
+
+      Example:
+       sha256:abc123,sha256:def456
+  github-workflow-repository:
+    required: false
+    description: |
+      The repository for the GitHub Actions workflow. Format is `owner/repo`.
+
+      This is used to verify the cosigned image.
+
+      Set this if the action is used in a reusable workflow.
+
+      Example:
+        smartcontractkit/chainlink
+    default: ${{ github.repository }}
+  # aws inputs
+  aws-region:
+    description: "AWS region for ECR. For public images, use: us-east-1"
+    required: false
+    default: "us-east-1"
+  aws-account-number:
+    description: "AWS account number for the ECR registry."
+    required: true
+  aws-role-arn:
+    description: "AWS role ARN with permissions to push ECR images."
+    required: true
+
+outputs:
+  manifest-digest:
+    description: "Docker @sha256:<sha> digest."
+    value: ${{ steps.create-push-docker-manifest.outputs.manifest-digest }}
+  manifest-tag:
+    description: "Docker manifest tag."
+    value: ${{ inputs.docker-manifest-tag }}
+  manifest-name:
+    description: "Docker manifest name."
+    value: ${{ steps.create-push-docker-manifest.outputs.manifest-name }}
+  manifest-name-with-digest:
+    description: "Docker manifest name with digest."
+    value:
+      ${{ steps.create-push-docker-manifest.outputs.manifest-name-with-digest }}
+  manifest-name-with-tag:
+    description: "Docker manifest name with tag."
+    value:
+      ${{ steps.create-push-docker-manifest.outputs.manifest-name-with-tag }}
+
+runs:
+  using: composite
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        role-duration-seconds: 900
+        aws-region: ${{ inputs.aws-region }}
+        mask-aws-account-id: true
+
+    - name: Login to ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      with:
+        registry-type: >-
+          ${{
+            startsWith(inputs.docker-registry-url, 'public.ecr.aws') &&
+          'public'
+              || 'private'
+          }}
+        registries: ${{ inputs.aws-account-number }}
+
+    - name: Create and push Docker manifest
+      id: create-push-docker-manifest
+      shell: bash
+      env:
+        DOCKER_MANIFEST_NAME: >-
+          ${{
+            format(
+              '{0}/{1}',
+              inputs.docker-registry-url,
+              inputs.docker-repository-name
+            )
+          }}
+        DOCKER_MANIFEST_TAG: ${{ inputs.docker-manifest-tag }}
+        DOCKER_REGISTRY_URL: ${{ inputs.docker-registry-url }}
+        DOCKER_REPOSITORY_NAME: ${{ inputs.docker-repository-name }}
+        DOCKER_IMAGE_NAME_DIGESTS: ${{ inputs.docker-image-name-digests }}
+      run: |
+        DOCKER_MANIFEST_NAME_WITH_TAG="${DOCKER_MANIFEST_NAME}:${DOCKER_MANIFEST_TAG}"
+        # Convert comma-separated list into array and pass as separate arguments
+        IFS=',' read -ra DIGESTS <<< "$DOCKER_IMAGE_NAME_DIGESTS"
+        # Map each digest to include the manifest name
+        PREFIXED_DIGESTS=()
+        for digest in "${DIGESTS[@]}"; do
+          PREFIXED_DIGESTS+=("${DOCKER_MANIFEST_NAME}@${digest}")
+        done
+        docker buildx imagetools create --tag "${DOCKER_MANIFEST_NAME_WITH_TAG}" "${PREFIXED_DIGESTS[@]}"
+
+        # Get manifest digest (format: sha256:hash)
+        MANIFEST_DIGEST=$(docker buildx imagetools inspect "${DOCKER_MANIFEST_NAME_WITH_TAG}" | grep -m1 'Digest:' | awk '{print $2}')
+        echo "manifest-digest=${MANIFEST_DIGEST}" | tee -a "${GITHUB_OUTPUT}"
+        echo "manifest-name=${DOCKER_MANIFEST_NAME}" | tee -a "${GITHUB_OUTPUT}"
+        echo "manifest-name-with-digest=${DOCKER_MANIFEST_NAME}@${MANIFEST_DIGEST}" | tee -a "${GITHUB_OUTPUT}"
+        echo "manifest-name-with-tag=${DOCKER_MANIFEST_NAME_WITH_TAG}" | tee -a "${GITHUB_OUTPUT}"
+
+    - name: Install cosign
+      if: inputs.docker-manifest-sign == 'true'
+      uses: sigstore/cosign-installer@c56c2d3e59e4281cc41dea2217323ba5694b171e # v3.8.0
+      with:
+        cosign-release: "v2.4.2"
+
+    - name: Sign Docker Manifest using GH OIDC
+      if: inputs.docker-manifest-sign == 'true'
+      shell: sh
+      env:
+        MANIFEST_NAME_WITH_DIGEST:
+          ${{
+          steps.create-push-docker-manifest.outputs.manifest-name-with-digest }}
+      run: cosign sign "${MANIFEST_NAME_WITH_DIGEST}" --yes
+
+    - name: Verify Docker image signature
+      if:
+        inputs.docker-manifest-sign == 'true' &&
+        inputs.cosign-oidc-identity-regexp != ''
+      shell: sh
+      env:
+        MANIFEST_NAME_WITH_DIGEST: >-
+          ${{
+            steps.create-push-docker-manifest.outputs.manifest-name-with-digest
+          }}
+        GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
+        OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
+        OIDC_IDENTITY_REGEXP: ${{ inputs.cosign-oidc-identity-regexp }}
+      run: |
+        cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
+          --certificate-oidc-issuer "${OIDC_ISSUER}" \
+          --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
+          --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}"
+
+    - name: Summary output
+      shell: bash
+      env:
+        DOCKER_MANIFEST_SIGNED: ${{ inputs.docker-manifest-sign }}
+        GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
+        MANIFEST_DIGEST:
+          ${{ steps.create-push-docker-manifest.outputs.manifest-digest }}
+        MANIFEST_NAME:
+          ${{ steps.create-push-docker-manifest.outputs.manifest-name}}
+        MANIFEST_NAME_WITH_DIGEST: >-
+          ${{
+            steps.create-push-docker-manifest.outputs.manifest-name-with-digest
+          }}
+        MANIFEST_NAME_WITH_TAG: >-
+          ${{
+            steps.create-push-docker-manifest.outputs.manifest-name-with-tag
+          }}
+        MANIFEST_TAG: ${{ inputs.docker-manifest-tag }}
+        OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
+        OIDC_IDENTITY_REGEXP: ${{ inputs.cosign-oidc-identity-regexp }}
+      run: |
+        echo "### Docker Manifest 📒" | tee -a "${GITHUB_STEP_SUMMARY}"
+        echo >> "${GITHUB_STEP_SUMMARY}"
+        echo "Manifest digest: \`${MANIFEST_DIGEST}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
+        echo "Manifest name: \`${MANIFEST_NAME}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
+        echo "Manifest tag: \`${MANIFEST_TAG}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
+        echo "Manifest name with tag: \`${MANIFEST_NAME_WITH_TAG}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
+        echo "Manifest name with digest: \`${MANIFEST_NAME_WITH_DIGEST}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
+        if [[ "${DOCKER_MANIFEST_SIGNED}" == 'true' ]]; then
+          echo >> "${GITHUB_STEP_SUMMARY}"
+          echo "#### Docker Manifest signed 📝" | tee -a "${GITHUB_STEP_SUMMARY}"
+          echo "Manifest signed with cosign. To verify, run:" | tee -a "${GITHUB_STEP_SUMMARY}"
+          echo "\`\`\`shell" >> "${GITHUB_STEP_SUMMARY}"
+          echo "cosign verify ${MANIFEST_NAME_WITH_DIGEST} --certificate-oidc-issuer ${OIDC_ISSUER} --certificate-identity-regexp '${OIDC_IDENTITY_REGEXP}' --certificate-github-workflow-repository ${GITHUB_WORKFLOW_REPOSITORY}" | tee -a "${GITHUB_STEP_SUMMARY}"
+          echo "\`\`\`" >> "${GITHUB_STEP_SUMMARY}"
+        fi
+        echo >> "${GITHUB_STEP_SUMMARY}"
+        echo "⚠️ **NOTE:** Above output may be masked if using private registries. You may need to fill in the blanks." | tee -a "${GITHUB_STEP_SUMMARY}"

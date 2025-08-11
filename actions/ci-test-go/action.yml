@@ -92,32 +92,13 @@ inputs:
     description: ""
     required: false
     default: "."
-  # grafana inputs (optional)
-  metrics-job-name:
-    description: "grafana metrics job name"
-    required: false
-  metrics-id:
-    description:
-      "grafana metrics id, used for continuity of metrics during job name
-      changes - required if metrics-job-name is passed"
-    required: false
-  gc-host:
-    description: "grafana hostname - required if metrics-job-name is passed"
-    required: false
-  gc-basic-auth:
-    description: "grafana basic auth - required if metrics-job-name is passed"
-    required: false
-  gc-org-id:
-    description:
-      "grafana org/tenant id - required if metrics-job-name is passed"
-    required: false
 
 runs:
   using: composite
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      uses: actions/checkout@v4
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
@@ -158,7 +139,7 @@ runs:
       working-directory: ${{ inputs.docker-compose-workdir }}
 
     - name: Setup go
-      uses: smartcontractkit/.github/actions/setup-golang@c5e1a1a754f459440b084c6661538b8635dcb33a # setup-golang@0.2.0
+      uses: smartcontractkit/.github/actions/setup-golang@setup-golang/0.3.2
       with:
         go-version-file: ${{ inputs.go-version-file }}
         use-go-cache: ${{ inputs.use-go-cache }}
@@ -182,7 +163,7 @@ runs:
 
     - name: Store test report artifacts
       if: always()
-      uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
+      uses: actions/upload-artifact@v4
       with:
         name: go-test-results
         path: |
@@ -191,19 +172,7 @@ runs:
 
     - name: Store race coverage report
       if: ${{ inputs.enable-go-test-race == 'true' }}
-      uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
+      uses: actions/upload-artifact@v4
       with:
         name: go-test-race-results
         path: race/*.txt
-
-    - name: Collect metrics
-      if: always() && inputs.metrics-job-name != ''
-      id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-      with:
-        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
-        basic-auth: ${{ inputs.gc-basic-auth }}
-        hostname: ${{ inputs.gc-host }}
-        org-id: ${{ inputs.gc-org-id}}
-        this-job-name: ${{ inputs.metrics-job-name }}
-      continue-on-error: true

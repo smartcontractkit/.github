@@ -17,7 +17,11 @@ pnpm-lock.yaml
 yarn.lock
 /apps/go-mod-validator/test/__fixtures__/
 /.nx/cache
+/.changeset/
 
 # Don't LLM format prompt files
 /actions/llm-pr-writer/pr-writer-prompt.md
 /actions/llm-action-error-reporter/log-analyze-prompt.md
+
+# GQL generated type files
+**/src/generated/graphql.ts

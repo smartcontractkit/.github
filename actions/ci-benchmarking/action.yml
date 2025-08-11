@@ -27,7 +27,7 @@ inputs:
     description:
       "Flag to enable publishing results to GitHub Pages (true or false)"
     required: false
-    default: false
+    default: "false"
 
   github-token:
     description:
@@ -53,22 +53,26 @@ runs:
   using: "composite"
   steps:
     - name: Checkout Code
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      uses: actions/checkout@v4
 
     - name: Setup Go Environment
-      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+      uses: actions/setup-go@v5
       with:
         go-version: "stable"
 
     - name: Analyze GitHub Event
+      env:
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
+        GITHUB_REF_NAME: ${{ github.ref_name }}
+        TRIGGER_BRANCHES: ${{ inputs.trigger-branches }}
       id: analyze-event
       run: |
-        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+        if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
           echo "IS_MERGE=false" >> $GITHUB_ENV
           echo "IS_PR=true" >> $GITHUB_ENV
         elif [[ "${{ github.event_name }}" == "push" ]]; then
-          TRIGGER_BRANCHES="${{ inputs.trigger-branches }}"
-          if [[ "$TRIGGER_BRANCHES" == *"${{ github.ref_name }}"* ]]; then
+          TRIGGER_BRANCHES="${TRIGGER_BRANCHES}"
+          if [[ "$TRIGGER_BRANCHES" == *"${GITHUB_REF_NAME}"* ]]; then
             echo "IS_MERGE=true" >> $GITHUB_ENV
             echo "IS_PR=false" >> $GITHUB_ENV
           else
@@ -83,11 +87,16 @@ runs:
 
     - name: Determine Benchmarks to Run
       id: set-benchmarks
+      env:
+        BENCHMARKS_PR: ${{ inputs.benchmarks-pr }}
+        BENCHMARKS_MERGE: ${{ inputs.benchmarks-merge }}
+        PULL_REQUEST_BODY: ${{ github.event.pull_request.body }}
+        IS_PR: ${{ env.IS_PR }}
       run: |
-        if [[ "${{ inputs.benchmarks-pr }}" == "from-pr" && ${{ env.IS_PR }} == "true" ]]; then
-          BENCHMARKS=$(echo '${{ github.event.pull_request.body }}' | sed -n -e 's/^.*BENCHMARKS: //p')
+        if [[ "${BENCHMARKS_PR}" == "from-pr" && "${IS_PR}" == "true" ]]; then
+          BENCHMARKS=$(echo "${PULL_REQUEST_BODY}" | sed -n -e 's/^.*BENCHMARKS: //p')
         else
-          BENCHMARKS=${{ inputs.benchmarks-merge }}
+          BENCHMARKS=${BENCHMARKS_MERGE}
         fi
         echo "BENCHMARKS=$BENCHMARKS" >> $GITHUB_ENV
       shell: bash
@@ -100,7 +109,7 @@ runs:
 
     - name: Download Previous Benchmark Data
       if: ${{ env.IS_PR == 'true' || env.IS_MERGE == 'true' }}
-      uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      uses: actions/cache@v4
       with:
         path: ./cache
         key: ${{ runner.os }}-benchmark
@@ -132,7 +141,7 @@ runs:
 
     - name: Upload Updated Benchmark Data
       if: ${{ env.IS_MERGE == 'true' }}
-      uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      uses: actions/cache@v4
       with:
         path: ./cache
         key: ${{ runner.os }}-benchmark

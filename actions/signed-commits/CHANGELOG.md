@@ -1,5 +1,57 @@
 # changesets-signed-commits
 
+## 1.7.1
+
+### Patch Changes
+
+- [#1042](https://github.com/smartcontractkit/.github/pull/1042)
+  [`29c7cf2`](https://github.com/smartcontractkit/.github/commit/29c7cf2f07b2280c7ca2e04883b2b32b5d0d9972)
+  Thanks [@chainchad](https://github.com/chainchad)! - Update to patched version
+  of vitest
+
+## 1.7.0
+
+### Minor Changes
+
+- [#1069](https://github.com/smartcontractkit/.github/pull/1069)
+  [`5dbee42`](https://github.com/smartcontractkit/.github/commit/5dbee425073faf71d4aaad45e43a436d9498db92)
+  Thanks [@chainchad](https://github.com/chainchad)! - Support scoped name
+  package git tags
+
+## 1.6.0
+
+### Minor Changes
+
+- [#1059](https://github.com/smartcontractkit/.github/pull/1059)
+  [`53922da`](https://github.com/smartcontractkit/.github/commit/53922da1e74d5047320d49bd4ab584ed4a7f78cf)
+  Thanks [@chainchad](https://github.com/chainchad)! - Support a designated root
+  package to use a git tag without package name prefix
+
+## 1.5.0
+
+### Minor Changes
+
+- [#930](https://github.com/smartcontractkit/.github/pull/930)
+  [`bd234dd`](https://github.com/smartcontractkit/.github/commit/bd234dd67841664df423d72cffad5be8406c97a5)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: support adding
+  mutable major version tags during releases
+
+### Patch Changes
+
+- [#961](https://github.com/smartcontractkit/.github/pull/961)
+  [`b5e9e77`](https://github.com/smartcontractkit/.github/commit/b5e9e773ff620507a60f2c1d0621087b8258d871)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: support /v tag
+  separator
+
+## 1.4.0
+
+### Minor Changes
+
+- [#919](https://github.com/smartcontractkit/.github/pull/919)
+  [`c2b68a1`](https://github.com/smartcontractkit/.github/commit/c2b68a1fea6b10827dbdbb77a48c5544cbb129e0)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: allow for custom git
+  tag separators in monorepos
+
 ## 1.3.0
 
 ### Minor Changes

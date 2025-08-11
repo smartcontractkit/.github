@@ -2,12 +2,8 @@ import {
   ActionsRunnerValidation,
   extractActionRunnerFromLine,
 } from "../validations/actions-runner-validations.js";
-import { FileLine, ParsedFile } from "../utils.js";
-import { getNock } from "./__helpers__/test-utils.js";
-
+import { FileLine, ParsedFile } from "../parse-files.js";
 import { vi, describe, it, expect } from "vitest";
-
-const nockBack = getNock();
 
 vi.mock("@actions/core", async () => {
   return (await import("./__helpers__/test-utils.js")).coreLoggingStubs();
@@ -56,69 +52,28 @@ const actionsRunnerLineMacOsUpgraded: FileLine = {
 };
 
 describe(ActionsRunnerValidation.name, () => {
-  it("should validate no changes", async () => {
-    const subject = new ActionsRunnerValidation();
-    const result = await subject.validate({
-      filename: "foo.yml",
-      lines: [],
-    });
-    expect(result).toEqual({ filename: "foo.yml", lineValidations: [] });
-  });
-
   it("should validate no runner changes", async () => {
     const subject = new ActionsRunnerValidation();
-    const noWorkflowChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [
-        { lineNumber: 1, content: "line 1", operation: "add", ignored: false },
-        { lineNumber: 2, content: "line 2", operation: "add", ignored: false },
-      ],
-    };
-    const result = await subject.validate(noWorkflowChanges);
-    expect(result).toEqual({
-      filename: ".github/workflows/test.yml",
-      lineValidations: [],
-    });
+    const messages = await subject.validateLine(jobLine);
+    expect(messages).toEqual([]);
   });
 
   it("should validate allowed runner", async () => {
     const subject = new ActionsRunnerValidation();
-
-    const simpleChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [jobLine, actionsRunnerLineDefault],
-    };
-
-    const result = await subject.validate(simpleChanges);
-    expect(result).toEqual({
-      filename: ".github/workflows/test.yml",
-      lineValidations: [],
-    });
+    const messages = await subject.validateLine(actionsRunnerLineDefault);
+    expect(messages).toEqual([]);
   });
 
   it("should error on upgraded runner", async () => {
     const subject = new ActionsRunnerValidation();
-
-    const simpleChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [jobLine, actionsRunnerLineUbuntuUpgraded],
-    };
-
-    const result = await subject.validate(simpleChanges);
-    const lineValidationsWithErrors = result.lineValidations.filter(
-      (lv) => lv.messages.length > 0,
+    const messages = await subject.validateLine(
+      actionsRunnerLineUbuntuUpgraded,
     );
-    expect(lineValidationsWithErrors.length).toEqual(1);
-
-    const lineValidation = lineValidationsWithErrors[0];
-    expect(lineValidation.line.lineNumber).toEqual(
-      simpleChanges.lines[1].lineNumber,
-    );
-    expect(lineValidation.messages.length).toEqual(1);
+    expect(messages.length).toEqual(1);
     expect(
-      lineValidation.messages[0].message.startsWith("This Ubuntu runner is"),
+      messages[0].message.startsWith("This Ubuntu runner is"),
     ).toBeTruthy();
-    expect(lineValidation.messages[0].severity).toEqual("error");
+    expect(messages[0].severity).toEqual("error");
   });
 
   it("should error on x-large runner", async () => {
@@ -129,61 +84,28 @@ describe(ActionsRunnerValidation.name, () => {
       lines: [jobLine, actionsRunnerLineUbuntuMaxSize],
     };
 
-    const result = await subject.validate(simpleChanges);
-    const lineValidationsWithErrors = result.lineValidations.filter(
-      (lv) => lv.messages.length > 0,
-    );
-    expect(lineValidationsWithErrors.length).toEqual(1);
-
-    const lineValidation = lineValidationsWithErrors[0];
-    expect(lineValidation.line.lineNumber).toEqual(
-      simpleChanges.lines[1].lineNumber,
-    );
-    expect(lineValidation.messages.length).toEqual(1);
+    const messages = await subject.validateLine(actionsRunnerLineUbuntuMaxSize);
+    expect(messages.length).toEqual(1);
     expect(
-      lineValidation.messages[0].message.startsWith("This Ubuntu runner is"),
+      messages[0].message.startsWith("This Ubuntu runner is"),
     ).toBeTruthy();
-    expect(lineValidation.messages[0].severity).toEqual("error");
+    expect(messages[0].severity).toEqual("error");
   });
 
   it("should not error on base macos runner", async () => {
     const subject = new ActionsRunnerValidation();
-
-    const simpleChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [jobLine, actionsRunnerLineMacOs],
-    };
-
-    const result = await subject.validate(simpleChanges);
-    const lineValidationsWithErrors = result.lineValidations.filter(
-      (lv) => lv.messages.length > 0,
-    );
-    expect(lineValidationsWithErrors.length).toEqual(0);
+    const messages = await subject.validateLine(actionsRunnerLineMacOs);
+    expect(messages).toEqual([]);
   });
 
   it("should error on upgraded macos runner", async () => {
     const subject = new ActionsRunnerValidation();
-
-    const simpleChanges: ParsedFile = {
-      filename: ".github/workflows/test.yml",
-      lines: [jobLine, actionsRunnerLineMacOsUpgraded],
-    };
-
-    const result = await subject.validate(simpleChanges);
-    const lineValidationsWithErrors = result.lineValidations.filter(
-      (lv) => lv.messages.length > 0,
-    );
-    expect(lineValidationsWithErrors.length).toEqual(1);
-
-    const lineValidation = lineValidationsWithErrors[0];
-    expect(lineValidation.line.lineNumber).toEqual(
-      simpleChanges.lines[1].lineNumber,
-    );
-    expect(lineValidation.messages.length).toEqual(1);
-    expect(lineValidation.messages[0].message).toEqual(
+    const messages = await subject.validateLine(actionsRunnerLineMacOsUpgraded);
+    expect(messages.length).toEqual(1);
+    expect(messages[0].message).toEqual(
       `MacOS actions runner can be up to 10x more expensive than Ubuntu runners. Consider using an Ubuntu runner or the base macOS runner.`,
     );
-    expect(lineValidation.messages[0].severity).toEqual("error");
+    expect(messages[0].severity).toEqual("error");
   });
 });
 

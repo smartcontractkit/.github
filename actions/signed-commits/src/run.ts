@@ -109,6 +109,9 @@ type PublishOptions = {
   script: string;
   githubToken: string;
   createGithubReleases: boolean;
+  tagSeparator: string;
+  createMajorVersionTags: boolean;
+  rootVersionPackagePath?: string;
   cwd?: string;
 };
 
@@ -127,8 +130,42 @@ export async function runPublish({
   script,
   githubToken,
   createGithubReleases,
+  tagSeparator,
+  createMajorVersionTags,
+  rootVersionPackagePath,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
+  // Validate root package configuration if rootVersionPackagePath is provided
+  let rootPackageInfo: { name: string; version: string } | undefined;
+  if (rootVersionPackagePath) {
+    const packageJsonPath = path.resolve(cwd, rootVersionPackagePath);
+
+    if (!(await fs.pathExists(packageJsonPath))) {
+      throw new Error(
+        `Root package path ${rootVersionPackagePath} does not exist`,
+      );
+    }
+
+    const packageJson = await fs.readJson(packageJsonPath);
+    const hasRootVersionFlag =
+      packageJson?.chainlink?.changesets?.rootVersion === true;
+
+    if (!hasRootVersionFlag) {
+      throw new Error(
+        `Package at ${rootVersionPackagePath} must have chainlink.changesets.rootVersion set to true to use simplified v<version> tags`,
+      );
+    }
+
+    rootPackageInfo = {
+      name: packageJson.name,
+      version: packageJson.version,
+    };
+
+    core.info(
+      `Root package configured: ${rootPackageInfo.name}@${rootPackageInfo.version} will use v<version> tags`,
+    );
+  }
+
   const octokit = setupOctokit(githubToken);
 
   let [publishCommand, ...publishArgs] = script.split(/\s+/);
@@ -139,7 +176,12 @@ export async function runPublish({
     { cwd },
   );
 
-  await githubGitUtils.pushTags();
+  await githubGitUtils.pushTags(
+    tagSeparator,
+    createMajorVersionTags,
+    cwd,
+    rootPackageInfo,
+  );
 
   let { packages, tool } = await getPackages(cwd);
   let releasedPackages: Package[] = [];
@@ -169,12 +211,19 @@ export async function runPublish({
 
     if (createGithubReleases) {
       await Promise.all(
-        releasedPackages.map((pkg) =>
-          createRelease(octokit, {
+        releasedPackages.map((pkg) => {
+          // Use simplified v<version> tag for root packages, otherwise use standard format
+          const isRootPackage =
+            rootPackageInfo && pkg.packageJson.name === rootPackageInfo.name;
+          const tagName = isRootPackage
+            ? `v${pkg.packageJson.version}`
+            : `${pkg.packageJson.name}${tagSeparator}${pkg.packageJson.version}`;
+
+          return createRelease(octokit, {
             pkg,
-            tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
-          }),
-        ),
+            tagName,
+          });
+        }),
       );
     }
   } else {
@@ -362,7 +411,8 @@ export async function runVersion({
   // on top. Unfortunately this means that the PR will be closed and reopened
   await localGitUtils.push(versionBranch, { force: true });
 
-  let versionsByDirectory = await getVersionsByDirectory(cwd);
+  // Get the versions of each package before we 'version' them. This allows us to diff the version bumps.
+  const versionsByDirectory = await getVersionsByDirectory(cwd);
 
   if (script) {
     let [versionCommand, ...versionArgs] = script.split(/\s+/);
@@ -377,7 +427,7 @@ export async function runVersion({
     });
   }
 
-  let changedPackages = await getChangedPackages(cwd, versionsByDirectory);
+  const changedPackages = await getChangedPackages(cwd, versionsByDirectory);
   let changedPackagesInfoPromises = Promise.all(
     changedPackages.map(async (pkg) => {
       let changelogContents = await fs.readFile(

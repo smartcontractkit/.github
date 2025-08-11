@@ -1,0 +1,61 @@
+name: go-conditional-tests
+description: "Filter, build, run affected Go tests"
+inputs:
+  pipeline-step:
+    description: |
+      The step of the pipeline to run. Can be one of:
+      - build: Build then hash all test binaries
+      - run: Compare test hashes and run affected tests ('build' must have been run first)
+      - update: Update the test index file ('run' must have been run first)
+      - e2e: Run all of the above as a single step
+    required: true
+
+  test-suite:
+    description: |
+      The name of the test suite, used to scope the test binary hash index.
+      Has no effect otherwise.
+    required: true
+
+  module-directory:
+    description: "Directory containing the go module"
+    required: true
+    default: "."
+
+  run-all-tests:
+    description: |
+      Ignore the difference between the current test indexes, and run all tests.
+    default: "false"
+
+  collect-coverage:
+    description: |
+      Collect coverage information for the tests. Required during both build and run steps.
+    default: "false"
+
+  build-flags:
+    description: "Flags to pass when running go test -c"
+    default: ""
+
+  hashes-branch:
+    description: |
+      Branch which contains the test-hashes.json file used for
+      comparing test hashes
+    default: "test-hashes"
+
+  build-concurrency:
+    description: |
+      Number of concurrent builds to run. Defaults to the number of CPU cores.
+    required: false
+
+  run-concurrency:
+    description: |
+      Number of concurrent test packages runs to run. Defaults to the number of CPU cores.
+    required: false
+
+  github-token:
+    description:
+      "Github token with read permissions on all smartcontractkit repos"
+    default: ${{ github.token }}
+
+runs:
+  using: "node20"
+  main: "dist/index.js"

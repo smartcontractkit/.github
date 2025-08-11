@@ -1,71 +1,26 @@
 name: setup-gap
-description: "setup github actions proxy"
+description: "Setup GitHub Actions Proxy (GAP)"
 
 inputs:
-  # general inputs
-  api-gateway-stage-name:
-    description: "The stage name for the target service on the AWS API GW."
-    required: false
-    default: "primary"
+  # General inputs
   gap-name:
     description:
       "The name of the GAP. Used in the dir name for self-signed certs and the
-      docker container name. Required if using multiple invocations of this in
-      the same job."
+      docker container name."
     required: false
-    default: execute-api
-  use-tls:
+    default: "default"
+  ca-cert-validity-days:
     description:
-      "Enable TLS for the local sigv4 proxy container. Ignored if `use-k8s:
-      true` as that input will automatically use TLS."
+      "The number of days the CA certificate is valid for. Defaults to 1."
     required: false
-    default: "false"
-  # aws sig4 proxy inputs
-  api-gateway-host:
-    description: |
-      The AWS API Gateway host for the target service.
-      Usually of the form <gateway id>.execute-api.<region>.amazonaws.com.
-    required: true
-  proxy-version:
+    default: "1"
+  cert-validity-days:
     description:
-      "The aws-sigv4-proxy image version / tag, if using the public ecr."
+      "The number of days the server certificate is valid for. Defaults to 1."
     required: false
-    default: "1.8"
-  proxy-port:
-    description: "The port the proxy will listen on. Defaults to 8080."
-    required: false
-    default: "8080"
-  duplicate-authorization-header:
-    description:
-      "Whether to duplicate the Authorization header to
-      X-Original-Authorization. Note this is only used by the public image, it
-      is on by default for the private image. Defaults to false."
-    required: false
-    default: "false"
-  # ecr inputs
-  use-private-ecr-registry:
-    description:
-      "Whether to use a private ECR registry to pull the aws-sigv4-proxy image.
-      Defaults to false."
-    required: false
-    default: "false"
-  ecr-private-registry:
-    description:
-      "The ECR registry (account id) for the aws-sigv4-proxy. Required if
-      use-private-ecr-registry is true."
-    required: false
-  ecr-private-image-tag:
-    description:
-      "The aws-sigv4-proxy image tag for the private ECR registry. Defaults to a
-      known tag."
-    required: false
-    default: "6cc1e6d2bce23c04aace47d26511ad65205975b8"
-  ecr-private-aws-region:
-    description:
-      "The region for the private ECR registry, if different from aws-region
-      input."
-    required: false
-  # aws role inputs
+    default: "1"
+
+  # AWS role inputs
   aws-role-duration-seconds:
     description:
       "The duration in seconds for the assumed role. Defaults to 900 (15
@@ -74,34 +29,16 @@ inputs:
     default: "900"
   aws-region:
     description:
-      "The AWS region for the api gateway and other resources unless specified
-      in other inputs"
+      "The AWS region for resources unless specified in other inputs."
     required: false
   aws-role-arn:
     description:
-      "The AWS role with API Gateway invoke permissions, ECR pull permissions
-      for aws-sigv4-proxy, and if for k8s then EKS describe permissions"
+      "The AWS role that grants the necessary permissions, including ECR pull
+      access for private repositories, and, if for Kubernetes, EKS describe
+      permissions."
     required: false
-  # argocd inputs
-  use-argocd:
-    description:
-      "Whether to setup GAP for communicating with argocd. Cannot be used with
-      use-k8s. Defaults to false."
-    required: false
-    default: "false"
-  argocd-version:
-    description: "The version of argocd to install. Defaults to 2.8.2."
-    required: false
-    default: "2.8.2"
-  argocd-user:
-    description:
-      "The username for argocd login. Required if use-argocd is true."
-    required: false
-  argocd-pass:
-    description:
-      "The password for argocd login. Required if use-argocd is true."
-    required: false
-  # k8s inputs
+
+  # Kubernetes inputs
   use-k8s:
     description:
       "Whether to setup GAP for communicating with K8s. Cannot be used with
@@ -115,30 +52,113 @@ inputs:
     description:
       "The region for the EKS cluster, if different from aws-region input."
     required: false
-  # grafana inputs (optional)
-  metrics-job-name:
-    description: "grafana metrics job name"
+  k8s-api-endpoint-port:
+    description: "The port number for accessing the Kubernetes API server."
     required: false
-  metrics-id:
+    default: "443"
+
+  # Local proxy inputs
+  enable-proxy-debug:
     description:
-      "grafana metrics id, used for continuity of metrics during job name
-      changes - required if metrics-job-name is passed"
+      "Enable or disable detailed Envoy proxy logs used for K8s API access. When
+      enabled, debug logs are generated locally, and container logs are streamed
+      to the console for troubleshooting."
     required: false
-  gc-host:
-    description: "grafana hostname - required if metrics-job-name is passed"
-    required: false
-  gc-basic-auth:
-    description: "grafana basic auth - required if metrics-job-name is passed"
-    required: false
-  gc-org-id:
+    default: "false"
+  github-oidc-token-header-name:
     description:
-      "grafana org/tenant id - required if metrics-job-name is passed"
+      "Specifies the name of the HTTP header used to pass the GitHub OIDC JWT
+      token. This header is automatically injected by the local proxy and must
+      not be the same as the default 'Authorization' header."
     required: false
+    default: "x-authorization-github-jwt"
+  envoy-proxy-image:
+    description: "Envoy Proxy image used to run Envoy proxy for GAP."
+    required: false
+    default: "envoyproxy/envoy:v1.33.0"
+  proxy-port:
+    description: "The port the proxy will listen on. Defaults to 8080."
+    required: false
+    default: "8080"
+  proxy-log-level:
+    description:
+      "The log level for the Envoy proxy. Controls the verbosity of logs
+      generated by Envoy. Common values include 'debug', 'info', 'warning',
+      'error', and 'critical'. Defaults to 'info'."
+    required: false
+    default: "info"
+  dynamic-proxy-port:
+    description:
+      "The port the dynamic proxy will listen on. Defaults to 443. It handles
+      most of the traffic, except for K8s and websockets."
+    required: false
+    default: "443"
+  main-dns-zone:
+    description:
+      "The DNS zone is used for exposing services. It is required when using the
+      dynamic local proxy to prevent sending requests and exposing sensitive
+      information to random external endpoints. This ensures that the dynamic
+      local proxy is used only for the specific DNS zone."
+    required: true
+  websockets-proxy-port:
+    description:
+      "Port number used by the listener for the local proxy of WebSocket
+      services."
+    default: "9443"
+    required: false
+  websockets-services:
+    description:
+      "List of service names to be configured in the local proxy for proper
+      handling of all required headers, including the JWT token. It should be a
+      comma-separated list, for example: 'gap-ws-echo,gap-ws-hello'. Note: If
+      you are using Crib, append the Devspace namespace name as the suffix in
+      the service name, e.g., 'gap-geth-${namespace-name},
+      gap-custom-ws-${namespace-name}'."
+    default: ""
+    required: false
+
+  auth-service-port:
+    description: "The port the auth service will listen on."
+    required: false
+    default: "9001"
+
+outputs:
+  local-proxy-port:
+    description: "The port the local proxy will listen on."
+    value: ${{ inputs.proxy-port }}
+  dynamic-proxy-port:
+    description: "The port the dynamic proxy will listen on."
+    value: ${{ inputs.dynamic-proxy-port }}
+  websockets-proxy-port:
+    description: "The port the WebSocket proxy will listen on."
+    value: ${{ inputs.websockets-proxy-port }}
 
 runs:
   using: composite
   steps:
+    - name: Validate inputs
+      shell: bash
+      env:
+        DYNAMIC_PROXY_PORT: ${{ inputs.dynamic-proxy-port }}
+        MAIN_DNS_ZONE: ${{ inputs.main-dns-zone }}
+        PROXY_PORT: ${{ inputs.proxy-port }}
+        WEBSOCKETS_PROXY_PORT: ${{ inputs.websockets-proxy-port }}
+      run: |
+        if [[ -z "${MAIN_DNS_ZONE:-}" ]]; then
+          echo "::error::inputs.main-dns-zone is required."
+          exit 1
+        fi
+
+        if [[ "${DYNAMIC_PROXY_PORT}" == "${PROXY_PORT}" || \
+              "${DYNAMIC_PROXY_PORT}" == "${WEBSOCKETS_PROXY_PORT}" || \
+              "${PROXY_PORT}" == "${WEBSOCKETS_PROXY_PORT}" ]]; then
+          echo "::error::PROXY_PORT, DYNAMIC_PROXY_PORT, and WEBSOCKETS_PROXY_PORT must have unique values."
+          exit 1
+        fi
+
     - name: Assume role
+      # We only need to assume a role if we intend to use k8s API server access via the proxy
+      if: inputs.use-k8s == 'true'
       uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
@@ -151,16 +171,17 @@ runs:
       # ---
       # Kubectl requires a TLS connection to it's configured endpoint, and performs certificate
       # validation through the CA configured in the kubeconfig.
-      # The local aws-sigv4-proxy container will act as the k8s endpoint for kubectl, and therefore requires a
+      # The local envoy container will act as the k8s endpoint for kubectl, and therefore requires a
       # certificate signed by a trusted CA. Because this is for local TLS we can generate a CA, generate a server
       # certificate, sign the server certificate with the CA, and update the CA in the kubeconfig to trust it.
       # Also useful for other use-cases where a local TLS connection is required.
-      if: inputs.use-k8s == 'true' || inputs.use-tls == 'true'
       shell: bash
       env:
+        GAP_NAME: ${{ inputs.gap-name }}
         PATH_CERTS_DIR_PREFIX: /tmp/setup-gap
+        CA_CERT_VALIDITY_DAYS: ${{ inputs.ca-cert-validity-days}}
       run: |
-        PATH_CERTS_DIR="${PATH_CERTS_DIR_PREFIX}-${{ inputs.gap-name }}"
+        PATH_CERTS_DIR="${PATH_CERTS_DIR_PREFIX}-${GAP_NAME}"
         echo "PATH_CERTS_DIR=${PATH_CERTS_DIR}" | tee -a $GITHUB_ENV
         mkdir -p "${PATH_CERTS_DIR}"
 
@@ -169,13 +190,20 @@ runs:
         openssl req -x509 -new \
           -nodes -key "${PATH_CERTS_DIR}/ca.key" \
           -sha256 \
-          -days 1 \
+          -days "${CA_CERT_VALIDITY_DAYS}" \
           -out "${PATH_CERTS_DIR}/ca.crt" \
           -subj "/CN=My CA"
 
-    - name: Generate and Sign Server Certificate
-      if: inputs.use-k8s == 'true' || inputs.use-tls == 'true'
+        echo "::debug::Adding new CA to system trust store"
+        sudo mkdir -p /usr/local/share/ca-certificates/extra
+        sudo cp "${PATH_CERTS_DIR}/ca.crt" "/usr/local/share/ca-certificates/extra/setup-gap-${GAP_NAME}.crt"
+        sudo update-ca-certificates
+
+    - name: Generate and Sign Proxy TLS listener certificate
       shell: bash
+      env:
+        CERT_VALIDITY_DAYS: ${{ inputs.cert-validity-days}}
+        MAIN_DNS_ZONE: ${{ inputs.main-dns-zone }}
       run: |
         echo "::debug::Generating server key and certificate signing request (CSR)"
         openssl ecparam -genkey -name prime256v1 -out "${PATH_CERTS_DIR}/server.key"
@@ -186,7 +214,7 @@ runs:
           -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
 
         echo "::debug::Generating SAN extension file"
-        echo -e "subjectAltName=DNS:localhost,IP:127.0.0.1" > "${PATH_CERTS_DIR}/san.ext"
+        echo -e "subjectAltName=DNS:localhost,IP:127.0.0.1,DNS:*.${MAIN_DNS_ZONE}" > "${PATH_CERTS_DIR}/san.ext"
 
         echo "::debug::Signing server certificate with CA"
         openssl x509 -req -in "${PATH_CERTS_DIR}/server.csr" \
@@ -194,7 +222,7 @@ runs:
           -CAkey "${PATH_CERTS_DIR}/ca.key" \
           -CAcreateserial \
           -out "${PATH_CERTS_DIR}/server.crt" \
-          -days 1 \
+          -days "${CERT_VALIDITY_DAYS}" \
           -sha256 \
           -extfile "${PATH_CERTS_DIR}/san.ext"
 
@@ -214,8 +242,7 @@ runs:
 
         echo "::debug::Setting up kubeconfig for localhost proxy"
 
-        # Update the server to use the localhost proxy
-        kubectl config set clusters.$CLUSTER_ARN.server https://localhost:${{ inputs.proxy-port }}/${{ inputs.api-gateway-stage-name }}
+        kubectl config set clusters."$CLUSTER_ARN".server "https://localhost:${{ inputs.proxy-port }}"
 
         # Set the certificate-authority to the ephemeral certificate authority configured above
         kubectl config set clusters.$CLUSTER_ARN.certificate-authority "${PATH_CERTS_DIR}/ca.crt"
@@ -223,103 +250,175 @@ runs:
         # Remove certificate-authority-data populated from `aws eks update-kubeconfig` which is for the endpoint which is not publicly accessible
         kubectl config unset clusters.$CLUSTER_ARN.certificate-authority-data
 
-    - name: Login to AWS ECR (public ecr only)
-      if: inputs.use-private-ecr-registry != 'true'
-      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
-      env:
-        AWS_REGION: us-east-1
-      with:
-        registry-type: public
-
-    - name: Run aws sig4 proxy container (public ecr only)
-      if: inputs.use-private-ecr-registry != 'true'
+    - name: Install gomplate and verify installation
       shell: bash
       env:
-        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-        AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-        GAP_NAME: ${{ inputs.gap-name }}
+        VERSION: "v4.3.0"
+        SHASUM: "8adb82e5be7dfde49857ebd7c948fd8f9b10cdcdb13f71b74685dff6e6756890"
       run: |
-        DUPLICATE_AUTH_HEADER_FLAG=""
-        if [ "${{ inputs.duplicate-authorization-header }}" == "true" ]; then
-          DUPLICATE_AUTH_HEADER_FLAG="--duplicate-headers Authorization"
+        # Download the gomplate binary
+        curl -sSfL "https://github.com/hairyhenderson/gomplate/releases/download/$VERSION/gomplate_linux-amd64" --output gomplate
+
+        # Verify the SHA256 checksum of the downloaded file
+        echo "Checking shasum of gomplate binary."
+        echo "${SHASUM} gomplate" | sha256sum --check
+
+        # If the checksum verification passes, install the binary to /usr/local/bin/
+        install gomplate /usr/local/bin/
+
+        # Verify the installation by checking version
+        gomplate --version
+
+    - name: Check Debug Mode
+      id: enable-debug
+      shell: bash
+      env:
+        ENABLE_PROXY_DEBUG: ${{ inputs.enable-proxy-debug }}
+        PROXY_LOG_LEVEL: ${{ inputs.proxy-log-level }}
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        if [[ "$ENABLE_PROXY_DEBUG" == "false" && "$PROXY_LOG_LEVEL" == "info" ]]; then
+          # default inputs
+          echo "Setting debug-mode to false because of default inputs"
+          echo "debug-mode=false" | tee -a $GITHUB_OUTPUT
+          exit 0
         fi
 
-        docker run --rm -d \
-          -e AWS_ACCESS_KEY_ID \
-          -e AWS_SECRET_ACCESS_KEY \
-          -e AWS_SESSION_TOKEN \
-          -p "${{ inputs.proxy-port }}":"${{ inputs.proxy-port }}" \
-          public.ecr.aws/aws-observability/aws-sigv4-proxy:${{ inputs.proxy-version }} \
-          --name "${GAP_NAME}" --region ${{ inputs.aws-region }} \
-          --host "${{ inputs.api-gateway-host }}" \
-          --log-failed-requests $DUPLICATE_AUTH_HEADER_FLAG
+        # Get repository visibility using GitHub CLI
+        # either public, private, or internal
+        REPO_VISIBILITY=$(gh api repos/${GITHUB_REPOSITORY} --jq '.visibility')
 
-    - name: Login to AWS ECR (private ecr only)
-      if: inputs.use-private-ecr-registry == 'true'
-      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+        if [[ "$REPO_VISIBILITY" == "public" ]]; then
+          echo "Repository is public, debug logging is restricted."
+          echo "debug-mode=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        if [[ "$REPO_VISIBILITY" == "private" || "$REPO_VISIBILITY" == "internal" ]]; then
+          if [ "$ENABLE_PROXY_DEBUG" = "true" ] || [ "$PROXY_LOG_LEVEL" = "debug" ]; then
+            echo "Repo is private and enable-proxy-debug is true or proxy-log-level is debug."
+            echo "debug-mode=true" >> $GITHUB_OUTPUT
+          else
+            echo "debug-mode=false" >> $GITHUB_OUTPUT
+          fi
+          exit 0
+        fi
+
+        echo "::warning::Unknown repository visibility: $REPO_VISIBILITY. Setting debug-mode to false."
+        echo "debug-mode=false" >> $GITHUB_OUTPUT
+
+    - name: Setup and run services
+      id: setup-services
+      shell: bash
       env:
-        AWS_REGION: ${{ inputs.ecr-private-aws-region || inputs.aws-region }}
-      with:
-        registries: ${{ inputs.ecr-private-registry }}
-
-    - name: Pull from custom proxy image (private ecr only)
-      if: inputs.use-private-ecr-registry == 'true'
-      shell: bash
+        GAP_NAME: "gap-${{ inputs.gap-name }}"
+        DYNAMIC_PROXY_PORT: ${{ inputs.dynamic-proxy-port }}
+        GITHUB_OIDC_TOKEN_HEADER_NAME:
+          ${{ inputs.github-oidc-token-header-name }}
+        ENVOY_PROXY_IMAGE: ${{ inputs.envoy-proxy-image }}
+        K8S_API_ENDPOINT_PORT: ${{ inputs.k8s-api-endpoint-port }}
+        MAIN_DNS_ZONE: ${{ inputs.main-dns-zone }}
+        PROXY_PORT: ${{ inputs.proxy-port }}
+        WEBSOCKETS_PROXY_PORT: ${{ inputs.websockets-proxy-port }}
+        WEBSOCKETS_SERVICES: ${{ inputs.websockets-services }}
+        ENVOY_SERVICE_NAME: ${{ inputs.gap-name }}-envoy
+        AUTH_SERVICE_NAME: ${{ inputs.gap-name }}-authz
+        AUTH_SERVICE_PORT: ${{ inputs.auth-service-port }}
+        PATH_CERTS_DIR: ${{ env.PATH_CERTS_DIR }}
+        DEBUG_MODE: ${{ steps.enable-debug.outputs.debug-mode }}
+        REQUIRED_ENV_VARS: >-
+          GAP_NAME WEBSOCKETS_PROXY_PORT DYNAMIC_PROXY_PORT PROXY_PORT
+          K8S_API_ENDPOINT_PORT MAIN_DNS_ZONE ENVOY_PROXY_IMAGE PROXY_LOG_LEVEL
+          AUTH_LOG_LEVEL ENVOY_SERVICE_NAME AUTH_SERVICE_NAME AUTH_SERVICE_PORT
+          ACTIONS_ID_TOKEN_REQUEST_TOKEN ACTIONS_ID_TOKEN_REQUEST_URL
+          GITHUB_REPOSITORY GITHUB_OIDC_TOKEN_HEADER_NAME GITHUB_OIDC_HOSTNAME
+          GITHUB_RUN_ID GITHUB_RUN_ATTEMPT GITHUB_RUN_URL
       run: |
-        docker pull ${{ inputs.ecr-private-registry }}.dkr.ecr.${{ inputs.ecr-private-aws-region || inputs.aws-region }}.amazonaws.com/aws-sigv4-proxy:${{ inputs.ecr-private-image-tag }}
+        # Get the Github OIDC hostname
+        export GITHUB_OIDC_HOSTNAME=$(echo $ACTIONS_ID_TOKEN_REQUEST_URL | awk -F[/:] '{print $4}')
+        export GITHUB_RUN_URL="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}"
 
-    - name: Run aws sig4 proxy container (private ecr only)
-      if: inputs.use-private-ecr-registry == 'true'
+        export PROXY_LOG_LEVEL="info"
+        export AUTH_LOG_LEVEL="info"
+        export ENVOY_EXTRA_ARGS=""
+        if [[ "$DEBUG_MODE" == "true" ]]; then
+          echo "Debug logging enabled with component logging"
+          export PROXY_LOG_LEVEL="debug"
+          export AUTH_LOG_LEVEL="debug"
+          export ENVOY_EXTRA_ARGS="--component-log-level upstream:debug,connection:debug,router:debug,http:debug,filter:debug,client:debug"
+        fi
+
+        # Loop through each variable and check if it's empty
+        for var in $REQUIRED_ENV_VARS; do
+          eval value=\$$var
+          if [ -z "$value" ]; then
+            echo "::error::Required environment variable '$var' is not set."
+            exit 1
+          fi
+        done
+
+        # Generate Envoy config from template
+        gomplate -f "${GITHUB_ACTION_PATH}/envoy.yaml.gotmpl" -o "${GITHUB_ACTION_PATH}/envoy.yaml"
+
+        # Copy AWS CA certs
+        cp ${{ github.action_path }}/aws-ca.crt "${PATH_CERTS_DIR}"
+        chmod 644 "${PATH_CERTS_DIR}/server.key"
+
+        echo "Validating Envoy config..."
+        if ! docker run --rm \
+            --volume "${PATH_CERTS_DIR}":/tls \
+            --volume "${GITHUB_ACTION_PATH}/envoy.yaml":/etc/envoy/envoy.yaml \
+            "${ENVOY_PROXY_IMAGE}" \
+            /usr/local/bin/envoy --mode validate -c /etc/envoy/envoy.yaml \
+            --log-level "${PROXY_LOG_LEVEL}" ${ENVOY_EXTRA_ARGS}; then
+          echo "::error::Envoy configuration validation failed."
+          exit 1
+        fi
+
+        if [[ "$DEBUG_MODE" == "true" ]]; then
+          echo "Docker compose configuration:"
+          docker compose -p ${GAP_NAME} -f "${GITHUB_ACTION_PATH}/docker-compose.yml" config
+        fi
+
+        echo "Starting the auth service and Envoy proxy..."
+        docker compose -p ${GAP_NAME} -f "${GITHUB_ACTION_PATH}/docker-compose.yml" up -d
+
+    - name: Verify Envoy Proxy
       shell: bash
       env:
-        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-        AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+        USE_K8S: ${{ inputs.use-k8s }}
+        PROXY_PORT: ${{ inputs.proxy-port }}
+        DYNAMIC_PROXY_PORT: ${{ inputs.dynamic-proxy-port }}
+        WEBSOCKETS_PROXY_PORT: ${{ inputs.websockets-proxy-port }}
       run: |
-        docker run --rm -d \
-          -e AWS_ACCESS_KEY_ID \
-          -e AWS_SECRET_ACCESS_KEY \
-          -e AWS_SESSION_TOKEN \
-          -p ${{ inputs.proxy-port }}:${{ inputs.proxy-port }} \
-          -v "${PATH_CERTS_DIR}":/tls \
-          ${{ inputs.ecr-private-registry }}.dkr.ecr.${{ inputs.ecr-private-aws-region || inputs.aws-region }}.amazonaws.com/aws-sigv4-proxy:${{ inputs.ecr-private-image-tag }} \
-            --name execute-api \
-            --region ${{ inputs.aws-region }} \
-            --host "${{ inputs.api-gateway-host }}" \
-            --log-failed-requests \
-            --port :${{ inputs.proxy-port }} \
-            --enable-tls --tls-key-file /tls/server.key --tls-cert-file /tls/server.crt \
-            --duplicate-headers Authorization
+        check_proxy() {
+          local port=$1
+          local name=$2
 
-    - name: Setup argocd
-      if: inputs.use-argocd == 'true'
-      uses: clowdhaus/argo-cd-action@c38276b240079e18653fef3ea63e0a1ef3b00a1d # v2.2.0
-      with:
-        command: version
-        options: --client
-        version: ${{ inputs.argocd-version }}
+          echo "Checking if the ${name} proxy is up and running on [https://localhost:${port}]"
+          for attempt in {1..10}; do
+            # Check if we can establish a connection to the proxy
+            if curl --silent --max-time 5 --cacert "${PATH_CERTS_DIR}/ca.crt" \
+                -o /dev/null https://localhost:${port}/ 2>/dev/null; then
+              echo "${name} proxy is up, TLS connection established with valid certificate!"
+              return 0
+            else
+              echo "Waiting for the ${name} proxy to start... Attempt ${attempt}/10"
+              sleep 3
+            fi
+          done
 
-    - name: Argocd login
-      if: inputs.use-argocd == 'true'
-      shell: bash
-      run: |
-        argocd login \
-          localhost:${{ inputs.proxy-port }}/${{ inputs.api-gateway-stage-name }} \
-          --skip-test-tls \
-          --plaintext \
-          --grpc-web
-          --username ${{ inputs.argocd-user }} \
-          --password ${{ inputs.argocd-pass }}
+          echo "::error::Timed out waiting for the ${name} proxy to start. Connection could not be established."
+          return 1
+        }
 
-    - name: Collect metrics
-      if: always() && inputs.metrics-job-name != ''
-      id: collect-gha-metrics
-      uses: smartcontractkit/push-gha-metrics-action@d9da21a2747016b3e13de58c7d4115a3d5c97935 # v3.0.1
-      with:
-        id: ${{ inputs.metrics-id || inputs.metrics-job-name }}
-        basic-auth: ${{ inputs.gc-basic-auth }}
-        hostname: ${{ inputs.gc-host }}
-        org-id: ${{ inputs.gc-org-id}}
-        this-job-name: ${{ inputs.metrics-job-name }}
-      continue-on-error: true
+        if [ "${USE_K8S}" == "true" ]; then
+          check_proxy "${PROXY_PORT}" "K8s API" || exit 1
+        fi
+
+        check_proxy "${DYNAMIC_PROXY_PORT}" "Dynamic local proxy listener" || exit 1
+        check_proxy "${WEBSOCKETS_PROXY_PORT}" "Websockets local proxy listener" || exit 1
+
+    - name: Collect Envoy proxy logs when debug is enabled
+      uses: jwalton/gh-docker-logs@2741064ab9d7af54b0b1ffb6076cf64c16f0220e # v2.2.2
+      if: inputs.enable-proxy-debug == 'true' || failure()

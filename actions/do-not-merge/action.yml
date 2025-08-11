@@ -1,0 +1,22 @@
+name: do-not-merge
+description:
+  "Creates failing check if PR contains certain labels to prevent merging"
+
+inputs:
+  fail-labels:
+    description: |
+      Comma separated list of labels that will cause the action to fail.
+    required: false
+    default: "do-not-merge"
+
+runs:
+  using: composite
+  steps:
+    - name: Fail if label present
+      uses: actions/github-script@v7
+      env:
+        FAIL_LABELS: ${{ inputs.fail-labels }}
+      with:
+        script: |
+          const script = require(`${process.env.GITHUB_ACTION_PATH}/scripts/do-not-merge-block.js`);
+          await script({ context, core });

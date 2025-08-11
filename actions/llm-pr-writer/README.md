@@ -47,7 +47,7 @@ jobs:
       repository-projects: read
     steps:
       - name: Generate PR Description
-        uses: smartcontractkit/.github/actions/llm-pr-writer@[SHA] # points to a specific tag (ie. llm-pr-writer@0.3.0)
+        uses: smartcontractkit/.github/actions/llm-pr-writer@[SHA] # points to a specific tag (ie. llm-pr-writer@0.5.0)
         with:
           # GitHub token used to fetch the PR diff and create a new PR comment.
           # ${{ secrets.GITHUB_TOKEN }} will be sufficient.
@@ -56,8 +56,7 @@ jobs:
           # Needs to have access to the chat-completion endpoints
           # Example: ${{ secrets.OPENAI_API_KEY }}
           openai-api-key: ""
-          # OpenAI model to use for PR description generation. Defaults to 'gpt-3.5-turbo-0125'.
-          # If your repository contains complex logic or expects large diffs, use 'gpt-4-turbo-2024-04-09' or newer.
+          # OpenAI model to use for PR description generation. Defaults to 'o3-mini-2025-01-31'.
           # Learn more at: https://platform.openai.com/docs/models/overview
           openai-model: ""
           # File paths or patterns to exclude from the diff analysis. Use semicolons (;) to separate multiple paths.
@@ -67,9 +66,6 @@ jobs:
           # Absolute file path to a markdown or text file to append to the PR message (checklist, etc.)
           # Example: '.github/pull_request_append.md'
           pr-append-file: ""
-          # ref to smartcontractkit/.github repository to load the prompt from. Defaults to main.
-          # Usually used during development.
-          workflow-ref: ""
 ```
 
 # Usage Scenarios
@@ -98,6 +94,14 @@ on:
     types: [reopened]
 ```
 
+- Trigger the action by committing to the PR
+
+```yaml
+on:
+  pull_request:
+    types: [synchronize]
+```
+
 - Trigger by commenting on an existing pull request with `/gpt-create-pr`
   command
 
@@ -122,10 +126,10 @@ jobs:
     steps:
       - name: Generate PR Description if PR is not from a bot
         if: ${{ !endsWith(github.actor, '[bot]') }}
-        uses: smartcontractkit/.github/actions/llm-pr-writer@[SHA] # llm-pr-writer@0.3.0
+        uses: smartcontractkit/.github/actions/llm-pr-writer@[SHA] # llm-pr-writer@0.6.0
         with:
           gh-token: ${{ secrets.GITHUB_TOKEN }}
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-          openai-model: "gpt-4-turbo-2024-04-09"
+          openai-model: "o3-mini-2025-01-31"
           exclude-paths: "dbt-home/*;artifacts/*;target/*;poetry.lock"
 ```
