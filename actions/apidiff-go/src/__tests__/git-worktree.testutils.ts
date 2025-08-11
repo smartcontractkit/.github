@@ -2,7 +2,6 @@ import * as fs from "fs";
 import * as path from "path";
 
 import { execa } from "execa";
-import { create } from "domain";
 
 /**
  * Sets up a remote repository with multiple commits and branches

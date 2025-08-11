@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import * as core from "@actions/core";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
@@ -9,7 +8,7 @@ import {
   setupWorktree,
   cleanupWorktrees,
   WorktreeResult,
-} from "./git-worktree.js";
+} from "../git-worktree.js";
 
 import {
   setupRepository,
