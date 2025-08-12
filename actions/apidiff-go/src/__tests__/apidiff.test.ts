@@ -16,6 +16,8 @@ import { runApidiff, installApidiff } from "../apidiff.js";
 
 // Mock @actions/core
 vi.mock("@actions/core", () => ({
+  startGroup: vi.fn(),
+  endGroup: vi.fn(),
   info: vi.fn(),
   warning: vi.fn(),
   debug: vi.fn(),
@@ -148,12 +150,12 @@ describe("apidiff", () => {
       await copyDirectory(sourceDir, baseDir);
       await copyDirectory(sourceDir, headDir);
 
-      const result = await runApidiff(baseDir, headDir);
+      const result = await runApidiff(baseDir, headDir, ["."]);
 
       expect(result).toBeDefined();
-      expect(typeof result).toBe("string");
-      // No changes should result in empty or minimal output
-      expect(result.trim()).toBe("");
+      expect(JSON.stringify(result)).toBe(
+        '{"github-com-example-no-changes":""}',
+      );
     });
 
     it("should detect compatible changes", async (context) => {
@@ -170,13 +172,14 @@ describe("apidiff", () => {
       const headSourceDir = path.join(testGoModulesDir, "compatible-changes");
       await copyDirectory(headSourceDir, headDir);
 
-      const result = await runApidiff(baseDir, headDir);
+      const result = await runApidiff(baseDir, headDir, ["."]);
 
       expect(result).toBeDefined();
-      expect(typeof result).toBe("string");
-      // Compatible changes should show additions but no breaking changes
-      expect(result).toContain("added");
-      expect(result).not.toContain("!"); // No breaking changes marker
+      expect(Object.keys(result).length).toBeGreaterThan(0);
+      const anyIncompatibleChanges = Object.values(result).some((output) =>
+        output.includes("Incompatible changes"),
+      );
+      expect(anyIncompatibleChanges).toBe(false);
     });
 
     it("should detect incompatible changes", async (context) => {
@@ -193,13 +196,14 @@ describe("apidiff", () => {
       const headSourceDir = path.join(testGoModulesDir, "incompatible-changes");
       await copyDirectory(headSourceDir, headDir);
 
-      const result = await runApidiff(baseDir, headDir);
+      const result = await runApidiff(baseDir, headDir, ["."]);
 
       expect(result).toBeDefined();
-      expect(typeof result).toBe("string");
-      // Incompatible changes should show breaking changes
-      expect(result.length).toBeGreaterThan(0);
-      // Note: apidiff output format may vary, but there should be meaningful diff output
+      expect(Object.keys(result).length).toBeGreaterThan(0);
+      const anyIncompatibleChanges = Object.values(result).some((output) =>
+        output.includes("Incompatible changes"),
+      );
+      expect(anyIncompatibleChanges).toBe(true);
     });
 
     it("should handle custom go module path", async (context) => {
@@ -219,9 +223,10 @@ describe("apidiff", () => {
       await copyDirectory(sourceDir, baseSubDir);
       await copyDirectory(sourceDir, headSubDir);
 
-      const result = await runApidiff(baseDir, headDir, "submodule");
+      const result = await runApidiff(baseDir, headDir, ["submodule"]);
 
       expect(result).toBeDefined();
+      expect(Object.keys(result).length).toBeGreaterThan(0);
     });
 
     it("should sanitize module names for export file naming", async (context) => {
@@ -235,9 +240,10 @@ describe("apidiff", () => {
       await copyDirectory(sourceDir, baseDir);
       await copyDirectory(sourceDir, headDir);
 
-      const result = await runApidiff(baseDir, headDir);
+      const result = await runApidiff(baseDir, headDir, ["."]);
 
       expect(result).toBeDefined();
+      expect(Object.keys(result).length).toBeGreaterThan(0);
     });
 
     it("should clean up export files after execution", async (context) => {
@@ -250,7 +256,7 @@ describe("apidiff", () => {
       await copyDirectory(sourceDir, baseDir);
       await copyDirectory(sourceDir, headDir);
 
-      await runApidiff(baseDir, headDir);
+      await runApidiff(baseDir, headDir, ["."]);
 
       // Check that no export files remain in the current working directory
       const cwd = process.cwd();
@@ -271,9 +277,10 @@ describe("apidiff", () => {
       await copyDirectory(sourceDir, baseDir);
       await copyDirectory(sourceDir, headDir);
 
-      const result = await runApidiff(baseDir, headDir);
+      const result = await runApidiff(baseDir, headDir, ["."]);
 
       expect(result).toBeDefined();
+      expect(Object.keys(result).length).toBeGreaterThan(0);
       // Test should complete without throwing even if there are warnings
     });
 
@@ -291,8 +298,9 @@ describe("apidiff", () => {
       await copyDirectory(headSourceDir, headDir);
 
       // This should not throw even though apidiff might return exit code 1
-      const result = await runApidiff(baseDir, headDir);
+      const result = await runApidiff(baseDir, headDir, ["."]);
       expect(result).toBeDefined();
+      expect(Object.keys(result).length).toBeGreaterThan(0);
     });
 
     it("should throw error for apidiff execution failure", async (context) => {
@@ -311,7 +319,7 @@ describe("apidiff", () => {
         "not a go module",
       );
 
-      await expect(runApidiff(baseDir, headDir)).rejects.toThrow();
+      await expect(runApidiff(baseDir, headDir, ["."])).rejects.toThrow();
     });
   });
 
@@ -326,7 +334,7 @@ describe("apidiff", () => {
       await copyDirectory(sourceDir, tempDir);
 
       // Access the private function through runApidiff to test indirectly
-      const result = await runApidiff(tempDir, tempDir);
+      const result = await runApidiff(tempDir, tempDir, ["."]);
     });
 
     it("should handle missing go.mod file", async (context) => {
@@ -350,7 +358,9 @@ describe("apidiff", () => {
         "package main",
       );
 
-      await expect(runApidiff(dirWithoutGoMod, headDir)).rejects.toThrow();
+      await expect(
+        runApidiff(dirWithoutGoMod, headDir, ["."]),
+      ).rejects.toThrow();
 
       expect(core.warning).toHaveBeenCalledWith(
         expect.stringContaining("go.mod not found"),
@@ -378,7 +388,9 @@ describe("apidiff", () => {
         "invalid content",
       );
 
-      await expect(runApidiff(dirWithBadGoMod, headDir)).rejects.toThrow();
+      await expect(
+        runApidiff(dirWithBadGoMod, headDir, ["."]),
+      ).rejects.toThrow();
 
       expect(core.warning).toHaveBeenCalledWith(
         expect.stringContaining("Could not parse module name"),
@@ -394,7 +406,7 @@ describe("apidiff", () => {
       const sourceDir = path.join(testGoModulesDir, "special-chars");
       await copyDirectory(sourceDir, tempDir);
 
-      const result = await runApidiff(tempDir, tempDir);
+      const result = await runApidiff(tempDir, tempDir, ["."]);
     });
   });
 
@@ -419,16 +431,9 @@ describe("apidiff", () => {
       await copyDirectory(sourceDir, headDir);
 
       // Test that the function completes successfully even if there might be cleanup issues
-      const result = await runApidiff(baseDir, headDir);
+      const result = await runApidiff(baseDir, headDir, ["."]);
       expect(result).toBeDefined();
-
-      // The function should complete without throwing, demonstrating that
-      // cleanup errors are handled gracefully
-      expect(typeof result).toBe("string");
-
-      console.log(
-        "File system error handling test passed - cleanup errors are handled gracefully",
-      );
+      expect(Object.keys(result).length).toBeGreaterThan(0);
     });
 
     it("should handle concurrent executions with different module names", async (context) => {
@@ -457,8 +462,8 @@ describe("apidiff", () => {
 
       // Run both concurrently - they should not interfere with each other
       const [result1, result2] = await Promise.all([
-        runApidiff(base1, head1),
-        runApidiff(base2, head2),
+        runApidiff(base1, head1, ["."]),
+        runApidiff(base2, head2, ["."]),
       ]);
 
       expect(result1).toBeDefined();

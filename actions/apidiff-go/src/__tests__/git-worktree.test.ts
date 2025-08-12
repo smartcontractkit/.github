@@ -15,9 +15,12 @@ import {
   cloneRepository,
   getRefSha,
 } from "./git-worktree.testutils.js";
+import { start } from "repl";
 
 // Mock @actions/core
 vi.mock("@actions/core", () => ({
+  startGroup: vi.fn(),
+  endGroup: vi.fn(),
   info: vi.fn(),
   warning: vi.fn(),
   debug: vi.fn(),
