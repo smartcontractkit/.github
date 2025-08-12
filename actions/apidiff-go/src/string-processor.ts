@@ -17,6 +17,7 @@ interface Change {
 }
 
 interface ApiDiffResult {
+  moduleName: string;
   /** “!” messages */
   meta: MetaDiff[];
   /** Under “Incompatible changes:” */
@@ -24,10 +25,27 @@ interface ApiDiffResult {
   /** Under “Compatible changes:” */
   compatible: Change[];
 }
+export function parseApidiffOutputs(
+  output: Record<string, string>,
+): ApiDiffResult[] {
+  const results: ApiDiffResult[] = [];
 
-export function parseApidiffOutput(output: string): ApiDiffResult {
+  for (const [moduleName, moduleOutput] of Object.entries(output)) {
+    const parsed = parseApidiffOutput(moduleName, moduleOutput);
+    results.push(parsed);
+  }
+
+  return results;
+}
+
+function parseApidiffOutput(moduleName: string, output: string): ApiDiffResult {
   const lines = output.split(/\r?\n/);
-  const result: ApiDiffResult = { meta: [], incompatible: [], compatible: [] };
+  const result: ApiDiffResult = {
+    moduleName,
+    meta: [],
+    incompatible: [],
+    compatible: [],
+  };
 
   let section: "meta" | "incompatible" | "compatible" | null = null;
   let currentMeta: MetaDiff | null = null;
@@ -100,40 +118,37 @@ export function parseApidiffOutput(output: string): ApiDiffResult {
 }
 
 export function formatApidiffMarkdown(
-  diff: ApiDiffResult,
+  diffs: ApiDiffResult[],
   summaryUrl: string,
   includeFullOutput: boolean = false,
 ): string {
-  const header =
-    diff.incompatible.length > 0
-      ? "backwards-incompatible changes detected ❌"
-      : "no incompatible changes detected ✅";
+  if (diffs.length === 0) {
+    return `## [apidiff](${summaryUrl}) results - no modules to analyze`;
+  }
+
+  // Check if any module has incompatible changes
+  const hasIncompatibleChanges = diffs.some(
+    (diff) => diff.incompatible.length > 0,
+  );
+  const totalIncompatible = diffs.reduce(
+    (sum, diff) => sum + diff.incompatible.length,
+    0,
+  );
+  const totalCompatible = diffs.reduce(
+    (sum, diff) => sum + diff.compatible.length,
+    0,
+  );
+
+  const header = hasIncompatibleChanges
+    ? `backwards-incompatible changes detected ❌`
+    : `no incompatible changes detected ✅`;
 
   const lines: string[] = [
     `## [apidiff](${summaryUrl}) results - ${header}`,
     ``,
   ];
 
-  // Helper to group by prefix (e.g. "./grafana")
-  function groupByPrefix(changes: Change[]): Map<string, Change[]> {
-    const map = new Map<string, Change[]>();
-    for (const c of changes) {
-      let prefix = "";
-      if (c.element.startsWith("package ")) {
-        prefix = "package";
-      } else {
-        const idx = c.element.indexOf(".", 1);
-        prefix = idx > 0 ? c.element.substring(0, idx) : c.element;
-      }
-      if (!map.has(prefix)) {
-        map.set(prefix, []);
-      }
-      map.get(prefix)!.push(c);
-    }
-    return map;
-  }
-
-  // New helper to wrap types in backticks when we see "changed from ... to ..."
+  // Helper to wrap types in backticks when we see "changed from ... to ..."
   function formatChange(change: string): string {
     const re = /^changed from (.+?) to (.+)$/;
     const match = change.match(re);
@@ -144,13 +159,23 @@ export function formatApidiffMarkdown(
     return change;
   }
 
-  function createTable(prefix: string, elements: Change[]): string[] {
-    const rows = elements.map(({ element, change }) => {
+  function createTable(title: string, elements: Change[]): string[] {
+    // Sort elements alphabetically by element name and deduplicate
+    const uniqueElements = Array.from(
+      new Map(
+        elements.map((item) => [`${item.element}:${item.change}`, item]),
+      ).values(),
+    );
+    const sortedElements = uniqueElements.sort((a, b) =>
+      a.element.localeCompare(b.element),
+    );
+
+    const rows = sortedElements.map(({ element, change }) => {
       const formatted = formatChange(change);
       return `| \`${element}\` | ${formatted} |`;
     });
     return [
-      `#### ${prefix} (${elements.length})`,
+      `#### ${title} (${sortedElements.length})`,
       ``,
       `| Element | Change |`,
       `| ------- | ------ |`,
@@ -158,50 +183,73 @@ export function formatApidiffMarkdown(
     ];
   }
 
-  // Incompatible
-  if (diff.incompatible.length > 0) {
-    lines.push(`### Incompatible Changes (${diff.incompatible.length})`);
+  // Process each module
+  for (const diff of diffs) {
+    if (
+      diff.incompatible.length === 0 &&
+      diff.compatible.length === 0 &&
+      diff.meta.length === 0
+    ) {
+      // Skip modules with no changes
+      continue;
+    }
+
+    lines.push(`### Module: \`${diff.moduleName}\``);
     lines.push(``);
-    const groups = groupByPrefix(diff.incompatible);
-    for (const [prefix, items] of Array.from(groups.entries()).sort()) {
-      lines.push(...createTable(prefix, items));
+
+    // Module-specific status
+    const moduleStatus =
+      diff.incompatible.length > 0
+        ? `❌ ${diff.incompatible.length} incompatible, ${diff.compatible.length} compatible`
+        : `✅ ${diff.compatible.length} compatible changes`;
+    lines.push(`**Status:** ${moduleStatus}`);
+    lines.push(``);
+
+    // Incompatible changes for this module
+    if (diff.incompatible.length > 0) {
+      lines.push(...createTable("Incompatible Changes", diff.incompatible));
       lines.push(``);
     }
+
+    // Compatible changes for this module (if includeFullOutput)
+    if (diff.compatible.length > 0 && includeFullOutput) {
+      lines.push(...createTable("Compatible Changes", diff.compatible));
+      lines.push(``);
+    }
+
+    // Meta section for this module (if includeFullOutput)
+    if (diff.meta.length > 0 && includeFullOutput) {
+      lines.push(`<details>`);
+      lines.push(
+        `<summary>Meta diff messages for ${diff.moduleName}</summary>`,
+      );
+      lines.push(``);
+      lines.push("```text");
+      for (const m of diff.meta) {
+        lines.push(`! ${m.header}`);
+        lines.push(`  first: ${m.first}`);
+        lines.push(`  second: ${m.second}`);
+        lines.push(``);
+      }
+      if (lines[lines.length - 1] === "") {
+        lines.pop();
+      }
+      lines.push("```");
+      lines.push(`</details>`);
+      lines.push(``);
+    }
+
+    lines.push(`---`);
+    lines.push(``);
+  }
+
+  // Remove trailing separator
+  if (lines[lines.length - 2] === "---") {
+    lines.splice(-2, 2);
   }
 
   if (summaryUrl) {
     lines.push(`*(Full summary: [${summaryUrl}](${summaryUrl}))*`);
-    lines.push(``);
-  }
-
-  // Compatible
-  if (diff.compatible.length > 0 && includeFullOutput) {
-    lines.push(`### Compatible Changes (${diff.compatible.length})`);
-    lines.push(``);
-    const groups = groupByPrefix(diff.compatible);
-    for (const [prefix, items] of Array.from(groups.entries()).sort()) {
-      lines.push(...createTable(prefix, items));
-      lines.push(``);
-    }
-  }
-
-  // Collapsible meta section
-  if (diff.meta.length > 0 && includeFullOutput) {
-    lines.push(`<details>`);
-    lines.push(`<summary>Meta diff messages</summary>`);
-    lines.push(``);
-    lines.push("```text");
-    for (const m of diff.meta) {
-      lines.push(`! ${m.header}`);
-      lines.push(`  first: ${m.first}`);
-      lines.push(`  second: ${m.second}`);
-      lines.push(``);
-    }
-    if (lines[lines.length - 1] === "") {
-      lines.pop();
-    }
-    lines.push("```");
-    lines.push(`</details>`);
     lines.push(``);
   }
 

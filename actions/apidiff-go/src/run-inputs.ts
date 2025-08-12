@@ -3,7 +3,7 @@ import * as github from "@actions/github";
 
 export interface RunInputs {
   directory: string;
-  goModPath: string;
+  goModPaths: string[];
   baseRef: string;
   headRef: string;
   enforceCompatible: boolean;
@@ -13,11 +13,11 @@ export function getInputs(): RunInputs {
   core.info("Getting inputs for run.");
 
   const inputs: RunInputs = {
-    directory: getRunInput("directory"),
-    goModPath: getRunInput("goModPath"),
-    baseRef: getRunInput("baseRef"),
-    headRef: getRunInput("headRef"),
-    enforceCompatible: getBooleanRunInput("enforceCompatible"),
+    directory: getRunInputString("directory"),
+    goModPaths: getRunInputStringArray("goModPaths"),
+    baseRef: getRunInputString("baseRef"),
+    headRef: getRunInputString("headRef"),
+    enforceCompatible: getRunInputBoolean("enforceCompatible"),
   };
 
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
@@ -74,9 +74,9 @@ const runInputsConfiguration: {
     parameter: "directory",
     localParameter: "DIRECTORY",
   },
-  goModPath: {
-    parameter: "go-mod-path",
-    localParameter: "GO_MOD_PATH",
+  goModPaths: {
+    parameter: "go-mod-paths",
+    localParameter: "GO_MOD_PATHS",
   },
   baseRef: {
     parameter: "base-ref",
@@ -92,14 +92,31 @@ const runInputsConfiguration: {
   },
 };
 
-function getRunInput(input: keyof RunInputs) {
+function getRunInputString(input: keyof RunInputs) {
   const inputKey = getInputKey(input);
   return core.getInput(inputKey, {
     required: true,
   });
 }
 
-function getBooleanRunInput(input: keyof RunInputs) {
+function getRunInputStringArray(input: keyof RunInputs) {
+  const inputKey = getInputKey(input);
+  const value = core
+    .getInput(inputKey, {
+      required: true,
+    })
+    .trim();
+
+  if (value.includes(",")) {
+    return value
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+  }
+  return [value];
+}
+
+function getRunInputBoolean(input: keyof RunInputs) {
   const inputKey = getInputKey(input);
   return core.getBooleanInput(inputKey, {
     required: true,

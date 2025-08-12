@@ -16,6 +16,7 @@ export async function setupWorktree(
   head: string,
   repoName: string,
 ): Promise<WorktreeResult> {
+  core.startGroup("Setting up git worktree");
   // Validate that the directory exists and is the root of a Git repository
   await validateGitRepositoryRoot(directory);
 
@@ -82,6 +83,11 @@ export async function setupWorktree(
   } catch (error) {
     core.error(`Failed to setup worktree: ${error}`);
     throw error;
+  } finally {
+    core.info(`Worktree setup completed for ${repoName}`);
+    core.info(`Head worktree: ${directory}`);
+    core.info(`Base worktree: ${worktreePath}`);
+    core.endGroup();
   }
 }
 

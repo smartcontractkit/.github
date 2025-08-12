@@ -4,7 +4,7 @@ import { installApidiff, runApidiff } from "./apidiff";
 import { setupWorktree, cleanupWorktrees } from "./git-worktree";
 import { getSummaryUrl, upsertPRComment } from "./github";
 import { getInputs, getInvokeContext } from "./run-inputs";
-import { parseApidiffOutput, formatApidiffMarkdown } from "./string-processor";
+import { parseApidiffOutputs, formatApidiffMarkdown } from "./string-processor";
 
 export async function run(): Promise<void> {
   try {
@@ -15,35 +15,29 @@ export async function run(): Promise<void> {
     core.endGroup();
 
     // 2. Set up worktrees for comparing old (base) vs new (head) refs
-    core.startGroup("Setting up git worktree");
     const worktreeResult = await setupWorktree(
       inputs.directory,
       inputs.baseRef,
       inputs.headRef,
       context.repo, // Repository name from GitHub context
     );
-    core.info(`Main repo (${context.head}): ${worktreeResult.headRepoPath}`);
-    core.info(`Worktree (${context.base}): ${worktreeResult.baseRepoPath}`);
-    core.endGroup();
 
     // 3. Run API diff between the two worktrees
-    core.startGroup("Running apidiff");
     await installApidiff();
-    const apidiffOutput = await runApidiff(
+    const apidiffOutputs = await runApidiff(
       worktreeResult.baseRepoPath, // Base directory (old version)
       worktreeResult.headRepoPath, // Head directory (new version)
-      inputs.goModPath, // Relative path to go.mod
+      inputs.goModPaths, // Relative paths to go.mod files
     );
 
-    const parsedOutput = parseApidiffOutput(apidiffOutput);
+    const parsedOutputs = parseApidiffOutputs(apidiffOutputs);
     if (core.isDebug()) {
-      core.debug(JSON.stringify(parsedOutput));
+      core.debug(JSON.stringify(parsedOutputs));
     }
-    core.endGroup();
 
     // 4. Format and output results
     core.startGroup("Formatting and Outputting Results");
-    const markdownOutputAll = formatApidiffMarkdown(parsedOutput, "", true);
+    const markdownOutputAll = formatApidiffMarkdown(parsedOutputs, "", true);
     await core.summary.addRaw(markdownOutputAll).write();
 
     if (context.prNumber) {
@@ -54,7 +48,7 @@ export async function run(): Promise<void> {
       );
 
       const markdownOutputIncompatibleOnly = formatApidiffMarkdown(
-        parsedOutput,
+        parsedOutputs,
         summaryUrl,
         false,
       );
@@ -66,11 +60,17 @@ export async function run(): Promise<void> {
         markdownOutputIncompatibleOnly,
       );
     }
-
     core.endGroup();
 
-    if (inputs.enforceCompatible && parsedOutput.incompatible.length > 0) {
-      core.setFailed(`Incompatible API changes detected.`);
+    const incompatibleCount = parsedOutputs.reduce(
+      (sum, diff) => sum + diff.incompatible.length,
+      0,
+    );
+    core.info(`Total incompatible changes: ${incompatibleCount}`);
+    if (inputs.enforceCompatible && incompatibleCount > 0) {
+      core.setFailed(
+        `Incompatible API changes detected. See PR comment, or summary for details.`,
+      );
     }
 
     // Clean up worktrees when done

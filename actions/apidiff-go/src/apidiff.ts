@@ -8,58 +8,86 @@ type ExecResult = Awaited<ReturnType<typeof execa>>;
 export async function runApidiff(
   baseDir: string,
   headDir: string,
-  goModPath: string = ".",
+  goModPaths: string[],
 ) {
+  core.startGroup("Running apidiff");
   core.info(`Running apidiff between base and head directories`);
   core.info(`Base directory: ${baseDir}`);
   core.info(`Head directory: ${headDir}`);
-  core.info(`Go module path: ${goModPath}`);
+  core.info(`Go module paths: ${goModPaths.join(", ")}`);
 
-  // Get module name from go.mod for naming exports
-  const moduleName = await getModuleName(join(baseDir, goModPath));
-
-  // Create export paths using absolute paths
-  const baseExportFile = join(process.cwd(), `${moduleName}-base.export`);
-  const headExportFile = join(process.cwd(), `${moduleName}-head.export`);
-  try {
-    core.info(`Creating exports: ${baseExportFile}, ${headExportFile}`);
-    // Create exports for base and head versions
-    await execa("apidiff", ["-m", "-w", baseExportFile, "."], {
-      cwd: join(baseDir, goModPath),
-    });
-
-    await execa("apidiff", ["-m", "-w", headExportFile, "."], {
-      cwd: join(headDir, goModPath),
-    });
-
-    // Run apidiff comparison
-    const { stdout, stderr, exitCode }: ExecResult = await execa(
-      "apidiff",
-      ["-m", baseExportFile, headExportFile],
-      { reject: false },
-    );
-
-    if (stderr) {
-      core.warning(`apidiff stderr: ${stderr}`);
+  const results: Record<string, string> = {};
+  for (const goModPath of goModPaths) {
+    // Get module name from go.mod for naming exports
+    const fullModulePathBase = join(baseDir, goModPath);
+    const fullModulePathHead = join(headDir, goModPath);
+    if (!fs.existsSync(fullModulePathBase)) {
+      core.warning(`Module not found: ${fullModulePathBase}`);
+      continue;
+    } else if (!fs.existsSync(fullModulePathHead)) {
+      core.warning(`Module not found: ${fullModulePathHead}`);
+      continue;
     }
-    if (exitCode !== 0 && exitCode !== 1) {
-      throw new Error(`apidiff failed with exit code ${exitCode}: ${stderr}`);
-    }
+    const moduleName = await getModuleName(fullModulePathBase);
 
-    return stdout;
-  } finally {
-    // Clean up export files
+    const baseExportFile = join(process.cwd(), `${moduleName}-base.export`);
+    const headExportFile = join(process.cwd(), `${moduleName}-head.export`);
+
     try {
-      if (fs.existsSync(baseExportFile)) {
-        fs.unlinkSync(baseExportFile);
+      await Promise.all([
+        generateExport(fullModulePathBase, baseExportFile),
+        generateExport(fullModulePathHead, headExportFile),
+      ]);
+
+      core.info(`Comparing exports for module ${moduleName}`);
+      core.info(`Base export file: ${baseExportFile}`);
+      core.info(`Head export file: ${headExportFile}`);
+
+      // Run apidiff comparison
+      const { stdout, stderr, exitCode }: ExecResult = await execa(
+        "apidiff",
+        ["-m", baseExportFile, headExportFile],
+        { reject: false },
+      );
+
+      if (stderr) {
+        core.warning(`apidiff stderr: ${stderr}`);
       }
-      if (fs.existsSync(headExportFile)) {
-        fs.unlinkSync(headExportFile);
+      if (exitCode !== 0 && exitCode !== 1) {
+        throw new Error(`apidiff failed with exit code ${exitCode}: ${stderr}`);
       }
+      results[moduleName] = stdout;
     } catch (error) {
-      core.warning(`Failed to clean up export files: ${error}`);
+      core.setFailed(
+        `Failed to generate exports for module ${moduleName}: ${error}`,
+      );
+      continue;
+    } finally {
+      try {
+        if (fs.existsSync(baseExportFile)) {
+          fs.unlinkSync(baseExportFile);
+        }
+        if (fs.existsSync(headExportFile)) {
+          fs.unlinkSync(headExportFile);
+        }
+      } catch (error) {
+        core.warning(`Failed to clean up export files: ${error}`);
+      }
+
+      core.endGroup();
     }
   }
+
+  return results;
+}
+
+async function generateExport(modulePath: string, outFile: string) {
+  core.info(
+    `Generating export for module at ${modulePath}. Writing to ${outFile}`,
+  );
+  await execa("apidiff", ["-m", "-w", outFile, "."], {
+    cwd: modulePath,
+  });
 }
 
 /**
@@ -98,6 +126,7 @@ async function getModuleName(goModDir: string): Promise<string> {
  */
 export async function installApidiff(): Promise<void> {
   try {
+    core.startGroup("Installing apidiff");
     // Check if apidiff is on PATH
     await execa("which", ["apidiff"], { stderr: "ignore", stdout: "ignore" });
     core.info("apidiff is already installed");
@@ -113,5 +142,7 @@ export async function installApidiff(): Promise<void> {
     core.addPath(goBin);
 
     core.info("apidiff installed successfully");
+  } finally {
+    core.endGroup();
   }
 }
