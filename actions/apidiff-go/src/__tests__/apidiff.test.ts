@@ -23,6 +23,7 @@ vi.mock("@actions/core", () => ({
   debug: vi.fn(),
   error: vi.fn(),
   addPath: vi.fn(),
+  setFailed: vi.fn(),
 }));
 
 describe("apidiff", () => {
@@ -303,7 +304,181 @@ describe("apidiff", () => {
       expect(Object.keys(result).length).toBeGreaterThan(0);
     });
 
-    it("should throw error for apidiff execution failure", async (context) => {
+    it("should handle multiple go modules in one call", async (context) => {
+      if (!shouldRunTest) {
+        console.log("Skipping test - apidiff not available");
+        return context.skip();
+      }
+
+      // Set up multiple modules in the same directory structure
+      const multiModuleBaseDir = path.join(testGoModulesDir, "multi-module");
+      const multiModuleHeadDir = path.join(
+        testGoModulesDir,
+        "multi-module-changed",
+      );
+
+      await copyDirectory(multiModuleBaseDir, baseDir);
+      await copyDirectory(multiModuleHeadDir, headDir);
+
+      // Test with multiple module paths
+      const result = await runApidiff(baseDir, headDir, [
+        ".",
+        "submodule1",
+        "submodule2",
+      ]);
+
+      expect(result).toBeDefined();
+      expect(Object.keys(result).length).toBe(3); // Root module + 2 submodules
+
+      // Should have results for all three modules
+      const moduleNames = Object.keys(result);
+      expect(moduleNames).toContain("github-com-example-multi-module");
+      expect(moduleNames).toContain(
+        "github-com-example-multi-module-submodule1",
+      );
+      expect(moduleNames).toContain(
+        "github-com-example-multi-module-submodule2",
+      );
+
+      // Root module should show compatible changes (new function added)
+      const rootModuleResult = result["github-com-example-multi-module"];
+      expect(rootModuleResult).toBeDefined();
+
+      // Submodule1 should show incompatible changes (function signature changed)
+      const submodule1Result =
+        result["github-com-example-multi-module-submodule1"];
+      expect(submodule1Result).toBeDefined();
+      expect(submodule1Result).toContain("Incompatible changes");
+
+      // Submodule2 should show compatible changes (new method added)
+      const submodule2Result =
+        result["github-com-example-multi-module-submodule2"];
+      expect(submodule2Result).toBeDefined();
+    });
+
+    it("should handle missing modules gracefully in multi-module setup", async (context) => {
+      if (!shouldRunTest) {
+        console.log("Skipping test - apidiff not available");
+        return context.skip();
+      }
+
+      // Set up a base with modules, but head missing some modules
+      const multiModuleBaseDir = path.join(testGoModulesDir, "multi-module");
+      await copyDirectory(multiModuleBaseDir, baseDir);
+
+      // Create head with only the root module
+      await fs.promises.mkdir(path.join(headDir, "submodule1"), {
+        recursive: true,
+      });
+      await fs.promises.writeFile(
+        path.join(headDir, "go.mod"),
+        "module github.com/example/multi-module\n\ngo 1.21\n",
+      );
+      await fs.promises.writeFile(
+        path.join(headDir, "main.go"),
+        "package multimodule\n\nfunc MainFunc(data string) string { return data }",
+      );
+
+      // Test with multiple module paths where some don't exist in head
+      const result = await runApidiff(baseDir, headDir, [
+        ".",
+        "submodule1",
+        "submodule2",
+      ]);
+
+      expect(result).toBeDefined();
+      // Should only have results for modules that exist in both base and head
+      expect(Object.keys(result).length).toBeLessThanOrEqual(3);
+
+      // Should have logged warnings for missing modules
+      expect(core.warning).toHaveBeenCalledWith(
+        expect.stringContaining("Module not found"),
+      );
+    });
+
+    it("should handle empty module paths array", async (context) => {
+      if (!shouldRunTest) {
+        console.log("Skipping test - apidiff not available");
+        return context.skip();
+      }
+
+      const sourceDir = path.join(testGoModulesDir, "no-changes");
+      await copyDirectory(sourceDir, baseDir);
+      await copyDirectory(sourceDir, headDir);
+
+      const result = await runApidiff(baseDir, headDir, []);
+
+      expect(result).toBeDefined();
+      expect(Object.keys(result)).toHaveLength(0);
+    });
+
+    it("should handle single module in array format", async (context) => {
+      if (!shouldRunTest) {
+        console.log("Skipping test - apidiff not available");
+        return context.skip();
+      }
+
+      const sourceDir = path.join(testGoModulesDir, "no-changes");
+      await copyDirectory(sourceDir, baseDir);
+      await copyDirectory(sourceDir, headDir);
+
+      const result = await runApidiff(baseDir, headDir, ["."]);
+
+      expect(result).toBeDefined();
+      expect(Object.keys(result)).toHaveLength(1);
+      expect(result["github-com-example-no-changes"]).toBeDefined();
+    });
+
+    it("should process modules independently and continue on individual failures", async (context) => {
+      if (!shouldRunTest) {
+        console.log("Skipping test - apidiff not available");
+        return context.skip();
+      }
+
+      // Set up valid modules and one invalid one
+      const validSourceDir = path.join(testGoModulesDir, "no-changes");
+      const multiModuleBaseDir = path.join(testGoModulesDir, "multi-module");
+
+      // Copy valid module to root
+      await copyDirectory(validSourceDir, baseDir);
+      await copyDirectory(validSourceDir, headDir);
+
+      // Add a valid submodule
+      const submoduleBaseDir = path.join(baseDir, "valid-sub");
+      const submoduleHeadDir = path.join(headDir, "valid-sub");
+      await fs.promises.mkdir(submoduleBaseDir, { recursive: true });
+      await fs.promises.mkdir(submoduleHeadDir, { recursive: true });
+      await copyDirectory(
+        path.join(multiModuleBaseDir, "submodule1"),
+        submoduleBaseDir,
+      );
+      await copyDirectory(
+        path.join(multiModuleBaseDir, "submodule1"),
+        submoduleHeadDir,
+      );
+
+      // Add an invalid module path (directory that doesn't exist)
+      const result = await runApidiff(baseDir, headDir, [
+        ".",
+        "valid-sub",
+        "non-existent",
+      ]);
+
+      expect(result).toBeDefined();
+      // Should have results for the valid modules only
+      expect(Object.keys(result).length).toBe(2);
+      expect(result["github-com-example-no-changes"]).toBeDefined();
+      expect(
+        result["github-com-example-multi-module-submodule1"],
+      ).toBeDefined();
+
+      // Should have logged warning for non-existent module
+      expect(core.warning).toHaveBeenCalledWith(
+        expect.stringContaining("Module not found"),
+      );
+    });
+
+    it("should call setFailed for apidiff execution failure but continue processing", async (context) => {
       if (!shouldRunTest) {
         console.log("Skipping test - apidiff not available");
         return context.skip();
@@ -319,7 +494,16 @@ describe("apidiff", () => {
         "not a go module",
       );
 
-      await expect(runApidiff(baseDir, headDir, ["."])).rejects.toThrow();
+      // This should not throw but should call setFailed
+      const result = await runApidiff(baseDir, headDir, ["."]);
+
+      expect(result).toBeDefined();
+      expect(Object.keys(result)).toHaveLength(0); // No results due to failure
+
+      // Should have called setFailed
+      expect(core.setFailed).toHaveBeenCalledWith(
+        expect.stringContaining("Failed to generate exports for module"),
+      );
     });
   });
 
@@ -358,12 +542,15 @@ describe("apidiff", () => {
         "package main",
       );
 
-      await expect(
-        runApidiff(dirWithoutGoMod, headDir, ["."]),
-      ).rejects.toThrow();
+      // Should not throw but should call setFailed and return empty results
+      const result = await runApidiff(dirWithoutGoMod, headDir, ["."]);
 
-      expect(core.warning).toHaveBeenCalledWith(
-        expect.stringContaining("go.mod not found"),
+      expect(result).toBeDefined();
+      expect(Object.keys(result)).toHaveLength(0); // No results due to failure
+
+      // Should have called setFailed due to apidiff execution failure
+      expect(core.setFailed).toHaveBeenCalledWith(
+        expect.stringContaining("Failed to generate exports for module"),
       );
     });
 
@@ -388,12 +575,15 @@ describe("apidiff", () => {
         "invalid content",
       );
 
-      await expect(
-        runApidiff(dirWithBadGoMod, headDir, ["."]),
-      ).rejects.toThrow();
+      // Should not throw but should call setFailed and return empty results
+      const result = await runApidiff(dirWithBadGoMod, headDir, ["."]);
 
-      expect(core.warning).toHaveBeenCalledWith(
-        expect.stringContaining("Could not parse module name"),
+      expect(result).toBeDefined();
+      expect(Object.keys(result)).toHaveLength(0); // No results due to failure
+
+      // Should have called setFailed due to apidiff execution failure
+      expect(core.setFailed).toHaveBeenCalledWith(
+        expect.stringContaining("Failed to generate exports for module"),
       );
     });
 
