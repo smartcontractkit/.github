@@ -125,6 +125,7 @@ async function getModuleName(goModDir: string): Promise<string> {
  * Installs apidiff via Go if not already available
  */
 export async function installApidiff(): Promise<void> {
+  core.startGroup("Installing apidiff");
   try {
     const isInstalled = await checkApidiffInstalled();
     if (isInstalled) {

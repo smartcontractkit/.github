@@ -31244,6 +31244,7 @@ async function getModuleName(goModDir) {
   }
 }
 async function installApidiff() {
+  core.startGroup("Installing apidiff");
   try {
     const isInstalled = await checkApidiffInstalled();
     if (isInstalled) {
