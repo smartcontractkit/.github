@@ -19,13 +19,13 @@ request with it's findings.
 
 ### Inputs
 
-| input                | description                                                                        | default                                     |
-| -------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------- |
-| `directory`          | the root directory of the repository                                               | `./`                                        |
-| `go-mod-path`        | the relative path (relative to the root of the repository) to the root of a module | `.`                                         |
-| `base-ref`           | the base ref to compare to - if a branch it will find the common ancestor          | `${{ github.event.pull_request.base.ref }}` |
-| `head-ref`           | the head ref to compare from - if a branch it will use the `HEAD`                  | `${{ github.event.pull_request.head.ref }}` |
-| `enforce-compatible` | whether the action should fail if incompatible (breaking) changes are found        | `true`                                      |
+| input                | description                                                                       | default                                     |
+| -------------------- | --------------------------------------------------------------------------------- | ------------------------------------------- |
+| `directory`          | the root directory of the repository                                              | `./`                                        |
+| `go-mod-paths`       | comma separated relative paths (to the root of the repository) to root of modules | `.`                                         |
+| `base-ref`           | the base ref to compare to - if a branch it will find the common ancestor         | `${{ github.event.pull_request.base.ref }}` |
+| `head-ref`           | the head ref to compare from - if a branch it will use the `HEAD`                 | `${{ github.event.pull_request.head.ref }}` |
+| `enforce-compatible` | whether the action should fail if incompatible (breaking) changes are found       | `true`                                      |
 
 ### Example Workflow
 

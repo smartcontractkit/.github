@@ -13,8 +13,10 @@ inputs:
     description: "Directory containing the Go repository"
     required: false
     default: "./"
-  go-mod-path:
-    description: "Relative path to the go.mod file from the repository root"
+  go-mod-paths:
+    description: |
+      Relative paths to the go.mod file from the repository root.
+      If multiple modules are present, provide a comma-separated list of paths.
     required: false
     default: "."
 
