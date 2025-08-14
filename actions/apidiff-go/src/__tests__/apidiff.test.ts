@@ -57,7 +57,7 @@ describe("apidiff", () => {
 
       console.log("Running in GitHub Actions CI, installing apidiff...");
       try {
-        await installApidiff();
+        await installApidiff("latest");
         shouldRunTest = true;
 
         // Add to current process PATH
@@ -99,7 +99,7 @@ describe("apidiff", () => {
         return context.skip();
       }
 
-      await installApidiff();
+      await installApidiff("latest");
 
       // In CI, it will install, so check for installation messages
       // Locally, if apidiff is already available, it will detect existing installation
@@ -120,6 +120,12 @@ describe("apidiff", () => {
         );
 
       expect(hasExistingMessage || hasInstallationMessages).toBe(true);
+    });
+
+    it("should throw an error if an invalid version is passed", async (context) => {
+      await expect(
+        installApidiff("invalid-version", true),
+      ).rejects.toThrowError(/Failed to install apidiff:/);
     });
   });
 

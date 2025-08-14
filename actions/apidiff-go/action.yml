@@ -37,3 +37,11 @@ inputs:
       incompatible changes are detected."
     required: false
     default: true
+
+  apidiff-version:
+    description: |
+      Version of apidiff to use. Defaults to latest.
+      Versions are available here: https://pkg.go.dev/golang.org/x/exp/cmd/apidiff?tab=versions
+      This should only be overridden if 'latest' is not suitable.
+    required: false
+    default: "latest"

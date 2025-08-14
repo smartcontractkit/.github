@@ -9,10 +9,8 @@ Will analyze the changes introduced by a pull request and comment on the pull
 request with it's findings.
 
 - Installs `apidiff` if not found on the system already
-- Analyzes root module, or any modules nested in a repository (although only 1
-  at a time)
-- Enforce compatible changes by failing the action if any incompatible changes
-  are found
+- Analyzes the changes for any specified modules within a repository
+- Optionally fail the action if any incompatible (breaking) changes are found
 - Full summary for all changes found, posted as job output
 
 ## Usage
@@ -26,6 +24,7 @@ request with it's findings.
 | `base-ref`           | the base ref to compare to - if a branch it will find the common ancestor         | `${{ github.event.pull_request.base.ref }}` |
 | `head-ref`           | the head ref to compare from - if a branch it will use the `HEAD`                 | `${{ github.event.pull_request.head.ref }}` |
 | `enforce-compatible` | whether the action should fail if incompatible (breaking) changes are found       | `true`                                      |
+| `apidiff-version`    | the version of apidiff to install, default is recommended                         | `latest`                                    |
 
 ### Example Workflow
 
@@ -56,7 +55,7 @@ jobs:
       - name: Analyze API Changes
         uses: smartcontractkit/.github/actions/apidiff-go@<ref>
         with:
-          go-mod-path: ./path-to-nested-go-mod # defaults to .
+          go-mod-paths: .,./module-1,./module-2 # compare 3 modules
         env:
           GITHUB_TOKEN: ${{ github.token }}
 ```
