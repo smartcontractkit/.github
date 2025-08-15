@@ -7,6 +7,7 @@ export interface RunInputs {
   baseRef: string;
   headRef: string;
   enforceCompatible: boolean;
+  apidiffVersion: string;
 }
 
 export function getInputs(): RunInputs {
@@ -18,6 +19,7 @@ export function getInputs(): RunInputs {
     baseRef: getRunInputString("baseRef"),
     headRef: getRunInputString("headRef"),
     enforceCompatible: getRunInputBoolean("enforceCompatible"),
+    apidiffVersion: getRunInputString("apidiffVersion"),
   };
 
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
@@ -89,6 +91,10 @@ const runInputsConfiguration: {
   enforceCompatible: {
     parameter: "enforce-compatible",
     localParameter: "ENFORCE_COMPATIBLE",
+  },
+  apidiffVersion: {
+    parameter: "apidiff-version",
+    localParameter: "APIDIFF_VERSION",
   },
 };
 
