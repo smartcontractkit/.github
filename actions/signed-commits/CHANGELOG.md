@@ -1,5 +1,14 @@
 # changesets-signed-commits
 
+## 1.7.2
+
+### Patch Changes
+
+- [#1157](https://github.com/smartcontractkit/.github/pull/1157)
+  [`521bc44`](https://github.com/smartcontractkit/.github/commit/521bc449ab3e07be22d841146de0e75a81c7ee38)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump depedency
+  @octokit/plugin-throttling
+
 ## 1.7.1
 
 ### Patch Changes
