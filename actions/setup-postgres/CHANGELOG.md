@@ -1,5 +1,14 @@
 # setup-postgres
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1164](https://github.com/smartcontractkit/.github/pull/1164)
+  [`9ab6223`](https://github.com/smartcontractkit/.github/commit/9ab622328db52f2922099198c15d4717239872fd)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump default image
+  tag to be 16-alpine (previously 14-alpine)
+
 ## 1.0.0
 
 ### Major Changes
