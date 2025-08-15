@@ -1,5 +1,5 @@
 import * as core from "@actions/core";
-import { join, basename, dirname } from "path";
+import { join, basename } from "path";
 import { execa } from "execa";
 import * as fs from "fs";
 
@@ -124,25 +124,37 @@ async function getModuleName(goModDir: string): Promise<string> {
 /**
  * Installs apidiff via Go if not already available
  */
-export async function installApidiff(): Promise<void> {
+export async function installApidiff(
+  apidiffVersion: string,
+  forceInstall: boolean = false,
+): Promise<void> {
   core.startGroup("Installing apidiff");
+  core.info(`Requested apidiff version: ${apidiffVersion}`);
+  core.info(`Force install? ${forceInstall}`);
   try {
     const isInstalled = await checkApidiffInstalled();
-    if (isInstalled) {
+    if (isInstalled && !forceInstall) {
       core.info("apidiff is already installed");
       return;
     }
 
     core.info("Installing apidiff...");
-    await execa("go", ["install", "golang.org/x/exp/cmd/apidiff@latest"], {
-      reject: false,
-    });
+    await execa("go", [
+      "install",
+      `golang.org/x/exp/cmd/apidiff@${apidiffVersion}`,
+    ]);
 
     const goPath = process.env.GOPATH || join(process.env.HOME || "", "go");
     const goBin = join(goPath, "bin");
     core.addPath(goBin);
-  } finally {
     core.info("apidiff installed successfully");
+  } catch (error) {
+    const message =
+      error && typeof error === "object" && "message" in error
+        ? String(error.message)
+        : String(error);
+    throw new Error(`Failed to install apidiff: ${message}`);
+  } finally {
     core.endGroup();
   }
 }
@@ -150,6 +162,9 @@ export async function installApidiff(): Promise<void> {
 async function checkApidiffInstalled(): Promise<boolean> {
   try {
     await execa("which", ["apidiff"], { stderr: "ignore", stdout: "ignore" });
+    core.warning(
+      "apidiff is already installed and may not be the correct version",
+    );
     return true;
   } catch {
     return false;

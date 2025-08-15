@@ -31243,29 +31243,38 @@ async function getModuleName(goModDir) {
     return (0, import_path.basename)(goModDir);
   }
 }
-async function installApidiff() {
+async function installApidiff(apidiffVersion, forceInstall = false) {
   core.startGroup("Installing apidiff");
+  core.info(`Requested apidiff version: ${apidiffVersion}`);
+  core.info(`Force install? ${forceInstall}`);
   try {
     const isInstalled = await checkApidiffInstalled();
-    if (isInstalled) {
+    if (isInstalled && !forceInstall) {
       core.info("apidiff is already installed");
       return;
     }
     core.info("Installing apidiff...");
-    await execa("go", ["install", "golang.org/x/exp/cmd/apidiff@latest"], {
-      reject: false
-    });
+    await execa("go", [
+      "install",
+      `golang.org/x/exp/cmd/apidiff@${apidiffVersion}`
+    ]);
     const goPath = process.env.GOPATH || (0, import_path.join)(process.env.HOME || "", "go");
     const goBin = (0, import_path.join)(goPath, "bin");
     core.addPath(goBin);
-  } finally {
     core.info("apidiff installed successfully");
+  } catch (error2) {
+    const message = error2 && typeof error2 === "object" && "message" in error2 ? String(error2.message) : String(error2);
+    throw new Error(`Failed to install apidiff: ${message}`);
+  } finally {
     core.endGroup();
   }
 }
 async function checkApidiffInstalled() {
   try {
     await execa("which", ["apidiff"], { stderr: "ignore", stdout: "ignore" });
+    core.warning(
+      "apidiff is already installed and may not be the correct version"
+    );
     return true;
   } catch {
     return false;
@@ -31583,7 +31592,8 @@ function getInputs() {
     goModPaths: getRunInputStringArray("goModPaths"),
     baseRef: getRunInputString("baseRef"),
     headRef: getRunInputString("headRef"),
-    enforceCompatible: getRunInputBoolean("enforceCompatible")
+    enforceCompatible: getRunInputBoolean("enforceCompatible"),
+    apidiffVersion: getRunInputString("apidiffVersion")
   };
   core4.info(`Inputs: ${JSON.stringify(inputs)}`);
   return inputs;
@@ -31626,6 +31636,10 @@ var runInputsConfiguration = {
   enforceCompatible: {
     parameter: "enforce-compatible",
     localParameter: "ENFORCE_COMPATIBLE"
+  },
+  apidiffVersion: {
+    parameter: "apidiff-version",
+    localParameter: "APIDIFF_VERSION"
   }
 };
 function getRunInputString(input) {
@@ -31841,7 +31855,7 @@ async function run() {
       context3.repo
       // Repository name from GitHub context
     );
-    await installApidiff();
+    await installApidiff(inputs.apidiffVersion);
     const apidiffOutputs = await runApidiff(
       worktreeResult.baseRepoPath,
       // Base directory (old version)

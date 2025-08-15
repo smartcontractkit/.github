@@ -23,7 +23,7 @@ export async function run(): Promise<void> {
     );
 
     // 3. Run API diff between the two worktrees
-    await installApidiff();
+    await installApidiff(inputs.apidiffVersion);
     const apidiffOutputs = await runApidiff(
       worktreeResult.baseRepoPath, // Base directory (old version)
       worktreeResult.headRepoPath, // Head directory (new version)
