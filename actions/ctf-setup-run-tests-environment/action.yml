@@ -158,7 +158,7 @@ runs:
       env:
         CL_DATABASE_URL: ${{ steps.setup-pg.outputs.database-url }}
       run: |
-        go run ./core/store/cmd/preparetest
+        go run ./core/store/cmd/preparetest --deterministic
 
     - name: Setup gauntlet plus plus
       if: inputs.gauntlet_plus_plus_image

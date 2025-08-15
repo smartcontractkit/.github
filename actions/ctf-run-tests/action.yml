@@ -243,7 +243,7 @@ runs:
     - name: Setup environment
       if: inputs.run_setup == 'true'
       id: setup-env
-      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@ctf-setup-run-tests-environment/0.7.0
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@dx-1594/deterministic-schema # TODO
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}

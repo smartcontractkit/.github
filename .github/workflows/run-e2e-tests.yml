@@ -848,7 +848,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ fromJson(env.DOCKER_TESTS_TIMEOUT_MINUTES) }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.9.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@dx-1594/deterministic-schema # TODO
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION: ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
@@ -1145,7 +1145,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.9.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@dx-1594/deterministic-schema # TODO
         env:
           DETACH_RUNNER: true
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
@@ -1270,7 +1270,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.9.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@dx-1594/deterministic-schema # TODO
         with:
           flakeguard_enable: ${{ env.FLAKEGUARD_ENABLE }}
           flakeguard_run_count: ${{ env.FLAKEGUARD_RUN_COUNT }}
