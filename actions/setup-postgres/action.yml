@@ -6,8 +6,8 @@ inputs:
   image-tag:
     description: |
       The image tag from the dockerhub (https://hub.docker.com/_/postgres) to use as the
-      postgres image. Defaults to "14-alpine".
-    default: "14-alpine"
+      postgres image. Defaults to "16-alpine".
+    default: "16-alpine"
 
   print-logs:
     description: |
