@@ -1,0 +1,124 @@
+name: oci-image-bump-receiver
+description: |
+  This action will update the OCI image tag and optionally the image repository
+  URL for multiple YAML files.
+
+  It can be invoked via a workflow that might be dispatched from the related
+  oci-image-bump-sender composite action.
+
+inputs:
+  oci-repository-url:
+    description: |
+      The OCI repository URL to use for the image. If not specified,
+      the repository will not be updated.
+
+      Repository URL includes the OCI registry URL and OCI image name.
+
+      Example:
+        oci-repository-url: public.ecr.aws/chainlink/chainlink
+    required: false
+  oci-image-tag:
+    description: |
+      The tag of the OCI image to update.
+
+      Example:
+        oci-image-tag: 'v1.0.0'
+    required: true
+  paths:
+    description: |
+      Multi-line CSV for the YAML file paths (supports globbing) and the YAML paths within those files for:
+
+      - OCI repository URL (optional: will leave the current value as-is if not provided)
+      - OCI image tag (required)
+
+      File paths (file=) are relative from the root of the git repository.
+
+      Format: file=<file-path>,repository-url-key=<yaml-path>,image-tag-key=<yaml-path>
+
+      Examples:
+        paths: |
+          file=path/to/config.yaml,repository-url-key=sandbox.main.common.image.repository,image-tag-key=sandbox.main.common.image.tag
+          file=path/to/config.yaml,repository-url-key=staging.main.common.image.repository,image-tag-key=staging.main.common.image.tag
+          file=path/to/cre-*-config.yaml,repository-url-key=dev.main.common.image.repository,image-tag-key=dev.main.common.image.tag
+          file=path/to/another-config.yaml,repository-url-key=prod.main.common.image.repository,image-tag-key=prod.main.common.image.tag
+    required: true
+  github-token:
+    description: |
+      The GitHub token to create commits, branches, and PR's.
+
+      Must use a token other than the default workflow token (github.token) in
+      order for GHA CI workflows to trigger from the bot-created PR's.
+
+      Will need these permissions:
+        - contents: write
+        - pull-requests: write
+    required: true
+  pr-base-branch:
+    description: "Base branch to create PR against."
+    required: false
+    default: "main"
+  pr-head-branch:
+    description: "Head branch to create PR from."
+    required: true
+  pr-draft:
+    description: "Whether or not to create the PR as a draft."
+    required: false
+    default: "true"
+  pr-labels:
+    description: |
+      Comma separated list of labels to add to the PR.
+
+      Example:
+        pr-labels: 'preview-sand,do-not-merge'
+    required: false
+  pr-title:
+    description: "Title of the PR."
+    required: true
+
+outputs:
+  pr-number:
+    description: PR number / ID
+    value: ${{ steps.create-pr.outputs.pull-request-number }}
+  pr-url:
+    description: PR URL
+    value: ${{ steps.create-pr.outputs.pull-request-url }}
+  pr-operation:
+    description: "PR Operation, for ex: created, updated, closed"
+    value: ${{ steps.create-pr.outputs.pull-request-operation }}
+  pr-head-sha:
+    description: Commit SHA of the PR branch
+    value: ${{ steps.create-pr.outputs.pull-request-head-sha }}
+
+runs:
+  using: composite
+  steps:
+    - name: Update YAML
+      uses: ./scripts/oci-image-bump-receiver.sh
+      env:
+        OCI_REPOSITORY_URL: ${{ inputs.oci-repository-url }}
+        OCI_IMAGE_TAG: ${{ inputs.oci-image-tag }}
+        PATHS: ${{ inputs.paths }}
+
+    - name: Check for changes
+      id: check-changes
+      shell: bash
+      run: |
+        if ! git diff --quiet; then
+          echo "Changes detected, proceeding with PR creation."
+        else
+          echo "No changes detected after updates. Failing the action."
+          exit 1
+        fi
+
+    # Commits, creates/pushes branch, and creates the PR.
+    - name: Create PR
+      id: create-pr
+      uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
+      with:
+        base: ${{ inputs.pr-base-branch }}
+        branch: ${{ inputs.pr-head-branch }}
+        draft: ${{ inputs.pr-draft }}
+        labels: ${{ inputs.pr-labels }}
+        sign-commits: true
+        title: ${{ inputs.pr-title }}
+        token: ${{ inputs.github-token }}

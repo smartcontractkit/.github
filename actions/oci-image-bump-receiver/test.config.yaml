@@ -1,0 +1,22 @@
+# This is a test YAML file used with ./scripts/oci-image-bump-receiver.sh.
+# Only use this for local testing.
+base: &base
+  test: true
+common: &common
+  test: true
+stage:
+  main:
+    <<: *base
+    common:
+      <<: *common
+      image:
+        repository: "public.ecr.aws/chainlink/chainlink-updated"
+        tag: "v2.31.0-test"
+dev:
+  main:
+    <<: *base
+    common:
+      <<: *common
+      image:
+        repository: "public.ecr.aws/chainlink/chainlink-updated"
+        tag: "v2.31.0-test"
