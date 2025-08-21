@@ -1,0 +1,11 @@
+{
+  "name": "oci-image-bump-sender",
+  "version": "0.0.0",
+  "description": "initiates updates OCI image tag in a YAML file (from a caller repo)",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}

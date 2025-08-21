@@ -1,0 +1,127 @@
+name: oci-image-bump-sender
+description: |
+  This action will run in a workflow on a calling repository which will have an OCI image repository URL and OCI image path/to/another-config.yaml
+
+  This will then be used to call a workflow (workflow_dispatch trigger) on a repository that has the YAML file which should be updated.
+
+  Used in conjunction with `oci-image-bump-receiver` (on the called repo).
+
+inputs:
+  oci-repository-url:
+    description: |
+      The OCI repository URL to use for the image. If not specified,
+      the repository will not be updated.
+
+      Repository URL includes the OCI registry URL and OCI image name.
+
+      Example:
+        oci-repository-url: public.ecr.aws/chainlink/chainlink
+    required: false
+  oci-image-tag:
+    description: |
+      The tag of the OCI image to update.
+
+      Example:
+        oci-image-tag: 'v1.0.0'
+    required: true
+  paths:
+    description: |
+      Multi-line CSV for the YAML file paths (supports globbing) and the YAML paths within those files for:
+
+      - OCI repository URL (optional: will leave the current value as-is if not provided)
+      - OCI image tag (required)
+
+      File paths (file=) are relative from the root of the git repository.
+
+      Format: file=<file-path>,repository-url-key=<yaml-path>,image-tag-key=<yaml-path>
+
+      Examples:
+        paths: |
+          file=path/to/config.yaml,repository-url-key=sandbox.main.common.image.repository,image-tag-key=sandbox.main.common.image.tag
+          file=path/to/config.yaml,repository-url-key=staging.main.common.image.repository,image-tag-key=staging.main.common.image.tag
+          file=path/to/cre-*-config.yaml,repository-url-key=dev.main.common.image.repository,image-tag-key=dev.main.common.image.tag
+          file=path/to/another-config.yaml,repository-url-key=prod.main.common.image.repository,image-tag-key=prod.main.common.image.tag
+    required: true
+  github-token:
+    description: |
+      The GitHub token to create commits, branches, and PR's.
+
+      Must use a token other than the default workflow token (github.token) in
+      order for GHA CI workflows to trigger from the bot-created PR's.
+
+      Will need these permissions:
+        - contents: write
+        - pull-requests: write
+    required: true
+  pr-base-branch:
+    description: "Base branch to create PR against."
+    required: false
+    default: "main"
+  pr-head-branch:
+    description: "Head branch to create PR from."
+    required: true
+  pr-draft:
+    description: "Whether or not to create the PR as a draft."
+    required: false
+    default: "true"
+  pr-labels:
+    description: |
+      Comma separated list of labels to add to the PR.
+
+      Example:
+        pr-labels: 'preview-sand,do-not-merge'
+    required: false
+  pr-title:
+    description: "Title of the PR."
+    required: true
+  repo-destination-git-branch:
+    description: "Destination repo git branch to dispatch workflow from."
+    required: true
+    default: "main"
+  repo-destination-name:
+    description: |
+      Destination repo name to dispatch against.
+
+      Example:
+        repo-destination-name: smartcontractkit/example
+    required: true
+  workflow-file-name:
+    description: |
+      Name of the workflow file to dispatch.
+
+      Example:
+        workflow-file-name: oci-image-bump-deployer.yml
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: "Dispatch Workflow: OCI Image Bump Receiver"
+      id: dispatch-workflow
+      shell: bash
+      env:
+        WORKFLOW_FILE_NAME: ${{ inputs.workflow-file-name }}
+        REPO_DESTINATION_NAME: ${{ inputs.repo-destination-name }}
+        REPO_DESTINATION_GIT_BRANCH: ${{ inputs.repo-destination-git-branch }}
+        OCI_REPOSITORY_URL: ${{ inputs.oci-repository-url }}
+        OCI_IMAGE_TAG: ${{ inputs.oci-image-tag }}
+        PATHS: ${{ inputs.paths }}
+        PR_TITLE: ${{ inputs.pr-title }}
+        PR_HEAD_BRANCH: ${{ inputs.pr-head-branch }}
+        PR_BASE_BRANCH: ${{ inputs.pr-base-branch }}
+        PR_LABELS: ${{ inputs.pr-labels }}
+        PR_DRAFT: ${{ inputs.pr-draft }}
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        gh workflow run "${WORKFLOW_FILE_NAME}" \
+          --repo "${REPO_DESTINATION_NAME}" \
+          --ref "${REPO_DESTINATION_GIT_BRANCH}" \
+          --field "oci-repository-url=${OCI_REPOSITORY_URL}" \
+          --field "oci-image-tag=${OCI_IMAGE_TAG}" \
+          --field "paths=${PATHS}" \
+          --field "pr-title=${PR_TITLE}" \
+          --field "pr-head-branch=${PR_HEAD_BRANCH}" \
+          --field "pr-base-branch=${PR_BASE_BRANCH}" \
+          --field "pr-labels=${PR_LABELS}" \
+          --field "pr-draft=${PR_DRAFT}" \
+          --field "github-token=${GH_TOKEN}"
