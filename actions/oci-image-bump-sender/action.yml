@@ -123,4 +123,5 @@ runs:
           --field "pr-head-branch=${PR_HEAD_BRANCH}" \
           --field "pr-base-branch=${PR_BASE_BRANCH}" \
           --field "pr-labels=${PR_LABELS}" \
-          --field "pr-draft=${PR_DRAFT}"
+          --field "pr-draft=${PR_DRAFT}" \
+          --field "github-token=${GH_TOKEN}"
