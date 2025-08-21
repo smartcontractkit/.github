@@ -271,6 +271,8 @@ importers:
 
   actions/nops-upgrade-checker: {}
 
+  actions/oci-image-bump: {}
+
   actions/parse-and-mask-test-secrets: {}
 
   actions/policy-bot-config-validator: {}

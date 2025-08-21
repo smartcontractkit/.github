@@ -1,7 +1,7 @@
 {
-  "name": "oci-image-bump-receiver",
+  "name": "oci-image-bump",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "sourceRoot": "actions/oci-image-bump-receiver",
+  "sourceRoot": "actions/oci-image-bump",
   "targets": {}
 }

@@ -1,4 +1,4 @@
-# This is a test YAML file used with ./scripts/oci-image-bump-receiver.sh.
+# This is a test YAML file used with ./scripts/oci-image-bump.sh.
 # Only use this for local testing.
 base: &base
   test: true

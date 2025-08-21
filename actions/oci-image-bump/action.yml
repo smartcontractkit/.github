@@ -1,4 +1,4 @@
-name: oci-image-bump-receiver
+name: oci-image-bump
 description: |
   This action will update the OCI image tag and optionally the image repository
   URL for multiple YAML files.
@@ -99,7 +99,7 @@ runs:
         OCI_IMAGE_TAG: ${{ inputs.oci-image-tag }}
         PATHS: ${{ inputs.paths }}
       run: |
-        ${GITHUB_ACTION_PATH}/scripts/oci-image-bump-receiver.sh
+        ${GITHUB_ACTION_PATH}/scripts/oci-image-bump.sh
 
     - name: Check for changes
       id: check-changes
