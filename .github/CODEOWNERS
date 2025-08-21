@@ -3,8 +3,7 @@
 /actions/dependency-review/ @smartcontractkit/devex-cicd
 /actions/helm-version-bump-receiver/ @smartcontractkit/devex-cicd
 /actions/helm-version-bump-sender/ @smartcontractkit/devex-cicd
-/actions/oci-image-bump-receiver/ @smartcontractkit/devex-cicd
-/actions/oci-image-bump-sender/ @smartcontractkit/devex-cicd
+/actions/oci-image-bump/ @smartcontractkit/devex-cicd
 /actions/setup-github-token/ @smartcontractkit/devex-cicd
 
 # CRIB
