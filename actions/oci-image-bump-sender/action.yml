@@ -107,10 +107,10 @@ runs:
         OCI_IMAGE_TAG: ${{ inputs.oci-image-tag }}
         PATHS: ${{ inputs.paths }}
         PR_TITLE: ${{ inputs.pr-title }}
-        PR_HEAD_BRANCH: ${{ inputs.pr_head_branch }}
-        PR_BASE_BRANCH: ${{ inputs.pr_base_branch }}
-        PR_LABELS: ${{ inputs.pr_labels }}
-        PR_DRAFT: ${{ inputs.pr_draft }}
+        PR_HEAD_BRANCH: ${{ inputs.pr-head-branch }}
+        PR_BASE_BRANCH: ${{ inputs.pr-base-branch }}
+        PR_LABELS: ${{ inputs.pr-labels }}
+        PR_DRAFT: ${{ inputs.pr-draft }}
         GH_TOKEN: ${{ inputs.github-token }}
       run: |
         gh workflow run "${WORKFLOW_FILE_NAME}" \
