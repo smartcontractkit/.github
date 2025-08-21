@@ -57,9 +57,6 @@ inputs:
     description: "Base branch to create PR against."
     required: false
     default: "main"
-  pr-head-branch:
-    description: "Head branch to create PR from."
-    required: true
   pr-draft:
     description: "Whether or not to create the PR as a draft."
     required: false
@@ -71,9 +68,15 @@ inputs:
       Example:
         pr-labels: 'preview-sand,do-not-merge'
     required: false
-  pr-title:
-    description: "Title of the PR."
-    required: true
+  products:
+    description: |
+      New line separated list of products to bump the version for.
+
+      Example:
+        products: |
+          ccip
+          cre
+    required: false
   repo-destination-git-branch:
     description: "Destination repo git branch to dispatch workflow from."
     required: true
@@ -106,11 +109,10 @@ runs:
         OCI_REPOSITORY_URL: ${{ inputs.oci-repository-url }}
         OCI_IMAGE_TAG: ${{ inputs.oci-image-tag }}
         PATHS: ${{ inputs.paths }}
-        PR_TITLE: ${{ inputs.pr-title }}
-        PR_HEAD_BRANCH: ${{ inputs.pr-head-branch }}
         PR_BASE_BRANCH: ${{ inputs.pr-base-branch }}
         PR_LABELS: ${{ inputs.pr-labels }}
         PR_DRAFT: ${{ inputs.pr-draft }}
+        PRODUCTS: ${{ inputs.products }}
         GH_TOKEN: ${{ inputs.github-token }}
       run: |
         gh workflow run "${WORKFLOW_FILE_NAME}" \
@@ -119,9 +121,8 @@ runs:
           --field "oci-repository-url=${OCI_REPOSITORY_URL}" \
           --field "oci-image-tag=${OCI_IMAGE_TAG}" \
           --field "paths=${PATHS}" \
-          --field "pr-title=${PR_TITLE}" \
-          --field "pr-head-branch=${PR_HEAD_BRANCH}" \
           --field "pr-base-branch=${PR_BASE_BRANCH}" \
           --field "pr-labels=${PR_LABELS}" \
           --field "pr-draft=${PR_DRAFT}" \
+          --field "products=${PRODUCTS}" \
           --field "github-token=${GH_TOKEN}"
