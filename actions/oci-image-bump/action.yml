@@ -1,10 +1,10 @@
-name: oci-image-bump-sender
+name: oci-image-bump
 description: |
-  This action will run in a workflow on a calling repository which will have an OCI image repository URL and OCI image path/to/another-config.yaml
+  This action will update the OCI image tag and optionally the image repository
+  URL for multiple YAML files.
 
-  This will then be used to call a workflow (workflow_dispatch trigger) on a repository that has the YAML file which should be updated.
-
-  Used in conjunction with `oci-image-bump-receiver` (on the called repo).
+  It can be invoked via a workflow that might be dispatched from the related
+  oci-image-bump-sender composite action.
 
 inputs:
   oci-repository-url:
@@ -57,6 +57,9 @@ inputs:
     description: "Base branch to create PR against."
     required: false
     default: "main"
+  pr-head-branch:
+    description: "Head branch to create PR from."
+    required: true
   pr-draft:
     description: "Whether or not to create the PR as a draft."
     required: false
@@ -68,61 +71,56 @@ inputs:
       Example:
         pr-labels: 'preview-sand,do-not-merge'
     required: false
-  products:
-    description: |
-      New line separated list of products to bump the version for.
-
-      Example:
-        products: |
-          ccip
-          cre
-    required: false
-  repo-destination-git-branch:
-    description: "Destination repo git branch to dispatch workflow from."
+  pr-title:
+    description: "Title of the PR."
     required: true
-    default: "main"
-  repo-destination-name:
-    description: |
-      Destination repo name to dispatch against.
 
-      Example:
-        repo-destination-name: smartcontractkit/example
-    required: true
-  workflow-file-name:
-    description: |
-      Name of the workflow file to dispatch.
-
-      Example:
-        workflow-file-name: oci-image-bump-deployer.yml
-    required: true
+outputs:
+  pr-number:
+    description: PR number / ID
+    value: ${{ steps.create-pr.outputs.pull-request-number }}
+  pr-url:
+    description: PR URL
+    value: ${{ steps.create-pr.outputs.pull-request-url }}
+  pr-operation:
+    description: "PR Operation, for ex: created, updated, closed"
+    value: ${{ steps.create-pr.outputs.pull-request-operation }}
+  pr-head-sha:
+    description: Commit SHA of the PR branch
+    value: ${{ steps.create-pr.outputs.pull-request-head-sha }}
 
 runs:
   using: composite
   steps:
-    - name: "Dispatch Workflow: OCI Image Bump Receiver"
-      id: dispatch-workflow
+    - name: Update YAML
       shell: bash
       env:
-        WORKFLOW_FILE_NAME: ${{ inputs.workflow-file-name }}
-        REPO_DESTINATION_NAME: ${{ inputs.repo-destination-name }}
-        REPO_DESTINATION_GIT_BRANCH: ${{ inputs.repo-destination-git-branch }}
         OCI_REPOSITORY_URL: ${{ inputs.oci-repository-url }}
         OCI_IMAGE_TAG: ${{ inputs.oci-image-tag }}
         PATHS: ${{ inputs.paths }}
-        PR_BASE_BRANCH: ${{ inputs.pr-base-branch }}
-        PR_LABELS: ${{ inputs.pr-labels }}
-        PR_DRAFT: ${{ inputs.pr-draft }}
-        PRODUCTS: ${{ inputs.products }}
-        GH_TOKEN: ${{ inputs.github-token }}
       run: |
-        gh workflow run "${WORKFLOW_FILE_NAME}" \
-          --repo "${REPO_DESTINATION_NAME}" \
-          --ref "${REPO_DESTINATION_GIT_BRANCH}" \
-          --field "oci-repository-url=${OCI_REPOSITORY_URL}" \
-          --field "oci-image-tag=${OCI_IMAGE_TAG}" \
-          --field "paths=${PATHS}" \
-          --field "pr-base-branch=${PR_BASE_BRANCH}" \
-          --field "pr-labels=${PR_LABELS}" \
-          --field "pr-draft=${PR_DRAFT}" \
-          --field "products=${PRODUCTS}" \
-          --field "github-token=${GH_TOKEN}"
+        ${GITHUB_ACTION_PATH}/scripts/oci-image-bump.sh
+
+    - name: Check for changes
+      id: check-changes
+      shell: bash
+      run: |
+        if ! git diff --quiet; then
+          echo "Changes detected, proceeding with PR creation."
+        else
+          echo "No changes detected after updates. Failing the action."
+          exit 1
+        fi
+
+    # Commits, creates/pushes branch, and creates the PR.
+    - name: Create PR
+      id: create-pr
+      uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
+      with:
+        base: ${{ inputs.pr-base-branch }}
+        branch: ${{ inputs.pr-head-branch }}
+        draft: ${{ inputs.pr-draft }}
+        labels: ${{ inputs.pr-labels }}
+        sign-commits: true
+        title: ${{ inputs.pr-title }}
+        token: ${{ inputs.github-token }}
