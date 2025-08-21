@@ -93,11 +93,13 @@ runs:
   using: composite
   steps:
     - name: Update YAML
-      uses: ./scripts/oci-image-bump-receiver.sh
+      shell: bash
       env:
         OCI_REPOSITORY_URL: ${{ inputs.oci-repository-url }}
         OCI_IMAGE_TAG: ${{ inputs.oci-image-tag }}
         PATHS: ${{ inputs.paths }}
+      run: |
+        ${GITHUB_ACTION_PATH}/scripts/oci-image-bump-receiver.sh
 
     - name: Check for changes
       id: check-changes
