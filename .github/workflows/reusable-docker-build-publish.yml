@@ -637,9 +637,11 @@ jobs:
           printf -v final_annotations '%s\n' "${ANNOTATIONS[@]}"
 
           # Output the combined annotations.
-          echo "manifest-annotations<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$final_annotations" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          {
+            echo "manifest-annotations<<EOF"
+            echo "$final_annotations"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
           echo
           echo "Generated manifest annotations (${#ANNOTATIONS[@]} total):"
