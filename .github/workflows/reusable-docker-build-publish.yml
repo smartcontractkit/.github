@@ -579,75 +579,62 @@ jobs:
           DOCKER_MANIFEST_TAG: ${{ needs.build-publish.outputs.docker-manifest-tag }}
           AWS_ECR_NAME: ${{ inputs.aws-ecr-name }}
         run: |
-          # Initialize arrays
-          ANNOTATIONS=()
-          USER_ANNOTATION_KEYS=()
+          # Use associative array to store the annotations.
+          declare -A annotations
 
-          # Parse user annotations once to build key lookup and add them to final array.
+          # Set the default annotations - can be overridden.
+          echo "Adding default annotations..."
+          annotations["org.opencontainers.image.source"]="https://github.com/${GITHUB_WORKFLOW_REPOSITORY}"
+          annotations["org.opencontainers.image.url"]="https://github.com/${GITHUB_WORKFLOW_REPOSITORY}"
+          annotations["org.opencontainers.image.revision"]="${GIT_SHA}"
+          annotations["org.opencontainers.image.version"]="${DOCKER_MANIFEST_TAG}"
+          annotations["org.opencontainers.image.title"]="${AWS_ECR_NAME}"
+
+          for key in "${!annotations[@]}"; do
+            echo "  Added default annotation: $key=${annotations[$key]}"
+          done
+
+          # Process user supplied annotations (will override defaults if keys match).
           if [[ -n "${USER_ANNOTATIONS:-}" ]]; then
             echo "Processing user-provided annotations..."
             while IFS= read -r line; do
-              if [[ -n "$line" && "$line" =~ ^([^=]+)=(.*)$ ]]; then
-                key="${BASH_REMATCH[1]}"
-                USER_ANNOTATION_KEYS+=("$key")
-                ANNOTATIONS+=("$line")
-                echo "  Added user annotation: $line"
-              elif [[ -n "$line" ]]; then
-                echo "  WARNING: Skipping invalid annotation format: $line"
+              # Skip empty lines and comments.
+              if [[ -n "$line" && ! "$line" =~ ^[[:space:]]*# ]]; then
+                # Validate format: key=value.
+                if [[ "$line" =~ ^([^=]+)=(.*)$ ]]; then
+                  key="${BASH_REMATCH[1]}"
+                  value="${BASH_REMATCH[2]}"
+                  annotations["$key"]="$value"
+                  echo "  Added user annotation: $key=$value"
+                else
+                  echo "  WARNING: Skipping invalid annotation format: $line"
+                fi
               fi
             done <<< "$USER_ANNOTATIONS"
           fi
 
-          # Helper function to check if user provided a specific annotation key.
-          has_user_annotation() {
-            local key="$1"
-            for user_key in "${USER_ANNOTATION_KEYS[@]}"; do
-              [[ "$user_key" == "$key" ]] && return 0
-            done
-            return 1
-          }
+          # Force certain annotations (cannot be overridden by users).
+          timestamp_annotation="org.opencontainers.image.created=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)"
+          annotations["org.opencontainers.image.created"]="${timestamp_annotation#*=}"
+          echo "  Added forced annotation: org.opencontainers.image.created=${annotations["org.opencontainers.image.created"]}"
 
-          # Define automatic annotations (only added if user didn't provide them).
-          echo "Adding automatic annotations..."
-          automatic_annotations=(
-            "org.opencontainers.image.source=https://github.com/${GITHUB_WORKFLOW_REPOSITORY}"
-            "org.opencontainers.image.url=https://github.com/${GITHUB_WORKFLOW_REPOSITORY}"
-            "org.opencontainers.image.revision=${GIT_SHA}"
-            "org.opencontainers.image.version=${DOCKER_MANIFEST_TAG}"
-            "org.opencontainers.image.title=${AWS_ECR_NAME}"
-          )
-
-          # Add automatic annotations only if user didn't provide them.
-          for annotation in "${automatic_annotations[@]}"; do
-            key="${annotation%%=*}"
-            if ! has_user_annotation "$key"; then
-              ANNOTATIONS+=("$annotation")
-              echo "  Added automatic annotation: $annotation"
-            else
-              echo "  Skipped automatic annotation (user override): $key"
-            fi
+          # Convert associative array to multiline string for output
+          final_annotations=""
+          for key in "${!annotations[@]}"; do
+            final_annotations+="$key=${annotations[$key]}"$'\n'
           done
 
-          # Always add timestamp (user cannot override this).
-          timestamp_annotation="org.opencontainers.image.created=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)"
-          ANNOTATIONS+=("$timestamp_annotation")
-          echo "  Added timestamp annotation: $timestamp_annotation"
-
-          # Convert array to multiline string for output.
-          printf -v final_annotations '%s\n' "${ANNOTATIONS[@]}"
+          # Remove trailing newline
+          final_annotations="${final_annotations%$'\n'}"
 
           # Output the combined annotations.
           {
             echo "manifest-annotations<<EOF"
             echo "$final_annotations"
             echo "EOF"
-          } >> "$GITHUB_OUTPUT"
+          } | tee -a "$GITHUB_OUTPUT"
 
-          echo
-          echo "Generated manifest annotations (${#ANNOTATIONS[@]} total):"
-          echo "$final_annotations"
-
-      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@build-push-docker-manifest/0.2.0
+      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@build-push-docker-manifest/0.3.0
         id: docker-manifest
         with:
           # Avoid using `github.workflow_ref` here because the `cosign sign`
