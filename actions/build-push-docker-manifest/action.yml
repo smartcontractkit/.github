@@ -188,9 +188,6 @@ runs:
           done <<< "$MANIFEST_ANNOTATIONS"
         fi
 
-        # Always add created timestamp
-        ANNOTATION_FLAGS+=("--annotation" "org.opencontainers.image.created=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)")
-
         # Convert array to space-separated string for output.
         ANNOTATION_FLAGS_STRING="${ANNOTATION_FLAGS[*]}"
         echo "annotation-flags=${ANNOTATION_FLAGS_STRING}" | tee -a "${GITHUB_OUTPUT}"
