@@ -188,19 +188,9 @@ runs:
           done <<< "$MANIFEST_ANNOTATIONS"
         fi
 
-        # Convert array to newline-separated string for safer output
-        ANNOTATION_FLAGS_STRING=""
-        for flag in "${ANNOTATION_FLAGS[@]}"; do
-          ANNOTATION_FLAGS_STRING+="${flag}"$'\n'
-        done
-        # Remove trailing newline
-        ANNOTATION_FLAGS_STRING="${ANNOTATION_FLAGS_STRING%$'\n'}"
-
-        {
-          echo "annotation-flags<<EOF"
-          echo "${ANNOTATION_FLAGS_STRING}"
-          echo "EOF"
-        } | tee -a "${GITHUB_OUTPUT}"
+        # Convert array to space-separated string for output.
+        ANNOTATION_FLAGS_STRING="${ANNOTATION_FLAGS[*]}"
+        echo "annotation-flags=${ANNOTATION_FLAGS_STRING}" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Wait for source images to be available
       shell: bash
@@ -300,13 +290,8 @@ runs:
         echo "Creating Docker manifest..."
         if [[ -n "${ANNOTATION_FLAGS}" ]]; then
           echo "Adding annotation(s) to manifest..."
-          # Convert newline-separated string back to array, filtering out empty lines
-          ANNOTATION_ARRAY=()
-          while IFS= read -r line; do
-            if [[ -n "$line" ]]; then
-              ANNOTATION_ARRAY+=("$line")
-            fi
-          done <<< "${ANNOTATION_FLAGS}"
+          # Convert space-separated string back to array.
+          read -ra ANNOTATION_ARRAY <<< "${ANNOTATION_FLAGS}"
 
           docker buildx imagetools create --tag "${DOCKER_MANIFEST_NAME_WITH_TAG}" "${ANNOTATION_ARRAY[@]}" "${PREFIXED_DIGESTS[@]}"
         else
