@@ -308,8 +308,6 @@ runs:
             fi
           done <<< "${ANNOTATION_FLAGS}"
 
-          # TODO: Debug: show what we're about to execute
-          echo "Executing: docker buildx imagetools create --tag \"${DOCKER_MANIFEST_NAME_WITH_TAG}\" ${ANNOTATION_ARRAY[*]} ${PREFIXED_DIGESTS[*]}"
           docker buildx imagetools create --tag "${DOCKER_MANIFEST_NAME_WITH_TAG}" "${ANNOTATION_ARRAY[@]}" "${PREFIXED_DIGESTS[@]}"
         else
           echo "No annotations specified, creating manifest without annotations..."
