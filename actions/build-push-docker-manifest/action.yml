@@ -179,8 +179,8 @@ runs:
             if [[ -n "$line" && ! "$line" =~ ^[[:space:]]*# ]]; then
               # Validate line format (key=value)
               if [[ "$line" =~ ^[^=]+=[^=]*$ ]]; then
-                ANNOTATION_FLAGS+=("--annotation" "$line")
-                echo "  Adding annotation: $line"
+                ANNOTATION_FLAGS+=("--annotation" "index:$line")
+                echo "  Adding annotation: index:$line"
               else
                 echo "  WARNING: Skipping invalid annotation format: $line"
               fi
