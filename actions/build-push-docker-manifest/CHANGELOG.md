@@ -1,5 +1,14 @@
 # build-push-docker-manifest
 
+## 0.3.1
+
+### Patch Changes
+
+- [#1177](https://github.com/smartcontractkit/.github/pull/1177)
+  [`12132d1`](https://github.com/smartcontractkit/.github/commit/12132d1e575dd0b8a76c83e4fee38903e66201b4)
+  Thanks [@chainchad](https://github.com/chainchad)! - Fix annotation to use
+  index prefix
+
 ## 0.3.0
 
 ### Minor Changes
