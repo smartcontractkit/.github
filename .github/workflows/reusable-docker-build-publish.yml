@@ -247,7 +247,7 @@ jobs:
       docker-restore-cache: ${{ steps.should-cache.outputs.docker-restore-cache }}
       docker-save-cache: ${{ steps.should-cache.outputs.docker-save-cache }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
           fetch-depth: 1
@@ -372,7 +372,7 @@ jobs:
       docker-image-sha-digest-arm64: ${{ steps.build.outputs.docker-image-sha-digest-arm64 }}
       docker-manifest-tag: ${{ steps.set-docker-image-tags.outputs.docker-manifest-tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         id: checkout
         with:
           persist-credentials: false

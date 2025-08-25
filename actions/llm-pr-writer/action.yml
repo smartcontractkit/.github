@@ -47,7 +47,7 @@ runs:
 
     - name: Checkout calling repo
       if: ${{ env.SKIP_ACTION == 'false' }}
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 

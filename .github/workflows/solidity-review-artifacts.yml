@@ -141,7 +141,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout the caller repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v5.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -207,7 +207,7 @@ jobs:
     needs: [gather-basic-info]
     steps:
       - name: Checkout the caller repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v5.0.0
         with:
           ref: ${{ env.head_ref }}
           persist-credentials: false
@@ -308,14 +308,14 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout caller repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v5.0.0
         with:
           fetch-depth: 0
           ref: ${{ env.head_ref }}
           persist-credentials: false
 
       - name: Checkout .github repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v5.0.0
         with:
           repository: smartcontractkit/.github
           ref: 65249c7eae628aad6e70a0c0850d981cd0074bf9
@@ -472,14 +472,14 @@ jobs:
 
       - name: Checkout caller repository
         if: ${{ inputs.link_with_jira == true }}
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v5.0.0
         with:
           ref: ${{ env.head_ref }}
           persist-credentials: false
 
       - name: Checkout chainlink-github-actions repository
         if: ${{ inputs.link_with_jira == true }}
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v5.0.0
         with:
           repository: smartcontractkit/.github
           ref: 65249c7eae628aad6e70a0c0850d981cd0074bf9

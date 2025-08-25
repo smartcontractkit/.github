@@ -214,7 +214,7 @@ runs:
         websockets-services: ${{ env.WEBSOCKETS_SERVICES }}
 
     - name: Checkout crib repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         repository: "smartcontractkit/crib"
         ref: ${{ inputs.crib-repo-ref }}

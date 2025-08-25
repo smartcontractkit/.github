@@ -389,7 +389,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v5.0.0
         with:
           persist-credentials: false
       - name: Install citool
@@ -439,7 +439,7 @@ jobs:
       workflow_id: ${{ steps.gen_id.outputs.workflow_id }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v5.0.0
         with:
           persist-credentials: false
 
@@ -645,7 +645,7 @@ jobs:
 
       - name: Checkout the repo
         if: ${{ steps.check-image-exists.outputs.exists != 'true' }}
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v5.0.0
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -686,7 +686,7 @@ jobs:
           }}
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v5.0.0
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -745,7 +745,7 @@ jobs:
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
 
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v5.0.0
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -1023,7 +1023,7 @@ jobs:
         }}.amazonaws.com/chainlink-tests
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v5.0.0
         with:
           persist-credentials: false
       - name: Build Test Runner Image
@@ -1092,7 +1092,7 @@ jobs:
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
 
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v5.0.0
         with:
           persist-credentials: false
 
@@ -1248,7 +1248,7 @@ jobs:
         uses: runs-on/action@66d4449b717b5462159659523d1241051ff470b9 # v1
 
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v5.0.0
         with:
           persist-credentials: false
 
@@ -1314,7 +1314,7 @@ jobs:
       # Needed for codeowners in Flakeguard
       - name: Checkout repository
         if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v5.0.0
         with:
           persist-credentials: false
 
