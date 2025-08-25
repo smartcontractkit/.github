@@ -634,7 +634,7 @@ jobs:
             echo "EOF"
           } | tee -a "$GITHUB_OUTPUT"
 
-      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@dx-1639/fix-manifest-annotations # TODO: build-push-docker-manifest/0.3.1
+      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@build-push-docker-manifest/0.3.0
         id: docker-manifest
         with:
           # Avoid using `github.workflow_ref` here because the `cosign sign`
