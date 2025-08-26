@@ -21,6 +21,12 @@ inputs:
     default: "main"
     required: false
     description: Useful for testing updates in devenv repo
+  github-token:
+    description:
+      "The `GITHUB_TOKEN` issued for the workflow. It is required unless the
+      action is called from the devenv repo."
+    default: ${{ github.token }}
+    required: false
   chainlink-team:
     required: true
     description: |
@@ -63,6 +69,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup K8s with tailscale
+      # todo: update ref after tailscale action is released
       uses: smartcontractkit/.github/actions/k8s-tailscale-connect@cop-1653/devenv-ns
       with:
         tailscale-oauth-client-id: ${{ inputs.tailscale-oauth-client-id }}
