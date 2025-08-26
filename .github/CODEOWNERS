@@ -7,5 +7,6 @@
 /actions/oci-image-bump/ @smartcontractkit/devex-cicd
 /actions/setup-github-token/ @smartcontractkit/devex-cicd
 
-# CRIB
+# CRIB and devenv
 /actions/crib-*/** @smartcontractkit/cl-orchestration
+/actions/devenv-*/** @smartcontractkit/cl-orchestration
