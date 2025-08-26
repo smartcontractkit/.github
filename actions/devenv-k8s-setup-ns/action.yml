@@ -117,11 +117,6 @@ runs:
         path: "${{ github.workspace }}/devenv"
         token: ${{ inputs.github-token }}
 
-    - uses: actions/setup-go@v5
-      with:
-        go-version-file: "${{ github.workspace }}/devenv/griddle/go.mod"
-        cache-dependency-path: "${{ github.workspace }}/devenv/griddle/**/*.sum"
-
     - name: Create and label Devenv namespace
       shell: bash
       env:
@@ -168,3 +163,16 @@ runs:
 
         echo "Kubernetes namespace [${DEVENV_NAMESPACE}] successfully labeled:"
         kubectl get namespace ${DEVENV_NAMESPACE} --show-labels
+
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: "${{ github.workspace }}/devenv/griddle/go.mod"
+        cache-dependency-path: "${{ github.workspace }}/devenv/griddle/**/*.sum"
+
+    - name: Setup griddle-devenv CLI
+      shell: bash
+      working-directory: ./devenv/griddle
+      run: |
+        go env
+        go build -o griddle main.go
+        ./griddle --help
