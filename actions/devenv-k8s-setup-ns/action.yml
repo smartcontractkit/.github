@@ -9,8 +9,7 @@ inputs:
       creation."
     required: false
   ns-name-prefix:
-    default: "crib-ci"
-    # todo: change this to devenv-ci after kyverno policies are updated
+    default: "devenv-ci"
     description: "Namespace name prefix for devenv environment"
     required: false
   ns-name-override:
