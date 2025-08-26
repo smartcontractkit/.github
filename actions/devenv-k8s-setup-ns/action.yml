@@ -175,4 +175,4 @@ runs:
       run: |
         go env
         go build -o griddle main.go
-        ./griddle --help
+        ./griddle deps
