@@ -1,7 +1,6 @@
 name: "Setup Devenv K8s environment Namespace"
 description:
   "Composite action for setting up a Griddle Dev Ephemeral Environment namespace"
-
 inputs:
   ns-ttl:
     default: "1h"
@@ -32,6 +31,29 @@ inputs:
     description: |
       Specify a relevant value for tagging resources and attributing
       costs to the correct product.
+  # inputs for connecting with k8s cluster via tailscale
+  tailscale-oauth-client-id:
+    description: "Tailscale OAuth client ID for authentication"
+    required: true
+  tailscale-oauth-secret:
+    description: "Tailscale OAuth secret for authentication"
+    required: true
+  tailscale-tags:
+    description:
+      "Tailscale tags to apply to the connection (e.g., tag:crib-sdk-gha)"
+    required: true
+  aws-oidc-role:
+    description: "AWS IAM role ARN to assume using OIDC"
+    required: true
+  aws-region:
+    description: "AWS region where the EKS cluster is located"
+    required: true
+  eks-cluster-name:
+    description: "Name of the EKS cluster to connect to"
+    required: true
+  tailscale-endpoint:
+    description: "Tailscale endpoint URL for the EKS cluster (without https://)"
+    required: true
 outputs:
   namespace:
     description: "Kubernetes namespace created by setup steps"
@@ -40,6 +62,17 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Setup K8s with tailscale
+      uses: smartcontractkit/.github/actions/k8s-tailscale-connect@cop-1653/devenv-ns
+      with:
+        tailscale-oauth-client-id: ${{ inputs.tailscale-oauth-client-id }}
+        tailscale-oauth-secret: ${{ inputs.tailscale-oauth-secret }}
+        tailscale-tags: ${{ inputs.tailscale-tags }}
+        tailscale-endpoint: ${{ inputs.tailscale-endpoint }}
+        aws-oidc-role: ${{ inputs.aws-oidc-role }}
+        aws-region: ${{ inputs.aws-region }}
+        eks-cluster-name: ${{ inputs.eks-cluster-name }}
+
     - name: Generate Devenv Namespace Name, configure variables
       id: generate-ns-name
       shell: bash
