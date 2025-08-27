@@ -1,5 +1,14 @@
 # gha-workflow-validator
 
+## 0.5.3
+
+### Patch Changes
+
+- [#1181](https://github.com/smartcontractkit/.github/pull/1181)
+  [`235a8d1`](https://github.com/smartcontractkit/.github/commit/235a8d11417ca179cbd8c515a00f1854bb7f303b)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: validation for node24
+  actions
+
 ## 0.5.2
 
 ### Patch Changes
