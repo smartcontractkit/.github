@@ -69,7 +69,7 @@ runs:
   steps:
     - name: Setup K8s with tailscale
       # todo: update ref after tailscale action is released
-      uses: smartcontractkit/.github/actions/k8s-tailscale-connect@cop-1653/devenv-ns
+      uses: smartcontractkit/.github/actions/k8s-tailscale-connect@k8s-tailscale-connect/0.1.0
       with:
         tailscale-oauth-client-id: ${{ inputs.tailscale-oauth-client-id }}
         tailscale-oauth-secret: ${{ inputs.tailscale-oauth-secret }}
@@ -122,6 +122,8 @@ runs:
         DEVENV_NAMESPACE:
           "${{ steps.generate-ns-name.outputs.devenv-namespace }}"
         NS_NAME_OVERRIDE: ${{ inputs.ns-name-override }}
+        CHAINLINK_TEAM: ${{ env.CHAINLINK_TEAM }}
+        CHAINLINK_PRODUCT: ${{ env.CHAINLINK_PRODUCT }}
       run: |
         # a valid label must be an empty string or consist of alphanumeric characters,
         # ‘-’, ‘_’ or ‘.’, and must start and end with an alphanumeric character
@@ -131,18 +133,18 @@ runs:
           | sed 's/[^a-zA-Z0-9._-]/_/g' | cut -c1-63 | sed 's/[._-]$//')
 
         # Validate that chainlink-team and chainlink-product inputs adhere to the Kubernetes label format.
-        if [[ ! "${{ inputs.chainlink-team }}" =~ ^[a-zA-Z0-9_.-]+$ ]] || [[ "${{ inputs.chainlink-team }}" -gt 63 ]] || [[ "${{ inputs.chainlink-team }}" =~ ^\. ]] || [[ "${{ inputs.chainlink-team }}" =~ \.$ ]]; then
-          echo "Invalid value for chainlink-team label: ${{ inputs.chainlink-team }}. Must be up to 63 characters, contain only letters, numbers, hyphens, underscores, and dots, and cannot start or end with a dot."
+        if [[ ! "${{ env.CHAINLINK_TEAM }}" =~ ^[a-zA-Z0-9_.-]+$ ]] || [[ "${{ env.CHAINLINK_TEAM }}" -gt 63 ]] || [[ "${{ env.CHAINLINK_TEAM }}" =~ ^\. ]] || [[ "${{ env.CHAINLINK_TEAM }}" =~ \.$ ]]; then
+          echo "Invalid value for chainlink-team label: ${{ env.CHAINLINK_TEAM }}. Must be up to 63 characters, contain only letters, numbers, hyphens, underscores, and dots, and cannot start or end with a dot."
           exit 1
         fi
-        if [[ ! "${{ inputs.chainlink-product }}" =~ ^[a-zA-Z0-9_.-]+$ ]] || [[ "${{ inputs.chainlink-product }}" -gt 63 ]] || [[ "${{ inputs.chainlink-product }}" =~ ^\. ]] || [[ "${{ inputs.chainlink-product }}" =~ \.$ ]]; then
-          echo "Invalid value for chainlink-product label: ${{ inputs.chainlink-product }}. Must be up to 63 characters, contain only letters, numbers, hyphens, underscores, and dots, and cannot start or end with a dot."
+        if [[ ! "${{ env.CHAINLINK_PRODUCT }}" =~ ^[a-zA-Z0-9_.-]+$ ]] || [[ "${{ env.CHAINLINK_PRODUCT }}" -gt 63 ]] || [[ "${{ env.CHAINLINK_PRODUCT }}" =~ ^\. ]] || [[ "${{ env.CHAINLINK_PRODUCT }}" =~ \.$ ]]; then
+          echo "Invalid value for chainlink-product label: ${{ env.CHAINLINK_PRODUCT }}. Must be up to 63 characters, contain only letters, numbers, hyphens, underscores, and dots, and cannot start or end with a dot."
           exit 1
         fi
 
         overwrite=false
         echo "Creating ${DEVENV_NAMESPACE} Kubernetes namespace.."
-        if [ -z "$NS_NAME_OVERRIDE" ]; then
+        if [[ -z "$NS_NAME_OVERRIDE" ]]; then
           kubectl create ns "${DEVENV_NAMESPACE}"
         else
           overwrite=true
@@ -163,10 +165,10 @@ runs:
         echo "Kubernetes namespace [${DEVENV_NAMESPACE}] successfully labeled:"
         kubectl get namespace ${DEVENV_NAMESPACE} --show-labels
 
-    - uses: actions/setup-go@v5
+    - uses: smartcontractkit/.github/actions/setup-golang@setup-golang/1.1.0
       with:
         go-version-file: "${{ github.workspace }}/devenv/griddle/go.mod"
-        cache-dependency-path: "${{ github.workspace }}/devenv/griddle/**/*.sum"
+        go-cache-dep-path: "${{ github.workspace }}/devenv/griddle/**/*.sum"
 
     - name: Setup griddle-devenv CLI
       shell: bash
