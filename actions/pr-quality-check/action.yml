@@ -1,0 +1,25 @@
+name: pr-quality-check
+description:
+  "LLM-powered quality checker for pull requests. It analyzes changed files
+  against repository-defined natural language rules and posts a single PR
+  comment that is updated on every commit"
+
+inputs:
+  # general inputs
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@v4.2.1
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
