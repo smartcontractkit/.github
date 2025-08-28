@@ -29,11 +29,10 @@ runs:
       shell: bash
       env:
         KUBECACHEDIR: /dev/null
+        NAMESPACE: ${{ inputs.namespace }}
+        GRACEFULLY_TERMINATE: ${{ inputs.gracefully-terminate }}
+        GRACEFULLY_TERMINATE_PERIOD: ${{ inputs.gracefully-terminate-period }}
       run: |
-        NAMESPACE="${{ inputs.namespace }}"
-        GRACEFULLY_TERMINATE="${{ inputs.gracefully-terminate }}"
-        GRACEFULLY_TERMINATE_PERIOD="${{ inputs.gracefully-terminate-period }}"
-
         # Check if the namespace exists
         if kubectl get ns "$NAMESPACE" > /dev/null 2>&1; then
           echo "Namespace $NAMESPACE exists. Proceeding with deletion.."
