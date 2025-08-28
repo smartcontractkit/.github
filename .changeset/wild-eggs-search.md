@@ -3,4 +3,4 @@
 "devenv-k8s-setup-ns": patch
 ---
 
-Fix code injection issues
+Fixed code injection issues
