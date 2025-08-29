@@ -6,6 +6,7 @@
 /actions/helm-version-bump-sender/ @smartcontractkit/devex-cicd
 /actions/oci-image-bump/ @smartcontractkit/devex-cicd
 /actions/setup-github-token/ @smartcontractkit/devex-cicd
+/actions/pr-quality-check/ @smartcontractkit/data-analytics
 
 # CRIB
 /actions/crib-*/** @smartcontractkit/cl-orchestration
