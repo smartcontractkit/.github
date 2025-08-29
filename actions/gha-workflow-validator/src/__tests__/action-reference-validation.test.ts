@@ -163,6 +163,26 @@ describe(ActionRefValidation.name, () => {
     nockDone();
   });
 
+  it("should validate single action reference (node24)", async () => {
+    const { nockDone } = await nockBack(
+      "actions-checkout-validation-node24.json",
+    );
+    const octokit = getTestOctokit(nockBack.currentMode);
+    const subject = new ActionRefValidation(octokit);
+
+    const actionsCheckoutLineNode24Ref: FileLine = {
+      lineNumber: 2,
+      content:
+        "        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0",
+      operation: "add",
+      ignored: false,
+    };
+
+    const messages = await subject.validateLine(actionsCheckoutLineNode24Ref);
+    expect(messages).toMatchSnapshot();
+    nockDone();
+  });
+
   it("should invalidate single action reference (all errors)", async () => {
     const { nockDone } = await nockBack("dorny-paths-filter-v2_11_0.json");
     const octokit = getTestOctokit(nockBack.currentMode);

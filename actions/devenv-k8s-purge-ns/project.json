@@ -1,0 +1,7 @@
+{
+  "name": "devenv-k8s-purge-ns",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "actions/devenv-k8s-purge-ns",
+  "targets": {}
+}

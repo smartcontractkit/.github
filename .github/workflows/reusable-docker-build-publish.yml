@@ -249,6 +249,11 @@ on:
           Example: smartcontractkit/chainlink
         required: true
         type: string
+      timeout:
+        description: "Timeout in minutes for the Docker build job."
+        required: false
+        type: number
+        default: 30
     outputs:
       docker-image-sha-digest-amd64:
         description: "Docker image SHA digest for amd64 architecture"
@@ -397,7 +402,7 @@ jobs:
     name: build-publish-${{ matrix.arch }}
     needs: [init, set-build-matrix]
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 30
+    timeout-minutes: ${{ inputs.timeout }}
     strategy:
       matrix:
         include: ${{ fromJson(needs.set-build-matrix.outputs.matrix) }}

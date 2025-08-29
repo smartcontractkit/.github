@@ -8,5 +8,6 @@
 /actions/setup-github-token/ @smartcontractkit/devex-cicd
 /actions/pr-quality-check/ @smartcontractkit/data-analytics
 
-# CRIB
+# CRIB and devenv
 /actions/crib-*/** @smartcontractkit/cl-orchestration
+/actions/devenv-*/** @smartcontractkit/cl-orchestration
