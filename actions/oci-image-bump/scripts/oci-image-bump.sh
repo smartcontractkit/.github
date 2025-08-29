@@ -158,7 +158,7 @@ update_yaml_file() {
     debug "Current image tag value: $current_tag_value"
 
     # Update image tag (required)
-    if ! yq --yaml-fix-merge-anchor-to-spec eval ".${image_tag_key} = \"${OCI_IMAGE_TAG}\"" -i "$file_path" 2>/dev/null; then
+    if ! yq eval --yaml-fix-merge-anchor-to-spec --inplace --prettyPrint ".${image_tag_key} = \"${OCI_IMAGE_TAG}\"" "$file_path" 2>/dev/null; then
         error "Failed to update image tag at path '${image_tag_key}' in file: $file_path"
         return 1
     fi
@@ -176,7 +176,7 @@ update_yaml_file() {
         fi
         debug "Current repository URL value: $current_repo_value"
         
-        if ! yq eval --yaml-fix-merge-anchor-to-spec ".${repo_url_key} = \"${OCI_REPOSITORY_URL}\"" -i "$file_path" 2>/dev/null; then
+        if ! yq eval --yaml-fix-merge-anchor-to-spec --inplace --prettyPrint ".${repo_url_key} = \"${OCI_REPOSITORY_URL}\"" "$file_path" 2>/dev/null; then
             error "Failed to update repository URL at path '${repo_url_key}' in file: $file_path"
             return 1
         fi
