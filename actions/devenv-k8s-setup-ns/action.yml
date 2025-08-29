@@ -122,23 +122,31 @@ runs:
         DEVENV_NAMESPACE:
           "${{ steps.generate-ns-name.outputs.devenv-namespace }}"
         NS_NAME_OVERRIDE: ${{ inputs.ns-name-override }}
-        CHAINLINK_TEAM: ${{ env.CHAINLINK_TEAM }}
-        CHAINLINK_PRODUCT: ${{ env.CHAINLINK_PRODUCT }}
+        CHAINLINK_TEAM: ${{ inputs.chainlink-team }}
+        CHAINLINK_PRODUCT: ${{ inputs.chainlink-product }}
+        BRANCH_NAME: ${{ steps.generate-ns-name.outputs.branch-name }}
+        COMMIT_SHA: ${{ steps.generate-ns-name.outputs.commit-sha }}
+        PR_NUMBER: ${{ steps.generate-ns-name.outputs.pr-number || 'none' }}
+        REPO_NAME: ${{ steps.generate-ns-name.outputs.repo-name }}
+        WORKFLOW_JOB: ${{ steps.generate-ns-name.outputs.workflow-job }}
+        WORKFLOW_RUN_NUMBER:
+          ${{ steps.generate-ns-name.outputs.workflow-run-number }}
+        NS_TTL: ${{ inputs.ns-ttl }}
       run: |
         # a valid label must be an empty string or consist of alphanumeric characters,
-        # ‘-’, ‘_’ or ‘.’, and must start and end with an alphanumeric character
-        # (e.g. ‘MyValue’,  or ‘my_value’,  or ‘12345’, regex used for validation is
-        # ‘(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?’)
-        sanitized_branch=$(echo "${{ steps.generate-ns-name.outputs.branch-name }}" \
+        # '-', '_' or '.', and must start and end with an alphanumeric character
+        # (e.g. 'MyValue',  or 'my_value',  or '12345', regex used for validation is
+        # '(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?')
+        sanitized_branch=$(echo "${BRANCH_NAME}" \
           | sed 's/[^a-zA-Z0-9._-]/_/g' | cut -c1-63 | sed 's/[._-]$//')
 
         # Validate that chainlink-team and chainlink-product inputs adhere to the Kubernetes label format.
-        if [[ ! "${{ env.CHAINLINK_TEAM }}" =~ ^[a-zA-Z0-9_.-]+$ ]] || [[ "${{ env.CHAINLINK_TEAM }}" -gt 63 ]] || [[ "${{ env.CHAINLINK_TEAM }}" =~ ^\. ]] || [[ "${{ env.CHAINLINK_TEAM }}" =~ \.$ ]]; then
-          echo "Invalid value for chainlink-team label: ${{ env.CHAINLINK_TEAM }}. Must be up to 63 characters, contain only letters, numbers, hyphens, underscores, and dots, and cannot start or end with a dot."
+        if [[ ! "${CHAINLINK_TEAM}" =~ ^[a-zA-Z0-9_.-]+$ ]] || [[ "${CHAINLINK_TEAM}" -gt 63 ]] || [[ "${CHAINLINK_TEAM}" =~ ^\. ]] || [[ "${CHAINLINK_TEAM}" =~ \.$ ]]; then
+          echo "Invalid value for chainlink-team label: ${CHAINLINK_TEAM}. Must be up to 63 characters, contain only letters, numbers, hyphens, underscores, and dots, and cannot start or end with a dot."
           exit 1
         fi
-        if [[ ! "${{ env.CHAINLINK_PRODUCT }}" =~ ^[a-zA-Z0-9_.-]+$ ]] || [[ "${{ env.CHAINLINK_PRODUCT }}" -gt 63 ]] || [[ "${{ env.CHAINLINK_PRODUCT }}" =~ ^\. ]] || [[ "${{ env.CHAINLINK_PRODUCT }}" =~ \.$ ]]; then
-          echo "Invalid value for chainlink-product label: ${{ env.CHAINLINK_PRODUCT }}. Must be up to 63 characters, contain only letters, numbers, hyphens, underscores, and dots, and cannot start or end with a dot."
+        if [[ ! "${CHAINLINK_PRODUCT}" =~ ^[a-zA-Z0-9_.-]+$ ]] || [[ "${CHAINLINK_PRODUCT}" -gt 63 ]] || [[ "${CHAINLINK_PRODUCT}" =~ ^\. ]] || [[ "${CHAINLINK_PRODUCT}" =~ \.$ ]]; then
+          echo "Invalid value for chainlink-product label: ${CHAINLINK_PRODUCT}. Must be up to 63 characters, contain only letters, numbers, hyphens, underscores, and dots, and cannot start or end with a dot."
           exit 1
         fi
 
@@ -151,19 +159,19 @@ runs:
           kubectl get ns "${DEVENV_NAMESPACE}" || kubectl create ns "${DEVENV_NAMESPACE}"
         fi
 
-        kubectl label namespace --overwrite=$overwrite ${DEVENV_NAMESPACE} \
+        kubectl label namespace --overwrite=$overwrite "${DEVENV_NAMESPACE}" \
           branch="${sanitized_branch}" \
-          commit=${{ steps.generate-ns-name.outputs.commit-sha }} \
-          pr-number=${{ steps.generate-ns-name.outputs.pr-number || 'none' }} \
-          repo=${{ steps.generate-ns-name.outputs.repo-name }} \
-          workflow-job=${{ steps.generate-ns-name.outputs.workflow-job }} \
-          workflow-run-number=${{ steps.generate-ns-name.outputs.workflow-run-number }}
+          commit="${COMMIT_SHA}" \
+          pr-number="${PR_NUMBER}" \
+          repo="${REPO_NAME}" \
+          workflow-job="${WORKFLOW_JOB}" \
+          workflow-run-number="${WORKFLOW_RUN_NUMBER}"
 
-        kubectl label namespace --overwrite=true ${DEVENV_NAMESPACE} \
-          cleanup.kyverno.io/ttl=${{ inputs.ns-ttl }}
+        kubectl label namespace --overwrite=true "${DEVENV_NAMESPACE}" \
+          cleanup.kyverno.io/ttl="${NS_TTL}"
 
         echo "Kubernetes namespace [${DEVENV_NAMESPACE}] successfully labeled:"
-        kubectl get namespace ${DEVENV_NAMESPACE} --show-labels
+        kubectl get namespace "${DEVENV_NAMESPACE}" --show-labels
 
     - uses: smartcontractkit/.github/actions/setup-golang@setup-golang/1.1.0
       with:
