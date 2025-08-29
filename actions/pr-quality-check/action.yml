@@ -5,21 +5,1020 @@ description:
   comment that is updated on every commit"
 
 inputs:
-  # general inputs
-  checkout-repo:
-    description: "enable git checkout repo"
+  gh-token:
+    description: "GitHub token for API access"
+    required: true
+  openai-api-key:
+    description: "OpenAI API key for LLM analysis"
+    required: true
+  openai-model-context:
+    description: "OpenAI model for context discovery"
+    required: false
+    default: "gpt-5-nano"
+  openai-model-review:
+    description: "OpenAI model for rule analysis"
+    required: false
+    default: "gpt-5-mini"
+  quality-config-file:
+    description: "Path to quality check configuration file"
+    required: false
+    default: "quality_check.yml"
+  fail-on-errors:
+    description: "Fail the job if any errors are found"
+    required: false
+    default: "false"
+  post-comment:
+    description: "Post a PR comment with results"
     required: false
     default: "true"
-  checkout-repo-fetch-depth:
-    description: "number of commits to fetch"
+  log-prompts:
+    description: "Log LLM prompts in action logs"
     required: false
-    default: "0"
+    default: "false"
+  yq-version:
+    description: "Pinned yq version to install (e.g., v4.44.3)"
+    required: false
+    default: "v4.44.3"
+
+outputs:
+  total-errors:
+    description: "Total errors found across analyzed files"
+    value: ${{ steps.set-outputs.outputs.total-errors }}
+  total-warnings:
+    description: "Total warnings found across analyzed files"
+    value: ${{ steps.set-outputs.outputs.total-warnings }}
+  total-files-checked:
+    description: "Number of files analyzed (matched patterns)"
+    value: ${{ steps.set-outputs.outputs.total-files-checked }}
+  total-changed-files:
+    description: "Total changed files in PR"
+    value: ${{ steps.set-outputs.outputs.total-changed-files }}
+  has-matching-changes:
+    description: "Whether any changed files matched configured patterns"
+    value: ${{ steps.set-outputs.outputs.has-matching-changes }}
 
 runs:
   using: composite
   steps:
-    - name: Checkout repo
-      if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4.2.1
-      with:
-        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+    - name: Install yq
+      shell: bash
+      env:
+        PINNED_YQ_VERSION: ${{ inputs.yq-version }}
+      run: |
+        set -euo pipefail
+        echo "📦 Installing yq ${PINNED_YQ_VERSION} for YAML processing (Linux runner assumed)..."
+        mkdir -p "$RUNNER_TEMP"
+        YQ_URL="https://github.com/mikefarah/yq/releases/download/${PINNED_YQ_VERSION}/yq_linux_amd64"
+        curl -fsSL -o "$RUNNER_TEMP/yq" "$YQ_URL"
+
+        chmod +x "$RUNNER_TEMP/yq"
+        echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+        "$RUNNER_TEMP/yq" --version
+
+    - name: Check prerequisites
+      shell: bash
+      run: |
+        set -euo pipefail
+        for cmd in jq gh git python3 curl; do
+          if ! command -v "$cmd" >/dev/null 2>&1; then
+            echo "::error::Required command not found: $cmd"
+            exit 1
+          fi
+        done
+        echo "jq version: $(jq --version)"
+        echo "gh version: $(gh --version | head -1)"
+        echo "git version: $(git --version)"
+
+    - name: Check if should run quality check
+      shell: bash
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: |
+        set -euo pipefail
+        if [[ "$EVENT_NAME" == pull_request* ]] && [[ -n "${PR_NUMBER:-}" ]]; then
+          echo "SHOULD_RUN=true" >> "$GITHUB_ENV"
+          echo "Triggered by PR #$PR_NUMBER"
+        else
+          echo "SHOULD_RUN=false" >> "$GITHUB_ENV"
+          echo "Not a pull_request event; skipping."
+        fi
+
+    - name: Load quality check configuration
+      if: env.SHOULD_RUN == 'true'
+      shell: bash
+      env:
+        QUALITY_CONFIG_FILE: ${{ inputs.quality-config-file }}
+      run: |
+        set -euo pipefail
+        if [ ! -f "$QUALITY_CONFIG_FILE" ]; then
+          echo "::error::Quality check configuration file not found: $QUALITY_CONFIG_FILE"
+          exit 1
+        fi
+
+        echo "📋 Loading quality check rules from $QUALITY_CONFIG_FILE"
+        echo "QUALITY_CONFIG_FILE=$QUALITY_CONFIG_FILE" >> $GITHUB_ENV
+
+    - name: Get changed files matching configured patterns
+      if: env.SHOULD_RUN == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh-token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        REPO: ${{ github.repository }}
+      run: |
+        set -euo pipefail
+        echo "🔍 Finding changed files matching configured patterns in PR #$PR_NUMBER"
+
+        # Function to match glob patterns using external Python script
+        matches_pattern() {
+          local file="$1"
+          local pattern="$2"
+          python3 "${GITHUB_ACTION_PATH}/src/glob_match.py" "$file" "$pattern"
+          return $?
+        }
+
+        # Read quality check rules to get file patterns
+        QUALITY_RULES=$(cat $QUALITY_CONFIG_FILE)
+
+        # Extract optional exception patterns (globs to exclude)
+        EXCLUDE_PATTERNS=$(echo "$QUALITY_RULES" | yq -o json | jq -r '(.exceptions // []) | (if type=="array" then . else [.] end) | .[]?' 2>/dev/null || echo "")
+
+        # Fetch PR files once and cache
+        PR_FILES_JSON_PATH="$RUNNER_TEMP/pr_files.json"
+        gh api repos/$REPO/pulls/$PR_NUMBER/files --paginate > "$PR_FILES_JSON_PATH"
+        echo "PR_FILES_JSON_PATH=$PR_FILES_JSON_PATH" >> $GITHUB_ENV
+
+        # Derive changed filenames (handle paginated JSON arrays)
+        ALL_CHANGED_FILES=$(jq -s -r 'map(.[].filename) | .[]' "$PR_FILES_JSON_PATH" 2>/dev/null || echo "")
+
+        if [ -z "$ALL_CHANGED_FILES" ]; then
+          echo "No files changed in this PR"
+          echo "CHANGED_FILES=" >> $GITHUB_ENV
+          echo "HAS_MATCHING_CHANGES=false" >> $GITHUB_ENV
+          exit 0
+        fi
+
+        echo "All changed files:"
+        echo "$ALL_CHANGED_FILES"
+        echo ""
+
+        # Helper to check exclusion
+        is_excluded() {
+          local file="$1"
+          if [ -z "$EXCLUDE_PATTERNS" ]; then
+            return 1
+          fi
+          while IFS= read -r ex_pat; do
+            [ -z "$ex_pat" ] && continue
+            local clean_ex_pat=$(echo "$ex_pat" | tr -d '"')
+            if matches_pattern "$file" "$clean_ex_pat"; then
+              echo "🚫 File excluded by exception pattern '$clean_ex_pat': $file"
+              return 0
+            fi
+          done <<< "$EXCLUDE_PATTERNS"
+          return 1
+        }
+
+        # Get patterns from config
+        PATTERNS=$(echo "$QUALITY_RULES" | yq -r '.rules | keys | .[]' 2>/dev/null)
+
+        if [ -z "$PATTERNS" ]; then
+          echo "⚠️ No patterns found in configuration"
+          echo "CHANGED_FILES=" >> $GITHUB_ENV
+          echo "HAS_MATCHING_CHANGES=false" >> $GITHUB_ENV
+          exit 0
+        fi
+
+        # Find files that match any pattern
+        MATCHING_FILES=""
+        while IFS= read -r file; do
+          if [ -z "$file" ]; then continue; fi
+          # Skip if file matches any exception pattern
+          if is_excluded "$file"; then
+            continue
+          fi
+          
+          # Test file against all patterns - use while loop to avoid variable contamination
+          while IFS= read -r pattern; do
+            if [ -z "$pattern" ]; then continue; fi
+            CLEAN_PATTERN=$(echo "$pattern" | tr -d '"')
+            
+            # Use custom function for reliable glob pattern matching
+            if matches_pattern "$file" "$CLEAN_PATTERN"; then
+              echo "✅ File matches pattern '$CLEAN_PATTERN': $file"
+              if [ -z "$MATCHING_FILES" ]; then
+                MATCHING_FILES="$file"
+              else
+                MATCHING_FILES="$MATCHING_FILES"$'\n'"$file"
+              fi
+              break  # Stop checking other patterns for this file
+            fi
+          done <<< "$PATTERNS"
+        done <<< "$ALL_CHANGED_FILES"
+
+        if [ -z "$MATCHING_FILES" ]; then
+          echo "No files match the configured patterns"
+          echo "CHANGED_FILES=" >> $GITHUB_ENV
+          echo "HAS_MATCHING_CHANGES=false" >> $GITHUB_ENV
+        else
+          echo ""
+          echo "Files matching configured patterns:"
+          echo "$MATCHING_FILES"
+          echo "CHANGED_FILES<<EOF" >> $GITHUB_ENV
+          echo "$MATCHING_FILES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          echo "HAS_MATCHING_CHANGES=true" >> $GITHUB_ENV
+        fi
+
+        # Export total changed files count for outputs (sum page lengths)
+        TOTAL_CHANGED_FILES=$(jq -s 'map(length) | add' "$PR_FILES_JSON_PATH" 2>/dev/null || echo "0")
+        echo "TOTAL_CHANGED_FILES=$TOTAL_CHANGED_FILES" >> $GITHUB_ENV
+
+    - name: Create LLM prompt template
+      if: env.SHOULD_RUN == 'true' && env.HAS_MATCHING_CHANGES == 'true'
+      shell: bash
+      run: |
+        cat > llm_prompt_template.txt << 'PROMPT_EOF'
+        You are a code quality reviewer. Analyze the following changed file against the quality rules provided.
+
+        FILE_CLASSIFICATION_PLACEHOLDER
+
+        Quality Rules:
+        ```yaml
+        QUALITY_RULES_PLACEHOLDER
+        ```
+
+        ## Context Files (if needed for rule validation):
+        ALL_CHANGED_FILES_PLACEHOLDER
+
+        ## File Being Analyzed: FILE_PATH_PLACEHOLDER
+
+        Git Diff (showing changes with context):
+        ```diff
+        DIFF_OUTPUT_PLACEHOLDER
+        ```
+
+        IMPORTANT: 
+        - Only apply rules that are relevant to this file and the matched glob patterns (as defined in the configuration). Ignore non-applicable rules.
+        - DO NOT REPORT rules that have nothing to check: 
+          * Only report warnings and violations for things that actually exist in the file
+          * Do not report warnings and violations for possible future changes or situations, only what is actually in the file
+          * EXAMPLES: If there are no classes, do not mention class-docstrings. If all functions have docstrings, do not mention function-docstrings.
+        - Context files are provided only when rules require cross-file validation (like "dbt models must have tests").
+        - If context files are provided, use them to validate cross-file relationships and dependencies.
+        - ENFORCE ALL RULES EQUALLY: New files and existing files must meet the same quality standards. Do not be lenient with new files.
+        - If a rule requires documentation, tests, or other artifacts, new files must have them just like existing files.
+
+        Please analyze this file and report ONLY violations and warnings. Do not report rules that pass. Do not provide suggested fixes or remediation steps.
+
+        CRITICAL: If there are no violations or warnings, simply respond with the clean file format. Do not invent violations.
+
+        For each ACTUAL violation or warning found:
+        1. Specify which rule was not followed (use the rule ID)
+        2. Describe the specific issue (no suggested fix)
+        3. Include line numbers ONLY when they are relevant (e.g., for code issues like SELECT *, not for missing external files)
+        4. Use the EXACT severity level from the configuration: ❌ for errors (severity: error) and ⚠️ for warnings (severity: warning)
+        5. IMPORTANT: Do not change the severity level - use exactly what is defined in the configuration
+        6. Do not propose code changes, naming changes, or any remediation. Only notify.
+
+        Format your response as:
+
+        ## FILE_PATH_PLACEHOLDER
+
+        ❌ **[Rule ID]**: Issue description
+        ⚠️ **[Rule ID]**: Issue description
+
+        If no violations or warnings found, respond with:
+        ## ✅ FILE_PATH_PLACEHOLDER
+        All quality checks passed
+
+        Focus on the changed lines and their immediate context. Consider overall file structure only when required by a rule.
+
+        Finally, on the LAST line of the response, add a machine-readable summary with exact key names and integers:
+        SUMMARY_JSON: {"errors": E, "warnings": W}
+        - Put this on a single line
+        - No code fences, no extra text
+        - Ensure it is valid JSON after the colon
+        PROMPT_EOF
+
+    - name: Analyze files with LLM
+      if: env.SHOULD_RUN == 'true' && env.HAS_MATCHING_CHANGES == 'true'
+      shell: bash
+      env:
+        OPENAI_API_KEY: ${{ inputs.openai-api-key }}
+        OPENAI_MODEL_CONTEXT_INPUT: ${{ inputs.openai-model-context }}
+        OPENAI_MODEL_REVIEW_INPUT: ${{ inputs.openai-model-review }}
+        GH_TOKEN: ${{ inputs.gh-token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        REPO: ${{ github.repository }}
+        PR_FILES_JSON_PATH: ${{ env.PR_FILES_JSON_PATH }}
+        LOG_PROMPTS: ${{ inputs.log-prompts }}
+      run: |
+        set -euo pipefail
+        echo "🤖 Analyzing files with LLM"
+
+        MODEL_CONTEXT=${OPENAI_MODEL_CONTEXT_INPUT}
+        MODEL_REVIEW=${OPENAI_MODEL_REVIEW_INPUT}
+
+        # Function to match glob patterns using external Python script
+        matches_pattern() {
+          local file="$1"
+          local pattern="$2"
+          
+          # Use the generic glob matching script
+          python3 "${GITHUB_ACTION_PATH}/src/glob_match.py" "$file" "$pattern"
+          return $?
+        }
+
+        # Read quality check rules
+        QUALITY_RULES=$(cat $QUALITY_CONFIG_FILE)
+
+        # Get base and head SHA for context gathering
+        BASE_SHA=$(gh pr view $PR_NUMBER --json baseRefOid --jq '.baseRefOid')
+        HEAD_SHA=$(gh pr view $PR_NUMBER --json headRefOid --jq '.headRefOid')
+        HEAD_REPO=$(gh pr view $PR_NUMBER --json headRepository --jq '.headRepository.nameWithOwner')
+        HEAD_SHA_SHORT=${HEAD_SHA:0:7}
+
+        # Total changed files already computed earlier
+        TOTAL_CHANGED_FILES=${TOTAL_CHANGED_FILES:-0}
+        # Build newline-separated list of changed files from cached JSON (used for context discovery prompt)
+        # Handle paginated JSON arrays for list of all changed files
+        ALL_CHANGED_FILES_IN_PR=$(jq -s -r 'map(.[].filename) | .[]' "$PR_FILES_JSON_PATH" 2>/dev/null || echo "")
+
+        # Initialize results
+        echo "# 🛡️ Quality Check Results" > quality_results.md
+        echo "" >> quality_results.md
+        echo "Automated quality analysis for files in this PR that match configured patterns." >> quality_results.md
+        echo "" >> quality_results.md
+
+        TOTAL_ERRORS=0
+        TOTAL_WARNINGS=0
+        TOTAL_FILES_CHECKED=0
+
+        # Process each changed file
+        while IFS= read -r file; do
+          if [ -z "$file" ]; then continue; fi
+          
+          # Determine file status (added/modified/removed/renamed) - handle pagination
+          FILE_STATUS=$(jq -s -r --arg file "$file" 'map(.[]) | map(select(.filename==$file) | .status) | first // ""' "$PR_FILES_JSON_PATH" 2>/dev/null || echo "")
+          
+          # Skip deleted files - no point analyzing code that's being removed
+          if [ "$FILE_STATUS" = "removed" ]; then
+            echo "Skipping deleted file: $file"
+            continue
+          fi
+          
+          echo "Analyzing file: $file"
+          TOTAL_FILES_CHECKED=$((TOTAL_FILES_CHECKED + 1))
+          
+          # For renamed files, also capture previous filename
+          PREV_FILENAME=$(jq -s -r --arg file "$file" 'map(.[]) | map(select(.filename==$file and .status=="renamed") | .previous_filename) | first // ""' "$PR_FILES_JSON_PATH" 2>/dev/null || echo "")
+          # Treat renamed as modified for rule gating
+          EFFECTIVE_FILE_STATUS=$FILE_STATUS
+          if [ "$FILE_STATUS" = "renamed" ]; then
+            EFFECTIVE_FILE_STATUS="modified"
+          fi
+          
+          # Robust new-file detection: prefer status; fall back to BASE lookup only if unknown
+          IS_NEW_FILE=false
+          if [ "$FILE_STATUS" = "added" ]; then
+            IS_NEW_FILE=true
+          elif [ -z "$FILE_STATUS" ]; then
+            if ! gh api repos/$REPO/contents/"$file" -F ref=$BASE_SHA -H "Accept: application/vnd.github.VERSION.raw" >/dev/null 2>&1; then
+              IS_NEW_FILE=true
+            fi
+          fi
+          
+          # Try to obtain diff/patch from GitHub API (robust to shallow clones)
+          # Get patch for this file from cached JSON
+          DIFF_OUTPUT=$(jq -s -r --arg file "$file" 'map(.[]) | map(select(.filename==$file) | .patch) | first // ""' "$PR_FILES_JSON_PATH" 2>/dev/null || echo "")
+          if [ -z "${DIFF_OUTPUT}" ] || [ "${DIFF_OUTPUT}" = "null" ]; then
+            DIFF_OUTPUT="(no patch available from GitHub API)"
+          fi
+
+          # Sanitize diff hunk headers: keep only the numeric range up to the second @@
+          # Example: "@@ -95,7 +95,6 @@ def load_prices(**kwargs):" -> "@@ -95,7 +95,6 @@"
+          if [ -n "${DIFF_OUTPUT}" ]; then
+            SANITIZED_DIFF_OUTPUT=$(printf "%s\n" "$DIFF_OUTPUT" | sed -E 's/^(@@[^@]*@@).*/\1/')
+            DIFF_OUTPUT="$SANITIZED_DIFF_OUTPUT"
+          fi
+          
+          # Optionally probe file content availability at HEAD for future use
+          if gh api repos/$HEAD_REPO/contents/"$file" -H "Accept: application/vnd.github.VERSION.raw" -F ref=$HEAD_SHA >/dev/null 2>&1; then
+            : # Content accessible; not embedded in prompt by default
+          fi
+                    
+          # Find ALL matching rules for this file
+          APPLICABLE_RULES=""
+          MATCHED_PATTERNS=""
+          ALL_RULES=""
+          MATCHED_RULE_IDS=""
+          
+          echo "Checking file '$file' against configured glob patterns..."
+          
+          # Get all patterns from config and test each one
+          PATTERNS=$(echo "$QUALITY_RULES" | yq -r '.rules | keys | .[]' 2>/dev/null)
+          
+          if [ -z "$PATTERNS" ]; then
+            echo "⚠️ No patterns found in configuration or yq failed, skipping file: $file"
+            continue
+          fi
+          
+
+          
+          # Use while loop to avoid variable contamination
+          while IFS= read -r pattern; do
+            if [ -z "$pattern" ]; then continue; fi
+            # Remove quotes from pattern
+            CLEAN_PATTERN=$(echo "$pattern" | tr -d '"')
+            echo "Testing pattern: $CLEAN_PATTERN"
+            
+            # Test if file matches this glob pattern using custom function
+            if matches_pattern "$file" "$CLEAN_PATTERN"; then
+              echo "✅ File matched pattern: $CLEAN_PATTERN"
+              
+              # Add to matched patterns list
+              if [ -z "$MATCHED_PATTERNS" ]; then
+                MATCHED_PATTERNS="$CLEAN_PATTERN"
+              else
+                MATCHED_PATTERNS="$MATCHED_PATTERNS, $CLEAN_PATTERN"
+              fi
+              
+              # Get rules for this pattern using jq (same approach as context discovery)
+              PATTERN_RULES_JSON=$(echo "$QUALITY_RULES" | yq -o json | jq -c ".rules[\"$CLEAN_PATTERN\"][]?" 2>/dev/null)
+              if [ -n "$PATTERN_RULES_JSON" ]; then
+                # Convert JSON rules back to YAML for display
+                PATTERN_RULES_YAML=""
+                while IFS= read -r json_rule; do
+                  if [ -n "$json_rule" ] && [ "$json_rule" != "null" ]; then
+                    rule_id=$(echo "$json_rule" | jq -r '.id // ""')
+                    if [ -n "$rule_id" ]; then
+                      if [ -z "$MATCHED_RULE_IDS" ]; then
+                        MATCHED_RULE_IDS="$rule_id"
+                      else
+                        MATCHED_RULE_IDS="$MATCHED_RULE_IDS"$'\n'"$rule_id"
+                      fi
+                    fi
+                    # Generic gating based on optional rule metadata
+                    ENFORCE_ON_NEW_ONLY=$(echo "$json_rule" | jq -r '.enforce_on_new_only // false')
+                    # applies_on can be ["added","modified","deleted","renamed"], default ["added","modified"]
+                    if ! echo "$json_rule" | jq -e --arg s "$EFFECTIVE_FILE_STATUS" '(.applies_on // ["added","modified"]) | index($s)' >/dev/null; then
+                      continue
+                    fi
+                    if [ "$ENFORCE_ON_NEW_ONLY" = "true" ] && [ "$FILE_STATUS" != "added" ]; then
+                      continue
+                    fi
+                    yaml_rule=$(echo "$json_rule" | yq -P)
+                    if [ -z "$PATTERN_RULES_YAML" ]; then
+                      PATTERN_RULES_YAML="$yaml_rule"
+                    else
+                      PATTERN_RULES_YAML="$PATTERN_RULES_YAML"$'\n---\n'"$yaml_rule"
+                    fi
+                  fi
+                done <<< "$PATTERN_RULES_JSON"
+                
+                if [ -n "$PATTERN_RULES_YAML" ]; then
+                  if [ -z "$ALL_RULES" ]; then
+                    ALL_RULES="Rules from pattern: $CLEAN_PATTERN"$'\n'"$PATTERN_RULES_YAML"
+                  else
+                    ALL_RULES="$ALL_RULES"$'\n\n'"Rules from pattern: $CLEAN_PATTERN"$'\n'"$PATTERN_RULES_YAML"
+                  fi
+                fi
+              fi
+            else
+              echo "❌ File does not match pattern: $CLEAN_PATTERN"
+            fi
+          done <<< "$PATTERNS"
+          
+          # If no patterns matched, skip the file
+          if [ -z "$MATCHED_PATTERNS" ]; then
+            echo "File does not match any configured patterns, skipping: $file"
+            continue
+          fi
+          
+          APPLICABLE_RULES="$ALL_RULES"
+          
+          # If yq failed, fall back to sending full config
+          if [ -z "$APPLICABLE_RULES" ]; then
+            echo "Warning: yq not available, sending full configuration"
+            APPLICABLE_RULES="$QUALITY_RULES"
+          fi
+          
+          # Intelligent context discovery using LLM
+          echo "🔍 Discovering context requirements for file: $file"
+          REQUIRED_CONTEXT=""
+          ALL_CONTEXT_FILES=""
+          UNIQUE_CONTEXT_FILES=""
+          ALLOWED_RULE_IDS=""
+          
+          # Get individual rules for this file to determine context needs
+          INDIVIDUAL_RULES=""
+          # Collect rules for file
+          while IFS= read -r pattern; do
+            if [ -z "$pattern" ]; then continue; fi
+            CLEAN_PATTERN=$(echo "$pattern" | tr -d '"')
+            # Test pattern
+            if matches_pattern "$file" "$CLEAN_PATTERN"; then
+              # Pattern matched, extract rules
+              # Use jq via yq JSON output for reliable rule extraction
+              PATTERN_RULES_JSON=$(echo "$QUALITY_RULES" | yq -o json | jq -c ".rules[\"$CLEAN_PATTERN\"][]?" 2>/dev/null)
+              # Convert each JSON rule back to YAML for consistency
+              PATTERN_RULES=""
+              if [ -n "$PATTERN_RULES_JSON" ]; then
+                while IFS= read -r json_rule; do
+                  if [ -n "$json_rule" ] && [ "$json_rule" != "null" ]; then
+                    # Generic gating based on optional rule metadata
+                    ENFORCE_ON_NEW_ONLY=$(echo "$json_rule" | jq -r '.enforce_on_new_only // false')
+                    if ! echo "$json_rule" | jq -e --arg s "$EFFECTIVE_FILE_STATUS" '(.applies_on // ["added","modified"]) | index($s)' >/dev/null; then
+                      continue
+                    fi
+                    if [ "$ENFORCE_ON_NEW_ONLY" = "true" ] && [ "$FILE_STATUS" != "added" ]; then
+                      continue
+                    fi
+                    yaml_rule=$(echo "$json_rule" | yq -P)
+                    if [ -z "$PATTERN_RULES" ]; then
+                      PATTERN_RULES="$yaml_rule"
+                    else
+                      PATTERN_RULES="$PATTERN_RULES"$'\n---\n'"$yaml_rule"
+                    fi
+                  fi
+                done <<< "$PATTERN_RULES_JSON"
+              fi
+              if [ -n "$PATTERN_RULES" ] && [ "$PATTERN_RULES" != "null" ]; then
+                if [ -z "$INDIVIDUAL_RULES" ]; then
+                  INDIVIDUAL_RULES="$PATTERN_RULES"
+                else
+                  INDIVIDUAL_RULES="$INDIVIDUAL_RULES"$'\n---\n'"$PATTERN_RULES"
+                fi
+              else
+                :
+              fi
+            else
+              :
+            fi
+          done <<< "$PATTERNS"
+          :
+          
+          # Determine context needs with requires_context; do per-rule call only for those rules
+          if [ -n "$INDIVIDUAL_RULES" ]; then
+            echo "$INDIVIDUAL_RULES" > temp_rules.yml
+            # Normalize to a single JSON array for robust downstream processing
+            RULES_JSON=$(yq -o json temp_rules.yml | jq -c 'if type=="array" then . else [.] end')
+
+            # Build lists
+            ALL_RULE_IDS=$(echo "$RULES_JSON" | jq -r 'map(select(. != null)) | .[].id // empty')
+            NO_CONTEXT_RULE_IDS=$(echo "$RULES_JSON" | jq -r 'map(select((.requires_context // false) == false)) | .[].id // empty')
+            CONTEXT_REQUIRED_RULES=$(echo "$RULES_JSON" | jq -c 'map(select((.requires_context // false) == true))')
+
+            # Initialize allowed rules: all for new files; for modified, only rules that don't need extra context
+            if [ "$IS_NEW_FILE" = true ]; then
+              ALLOWED_RULE_IDS=$(printf "%s\n" $ALL_RULE_IDS | sort -u)
+            else
+              ALLOWED_RULE_IDS=$(printf "%s\n" $NO_CONTEXT_RULE_IDS | sort -u)
+            fi
+
+            # For rules requiring context, do one call per rule
+            NUM_CTX_RULES=$(printf '%s' "$CONTEXT_REQUIRED_RULES" | jq -r 'try length catch 0' 2>/dev/null || echo 0)
+            # Sanitize to integer (strip non-digits; default 0)
+            NUM_CTX_RULES=$(printf '%s' "$NUM_CTX_RULES" | sed -E 's/[^0-9]//g')
+            if [ -z "$NUM_CTX_RULES" ]; then NUM_CTX_RULES=0; fi
+            if printf '%s' "$NUM_CTX_RULES" | grep -Eq '^[1-9][0-9]*$'; then
+              PER_RULE_CONTEXT_JSON_LINES=""
+              while IFS= read -r json_rule; do
+                rule_id=$(echo "$json_rule" | jq -r '.id // ""')
+                [ -z "$rule_id" ] && continue
+                rule_desc=$(echo "$json_rule" | jq -r '.description // ""')
+                rule_severity=$(echo "$json_rule" | jq -r '.severity // ""')
+
+                CONTEXT_PROMPT=$(printf "You are a code quality assistant. Given a quality rule and a list of changed files in a PR, determine what additional context files (if any) are needed to validate this rule.\n\nRule to validate:\n- ID: %s\n- Description: %s\n- Severity: %s\n\nFile being analyzed: %s\n\nAll changed files in this PR:\n%s\n\nInstructions:\n1. Analyze if this rule requires checking other files beyond the main file being analyzed\n2. If additional context is needed, identify which specific files from the changed files list would be relevant\n3. Only include files that are actually necessary to validate this specific rule\n4. Respond with a JSON object\n\nResponse format:\n{\"context_files\": [\"file1.yml\", \"file2.yaml\"], \"reason\": \"Brief explanation of why these files are needed\"}\n\nIf no additional context is needed, respond with:\n{\"context_files\": [], \"reason\": \"Rule can be validated using only the main file\"}\n\nBe precise - only include files that are truly necessary for this specific rule validation." "$rule_id" "$rule_desc" "$rule_severity" "$file" "$ALL_CHANGED_FILES_IN_PR")
+
+                if [ "${LOG_PROMPTS:-false}" = "true" ]; then
+                  echo "=== Context discovery prompt (rule: $rule_id, file: $file) ==="
+                  printf "%s\n" "$CONTEXT_PROMPT"
+                fi
+
+                CONTEXT_RESPONSE=$(curl -s https://api.openai.com/v1/chat/completions \
+                  -H "Content-Type: application/json" \
+                  -H "Authorization: Bearer $OPENAI_API_KEY" \
+                  -d "{
+                    \"model\": \"$MODEL_CONTEXT\",
+                    \"messages\": [
+                      {\"role\": \"system\", \"content\": \"You are a precise code quality assistant focused on determining minimal necessary context for rule validation. Respond ONLY with a JSON object. No prose. No markdown. No code fences.\"},
+                      {\"role\": \"user\", \"content\": $(echo "$CONTEXT_PROMPT" | jq -Rs .)}
+                    ],
+                    \"response_format\": {\"type\": \"json_object\"}
+                  }")
+
+                RAW_CONTEXT=$(echo "$CONTEXT_RESPONSE" | jq -r '(.choices[0].message.content // .choices[0].message // .choices[0].text // "")' 2>/dev/null || echo "")
+                if [ -z "$RAW_CONTEXT" ] || [ "$RAW_CONTEXT" = "null" ]; then
+                  API_ERR=$(echo "$CONTEXT_RESPONSE" | jq -r '.error.message // ""' 2>/dev/null || echo "")
+                  if [ -n "$API_ERR" ]; then
+                    echo "    Context API error: $API_ERR"
+                  else
+                    echo "    Context API returned no content"
+                  fi
+                  RAW_CONTEXT='{"context_files": [], "reason": "no-content"}'
+                fi
+                SANITIZED_CONTEXT=$(echo "$RAW_CONTEXT" | sed -e 's/^```json[[:space:]]*//' -e 's/^```[[:space:]]*//' -e 's/[[:space:]]*```$//')
+                CONTEXT_FILES=$(echo "$SANITIZED_CONTEXT" | jq -r '.context_files[]?' 2>/dev/null || echo "")
+                CONTEXT_REASON=$(echo "$SANITIZED_CONTEXT" | jq -r '.reason' 2>/dev/null || echo "")
+
+                if [ -n "$CONTEXT_FILES" ]; then
+                  echo "    [$rule_id] context: $CONTEXT_FILES"
+                  if [ -n "$CONTEXT_REASON" ]; then
+                    echo "      reason: $CONTEXT_REASON"
+                  fi
+                  ALL_CONTEXT_FILES="$ALL_CONTEXT_FILES"$'\n'"$CONTEXT_FILES"
+                else
+                  echo "    [$rule_id] context: none (LLM: no additional files needed)"
+                fi
+
+                # Modify allowed rules for modified files: include rule only if no extra context is needed
+                if [ "$IS_NEW_FILE" != true ]; then
+                  if [ -z "$CONTEXT_FILES" ]; then
+                    if [ -z "$ALLOWED_RULE_IDS" ]; then
+                      ALLOWED_RULE_IDS="$rule_id"
+                    else
+                      ALLOWED_RULE_IDS="$ALLOWED_RULE_IDS"$'\n'"$rule_id"
+                    fi
+                  fi
+                fi
+
+                # Track per-rule context as JSON for later display (only when there is context)
+                if [ -n "$CONTEXT_FILES" ]; then
+                  RULE_CONTEXT_JSON=$(jq -n --arg id "$rule_id" --arg reason "${CONTEXT_REASON:-}" --arg files "$CONTEXT_FILES" '{rule_id:$id, context_files: ($files | split("\n") | map(select(length>0))), reason:$reason}')
+                  if [ -z "$PER_RULE_CONTEXT_JSON_LINES" ]; then
+                    PER_RULE_CONTEXT_JSON_LINES="$RULE_CONTEXT_JSON"
+                  else
+                    PER_RULE_CONTEXT_JSON_LINES="$PER_RULE_CONTEXT_JSON_LINES"$'\n'"$RULE_CONTEXT_JSON"
+                  fi
+                fi
+              done < <(printf '%s' "$CONTEXT_REQUIRED_RULES" | jq -c '.[]')
+
+              # Build consolidated per-rule context JSON map for summaries and PR comment
+              if [ -n "${PER_RULE_CONTEXT_JSON_LINES:-}" ]; then
+                PER_RULE_CONTEXT_JSON=$(printf '%s\n' "$PER_RULE_CONTEXT_JSON_LINES" | jq -s 'map({key: .rule_id, value: {context_files: .context_files, reason: .reason}}) | from_entries')
+                PER_RULE_CONTEXT_JSON_FILTERED=$(echo "$PER_RULE_CONTEXT_JSON" | jq 'with_entries(select(.value.context_files | length > 0))')
+                PER_RULE_CONTEXT_JSON_COMPACT=$(echo "$PER_RULE_CONTEXT_JSON_FILTERED" | jq -c . 2>/dev/null || echo "")
+              else
+                PER_RULE_CONTEXT_JSON=""
+                PER_RULE_CONTEXT_JSON_FILTERED=""
+                PER_RULE_CONTEXT_JSON_COMPACT=""
+              fi
+            fi
+
+            # Log context status for rules that do not require context
+            if [ -n "$NO_CONTEXT_RULE_IDS" ]; then
+              UNIQUE_NO_CONTEXT_IDS=$(printf "%s\n" "$NO_CONTEXT_RULE_IDS" | sort -u | grep -v '^$' || true)
+              while IFS= read -r no_ctx_rule; do
+                [ -z "$no_ctx_rule" ] && continue
+                echo "    [$no_ctx_rule] context: not required"
+              done <<< "$UNIQUE_NO_CONTEXT_IDS"
+            fi
+
+            # Build REQUIRED_CONTEXT from unique set
+            if [ -n "$ALL_CONTEXT_FILES" ]; then
+              UNIQUE_CONTEXT_FILES=$(echo "$ALL_CONTEXT_FILES" | sort -u | grep -v '^$')
+              echo "  Final context files needed: $UNIQUE_CONTEXT_FILES"
+              while IFS= read -r context_file; do
+                if [ -z "$context_file" ]; then continue; fi
+                echo "  Adding context patch: $context_file"
+                CONTEXT_PATCH=$(jq -s -r --arg f "$context_file" 'map(.[]) | map(select(.filename==$f) | .patch) | first // ""' "$PR_FILES_JSON_PATH" 2>/dev/null || echo "")
+                if [ -n "$CONTEXT_PATCH" ]; then
+                  REQUIRED_CONTEXT="$REQUIRED_CONTEXT"$'\n\n'"### Context Patch: $context_file"$'\n''```diff'$'\n'"$CONTEXT_PATCH"$'\n''```'
+                else
+                  echo "  No patch available for context file: $context_file"
+                fi
+              done <<< "$UNIQUE_CONTEXT_FILES"
+            else
+              echo "  No context files needed"
+              REQUIRED_CONTEXT="No additional context files needed for the rules applied to this file."
+              # Heuristic: for SQL files whose path contains 'dbt' and 'model', if a sibling .yml/.yaml with the same basename changed in this PR, add it as context automatically
+              case "$file" in
+                *dbt*model*.sql|*model*dbt*.sql)
+                  SQL_DIR=$(dirname "$file")
+                  SQL_BASE=$(basename "$file" .sql)
+                  for ext in yml yaml; do
+                    CANDIDATE="$SQL_DIR/$SQL_BASE.$ext"
+                    CANDIDATE_PATCH=$(jq -s -r --arg f "$CANDIDATE" 'map(.[]) | map(select(.filename==$f) | .patch) | first // ""' "$PR_FILES_JSON_PATH" 2>/dev/null || echo "")
+                    if [ -n "$CANDIDATE_PATCH" ]; then
+                      echo "  Adding heuristic context patch: $CANDIDATE"
+                      REQUIRED_CONTEXT="$REQUIRED_CONTEXT"$'\n\n'"### Context Patch: $CANDIDATE"$'\n''```diff'$'\n'"$CANDIDATE_PATCH"$'\n''```'
+                      # Track context files for later summary/logging
+                      if [ -z "$ALL_CONTEXT_FILES" ]; then
+                        ALL_CONTEXT_FILES="$CANDIDATE"
+                      else
+                        ALL_CONTEXT_FILES="$ALL_CONTEXT_FILES"$'\n'"$CANDIDATE"
+                      fi
+                    fi
+                  done
+                  # Recompute unique list after heuristic additions
+                  if [ -n "$ALL_CONTEXT_FILES" ]; then
+                    UNIQUE_CONTEXT_FILES=$(echo "$ALL_CONTEXT_FILES" | sort -u | grep -v '^$')
+                  fi
+                  ;;
+              esac
+            fi
+          else
+            echo "  No rules found for context discovery"
+            REQUIRED_CONTEXT="No additional context files needed for the rules applied to this file."
+          fi
+          
+          # Build filtered applicable rules by allowed rule IDs (prefer this over full list)
+          FILTERED_RULES=""
+          FILTERED_RULES_JSON_LINES=""
+          if [ -n "$ALLOWED_RULE_IDS" ]; then
+            UNIQUE_ALLOWED_IDS=$(echo "$ALLOWED_RULE_IDS" | sort -u | grep -v '^$')
+            while IFS= read -r pattern; do
+              if [ -z "$pattern" ]; then continue; fi
+              CLEAN_PATTERN=$(echo "$pattern" | tr -d '"')
+              if matches_pattern "$file" "$CLEAN_PATTERN"; then
+                PATTERN_RULES_JSON=$(echo "$QUALITY_RULES" | yq -o json | jq -c ".rules[\"$CLEAN_PATTERN\"][]?" 2>/dev/null)
+                if [ -n "$PATTERN_RULES_JSON" ]; then
+                  while IFS= read -r json_rule; do
+                    if [ -n "$json_rule" ] && [ "$json_rule" != "null" ]; then
+                      rule_id=$(echo "$json_rule" | jq -r '.id // ""')
+                      if echo "$UNIQUE_ALLOWED_IDS" | grep -qx "$rule_id"; then
+                        if [ -z "$FILTERED_RULES_JSON_LINES" ]; then
+                          FILTERED_RULES_JSON_LINES="$json_rule"
+                        else
+                          FILTERED_RULES_JSON_LINES="$FILTERED_RULES_JSON_LINES"$'\n'"$json_rule"
+                        fi
+                      fi
+                    fi
+                  done <<< "$PATTERN_RULES_JSON"
+                fi
+              fi
+            done <<< "$PATTERNS"
+            if [ -n "$FILTERED_RULES_JSON_LINES" ]; then
+              FILTERED_RULES=$(echo "$FILTERED_RULES_JSON_LINES" | jq -s '.' | yq -P)
+            fi
+          fi
+
+          # Prefer filtered rules; if empty, fall back to previous ALL_RULES or full config
+          if [ -n "$FILTERED_RULES" ]; then
+            APPLICABLE_RULES="$FILTERED_RULES"
+          else
+            APPLICABLE_RULES="$ALL_RULES"
+            if [ -z "$APPLICABLE_RULES" ]; then
+              APPLICABLE_RULES="$QUALITY_RULES"
+            fi
+          fi
+
+          # Summarize relevant rules and matched rules for logging
+          UNIQUE_MATCHED_RULES=$(echo "$MATCHED_RULE_IDS" | sort -u | paste -sd, - || true)
+          UNIQUE_RELEVANT_RULES=$(echo "$ALLOWED_RULE_IDS" | sort -u | paste -sd, - || true)
+          UNIQUE_CONTEXT_LIST=$(echo "${UNIQUE_CONTEXT_FILES:-}" | tr '\n' ',' | sed 's/,$//' || true)
+
+          # Create prompt by replacing placeholders
+          PROMPT=$(cat llm_prompt_template.txt)
+          PROMPT=${PROMPT//QUALITY_RULES_PLACEHOLDER/$APPLICABLE_RULES}
+          PROMPT=${PROMPT//FILE_PATH_PLACEHOLDER/$file}
+          PROMPT=${PROMPT//DIFF_OUTPUT_PLACEHOLDER/$DIFF_OUTPUT}
+          PROMPT=${PROMPT//ALL_CHANGED_FILES_PLACEHOLDER/$REQUIRED_CONTEXT}
+          PROMPT=${PROMPT//FILE_CLASSIFICATION_PLACEHOLDER/"Matched patterns: $MATCHED_PATTERNS"}
+          
+          if [ "${LOG_PROMPTS:-false}" = "true" ]; then
+            echo "=== Analysis prompt for: $file ==="
+            printf "%s\n" "$PROMPT"
+          fi
+
+          # Call OpenAI API
+          RESPONSE=$(curl -s https://api.openai.com/v1/chat/completions \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $OPENAI_API_KEY" \
+            -d "{
+              \"model\": \"$MODEL_REVIEW\",
+              \"messages\": [
+                {
+                  \"role\": \"system\",
+                  \"content\": \"You are an expert code reviewer focused on code quality standards for multiple programming languages including SQL, Python, and dbt.\"
+                },
+                {
+                  \"role\": \"user\",
+                  \"content\": $(echo "$PROMPT" | jq -Rs .)
+                }
+              ],
+              \"response_format\": {\"type\": \"text\"}
+            }")
+          
+          # Extract response content
+          LLM_ANALYSIS=$(echo "$RESPONSE" | jq -r '(
+            .choices[0].message.content
+            // .choices[0].text
+            // .choices[0].message
+            // ""
+          )')
+          if [ -z "$LLM_ANALYSIS" ] || [ "$LLM_ANALYSIS" = "null" ]; then
+            API_ERR=$(echo "$RESPONSE" | jq -r '.error.message // ""' 2>/dev/null || echo "")
+            if [ -n "$API_ERR" ]; then
+              echo "Model API error for $file: $API_ERR"
+              LLM_ANALYSIS="## $file\n⚠️ Model API error: $API_ERR"
+            else
+              echo "Model returned no content for $file"
+              LLM_ANALYSIS="## $file\n⚠️ No analysis returned by model"
+            fi
+          fi
+          
+          # Count errors and warnings using SUMMARY_JSON first; fallback to glyph counts
+          ERRORS_IN_FILE=0
+          WARNINGS_IN_FILE=0
+
+          SUMMARY_LINE=$(printf "%s\n" "$LLM_ANALYSIS" | grep -E 'SUMMARY_JSON:' | tail -n1 || true)
+          if [ -n "$SUMMARY_LINE" ]; then
+            SUMMARY_JSON=$(echo "$SUMMARY_LINE" | sed -E 's/^.*SUMMARY_JSON:[[:space:]]*//')
+            PARSED_ERRORS=$(echo "$SUMMARY_JSON" | jq -r '.errors' 2>/dev/null || echo "")
+            PARSED_WARNINGS=$(echo "$SUMMARY_JSON" | jq -r '.warnings' 2>/dev/null || echo "")
+            if echo "$PARSED_ERRORS" | grep -Eq '^[0-9]+$'; then
+              ERRORS_IN_FILE=$PARSED_ERRORS
+            fi
+            if echo "$PARSED_WARNINGS" | grep -Eq '^[0-9]+$'; then
+              WARNINGS_IN_FILE=$PARSED_WARNINGS
+            fi
+          fi
+
+          # Fallbacks if JSON was missing or invalid
+          if [ "$ERRORS_IN_FILE" -eq 0 ] && ! printf "%s" "$LLM_ANALYSIS" | grep -q 'SUMMARY_JSON:'; then
+            if echo "$LLM_ANALYSIS" | grep -q "❌"; then
+              ERRORS_IN_FILE=$(echo "$LLM_ANALYSIS" | grep -c "❌" || echo "0")
+            fi
+          fi
+          if [ "$WARNINGS_IN_FILE" -eq 0 ] && ! printf "%s" "$LLM_ANALYSIS" | grep -q 'SUMMARY_JSON:'; then
+            if echo "$LLM_ANALYSIS" | grep -q "⚠️"; then
+              WARNINGS_IN_FILE=$(echo "$LLM_ANALYSIS" | grep -c "⚠️" || echo "0")
+            fi
+          fi
+
+          TOTAL_ERRORS=$((TOTAL_ERRORS + ERRORS_IN_FILE))
+          TOTAL_WARNINGS=$((TOTAL_WARNINGS + WARNINGS_IN_FILE))
+          
+          # Add to results (hide machine-readable SUMMARY_JSON from PR comment)
+          SANITIZED_FOR_MD=$(printf "%s\n" "$LLM_ANALYSIS" | sed '/^SUMMARY_JSON:/d')
+          echo "$SANITIZED_FOR_MD" >> quality_results.md
+          echo "" >> quality_results.md
+
+          # Concise per-file summary to action logs (not PR comment)
+          echo "---" 
+          echo "File: $file"
+          if [ -n "$PREV_FILENAME" ]; then
+            echo "Status: ${FILE_STATUS:-unknown} (treated as ${EFFECTIVE_FILE_STATUS})"
+            echo "Renamed from: $PREV_FILENAME"
+          else
+            echo "Status: ${FILE_STATUS:-unknown}${IS_NEW_FILE:+ (new)}"
+          fi
+          echo "Matched patterns: ${MATCHED_PATTERNS:-none}"
+          echo "Matched rules: ${UNIQUE_MATCHED_RULES:-none}"
+          echo "Relevant rules: ${UNIQUE_RELEVANT_RULES:-none}"
+          echo "Unique Context files: ${UNIQUE_CONTEXT_LIST:-none}"
+          if [ -n "${PER_RULE_CONTEXT_JSON_COMPACT:-}" ] && [ "${PER_RULE_CONTEXT_JSON_COMPACT}" != "{}" ]; then
+            echo "Context files by rule:"
+            # Print rule -> files (no reason)
+            printf '%s\n' "$PER_RULE_CONTEXT_JSON_COMPACT" | jq -r 'to_entries[] | "  [\(.key)] -> \(.value.context_files | join(", "))"'
+          else
+            echo "Context files by rule: none"
+          fi
+          if [ ${ERRORS_IN_FILE:-0} -eq 0 ] && [ ${WARNINGS_IN_FILE:-0} -eq 0 ]; then
+            echo "Outcome: PASS"
+          else
+            echo "Outcome: ${ERRORS_IN_FILE:-0} errors, ${WARNINGS_IN_FILE:-0} warnings"
+
+          fi
+          echo " ------------------------------------------------------------"
+          echo " ------------------------------------------------------------"
+        done <<< "$CHANGED_FILES"
+
+        # Add summary
+        echo "## 📊 Summary" >> quality_results.md
+        echo "" >> quality_results.md
+        echo "- **Files changed in PR**: $TOTAL_CHANGED_FILES" >> quality_results.md
+        echo "- **Files analyzed**: $TOTAL_FILES_CHECKED (matched quality check patterns)" >> quality_results.md
+        echo "- **Issues found**: $TOTAL_ERRORS" >> quality_results.md
+        echo "- **Warnings**: $TOTAL_WARNINGS" >> quality_results.md
+        echo "" >> quality_results.md
+
+        TOTAL_ISSUES=$((TOTAL_ERRORS + TOTAL_WARNINGS))
+        if [ $TOTAL_ISSUES -eq 0 ]; then
+          echo "✅ **All checks passed!** Your code meets the quality standards." >> quality_results.md
+        else
+          if [ $TOTAL_ERRORS -gt 0 ]; then
+            echo "❌ **Please address the issues above before merging.**" >> quality_results.md
+          else
+            echo "⚠️ **Some warnings found.** Consider addressing them to improve code quality." >> quality_results.md
+          fi
+        fi
+
+        echo "" >> quality_results.md
+        echo "---" >> quality_results.md
+        echo "*Generated by PR Quality Check* 🤖 - Comment updated with every commit (last refresh: ${HEAD_SHA_SHORT}) " >> quality_results.md
+
+        echo "TOTAL_CHANGED_FILES=$TOTAL_CHANGED_FILES" >> $GITHUB_ENV
+        echo "TOTAL_ERRORS=$TOTAL_ERRORS" >> $GITHUB_ENV
+        echo "TOTAL_WARNINGS=$TOTAL_WARNINGS" >> $GITHUB_ENV
+        echo "TOTAL_FILES_CHECKED=$TOTAL_FILES_CHECKED" >> $GITHUB_ENV
+
+    - name: Post quality check results
+      if:
+        env.SHOULD_RUN == 'true' && env.HAS_MATCHING_CHANGES == 'true' &&
+        inputs.post-comment == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh-token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        REPO: ${{ github.repository }}
+      run: |
+        echo "💬 Posting quality check results to PR #$PR_NUMBER"
+
+        # Check if we already have a comment from this action
+        EXISTING_COMMENT=$(gh api repos/$REPO/issues/$PR_NUMBER/comments --jq '.[] | select(.body | contains("Generated by PR Quality Check")) | .id' | head -1)
+
+        if [ ! -z "$EXISTING_COMMENT" ]; then
+          echo "Updating existing comment (ID: $EXISTING_COMMENT)"
+          gh api repos/$REPO/issues/comments/$EXISTING_COMMENT \
+            --method PATCH \
+            --field body="$(cat quality_results.md)" \
+            --silent
+          echo "✅ Updated existing quality check comment!"
+        else
+          echo "Creating new comment"
+          gh pr comment $PR_NUMBER --body-file quality_results.md
+          echo "✅ Posted quality check results!"
+        fi
+
+        # Output summary
+        echo "📊 Quality Check Summary:"
+        echo "  Files changed: $TOTAL_CHANGED_FILES"
+        echo "  Files analyzed: $TOTAL_FILES_CHECKED"
+        echo "  Issues found: $TOTAL_ERRORS"
+        echo "  Warnings: $TOTAL_WARNINGS"
+
+    - name: Fail build on errors (optional)
+      if:
+        env.SHOULD_RUN == 'true' && env.HAS_MATCHING_CHANGES == 'true' &&
+        inputs.fail-on-errors == 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ "${TOTAL_ERRORS:-0}" -gt 0 ]; then
+          echo "::error::Failing because fail-on-errors=true and TOTAL_ERRORS=$TOTAL_ERRORS"
+          exit 1
+        fi
+
+    - name: Set outputs
+      id: set-outputs
+      shell: bash
+      run: |
+        echo "total-errors=${TOTAL_ERRORS:-0}" >> "$GITHUB_OUTPUT"
+        echo "total-warnings=${TOTAL_WARNINGS:-0}" >> "$GITHUB_OUTPUT"
+        echo "total-files-checked=${TOTAL_FILES_CHECKED:-0}" >> "$GITHUB_OUTPUT"
+        echo "total-changed-files=${TOTAL_CHANGED_FILES:-0}" >> "$GITHUB_OUTPUT"
+        echo "has-matching-changes=${HAS_MATCHING_CHANGES:-false}" >> "$GITHUB_OUTPUT"
+
+    - name: Skip message for non-matching files
+      if:
+        env.SHOULD_RUN == 'true' && env.HAS_MATCHING_CHANGES == 'false' &&
+        inputs.post-comment == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh-token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        REPO: ${{ github.repository }}
+      run: |
+        echo "ℹ️ No files matching configured patterns changed in this PR - PR Quality Check has nothing to analyze"
+
+        # Create skip message content
+        cat > skip_message.md << 'SKIP_EOF'
+        # 🛡️ Quality Check Results
+
+        ℹ️ **No files to analyze**
+
+        No files matching the configured quality check patterns were changed in this PR.
+
+        The PR Quality Check monitors files based on patterns defined in the quality configuration, but none of the changed files in this PR match those patterns.
+
+        ---
+        SKIP_EOF
+
+        # Append footer with commit info
+        HEAD_SHA=$(gh pr view $PR_NUMBER --json headRefOid --jq '.headRefOid')
+        HEAD_SHA_SHORT=${HEAD_SHA:0:7}
+        echo "*Generated by PR Quality Check* 🤖 (based on commit ${HEAD_SHA_SHORT})" >> skip_message.md
+
+        # Post comment to PR
+        echo "💬 Posting skip message to PR #$PR_NUMBER"
+
+        # Check if we already have a comment from this action
+        EXISTING_COMMENT=$(gh api repos/$REPO/issues/$PR_NUMBER/comments --jq '.[] | select(.body | contains("Generated by PR Quality Check")) | .id' | head -1)
+
+        if [ ! -z "$EXISTING_COMMENT" ]; then
+          echo "Updating existing comment (ID: $EXISTING_COMMENT)"
+          gh api repos/$REPO/issues/comments/$EXISTING_COMMENT \
+            --method PATCH \
+            --field body="$(cat skip_message.md)" \
+            --silent
+          echo "✅ Updated existing quality check comment with skip message!"
+        else
+          echo "Creating new comment"
+          gh pr comment $PR_NUMBER --body-file skip_message.md
+          echo "✅ Posted skip message to PR!"
+        fi
