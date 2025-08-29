@@ -79,7 +79,7 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        for cmd in jq gh git python3 curl; do
+        for cmd in jq gh git curl; do
           if ! command -v "$cmd" >/dev/null 2>&1; then
             echo "::error::Required command not found: $cmd"
             exit 1
@@ -128,6 +128,10 @@ runs:
         REPO: ${{ github.repository }}
       run: |
         set -euo pipefail
+        if ! command -v python3 >/dev/null 2>&1; then
+          echo "::error::Required command not found: python3"
+          exit 1
+        fi
         echo "🔍 Finding changed files matching configured patterns in PR #$PR_NUMBER"
 
         # Function to match glob patterns using external Python script
@@ -316,6 +320,10 @@ runs:
         LOG_PROMPTS: ${{ inputs.log-prompts }}
       run: |
         set -euo pipefail
+        if ! command -v python3 >/dev/null 2>&1; then
+          echo "::error::Required command not found: python3"
+          exit 1
+        fi
         echo "🤖 Analyzing files with LLM"
 
         MODEL_CONTEXT=${OPENAI_MODEL_CONTEXT_INPUT}
@@ -400,7 +408,8 @@ runs:
           # Sanitize diff hunk headers: keep only the numeric range up to the second @@
           # Example: "@@ -95,7 +95,6 @@ def load_prices(**kwargs):" -> "@@ -95,7 +95,6 @@"
           if [ -n "${DIFF_OUTPUT}" ]; then
-            SANITIZED_DIFF_OUTPUT=$(printf "%s\n" "$DIFF_OUTPUT" | sed -E 's/^(@@[^@]*@@).*/\1/')
+            # Sanitize all hunk header lines globally (handle multiple hunks)
+            SANITIZED_DIFF_OUTPUT=$(printf "%s\n" "$DIFF_OUTPUT" | sed -E 's/^(@@[^@]*@@).*/\1/g')
             DIFF_OUTPUT="$SANITIZED_DIFF_OUTPUT"
           fi
           
