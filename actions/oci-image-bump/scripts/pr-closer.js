@@ -7,7 +7,13 @@
  * PRs are skipped if they have an exempt label or don't match all criteria.
  */
 module.exports = async function run({ github, context, core, inputs }) {
-  const titleRegex = new RegExp(inputs.titleRegex || ".*");
+  // Validate required inputs
+  if (!inputs.titleRegex) {
+    core.setFailed("titleRegex input is required and cannot be empty");
+    return;
+  }
+
+  const titleRegex = new RegExp(inputs.titleRegex);
   const requiredLabels = String(inputs.requiredLabelsCsv || "")
     .split(",")
     .map((s) => s.trim())

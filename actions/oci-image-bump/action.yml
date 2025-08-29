@@ -189,18 +189,6 @@ runs:
         echo "📝 **PR** [#${PR_NUMBER} - ${PR_TITLE}](${PR_URL})" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
 
-    - name: Validate PR Closer Inputs
-      if: ${{ inputs.pr-close-enabled == 'true' }}
-      shell: bash
-      env:
-        PR_CLOSE_TITLE_REGEX: ${{ inputs.pr-close-title-regex }}
-      run: |
-        echo "PR_CLOSE_ENABLED is true, checking required inputs..."
-        if [[ -z "${PR_CLOSE_TITLE_REGEX:-}" ]]; then
-          echo "PR_CLOSE_TITLE_REGEX is required when PR_CLOSE_ENABLED is true"
-          exit 1
-        fi
-
     # Optionally close previously opened PR's for a particular product within
     # an environment.
     - name: PR Closer
