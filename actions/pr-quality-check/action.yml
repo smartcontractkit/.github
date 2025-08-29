@@ -117,7 +117,7 @@ runs:
         fi
 
         echo "📋 Loading quality check rules from $QUALITY_CONFIG_FILE"
-        echo "QUALITY_CONFIG_FILE=$QUALITY_CONFIG_FILE" >> $GITHUB_ENV
+        echo "QUALITY_CONFIG_FILE=$(echo "$QUALITY_CONFIG_FILE" | tr -d '\n')" >> $GITHUB_ENV
 
     - name: Get changed files matching configured patterns
       if: env.SHOULD_RUN == 'true'
