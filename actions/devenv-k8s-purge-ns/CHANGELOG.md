@@ -1,5 +1,14 @@
 # devenv-k8s-purge-ns
 
+## 0.1.1
+
+### Patch Changes
+
+- [#1184](https://github.com/smartcontractkit/.github/pull/1184)
+  [`88ee40e`](https://github.com/smartcontractkit/.github/commit/88ee40ecb6eb8312fc43dbde3616994821d216fb)
+  Thanks [@scheibinger](https://github.com/scheibinger)! - Fixed code injection
+  issues
+
 ## 0.1.0
 
 ### Minor Changes

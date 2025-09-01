@@ -6,6 +6,9 @@ description: |
   It can be invoked via a workflow that might be dispatched from the related
   oci-image-bump-sender composite action.
 
+  Optionally it can close previously opened PR's that match a title regex and
+  required labels.
+
 inputs:
   oci-repository-url:
     description: |
@@ -53,6 +56,54 @@ inputs:
         - contents: write
         - pull-requests: write
     required: true
+  ## start PR Close inputs
+  pr-close-enabled:
+    description: |
+      Whether or not to close previous PR's that match the title regex and
+      required labels.
+
+      This is useful to avoid multiple open PR's for the same update.
+
+      If true, the following inputs must be provided and valid:
+        - pr-close-title-regex
+
+      And the following are optional:
+        - pr-close-exempt-label
+        - pr-close-labels
+    required: false
+    default: "false"
+  pr-close-title-regex:
+    description: |
+      Regular expression to match the title of open PR's to consider for closing.
+
+      Must be true if the pr-close-enabled input is true.
+
+      Needs to be ECMAScript (JS/TS) compatible.
+
+      Example:
+        title-regex: '^cre - Deploy nightly-\d{8}$'
+    required: false
+  pr-close-exempt-label:
+    description: |
+      Avoid closing PR's that have this label even if the title regex and other labels match.
+
+      Example:
+        pr-close-exempt-label: 'do-not-close'
+    required: false
+  pr-close-labels:
+    description: |
+      Comma separated list of labels that must be present on an open PR to
+      consider it for closing.
+
+      Optional and used in conjunction with the pr-close-title-regex input to
+      further refine which PR's to close.
+
+      If multiple labels are provided, it will find any PR with any of the labels.
+
+      Example:
+        pr-close-labels: 'preview,image-bump'
+    required: false
+  ## end PR Close inputs
   pr-base-branch:
     description: "Base branch to create PR against."
     required: false
@@ -124,3 +175,47 @@ runs:
         sign-commits: true
         title: ${{ inputs.pr-title }}
         token: ${{ inputs.github-token }}
+
+    - name: Add PR to Summary
+      shell: bash
+      env:
+        PR_URL: ${{ steps.create-pr.outputs.pull-request-url }}
+        PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
+        PR_OPERATION: ${{ steps.create-pr.outputs.pull-request-operation }}
+        PR_TITLE: ${{ inputs.pr-title }}
+      run: |
+        echo "### 🚀 OCI Image Bump Summary" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo "📝 **PR** [#${PR_NUMBER} - ${PR_TITLE}](${PR_URL})" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+
+    # Optionally close previously opened PR's for a particular product within
+    # an environment.
+    - name: PR Closer
+      if: ${{ inputs.pr-close-enabled == 'true' }}
+      uses: actions/github-script@v7
+      env:
+        PR_URL: ${{ steps.create-pr.outputs.pull-request-url }}
+        PR_NUM: ${{ steps.create-pr.outputs.pull-request-number }}
+        PR_CLOSE_EXEMPT_LABEL: ${{ inputs.pr-close-exempt-label }}
+        PR_CLOSE_LABELS: ${{ inputs.pr-close-labels }}
+        PR_CLOSE_TITLE_REGEX: ${{ inputs.pr-close-title-regex }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const prCommentBody = `This PR was closed because there is a newer image bump [PR](${process.env.PR_URL}).`;
+          const path = `${process.env.GITHUB_ACTION_PATH}/scripts/pr-closer.js`;
+          const run = require(path);
+          await run({
+            github,
+            context,
+            core,
+            inputs: {
+              titleRegex: process.env.PR_CLOSE_TITLE_REGEX,
+              requiredLabelsCsv: process.env.PR_CLOSE_LABELS,
+              exemptLabel: process.env.PR_CLOSE_EXEMPT_LABEL,
+              exemptPrNumbers: [process.env.PR_NUM],
+              dryRun: false,
+              closeComment: prCommentBody
+            }
+          });
