@@ -218,5 +218,5 @@ Notes:
 ### Limitations
 
 - Currently, if a rule requires context, it will only be applied to newly added
-  files (not modified or renamed). This is a current due to the LLM receiving
-  code diffs, which might have context missing for modified files.
+  files (not modified or renamed). This is a current limitation due to the LLM
+  receiving code diffs, which might have context missing for modified files.
