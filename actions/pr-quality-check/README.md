@@ -28,7 +28,8 @@ updated on every commit.
    - Determines status (added/modified/removed/renamed). Renames are treated as
      modified for gating.
    - For rules with `requires_context: true`, discovers per-rule context using
-     an LLM (limited to changed files list).
+     an LLM (limited to changed files list). Context discovery only runs for
+     newly added files; modified/renamed files skip context-required rules.
    - Builds a prompt with: applicable rules (YAML), file path, and its patch;
      optionally embeds context patches.
    - Calls the review model; parses issues/warnings and aggregates counts.
@@ -47,8 +48,7 @@ updated on every commit.
 - **quality-config-file** (optional, default: `quality_check.yml`): Path to the
   rule configuration file in the repo. Can be named and located anywhere;
   default is `quality_check.yml`.
-- **yq-version** (optional, default: `v4.44.3`): Pinned `yq` version to install
-  on the runner.
+
 - **fail-on-errors** (optional, default: `false`): If `true`, fail the job when
   errors are detected.
 - **post-comment** (optional, default: `true`): If `true`, post/update a PR
@@ -70,13 +70,11 @@ updated on every commit.
     matching.
 
 - **Per-rule options**:
-  - `applies_on`: Limit a rule to specific PR file statuses: `added`,
-    `modified`, `renamed`, `removed`. If omitted, rules apply to added and
-    modified.
   - `requires_context` (boolean, default: `false`): Whether the rule needs extra
     cross-file context. If `true`, the action makes one LLM call per file+rule
     to determine which changed files (if any) are needed as context. If `false`,
-    no context call is made for that rule.
+    no context call is made for that rule. IMPORTANT: If `true`, the rule will
+    only be applied to newly added files.
   - `enforce_on_new_only` (boolean, default: `false`): If `true`, the rule is
     enforced only on newly added files, not on modified ones.
   - `severity`: `error` or `warning`
@@ -115,7 +113,6 @@ rules:
         (bronze/silver/gold) in a corresponding YAML file"
       severity: "warning"
       requires_context: true
-      applies_on: [modified]
 
   # General SQL quality
   "**/*.sql":
@@ -168,8 +165,6 @@ jobs:
   `"**/{models,seeds}/**/*.yml"`.
 - Add comments after the quoted glob or field (not inside the quotes).
 - Glob matching supports `*`, `?`, `**`, and brace expansion like `{a,b}`.
-- You can add rule metadata such as `applies_on: [added, modified]` if desired.
-  Renames are treated as `modified` internally.
 - `exceptions` accepts a single glob string or a list of globs. Any changed file
   matching an exception is ignored before rule matching.
 
@@ -200,12 +195,15 @@ Notes:
 
 ### Implementation details
 
-- Changed files and patches are fetched via
-  `gh api repos/{owner}/{repo}/pulls/{number}/files --paginate` and cached.
-- Pagination is merged when extracting filenames/status/patches.
+- Changed files and patches are fetched via GitHub REST API using `requests`
+  with retries and pagination (endpoints:
+  `GET /repos/{owner}/{repo}/pulls/{number}`,
+  `GET /repos/{owner}/{repo}/pulls/{number}/files`).
 - For renamed files, `previous_filename` is logged and rules gate as `modified`.
 - When patches are missing for a large file, the action notes that no patch is
   available.
+- Comments are posted/updated via
+  `POST/PATCH /repos/{owner}/{repo}/issues/{number}/comments`.
 
 ### Troubleshooting
 
@@ -213,3 +211,12 @@ Notes:
 - If no files match patterns, the job reports and optionally posts a skip
   message.
 - Set `log-prompts: true` to inspect prompts in logs for debugging.
+- The action logs detailed context discovery information, including which rules
+  require context, when discovery is skipped, and per-rule results with selected
+  files and reasons.
+
+### Limitations
+
+- Currently, if a rule requires context, it will only be applied to newly added
+  files (not modified or renamed). This is a current due to the LLM receiving
+  code diffs, which might have context missing for modified files.

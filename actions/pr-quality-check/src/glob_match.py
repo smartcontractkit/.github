@@ -86,14 +86,3 @@ def matches_glob_pattern(filepath: str, pattern: str) -> bool:
         if compiled.match(posix_path):
             return True
     return False
-
-
-if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print("Usage: glob_match.py <filepath> <pattern>", file=sys.stderr)
-        sys.exit(2)
-
-    filepath = sys.argv[1]
-    pattern = sys.argv[2]
-
-    sys.exit(0 if matches_glob_pattern(filepath, pattern) else 1)
