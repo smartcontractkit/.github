@@ -141,10 +141,6 @@ linters:
           - gosec
         path: test
         text: "^G404:"
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
 formatters:
   enable:
     - goimports
