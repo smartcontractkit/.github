@@ -92,43 +92,43 @@ linters:
     revive:
       confidence: 0.8
       rules:
+        - name: atomic
         - name: blank-imports
+        - name: bool-literal-in-expr
+        - name: constant-logical-expr
         - name: context-as-argument
         - name: context-keys-type
+        - name: defer
         - name: dot-imports
+        - name: early-return
+        - name: empty-block
+        - name: error-naming
         - name: error-return
         - name: error-strings
-        - name: error-naming
+        - name: errorf
         - name: exported
+        - name: get-return
+        - name: identical-branches
         - name: if-return
         - name: increment-decrement
-        - name: var-naming
-        - name: var-declaration
+        - name: indent-error-flow
+        - name: modifies-parameter
+        - name: modifies-value-receiver
         - name: package-comments
         - name: range
-        - name: receiver-naming
-        - name: time-naming
-        - name: indent-error-flow
-        - name: errorf
-        - name: empty-block
-        - name: superfluous-else
-        - name: unreachable-code
-        - name: redefines-builtin-id
-        - name: waitgroup-by-value
-        - name: unconditional-recursion
-        - name: struct-tag
-        - name: string-of-int
         - name: range-val-address
         - name: range-val-in-closure
-        - name: modifies-value-receiver
-        - name: modifies-parameter
-        - name: identical-branches
-        - name: get-return
-        - name: early-return
-        - name: defer
-        - name: constant-logical-expr
-        - name: bool-literal-in-expr
-        - name: atomic
+        - name: receiver-naming
+        - name: redefines-builtin-id
+        - name: string-of-int
+        - name: struct-tag
+        - name: superfluous-else
+        - name: time-naming
+        - name: unconditional-recursion
+        - name: unreachable-code
+        - name: var-declaration
+        - name: var-naming
+        - name: waitgroup-by-value
   exclusions:
     generated: lax
     presets:
