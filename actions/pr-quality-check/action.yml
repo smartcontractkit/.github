@@ -1,0 +1,97 @@
+name: pr-quality-check (python)
+description:
+  "LLM-powered quality checker for pull requests (Python implementation)."
+
+inputs:
+  gh-token:
+    description: "GitHub token for API access"
+    required: true
+  openai-api-key:
+    description: "OpenAI API key for LLM analysis"
+    required: true
+  openai-model-context:
+    description: "OpenAI model for context discovery"
+    required: false
+    default: "gpt-5-nano"
+  openai-model-review:
+    description: "OpenAI model for rule analysis"
+    required: false
+    default: "gpt-5-mini"
+  quality-config-file:
+    description: "Path to quality check configuration file"
+    required: false
+    default: "quality_check.yml"
+  fail-on-errors:
+    description: "Fail the job if any errors are found"
+    required: false
+    default: "false"
+  post-comment:
+    description: "Post a PR comment with results"
+    required: false
+    default: "true"
+  log-prompts:
+    description: "Log LLM prompts in action logs"
+    required: false
+    default: "false"
+
+outputs:
+  total-errors:
+    description: "Total errors found across analyzed files"
+    value: ${{ steps.run-py.outputs.total-errors }}
+  total-warnings:
+    description: "Total warnings found across analyzed files"
+    value: ${{ steps.run-py.outputs.total-warnings }}
+  total-files-checked:
+    description: "Number of files analyzed (matched quality check patterns)"
+    value: ${{ steps.run-py.outputs.total-files-checked }}
+  total-changed-files:
+    description: "Total changed files in PR"
+    value: ${{ steps.run-py.outputs.total-changed-files }}
+  has-matching-changes:
+    description: "Whether any changed files matched configured patterns"
+    value: ${{ steps.run-py.outputs.has-matching-changes }}
+
+runs:
+  using: composite
+  steps:
+    - name: Ensure PR context
+      shell: bash
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: |
+        if [[ "$EVENT_NAME" == pull_request* ]] && [[ -n "$PR_NUMBER" ]]; then
+          echo "SHOULD_RUN=true" >> "$GITHUB_ENV"
+        else
+          echo "SHOULD_RUN=false" >> "$GITHUB_ENV"
+        fi
+
+    - name: Setup Python
+      if: env.SHOULD_RUN == 'true'
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      if: env.SHOULD_RUN == 'true'
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r "$GITHUB_ACTION_PATH/requirements.txt"
+
+    - name: Run PR Quality Check (Python)
+      id: run-py
+      if: env.SHOULD_RUN == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh-token }}
+        OPENAI_API_KEY: ${{ inputs.openai-api-key }}
+        OPENAI_MODEL_CONTEXT: ${{ inputs.openai-model-context }}
+        OPENAI_MODEL_REVIEW: ${{ inputs.openai-model-review }}
+        QUALITY_CONFIG_FILE: ${{ inputs.quality-config-file }}
+        FAIL_ON_ERRORS: ${{ inputs.fail-on-errors }}
+        POST_COMMENT: ${{ inputs.post-comment }}
+        LOG_PROMPTS: ${{ inputs.log-prompts }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+      run: python3 "$GITHUB_ACTION_PATH/main.py"
