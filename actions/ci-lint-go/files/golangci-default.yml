@@ -151,7 +151,7 @@ formatters:
   settings:
     goimports:
       local-prefixes:
-        - github.com/smartcontractkit/chainlink
+        - github.com/smartcontractkit/
   exclusions:
     generated: lax
     paths:
