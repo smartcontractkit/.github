@@ -125,6 +125,8 @@ importers:
 
   actions/branch-names: {}
 
+  actions/branch-out-upload: {}
+
   actions/build-push-docker: {}
 
   actions/build-push-docker-manifest: {}
@@ -199,6 +201,10 @@ importers:
 
   actions/dependency-review: {}
 
+  actions/devenv-k8s-purge-ns: {}
+
+  actions/devenv-k8s-setup-ns: {}
+
   actions/dispatch-workflow: {}
 
   actions/do-not-merge: {}
@@ -259,6 +265,8 @@ importers:
 
   actions/invoke-gati: {}
 
+  actions/k8s-tailscale-connect: {}
+
   actions/license-checker: {}
 
   actions/llm-action-error-reporter: {}
@@ -276,6 +284,8 @@ importers:
   actions/parse-and-mask-test-secrets: {}
 
   actions/policy-bot-config-validator: {}
+
+  actions/pr-quality-check: {}
 
   actions/pr-slack-alert: {}
 
