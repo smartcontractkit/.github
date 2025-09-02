@@ -132,8 +132,10 @@ runs:
     - name: Print lint report artifact
       if: always()
       shell: bash
-      run: (test -f ${{ inputs.go-directory }}/golangci-lint-report.xml && cat ${{
-        inputs.go-directory }}/golangci-lint-report.xml) || true
+      env:
+        GO_DIR: ${{ inputs.go-directory }}
+      run: |
+        (test -f "${GO_DIR}/golangci-lint-report.xml" && cat "${GO_DIR}/golangci-lint-report.xml") || true
 
     - name: Store lint report artifact
       if: always()
