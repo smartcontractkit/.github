@@ -125,7 +125,7 @@ runs:
         GOLANGCI_LINT_CONFIG: ${{ inputs.golangci-lint-config }}
       run: |
         if [[ -z "${GOLANGCI_LINT_CONFIG}" ]]; then
-          echo "config-path=${{ github.action_path }}/files/golangci-default.yml" | tee -a $GITHUB_OUTPUT
+          echo "config-path=${GITHUB_ACTION_PATH}/files/golangci-default.yml" | tee -a $GITHUB_OUTPUT
         else
           echo "config-path=${GOLANGCI_LINT_CONFIG}" | tee -a $GITHUB_OUTPUT
         fi
