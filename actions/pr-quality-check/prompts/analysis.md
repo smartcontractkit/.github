@@ -6,7 +6,7 @@ quality rules provided.
 Quality Rules:
 
 ```yaml
-{ quality_rules }
+{quality_rules}
 ```
 
 ## Context Files (if needed for rule validation):
