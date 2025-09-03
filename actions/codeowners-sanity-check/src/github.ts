@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
-const MARKDOWN_FINGERPRINT = "<!-- chainlink-codeowners-enforcement -->";
+const MARKDOWN_FINGERPRINT = "<!-- chainlink-codeowners-sanity-check -->";
 
 type Octokit = ReturnType<typeof github.getOctokit>;
 export type CodeOwnersError = Awaited<

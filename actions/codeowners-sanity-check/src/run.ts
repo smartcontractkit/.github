@@ -1,5 +1,4 @@
 import * as core from "@actions/core";
-import * as github from "@actions/github";
 
 import { getInvokeContext, getInputs } from "./run-inputs";
 import { checkCodeOwners, updatePRComment, upsertPRComment } from "./github";

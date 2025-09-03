@@ -23938,7 +23938,7 @@ function getInputKey(input) {
 // actions/codeowners-sanity-check/src/github.ts
 var core2 = __toESM(require_core());
 var github2 = __toESM(require_github());
-var MARKDOWN_FINGERPRINT = "<!-- chainlink-codeowners-enforcement -->";
+var MARKDOWN_FINGERPRINT = "<!-- chainlink-codeowners-sanity-check -->";
 async function checkCodeOwners(token, owner, repo, ref) {
   const octokit = github2.getOctokit(token);
   try {
