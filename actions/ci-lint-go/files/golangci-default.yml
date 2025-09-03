@@ -1,0 +1,138 @@
+version: "2"
+linters:
+  enable:
+    - containedctx
+    - copyloopvar
+    - depguard
+    - errname
+    - errorlint
+    - exhaustive
+    - fatcontext
+    - ginkgolinter
+    - gomoddirectives
+    - gosec
+    - loggercheck
+    - mirror
+    - misspell
+    - noctx
+    - perfsprint
+    - prealloc
+    - revive
+    - rowserrcheck
+    - spancheck
+    - sqlclosecheck
+    - testifylint
+    - unconvert
+    - whitespace
+  settings:
+    depguard:
+      rules:
+        main:
+          list-mode: lax
+          deny:
+            - { pkg: cosmossdk.io/errors, desc: "Use the standard library instead" }
+            - { pkg: github.com/go-gorm/gorm, desc: "Use github.com/jmoiron/sqlx directly instead" }
+            - { pkg: github.com/gofrs/uuid, desc: "Use github.com/google/uuid instead" }
+            - { pkg: github.com/pkg/errors, desc: "Use the standard library instead, for example https://pkg.go.dev/errors#Join" }
+            - { pkg: github.com/satori/go.uuid, desc: "Use github.com/google/uuid instead" }
+            - { pkg: github.com/test-go/testify/assert, desc: "Use github.com/stretchr/testify/assert instead" }
+            - { pkg: github.com/test-go/testify/mock, desc: "Use github.com/stretchr/testify/mock instead" }
+            - { pkg: github.com/test-go/testify/require, desc: "Use github.com/stretchr/testify/require instead" }
+            - { pkg: go.uber.org/multierr, desc: "Use the standard library instead, for example https://pkg.go.dev/errors#Join" }
+            - { pkg: gopkg.in/guregu/null.v1, desc: "Use gopkg.in/guregu/null.v4 instead" }
+            - { pkg: gopkg.in/guregu/null.v2, desc: "Use gopkg.in/guregu/null.v4 instead" }
+            - { pkg: gopkg.in/guregu/null.v3, desc: "Use gopkg.in/guregu/null.v4 instead" }
+    exhaustive:
+      default-signifies-exhaustive: true
+    gosec:
+      excludes:
+        - G101
+        - G104
+    govet:
+      enable:
+        - shadow
+      settings:
+        printf:
+          funcs:
+            - (github.com/smartcontractkit/chainlink-common/pkg/logger.Logger).Debugf
+            - (github.com/smartcontractkit/chainlink-common/pkg/logger.Logger).Infof
+            - (github.com/smartcontractkit/chainlink-common/pkg/logger.Logger).Warnf
+            - (github.com/smartcontractkit/chainlink-common/pkg/logger.Logger).Errorf
+            - (github.com/smartcontractkit/chainlink-common/pkg/logger.Logger).Panicf
+            - (github.com/smartcontractkit/chainlink-common/pkg/logger.Logger).Fatalf
+            - (github.com/smartcontractkit/chainlink-common/pkg/logger.SugaredLogger).AssumptionViolationf
+            - (github.com/smartcontractkit/chainlink-common/pkg/logger.SugaredLogger).Tracef
+            - (github.com/smartcontractkit/chainlink-common/pkg/logger.SugaredLogger).Criticalf
+    loggercheck:
+      rules:
+        - (github.com/smartcontractkit/chainlink-common/pkg/logger.Logger).Debugw
+        - (github.com/smartcontractkit/chainlink-common/pkg/logger.Logger).Infow
+        - (github.com/smartcontractkit/chainlink-common/pkg/logger.Logger).Warnw
+        - (github.com/smartcontractkit/chainlink-common/pkg/logger.Logger).Errorw
+        - (github.com/smartcontractkit/chainlink-common/pkg/logger.Logger).Panicw
+        - (github.com/smartcontractkit/chainlink-common/pkg/logger.Logger).Fatalw
+        - (github.com/smartcontractkit/chainlink-common/pkg/logger.SugaredLogger).AssumptionViolationw
+        - (github.com/smartcontractkit/chainlink-common/pkg/logger.SugaredLogger).Tracew
+        - (github.com/smartcontractkit/chainlink-common/pkg/logger.SugaredLogger).Criticalw
+        - (github.com/smartcontractkit/chainlink-common/pkg/logger.SugaredLogger).With
+    revive:
+      confidence: 0.8
+      rules:
+        - name: atomic
+        - name: blank-imports
+        - name: bool-literal-in-expr
+        - name: constant-logical-expr
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: defer
+        - name: dot-imports
+        - name: early-return
+        - name: empty-block
+        - name: error-naming
+        - name: error-return
+        - name: error-strings
+        - name: errorf
+        - name: exported
+        - name: get-return
+        - name: identical-branches
+        - name: if-return
+        - name: increment-decrement
+        - name: indent-error-flow
+        - name: modifies-parameter
+        - name: modifies-value-receiver
+        - name: package-comments
+        - name: range
+        - name: range-val-address
+        - name: range-val-in-closure
+        - name: receiver-naming
+        - name: redefines-builtin-id
+        - name: string-of-int
+        - name: struct-tag
+        - name: superfluous-else
+        - name: time-naming
+        - name: unconditional-recursion
+        - name: unreachable-code
+        - name: var-declaration
+        - name: var-naming
+        - name: waitgroup-by-value
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - gosec
+        path: test
+        text: "^G404:"
+formatters:
+  enable:
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/smartcontractkit/
+  exclusions:
+    generated: lax
