@@ -175,6 +175,25 @@ importers:
 
   actions/cleanup-old-branches: {}
 
+  actions/codeowners-sanity-check:
+    dependencies:
+      '@actions/core':
+        specifier: ^1.11.1
+        version: 1.11.1
+      '@actions/github':
+        specifier: ^6.0.1
+        version: 6.0.1
+    devDependencies:
+      '@octokit/types':
+        specifier: ^14.1.0
+        version: 14.1.0
+      '@types/node':
+        specifier: ^24.3.0
+        version: 24.3.0
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@24.3.0)(jsdom@24.1.0)
+
   actions/crib-deploy-environment: {}
 
   actions/crib-purge-environment: {}
@@ -653,7 +672,7 @@ importers:
     devDependencies:
       vitest:
         specifier: ^2.1.9
-        version: 2.1.9(@types/node@24.2.1)(jsdom@24.1.0)
+        version: 2.1.9(@types/node@24.3.0)(jsdom@24.1.0)
 
 packages:
 
@@ -3115,6 +3134,9 @@ packages:
 
   '@types/node@24.2.1':
     resolution: {integrity: sha512-DRh5K+ka5eJic8CjH7td8QpYEV6Zo10gfRkjHCO3weqZHWDtAaSTFtl4+VMqOJ4N5jcuhZ9/l+yy8rVgw7BQeQ==}
+
+  '@types/node@24.3.0':
+    resolution: {integrity: sha512-aPTXCrfwnDLj4VvXrm+UUCQjNEvJgNA8s5F1cvwQU+3KNltTOkBm1j30uNLyqqPNe7gE3KFzImYoZEfLhp4Yow==}
 
   '@types/parse-json@4.0.0':
     resolution: {integrity: sha512-//oorEZjL6sbPcKUaCdIGlIUeH26mgzimjBB77G6XRgnDl/L5wOnpyBGRe/Mmf5CVW3PwEBE1NjiMZ/ssFh4wA==}
@@ -10512,6 +10534,10 @@ snapshots:
     dependencies:
       undici-types: 7.10.0
 
+  '@types/node@24.3.0':
+    dependencies:
+      undici-types: 7.10.0
+
   '@types/parse-json@4.0.0': {}
 
   '@types/responselike@1.0.0':
@@ -14591,6 +14617,24 @@ snapshots:
       - supports-color
       - terser
 
+  vite-node@2.1.9(@types/node@24.3.0):
+    dependencies:
+      cac: 6.7.14
+      debug: 4.4.1
+      es-module-lexer: 1.7.0
+      pathe: 1.1.2
+      vite: 5.4.19(@types/node@24.3.0)
+    transitivePeerDependencies:
+      - '@types/node'
+      - less
+      - lightningcss
+      - sass
+      - sass-embedded
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+
   vite@5.4.19(@types/node@20.14.13):
     dependencies:
       esbuild: 0.21.5
@@ -14634,6 +14678,15 @@ snapshots:
       rollup: 4.41.1
     optionalDependencies:
       '@types/node': 24.2.1
+      fsevents: 2.3.3
+
+  vite@5.4.19(@types/node@24.3.0):
+    dependencies:
+      esbuild: 0.21.5
+      postcss: 8.5.4
+      rollup: 4.41.1
+    optionalDependencies:
+      '@types/node': 24.3.0
       fsevents: 2.3.3
 
   vitest@2.1.9(@types/node@20.14.13)(jsdom@24.1.0):
@@ -14804,6 +14857,42 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 24.2.1
+      jsdom: 24.1.0
+    transitivePeerDependencies:
+      - less
+      - lightningcss
+      - msw
+      - sass
+      - sass-embedded
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+
+  vitest@2.1.9(@types/node@24.3.0)(jsdom@24.1.0):
+    dependencies:
+      '@vitest/expect': 2.1.9
+      '@vitest/mocker': 2.1.9(vite@5.4.19(@types/node@20.14.13))
+      '@vitest/pretty-format': 2.1.9
+      '@vitest/runner': 2.1.9
+      '@vitest/snapshot': 2.1.9
+      '@vitest/spy': 2.1.9
+      '@vitest/utils': 2.1.9
+      chai: 5.2.0
+      debug: 4.4.1
+      expect-type: 1.2.1
+      magic-string: 0.30.17
+      pathe: 1.1.2
+      std-env: 3.9.0
+      tinybench: 2.9.0
+      tinyexec: 0.3.2
+      tinypool: 1.0.2
+      tinyrainbow: 1.2.0
+      vite: 5.4.19(@types/node@24.3.0)
+      vite-node: 2.1.9(@types/node@24.3.0)
+      why-is-node-running: 2.3.0
+    optionalDependencies:
+      '@types/node': 24.3.0
       jsdom: 24.1.0
     transitivePeerDependencies:
       - less

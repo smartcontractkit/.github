@@ -1,0 +1,9 @@
+name: codeowners-sanity-check
+description:
+  "An action performing a quick check for a repo&#39;s CODEOWNERS file"
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
+
+inputs:
