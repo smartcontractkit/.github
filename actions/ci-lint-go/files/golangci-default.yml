@@ -150,7 +150,3 @@ formatters:
         - github.com/smartcontractkit/
   exclusions:
     generated: lax
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
