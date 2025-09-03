@@ -1,8 +1,14 @@
 import * as core from "@actions/core";
 
 import { getInvokeContext, getInputs } from "./run-inputs";
-import { checkCodeOwners, updatePRComment, upsertPRComment } from "./github";
 import {
+  checkCodeOwners,
+  getSummaryUrl,
+  updatePRComment,
+  upsertPRComment,
+} from "./github";
+import {
+  generateMarkdownTableVerbose,
   getNoCodeownersFoundMessage,
   getSuccessfulCodeownersMessage,
   getInvalidCodeownersMessage,
@@ -34,13 +40,15 @@ export async function run(): Promise<void> {
     } else if (result.kind === "errors") {
       const { errors } = result;
       annotateErrors(errors);
+      const summaryUrl = await getSummaryUrl(token, owner, repo);
       await upsertPRComment(
         token,
         owner,
         repo,
         prNumber,
-        getInvalidCodeownersMessage(actor, errors),
+        getInvalidCodeownersMessage(actor, errors.length, summaryUrl),
       );
+      core.summary.addRaw(generateMarkdownTableVerbose(errors)).write();
       if (inputs.enforce) {
         core.setFailed("CODEOWNERS file contains errors.");
       }

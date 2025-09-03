@@ -23,43 +23,45 @@ export function getSuccessfulCodeownersMessage(actor: string) {
   return `Thank you for adding a CODEOWNERS file - @${actor}.`;
 }
 
-export function getInvalidCodeownersMessage(
-  actor: string,
-  errors: CodeOwnersError[],
-) {
-  return `
-### Invalid CODEOWNERS file detected - @${actor}.
-
-${generateMarkdownTable(errors)}
-`;
-}
-
 export function annotateErrors(errors: CodeOwnersError[]): void {
   for (const e of errors) {
     // Prefer e.path when provided, otherwise default to CODEOWNERS
     const file = e.path || "CODEOWNERS";
     const title = e.kind || "CODEOWNERS error";
 
-    core.error(e.message?.trim() || title, {
+    const message = e.suggestion || e.message;
+
+    core.error(message?.trim() || title, {
       file,
       startLine: e.line,
       startColumn: e.column,
       title,
     });
-
-    // Optional: also emit a notice with suggestion, if any
-    if (e.suggestion) {
-      core.notice(e.suggestion, {
-        file,
-        startLine: e.line,
-        startColumn: e.column,
-        title: "Suggestion",
-      });
-    }
   }
 }
 
-function generateMarkdownTable(errors: CodeOwnersError[]): string {
+export function getInvalidCodeownersMessage(
+  actor: string,
+  numErrors: number,
+  summaryUrl: string,
+) {
+  const workflowSummary =
+    summaryUrl !== ""
+      ? `[workflow summary](${summaryUrl})`
+      : "workflow summary";
+
+  return `
+### Invalid CODEOWNERS file detected - @${actor}.
+
+${numErrors} error(s) were found in the CODEOWNERS file.
+
+See the ${workflowSummary} and PR annotations for more information.
+`;
+}
+
+export function generateMarkdownTableVerbose(
+  errors: CodeOwnersError[],
+): string {
   if (!errors.length) {
     return "_No CODEOWNERS errors found._";
   }
@@ -67,10 +69,12 @@ function generateMarkdownTable(errors: CodeOwnersError[]): string {
   // Basic escaping for pipes to keep table formatting stable
   const esc = (v: unknown) =>
     String(v ?? "")
+      .replace(/\\/g, "\\\\")
       .replace(/\|/g, "\\|")
       .replace(/\r?\n/g, " ");
 
   const header =
+    "### CODEOWNERS Errors\n\n" +
     "| Path | Line:Col | Kind | Message | Suggestion |\n|---|---|---|---|---|";
 
   const rows = errors.map((e) => {

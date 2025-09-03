@@ -19732,10 +19732,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       (0, command_1.issueCommand)("warning", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
     exports2.warning = warning2;
-    function notice2(message, properties = {}) {
+    function notice(message, properties = {}) {
       (0, command_1.issueCommand)("notice", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
-    exports2.notice = notice2;
+    exports2.notice = notice;
     function info3(message) {
       process.stdout.write(message + os.EOL);
     }
@@ -24039,6 +24039,27 @@ async function findPRCommentByFingerprint(token, owner, repo, pull_number) {
   core2.info(`Found existing comment ID: ${commentId}`);
   return commentId;
 }
+async function getSummaryUrl(token, owner, repo) {
+  const runId = github2.context.runId;
+  const octokit = github2.getOctokit(token);
+  try {
+    const { data } = await octokit.rest.actions.listJobsForWorkflowRun({
+      owner,
+      repo,
+      run_id: runId
+    });
+    if (data.jobs.length !== 1) {
+      core2.warning(
+        `Expected exactly one job in workflow run, found ${data.jobs.length}. Cannot determine summary URL.`
+      );
+      return "";
+    }
+    return `https://github.com/${owner}/${repo}/actions/runs/${runId}/#summary-${data.jobs[0].id}`;
+  } catch (error3) {
+    core2.warning(`Failed to get summary link: ${error3}`);
+    return "";
+  }
+}
 
 // actions/codeowners-sanity-check/src/strings.ts
 var core3 = __toESM(require_core());
@@ -24062,39 +24083,35 @@ For more information see: https://docs.github.com/en/repositories/managing-your-
 function getSuccessfulCodeownersMessage(actor) {
   return `Thank you for adding a CODEOWNERS file - @${actor}.`;
 }
-function getInvalidCodeownersMessage(actor, errors) {
-  return `
-### Invalid CODEOWNERS file detected - @${actor}.
-
-${generateMarkdownTable(errors)}
-`;
-}
 function annotateErrors(errors) {
   for (const e of errors) {
     const file = e.path || "CODEOWNERS";
     const title = e.kind || "CODEOWNERS error";
-    core3.error(e.message?.trim() || title, {
+    const message = e.suggestion || e.message;
+    core3.error(message?.trim() || title, {
       file,
       startLine: e.line,
       startColumn: e.column,
       title
     });
-    if (e.suggestion) {
-      core3.notice(e.suggestion, {
-        file,
-        startLine: e.line,
-        startColumn: e.column,
-        title: "Suggestion"
-      });
-    }
   }
 }
-function generateMarkdownTable(errors) {
+function getInvalidCodeownersMessage(actor, numErrors, summaryUrl) {
+  const workflowSummary = summaryUrl !== "" ? `[workflow summary](${summaryUrl})` : "workflow summary";
+  return `
+### Invalid CODEOWNERS file detected - @${actor}.
+
+${numErrors} error(s) were found in the CODEOWNERS file.
+
+See the ${workflowSummary} and PR annotations for more information.
+`;
+}
+function generateMarkdownTableVerbose(errors) {
   if (!errors.length) {
     return "_No CODEOWNERS errors found._";
   }
-  const esc = (v) => String(v ?? "").replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
-  const header = "| Path | Line:Col | Kind | Message | Suggestion |\n|---|---|---|---|---|";
+  const esc = (v) => String(v ?? "").replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+  const header = "### CODEOWNERS Errors\n\n| Path | Line:Col | Kind | Message | Suggestion |\n|---|---|---|---|---|";
   const rows = errors.map((e) => {
     const where = `${e.line}:${e.column}`;
     return `| ${esc(e.path || "CODEOWNERS")} | ${esc(where)} | ${esc(
@@ -24127,13 +24144,15 @@ async function run() {
     } else if (result.kind === "errors") {
       const { errors } = result;
       annotateErrors(errors);
+      const summaryUrl = await getSummaryUrl(token, owner, repo);
       await upsertPRComment(
         token,
         owner,
         repo,
         prNumber,
-        getInvalidCodeownersMessage(actor, errors)
+        getInvalidCodeownersMessage(actor, errors.length, summaryUrl)
       );
+      core4.summary.addRaw(generateMarkdownTableVerbose(errors)).write();
       if (inputs.enforce) {
         core4.setFailed("CODEOWNERS file contains errors.");
       }
