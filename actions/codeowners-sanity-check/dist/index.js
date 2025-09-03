@@ -24063,7 +24063,7 @@ async function getSummaryUrl(token, owner, repo) {
 
 // actions/codeowners-sanity-check/src/strings.ts
 var core3 = __toESM(require_core());
-function getNoCodeownersFoundMessage(actor) {
+function getNoCodeownersMsg(actor) {
   return `
 ### No CODEOWNERS file detected - @${actor}
 
@@ -24080,7 +24080,7 @@ If this repository is owned/used by a single team the default entry for a CODEOW
 For more information see: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 `;
 }
-function getSuccessfulCodeownersMessage(actor) {
+function getSuccessfulMsg(actor) {
   return `Thank you for adding a CODEOWNERS file - @${actor}.`;
 }
 function annotateErrors(errors) {
@@ -24096,7 +24096,7 @@ function annotateErrors(errors) {
     });
   }
 }
-function getInvalidCodeownersMessage(actor, numErrors, summaryUrl) {
+function getInvalidMsg(actor, numErrors, summaryUrl) {
   const workflowSummary = summaryUrl !== "" ? `[workflow summary](${summaryUrl})` : "workflow summary";
   return `
 ### Invalid CODEOWNERS file detected - @${actor}.
@@ -24134,36 +24134,21 @@ async function run() {
     core4.startGroup("Check CODEOWNERS");
     const result = await checkCodeOwners(token, owner, repo, head);
     if (result.kind === "success") {
-      await updatePRComment(
-        token,
-        owner,
-        repo,
-        prNumber,
-        getSuccessfulCodeownersMessage(actor)
-      );
-    } else if (result.kind === "errors") {
+      const commentBody = getSuccessfulMsg(actor);
+      await updatePRComment(token, owner, repo, prNumber, commentBody);
+    } else if (result.kind === "errors" && result.errors.length > 0) {
       const { errors } = result;
       annotateErrors(errors);
       const summaryUrl = await getSummaryUrl(token, owner, repo);
-      await upsertPRComment(
-        token,
-        owner,
-        repo,
-        prNumber,
-        getInvalidCodeownersMessage(actor, errors.length, summaryUrl)
-      );
+      const commentBody = getInvalidMsg(actor, errors.length, summaryUrl);
+      await upsertPRComment(token, owner, repo, prNumber, commentBody);
       core4.summary.addRaw(generateMarkdownTableVerbose(errors)).write();
       if (inputs.enforce) {
         core4.setFailed("CODEOWNERS file contains errors.");
       }
     } else if (result.kind === "not_found") {
-      await upsertPRComment(
-        token,
-        owner,
-        repo,
-        prNumber,
-        getNoCodeownersFoundMessage(actor)
-      );
+      const commentBody = getNoCodeownersMsg(actor);
+      await upsertPRComment(token, owner, repo, prNumber, commentBody);
       if (inputs.enforce) {
         core4.setFailed("No CODEOWNERS file found.");
       }

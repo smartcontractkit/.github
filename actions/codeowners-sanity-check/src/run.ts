@@ -9,15 +9,14 @@ import {
 } from "./github";
 import {
   generateMarkdownTableVerbose,
-  getNoCodeownersFoundMessage,
-  getSuccessfulCodeownersMessage,
-  getInvalidCodeownersMessage,
+  getNoCodeownersMsg,
+  getSuccessfulMsg,
+  getInvalidMsg,
   annotateErrors,
 } from "./strings";
 
 export async function run(): Promise<void> {
   try {
-    // 1. Get inputs and context
     core.startGroup("Context");
     const context = getInvokeContext();
     core.debug(`Context: ${JSON.stringify(context, null, 2)}`);
@@ -30,36 +29,21 @@ export async function run(): Promise<void> {
     core.startGroup("Check CODEOWNERS");
     const result = await checkCodeOwners(token, owner, repo, head);
     if (result.kind === "success") {
-      await updatePRComment(
-        token,
-        owner,
-        repo,
-        prNumber,
-        getSuccessfulCodeownersMessage(actor),
-      );
-    } else if (result.kind === "errors") {
+      const commentBody = getSuccessfulMsg(actor);
+      await updatePRComment(token, owner, repo, prNumber, commentBody);
+    } else if (result.kind === "errors" && result.errors.length > 0) {
       const { errors } = result;
       annotateErrors(errors);
       const summaryUrl = await getSummaryUrl(token, owner, repo);
-      await upsertPRComment(
-        token,
-        owner,
-        repo,
-        prNumber,
-        getInvalidCodeownersMessage(actor, errors.length, summaryUrl),
-      );
+      const commentBody = getInvalidMsg(actor, errors.length, summaryUrl);
+      await upsertPRComment(token, owner, repo, prNumber, commentBody);
       core.summary.addRaw(generateMarkdownTableVerbose(errors)).write();
       if (inputs.enforce) {
         core.setFailed("CODEOWNERS file contains errors.");
       }
     } else if (result.kind === "not_found") {
-      await upsertPRComment(
-        token,
-        owner,
-        repo,
-        prNumber,
-        getNoCodeownersFoundMessage(actor),
-      );
+      const commentBody = getNoCodeownersMsg(actor);
+      await upsertPRComment(token, owner, repo, prNumber, commentBody);
       if (inputs.enforce) {
         core.setFailed("No CODEOWNERS file found.");
       }

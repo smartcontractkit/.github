@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import { CodeOwnersError } from "./github";
 
-export function getNoCodeownersFoundMessage(actor: string): string {
+export function getNoCodeownersMsg(actor: string): string {
   return `
 ### No CODEOWNERS file detected - @${actor}
 
@@ -19,7 +19,7 @@ For more information see: https://docs.github.com/en/repositories/managing-your-
 `;
 }
 
-export function getSuccessfulCodeownersMessage(actor: string) {
+export function getSuccessfulMsg(actor: string) {
   return `Thank you for adding a CODEOWNERS file - @${actor}.`;
 }
 
@@ -40,7 +40,7 @@ export function annotateErrors(errors: CodeOwnersError[]): void {
   }
 }
 
-export function getInvalidCodeownersMessage(
+export function getInvalidMsg(
   actor: string,
   numErrors: number,
   summaryUrl: string,
