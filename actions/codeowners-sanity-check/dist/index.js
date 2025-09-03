@@ -19686,7 +19686,7 @@ var require_core = __commonJS({
       return inputs.map((input) => input.trim());
     }
     exports2.getMultilineInput = getMultilineInput;
-    function getBooleanInput(name, options) {
+    function getBooleanInput2(name, options) {
       const trueValue = ["true", "True", "TRUE"];
       const falseValue = ["false", "False", "FALSE"];
       const val = getInput(name, options);
@@ -19697,7 +19697,7 @@ var require_core = __commonJS({
       throw new TypeError(`Input does not meet YAML 1.2 "Core Schema" specification: ${name}
 Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
     }
-    exports2.getBooleanInput = getBooleanInput;
+    exports2.getBooleanInput = getBooleanInput2;
     function setOutput(name, value) {
       const filePath = process.env["GITHUB_OUTPUT"] || "";
       if (filePath) {
@@ -19711,11 +19711,11 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       (0, command_1.issue)("echo", enabled ? "on" : "off");
     }
     exports2.setCommandEcho = setCommandEcho;
-    function setFailed2(message) {
+    function setFailed3(message) {
       process.exitCode = ExitCode.Failure;
       error3(message);
     }
-    exports2.setFailed = setFailed2;
+    exports2.setFailed = setFailed3;
     function isDebug() {
       return process.env["RUNNER_DEBUG"] === "1";
     }
@@ -23870,15 +23870,77 @@ var require_github = __commonJS({
 });
 
 // actions/codeowners-sanity-check/src/run.ts
-var core3 = __toESM(require_core());
-var github2 = __toESM(require_github());
+var core4 = __toESM(require_core());
 
-// actions/codeowners-sanity-check/src/github.ts
+// actions/codeowners-sanity-check/src/run-inputs.ts
 var core = __toESM(require_core());
 var github = __toESM(require_github());
+function getInputs() {
+  core.info("Getting inputs for run.");
+  const inputs = {
+    enforce: getRunInputBoolean("enforce")
+  };
+  core.info(`Inputs: ${JSON.stringify(inputs)}`);
+  return inputs;
+}
+function getInvokeContext() {
+  const { context: context3 } = github;
+  const { owner, repo } = github.context.repo;
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    core.setFailed("GitHub token is not set.");
+    return process.exit(1);
+  }
+  const { pull_request } = context3.payload;
+  if (context3.eventName !== "pull_request" || !pull_request) {
+    core.setFailed(
+      `This action can only be run on pull requests events. Got ${context3.eventName}`
+    );
+    return process.exit(1);
+  }
+  const { number: prNumber } = pull_request;
+  const { sha: base } = pull_request.base;
+  const { sha: head } = pull_request.head;
+  if (!base || !head || !prNumber) {
+    core.setFailed(
+      `Missing required pull request information. Base: ${base}, Head: ${head}, PR: ${prNumber}`
+    );
+    return process.exit(1);
+  }
+  core.info(`Event name: ${context3.eventName}`);
+  core.info(
+    `Owner: ${owner}, Repo: ${repo}, Base: ${base}, Head: ${head}, PR: ${prNumber ?? "N/A"} Actor: ${context3.actor}`
+  );
+  return { token, owner, repo, base, head, prNumber, actor: context3.actor };
+}
+var runInputsConfiguration = {
+  enforce: {
+    parameter: "enforce",
+    localParameter: "ENFORCE"
+  }
+};
+function getRunInputBoolean(input) {
+  const inputKey = getInputKey(input);
+  return core.getBooleanInput(inputKey, {
+    required: true
+  });
+}
+function getInputKey(input) {
+  const config = runInputsConfiguration[input];
+  if (!config) {
+    throw new Error(`No configuration found for input: ${input}`);
+  }
+  const isLocalDebug = process.env.CL_LOCAL_DEBUG;
+  const inputKey = isLocalDebug ? config.localParameter : config.parameter;
+  return inputKey;
+}
+
+// actions/codeowners-sanity-check/src/github.ts
+var core2 = __toESM(require_core());
+var github2 = __toESM(require_github());
 var MARKDOWN_FINGERPRINT = "<!-- chainlink-codeowners-enforcement -->";
 async function checkCodeOwners(token, owner, repo, ref) {
-  const octokit = github.getOctokit(token);
+  const octokit = github2.getOctokit(token);
   try {
     const { data } = await octokit.rest.repos.codeownersErrors({
       owner,
@@ -23900,20 +23962,20 @@ async function checkCodeOwners(token, owner, repo, ref) {
   }
 }
 async function upsertPRComment(token, owner, repo, pull_number, commentBody) {
-  core.debug("Upserting PR comment");
+  core2.debug("Upserting PR comment");
   const commentId = await findPRCommentByFingerprint(
     token,
     owner,
     repo,
     pull_number
   );
-  const octokit = github.getOctokit(token);
+  const octokit = github2.getOctokit(token);
   const fingerprintedCommentBody = commentBody + `
 
 ${MARKDOWN_FINGERPRINT}`;
   try {
     if (commentId === -1) {
-      core.debug("Creating new PR comment");
+      core2.debug("Creating new PR comment");
       await octokit.rest.issues.createComment({
         owner,
         repo,
@@ -23921,7 +23983,7 @@ ${MARKDOWN_FINGERPRINT}`;
         body: fingerprintedCommentBody
       });
     } else {
-      core.debug(`Updating existing PR comment ID: ${commentId}`);
+      core2.debug(`Updating existing PR comment ID: ${commentId}`);
       await octokit.rest.issues.updateComment({
         owner,
         repo,
@@ -23930,11 +23992,11 @@ ${MARKDOWN_FINGERPRINT}`;
       });
     }
   } catch (error3) {
-    core.warning(`Failed to upsert PR comment: ${error3}`);
+    core2.warning(`Failed to upsert PR comment: ${error3}`);
   }
 }
 async function updatePRComment(token, owner, repo, pull_number, commentBody) {
-  core.debug("Updating PR comment");
+  core2.debug("Updating PR comment");
   const commentId = await findPRCommentByFingerprint(
     token,
     owner,
@@ -23942,15 +24004,15 @@ async function updatePRComment(token, owner, repo, pull_number, commentBody) {
     pull_number
   );
   if (commentId === -1) {
-    core.info("No existing comment found, not updating.");
+    core2.info("No existing comment found, not updating.");
     return;
   }
-  const octokit = github.getOctokit(token);
+  const octokit = github2.getOctokit(token);
   const fingerprintedCommentBody = commentBody + `
 
 ${MARKDOWN_FINGERPRINT}`;
   try {
-    core.debug(`Updating existing PR comment ID: ${commentId}`);
+    core2.debug(`Updating existing PR comment ID: ${commentId}`);
     await octokit.rest.issues.updateComment({
       owner,
       repo,
@@ -23958,12 +24020,12 @@ ${MARKDOWN_FINGERPRINT}`;
       body: fingerprintedCommentBody
     });
   } catch (error3) {
-    core.warning(`Failed to update PR comment: ${error3}`);
+    core2.warning(`Failed to update PR comment: ${error3}`);
   }
 }
 async function findPRCommentByFingerprint(token, owner, repo, pull_number) {
-  core.debug(`Finding PR comment for pull request #${pull_number}`);
-  const octokit = github.getOctokit(token);
+  core2.debug(`Finding PR comment for pull request #${pull_number}`);
+  const octokit = github2.getOctokit(token);
   const { data: comments } = await octokit.rest.issues.listComments({
     owner,
     repo,
@@ -23974,12 +24036,12 @@ async function findPRCommentByFingerprint(token, owner, repo, pull_number) {
     (c) => c.body?.includes(MARKDOWN_FINGERPRINT)
   );
   const commentId = existingComment ? existingComment.id : -1;
-  core.info(`Found existing comment ID: ${commentId}`);
+  core2.info(`Found existing comment ID: ${commentId}`);
   return commentId;
 }
 
 // actions/codeowners-sanity-check/src/strings.ts
-var core2 = __toESM(require_core());
+var core3 = __toESM(require_core());
 function getNoCodeownersFoundMessage(actor) {
   return `
 ### No CODEOWNERS file detected - @${actor}
@@ -24011,14 +24073,14 @@ function annotateErrors(errors) {
   for (const e of errors) {
     const file = e.path || "CODEOWNERS";
     const title = e.kind || "CODEOWNERS error";
-    core2.error(e.message?.trim() || title, {
+    core3.error(e.message?.trim() || title, {
       file,
       startLine: e.line,
       startColumn: e.column,
       title
     });
     if (e.suggestion) {
-      core2.notice(e.suggestion, {
+      core3.notice(e.suggestion, {
         file,
         startLine: e.line,
         startColumn: e.column,
@@ -24045,12 +24107,14 @@ function generateMarkdownTable(errors) {
 // actions/codeowners-sanity-check/src/run.ts
 async function run() {
   try {
-    core3.startGroup("Context");
+    core4.startGroup("Context");
     const context3 = getInvokeContext();
-    core3.debug(`Context: ${JSON.stringify(context3, null, 2)}`);
+    core4.debug(`Context: ${JSON.stringify(context3, null, 2)}`);
+    const inputs = getInputs();
+    core4.debug(`Inputs: ${JSON.stringify(inputs)}`);
+    core4.endGroup();
     const { token, owner, repo, head, prNumber, actor } = context3;
-    core3.endGroup();
-    core3.startGroup("Check CODEOWNERS");
+    core4.startGroup("Check CODEOWNERS");
     const result = await checkCodeOwners(token, owner, repo, head);
     if (result.kind === "success") {
       await updatePRComment(
@@ -24070,6 +24134,9 @@ async function run() {
         prNumber,
         getInvalidCodeownersMessage(actor, errors)
       );
+      if (inputs.enforce) {
+        core4.setFailed("CODEOWNERS file contains errors.");
+      }
     } else if (result.kind === "not_found") {
       await upsertPRComment(
         token,
@@ -24078,44 +24145,17 @@ async function run() {
         prNumber,
         getNoCodeownersFoundMessage(actor)
       );
+      if (inputs.enforce) {
+        core4.setFailed("No CODEOWNERS file found.");
+      }
     } else if (result.kind === "failure") {
-      core3.error(`Unexpected error: ${result.message}`);
+      core4.error(`Unexpected error: ${result.message}`);
     }
-    core3.endGroup();
+    core4.endGroup();
   } catch (error3) {
-    core3.endGroup();
-    core3.setFailed(`Action failed: ${error3}`);
+    core4.endGroup();
+    core4.setFailed(`Action failed: ${error3}`);
   }
-}
-function getInvokeContext() {
-  const { context: context3 } = github2;
-  const { owner, repo } = github2.context.repo;
-  const token = process.env.GITHUB_TOKEN;
-  if (!token) {
-    core3.setFailed("GitHub token is not set.");
-    return process.exit(1);
-  }
-  const { pull_request } = context3.payload;
-  if (context3.eventName !== "pull_request" || !pull_request) {
-    core3.setFailed(
-      `This action can only be run on pull requests events. Got ${context3.eventName}`
-    );
-    return process.exit(1);
-  }
-  const { number: prNumber } = pull_request;
-  const { sha: base } = pull_request.base;
-  const { sha: head } = pull_request.head;
-  if (!base || !head || !prNumber) {
-    core3.setFailed(
-      `Missing required pull request information. Base: ${base}, Head: ${head}, PR: ${prNumber}`
-    );
-    return process.exit(1);
-  }
-  core3.info(`Event name: ${context3.eventName}`);
-  core3.info(
-    `Owner: ${owner}, Repo: ${repo}, Base: ${base}, Head: ${head}, PR: ${prNumber ?? "N/A"} Actor: ${context3.actor}`
-  );
-  return { token, owner, repo, base, head, prNumber, actor: context3.actor };
 }
 
 // actions/codeowners-sanity-check/src/index.ts

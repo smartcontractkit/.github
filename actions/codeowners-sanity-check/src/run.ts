@@ -1,6 +1,7 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
+import { getInvokeContext, getInputs } from "./run-inputs";
 import { checkCodeOwners, updatePRComment, upsertPRComment } from "./github";
 import {
   getNoCodeownersFoundMessage,
@@ -15,8 +16,11 @@ export async function run(): Promise<void> {
     core.startGroup("Context");
     const context = getInvokeContext();
     core.debug(`Context: ${JSON.stringify(context, null, 2)}`);
-    const { token, owner, repo, head, prNumber, actor } = context;
+    const inputs = getInputs();
+    core.debug(`Inputs: ${JSON.stringify(inputs)}`);
     core.endGroup();
+
+    const { token, owner, repo, head, prNumber, actor } = context;
 
     core.startGroup("Check CODEOWNERS");
     const result = await checkCodeOwners(token, owner, repo, head);
@@ -38,6 +42,9 @@ export async function run(): Promise<void> {
         prNumber,
         getInvalidCodeownersMessage(actor, errors),
       );
+      if (inputs.enforce) {
+        core.setFailed("CODEOWNERS file contains errors.");
+      }
     } else if (result.kind === "not_found") {
       await upsertPRComment(
         token,
@@ -46,6 +53,9 @@ export async function run(): Promise<void> {
         prNumber,
         getNoCodeownersFoundMessage(actor),
       );
+      if (inputs.enforce) {
+        core.setFailed("No CODEOWNERS file found.");
+      }
     } else if (result.kind === "failure") {
       core.error(`Unexpected error: ${result.message}`);
     }
@@ -54,47 +64,4 @@ export async function run(): Promise<void> {
     core.endGroup();
     core.setFailed(`Action failed: ${error}`);
   }
-}
-
-/**
- * Parses the invoke context from Github Actions' context.
- * @returns The invoke context
- */
-export function getInvokeContext() {
-  const { context } = github;
-  const { owner, repo } = github.context.repo;
-
-  const token = process.env.GITHUB_TOKEN;
-  if (!token) {
-    core.setFailed("GitHub token is not set.");
-    return process.exit(1);
-  }
-
-  const { pull_request } = context.payload;
-  if (context.eventName !== "pull_request" || !pull_request) {
-    core.setFailed(
-      `This action can only be run on pull requests events. Got ${context.eventName}`,
-    );
-    return process.exit(1);
-  }
-
-  const { number: prNumber } = pull_request;
-  const { sha: base } = pull_request.base;
-  const { sha: head } = pull_request.head;
-
-  if (!base || !head || !prNumber) {
-    core.setFailed(
-      `Missing required pull request information. Base: ${base}, Head: ${head}, PR: ${prNumber}`,
-    );
-    return process.exit(1);
-  }
-
-  core.info(`Event name: ${context.eventName}`);
-  core.info(
-    `Owner: ${owner}, Repo: ${repo}, Base: ${base}, Head: ${head}, PR: ${
-      prNumber ?? "N/A"
-    } Actor: ${context.actor}`,
-  );
-
-  return { token, owner, repo, base, head, prNumber, actor: context.actor };
 }
