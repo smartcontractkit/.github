@@ -1,0 +1,41 @@
+[
+  {
+    "scope": "https://api.github.com:443",
+    "method": "GET",
+    "path": "/repos/smartcontractkit/.github/codeowners/errors?ref=4d2f6bfd28367da87f493dd8854cbaa59f45a9b8",
+    "body": "",
+    "status": 200,
+    "response": {
+      "errors": []
+    },
+    "rawHeaders": {
+      "access-control-allow-origin": "*",
+      "access-control-expose-headers": "ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset",
+      "cache-control": "private, max-age=60, s-maxage=60",
+      "connection": "close",
+      "content-length": "13",
+      "content-security-policy": "default-src 'none'",
+      "content-type": "application/json; charset=utf-8",
+      "date": "Thu, 04 Sep 2025 21:18:04 GMT",
+      "etag": "\"329f7e8ad940c2fb39242155ef782827b4bb46b94e92b9f8b493f173982abc2c\"",
+      "referrer-policy": "origin-when-cross-origin, strict-origin-when-cross-origin",
+      "server": "github.com",
+      "strict-transport-security": "max-age=31536000; includeSubdomains; preload",
+      "vary": "Accept, Authorization, Cookie, X-GitHub-OTP,Accept-Encoding, Accept, X-Requested-With",
+      "x-accepted-oauth-scopes": "",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "deny",
+      "x-github-api-version-selected": "2022-11-28",
+      "x-github-media-type": "github.v3; format=json",
+      "x-github-request-id": "62AF:1A5FD5:1C8AAA5:664BD67:68BA020C",
+      "x-oauth-scopes": "gist, read:org, repo, workflow",
+      "x-ratelimit-limit": "5000",
+      "x-ratelimit-remaining": "4967",
+      "x-ratelimit-reset": "1757022384",
+      "x-ratelimit-resource": "core",
+      "x-ratelimit-used": "33",
+      "x-xss-protection": "0"
+    },
+    "responseIsBinary": false
+  }
+]
