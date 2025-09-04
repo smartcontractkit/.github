@@ -1,0 +1,15 @@
+name: codeowners-sanity-check
+description:
+  "An action performing a sanity check on the presence and contents of a repo's
+  CODEOWNERS file"
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
+
+inputs:
+  enforce:
+    description: |
+      Whether to enforce the presence of a *valid* CODEOWNERS file
+    required: false
+    default: true
