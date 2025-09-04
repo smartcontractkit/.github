@@ -110,7 +110,7 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
         ref: ${{ inputs.checkout-ref }}
