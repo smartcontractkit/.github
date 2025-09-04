@@ -24,6 +24,7 @@ export function getSuccessfulMsg(actor: string) {
 }
 
 export function annotateErrors(errors: CodeOwnersError[]): void {
+  core.info(`Annotating CODEOWNERS errors (${errors.length}).`);
   for (const e of errors) {
     // Prefer e.path when provided, otherwise default to CODEOWNERS
     const file = e.path || "CODEOWNERS";

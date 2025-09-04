@@ -15,13 +15,11 @@ type CodeownersCheckResult =
   | { kind: "failure"; message: string };
 
 export async function checkCodeOwners(
-  token: string,
+  octokit: Octokit,
   owner: string,
   repo: string,
   ref: string,
 ): Promise<CodeownersCheckResult> {
-  const octokit = github.getOctokit(token);
-
   try {
     const { data } = await octokit.rest.repos.codeownersErrors({
       owner,
@@ -51,7 +49,7 @@ export async function checkCodeOwners(
  * Creates or updates a PR comment with the given body, identified by a fingerprint.
  */
 export async function upsertPRComment(
-  token: string,
+  octokit: Octokit,
   owner: string,
   repo: string,
   pull_number: number,
@@ -59,13 +57,12 @@ export async function upsertPRComment(
 ): Promise<void> {
   core.debug("Upserting PR comment");
   const commentId = await findPRCommentByFingerprint(
-    token,
+    octokit,
     owner,
     repo,
     pull_number,
   );
 
-  const octokit = github.getOctokit(token);
   const fingerprintedCommentBody = commentBody + `\n\n${MARKDOWN_FINGERPRINT}`;
   try {
     if (commentId === -1) {
@@ -96,7 +93,7 @@ export async function upsertPRComment(
  * If the comment does not exist, it will not create one.
  */
 export async function updatePRComment(
-  token: string,
+  octokit: Octokit,
   owner: string,
   repo: string,
   pull_number: number,
@@ -104,7 +101,7 @@ export async function updatePRComment(
 ): Promise<void> {
   core.debug("Updating PR comment");
   const commentId = await findPRCommentByFingerprint(
-    token,
+    octokit,
     owner,
     repo,
     pull_number,
@@ -115,7 +112,6 @@ export async function updatePRComment(
     return;
   }
 
-  const octokit = github.getOctokit(token);
   const fingerprintedCommentBody = commentBody + `\n\n${MARKDOWN_FINGERPRINT}`;
   try {
     core.debug(`Updating existing PR comment ID: ${commentId}`);
@@ -131,13 +127,12 @@ export async function updatePRComment(
 }
 
 async function findPRCommentByFingerprint(
-  token: string,
+  octokit: Octokit,
   owner: string,
   repo: string,
   pull_number: number,
 ): Promise<number> {
   core.debug(`Finding PR comment for pull request #${pull_number}`);
-  const octokit = github.getOctokit(token);
   const { data: comments } = await octokit.rest.issues.listComments({
     owner,
     repo,
@@ -154,13 +149,17 @@ async function findPRCommentByFingerprint(
 }
 
 export async function getSummaryUrl(
-  token: string,
+  octokit: Octokit,
   owner: string,
   repo: string,
 ): Promise<string> {
+  core.info(`Getting summary URL for workflow run ${github.context.runId}`);
   const runId = github.context.runId;
+  if (!runId) {
+    core.info("No workflow run ID found.");
+    return "";
+  }
 
-  const octokit = github.getOctokit(token);
   try {
     const { data } = await octokit.rest.actions.listJobsForWorkflowRun({
       owner,
