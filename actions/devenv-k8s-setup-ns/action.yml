@@ -175,13 +175,13 @@ runs:
 
     - uses: smartcontractkit/.github/actions/setup-golang@setup-golang/1.1.0
       with:
-        go-version-file: "${{ github.workspace }}/devenv/griddle/go.mod"
-        go-cache-dep-path: "${{ github.workspace }}/devenv/griddle/**/*.sum"
+        go-version-file: "${{ github.workspace }}/devenv/go.mod"
+        go-cache-dep-path: "${{ github.workspace }}/devenv/**/*.sum"
 
     - name: Setup griddle-devenv CLI
       shell: bash
-      working-directory: ./devenv/griddle
+      working-directory: ./devenv
       run: |
         go env
-        go build -o griddle main.go
-        ./griddle deps
+        go build -o dctl main.go
+        ./dctl deps
