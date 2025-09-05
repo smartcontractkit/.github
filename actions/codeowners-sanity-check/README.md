@@ -46,3 +46,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 ```
+
+## Development
+
+1. Update dist: `pnpm nx run build  codeowners-sanity-check`
+2. Run tests: `pnpm nx run test codeowners-sanity-check`
+3. Record Fixtures (new only):
+   `NOCK_BACK_MODE=record pnpm nx test codeowners-sanity-check`
+4. Update Fixtures (existing only):
+   `NOCK_BACK_MODE=update pnpm nx test codeowners-sanity-check`

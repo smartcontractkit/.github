@@ -1,0 +1,41 @@
+[
+  {
+    "scope": "https://api.github.com:443",
+    "method": "GET",
+    "path": "/repos/smartcontractkit/gha-org-workflows/codeowners/errors?ref=def9d574417d336ab11d157c340329dcabbf4366",
+    "body": "",
+    "status": 404,
+    "response": [
+      "1f8b080000000000000325cc310ec2300c46e1ab20b3d286a1530fc0c8155049ac36521357fe6d3154dc1d4b2c6f79d2775263605999667a8a5d1ee2bdd08d8a646fdc6db12afde5bac7dfcc0ecc29c5c3b856dbfc3d66694919163904ff5ef70a1bb214964f67c5c0aaa20815e139829aee137d7f0bfbff9e7c000000"
+    ],
+    "rawHeaders": {
+      "access-control-allow-origin": "*",
+      "access-control-expose-headers": "ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset",
+      "connection": "close",
+      "content-encoding": "gzip",
+      "content-security-policy": "default-src 'none'",
+      "content-type": "application/json; charset=utf-8",
+      "date": "Thu, 04 Sep 2025 21:22:43 GMT",
+      "referrer-policy": "origin-when-cross-origin, strict-origin-when-cross-origin",
+      "server": "github.com",
+      "strict-transport-security": "max-age=31536000; includeSubdomains; preload",
+      "transfer-encoding": "chunked",
+      "vary": "Accept-Encoding, Accept, X-Requested-With",
+      "x-accepted-oauth-scopes": "",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "deny",
+      "x-github-api-version-selected": "2022-11-28",
+      "x-github-media-type": "github.v3; format=json",
+      "x-github-request-id": "62B1:1723ED:1BD9950:63C821F:68BA0323",
+      "x-oauth-client-id": "178c6fc778ccc68e1d6a",
+      "x-oauth-scopes": "gist, read:org, repo, workflow",
+      "x-ratelimit-limit": "5000",
+      "x-ratelimit-remaining": "4958",
+      "x-ratelimit-reset": "1757022384",
+      "x-ratelimit-resource": "core",
+      "x-ratelimit-used": "42",
+      "x-xss-protection": "0"
+    },
+    "responseIsBinary": false
+  }
+]
