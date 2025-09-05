@@ -1,6 +1,6 @@
 {
   "name": "devenv-k8s-setup-ns",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "",
   "private": true,
   "scripts": {},
