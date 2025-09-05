@@ -1,5 +1,14 @@
 # devenv-k8s-setup-ns
 
+## 0.1.2
+
+### Patch Changes
+
+- [#1207](https://github.com/smartcontractkit/.github/pull/1207)
+  [`9b1a015`](https://github.com/smartcontractkit/.github/commit/9b1a015979ea8bd9c81bf3e31dec6439001fd568)
+  Thanks [@ajgrande924](https://github.com/ajgrande924)! - griddle devenv cli
+  name change + move to top level
+
 ## 0.1.1
 
 ### Patch Changes
