@@ -54,7 +54,7 @@ runs:
         echo "::endgroup::"
 
     - name: Upload Test Results to Trunk.io
-      uses: trunk-io/analytics-uploader@f2631c653f9675d391e6e68cc877370db927c64c # v2.0.0
+      uses: trunk-io/analytics-uploader@e15a1f52c853d03426af5aff6bad7321fda0f7a4 # v2.0.2
       continue-on-error: ${{ inputs.trunk-upload-only == 'true' }}
       env:
         TRUNK_TELEMETRY: "off"
