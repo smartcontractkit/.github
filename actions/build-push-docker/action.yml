@@ -9,6 +9,9 @@ inputs:
       Build arguments for the docker image build. See:
       https://docs.docker.com/reference/cli/docker/buildx/build/#build-arg
     required: false
+  docker-build-contexts:
+    description: "List of additional build contexts (e.g., name=path)"
+    required: false
   docker-restore-cache:
     description: |
       Toggles the docker cache for builds. If set to `false`, the cache will not be used.
@@ -301,6 +304,7 @@ runs:
         provenance: ${{ steps.docker-attest.outputs.docker-provenance }}
         file: ${{ inputs.dockerfile }}
         context: ${{ inputs.context }}
+        build-contexts: ${{ inputs.docker-build-contexts }}
         build-args: ${{ inputs.docker-build-args }}
         target: ${{ inputs.docker-target }}
         tags: ${{ steps.docker-meta.outputs.tags }}
