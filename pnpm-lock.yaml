@@ -131,6 +131,28 @@ importers:
 
   actions/build-push-docker-manifest: {}
 
+  actions/changed-modules-go:
+    dependencies:
+      '@actions/core':
+        specifier: ^1.11.1
+        version: 1.11.1
+      '@actions/github':
+        specifier: ^6.0.1
+        version: 6.0.1
+      '@actions/glob':
+        specifier: ^0.4.0
+        version: 0.4.0
+      execa:
+        specifier: ^9.6.0
+        version: 9.6.0
+    devDependencies:
+      '@types/node':
+        specifier: ^24.3.0
+        version: 24.3.0
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@24.3.0)(jsdom@24.1.0)
+
   actions/check-git-tag-for-monorepo: {}
 
   actions/check-if-verified: {}
