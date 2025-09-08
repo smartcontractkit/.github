@@ -125,8 +125,6 @@ runs:
           echo "## Base image build failed"
           echo ""
           echo "It's likely that the go versions are mismatched. Try updating the base image go version here: https://github.com/smartcontractkit/chainlink-testing-framework/blob/main/lib/k8s/Dockerfile.base#L2"
-          echo "- Image: \`${BASE_IMAGE_NAME}\`"
-          echo "- CTF long SHA: \`${{ steps.long_sha.outputs.long_sha }}\`"
         } >> "$GITHUB_STEP_SUMMARY"
         exit 1
     # End Base Image Logic
