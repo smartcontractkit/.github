@@ -99,7 +99,8 @@ runs:
     - name: Build Base Image
       id: build_base_image
       continue-on-error: true
-      if: steps.version.outputs.is_semantic == 'false' &&
+      if:
+        steps.version.outputs.is_semantic == 'false' &&
         steps.check-base-image.outputs.exists == 'false'
       uses: smartcontractkit/chainlink-github-actions/docker/build-push@75a9005952a9e905649cfb5a6971fd9429436acd # v2.3.25
       env:
@@ -113,12 +114,16 @@ runs:
         AWS_REGION: ${{ inputs.QA_AWS_REGION }}
         AWS_ROLE_TO_ASSUME: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
     - name: Report Base Image build failure
-      if: steps.version.outputs.is_semantic == 'false' &&
+      if:
+        steps.version.outputs.is_semantic == 'false' &&
         steps.check-base-image.outputs.exists == 'false' &&
         steps.build_base_image.outcome == 'failure'
       shell: bash
       env:
-        BASE_IMAGE_NAME: ${{ inputs.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ inputs.QA_AWS_REGION }}.amazonaws.com/test-base-image:${{ steps.long_sha.outputs.long_sha }}
+        BASE_IMAGE_NAME:
+          ${{ inputs.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ inputs.QA_AWS_REGION
+          }}.amazonaws.com/test-base-image:${{ steps.long_sha.outputs.long_sha
+          }}
       run: |
         echo "::error::Failed to build base image ${BASE_IMAGE_NAME}. It's likely that the go versions are mismatched. Try updating the base image go version here: https://github.com/smartcontractkit/chainlink-testing-framework/blob/main/lib/k8s/Dockerfile.base#L2"
         {
@@ -165,7 +170,8 @@ runs:
       shell: sh
       env:
         INPUTS_REPOSITORY: ${{ inputs.repository }}
-        INPUTS_TAG: ${{ inputs.tag || steps.test_runner_hash.outputs.hash_value }}
+        INPUTS_TAG:
+          ${{ inputs.tag || steps.test_runner_hash.outputs.hash_value }}
       run: |
         echo "### ${INPUTS_REPOSITORY} image tag for this test run :ship:" >> $GITHUB_STEP_SUMMARY
         echo "\`${INPUTS_TAG}\`" >> $GITHUB_STEP_SUMMARY

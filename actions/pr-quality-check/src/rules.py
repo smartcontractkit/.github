@@ -26,6 +26,9 @@ def filter_rules_for_file(cfg: Dict[str, Any], file_path: str, file_status: str)
             enforce_on_new_only = bool(rule.get("enforce_on_new_only", False))
             if enforce_on_new_only and file_status != "added":
                 continue
+            # Require a valid rule id; skip rules without identifiers
+            if not rule.get("id"):
+                continue
             filtered.append(rule)
 
     applicable_rules_yaml = ""
@@ -33,6 +36,8 @@ def filter_rules_for_file(cfg: Dict[str, Any], file_path: str, file_status: str)
         block_rules = []
         for rule in (rules_by_pattern.get(pat) or []):
             rule_id = rule.get("id")
+            if not rule_id:
+                continue
             if any(rule_id == r.get("id") for r in filtered):
                 block_rules.append(rule)
         if block_rules:
