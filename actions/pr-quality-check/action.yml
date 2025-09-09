@@ -350,10 +350,12 @@ runs:
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
       shell: bash
+      env:
+        ANTHROPIC_VERTEX_PROJECT_ID: ${{ inputs.claude-code-gcp-project-id }}
       run: |
         echo "CLAUDE_CODE_USE_VERTEX=1" >> $GITHUB_ENV
         echo "CLOUD_ML_REGION=us-east5" >> $GITHUB_ENV
-        echo "ANTHROPIC_VERTEX_PROJECT_ID=${{ inputs.claude-code-gcp-project-id }}" >> $GITHUB_ENV
+        echo "ANTHROPIC_VERTEX_PROJECT_ID=$ANTHROPIC_VERTEX_PROJECT_ID" >> $GITHUB_ENV
         echo "DISABLE_PROMPT_CACHING=1" >> $GITHUB_ENV
         echo "DISABLE_TELEMETRY=1" >> $GITHUB_ENV
         echo "DISABLE_ERROR_REPORTING=1" >> $GITHUB_ENV
