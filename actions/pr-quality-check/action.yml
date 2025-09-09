@@ -25,14 +25,30 @@ inputs:
     description: "Fail the job if any errors are found"
     required: false
     default: "false"
-  post-comment:
-    description: "Post a PR comment with results"
-    required: false
-    default: "true"
   log-prompts:
     description: "Log LLM prompts in action logs"
     required: false
     default: "false"
+  analysis-cache-enabled:
+    description: "Enable per-file+rule analysis caching"
+    required: false
+    default: "true"
+  claude-code-auto-fix-enabled:
+    description: "Enable Claude Code auto-fix flow when candidates exist"
+    required: false
+    default: "false"
+  claude-code-gcp-project-id:
+    description: "GCP Project ID for Vertex Anthropic (required for auto-fix)"
+    required: false
+    default: ""
+  claude-code-gcp-service-account-key:
+    description: "GCP Service Account JSON (required for auto-fix)"
+    required: false
+    default: ""
+  anthropic-model:
+    description: "Claude model to use"
+    required: false
+    default: "claude-sonnet-4@20250514"
 
 outputs:
   total-errors:
@@ -50,6 +66,22 @@ outputs:
   has-matching-changes:
     description: "Whether any changed files matched configured patterns"
     value: ${{ steps.run-py.outputs.has-matching-changes }}
+  has-fix-candidates:
+    description: "Whether there are any auto-fix candidates for Claude Code"
+    value: ${{ steps.run-py.outputs.has-fix-candidates }}
+  fix-candidates-path:
+    description: "Path to aggregated JSON with files/rules/reasons to fix"
+    value: ${{ steps.run-py.outputs.fix-candidates-path }}
+  fix-candidates-fingerprint:
+    description:
+      "Stable fingerprint of fix candidates (path + rule ids + counts)"
+    value: ${{ steps.run-py.outputs.fix-candidates-fingerprint }}
+  total-issues-detected:
+    description: "Total issues detected across analyzed files"
+    value: ${{ steps.run-py.outputs.total-issues-detected }}
+  total-issues-targeted:
+    description: "Total issues targeted by auto-fix"
+    value: ${{ steps.run-py.outputs.total-issues-targeted }}
 
 runs:
   using: composite
@@ -58,12 +90,31 @@ runs:
       shell: bash
       env:
         EVENT_NAME: ${{ github.event_name }}
-        PR_NUMBER: ${{ github.event.pull_request.number }}
+        # Prefer PR_NUMBER provided by the workflow (for issue_comment), fallback to PR context
+        PR_NUMBER: ${{ env.PR_NUMBER }}
+        PR_NUMBER_FALLBACK: ${{ github.event.pull_request.number }}
+        IS_PR_COMMENT: ${{ github.event.issue.pull_request.url != '' }}
+        COMMENT_BODY: ${{ github.event.comment.body }}
+        PR_NUM_FROM_COMMENT: ${{ github.event.issue.number }}
       run: |
-        if [[ "$EVENT_NAME" == pull_request* ]] && [[ -n "$PR_NUMBER" ]]; then
+        echo "SHOULD_RUN=false" >> "$GITHUB_ENV"
+        # If PR_NUMBER is pre-set by the workflow (issue_comment path), trust it
+        if [[ -n "$PR_NUMBER" ]]; then
           echo "SHOULD_RUN=true" >> "$GITHUB_ENV"
-        else
-          echo "SHOULD_RUN=false" >> "$GITHUB_ENV"
+          exit 0
+        fi
+        # Otherwise, handle native pull_request events
+        if [[ "$EVENT_NAME" == pull_request* ]] && [[ -n "$PR_NUMBER_FALLBACK" ]]; then
+          echo "PR_NUMBER=$PR_NUMBER_FALLBACK" >> "$GITHUB_ENV"
+          echo "SHOULD_RUN=true" >> "$GITHUB_ENV"
+          exit 0
+        fi
+        # As a safety, allow direct comment-trigger inside the composite too
+        if [[ "$EVENT_NAME" == "issue_comment" && "$IS_PR_COMMENT" == "true" ]]; then
+          if echo "$COMMENT_BODY" | grep -Eqi '\\b(?:refresh|rerun)\\s+autofix\\b'; then
+            echo "PR_NUMBER=$PR_NUM_FROM_COMMENT" >> "$GITHUB_ENV"
+            echo "SHOULD_RUN=true" >> "$GITHUB_ENV"
+          fi
         fi
 
     - name: Setup Python
@@ -90,8 +141,355 @@ runs:
         OPENAI_MODEL_REVIEW: ${{ inputs.openai-model-review }}
         QUALITY_CONFIG_FILE: ${{ inputs.quality-config-file }}
         FAIL_ON_ERRORS: ${{ inputs.fail-on-errors }}
-        POST_COMMENT: ${{ inputs.post-comment }}
+        POST_COMMENT: true
         LOG_PROMPTS: ${{ inputs.log-prompts }}
+        ANALYSIS_CACHE_ENABLED: ${{ inputs.analysis-cache-enabled }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
         GITHUB_REPOSITORY: ${{ github.repository }}
       run: python3 "$GITHUB_ACTION_PATH/main.py"
+
+    # --- Auto-fix flow (optional) ---
+    - name: Check Claude prerequisites
+      id: check-claude
+      if:
+        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
+        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      shell: bash
+      run: |
+        MISSING=""
+        HAS_SA="${{ inputs.claude-code-gcp-service-account-key != '' }}"
+        HAS_PROJ="${{ inputs.claude-code-gcp-project-id != '' }}"
+        if [ "$HAS_SA" != "true" ]; then MISSING="GCP_SERVICE_ACCOUNT_KEY"; fi
+        if [ "$HAS_PROJ" != "true" ]; then if [ -n "$MISSING" ]; then MISSING="$MISSING, "; fi; MISSING="${MISSING}GCP_PROJECT_ID"; fi
+        if [ -z "$MISSING" ]; then
+          echo "should-run-claude=true" >> $GITHUB_OUTPUT
+          echo "missing=" >> $GITHUB_OUTPUT
+        else
+          echo "should-run-claude=false" >> $GITHUB_OUTPUT
+          echo "missing=$MISSING" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Build details markdown
+      id: build-details
+      if:
+        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
+        'true'
+      uses: actions/github-script@v7
+      env:
+        FIX_CANDIDATES_PATH: ${{ steps.run-py.outputs.fix-candidates-path }}
+      with:
+        script: |
+          const fs = require('fs');
+          const p = process.env.FIX_CANDIDATES_PATH;
+          const data = JSON.parse(fs.readFileSync(p, 'utf8'));
+          const files = data.files || [];
+          const lines = ['### Issues targeted by auto-fix'];
+          for (const f of files) {
+            lines.push(`- ${f.path}`);
+            for (const r of (f.rules || [])) {
+              const reasons = Array.isArray(r.reasons) ? r.reasons : (r.reason ? [r.reason] : []);
+              if (reasons.length <= 1) {
+                const single = (reasons[0] || '').replace(/\n/g, ' ').trim();
+                lines.push(`  - ${r.id}: ${single}`);
+              } else {
+                lines.push(`  - ${r.id}:`);
+                for (const rr of reasons) {
+                  const cleaned = String(rr || '').replace(/\n/g, ' ').trim();
+                  lines.push(`    - ${cleaned}`);
+                }
+              }
+            }
+          }
+          core.setOutput('details', '\n' + lines.join('\n'));
+
+    - name: Check candidate fingerprint changed
+      id: check-fingerprint
+      if:
+        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
+        'true'
+      uses: actions/github-script@v7
+      env:
+        FP: ${{ steps.run-py.outputs.fix-candidates-fingerprint }}
+      with:
+        script: |
+          const current = (process.env.FP || '').trim();
+          if (!current) {
+            core.setOutput('fingerprint-changed', 'true');
+            core.setOutput('matched', 'false');
+            return;
+          }
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            per_page: 100
+          });
+          const re = /pr-qc-fix-fingerprint:\s*([a-f0-9]{64})/gi;
+          // Scan from newest to oldest to find the last fingerprint present
+          let lastFp = '';
+          for (let i = comments.length - 1; i >= 0; i--) {
+            const body = comments[i].body || '';
+            let m;
+            while ((m = re.exec(body)) !== null) {
+              lastFp = m[1];
+            }
+            if (lastFp) break;
+          }
+          const match = lastFp && lastFp === current;
+          console.log(`Auto-fix fingerprint (current): ${current}`);
+          console.log(`Auto-fix fingerprint (last found): ${lastFp || 'none'}`);
+          core.setOutput('fingerprint-changed', match ? 'false' : 'true');
+          core.setOutput('matched', match ? 'true' : 'false');
+
+    - name: Post auto-fix skipped (missing prereqs)
+      if:
+        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
+        'true' && (inputs.claude-code-auto-fix-enabled != 'true' ||
+        steps.check-claude.outputs.should-run-claude != 'true')
+      uses: actions/github-script@v7
+      env:
+        DETAILS: ${{ steps.build-details.outputs.details }}
+        MISSING: ${{ steps.check-claude.outputs.missing }}
+      with:
+        script: |
+          const details = process.env.DETAILS || '';
+          const missing = process.env.MISSING || 'Auto-fix disabled';
+          const body = ['# 🛡️ PR Quality Check', '', '## ⏸️ Auto-fix not run', '', details, '', `⚠️ Auto-fix skipped: ${missing.includes('GCP') ? 'missing required configuration (' + missing + ')' : missing}.`, 'Please set repository secret `GCP_SERVICE_ACCOUNT_KEY` and repository variable `GCP_PROJECT_ID` if you intend to enable auto-fix.'].join('\n');
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            body
+          });
+
+    - name: Post auto-fix progress comment
+      id: post-comment
+      if:
+        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
+        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        steps.check-claude.outputs.should-run-claude == 'true' &&
+        steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      uses: actions/github-script@v7
+      env:
+        DETAILS: ${{ steps.build-details.outputs.details }}
+        TOTAL_DETECTED: ${{ steps.run-py.outputs.total-issues-detected }}
+        TOTAL_TARGETED: ${{ steps.run-py.outputs.total-issues-targeted }}
+      with:
+        script: |
+          const details = process.env.DETAILS || '';
+          const totalDetected = Number(process.env.TOTAL_DETECTED || '0');
+          const totalTargeted = Number(process.env.TOTAL_TARGETED || '0');
+          const allCovered = (totalDetected > 0 && totalTargeted >= totalDetected);
+          const headSha = '${{ github.event.pull_request.head.sha }}';
+          const headShort = headSha ? headSha.substring(0,7) : '';
+          const endLine = allCovered
+            ? `🚀 Auto-fix targeted all issues detected. Based on commit: ${headShort || headSha}`
+            : `⚠️ Auto-fix targeted only rules with auto_fix_instructions in quality_check.yml. Based on commit: ${headShort || headSha}`;
+          const body = [
+            '# 🛡️ PR Quality Check',
+            '',
+            '## ⏳ Auto-fix started with Claude Code (PR incoming — please wait a moment ⏳)',
+            '',
+            details,
+            '',
+            endLine
+          ].join('\n');
+          const { data: comment } = await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            body
+          });
+          core.setOutput('comment-id', String(comment.id));
+
+    - name: Set up Node.js
+      if:
+        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
+        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        steps.check-claude.outputs.should-run-claude == 'true' &&
+        steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      uses: actions/setup-node@v4.0.3
+      with:
+        node-version: "22"
+
+    - name: Install Claude Code CLI
+      if:
+        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
+        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        steps.check-claude.outputs.should-run-claude == 'true' &&
+        steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      shell: bash
+      run: |
+        npm install -g @anthropic-ai/claude-code
+
+    - name: Authenticate to Google Cloud (Vertex)
+      if:
+        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
+        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        steps.check-claude.outputs.should-run-claude == 'true' &&
+        steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      uses: google-github-actions/auth@55bd3a7c6e2ae7cf1877fd1ccb9d54c0503c457c #v2.1.2
+      with:
+        credentials_json: ${{ inputs.claude-code-gcp-service-account-key }}
+        create_credentials_file: true
+        export_environment_variables: true
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS_FILE_PATH: /tmp/gcp-credentials.json
+
+    - name: Configure environment for Claude Code
+      if:
+        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
+        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        steps.check-claude.outputs.should-run-claude == 'true' &&
+        steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      shell: bash
+      run: |
+        echo "CLAUDE_CODE_USE_VERTEX=1" >> $GITHUB_ENV
+        echo "CLOUD_ML_REGION=us-east5" >> $GITHUB_ENV
+        echo "ANTHROPIC_VERTEX_PROJECT_ID=${{ inputs.claude-code-gcp-project-id }}" >> $GITHUB_ENV
+        echo "DISABLE_PROMPT_CACHING=1" >> $GITHUB_ENV
+        echo "DISABLE_TELEMETRY=1" >> $GITHUB_ENV
+        echo "DISABLE_ERROR_REPORTING=1" >> $GITHUB_ENV
+        echo "DISABLE_BUG_COMMAND=1" >> $GITHUB_ENV
+        echo "CI=true" >> $GITHUB_ENV
+        echo "TERM=dumb" >> $GITHUB_ENV
+        echo "NO_COLOR=1" >> $GITHUB_ENV
+        echo "FORCE_COLOR=0" >> $GITHUB_ENV
+        echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
+        echo "ANTHROPIC_MODEL=${{ inputs.anthropic-model }}" >> $GITHUB_ENV
+
+    - name: Run Claude Code (single run)
+      if:
+        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
+        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        steps.check-claude.outputs.should-run-claude == 'true' &&
+        steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      shell: bash
+      env:
+        FIX_CANDIDATES_PATH: ${{ steps.run-py.outputs.fix-candidates-path }}
+      run: |
+        echo "Preparing batched prompt from: $FIX_CANDIDATES_PATH"
+        echo "# Auto-fix Candidates" > /tmp/claude_fix_prompt.md
+        echo "The following JSON describes files with violations and per-rule fix instructions. Apply the smallest safe changes to resolve them. Only modify listed files. If unsure, add a TODO comment near the issue instead of risky changes." >> /tmp/claude_fix_prompt.md
+        echo "" >> /tmp/claude_fix_prompt.md
+        echo '\n```json' >> /tmp/claude_fix_prompt.md
+        cat "$FIX_CANDIDATES_PATH" >> /tmp/claude_fix_prompt.md
+        echo '```' >> /tmp/claude_fix_prompt.md
+        echo "" >> /tmp/claude_fix_prompt.md
+        echo "Constraints:\n- Only edit files listed in the JSON.\n- For each file, apply only the rules listed with their fix_instruction.\n- Prefer minimal, safe edits; avoid refactors.\n- Retain formatting and style.\n- If a rule cannot be safely fixed, insert a precise TODO comment explaining what's missing." >> /tmp/claude_fix_prompt.md
+        claude --dangerously-skip-permissions -p "$(cat /tmp/claude_fix_prompt.md)" --output-format stream-json --verbose || echo "Claude run finished with non-zero status"
+
+    - name: Cleanup sensitive artifacts
+      if:
+        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
+        'true'
+      shell: bash
+      run: |
+        find . -name "gha-creds-*.json" -delete || true
+        find . -name "*-credentials.json" -delete || true
+        rm -f /tmp/claude_fix_prompt.md || true
+        rm -f .qc/fix_candidates.json || true
+        rmdir .qc 2>/dev/null || true
+
+    - name: Stage changes
+      if:
+        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
+        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        steps.check-claude.outputs.should-run-claude == 'true' &&
+        (steps.check-fingerprint.outputs.fingerprint-changed == 'true' ||
+        steps.check-rerun.outputs.rerun-requested == 'true') &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      shell: bash
+      run: |
+        git add .
+        git status --porcelain
+
+    - name: Create PR with auto-fixes targeting PR head branch
+      id: create-autofix-pr
+      if:
+        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
+        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        steps.check-claude.outputs.should-run-claude == 'true' &&
+        (steps.check-fingerprint.outputs.fingerprint-changed == 'true' ||
+        steps.check-rerun.outputs.rerun-requested == 'true') &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c #v6
+      with:
+        token: ${{ inputs.gh-token }}
+        branch: "auto-fix/pr-${{ github.event.pull_request.number }}"
+        base: ${{ github.event.pull_request.head.ref }}
+        title:
+          "PR Quality Check: Auto-fixes for PR #${{
+          github.event.pull_request.number }}"
+        body: |
+          This PR contains automated fixes suggested by Claude Code for rules explicitly marked with `auto_fix_instructions` in `quality_check.yml` and detected in PR #${{ github.event.pull_request.number }}.
+
+          - Single Claude run was executed with a batched plan derived from analysis output.
+          - Only files and rules listed in the plan were modified.
+
+          Based on commit: `${{ github.event.pull_request.head.sha }}`
+
+          Please review changes before merging.
+        author:
+          "pr-quality-check[bot]
+          <pr-quality-check[bot]@users.noreply.github.com>"
+        committer:
+          "pr-quality-check[bot]
+          <pr-quality-check[bot]@users.noreply.github.com>"
+
+    - name: Update auto-fix comment with PR link
+      if:
+        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
+        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        steps.check-claude.outputs.should-run-claude == 'true' &&
+        (steps.check-fingerprint.outputs.fingerprint-changed == 'true' ||
+        steps.check-rerun.outputs.rerun-requested == 'true') &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      uses: actions/github-script@v7
+      env:
+        COMMENT_ID: ${{ steps.post-comment.outputs.comment-id }}
+        PR_URL: ${{ steps.create-autofix-pr.outputs.pull-request-url }}
+        PR_OPERATION:
+          ${{ steps.create-autofix-pr.outputs.pull-request-operation }}
+        PR_NUMBER_CREATED:
+          ${{ steps.create-autofix-pr.outputs.pull-request-number }}
+        DETAILS: ${{ steps.build-details.outputs.details }}
+        FP: ${{ steps.run-py.outputs.fix-candidates-fingerprint }}
+        TOTAL_DETECTED: ${{ steps.run-py.outputs.total-issues-detected }}
+        TOTAL_TARGETED: ${{ steps.run-py.outputs.total-issues-targeted }}
+      with:
+        script: |
+          const comment_id = Number(process.env.COMMENT_ID || '0');
+          const prUrl = process.env.PR_URL || '';
+          const operation = (process.env.PR_OPERATION || '').toLowerCase();
+          const details = process.env.DETAILS || '';
+          const fp = process.env.FP || '';
+          const totalDetected = Number(process.env.TOTAL_DETECTED || '0');
+          const totalTargeted = Number(process.env.TOTAL_TARGETED || '0');
+          const allCovered = (totalDetected > 0 && totalTargeted >= totalDetected);
+          const headSha = '${{ github.event.pull_request.head.sha }}';
+          const headShort = headSha ? headSha.substring(0,7) : '';
+          const createdNumber = process.env.PR_NUMBER_CREATED || '';
+          const headingLabel = operation === 'updated' ? '🔄 Auto-fix PR updated' : '✅ Auto-fix PR created';
+          const heading = createdNumber ? `## ${headingLabel} (PR: #${createdNumber})` : `## ${headingLabel}`;
+          const endLine = allCovered
+            ? `🚀 Auto-fix targeted all issues detected. Based on commit: ${headShort || headSha}`
+            : `⚠️ Auto-fix targeted only rules with auto_fix_instructions in quality_check.yml. Based on commit: ${headShort || headSha}`;
+          const body = prUrl
+            ? `# 🛡️ PR Quality Check\n\n${heading}\n\n${details}\n\n${endLine}\n\n<!-- pr-qc-fix-fingerprint: ${fp} -->`
+            : '## ℹ️ Auto-fix completed\n\nNo changes were applied by Claude Code for the listed candidates.' + (details ? details.replace('### Details', '### Details (attempted)') : '');
+          if (comment_id > 0) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id,
+              body
+            });
+          }

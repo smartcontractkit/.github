@@ -56,6 +56,20 @@ updated on every commit.
 - **log-prompts** (optional, default: `false`): If `true`, logs the constructed
   prompts for debugging.
 
+- **analysis-cache-enabled** (optional, default: `true`): Enable per-file
+  analysis caching. When enabled, unchanged files reuse cached issues by
+  `(file_path, blob_sha)` and a config hash.
+
+- **claude-code-auto-fix-enabled** (optional, default: `false`): Enable Claude
+  Code auto-fix. Runs only when fix candidates exist (rules with
+  `auto_fix_instructions` are violated).
+- **claude-code-gcp-project-id** (optional): GCP Project ID for Vertex
+  Anthropic. Required when auto-fix is enabled.
+- **claude-code-gcp-service-account-key** (optional): GCP Service Account JSON
+  (as a repo secret). Required when auto-fix is enabled.
+- **anthropic-model** (optional, default: `claude-sonnet-4@20250514`): Claude
+  model used by Claude Code.
+
 ### Configuration (rule config file)
 
 #### Implementing the rule config file
@@ -78,6 +92,9 @@ updated on every commit.
   - `enforce_on_new_only` (boolean, default: `false`): If `true`, the rule is
     enforced only on newly added files, not on modified ones.
   - `severity`: `error` or `warning`
+  - `auto_fix_instructions` (string, optional): Concise directive for Claude
+    Code to attempt a fix when this rule is violated. Presence of this field
+    makes violations of the rule eligible for auto-fix.
 
 Example (copy into your rule config file):
 
@@ -186,6 +203,67 @@ Notes:
 - Paths use `/` separators in the repo regardless of OS.
 - `exceptions` are applied before rule matching; files matching an exception are
   skipped entirely.
+
+### Auto-fix with Claude Code
+
+#### What it does
+
+- Aggregates all violations that correspond to rules which define
+  `auto_fix_instructions` in your `quality_check.yml` into a single plan, then
+  performs one Claude Code run to propose fixes across those files.
+- Creates or updates a dedicated PR targeting the original PR's head branch,
+  using a stable branch name: `auto-fix/pr-<PR_NUMBER>`.
+
+#### Prerequisites
+
+- Set inputs:
+  - `claude-code-auto-fix-enabled: true`
+  - `claude-code-gcp-project-id` (set via repo variable in the workflow yml)
+  - `claude-code-gcp-service-account-key` (set via repo variable in the workflow
+    yml)
+
+#### When it triggers
+
+- Only if the analysis produced fix candidates (i.e., at least one rule with
+  `auto_fix_instructions` was violated).
+- Fingerprint gating: a stable SHA-256 fingerprint (based on sorted file paths,
+  sorted rule IDs, and counts per rule) is compared to the last run. If the
+  fingerprint is unchanged, Claude Code is skipped to avoid redundant runs.
+- Comment-triggered reruns are not supported in this release.
+
+#### Comments and PRs
+
+- Posts a progress comment: "Auto-fix started with Claude Code (PR incoming)"
+  with a list of files/rules targeted and the short commit SHA.
+- Creates or updates an auto-fix PR with title:
+  `PR Quality Check: Auto-fixes for PR #<number>` and body that includes the
+  short SHA and notes about scope.
+- Updates the progress comment to link the created/updated PR and appends:
+  - `🚀 Auto-fix targeted all issues detected. Based on commit: <shortsha>` when
+    coverage is 100%.
+  - `⚠️ Auto-fix targeted only rules with auto_fix_instructions in quality_check.yml. Based on commit: <shortsha>`
+    otherwise.
+- The comment embeds the fingerprint in a hidden HTML marker
+  (`<!-- pr-qc-fix-fingerprint: <hash> -->`) to drive gating.
+
+#### Writing rules with auto-fix
+
+Add `auto_fix_instructions` to rules you want Claude to attempt fixing:
+
+```yaml
+"**/*.txt":
+  - id: "no-fruits-mentioned"
+    description: "Text files must not mention fruits"
+    severity: "warning"
+    requires_context: false
+    auto_fix_instructions:
+      "Remove or replace any fruit mentions without altering meaning."
+```
+
+#### Security and cleanup
+
+- Temporary credentials, prompt files, and `.qc/fix_candidates.json` are removed
+  before staging to avoid committing sensitive artifacts.
 
 ### Comment behavior
 

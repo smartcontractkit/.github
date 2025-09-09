@@ -1,53 +1,67 @@
 """OpenAI API and LLM interaction functions."""
 
-import json
-import re
+import os
 import time
-import requests
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Type
+from pydantic import BaseModel
+from openai import OpenAI
 
 
-def openai_chat(api_key: str, model: str, messages: List[Dict[str, str]], response_format: str = "text") -> str:
-    """Send chat completion request to OpenAI API with simple retries."""
-    payload: Dict[str, Any] = {"model": model, "messages": messages}
-    if response_format == "json_object":
-        payload["response_format"] = {"type": "json_object"}
+# Typed openai structured responses
 
-    last_err = None
+class IssueModel(BaseModel):
+    rule_id: str
+    reason: str
+
+class FileAnalysisModel(BaseModel):
+    file_path: str
+    issues: List[IssueModel]
+
+class ContextModel(BaseModel):
+    context_files: List[str]
+    reason: str | None = ""
+
+
+def call_openai_and_parse_structured(api_key: str, model: str, system_prompt: str, user_prompt: str, schema: Type[BaseModel]) -> Dict[str, Any]:
+    """Generic typed parse helper. Returns native dict from Pydantic model_dump()."""
+    client = OpenAI(api_key=api_key)
+    last_err: Exception | None = None
     for attempt in range(3):
         try:
-            r = requests.post(
-                "https://api.openai.com/v1/chat/completions",
-                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                json=payload,
-                timeout=120,
+            resp = client.responses.parse(
+                model=model,
+                input=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                text_format=schema,
             )
-            if r.status_code == 429:
-                # rate limited: honor Retry-After if present
-                wait_s = int(r.headers.get("Retry-After", "1"))
-                time.sleep(min(wait_s, 10))
-                last_err = RuntimeError(f"OpenAI rate limited: {r.text}")
-                continue
-            if r.status_code >= 500:
-                last_err = RuntimeError(f"OpenAI server error {r.status_code}: {r.text}")
-                time.sleep(1 + attempt)
-                continue
-            if r.status_code >= 400:
-                raise RuntimeError(f"OpenAI error {r.status_code}: {r.text}")
-            j = r.json()
-            c = j.get("choices", [{}])[0].get("message", {}).get("content") or j.get("choices", [{}])[0].get("text") or ""
-            return c
-        except requests.RequestException as e:
+            parsed = resp.output_parsed  # type: ignore[attr-defined]
+            # Optional debug logging of parsed structured response
+            if str(os.getenv("LOG_PROMPTS", "false")).lower() == "true":
+                try:
+                    print(f"=== OpenAI parsed response ({getattr(schema, '__name__', 'Schema')}) ===")
+                    print(parsed.model_dump_json(indent=2))
+                except Exception:
+                    try:
+                        import json as _json
+                        print(_json.dumps(parsed.model_dump(), indent=2, ensure_ascii=False))
+                    except Exception:
+                        print(str(parsed))
+            return parsed.model_dump()
+        except Exception as e:
             last_err = e
             time.sleep(1 + attempt)
-    # final failure
-    if last_err:
-        raise last_err
-    return ""
+    raise RuntimeError(f"OpenAI parse failed: {last_err}")
+
+
+def analyze_file_given_rules_and_context(api_key: str, model: str, user_prompt: str) -> Dict[str, Any]:
+    """Reviews a file given a set of rules and context."""
+    return call_openai_and_parse_structured(api_key, model, "You are an expert code reviewer focused on code quality standards.", user_prompt, FileAnalysisModel)
 
 
 def discover_context_for_rules(api_key: str, model: str, file_path: str, all_changed: List[str], rules: List[Dict[str, Any]], log_prompts: bool, load_prompt_func) -> Tuple[List[str], Dict[str, Any]]:
-    """Use LLM to discover which context files are needed for rule validation."""
+    """Use LLM to discover which context files are needed for rule validation (typed)."""
     context_files: List[str] = []
     per_rule: Dict[str, Any] = {}
     needs = [r for r in rules if bool(r.get("requires_context", False))]
@@ -64,18 +78,17 @@ def discover_context_for_rules(api_key: str, model: str, file_path: str, all_cha
         if log_prompts:
             print(f"=== Context discovery prompt (rule: {rid}, file: {file_path}) ===")
             print(prompt)
-        resp = openai_chat(api_key, model, [
-            {"role": "system", "content": "You are precise. Respond ONLY with a JSON object. No prose."},
-            {"role": "user", "content": prompt},
-        ], response_format="json_object")
-        resp = re.sub(r"^```json\s*|\s*```$", "", resp.strip(), flags=re.IGNORECASE | re.MULTILINE)
-        try:
-            j = json.loads(resp)
-        except Exception:
-            j = {"context_files": [], "reason": "invalid-json"}
+        j = call_openai_and_parse_structured(
+            api_key,
+            model,
+            "You are a coding context discovery assistant. Given a rule and a list of changed files, determine which context files are needed to validate the rule.",
+            prompt,
+            ContextModel,
+        )
         files = [f for f in (j.get("context_files") or []) if isinstance(f, str)]
         if files:
             context_files.extend(files)
-            per_rule[rid] = {"context_files": files, "reason": j.get("reason", "")}            
+            per_rule[rid] = {"context_files": files, "reason": j.get("reason", "")}
+        # on repeated failures, just continue (no files)
     context_files = sorted({f for f in context_files})
     return context_files, per_rule

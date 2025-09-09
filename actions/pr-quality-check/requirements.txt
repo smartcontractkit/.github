@@ -1,2 +1,4 @@
-requests
-PyYAML
+PyYAML==6.0.2
+openai==1.106.1
+pydantic==2.11.7
+requests==2.32.5
