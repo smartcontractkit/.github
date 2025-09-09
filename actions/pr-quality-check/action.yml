@@ -356,7 +356,7 @@ runs:
       run: |
         echo "CLAUDE_CODE_USE_VERTEX=1" >> $GITHUB_ENV
         echo "CLOUD_ML_REGION=us-east5" >> $GITHUB_ENV
-        echo "ANTHROPIC_VERTEX_PROJECT_ID=$ANTHROPIC_VERTEX_PROJECT_ID" >> $GITHUB_ENV
+        echo "ANTHROPIC_VERTEX_PROJECT_ID=$(echo \"$ANTHROPIC_VERTEX_PROJECT_ID\" | tr -d '\r\n')" >> $GITHUB_ENV
         echo "DISABLE_PROMPT_CACHING=1" >> $GITHUB_ENV
         echo "DISABLE_TELEMETRY=1" >> $GITHUB_ENV
         echo "DISABLE_ERROR_REPORTING=1" >> $GITHUB_ENV
@@ -366,7 +366,7 @@ runs:
         echo "NO_COLOR=1" >> $GITHUB_ENV
         echo "FORCE_COLOR=0" >> $GITHUB_ENV
         echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
-        echo "ANTHROPIC_MODEL=$ANTHROPIC_MODEL" >> $GITHUB_ENV
+        echo "ANTHROPIC_MODEL=$(echo \"$ANTHROPIC_MODEL\" | tr -d '\r\n')" >> $GITHUB_ENV
 
     - name: Run Claude Code (single run)
       if:
