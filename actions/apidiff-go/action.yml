@@ -1,0 +1,47 @@
+name: apidiff-go
+description:
+  "Uses apidiff CLI to analyze pull requests for breaking changes in a Go
+  library's exported symbols."
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
+
+inputs:
+  # path inputs
+  directory:
+    description: "Directory containing the Go repository"
+    required: false
+    default: "./"
+  go-mod-paths:
+    description: |
+      Relative paths to the go.mod file from the repository root.
+      If multiple modules are present, provide a comma-separated list of paths.
+    required: false
+    default: "."
+
+  # ref inputs
+  base-ref:
+    description: "Base branch or commit to compare against"
+    required: false
+    default: "${{ github.event.pull_request.base.ref }}"
+  head-ref:
+    description: "Head branch or commit to compare against"
+    required: false
+    default: "${{ github.event.pull_request.head.ref }}"
+
+  # action behaviour inputs
+  enforce-compatible:
+    description:
+      "Enforce that the API changes are compatible. Fails the action if
+      incompatible changes are detected."
+    required: false
+    default: true
+
+  apidiff-version:
+    description: |
+      Version of apidiff to use. Defaults to latest.
+      Versions are available here: https://pkg.go.dev/golang.org/x/exp/cmd/apidiff?tab=versions
+      This should only be overridden if 'latest' is not suitable.
+    required: false
+    default: "latest"

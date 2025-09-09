@@ -190,26 +190,6 @@ inputs:
       to the console for troubleshooting."
     required: false
     default: "false"
-  flakeguard_enable:
-    required: false
-    description: Whether to run tests with Flakeguard
-    default: "false"
-  flakeguard_run_count:
-    required: false
-    description: Number of times to re-run tests under flakeguard
-    default: "3"
-  flakeguard_rerun_failed_count:
-    required: false
-    description: Number of times to re-run failed tests under flakeguard
-    default: "0"
-  flakeguard_main_results_path:
-    required: false
-    description: Path to the main results file for flakeguard
-    default: "main/flakeguard_results.json"
-  flakeguard_rerun_results_path:
-    required: false
-    description: Path to the rerun results file for flakeguard
-    default: "rerun/flakeguard_results.json"
   prod_aws_region:
     required: false
     description: The AWS region to use for prod ECR
@@ -361,44 +341,7 @@ runs:
         echo ::add-mask::$BASE64_CONFIG_OVERRIDE
         echo "BASE64_CONFIG_OVERRIDE=$BASE64_CONFIG_OVERRIDE" >> $GITHUB_ENV
 
-    - name: Run Tests With Flakeguard
-      if: inputs.flakeguard_enable == 'true'
-      shell: bash
-      env:
-        CHAINLINK_IMAGE: ${{ inputs.cl_repo }} # TODO: to remove
-        CHAINLINK_VERSION: ${{ inputs.cl_image_tag }} # TODO: to remove
-        CHAINLINK_ENV_USER: ${{ github.actor }}
-        CGO_ENABLED: ${{ inputs.CGO_ENABLED }}
-        GO_COVERAGE_SRC_DIR: ${{ inputs.go_coverage_src_dir }}
-        GO_COVERAGE_DEST_DIR: ${{ inputs.go_coverage_dest_dir }}
-        CL_DATABASE_URL: ${{ steps.setup-env.outputs.database_url }}
-      run: |
-        # Install Flakeguard
-        go install github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@b08cab0f49aa13d5adb849554b56086f4dba8984
-        PATH=$PATH:$(go env GOPATH)/bin
-        export PATH
-
-        export TEST_TRIGGERED_BY=${{ inputs.triggered_by }}-${{ github.event.pull_request.number || github.run_id }}
-        # Handle bots as users
-        export CHAINLINK_ENV_USER=${CHAINLINK_ENV_USER//"[bot]"/-bot}
-
-        # Install gotestsum to parse JSON test outputs from flakeguard to console outputs
-        go install gotest.tools/gotestsum@latest
-
-        flakeguard run \
-          --ignore-parent-failures-on-subtests=true \
-          --rerun-failed-count=${{ inputs.flakeguard_rerun_failed_count }} \
-          --project-path=${{ inputs.test_go_project_path }} \
-          --test-cmd bash \
-          --test-cmd -c \
-          --test-cmd '${{ inputs.test_command_to_run }}' \
-          --run-count=${{ inputs.flakeguard_run_count }} \
-          --omit-test-outputs-on-success=true \
-          --main-results-path=${{ inputs.flakeguard_main_results_path }} \
-          --rerun-results-path=${{ inputs.flakeguard_rerun_results_path }}
-
-    - name: Run Tests Without Flakeguard
-      if: inputs.flakeguard_enable != 'true'
+    - name: Run Tests
       shell: bash
       env:
         CHAINLINK_IMAGE: ${{ inputs.cl_repo }} # TODO: to remove
@@ -430,17 +373,10 @@ runs:
         name: ${{ inputs.artifacts_name }}
         path: ${{ inputs.artifacts_location }}
 
-    - name: Upload Flakeguard raw test outputs
-      if: failure() && inputs.flakeguard_enable == 'true'
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ inputs.artifacts_name }}_flakeguard_raw_output
-        path: flakeguard_raw_output
-
     - name: Collect local GAP (Envoy) proxy logs
       if:
-        failure() && inputs.flakeguard_enable != 'true' || inputs.enable-gap ==
-        'true' && inputs.enable-proxy-debug == 'true'
+        failure() || inputs.enable-gap == 'true' && inputs.enable-proxy-debug ==
+        'true'
       uses: jwalton/gh-docker-logs@2741064ab9d7af54b0b1ffb6076cf64c16f0220e # v2.2.2
       with:
         images: "envoy"

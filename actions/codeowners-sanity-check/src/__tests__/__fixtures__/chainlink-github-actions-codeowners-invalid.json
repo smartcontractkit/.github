@@ -1,0 +1,43 @@
+[
+  {
+    "scope": "https://api.github.com:443",
+    "method": "GET",
+    "path": "/repos/smartcontractkit/chainlink-github-actions/codeowners/errors?ref=5a7543e418aa2dc57b75e85581eae30820a8c9ae",
+    "body": "",
+    "status": 200,
+    "response": [
+      "1f8b0800000000000003dd954f4bc34010c5bfcab0e796da3f88e614d0e2cd82221eacc2928cc9b2cd6c99d9b495d2efee162aa622d636ad2d0692c326ccdbd9dfbc97b94266c7a2a2a7b91a194215751a2a71a3b2201575db0d25aee4242cab56926b43e11bdbf428de50d67c655de0d4b16d41ecb5479c3982d8ead12454d5108b2d532d6e02b1268378037196a3e3f010cfa6f0e5905443594369a8ff4096dc9420dcc86159ca2c5beab8b01155688b20256345086746bc80a614722d3065e3117492a00878073e47601c3b31def15b285884173a5bb6b2260561cfcbcea113416d99210d09e03047051bae97d0e358fb3c347835b8ee0f1e6ffb77f76ad1f806ecf929825dcdc861b1ee22724ca83f33df06f9e5097af94b1cc061d9d7523bdd21f818914dc3d0fd0cf6f6597518529758e47f91e1ddfd6578dd53a938770b32bd2393d9251f7ff16f5de7b28bc8ca7f7ba4522f5a2b6eea5d1cd74db5726d6b78b5d4fe9ae2866c7c5ebc03234f287a010b0000"
+    ],
+    "rawHeaders": {
+      "access-control-allow-origin": "*",
+      "access-control-expose-headers": "ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset",
+      "cache-control": "private, max-age=60, s-maxage=60",
+      "connection": "close",
+      "content-encoding": "gzip",
+      "content-security-policy": "default-src 'none'",
+      "content-type": "application/json; charset=utf-8",
+      "date": "Thu, 04 Sep 2025 21:20:09 GMT",
+      "etag": "W/\"f1d8cfb9f6ba896a770ba3badab274471b19820c2ce4576653882654a0f0eb25\"",
+      "referrer-policy": "origin-when-cross-origin, strict-origin-when-cross-origin",
+      "server": "github.com",
+      "strict-transport-security": "max-age=31536000; includeSubdomains; preload",
+      "transfer-encoding": "chunked",
+      "vary": "Accept, Authorization, Cookie, X-GitHub-OTP,Accept-Encoding, Accept, X-Requested-With",
+      "x-accepted-oauth-scopes": "",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "deny",
+      "x-github-api-version-selected": "2022-11-28",
+      "x-github-media-type": "github.v3; format=json",
+      "x-github-request-id": "2331:2C5893:1C2A190:6539CBC:68BA0289",
+      "x-oauth-client-id": "178c6fc778ccc68e1d6a",
+      "x-oauth-scopes": "gist, read:org, repo, workflow",
+      "x-ratelimit-limit": "5000",
+      "x-ratelimit-remaining": "4966",
+      "x-ratelimit-reset": "1757022384",
+      "x-ratelimit-resource": "core",
+      "x-ratelimit-used": "34",
+      "x-xss-protection": "0"
+    },
+    "responseIsBinary": false
+  }
+]

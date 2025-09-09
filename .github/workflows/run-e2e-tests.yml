@@ -180,6 +180,14 @@ on:
         required: false
         type: string
         default: "false"
+      ecr_name:
+        description: |
+          ECR name to use for the tests. Default is 'chainlink'.
+          This will set the ECR to <aws_account_number>.dkr.ecr.<aws_region>.amazonaws.com/<ecr_name>
+          where aws_account_number and aws_region are taken from the secrets.
+        required: false
+        type: string
+        default: "chainlink"
       extraArgs:
         required: false
         type: string
@@ -256,10 +264,10 @@ on:
         required: false
 
 env:
-  CHAINLINK_IMAGE: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
-    }}.amazonaws.com/chainlink
-  QA_CHAINLINK_IMAGE: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
-    }}.amazonaws.com/chainlink
+  CHAINLINK_IMAGE: >-
+    ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION }}.amazonaws.com/${{ inputs.ecr_name}}
+  QA_CHAINLINK_IMAGE: >-
+    ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION }}.amazonaws.com/${{ inputs.ecr_name }}
   DEFAULT_CHAINLINK_VERSION: ${{ inputs.chainlink_version }}
   DEFAULT_CHAINLINK_PLUGINS_VERSION: ${{ inputs.chainlink_version != '' && format('{0}-plugins',
     inputs.chainlink_version) }}
@@ -620,7 +628,7 @@ jobs:
       contents: read
     env:
       CHAINLINK_IMAGE: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
-        }}.amazonaws.com/chainlink
+        }}.amazonaws.com/${{ inputs.ecr_name }}
     strategy:
       matrix:
         version: ${{
@@ -631,7 +639,7 @@ jobs:
         id: check-image-exists
         uses: smartcontractkit/.github/actions/ecr-image-exists@ecr-image-exists/0.0.1
         with:
-          repository: "chainlink"
+          repository: ${{ inputs.ecr_name }}
           tag: ${{ matrix.version }}
           aws-role-arn: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
 
@@ -649,7 +657,7 @@ jobs:
           image-tag: ${{ matrix.version }}
           dockerfile: core/chainlink.Dockerfile
           docker-registry-url: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION }}.amazonaws.com
-          docker-repository-name: "chainlink"
+          docker-repository-name: ${{ inputs.ecr_name }}
           aws-account-number: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}
           aws-region: ${{ secrets.QA_AWS_REGION }}
           aws-role-arn: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
@@ -670,7 +678,7 @@ jobs:
       contents: read
     env:
       CHAINLINK_IMAGE: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
-        }}.amazonaws.com/chainlink
+        }}.amazonaws.com/${{ inputs.ecr_name }}
     strategy:
       matrix:
         version: ${{
@@ -1187,6 +1195,13 @@ jobs:
           main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
           k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
 
+      - name: Show Grafana URL in the test summary
+        if: always()
+        uses: smartcontractkit/.github/actions/ctf-show-grafana-in-test-summary@ctf-show-grafana-in-test-summary/0.2.0
+        continue-on-error: true
+        with:
+          test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
+
       - name: Upload test log as artifact
         uses: actions/upload-artifact@v4.4.3
         if: inputs.test_log_upload_on_failure && failure()
@@ -1204,10 +1219,6 @@ jobs:
             needs.load-test-configurations.outputs.workflow_id }}
           path: ${{ matrix.tests.test_artifacts_on_failure }}
           retention-days: 1
-
-      - name: Show Grafana url in test summary
-        if: always()
-        uses: smartcontractkit/.github/actions/ctf-show-grafana-in-test-summary@b6e37806737eef87e8c9137ceeb23ef0bff8b1db # ctf-show-grafana-in-test-summary@0.1.0
 
   # Run tests that us only in-memory components
   run-in-memory-tests:

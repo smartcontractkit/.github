@@ -39,6 +39,10 @@ inputs:
       Examples:
         $\{{ secrets.GITHUB_PAT }} # GitHub token that allows cross-repo `contents:read`. Use without the escape "\".
     required: false
+  show-openssf-scorecard:
+    description: Show a summary of the OpenSSF Scorecard scores.
+    required: false
+    default: "true"
 runs:
   using: composite
   steps:
@@ -77,3 +81,4 @@ runs:
       with:
         config-file: ${{ steps.set-config-file.outputs.path }}
         external-repo-token: ${{ inputs.external-repo-token }}
+        show-openssf-scorecard: ${{ inputs.show-openssf-scorecard }}

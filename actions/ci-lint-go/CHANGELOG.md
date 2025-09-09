@@ -1,5 +1,17 @@
 # ci-lint-go
 
+## 3.0.1
+
+### Patch Changes
+
+- [#1202](https://github.com/smartcontractkit/.github/pull/1202) [`2b6a2fa`](https://github.com/smartcontractkit/.github/commit/2b6a2fa519ea0a54ec96ecf90f18f8c69366dcda) Thanks [@erikburt](https://github.com/erikburt)! - bump aws-actions/configure-aws-credentials to v5.0.0
+
+## 3.0.0
+
+### Major Changes
+
+- [#1194](https://github.com/smartcontractkit/.github/pull/1194) [`837367d`](https://github.com/smartcontractkit/.github/commit/837367d07e99983161fddb2d4b112725d819561d) Thanks [@chainchad](https://github.com/chainchad)! - Support default config file for golangci-lint
+
 ## 2.0.0
 
 ### Major Changes

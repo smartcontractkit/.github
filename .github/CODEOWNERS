@@ -1,4 +1,13 @@
 * @smartcontractkit/devex
 
-# CRIB
+/.github/workflows/reusable-docker-build-publish.yml @smartcontractkit/devex-cicd
+/actions/dependency-review/ @smartcontractkit/devex-cicd
+/actions/helm-version-bump-receiver/ @smartcontractkit/devex-cicd
+/actions/helm-version-bump-sender/ @smartcontractkit/devex-cicd
+/actions/oci-image-bump/ @smartcontractkit/devex-cicd
+/actions/setup-github-token/ @smartcontractkit/devex-cicd
+/actions/pr-quality-check/ @smartcontractkit/data-analytics
+
+# CRIB and devenv
 /actions/crib-*/** @smartcontractkit/cl-orchestration
+/actions/devenv-*/** @smartcontractkit/cl-orchestration

@@ -1,5 +1,14 @@
 # ctf-run-tests
 
+## 0.10.0
+
+### Minor Changes
+
+- [#1191](https://github.com/smartcontractkit/.github/pull/1191)
+  [`4de7f64`](https://github.com/smartcontractkit/.github/commit/4de7f64520d0a2771fec216e535803a0434a0c48)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: remove all
+  flakeguard functionality
+
 ## 0.9.0
 
 ### Minor Changes

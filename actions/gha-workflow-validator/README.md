@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: GHA Workflow Validator
-        uses: smartcontractkit/.github/actions/gha-workflow-validator@<sha> # tag/version
+        uses: smartcontractkit/.github/actions/gha-workflow-validator@gha-workflow-validator/<version>
         env:
           GITHUB_TOKEN: ${{ github.token }}
 ```

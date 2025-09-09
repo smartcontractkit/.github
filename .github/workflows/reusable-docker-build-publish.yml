@@ -30,6 +30,10 @@ name: Reusable Docker Build and Publish
 #         dockerfile: Dockerfile
 #         docker-build-context: .
 #         docker-image-tag-strip-prefix: v  # Optional: strip "v" prefix from tags
+#         docker-manifest-annotations: |  # Optional: supplement automatic annotations
+#           org.opencontainers.image.description=node of the decentralized oracle network
+#           org.opencontainers.image.licenses=NOASSERTION
+#           org.opencontainers.image.ref.name=ubuntu
 #         docker-manifest-sign: true
 #         git-sha: $\{{ github.sha }}
 #         github-event-name: $\{{ github.event_name }}
@@ -124,6 +128,37 @@ on:
             - "v" (strips "v" from "v1.0.0" to produce "1.0.0")
         required: false
         type: string
+      docker-manifest-annotations:
+        description: |
+          Multi-line string of annotations to add to the Docker manifest.
+          Each line should be in the format: key=value
+
+          If not provided, the following annotations will be automatically generated:
+            - org.opencontainers.image.source (from github-workflow-repository)
+            - org.opencontainers.image.url (from github-workflow-repository)
+            - org.opencontainers.image.revision (from git-sha)
+            - org.opencontainers.image.version (from docker manifest tag)
+            - org.opencontainers.image.title (from aws-ecr-name)
+
+          Even if provided, the following annotations will be automatically generated:
+            - org.opencontainers.image.created (current timestamp)
+
+          Provide this input to supplement the automatic annotations or override them
+          by specifying the same annotation keys. User-provided annotations are processed
+          after automatic ones, so they will take precedence for duplicate keys.
+
+          Uses OCI standard annotation keys. Common examples:
+            org.opencontainers.image.description=Description of the application
+            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.ref.name=ubuntu
+
+          Example:
+            docker-manifest-annotations: |
+              org.opencontainers.image.description=node of the decentralized oracle network
+              org.opencontainers.image.licenses=NOASSERTION
+              org.opencontainers.image.ref.name=ubuntu
+        required: false
+        type: string
       docker-manifest-sign:
         description: "Sign docker manifest or not."
         required: false
@@ -214,7 +249,11 @@ on:
           Example: smartcontractkit/chainlink
         required: true
         type: string
-
+      timeout:
+        description: "Timeout in minutes for the Docker build job."
+        required: false
+        type: number
+        default: 30
     outputs:
       docker-image-sha-digest-amd64:
         description: "Docker image SHA digest for amd64 architecture"
@@ -363,7 +402,7 @@ jobs:
     name: build-publish-${{ matrix.arch }}
     needs: [init, set-build-matrix]
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 30
+    timeout-minutes: ${{ inputs.timeout }}
     strategy:
       matrix:
         include: ${{ fromJson(needs.set-build-matrix.outputs.matrix) }}
@@ -536,7 +575,71 @@ jobs:
 
           echo "image_digests=$image_digests" | tee -a "$GITHUB_OUTPUT"
 
-      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@build-push-docker-manifest/0.2.0
+      - name: Generate manifest annotations
+        id: generate-manifest-annotations
+        env:
+          USER_ANNOTATIONS: ${{ inputs.docker-manifest-annotations }}
+          GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
+          GIT_SHA: ${{ inputs.git-sha }}
+          DOCKER_MANIFEST_TAG: ${{ needs.build-publish.outputs.docker-manifest-tag }}
+          AWS_ECR_NAME: ${{ inputs.aws-ecr-name }}
+        run: |
+          # Use associative array to store the annotations.
+          declare -A annotations
+
+          # Set the default annotations - can be overridden.
+          echo "Adding default annotations..."
+          annotations["org.opencontainers.image.source"]="https://github.com/${GITHUB_WORKFLOW_REPOSITORY}"
+          annotations["org.opencontainers.image.url"]="https://github.com/${GITHUB_WORKFLOW_REPOSITORY}"
+          annotations["org.opencontainers.image.revision"]="${GIT_SHA}"
+          annotations["org.opencontainers.image.version"]="${DOCKER_MANIFEST_TAG}"
+          annotations["org.opencontainers.image.title"]="${AWS_ECR_NAME}"
+
+          for key in "${!annotations[@]}"; do
+            echo "  Added default annotation: $key=${annotations[$key]}"
+          done
+
+          # Process user supplied annotations (will override defaults if keys match).
+          if [[ -n "${USER_ANNOTATIONS:-}" ]]; then
+            echo "Processing user-provided annotations..."
+            while IFS= read -r line; do
+              # Skip empty lines and comments.
+              if [[ -n "$line" && ! "$line" =~ ^[[:space:]]*# ]]; then
+                # Validate format: key=value.
+                if [[ "$line" =~ ^([^=]+)=(.*)$ ]]; then
+                  key="${BASH_REMATCH[1]}"
+                  value="${BASH_REMATCH[2]}"
+                  annotations["$key"]="$value"
+                  echo "  Added user annotation: $key=$value"
+                else
+                  echo "  WARNING: Skipping invalid annotation format: $line"
+                fi
+              fi
+            done <<< "$USER_ANNOTATIONS"
+          fi
+
+          # Force certain annotations (cannot be overridden by users).
+          timestamp_annotation="org.opencontainers.image.created=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)"
+          annotations["org.opencontainers.image.created"]="${timestamp_annotation#*=}"
+          echo "  Added forced annotation: org.opencontainers.image.created=${annotations["org.opencontainers.image.created"]}"
+
+          # Convert associative array to multiline string for output
+          final_annotations=""
+          for key in "${!annotations[@]}"; do
+            final_annotations+="$key=${annotations[$key]}"$'\n'
+          done
+
+          # Remove trailing newline
+          final_annotations="${final_annotations%$'\n'}"
+
+          # Output the combined annotations.
+          {
+            echo "manifest-annotations<<EOF"
+            echo "$final_annotations"
+            echo "EOF"
+          } | tee -a "$GITHUB_OUTPUT"
+
+      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@build-push-docker-manifest/0.3.1
         id: docker-manifest
         with:
           # Avoid using `github.workflow_ref` here because the `cosign sign`
@@ -557,6 +660,7 @@ jobs:
           docker-manifest-tag: ${{ needs.build-publish.outputs.docker-manifest-tag }}
           docker-image-name-digests: ${{ steps.prepare-digests.outputs.image_digests }}
           github-workflow-repository: ${{ inputs.github-workflow-repository }}
+          manifest-annotations: ${{ steps.generate-manifest-annotations.outputs.manifest-annotations }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
           aws-region: ${{ inputs.aws-region-ecr }}
