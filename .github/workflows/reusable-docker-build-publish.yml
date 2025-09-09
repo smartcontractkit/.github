@@ -64,6 +64,9 @@ on:
       AWS_LAMBDA_GATI_URL:
         description: "AWS Lambda URL for GATI."
         required: false
+      DOCKER_BUILD_ARGS:
+        description: "Docker build arguments - optional, secret build args"
+        required: false
     inputs:
       aws-ecr-name:
         description: |
@@ -558,7 +561,7 @@ jobs:
           docker-repository-name: ${{ inputs.aws-ecr-name }}
           tags: ${{ steps.set-docker-image-tags.outputs.tags }}
           dockerfile: ${{ inputs.dockerfile }}
-          docker-build-args: ${{ inputs.docker-build-args }}
+          docker-build-args: ${{ secrets.DOCKER_BUILD_ARGS || inputs.docker-build-args }}
           docker-restore-cache: ${{ needs.init.outputs.docker-restore-cache }}
           docker-save-cache: ${{ needs.init.outputs.docker-save-cache }}
           context: ${{ inputs.docker-build-context }}
