@@ -5,7 +5,7 @@ import sys
 import json
 import base64
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Set
 
 from src.github_api import get_pr, list_pr_files, upsert_comment, gh_paginate
 from src.openai_api import discover_context_for_rules, analyze_file_given_rules_and_context
@@ -587,7 +587,7 @@ def main():
     if cache_enabled:
         try:
             final_entries: List[Dict[str, Any]] = []
-            updated_paths: set[str] = {ent.get("path") for ent in (updated_entries or []) if isinstance(ent, dict) and ent.get("path")}
+            updated_paths: Set[str] = {ent.get("path") for ent in (updated_entries or []) if isinstance(ent, dict) and ent.get("path")}
             for ent in (updated_entries or []):
                 if isinstance(ent, dict):
                     final_entries.append(ent)
