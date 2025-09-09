@@ -156,10 +156,11 @@ runs:
         'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
       shell: bash
+      env:
+        HAS_SA: ${{ inputs.claude-code-gcp-service-account-key != '' }}
+        HAS_PROJ: ${{ inputs.claude-code-gcp-project-id != '' }}
       run: |
         MISSING=""
-        HAS_SA="${{ inputs.claude-code-gcp-service-account-key != '' }}"
-        HAS_PROJ="${{ inputs.claude-code-gcp-project-id != '' }}"
         if [ "$HAS_SA" != "true" ]; then MISSING="GCP_SERVICE_ACCOUNT_KEY"; fi
         if [ "$HAS_PROJ" != "true" ]; then if [ -n "$MISSING" ]; then MISSING="$MISSING, "; fi; MISSING="${MISSING}GCP_PROJECT_ID"; fi
         if [ -z "$MISSING" ]; then
@@ -169,7 +170,6 @@ runs:
           echo "should-run-claude=false" >> $GITHUB_OUTPUT
           echo "missing=$MISSING" >> $GITHUB_OUTPUT
         fi
-
     - name: Build details markdown
       id: build-details
       if:
