@@ -276,13 +276,14 @@ runs:
         DETAILS: ${{ steps.build-details.outputs.details }}
         TOTAL_DETECTED: ${{ steps.run-py.outputs.total-issues-detected }}
         TOTAL_TARGETED: ${{ steps.run-py.outputs.total-issues-targeted }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       with:
         script: |
           const details = process.env.DETAILS || '';
           const totalDetected = Number(process.env.TOTAL_DETECTED || '0');
           const totalTargeted = Number(process.env.TOTAL_TARGETED || '0');
           const allCovered = (totalDetected > 0 && totalTargeted >= totalDetected);
-          const headSha = '${{ github.event.pull_request.head.sha }}';
+          const headSha = process.env.HEAD_SHA || '';
           const headShort = headSha ? headSha.substring(0,7) : '';
           const endLine = allCovered
             ? `🚀 Auto-fix targeted all issues detected. Based on commit: ${headShort || headSha}`
