@@ -352,6 +352,7 @@ runs:
       shell: bash
       env:
         ANTHROPIC_VERTEX_PROJECT_ID: ${{ inputs.claude-code-gcp-project-id }}
+        ANTHROPIC_MODEL: ${{ inputs.anthropic-model }}
       run: |
         echo "CLAUDE_CODE_USE_VERTEX=1" >> $GITHUB_ENV
         echo "CLOUD_ML_REGION=us-east5" >> $GITHUB_ENV
@@ -365,7 +366,7 @@ runs:
         echo "NO_COLOR=1" >> $GITHUB_ENV
         echo "FORCE_COLOR=0" >> $GITHUB_ENV
         echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
-        echo "ANTHROPIC_MODEL=${{ inputs.anthropic-model }}" >> $GITHUB_ENV
+        echo "ANTHROPIC_MODEL=$ANTHROPIC_MODEL" >> $GITHUB_ENV
 
     - name: Run Claude Code (single run)
       if:
