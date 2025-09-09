@@ -19,7 +19,7 @@ class FileAnalysisModel(BaseModel):
 
 class ContextModel(BaseModel):
     context_files: List[str]
-    reason: str | None = ""
+    reason: str = ""
 
 
 def call_openai_and_parse_structured(api_key: str, model: str, system_prompt: str, user_prompt: str, schema: Type[BaseModel]) -> Dict[str, Any]:
