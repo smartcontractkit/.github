@@ -297,8 +297,9 @@ on:
           The repository name of the workflow that triggered the workflow run.
 
           Example: smartcontractkit/chainlink
-        required: true
+        required: false
         type: string
+        default: ${{ github.repository }}
       timeout:
         description: "Timeout in minutes for the Docker build job."
         required: false
@@ -468,9 +469,10 @@ jobs:
       - uses: actions/checkout@v4
         id: checkout
         with:
+          repository: ${{ inputs.github-workflow-repository }} # defaults to ${{ github.repository }}
+          ref: ${{ inputs.git-sha }}
           persist-credentials: false
           fetch-depth: 1
-          ref: ${{ inputs.git-sha }}
       # Generated tags must be compatible with:
       # https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
       - name: Set Docker image tags
