@@ -1,5 +1,16 @@
 # pr-quality-check
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1212](https://github.com/smartcontractkit/.github/pull/1212)
+  [`97ffb7d`](https://github.com/smartcontractkit/.github/commit/97ffb7d371168696c8a3e54d40504797428c4f93)
+  Thanks [@miqlar](https://github.com/miqlar)! - Integrated claude code to raise
+  a PR to attempt to fix rules with auto_fix_instructions defined. Caching to
+  avoid rerunning same rules on files that do not change. Other minor
+  improvements and fixes.
+
 ## 1.0.1
 
 ### Patch Changes
