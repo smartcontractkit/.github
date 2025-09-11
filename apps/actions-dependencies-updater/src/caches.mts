@@ -42,7 +42,11 @@ export function cleanup(caches: ReturnType<typeof initialize>) {
   const actionsByIdentifier = caches.actionsByIdentifier.get();
   Object.keys(actionsByIdentifier).forEach((key) => {
     const action = actionsByIdentifier[key];
-    if (action.isLocal || action.type === "unknown" || !isShaRefIdentifier(action.identifier)) {
+    if (
+      action.isLocal ||
+      action.type === "unknown" ||
+      !isShaRefIdentifier(action.identifier)
+    ) {
       log.debug(`Clearing ${key} from cache`);
       return delete actionsByIdentifier[key];
     }
@@ -62,7 +66,12 @@ class Cache<T extends Record<string, any>> {
   private filePath: string;
   private cache: T;
 
-  constructor(initializeFromDisk: boolean, fileName: string, forceRefresh: boolean, initial?: T) {
+  constructor(
+    initializeFromDisk: boolean,
+    fileName: string,
+    forceRefresh: boolean,
+    initial?: T,
+  ) {
     this.filePath = join(Cache.cacheDir, fileName);
     this.initializeFromDisk = initializeFromDisk;
 
