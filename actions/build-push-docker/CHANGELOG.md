@@ -1,5 +1,13 @@
 # build-push-docker
 
+## 0.9.0
+
+### Minor Changes
+
+- [#1213](https://github.com/smartcontractkit/.github/pull/1213)
+  [`9a871e1`](https://github.com/smartcontractkit/.github/commit/9a871e121bc47b4c68ddfeec7106bc203f68ca6e)
+  Thanks [@Atrax1](https://github.com/Atrax1)! - handle build-contexts
+
 ## 0.8.1
 
 ### Patch Changes
