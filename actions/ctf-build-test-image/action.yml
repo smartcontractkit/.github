@@ -129,7 +129,7 @@ runs:
         {
           echo "## Base image build failed"
           echo ""
-          echo "It's likely that the go versions are mismatched. Try updating the base image go version here: https://github.com/smartcontractkit/chainlink-testing-framework/blob/main/lib/k8s/Dockerfile.base#L2"
+          echo "It's likely that the go versions are mismatched. Try updating the base image go version here: https://github.com/smartcontractkit/chainlink-testing-framework/blob/main/lib/k8s/Dockerfile.base#L2 and then run the Publish Test Base Image CI workflow."
         } >> "$GITHUB_STEP_SUMMARY"
         exit 1
     # End Base Image Logic

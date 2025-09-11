@@ -16,7 +16,7 @@ import { getActionYamlPath } from "./utils.mjs";
 export interface UpdateTransaction {
   [key: string]: {
     identifiers: string[];
-    references: { [ file: string ]: string[] };
+    references: { [file: string]: string[] };
     newVersion: {
       sha: string;
       version: string;
@@ -91,14 +91,18 @@ async function processActionDependency(
     return Promise.all(dependenciesPromises).then(() => {});
   }
 
-  if (!ctx.caches.directActionsDependencies.getValue(currentAction.identifier)) {
+  if (
+    !ctx.caches.directActionsDependencies.getValue(currentAction.identifier)
+  ) {
     log.debug(`Skipping indirect dependency: ${currentAction.identifier}`);
     return;
   }
 
   const details = extractDetailsFromActionIdentifier(currentAction.identifier);
   if (!details) {
-    log.warn(`Unexpected action identifier: ${currentAction.identifier} - skipping.`);
+    log.warn(
+      `Unexpected action identifier: ${currentAction.identifier} - skipping.`,
+    );
     return;
   }
 

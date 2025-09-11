@@ -393,7 +393,7 @@ export interface MySchema {
           },
           ...{
             cron?: string;
-          }[]
+          }[],
         ];
       };
   /**
@@ -668,7 +668,7 @@ export interface NormalJob {
        * The maximum number of minutes to run the step before killing the process.
        */
       "timeout-minutes"?: number | ExpressionSyntax;
-    })[]
+    })[],
   ];
   /**
    * The maximum number of minutes to let a workflow run before GitHub automatically cancels it. Default: 360
