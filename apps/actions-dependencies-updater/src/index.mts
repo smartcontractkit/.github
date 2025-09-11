@@ -1,4 +1,9 @@
-import { getEnvironmentVariableOrExit, compileDeprecatedPaths, validateRepositoryOrExit, isShaRefIdentifier } from "./utils.mjs";
+import {
+  getEnvironmentVariableOrExit,
+  compileDeprecatedPaths,
+  validateRepositoryOrExit,
+  isShaRefIdentifier,
+} from "./utils.mjs";
 import { parseWorkflows } from "./workflows.mjs";
 import { compileUpdates, executeUpdates } from "./updater.mjs";
 import * as caches from "./caches.mjs";
@@ -7,7 +12,7 @@ import * as git from "./git-cli.mjs";
 
 import { Octokit } from "octokit";
 import minimist from "minimist";
-import 'dotenv/config';
+import "dotenv/config";
 
 export interface RunContext {
   repoDir: string;
@@ -24,7 +29,7 @@ export interface RunContext {
     actions: number;
     contentRequests: number;
     tagRequests: number;
-  },
+  };
   caches: ReturnType<typeof caches.initialize>;
 }
 
@@ -53,7 +58,9 @@ function handleArgs(): RunContext {
     console.log(
       "  --skip-updates: Check for deprecated dependencies (node12/node16) but don't update them.",
     );
-    console.log("  --skip-checks: Skip checks for deprecated dependencies, only update dependencies to latest.")
+    console.log(
+      "  --skip-checks: Skip checks for deprecated dependencies, only update dependencies to latest.",
+    );
     console.log("  --no-branch: Don't branch (local) the repository");
     console.log(
       "  --no-commit: Don't commit changes (local) to the repository",
@@ -130,16 +137,22 @@ async function main() {
     log.section("Double Checking For Deprecated Dependencies After Update");
     caches.cleanup(ctx.caches);
     const postUpdateWorkflowsByName = await parseWorkflows(ctx);
-    const postUpdateDeprecatedPaths = compileDeprecatedPaths(postUpdateWorkflowsByName);
+    const postUpdateDeprecatedPaths = compileDeprecatedPaths(
+      postUpdateWorkflowsByName,
+    );
     outputDeprecatedPaths(ctx, true, postUpdateDeprecatedPaths);
   }
 
   exit(ctx, 0);
 }
 
-function outputDeprecatedPaths(ctx: RunContext, shouldExit: boolean, deprecatedPaths: string[]) {
+function outputDeprecatedPaths(
+  ctx: RunContext,
+  shouldExit: boolean,
+  deprecatedPaths: string[],
+) {
   if (deprecatedPaths.length > 0) {
-    log.error(`Deprecated dependencies found (${deprecatedPaths.length})!!`)
+    log.error(`Deprecated dependencies found (${deprecatedPaths.length})!!`);
     log.output(deprecatedPaths.join("\n"));
   } else {
     log.info("No deprecated dependencies found.");

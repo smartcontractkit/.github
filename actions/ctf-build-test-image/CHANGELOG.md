@@ -1,5 +1,14 @@
 # ctf-build-test-image
 
+## 0.3.0
+
+### Minor Changes
+
+- [#1215](https://github.com/smartcontractkit/.github/pull/1215)
+  [`77919db`](https://github.com/smartcontractkit/.github/commit/77919dbb0e1fa4caeea283ab289d78337bcb7e75)
+  Thanks [@kalverra](https://github.com/kalverra)! - Adds documentation for a
+  confusing error
+
 ## 0.2.1
 
 ### Patch Changes
