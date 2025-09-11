@@ -98,6 +98,10 @@ on:
         description: "Docker build arguments."
         required: false
         type: string
+      docker-build-contexts:
+        description: "List of additional build contexts (e.g., name=path)"
+        required: false
+        type: string
       docker-cache-behaviour:
         description: |
           Controls how the docker build cache is used.
@@ -513,7 +517,7 @@ jobs:
 
       - name: Docker image build
         id: build
-        uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/0.7.0
+        uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/0.9.0
         with:
           platform: ${{ format('linux/{0}', matrix.arch) }}
           docker-registry-url: >-
@@ -533,6 +537,7 @@ jobs:
           docker-restore-cache: ${{ needs.init.outputs.docker-restore-cache }}
           docker-save-cache: ${{ needs.init.outputs.docker-save-cache }}
           context: ${{ inputs.docker-build-context }}
+          docker-build-contexts: ${{ inputs.docker-build-contexts }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
           aws-region: ${{ inputs.aws-region-ecr }}
