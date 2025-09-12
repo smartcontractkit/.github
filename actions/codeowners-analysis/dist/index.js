@@ -25602,9 +25602,13 @@ function formatPendingReviewsMarkdown(reviewSummary, summaryUrl) {
     const overallIcon = fileOverall ? iconFor(fileOverall) : "-";
     lines.push(`| ${file} | ${overallIcon} | ${owners.join(", ")} |`);
   });
-  lines.push("");
-  lines.push(`For more details, see the [full review summary](${summaryUrl}).`);
-  lines.push("");
+  if (summaryUrl) {
+    lines.push("");
+    lines.push(
+      `For more details, see the [full review summary](${summaryUrl}).`
+    );
+    lines.push("");
+  }
   return lines.join("\n");
 }
 async function formatAllReviewsSummary(summary2) {
@@ -25620,21 +25624,27 @@ async function formatAllReviewsSummary(summary2) {
   for (const file of files) {
     const ownerStatuses = summary2.fileToStatus[file] || [];
     const owners = summary2.fileToOwners[file] && summary2.fileToOwners[file].length > 0 ? summary2.fileToOwners[file] : ["_No owners found_"];
-    const fileOverall = getOverallState(ownerStatuses);
     if (ownerStatuses.length === 0) {
+      const icon = owners.length === 0 ? iconFor("UNKNOWN") : iconFor("PENDING" /* Pending */);
       rows.push([
         { data: file },
-        { data: fileOverall ? iconFor(fileOverall) : "-" },
+        // filename
+        { data: icon },
+        // overall status
         { data: owners[0] ?? "_No owners found_" },
-        { data: "-" },
+        // owners
+        { data: icon },
+        // review state
         { data: "-" }
+        // reviewed by
       ]);
       continue;
     }
+    const fileOverall = getOverallState(ownerStatuses);
     const rowspan = String(ownerStatuses.length);
     const filenameCell = { data: file, rowspan };
     const overallCell = {
-      data: fileOverall ? iconFor(fileOverall) : "-",
+      data: iconFor(fileOverall),
       rowspan
     };
     ownerStatuses.forEach((status, idx) => {
@@ -25681,7 +25691,7 @@ function iconFor(state) {
   }
 }
 function getOverallState(statuses) {
-  if (!statuses || statuses.length === 0) return void 0;
+  if (!statuses || statuses.length === 0) return "PENDING" /* Pending */;
   const precedence = {
     ["CHANGES_REQUESTED" /* ChangesRequested */]: 0,
     ["APPROVED" /* Approved */]: 1,

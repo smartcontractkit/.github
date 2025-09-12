@@ -32,9 +32,13 @@ export function formatPendingReviewsMarkdown(
     lines.push(`| ${file} | ${overallIcon} | ${owners.join(", ")} |`);
   });
 
-  lines.push("");
-  lines.push(`For more details, see the [full review summary](${summaryUrl}).`);
-  lines.push("");
+  if (summaryUrl) {
+    lines.push("");
+    lines.push(
+      `For more details, see the [full review summary](${summaryUrl}).`,
+    );
+    lines.push("");
+  }
 
   return lines.join("\n");
 }
@@ -69,23 +73,28 @@ export async function formatAllReviewsSummary(
         ? summary.fileToOwners[file]
         : ["_No owners found_"];
 
-    const fileOverall = getOverallState(ownerStatuses);
-
     if (ownerStatuses.length === 0) {
+      const icon =
+        owners.length === 0
+          ? iconFor("UNKNOWN")
+          : iconFor(PullRequestReviewState.Pending);
+
       rows.push([
-        { data: file },
-        { data: fileOverall ? iconFor(fileOverall) : "-" },
-        { data: owners[0] ?? "_No owners found_" },
-        { data: "-" },
-        { data: "-" },
+        { data: file }, // filename
+        { data: icon }, // overall status
+        { data: owners[0] ?? "_No owners found_" }, // owners
+        { data: icon }, // review state
+        { data: "-" }, // reviewed by
       ]);
       continue;
     }
 
+    const fileOverall = getOverallState(ownerStatuses);
+
     const rowspan = String(ownerStatuses.length);
     const filenameCell: TCell = { data: file, rowspan };
     const overallCell: TCell = {
-      data: fileOverall ? iconFor(fileOverall) : "-",
+      data: iconFor(fileOverall),
       rowspan,
     };
 
@@ -127,7 +136,7 @@ export async function formatAllReviewsSummary(
     .write();
 }
 
-function iconFor(state: PullRequestReviewState): string {
+function iconFor(state: PullRequestReviewState | "UNKNOWN"): string {
   switch (state) {
     case PullRequestReviewState.Approved:
       return "✅";
@@ -146,8 +155,8 @@ function iconFor(state: PullRequestReviewState): string {
 
 function getOverallState(
   statuses: OwnerReviewStatus[],
-): PullRequestReviewState | undefined {
-  if (!statuses || statuses.length === 0) return undefined;
+): PullRequestReviewState {
+  if (!statuses || statuses.length === 0) return PullRequestReviewState.Pending;
   const precedence: Record<PullRequestReviewState, number> = {
     [PullRequestReviewState.ChangesRequested]: 0,
     [PullRequestReviewState.Approved]: 1,
