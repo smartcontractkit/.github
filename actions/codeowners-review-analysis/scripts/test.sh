@@ -11,7 +11,7 @@ export GITHUB_EVENT_PATH="actions/codeowners-review-analysis/scripts/payload.jso
 tmp_file=$(mktemp)
 export GITHUB_STEP_SUMMARY="$tmp_file"
 
-export INPUT_DIRECTORY="/Users/erik/Documents/repos/chainlink"
+export INPUT_POST_COMMENT="false"
 export CL_LOCAL_DEBUG="true"
 
 node actions/codeowners-review-analysis/dist/index.js

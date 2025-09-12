@@ -2,14 +2,14 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 export interface RunInputs {
-  directory: string;
+  postComment: boolean;
 }
 
 export function getInputs(): RunInputs {
   core.info("Getting inputs for run.");
 
   const inputs: RunInputs = {
-    directory: getRunInputString("directory"),
+    postComment: getRunInputBoolean("postComment"),
   };
 
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
@@ -75,15 +75,15 @@ interface RunInputConfiguration {
 const runInputsConfiguration: {
   [K in keyof RunInputs]: RunInputConfiguration;
 } = {
-  directory: {
-    parameter: "directory",
-    localParameter: "DIRECTORY",
+  postComment: {
+    parameter: "post-comment",
+    localParameter: "POST_COMMENT",
   },
 };
 
-function getRunInputString(input: keyof RunInputs) {
+function getRunInputBoolean(input: keyof RunInputs) {
   const inputKey = getInputKey(input);
-  return core.getInput(inputKey, {
+  return core.getBooleanInput(inputKey, {
     required: true,
   });
 }

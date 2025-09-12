@@ -8,7 +8,8 @@ runs:
   main: "dist/index.js"
 
 inputs:
-  directory:
-    description: "Directory containing the root of the repository"
+  post-comment:
+    description:
+      "Whether to post a comment on the PR with the analysis results."
     required: false
-    default: "./"
+    default: "true"

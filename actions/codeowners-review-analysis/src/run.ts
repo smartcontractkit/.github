@@ -5,8 +5,16 @@ import { Octokit } from "@octokit/core";
 import { paginateGraphQL } from "@octokit/plugin-paginate-graphql";
 
 import { getInvokeContext, getInputs } from "./run-inputs";
-import { getChangedFilesForPR, getSummaryUrl, upsertPRComment } from "./github";
-import { getCodeownersRules, processChangedFilesV2 } from "./codeowners";
+import {
+  getChangedFilesForPR,
+  getCodeownersFile,
+  getSummaryUrl,
+  upsertPRComment,
+} from "./github";
+import {
+  getCodeownersEntries,
+  processChangedFiles as processChangedFiles,
+} from "./codeowners";
 import { getCurrentReviewStatus } from "./github-gql";
 import {
   formatPendingReviewsMarkdown,
@@ -48,9 +56,16 @@ export async function run(): Promise<void> {
     core.endGroup();
 
     core.startGroup("CODEOWNERS Preparation");
-    const codeownersFile = getCodeownersRules(inputs.directory);
-    core.info(`Found ${codeownersFile.length} CODEOWNERS entries.`);
-    if (codeownersFile.length === 0) {
+    const codeownersFile = await getCodeownersFile(octokit, owner, repo);
+    if (!codeownersFile) {
+      core.warning(
+        "No CODEOWNERS file found in the repository. Skipping analysis.",
+      );
+      return;
+    }
+    const codeownersEntries = await getCodeownersEntries(codeownersFile);
+    core.info(`Found ${codeownersEntries.length} CODEOWNERS entries.`);
+    if (codeownersEntries.length === 0) {
       core.warning(
         "No CODEOWNERS file found, or it is empty. Skipping analysis.",
       );
@@ -59,9 +74,9 @@ export async function run(): Promise<void> {
     core.endGroup();
 
     core.startGroup("Analyze file paths and codeowners patterns");
-    const { unownedFiles, codeOwnersEntryToFiles } = processChangedFilesV2(
+    const { unownedFiles, codeOwnersEntryToFiles } = processChangedFiles(
       filenames,
-      codeownersFile,
+      codeownersEntries,
     );
     core.endGroup();
 
@@ -89,8 +104,8 @@ export async function run(): Promise<void> {
       codeownersSummary,
       summaryUrl,
     );
-    console.log("Pending Reviews Markdown:\n", pendingReviewMarkdown);
-    if (process.env.CL_LOCAL_DEBUG !== "true") {
+    console.log(pendingReviewMarkdown);
+    if (inputs.postComment) {
       await upsertPRComment(
         octokit,
         owner,

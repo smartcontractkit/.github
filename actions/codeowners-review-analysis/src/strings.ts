@@ -46,7 +46,7 @@ export function formatPendingReviewsMarkdown(
 
     // Just one row per entry, pattern as inline code
     lines.push(
-      `| \`${entry.rawPattern}\` | ${overallIcon} | ${processed.files.length} |${owners.join(", ")} |`,
+      `| \`[${entry.rawPattern}](${entry.htmlLineUrl})\` | ${overallIcon} | ${processed.files.length} |${owners.join(", ")} |`,
     );
   }
 

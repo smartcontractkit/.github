@@ -23735,7 +23735,7 @@ var require_core = __commonJS({
       process.env["PATH"] = `${inputPath}${path.delimiter}${process.env["PATH"]}`;
     }
     exports2.addPath = addPath;
-    function getInput2(name, options) {
+    function getInput(name, options) {
       const val = process.env[`INPUT_${name.replace(/ /g, "_").toUpperCase()}`] || "";
       if (options && options.required && !val) {
         throw new Error(`Input required and not supplied: ${name}`);
@@ -23745,19 +23745,19 @@ var require_core = __commonJS({
       }
       return val.trim();
     }
-    exports2.getInput = getInput2;
+    exports2.getInput = getInput;
     function getMultilineInput(name, options) {
-      const inputs = getInput2(name, options).split("\n").filter((x) => x !== "");
+      const inputs = getInput(name, options).split("\n").filter((x) => x !== "");
       if (options && options.trimWhitespace === false) {
         return inputs;
       }
       return inputs.map((input) => input.trim());
     }
     exports2.getMultilineInput = getMultilineInput;
-    function getBooleanInput(name, options) {
+    function getBooleanInput2(name, options) {
       const trueValue = ["true", "True", "TRUE"];
       const falseValue = ["false", "False", "FALSE"];
-      const val = getInput2(name, options);
+      const val = getInput(name, options);
       if (trueValue.includes(val))
         return true;
       if (falseValue.includes(val))
@@ -23765,7 +23765,7 @@ var require_core = __commonJS({
       throw new TypeError(`Input does not meet YAML 1.2 "Core Schema" specification: ${name}
 Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
     }
-    exports2.getBooleanInput = getBooleanInput;
+    exports2.getBooleanInput = getBooleanInput2;
     function setOutput(name, value) {
       const filePath = process.env["GITHUB_OUTPUT"] || "";
       if (filePath) {
@@ -25071,7 +25071,7 @@ var github = __toESM(require_github());
 function getInputs() {
   core.info("Getting inputs for run.");
   const inputs = {
-    directory: getRunInputString("directory")
+    postComment: getRunInputBoolean("postComment")
   };
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
   return inputs;
@@ -25107,14 +25107,14 @@ function getInvokeContext() {
   return { token, owner, repo, base, head, prNumber, actor: context3.actor };
 }
 var runInputsConfiguration = {
-  directory: {
-    parameter: "directory",
-    localParameter: "DIRECTORY"
+  postComment: {
+    parameter: "post-comment",
+    localParameter: "POST_COMMENT"
   }
 };
-function getRunInputString(input) {
+function getRunInputBoolean(input) {
   const inputKey = getInputKey(input);
-  return core.getInput(inputKey, {
+  return core.getBooleanInput(inputKey, {
     required: true
   });
 }
@@ -25175,6 +25175,54 @@ ${MARKDOWN_FINGERPRINT}`;
     core2.warning(`Failed to upsert PR comment: ${error}`);
   }
 }
+async function getCodeownersFile(octokit, owner, repo) {
+  const possibleFilenames = [
+    "CODEOWNERS",
+    ".github/CODEOWNERS",
+    "docs/CODEOWNERS"
+  ];
+  for (const filename of possibleFilenames) {
+    const response = await getFileFromDefaultBranch(
+      octokit,
+      owner,
+      repo,
+      filename
+    );
+    if (response?.content) {
+      return response;
+    }
+  }
+  return void 0;
+}
+async function getFileFromDefaultBranch(octokit, owner, repo, path) {
+  try {
+    core2.info(
+      `Getting file through Github - ${owner}/${repo} path:${path} ref:<default branch>`
+    );
+    const response = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path
+    });
+    const content = "content" in response.data && response.data.content ? Buffer.from(response.data.content, "base64").toString() : null;
+    if (!content) {
+      throw Error("No content found in getContent response");
+    }
+    const htmlUrl = "html_url" in response.data && response.data.html_url ? response.data.html_url : "";
+    return { content, htmlUrl };
+  } catch (error) {
+    const requestPath = `${owner}/${repo}${path}`;
+    if (error.status) {
+      core2.warning(
+        `Encountered Github Request Error while getting file - ${requestPath}. (${error.status} - ${error.message})`
+      );
+    } else {
+      core2.warning(
+        `Encountered Unknown Error while getting file - ${requestPath} - ${error}`
+      );
+    }
+  }
+}
 async function getSummaryUrl(octokit, owner, repo) {
   const runId = github2.context.runId;
   try {
@@ -25198,8 +25246,6 @@ async function getSummaryUrl(octokit, owner, repo) {
 
 // actions/codeowners-review-analysis/src/codeowners.ts
 var core3 = __toESM(require_core());
-var import_fs = require("fs");
-var import_path = require("path");
 
 // actions/codeowners-review-analysis/src/codeowners-pattern.ts
 var CodeownersPattern = class {
@@ -25339,26 +25385,11 @@ function escapeForRegex(lit) {
 }
 
 // actions/codeowners-review-analysis/src/codeowners.ts
-function readCodeownersFile(repoDir) {
-  const possibleFilenames = [
-    "CODEOWNERS",
-    ".github/CODEOWNERS",
-    "docs/CODEOWNERS"
-  ];
-  for (const filename of possibleFilenames) {
-    const fullPath = (0, import_path.join)(repoDir, filename);
-    if ((0, import_fs.existsSync)(fullPath)) {
-      return (0, import_fs.readFileSync)(fullPath, "utf8");
-    }
-  }
-  return void 0;
-}
-function getCodeownersRules(repoDir) {
-  const fileContent = readCodeownersFile(repoDir);
-  if (!fileContent) {
-    return [];
-  }
-  const lines = fileContent.split("\n");
+async function getCodeownersEntries({
+  content,
+  htmlUrl
+}) {
+  const lines = content.split("\n");
   const entries = [];
   for (const [index, line] of lines.entries()) {
     const trimmed = line.trim();
@@ -25367,18 +25398,20 @@ function getCodeownersRules(repoDir) {
     }
     const [patternStr, ...owners] = trimmed.split(/\s+/);
     const codeownersPattern = new CodeownersPattern(patternStr);
+    const htmlLineUrl = htmlUrl ? `${htmlUrl}#L${index + 1}` : void 0;
     entries.push({
       rawLine: line,
       rawPattern: patternStr,
       rawOwners: owners.join(" "),
       pattern: codeownersPattern,
       owners,
-      lineNumber: index + 1
+      lineNumber: index + 1,
+      htmlLineUrl
     });
   }
   return entries;
 }
-function processChangedFilesV2(filenames, codeownersFile) {
+function processChangedFiles(filenames, codeownersFile) {
   const codeOwnersEntryToFiles = /* @__PURE__ */ new Map();
   const unownedFiles = [];
   for (const file of filenames) {
@@ -25392,7 +25425,7 @@ function processChangedFilesV2(filenames, codeownersFile) {
     }
     addToMapOfArrays(codeOwnersEntryToFiles, lastEntry, file);
     core3.debug(
-      `File: ${file} matched pattern: ${lastEntry.pattern} with owners: ${lastEntry.owners.join(", ")}`
+      `File: ${file} matched pattern: ${lastEntry.rawPattern} with owners: ${lastEntry.rawOwners} (${lastEntry.lineNumber})`
     );
   }
   return { unownedFiles, codeOwnersEntryToFiles };
@@ -25720,7 +25753,7 @@ function formatPendingReviewsMarkdown(entryMap, summaryUrl) {
     const owners = entry.owners && entry.owners.length > 0 ? entry.owners : ["_No owners found_"];
     const overallIcon = iconFor(overall);
     lines.push(
-      `| \`${entry.rawPattern}\` | ${overallIcon} | ${processed.files.length} |${owners.join(", ")} |`
+      `| \`[${entry.rawPattern}](${entry.htmlLineUrl})\` | ${overallIcon} | ${processed.files.length} |${owners.join(", ")} |`
     );
   }
   if (summaryUrl) {
@@ -25817,9 +25850,16 @@ async function run() {
     core7.debug(`Changed files: ${JSON.stringify(filenames, null, 2)}`);
     core7.endGroup();
     core7.startGroup("CODEOWNERS Preparation");
-    const codeownersFile = getCodeownersRules(inputs.directory);
-    core7.info(`Found ${codeownersFile.length} CODEOWNERS entries.`);
-    if (codeownersFile.length === 0) {
+    const codeownersFile = await getCodeownersFile(octokit, owner, repo);
+    if (!codeownersFile) {
+      core7.warning(
+        "No CODEOWNERS file found in the repository. Skipping analysis."
+      );
+      return;
+    }
+    const codeownersEntries = await getCodeownersEntries(codeownersFile);
+    core7.info(`Found ${codeownersEntries.length} CODEOWNERS entries.`);
+    if (codeownersEntries.length === 0) {
       core7.warning(
         "No CODEOWNERS file found, or it is empty. Skipping analysis."
       );
@@ -25827,9 +25867,9 @@ async function run() {
     }
     core7.endGroup();
     core7.startGroup("Analyze file paths and codeowners patterns");
-    const { unownedFiles, codeOwnersEntryToFiles } = processChangedFilesV2(
+    const { unownedFiles, codeOwnersEntryToFiles } = processChangedFiles(
       filenames,
-      codeownersFile
+      codeownersEntries
     );
     core7.endGroup();
     core7.startGroup("Get currrent state of PR reviews");
@@ -25853,8 +25893,8 @@ async function run() {
       codeownersSummary,
       summaryUrl
     );
-    console.log("Pending Reviews Markdown:\n", pendingReviewMarkdown);
-    if (process.env.CL_LOCAL_DEBUG !== "true") {
+    console.log(pendingReviewMarkdown);
+    if (inputs.postComment) {
       await upsertPRComment(
         octokit,
         owner,

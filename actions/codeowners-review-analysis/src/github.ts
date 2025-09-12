@@ -73,6 +73,83 @@ export async function upsertPRComment(
   }
 }
 
+/**
+ * Gets the CODEOWNERS file content from the repository.
+ */
+export async function getCodeownersFile(
+  octokit: OctokitType,
+  owner: string,
+  repo: string,
+) {
+  const possibleFilenames = [
+    "CODEOWNERS",
+    ".github/CODEOWNERS",
+    "docs/CODEOWNERS",
+  ];
+
+  for (const filename of possibleFilenames) {
+    const response = await getFileFromDefaultBranch(
+      octokit,
+      owner,
+      repo,
+      filename,
+    );
+    if (response?.content) {
+      return response;
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Gets a file from the repository.
+ * See https://docs.github.com/en/rest/repos/contents?apiVersion=2022-11-28#get-repository-content
+ */
+async function getFileFromDefaultBranch(
+  octokit: OctokitType,
+  owner: string,
+  repo: string,
+  path: string,
+) {
+  try {
+    core.info(
+      `Getting file through Github - ${owner}/${repo} path:${path} ref:<default branch>`,
+    );
+
+    const response = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path,
+    });
+
+    const content =
+      "content" in response.data && response.data.content
+        ? Buffer.from(response.data.content, "base64").toString()
+        : null;
+    if (!content) {
+      throw Error("No content found in getContent response");
+    }
+
+    const htmlUrl =
+      "html_url" in response.data && response.data.html_url
+        ? response.data.html_url
+        : "";
+    return { content, htmlUrl };
+  } catch (error: any) {
+    const requestPath = `${owner}/${repo}${path}`;
+    if (error.status) {
+      core.warning(
+        `Encountered Github Request Error while getting file - ${requestPath}. (${error.status} - ${error.message})`,
+      );
+    } else {
+      core.warning(
+        `Encountered Unknown Error while getting file - ${requestPath} - ${error}`,
+      );
+    }
+  }
+}
+
 export async function getSummaryUrl(
   octokit: OctokitType,
   owner: string,
