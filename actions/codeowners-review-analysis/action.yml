@@ -1,0 +1,15 @@
+name: codeowners-review-analysis
+description:
+  "Analyzes changed files for a given PR, and displays codeowners required based
+  on paths."
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
+
+inputs:
+  post-comment:
+    description:
+      "Whether to post a comment on the PR with the analysis results."
+    required: false
+    default: "true"
