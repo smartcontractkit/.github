@@ -13,8 +13,6 @@ const LEGEND =
   `${iconFor(PullRequestReviewStateExt.Pending)} Pending | ` +
   `${iconFor(PullRequestReviewStateExt.Unknown)} Unknown`;
 
-const code = (s: string) => (s.includes("`") ? "``" + s + "``" : "`" + s + "`");
-
 export function formatPendingReviewsMarkdown(
   entryMap: Map<CodeownersEntry, ProcessedCodeOwnersEntry>,
   summaryUrl: string,
@@ -47,8 +45,8 @@ export function formatPendingReviewsMarkdown(
     const overallIcon = iconFor(overall);
 
     const patternCell = entry.htmlLineUrl
-      ? `[${code(entry.rawPattern)}](${entry.htmlLineUrl})`
-      : code(entry.rawPattern);
+      ? "[`" + `${entry.rawPattern}` + "`](" + `${entry.htmlLineUrl})`
+      : "[`" + `${entry.rawPattern}` + "`]";
 
     // Just one row per entry, pattern as inline code
     lines.push(
