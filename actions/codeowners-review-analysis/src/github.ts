@@ -82,18 +82,16 @@ export async function getCodeownersFile(
   repo: string,
 ) {
   const possibleFilenames = [
-    "CODEOWNERS",
     ".github/CODEOWNERS",
+    "CODEOWNERS",
     "docs/CODEOWNERS",
   ];
 
+  const headSha = await getHeadSHAOfDefaultBranch(octokit, owner, repo);
+  core.info(`Default branch HEAD SHA: ${headSha}`);
+
   for (const filename of possibleFilenames) {
-    const response = await getFileFromDefaultBranch(
-      octokit,
-      owner,
-      repo,
-      filename,
-    );
+    const response = await getFile(octokit, owner, repo, filename, headSha);
     if (response?.content) {
       return response;
     }
@@ -103,50 +101,81 @@ export async function getCodeownersFile(
 }
 
 /**
- * Gets a file from the repository.
+ * Gets a file from specified ref.
  * See https://docs.github.com/en/rest/repos/contents?apiVersion=2022-11-28#get-repository-content
  */
-async function getFileFromDefaultBranch(
+async function getFile(
   octokit: OctokitType,
   owner: string,
   repo: string,
   path: string,
+  ref: string,
 ) {
   try {
-    core.info(
-      `Getting file through Github - ${owner}/${repo} path:${path} ref:<default branch>`,
-    );
+    core.info(`GitHub getContent: ${owner}/${repo} path:${path} ref:${ref}`);
 
-    const response = await octokit.rest.repos.getContent({
+    const { data } = await octokit.rest.repos.getContent({
       owner,
       repo,
       path,
+      ref,
     });
 
-    const content =
-      "content" in response.data && response.data.content
-        ? Buffer.from(response.data.content, "base64").toString()
-        : null;
-    if (!content) {
-      throw Error("No content found in getContent response");
+    if (!("type" in data)) {
+      throw new Error(
+        `Expected a file at ${owner}/${repo}/${path}, but received no type information.`,
+      );
+    } else if (data.type !== "file") {
+      // Not a file (could be dir, symlink, submodule)
+      throw new Error(
+        `Expected a file at ${owner}/${repo}/${path}, but received type "${data.type}".`,
+      );
+    } else if (!data.content) {
+      throw new Error("No content found in getContent response.");
     }
 
-    const htmlUrl =
-      "html_url" in response.data && response.data.html_url
-        ? response.data.html_url
-        : "";
-    return { content, htmlUrl };
+    // Decode base64 content (GitHub may insert newlines in base64 payloads).
+    const preprocessedContent = data.content.replace(/\n/g, "");
+    const decodedContent = Buffer.from(preprocessedContent, "base64").toString(
+      "utf-8",
+    );
+
+    const htmlUrl = `https://github.com/${owner}/${repo}/blob/${ref}/${encodeURI(path)}`;
+
+    return { content: decodedContent, htmlUrl };
   } catch (error: any) {
-    const requestPath = `${owner}/${repo}${path}`;
-    if (error.status) {
+    const requestPath = `${owner}/${repo}/${path}`;
+    if (error?.status) {
       core.warning(
-        `Encountered Github Request Error while getting file - ${requestPath}. (${error.status} - ${error.message})`,
+        `GitHub Request Error while getting file - ${requestPath}. (${error.status} - ${error.message})`,
       );
     } else {
       core.warning(
-        `Encountered Unknown Error while getting file - ${requestPath} - ${error}`,
+        `Unknown Error while getting file - ${requestPath} - ${String(error)}`,
       );
     }
+    return { content: "", htmlUrl: "" };
+  }
+}
+
+async function getHeadSHAOfDefaultBranch(
+  octokit: OctokitType,
+  owner: string,
+  repo: string,
+): Promise<string> {
+  try {
+    const response = await octokit.rest.repos.listCommits({
+      owner,
+      repo,
+      per_page: 1,
+    });
+    if (response.data.length > 0) {
+      return response.data[0].sha;
+    }
+    return "";
+  } catch (error) {
+    core.warning(`Failed to get default branch for ${owner}/${repo}: ${error}`);
+    return "";
   }
 }
 

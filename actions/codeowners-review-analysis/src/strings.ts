@@ -157,9 +157,17 @@ export async function formatAllReviewsSummaryByEntry(
       });
     }
 
+    // Optional link suffix if we have a URL
+    const lineLink = entry.htmlLineUrl
+      ? ` <a href="${entry.htmlLineUrl}">(#L${entry.lineNumber})</a>`
+      : "";
+
     // Per-entry heading + table
     core.summary
-      .addHeading(`${overallIcon} - <code>${entry.rawPattern}</code>`, 3)
+      .addHeading(
+        `${overallIcon} - <code>${entry.rawPattern}</code>${lineLink}`,
+        3,
+      )
       .addRaw(`<p><strong>Owners:</strong> ${owners.join(", ")}</p>`)
       .addTable([headerRow, ...rows])
       .addBreak();

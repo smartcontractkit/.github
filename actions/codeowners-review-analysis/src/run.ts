@@ -57,7 +57,7 @@ export async function run(): Promise<void> {
 
     core.startGroup("CODEOWNERS Preparation");
     const codeownersFile = await getCodeownersFile(octokit, owner, repo);
-    if (!codeownersFile) {
+    if (!codeownersFile?.content) {
       core.warning(
         "No CODEOWNERS file found in the repository. Skipping analysis.",
       );

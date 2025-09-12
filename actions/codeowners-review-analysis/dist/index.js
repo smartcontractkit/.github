@@ -25177,50 +25177,74 @@ ${MARKDOWN_FINGERPRINT}`;
 }
 async function getCodeownersFile(octokit, owner, repo) {
   const possibleFilenames = [
-    "CODEOWNERS",
     ".github/CODEOWNERS",
+    "CODEOWNERS",
     "docs/CODEOWNERS"
   ];
+  const headSha = await getHeadSHAOfDefaultBranch(octokit, owner, repo);
+  core2.info(`Default branch HEAD SHA: ${headSha}`);
   for (const filename of possibleFilenames) {
-    const response = await getFileFromDefaultBranch(
-      octokit,
-      owner,
-      repo,
-      filename
-    );
+    const response = await getFile(octokit, owner, repo, filename, headSha);
     if (response?.content) {
       return response;
     }
   }
   return void 0;
 }
-async function getFileFromDefaultBranch(octokit, owner, repo, path) {
+async function getFile(octokit, owner, repo, path, ref) {
   try {
-    core2.info(
-      `Getting file through Github - ${owner}/${repo} path:${path} ref:<default branch>`
-    );
-    const response = await octokit.rest.repos.getContent({
+    core2.info(`GitHub getContent: ${owner}/${repo} path:${path} ref:${ref}`);
+    const { data } = await octokit.rest.repos.getContent({
       owner,
       repo,
-      path
+      path,
+      ref
     });
-    const content = "content" in response.data && response.data.content ? Buffer.from(response.data.content, "base64").toString() : null;
-    if (!content) {
-      throw Error("No content found in getContent response");
+    if (!("type" in data)) {
+      throw new Error(
+        `Expected a file at ${owner}/${repo}/${path}, but received no type information.`
+      );
+    } else if (data.type !== "file") {
+      throw new Error(
+        `Expected a file at ${owner}/${repo}/${path}, but received type "${data.type}".`
+      );
+    } else if (!data.content) {
+      throw new Error("No content found in getContent response.");
     }
-    const htmlUrl = "html_url" in response.data && response.data.html_url ? response.data.html_url : "";
-    return { content, htmlUrl };
+    const preprocessedContent = data.content.replace(/\n/g, "");
+    const decodedContent = Buffer.from(preprocessedContent, "base64").toString(
+      "utf-8"
+    );
+    const htmlUrl = `https://github.com/${owner}/${repo}/blob/${ref}/${encodeURI(path)}`;
+    return { content: decodedContent, htmlUrl };
   } catch (error) {
-    const requestPath = `${owner}/${repo}${path}`;
-    if (error.status) {
+    const requestPath = `${owner}/${repo}/${path}`;
+    if (error?.status) {
       core2.warning(
-        `Encountered Github Request Error while getting file - ${requestPath}. (${error.status} - ${error.message})`
+        `GitHub Request Error while getting file - ${requestPath}. (${error.status} - ${error.message})`
       );
     } else {
       core2.warning(
-        `Encountered Unknown Error while getting file - ${requestPath} - ${error}`
+        `Unknown Error while getting file - ${requestPath} - ${String(error)}`
       );
     }
+    return { content: "", htmlUrl: "" };
+  }
+}
+async function getHeadSHAOfDefaultBranch(octokit, owner, repo) {
+  try {
+    const response = await octokit.rest.repos.listCommits({
+      owner,
+      repo,
+      per_page: 1
+    });
+    if (response.data.length > 0) {
+      return response.data[0].sha;
+    }
+    return "";
+  } catch (error) {
+    core2.warning(`Failed to get default branch for ${owner}/${repo}: ${error}`);
+    return "";
   }
 }
 async function getSummaryUrl(octokit, owner, repo) {
@@ -25829,7 +25853,11 @@ async function formatAllReviewsSummaryByEntry(entryMap) {
         }
       });
     }
-    core6.summary.addHeading(`${overallIcon} - <code>${entry.rawPattern}</code>`, 3).addRaw(`<p><strong>Owners:</strong> ${owners.join(", ")}</p>`).addTable([headerRow, ...rows]).addBreak();
+    const lineLink = entry.htmlLineUrl ? ` <a href="${entry.htmlLineUrl}">(#L${entry.lineNumber})</a>` : "";
+    core6.summary.addHeading(
+      `${overallIcon} - <code>${entry.rawPattern}</code>${lineLink}`,
+      3
+    ).addRaw(`<p><strong>Owners:</strong> ${owners.join(", ")}</p>`).addTable([headerRow, ...rows]).addBreak();
   }
   await core6.summary.addSeparator().write();
 }
@@ -25853,7 +25881,7 @@ async function run() {
     core7.endGroup();
     core7.startGroup("CODEOWNERS Preparation");
     const codeownersFile = await getCodeownersFile(octokit, owner, repo);
-    if (!codeownersFile) {
+    if (!codeownersFile?.content) {
       core7.warning(
         "No CODEOWNERS file found in the repository. Skipping analysis."
       );
