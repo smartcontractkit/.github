@@ -10,7 +10,38 @@ https://github.com/hmarr/codeowners
 
 ## Usage
 
-TODO
+### Inputs
+
+| input          | description                                                                   | default |
+| -------------- | ----------------------------------------------------------------------------- | ------- |
+| `post-comment` | Whether to post a small comment on the PR summarizing codeowners requirements | `true`  |
+
+### Example Workflow
+
+```yaml
+name: Codeowners Analysis Test
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/codeowners-analysis.yml
+jobs:
+  analyze-changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # needed to read codeowners file
+      pull-requests: read # needed to comment on PRs
+      actions: read # needed to get summary url
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+      - name: Run Codeowners Analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: smartcontractkit/.github/actions/codeowners-review-analysis@<tag>
+```
 
 ## Development
 
