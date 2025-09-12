@@ -23965,7 +23965,7 @@ var require_fast_content_type_parse = __commonJS({
   }
 });
 
-// actions/codeowners-analysis/src/run.ts
+// actions/codeowners-review-analysis/src/run.ts
 var github3 = __toESM(require_github());
 var core6 = __toESM(require_core());
 
@@ -25065,7 +25065,7 @@ function paginateGraphQL(octokit) {
   };
 }
 
-// actions/codeowners-analysis/src/run-inputs.ts
+// actions/codeowners-review-analysis/src/run-inputs.ts
 var core = __toESM(require_core());
 var github = __toESM(require_github());
 function getInputs() {
@@ -25128,10 +25128,10 @@ function getInputKey(input) {
   return inputKey;
 }
 
-// actions/codeowners-analysis/src/github.ts
+// actions/codeowners-review-analysis/src/github.ts
 var core2 = __toESM(require_core());
 var github2 = __toESM(require_github());
-var MARKDOWN_FINGERPRINT = "<!-- chainlink-codeowners-analysis -->";
+var MARKDOWN_FINGERPRINT = "<!-- chainlink-codeowners-review-analysis -->";
 async function getChangedFilesForPR(octokit, owner, repo, prNumber) {
   core2.debug(`Comparing ${owner}/${repo} for PR ${prNumber}`);
   const prFiles = await octokit.paginate(octokit.rest.pulls.listFiles, {
@@ -25196,12 +25196,12 @@ async function getSummaryUrl(octokit, owner, repo) {
   }
 }
 
-// actions/codeowners-analysis/src/codeowners.ts
+// actions/codeowners-review-analysis/src/codeowners.ts
 var core3 = __toESM(require_core());
 var import_fs = require("fs");
 var import_path = require("path");
 
-// actions/codeowners-analysis/src/codeowners-pattern.ts
+// actions/codeowners-review-analysis/src/codeowners-pattern.ts
 var CodeownersPattern = class {
   constructor(patternStr) {
     if (patternStr == null) {
@@ -25338,7 +25338,7 @@ function escapeForRegex(lit) {
   return lit.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-// actions/codeowners-analysis/src/codeowners.ts
+// actions/codeowners-review-analysis/src/codeowners.ts
 function readCodeownersFile(repoDir) {
   const possibleFilenames = [
     "CODEOWNERS",
@@ -25395,7 +25395,7 @@ function processChangedFiles(filenames, codeownersFile) {
   return { fileToOwners, allOwners: Array.from(allOwnersSet) };
 }
 
-// actions/codeowners-analysis/src/github-gql.ts
+// actions/codeowners-review-analysis/src/github-gql.ts
 var core4 = __toESM(require_core());
 var QUERY = (
   /* GraphQL */
@@ -25584,7 +25584,7 @@ async function getCurrentReviewStatus(octokit, owner, repo, prNumber, pageSize =
   };
 }
 
-// actions/codeowners-analysis/src/strings.ts
+// actions/codeowners-review-analysis/src/strings.ts
 var core5 = __toESM(require_core());
 var LEGEND = `Legend: ${iconFor("APPROVED" /* Approved */)} Approved | ${iconFor("CHANGES_REQUESTED" /* ChangesRequested */)} Changes Requested | ${iconFor("COMMENTED" /* Commented */)} Commented | ${iconFor("DISMISSED" /* Dismissed */)} Dismissed | ${iconFor("PENDING" /* Pending */)} Pending`;
 function formatPendingReviewsMarkdown(reviewSummary, summaryUrl) {
@@ -25702,7 +25702,7 @@ function getOverallState(statuses) {
   return statuses.map((s) => s.state).sort((a, b) => (precedence[a] ?? 99) - (precedence[b] ?? 99))[0];
 }
 
-// actions/codeowners-analysis/src/run.ts
+// actions/codeowners-review-analysis/src/run.ts
 async function run() {
   try {
     core6.startGroup("Context");
@@ -25834,7 +25834,7 @@ function getReviewForStatusFor(codeowner, currentReviewStatus) {
   return { state: "PENDING" /* Pending */, user: codeowner };
 }
 
-// actions/codeowners-analysis/src/index.ts
+// actions/codeowners-review-analysis/src/index.ts
 run();
 /*! Bundled license information:
 

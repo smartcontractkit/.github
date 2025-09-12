@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { GetResponseTypeFromEndpointMethod } from "@octokit/types";
 
-const MARKDOWN_FINGERPRINT = "<!-- chainlink-codeowners-analysis -->";
+const MARKDOWN_FINGERPRINT = "<!-- chainlink-codeowners-review-analysis -->";
 
 export type OctokitType = ReturnType<typeof github.getOctokit>;
 type ListFilesResponse = GetResponseTypeFromEndpointMethod<

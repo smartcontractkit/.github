@@ -1,8 +1,8 @@
 {
-  "name": "codeowners-analysis",
+  "name": "codeowners-review-analysis",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "sourceRoot": "actions/codeowners-analysis",
+  "sourceRoot": "actions/codeowners-review-analysis",
   "targets": {
     "build": {
       "dependsOn": ["build:internal"],
@@ -15,8 +15,8 @@
       "options": {
         "format": ["cjs"],
         "thirdParty": true,
-        "outputPath": "actions/codeowners-analysis/dist/",
-        "main": "actions/codeowners-analysis/src/index.ts",
+        "outputPath": "actions/codeowners-review-analysis/dist/",
+        "main": "actions/codeowners-review-analysis/src/index.ts",
         "assets": [],
         "outputFileName": "index.js",
         "esbuildOptions": {

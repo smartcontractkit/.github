@@ -1,4 +1,4 @@
-name: codeowners-analysis
+name: codeowners-review-analysis
 description:
   "Analyzes changed files for a given PR, and displays codeowners required based
   on paths."

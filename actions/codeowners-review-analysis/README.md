@@ -21,6 +21,6 @@ See [src/generated/README.md](./src/generated/README.md) for more details.
 ### Local Testing
 
 From the root of the `.github` repository, you can run
-`./actions/codeowners-analysis/scripts/test.sh` to run tests.
+`./actions/codeowners-review-analysis/scripts/test.sh` to run tests.
 
 - Update both `test.sh` and `payload.json` for your test case
