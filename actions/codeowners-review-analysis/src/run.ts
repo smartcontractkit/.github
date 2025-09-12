@@ -6,26 +6,26 @@ import { paginateGraphQL } from "@octokit/plugin-paginate-graphql";
 
 import { getInvokeContext, getInputs } from "./run-inputs";
 import { getChangedFilesForPR, getSummaryUrl, upsertPRComment } from "./github";
-import { getCodeownersRules, processChangedFiles } from "./codeowners";
+import { getCodeownersRules, processChangedFilesV2 } from "./codeowners";
 import { getCurrentReviewStatus } from "./github-gql";
-import { PullRequestReviewState } from "./generated/graphql";
-
 import {
   formatPendingReviewsMarkdown,
-  formatAllReviewsSummary,
+  formatAllReviewsSummaryByEntry,
 } from "./strings";
+import {
+  PullRequestReviewStateExt,
+  getOverallState,
+  getReviewForStatusFor,
+} from "./review-status";
 
+import type { OwnerReviewStatus } from "./review-status";
+import type { CodeownersEntry, CodeOwnersToFilesMap } from "./codeowners";
 import type { CurrentReviewStatus } from "./github-gql";
 
-export type ReviewSummary = {
-  fileToOwners: Record<string, string[]>;
-  fileToStatus: Record<string, OwnerReviewStatus[]>;
-  pendingOwners: Set<string>;
-  pendingFiles: Set<string>;
-};
-export type OwnerReviewStatus = {
-  state: PullRequestReviewState;
-  user: string | null;
+export type ProcessedCodeOwnersEntry = {
+  files: string[];
+  ownerReviewStatuses: OwnerReviewStatus[];
+  overallStatus: PullRequestReviewStateExt;
 };
 
 export async function run(): Promise<void> {
@@ -59,7 +59,7 @@ export async function run(): Promise<void> {
     core.endGroup();
 
     core.startGroup("Analyze file paths and codeowners patterns");
-    const { fileToOwners, allOwners } = processChangedFiles(
+    const { unownedFiles, codeOwnersEntryToFiles } = processChangedFilesV2(
       filenames,
       codeownersFile,
     );
@@ -68,7 +68,7 @@ export async function run(): Promise<void> {
     core.startGroup("Get currrent state of PR reviews");
     const OctokitWithGQLPagination = Octokit.plugin(paginateGraphQL);
     const octokitGQL = new OctokitWithGQLPagination({ auth: token });
-    const currentReviewStatus = await getCurrentReviewStatus(
+    const currentPRReviewState = await getCurrentReviewStatus(
       octokitGQL,
       owner,
       repo,
@@ -77,17 +77,19 @@ export async function run(): Promise<void> {
     core.endGroup();
 
     core.startGroup("Create CODEOWNERS Summary");
-    const codeownersSummary = createReviewSummaryObject(
-      fileToOwners,
-      allOwners,
-      currentReviewStatus,
+
+    const codeownersSummary = createReviewSummaryObjectV2(
+      currentPRReviewState,
+      codeOwnersEntryToFiles,
     );
-    await formatAllReviewsSummary(codeownersSummary);
+
+    await formatAllReviewsSummaryByEntry(codeownersSummary);
     const summaryUrl = await getSummaryUrl(octokit, owner, repo);
     const pendingReviewMarkdown = formatPendingReviewsMarkdown(
       codeownersSummary,
       summaryUrl,
     );
+    console.log("Pending Reviews Markdown:\n", pendingReviewMarkdown);
     if (process.env.CL_LOCAL_DEBUG !== "true") {
       await upsertPRComment(
         octokit,
@@ -104,82 +106,23 @@ export async function run(): Promise<void> {
   }
 }
 
-function createReviewSummaryObject(
-  fileToOwners: Record<string, string[]>,
-  allOwners: string[],
+function createReviewSummaryObjectV2(
   currentReviewStatus: CurrentReviewStatus,
-): ReviewSummary {
-  const pendingOwners = new Set<string>(allOwners);
-  const pendingFiles = new Set<string>(Object.keys(fileToOwners));
-
-  const fileToStatus: Record<string, OwnerReviewStatus[]> = {};
-  for (const [file, owners] of Object.entries(fileToOwners)) {
-    core.info(`File: ${file} - Owners: ${owners.join(", ")}`);
-
-    const ownerStatuses: OwnerReviewStatus[] = [];
-    for (const owner of owners) {
+  codeOwnersEntryToFiles: CodeOwnersToFilesMap,
+): Map<CodeownersEntry, ProcessedCodeOwnersEntry> {
+  const reviewSummary: Map<CodeownersEntry, ProcessedCodeOwnersEntry> =
+    new Map();
+  for (const [entry, files] of codeOwnersEntryToFiles.entries()) {
+    const ownerReviewStatuses: OwnerReviewStatus[] = [];
+    for (const owner of entry.owners) {
       const status = getReviewForStatusFor(owner, currentReviewStatus);
       if (status) {
-        ownerStatuses.push(status);
-        if (status.state === PullRequestReviewState.Approved) {
-          core.debug(
-            `Owner ${owner} (${status.user}) has approved for file ${file}`,
-          );
-          pendingOwners.delete(owner);
-          pendingFiles.delete(file);
-        }
+        ownerReviewStatuses.push(status);
       }
     }
-    fileToStatus[file] = ownerStatuses;
+    const overallStatus = getOverallState(ownerReviewStatuses);
+    reviewSummary.set(entry, { files, ownerReviewStatuses, overallStatus });
   }
 
-  core.info(`Total pending owners: ${pendingOwners.size}`);
-  core.debug(`Pending owners: ${Array.from(pendingOwners).join(", ")}`);
-  core.info(`Total pending files: ${pendingFiles.size}`);
-  core.debug(`Pending files: ${Array.from(pendingFiles).join(", ")}`);
-
-  return { fileToStatus, pendingOwners, pendingFiles, fileToOwners };
-}
-
-function getReviewForStatusFor(
-  codeowner: string,
-  currentReviewStatus: CurrentReviewStatus,
-): OwnerReviewStatus | null {
-  if (codeowner.includes("/")) {
-    const [_, teamSlug] = codeowner.split("/");
-
-    if (currentReviewStatus.teamLatest[teamSlug]) {
-      return {
-        state: currentReviewStatus.teamLatest[teamSlug].state,
-        user: currentReviewStatus.teamLatest[teamSlug].byUser,
-      };
-    }
-
-    const team = currentReviewStatus.pendingTeams.find(
-      (t) => t.slug === teamSlug,
-    );
-    if (!team) {
-      core.warning(`No status found for teamslug: ${teamSlug}`);
-      return null;
-    }
-    return { state: PullRequestReviewState.Pending, user: null };
-  }
-
-  if (currentReviewStatus.userLatest[codeowner]) {
-    return {
-      state: currentReviewStatus.userLatest[codeowner].state,
-      user: codeowner,
-    };
-  }
-
-  const pendingUser = currentReviewStatus.pendingUsers.find(
-    (u) => u.login === codeowner,
-  );
-
-  if (!pendingUser) {
-    core.warning(`No status found for user: ${codeowner}`);
-    return null;
-  }
-
-  return { state: PullRequestReviewState.Pending, user: codeowner };
+  return reviewSummary;
 }

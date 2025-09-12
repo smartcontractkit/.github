@@ -19012,7 +19012,7 @@ var require_dist_node8 = __commonJS({
     var import_universal_user_agent5 = require_dist_node();
     var import_before_after_hook2 = require_before_after_hook();
     var import_request3 = require_dist_node5();
-    var import_graphql4 = require_dist_node6();
+    var import_graphql3 = require_dist_node6();
     var import_auth_token2 = require_dist_node7();
     var VERSION5 = "5.2.1";
     var noop2 = () => {
@@ -19091,7 +19091,7 @@ var require_dist_node8 = __commonJS({
           requestDefaults.headers["time-zone"] = options.timeZone;
         }
         this.request = import_request3.request.defaults(requestDefaults);
-        this.graphql = (0, import_graphql4.withCustomRequest)(this.request).defaults(requestDefaults);
+        this.graphql = (0, import_graphql3.withCustomRequest)(this.request).defaults(requestDefaults);
         this.log = Object.assign(
           {
             debug: noop2,
@@ -23796,10 +23796,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       (0, command_1.issueCommand)("error", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
     exports2.error = error;
-    function warning4(message, properties = {}) {
+    function warning6(message, properties = {}) {
       (0, command_1.issueCommand)("warning", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
-    exports2.warning = warning4;
+    exports2.warning = warning6;
     function notice(message, properties = {}) {
       (0, command_1.issueCommand)("notice", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
@@ -23967,7 +23967,7 @@ var require_fast_content_type_parse = __commonJS({
 
 // actions/codeowners-review-analysis/src/run.ts
 var github3 = __toESM(require_github());
-var core6 = __toESM(require_core());
+var core7 = __toESM(require_core());
 
 // node_modules/.pnpm/universal-user-agent@7.0.3/node_modules/universal-user-agent/index.js
 function getUserAgent() {
@@ -25360,39 +25360,48 @@ function getCodeownersRules(repoDir) {
   }
   const lines = fileContent.split("\n");
   const entries = [];
-  for (const line of lines) {
+  for (const [index, line] of lines.entries()) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) {
       continue;
     }
     const [patternStr, ...owners] = trimmed.split(/\s+/);
-    entries.push({ pattern: new CodeownersPattern(patternStr), owners });
+    const codeownersPattern = new CodeownersPattern(patternStr);
+    entries.push({
+      rawLine: line,
+      rawPattern: patternStr,
+      rawOwners: owners.join(" "),
+      pattern: codeownersPattern,
+      owners,
+      lineNumber: index + 1
+    });
   }
   return entries;
 }
-function processChangedFiles(filenames, codeownersFile) {
-  const fileToOwners = {};
+function processChangedFilesV2(filenames, codeownersFile) {
+  const codeOwnersEntryToFiles = /* @__PURE__ */ new Map();
+  const unownedFiles = [];
   for (const file of filenames) {
     const lastEntry = codeownersFile.findLast(
       (entry) => entry.pattern.match(file)
     );
     if (!lastEntry) {
-      fileToOwners[file] = [];
+      unownedFiles.push(file);
       core3.warning(`No CODEOWNERS entry found for: ${file}`);
       continue;
     }
-    fileToOwners[file] = lastEntry.owners;
+    addToMapOfArrays(codeOwnersEntryToFiles, lastEntry, file);
     core3.debug(
       `File: ${file} matched pattern: ${lastEntry.pattern} with owners: ${lastEntry.owners.join(", ")}`
     );
   }
-  const allOwnersUnduped = Object.values(fileToOwners).flat();
-  const allOwnersSet = new Set(allOwnersUnduped);
-  core3.info(`Total unique codeowners in this PR: ${allOwnersSet.size}`);
-  core3.debug(
-    `All unique codeowners in this PR: ${Array.from(allOwnersSet).join(", ")}`
-  );
-  return { fileToOwners, allOwners: Array.from(allOwnersSet) };
+  return { unownedFiles, codeOwnersEntryToFiles };
+}
+function addToMapOfArrays(map, key, value) {
+  if (!map.has(key)) {
+    map.set(key, []);
+  }
+  map.get(key).push(value);
 }
 
 // actions/codeowners-review-analysis/src/github-gql.ts
@@ -25585,23 +25594,135 @@ async function getCurrentReviewStatus(octokit, owner, repo, prNumber, pageSize =
 }
 
 // actions/codeowners-review-analysis/src/strings.ts
+var core6 = __toESM(require_core());
+
+// actions/codeowners-review-analysis/src/review-status.ts
 var core5 = __toESM(require_core());
-var LEGEND = `Legend: ${iconFor("APPROVED" /* Approved */)} Approved | ${iconFor("CHANGES_REQUESTED" /* ChangesRequested */)} Changes Requested | ${iconFor("COMMENTED" /* Commented */)} Commented | ${iconFor("DISMISSED" /* Dismissed */)} Dismissed | ${iconFor("PENDING" /* Pending */)} Pending`;
-function formatPendingReviewsMarkdown(reviewSummary, summaryUrl) {
+var PullRequestReviewStateExt = ((PullRequestReviewStateExt3) => {
+  PullRequestReviewStateExt3[PullRequestReviewStateExt3["Approved"] = "APPROVED" /* Approved */] = "Approved";
+  PullRequestReviewStateExt3[PullRequestReviewStateExt3["ChangesRequested"] = "CHANGES_REQUESTED" /* ChangesRequested */] = "ChangesRequested";
+  PullRequestReviewStateExt3[PullRequestReviewStateExt3["Commented"] = "COMMENTED" /* Commented */] = "Commented";
+  PullRequestReviewStateExt3[PullRequestReviewStateExt3["Dismissed"] = "DISMISSED" /* Dismissed */] = "Dismissed";
+  PullRequestReviewStateExt3[PullRequestReviewStateExt3["Pending"] = "PENDING" /* Pending */] = "Pending";
+  PullRequestReviewStateExt3["Unknown"] = "UNKNOWN";
+  return PullRequestReviewStateExt3;
+})(PullRequestReviewStateExt || {});
+function getOverallState(statuses) {
+  if (!statuses || statuses.length === 0) {
+    return PullRequestReviewStateExt.Pending;
+  }
+  const precedence = {
+    [PullRequestReviewStateExt.ChangesRequested]: 0,
+    [PullRequestReviewStateExt.Approved]: 1,
+    [PullRequestReviewStateExt.Commented]: 2,
+    [PullRequestReviewStateExt.Dismissed]: 3,
+    [PullRequestReviewStateExt.Pending]: 4,
+    ["UNKNOWN" /* Unknown */]: 5
+  };
+  return [...statuses].map((s) => s.state).sort((a, b) => precedence[a] - precedence[b])[0];
+}
+function toExtended(state) {
+  switch (state) {
+    case "APPROVED" /* Approved */:
+      return PullRequestReviewStateExt.Approved;
+    case "CHANGES_REQUESTED" /* ChangesRequested */:
+      return PullRequestReviewStateExt.ChangesRequested;
+    case "COMMENTED" /* Commented */:
+      return PullRequestReviewStateExt.Commented;
+    case "DISMISSED" /* Dismissed */:
+      return PullRequestReviewStateExt.Dismissed;
+    case "PENDING" /* Pending */:
+      return PullRequestReviewStateExt.Pending;
+    default:
+      core5.warning(
+        `Unknown PullRequestReviewState: ${state} - mapping to Unknown`
+      );
+      return "UNKNOWN" /* Unknown */;
+  }
+}
+function iconFor(state) {
+  switch (state) {
+    case PullRequestReviewStateExt.Approved:
+      return "\u2705";
+    case PullRequestReviewStateExt.ChangesRequested:
+      return "\u274C";
+    case PullRequestReviewStateExt.Commented:
+      return "\u{1F4AC}";
+    case PullRequestReviewStateExt.Dismissed:
+      return "\u{1F6AB}";
+    case PullRequestReviewStateExt.Pending:
+      return "\u23F3";
+    case "UNKNOWN" /* Unknown */:
+      return "\u2753";
+    default:
+      core5.warning(
+        `Unknown ExtendedPullRequestReviewState: ${state} - using \u2753 icon`
+      );
+      return "\u2753";
+  }
+}
+function getReviewForStatusFor(codeowner, currentReviewStatus) {
+  if (codeowner.includes("/")) {
+    const [_, teamSlug] = codeowner.split("/");
+    const teamLatest = currentReviewStatus.teamLatest[teamSlug];
+    if (teamLatest) {
+      return {
+        state: toExtended(teamLatest.state),
+        actor: teamLatest.byUser
+      };
+    }
+    const team = currentReviewStatus.pendingTeams.find(
+      (t) => t.slug === teamSlug
+    );
+    if (team) {
+      return { state: PullRequestReviewStateExt.Pending, actor: null };
+    }
+    core5.warning(
+      `No status found for teamslug: ${teamSlug} - default to pending`
+    );
+    return { state: PullRequestReviewStateExt.Pending, actor: null };
+  }
+  const userLatest = currentReviewStatus.userLatest[codeowner];
+  if (userLatest) {
+    return {
+      state: toExtended(userLatest.state),
+      actor: codeowner
+    };
+  }
+  const pendingUser = currentReviewStatus.pendingUsers.find(
+    (u) => u.login === codeowner
+  );
+  if (pendingUser) {
+    return { state: PullRequestReviewStateExt.Pending, actor: codeowner };
+  }
+  core5.warning(`No status found for user: ${codeowner} - default to pending`);
+  return { state: PullRequestReviewStateExt.Pending, actor: null };
+}
+
+// actions/codeowners-review-analysis/src/strings.ts
+var LEGEND = `Legend: ${iconFor(PullRequestReviewStateExt.Approved)} Approved | ${iconFor(PullRequestReviewStateExt.ChangesRequested)} Changes Requested | ${iconFor(PullRequestReviewStateExt.Commented)} Commented | ${iconFor(PullRequestReviewStateExt.Dismissed)} Dismissed | ${iconFor(PullRequestReviewStateExt.Pending)} Pending | ${iconFor("UNKNOWN" /* Unknown */)} Unknown`;
+function formatPendingReviewsMarkdown(entryMap, summaryUrl) {
   const lines = [];
   lines.push("### Codeowners Review Summary");
   lines.push("");
   lines.push(LEGEND);
   lines.push("");
-  lines.push("| File Path | Overall | Owners |");
-  lines.push("| --------- | ------- | ------ |");
-  reviewSummary.pendingFiles?.forEach((file) => {
-    const owners = reviewSummary.fileToOwners[file] || ["_No owners found_"];
-    const ownerStatuses = reviewSummary.fileToStatus[file] || [];
-    const fileOverall = getOverallState(ownerStatuses);
-    const overallIcon = fileOverall ? iconFor(fileOverall) : "-";
-    lines.push(`| ${file} | ${overallIcon} | ${owners.join(", ")} |`);
+  lines.push("| Codeowners Entry | Overall | Files | Owners |");
+  lines.push("| ---------------- | ------- | ----- | ------ |");
+  const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
+    return a.lineNumber - b.lineNumber;
   });
+  for (const [entry, processed] of sortedEntries) {
+    const overall = processed.overallStatus;
+    if (overall === PullRequestReviewStateExt.Approved) {
+      continue;
+    }
+    const owners = entry.owners && entry.owners.length > 0 ? entry.owners : ["_No owners found_"];
+    const overallIcon = iconFor(overall);
+    lines.push(
+      `| \`${entry.rawPattern}\` | ${overallIcon} | ${processed.files.length} |${owners.join(", ")} |`
+    );
+  }
   if (summaryUrl) {
     lines.push("");
     lines.push(
@@ -25611,7 +25732,7 @@ function formatPendingReviewsMarkdown(reviewSummary, summaryUrl) {
   }
   return lines.join("\n");
 }
-async function formatAllReviewsSummary(summary2) {
+async function formatAllReviewsSummaryByEntry(entryMap) {
   const headerRow = [
     { data: "File Path", header: true },
     { data: "Overall", header: true },
@@ -25619,144 +25740,120 @@ async function formatAllReviewsSummary(summary2) {
     { data: "State", header: true },
     { data: "Reviewed By", header: true }
   ];
-  const rows = [];
-  const files = Object.keys(summary2.fileToStatus || {}).sort();
-  for (const file of files) {
-    const ownerStatuses = summary2.fileToStatus[file] || [];
-    const owners = summary2.fileToOwners[file] && summary2.fileToOwners[file].length > 0 ? summary2.fileToOwners[file] : ["_No owners found_"];
-    if (ownerStatuses.length === 0) {
-      const icon = owners.length === 0 ? iconFor("UNKNOWN") : iconFor("PENDING" /* Pending */);
-      rows.push([
-        { data: file },
-        // filename
-        { data: icon },
-        // overall status
-        { data: owners[0] ?? "_No owners found_" },
-        // owners
-        { data: icon },
-        // review state
-        { data: "-" }
-        // reviewed by
-      ]);
+  core6.summary.addHeading("Codeowners Review Details", 2).addRaw(LEGEND).addBreak();
+  const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
+    return a.lineNumber - b.lineNumber;
+  });
+  for (const [entry, processed] of sortedEntries) {
+    const files = (processed.files || []).slice().sort();
+    if (files.length === 0) {
+      core6.warning(`No files matched CODEOWNERS entry: ${entry.pattern}`);
       continue;
     }
-    const fileOverall = getOverallState(ownerStatuses);
-    const rowspan = String(ownerStatuses.length);
-    const filenameCell = { data: file, rowspan };
-    const overallCell = {
-      data: iconFor(fileOverall),
-      rowspan
-    };
-    ownerStatuses.forEach((status, idx) => {
-      let ownerName;
-      if (owners.length === ownerStatuses.length) {
-        ownerName = owners[idx] ?? "_Unknown owner_";
-      } else if (owners.length === 1) {
-        ownerName = owners[0];
-      } else {
-        ownerName = owners[idx] ?? owners[owners.length - 1] ?? "_Unknown owner_";
-      }
-      const ownerCell = { data: ownerName };
-      const stateCell = { data: iconFor(status.state) };
-      const reviewedByCell = { data: status.user ?? "-" };
-      if (idx === 0) {
+    const owners = entry.owners && entry.owners.length > 0 ? entry.owners : ["_No owners found_"];
+    const ownerStatuses = processed.ownerReviewStatuses || [];
+    const overallIcon = iconFor(processed.overallStatus);
+    const rows = [];
+    for (const file of files) {
+      if (ownerStatuses.length === 0) {
         rows.push([
-          filenameCell,
-          overallCell,
-          ownerCell,
-          stateCell,
-          reviewedByCell
+          { data: file },
+          { data: overallIcon },
+          // overall is per-entry
+          { data: owners[0] ?? "_No owners found_" },
+          { data: overallIcon },
+          { data: "-" }
         ]);
-      } else {
-        rows.push([ownerCell, stateCell, reviewedByCell]);
+        continue;
       }
-    });
+      const rowspan = String(ownerStatuses.length);
+      const filenameCell = { data: file, rowspan };
+      const overallCell = { data: overallIcon, rowspan };
+      ownerStatuses.forEach((status, idx) => {
+        let ownerName;
+        if (owners.length === ownerStatuses.length) {
+          ownerName = owners[idx] ?? "_Unknown owner_";
+        } else if (owners.length === 1) {
+          ownerName = owners[0];
+        } else {
+          ownerName = owners[idx] ?? owners[owners.length - 1] ?? "_Unknown owner_";
+        }
+        const ownerCell = { data: ownerName };
+        const stateCell = { data: iconFor(status.state) };
+        const reviewedByCell = { data: status.actor ?? "-" };
+        if (idx === 0) {
+          rows.push([
+            filenameCell,
+            overallCell,
+            ownerCell,
+            stateCell,
+            reviewedByCell
+          ]);
+        } else {
+          rows.push([ownerCell, stateCell, reviewedByCell]);
+        }
+      });
+    }
+    core6.summary.addHeading(`${overallIcon} - <code>${entry.rawPattern}</code>`, 3).addRaw(`<p><strong>Owners:</strong> ${owners.join(", ")}</p>`).addTable([headerRow, ...rows]).addBreak();
   }
-  await core5.summary.addHeading("Codeowners Review Details", 2).addRaw(LEGEND).addBreak().addTable([headerRow, ...rows]).addSeparator().write();
-}
-function iconFor(state) {
-  switch (state) {
-    case "APPROVED" /* Approved */:
-      return "\u2705";
-    case "CHANGES_REQUESTED" /* ChangesRequested */:
-      return "\u274C";
-    case "COMMENTED" /* Commented */:
-      return "\u{1F4AC}";
-    case "DISMISSED" /* Dismissed */:
-      return "\u{1F6AB}";
-    case "PENDING" /* Pending */:
-      return "\u23F3";
-    default:
-      return "\u2753";
-  }
-}
-function getOverallState(statuses) {
-  if (!statuses || statuses.length === 0) return "PENDING" /* Pending */;
-  const precedence = {
-    ["CHANGES_REQUESTED" /* ChangesRequested */]: 0,
-    ["APPROVED" /* Approved */]: 1,
-    ["COMMENTED" /* Commented */]: 2,
-    ["DISMISSED" /* Dismissed */]: 3,
-    ["PENDING" /* Pending */]: 4
-  };
-  return statuses.map((s) => s.state).sort((a, b) => (precedence[a] ?? 99) - (precedence[b] ?? 99))[0];
+  await core6.summary.addSeparator().write();
 }
 
 // actions/codeowners-review-analysis/src/run.ts
 async function run() {
   try {
-    core6.startGroup("Context");
+    core7.startGroup("Context");
     const context3 = getInvokeContext();
     const octokit = github3.getOctokit(context3.token);
-    core6.debug(`Context: ${JSON.stringify(context3, null, 2)}`);
+    core7.debug(`Context: ${JSON.stringify(context3, null, 2)}`);
     const inputs = getInputs();
-    core6.debug(`Inputs: ${JSON.stringify(inputs)}`);
-    core6.endGroup();
+    core7.debug(`Inputs: ${JSON.stringify(inputs)}`);
+    core7.endGroup();
     const { token, owner, repo, prNumber } = context3;
-    core6.startGroup("Get changed files for PR");
+    core7.startGroup("Get changed files for PR");
     const prFiles = await getChangedFilesForPR(octokit, owner, repo, prNumber);
     const filenames = prFiles.map((f) => f.filename);
-    core6.info(`Found ${filenames.length} changed files in PR #${prNumber}.`);
-    core6.debug(`Changed files: ${JSON.stringify(filenames, null, 2)}`);
-    core6.endGroup();
-    core6.startGroup("CODEOWNERS Preparation");
+    core7.info(`Found ${filenames.length} changed files in PR #${prNumber}.`);
+    core7.debug(`Changed files: ${JSON.stringify(filenames, null, 2)}`);
+    core7.endGroup();
+    core7.startGroup("CODEOWNERS Preparation");
     const codeownersFile = getCodeownersRules(inputs.directory);
-    core6.info(`Found ${codeownersFile.length} CODEOWNERS entries.`);
+    core7.info(`Found ${codeownersFile.length} CODEOWNERS entries.`);
     if (codeownersFile.length === 0) {
-      core6.warning(
+      core7.warning(
         "No CODEOWNERS file found, or it is empty. Skipping analysis."
       );
       return;
     }
-    core6.endGroup();
-    core6.startGroup("Analyze file paths and codeowners patterns");
-    const { fileToOwners, allOwners } = processChangedFiles(
+    core7.endGroup();
+    core7.startGroup("Analyze file paths and codeowners patterns");
+    const { unownedFiles, codeOwnersEntryToFiles } = processChangedFilesV2(
       filenames,
       codeownersFile
     );
-    core6.endGroup();
-    core6.startGroup("Get currrent state of PR reviews");
+    core7.endGroup();
+    core7.startGroup("Get currrent state of PR reviews");
     const OctokitWithGQLPagination = Octokit.plugin(paginateGraphQL);
     const octokitGQL = new OctokitWithGQLPagination({ auth: token });
-    const currentReviewStatus = await getCurrentReviewStatus(
+    const currentPRReviewState = await getCurrentReviewStatus(
       octokitGQL,
       owner,
       repo,
       prNumber
     );
-    core6.endGroup();
-    core6.startGroup("Create CODEOWNERS Summary");
-    const codeownersSummary = createReviewSummaryObject(
-      fileToOwners,
-      allOwners,
-      currentReviewStatus
+    core7.endGroup();
+    core7.startGroup("Create CODEOWNERS Summary");
+    const codeownersSummary = createReviewSummaryObjectV2(
+      currentPRReviewState,
+      codeOwnersEntryToFiles
     );
-    await formatAllReviewsSummary(codeownersSummary);
+    await formatAllReviewsSummaryByEntry(codeownersSummary);
     const summaryUrl = await getSummaryUrl(octokit, owner, repo);
     const pendingReviewMarkdown = formatPendingReviewsMarkdown(
       codeownersSummary,
       summaryUrl
     );
+    console.log("Pending Reviews Markdown:\n", pendingReviewMarkdown);
     if (process.env.CL_LOCAL_DEBUG !== "true") {
       await upsertPRComment(
         octokit,
@@ -25766,72 +25863,26 @@ async function run() {
         pendingReviewMarkdown
       );
     }
-    core6.endGroup();
+    core7.endGroup();
   } catch (error) {
-    core6.endGroup();
-    core6.setFailed(`Action failed: ${error}`);
+    core7.endGroup();
+    core7.setFailed(`Action failed: ${error}`);
   }
 }
-function createReviewSummaryObject(fileToOwners, allOwners, currentReviewStatus) {
-  const pendingOwners = new Set(allOwners);
-  const pendingFiles = new Set(Object.keys(fileToOwners));
-  const fileToStatus = {};
-  for (const [file, owners] of Object.entries(fileToOwners)) {
-    core6.info(`File: ${file} - Owners: ${owners.join(", ")}`);
-    const ownerStatuses = [];
-    for (const owner of owners) {
+function createReviewSummaryObjectV2(currentReviewStatus, codeOwnersEntryToFiles) {
+  const reviewSummary = /* @__PURE__ */ new Map();
+  for (const [entry, files] of codeOwnersEntryToFiles.entries()) {
+    const ownerReviewStatuses = [];
+    for (const owner of entry.owners) {
       const status = getReviewForStatusFor(owner, currentReviewStatus);
       if (status) {
-        ownerStatuses.push(status);
-        if (status.state === "APPROVED" /* Approved */) {
-          core6.debug(
-            `Owner ${owner} (${status.user}) has approved for file ${file}`
-          );
-          pendingOwners.delete(owner);
-          pendingFiles.delete(file);
-        }
+        ownerReviewStatuses.push(status);
       }
     }
-    fileToStatus[file] = ownerStatuses;
+    const overallStatus = getOverallState(ownerReviewStatuses);
+    reviewSummary.set(entry, { files, ownerReviewStatuses, overallStatus });
   }
-  core6.info(`Total pending owners: ${pendingOwners.size}`);
-  core6.debug(`Pending owners: ${Array.from(pendingOwners).join(", ")}`);
-  core6.info(`Total pending files: ${pendingFiles.size}`);
-  core6.debug(`Pending files: ${Array.from(pendingFiles).join(", ")}`);
-  return { fileToStatus, pendingOwners, pendingFiles, fileToOwners };
-}
-function getReviewForStatusFor(codeowner, currentReviewStatus) {
-  if (codeowner.includes("/")) {
-    const [_, teamSlug] = codeowner.split("/");
-    if (currentReviewStatus.teamLatest[teamSlug]) {
-      return {
-        state: currentReviewStatus.teamLatest[teamSlug].state,
-        user: currentReviewStatus.teamLatest[teamSlug].byUser
-      };
-    }
-    const team = currentReviewStatus.pendingTeams.find(
-      (t) => t.slug === teamSlug
-    );
-    if (!team) {
-      core6.warning(`No status found for teamslug: ${teamSlug}`);
-      return null;
-    }
-    return { state: "PENDING" /* Pending */, user: null };
-  }
-  if (currentReviewStatus.userLatest[codeowner]) {
-    return {
-      state: currentReviewStatus.userLatest[codeowner].state,
-      user: codeowner
-    };
-  }
-  const pendingUser = currentReviewStatus.pendingUsers.find(
-    (u) => u.login === codeowner
-  );
-  if (!pendingUser) {
-    core6.warning(`No status found for user: ${codeowner}`);
-    return null;
-  }
-  return { state: "PENDING" /* Pending */, user: codeowner };
+  return reviewSummary;
 }
 
 // actions/codeowners-review-analysis/src/index.ts

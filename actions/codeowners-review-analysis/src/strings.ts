@@ -1,17 +1,20 @@
 import * as core from "@actions/core";
 
-import type { ReviewSummary, OwnerReviewStatus } from "./run";
-import { PullRequestReviewState } from "./generated/graphql";
+import type { CodeownersEntry } from "./codeowners";
+import type { ProcessedCodeOwnersEntry } from "./run";
+
+import { PullRequestReviewStateExt, iconFor } from "./review-status";
 
 const LEGEND =
-  `Legend: ${iconFor(PullRequestReviewState.Approved)} Approved | ` +
-  `${iconFor(PullRequestReviewState.ChangesRequested)} Changes Requested | ` +
-  `${iconFor(PullRequestReviewState.Commented)} Commented | ` +
-  `${iconFor(PullRequestReviewState.Dismissed)} Dismissed | ` +
-  `${iconFor(PullRequestReviewState.Pending)} Pending`;
+  `Legend: ${iconFor(PullRequestReviewStateExt.Approved)} Approved | ` +
+  `${iconFor(PullRequestReviewStateExt.ChangesRequested)} Changes Requested | ` +
+  `${iconFor(PullRequestReviewStateExt.Commented)} Commented | ` +
+  `${iconFor(PullRequestReviewStateExt.Dismissed)} Dismissed | ` +
+  `${iconFor(PullRequestReviewStateExt.Pending)} Pending | ` +
+  `${iconFor(PullRequestReviewStateExt.Unknown)} Unknown`;
 
 export function formatPendingReviewsMarkdown(
-  reviewSummary: ReviewSummary,
+  entryMap: Map<CodeownersEntry, ProcessedCodeOwnersEntry>,
   summaryUrl: string,
 ): string {
   const lines: string[] = [];
@@ -20,17 +23,32 @@ export function formatPendingReviewsMarkdown(
   lines.push("");
   lines.push(LEGEND);
   lines.push("");
-  lines.push("| File Path | Overall | Owners |");
-  lines.push("| --------- | ------- | ------ |");
+  lines.push("| Codeowners Entry | Overall | Files | Owners |");
+  lines.push("| ---------------- | ------- | ----- | ------ |");
 
-  reviewSummary.pendingFiles?.forEach((file) => {
-    const owners = reviewSummary.fileToOwners[file] || ["_No owners found_"];
-    const ownerStatuses = reviewSummary.fileToStatus[file] || [];
-    const fileOverall = getOverallState(ownerStatuses);
-    const overallIcon = fileOverall ? iconFor(fileOverall) : "-";
-
-    lines.push(`| ${file} | ${overallIcon} | ${owners.join(", ")} |`);
+  const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
+    return a.lineNumber - b.lineNumber;
   });
+
+  for (const [entry, processed] of sortedEntries) {
+    const overall = processed.overallStatus;
+
+    // Only show if not satisfied (skip Approved)
+    if (overall === PullRequestReviewStateExt.Approved) {
+      continue;
+    }
+
+    const owners =
+      entry.owners && entry.owners.length > 0
+        ? entry.owners
+        : ["_No owners found_"];
+    const overallIcon = iconFor(overall);
+
+    // Just one row per entry, pattern as inline code
+    lines.push(
+      `| \`${entry.rawPattern}\` | ${overallIcon} | ${processed.files.length} |${owners.join(", ")} |`,
+    );
+  }
 
   if (summaryUrl) {
     lines.push("");
@@ -51,8 +69,8 @@ type TCell = {
 };
 type TRow = TCell[];
 
-export async function formatAllReviewsSummary(
-  summary: ReviewSummary,
+export async function formatAllReviewsSummaryByEntry(
+  entryMap: Map<CodeownersEntry, ProcessedCodeOwnersEntry>,
 ): Promise<void> {
   const headerRow: TRow = [
     { data: "File Path", header: true },
@@ -62,110 +80,84 @@ export async function formatAllReviewsSummary(
     { data: "Reviewed By", header: true },
   ];
 
-  const rows: TRow[] = [];
+  // Top-level heading & legend once
+  core.summary
+    .addHeading("Codeowners Review Details", 2)
+    .addRaw(LEGEND)
+    .addBreak();
 
-  const files = Object.keys(summary.fileToStatus || {}).sort();
-
-  for (const file of files) {
-    const ownerStatuses = summary.fileToStatus[file] || [];
-    const owners: string[] =
-      summary.fileToOwners[file] && summary.fileToOwners[file].length > 0
-        ? summary.fileToOwners[file]
-        : ["_No owners found_"];
-
-    if (ownerStatuses.length === 0) {
-      const icon =
-        owners.length === 0
-          ? iconFor("UNKNOWN")
-          : iconFor(PullRequestReviewState.Pending);
-
-      rows.push([
-        { data: file }, // filename
-        { data: icon }, // overall status
-        { data: owners[0] ?? "_No owners found_" }, // owners
-        { data: icon }, // review state
-        { data: "-" }, // reviewed by
-      ]);
+  const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
+    return a.lineNumber - b.lineNumber;
+  });
+  for (const [entry, processed] of sortedEntries) {
+    const files = (processed.files || []).slice().sort();
+    if (files.length === 0) {
+      core.warning(`No files matched CODEOWNERS entry: ${entry.pattern}`);
       continue;
     }
 
-    const fileOverall = getOverallState(ownerStatuses);
+    const owners: string[] =
+      entry.owners && entry.owners.length > 0
+        ? entry.owners
+        : ["_No owners found_"];
+    const ownerStatuses = processed.ownerReviewStatuses || [];
+    const overallIcon = iconFor(processed.overallStatus);
 
-    const rowspan = String(ownerStatuses.length);
-    const filenameCell: TCell = { data: file, rowspan };
-    const overallCell: TCell = {
-      data: iconFor(fileOverall),
-      rowspan,
-    };
+    const rows: TRow[] = [];
 
-    ownerStatuses.forEach((status, idx) => {
-      let ownerName: string;
-      if (owners.length === ownerStatuses.length) {
-        ownerName = owners[idx] ?? "_Unknown owner_";
-      } else if (owners.length === 1) {
-        ownerName = owners[0];
-      } else {
-        ownerName =
-          owners[idx] ?? owners[owners.length - 1] ?? "_Unknown owner_";
-      }
-
-      const ownerCell: TCell = { data: ownerName };
-      const stateCell: TCell = { data: iconFor(status.state) };
-      const reviewedByCell: TCell = { data: status.user ?? "-" };
-
-      if (idx === 0) {
+    for (const file of files) {
+      if (ownerStatuses.length === 0) {
         rows.push([
-          filenameCell,
-          overallCell,
-          ownerCell,
-          stateCell,
-          reviewedByCell,
+          { data: file },
+          { data: overallIcon }, // overall is per-entry
+          { data: owners[0] ?? "_No owners found_" },
+          { data: overallIcon },
+          { data: "-" },
         ]);
-      } else {
-        rows.push([ownerCell, stateCell, reviewedByCell]);
+        continue;
       }
-    });
+
+      const rowspan = String(ownerStatuses.length);
+      const filenameCell: TCell = { data: file, rowspan };
+      const overallCell: TCell = { data: overallIcon, rowspan };
+
+      ownerStatuses.forEach((status, idx) => {
+        // Align owners with statuses (same logic you had before)
+        let ownerName: string;
+        if (owners.length === ownerStatuses.length) {
+          ownerName = owners[idx] ?? "_Unknown owner_";
+        } else if (owners.length === 1) {
+          ownerName = owners[0];
+        } else {
+          ownerName =
+            owners[idx] ?? owners[owners.length - 1] ?? "_Unknown owner_";
+        }
+
+        const ownerCell: TCell = { data: ownerName };
+        const stateCell: TCell = { data: iconFor(status.state) };
+        const reviewedByCell: TCell = { data: status.actor ?? "-" };
+
+        if (idx === 0) {
+          rows.push([
+            filenameCell,
+            overallCell,
+            ownerCell,
+            stateCell,
+            reviewedByCell,
+          ]);
+        } else {
+          rows.push([ownerCell, stateCell, reviewedByCell]);
+        }
+      });
+    }
+
+    // Per-entry heading + table
+    core.summary
+      .addHeading(`${overallIcon} - <code>${entry.rawPattern}</code>`, 3)
+      .addRaw(`<p><strong>Owners:</strong> ${owners.join(", ")}</p>`)
+      .addTable([headerRow, ...rows])
+      .addBreak();
   }
 
-  await core.summary
-    .addHeading("Codeowners Review Details", 2)
-    .addRaw(LEGEND)
-    .addBreak()
-    .addTable([headerRow, ...rows])
-    .addSeparator()
-    .write();
-}
-
-function iconFor(state: PullRequestReviewState | "UNKNOWN"): string {
-  switch (state) {
-    case PullRequestReviewState.Approved:
-      return "✅";
-    case PullRequestReviewState.ChangesRequested:
-      return "❌";
-    case PullRequestReviewState.Commented:
-      return "💬";
-    case PullRequestReviewState.Dismissed:
-      return "🚫";
-    case PullRequestReviewState.Pending:
-      return "⏳";
-    default:
-      return "❓";
-  }
-}
-
-function getOverallState(
-  statuses: OwnerReviewStatus[],
-): PullRequestReviewState {
-  if (!statuses || statuses.length === 0) return PullRequestReviewState.Pending;
-  const precedence: Record<PullRequestReviewState, number> = {
-    [PullRequestReviewState.ChangesRequested]: 0,
-    [PullRequestReviewState.Approved]: 1,
-    [PullRequestReviewState.Commented]: 2,
-    [PullRequestReviewState.Dismissed]: 3,
-    [PullRequestReviewState.Pending]: 4,
-  } as const;
-
-  return statuses
-    .map((s) => s.state)
-    .sort((a, b) => (precedence[a] ?? 99) - (precedence[b] ?? 99))[0];
+  await core.summary.addSeparator().write();
 }
