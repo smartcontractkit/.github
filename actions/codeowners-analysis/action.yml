@@ -1,0 +1,14 @@
+name: codeowners-analysis
+description:
+  "Analyzes changed files for a given PR, and displays codeowners required based
+  on paths."
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
+
+inputs:
+  directory:
+    description: "Directory containing the root of the repository"
+    required: false
+    default: "./"
