@@ -1,4 +1,5 @@
 import * as core from "@actions/core";
+import * as github from "@actions/github";
 
 import type { CodeownersEntry } from "./codeowners";
 import type { ProcessedCodeOwnersEntry } from "./run";
@@ -60,6 +61,16 @@ export function formatPendingReviewsMarkdown(
       `For more details, see the [full review summary](${summaryUrl}).`,
     );
     lines.push("");
+  }
+
+  const {
+    runId,
+    repo: { owner, repo },
+  } = github.context;
+  if (runId && owner && repo) {
+    lines.push(
+      `Refresh analysis with: \`gh run rerun ${runId} -R ${owner}/${repo}\``,
+    );
   }
 
   return lines.join("\n");
