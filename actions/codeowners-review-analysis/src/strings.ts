@@ -13,6 +13,8 @@ const LEGEND =
   `${iconFor(PullRequestReviewStateExt.Pending)} Pending | ` +
   `${iconFor(PullRequestReviewStateExt.Unknown)} Unknown`;
 
+const code = (s: string) => (s.includes("`") ? "``" + s + "``" : "`" + s + "`");
+
 export function formatPendingReviewsMarkdown(
   entryMap: Map<CodeownersEntry, ProcessedCodeOwnersEntry>,
   summaryUrl: string,
@@ -44,9 +46,13 @@ export function formatPendingReviewsMarkdown(
         : ["_No owners found_"];
     const overallIcon = iconFor(overall);
 
+    const patternCell = entry.htmlLineUrl
+      ? `[${code(entry.rawPattern)}](${entry.htmlLineUrl})`
+      : code(entry.rawPattern);
+
     // Just one row per entry, pattern as inline code
     lines.push(
-      `| \`[${entry.rawPattern}](${entry.htmlLineUrl})\` | ${overallIcon} | ${processed.files.length} |${owners.join(", ")} |`,
+      `| ${patternCell} | ${overallIcon} | ${processed.files.length} |${owners.join(", ")} |`,
     );
   }
 
