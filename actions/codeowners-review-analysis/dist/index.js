@@ -25791,13 +25791,6 @@ function formatPendingReviewsMarkdown(entryMap, summaryUrl) {
   return lines.join("\n");
 }
 async function formatAllReviewsSummaryByEntry(entryMap) {
-  const headerRow = [
-    { data: "File Path", header: true },
-    { data: "Overall", header: true },
-    { data: "Owner", header: true },
-    { data: "State", header: true },
-    { data: "Reviewed By", header: true }
-  ];
   core6.summary.addHeading("Codeowners Review Details", 2).addRaw(LEGEND).addBreak();
   const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
     return a.lineNumber - b.lineNumber;
@@ -25852,11 +25845,28 @@ async function formatAllReviewsSummaryByEntry(entryMap) {
         }
       });
     }
+    const headerRow = [
+      { data: `Files (${files.length})`, header: true },
+      { data: "Overall", header: true },
+      { data: "Owner", header: true },
+      { data: "State", header: true },
+      { data: "Reviewed By", header: true }
+    ];
+    const escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const lineLink = entry.htmlLineUrl ? ` <a href="${entry.htmlLineUrl}">(#L${entry.lineNumber})</a>` : "";
+    const metaRows = [
+      [{ data: "Owners", header: true }, { data: owners.join(", ") }],
+      [
+        { data: `Entry ${lineLink}`, header: true },
+        {
+          data: `<code>${escapeHtml(entry.rawLine)}</code>`
+        }
+      ]
+    ];
     core6.summary.addHeading(
-      `${overallIcon} - <code>${entry.rawPattern}</code>${lineLink}`,
+      `${overallIcon} - <code>${escapeHtml(entry.rawPattern)}</code>`,
       3
-    ).addRaw(`<p><strong>Owners:</strong> ${owners.join(", ")}</p>`).addTable([headerRow, ...rows]).addBreak();
+    ).addTable(metaRows).addTable([headerRow, ...rows]).addBreak();
   }
   await core6.summary.addSeparator().write();
 }

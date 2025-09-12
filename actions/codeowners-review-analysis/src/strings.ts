@@ -76,14 +76,6 @@ type TRow = TCell[];
 export async function formatAllReviewsSummaryByEntry(
   entryMap: Map<CodeownersEntry, ProcessedCodeOwnersEntry>,
 ): Promise<void> {
-  const headerRow: TRow = [
-    { data: "File Path", header: true },
-    { data: "Overall", header: true },
-    { data: "Owner", header: true },
-    { data: "State", header: true },
-    { data: "Reviewed By", header: true },
-  ];
-
   // Top-level heading & legend once
   core.summary
     .addHeading("Codeowners Review Details", 2)
@@ -155,19 +147,39 @@ export async function formatAllReviewsSummaryByEntry(
       });
     }
 
-    // Optional link suffix if we have a URL
+    const headerRow: TRow = [
+      { data: `Files (${files.length})`, header: true },
+      { data: "Overall", header: true },
+      { data: "Owner", header: true },
+      { data: "State", header: true },
+      { data: "Reviewed By", header: true },
+    ];
+
+    const escapeHtml = (s: string) =>
+      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
     const lineLink = entry.htmlLineUrl
       ? ` <a href="${entry.htmlLineUrl}">(#L${entry.lineNumber})</a>`
       : "";
 
+    const metaRows: TRow[] = [
+      [{ data: "Owners", header: true }, { data: owners.join(", ") }],
+      [
+        { data: `Entry ${lineLink}`, header: true },
+        {
+          data: `<code>${escapeHtml(entry.rawLine)}</code>`,
+        },
+      ],
+    ];
+
     // Per-entry heading + table
     core.summary
       .addHeading(
-        `${overallIcon} - <code>${entry.rawPattern}</code>${lineLink}`,
+        `${overallIcon} - <code>${escapeHtml(entry.rawPattern)}</code>`,
         3,
       )
-      .addRaw(`<p><strong>Owners:</strong> ${owners.join(", ")}</p>`)
-      .addTable([headerRow, ...rows])
+      .addTable(metaRows) // grouped meta info
+      .addTable([headerRow, ...rows]) // your main details table
       .addBreak();
   }
 
