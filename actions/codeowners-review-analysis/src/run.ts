@@ -25,6 +25,7 @@ import {
   getOverallState,
   getReviewForStatusFor,
 } from "./review-status";
+import { calculateAllMinimumHittingSets } from "./hitting-sets";
 
 import type { OwnerReviewStatus } from "./review-status";
 import type { CodeownersEntry, CodeOwnersToFilesMap } from "./codeowners";
@@ -92,19 +93,20 @@ export async function run(): Promise<void> {
     core.endGroup();
 
     core.startGroup("Create CODEOWNERS Summary");
-
-    const codeownersSummary = createReviewSummaryObjectV2(
+    const codeownersSummary = createReviewSummaryObject(
       currentPRReviewState,
       codeOwnersEntryToFiles,
     );
 
-    await formatAllReviewsSummaryByEntry(codeownersSummary);
+    const minimumHittingSets =
+      calculateAllMinimumHittingSets(codeownersSummary);
+    await formatAllReviewsSummaryByEntry(codeownersSummary, minimumHittingSets);
     const summaryUrl = await getSummaryUrl(octokit, owner, repo);
     const pendingReviewMarkdown = formatPendingReviewsMarkdown(
       codeownersSummary,
       summaryUrl,
+      minimumHittingSets,
     );
-    console.log(pendingReviewMarkdown);
     if (inputs.postComment) {
       await upsertPRComment(
         octokit,
@@ -121,7 +123,7 @@ export async function run(): Promise<void> {
   }
 }
 
-function createReviewSummaryObjectV2(
+function createReviewSummaryObject(
   currentReviewStatus: CurrentReviewStatus,
   codeOwnersEntryToFiles: CodeOwnersToFilesMap,
 ): Map<CodeownersEntry, ProcessedCodeOwnersEntry> {
