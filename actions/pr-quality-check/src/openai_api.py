@@ -5,6 +5,7 @@ import time
 from typing import Any, Dict, List, Tuple, Type
 from pydantic import BaseModel
 from openai import OpenAI
+from .glob_match import matches_glob_pattern
 
 
 # Typed openai structured responses
@@ -68,12 +69,39 @@ def discover_context_for_rules(api_key: str, model: str, file_path: str, all_cha
     for r in needs:
         rid = r.get("id") or ""
         desc = r.get("description") or ""
+        # Apply optional per-rule context filter to narrow candidate files
+        cf_raw = r.get("context_filter")
+        cf_list: List[str] = []
+        if isinstance(cf_raw, str) and cf_raw.strip():
+            cf_list = [cf_raw.strip()]
+        elif isinstance(cf_raw, list):
+            cf_list = [str(x).strip() for x in cf_raw if isinstance(x, str) and str(x).strip()]
+        # Determine candidate changed files after filter (if any)
+        if cf_list:
+            candidates = [f for f in all_changed if any(matches_glob_pattern(f, pat) for pat in cf_list)]
+            if log_prompts:
+                try:
+                    print(f"Context filter for rule {rid}: patterns={cf_list} → candidates={candidates}")
+                except Exception:
+                    pass
+            if not candidates:
+                # No candidates after filter — skip LLM and record empty context for this rule
+                per_rule[rid] = {"context_files": [], "reason": "No candidate files after context_filter"}
+                continue
+        else:
+            candidates = list(all_changed)
+            if log_prompts:
+                try:
+                    print(f"Context filter for rule {rid}: no filter → all candidates={candidates}")
+                except Exception:
+                    pass
         prompt_template = load_prompt_func("context_discovery")
+        candidates_list = "\n".join([f"- {f}" for f in candidates]) if candidates else "- (none)"
         prompt = prompt_template.format(
             rule_id=rid,
             description=desc,
             file_path=file_path,
-            all_changed_files="\n".join(all_changed)
+            all_changed_files=candidates_list
         )
         if log_prompts:
             print(f"=== Context discovery prompt (rule: {rid}, file: {file_path}) ===")
@@ -86,6 +114,17 @@ def discover_context_for_rules(api_key: str, model: str, file_path: str, all_cha
             ContextModel,
         )
         files = [f for f in (j.get("context_files") or []) if isinstance(f, str)]
+        # Accept only files that are within the candidate changed files set
+        if files:
+            before = set(files)
+            files = [f for f in files if f in candidates]
+            if log_prompts and before and set(files) != before:
+                try:
+                    removed = sorted(before - set(files))
+                    kept = sorted(set(files))
+                    print(f"Context discovery filtered out non-candidate files for rule {rid}: removed={removed} kept={kept}")
+                except Exception:
+                    pass
         if files:
             context_files.extend(files)
             per_rule[rid] = {"context_files": files, "reason": j.get("reason", "")}

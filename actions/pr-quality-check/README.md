@@ -12,7 +12,10 @@ updated on every commit.
   and brace expansion.
 - **Context-aware**: For rules marked `requires_context: true`, asks a model
   which additional changed files (diffs) are needed to validate the rule; embeds
-  those patches as context. Rules with `requires_context: false` skip this call.
+  those patches as context. If a rule defines `context_filter` (glob or list of
+  globs), only changed files matching those globs are considered as candidates
+  for context and shown to the model. Model-suggested files outside the changed
+  candidates are ignored.
 - **Single updatable comment**: Posts/updates one comment per PR, with a footer
   noting the last refresh commit.
 - **Configurable models**: Configurable openAI models for context discovery and
@@ -87,8 +90,12 @@ updated on every commit.
   - `requires_context` (boolean, default: `false`): Whether the rule needs extra
     cross-file context. If `true`, the action makes one LLM call per file+rule
     to determine which changed files (if any) are needed as context. If `false`,
-    no context call is made for that rule. IMPORTANT: If `true`, the rule will
-    only be applied to newly added files.
+    no context call is made for that rule.
+  - `context_filter` (string or list of globs, optional): Restricts which
+    changed files are eligible as context for this rule (e.g., only YAMLs next
+    to a model). Only files matching these globs are passed to the model during
+    context discovery and used to compute the per-rule context fingerprint that
+    drives caching/reruns.
   - `enforce_on_new_only` (boolean, default: `false`): If `true`, the rule is
     enforced only on newly added files, not on modified ones.
   - `severity`: `error` or `warning`
@@ -130,6 +137,7 @@ rules:
         (bronze/silver/gold) in a corresponding YAML file"
       severity: "warning"
       requires_context: true
+      context_filter: ["**/*.{yml,yaml}"]
 
   # General SQL quality
   "**/*.sql":

@@ -72,10 +72,9 @@ def sanitize_patch(patch: str) -> str:
     return "\n".join(lines)
 
 
-def build_prompt(template: str, file_path: str, diff: str, rules_yaml: str, matched_patterns_desc: str, required_context_block: str) -> str:
+def build_prompt(template: str, file_path: str, diff: str, rules_yaml: str, required_context_block: str) -> str:
     """Build analysis prompt by substituting placeholders."""
     return template.format(
-        file_classification=f"Matched patterns: {matched_patterns_desc}",
         quality_rules=rules_yaml,
         context_files=required_context_block or "No additional context files needed.",
         file_path=file_path,

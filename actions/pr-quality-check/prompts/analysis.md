@@ -1,16 +1,16 @@
 You are a code quality reviewer. Analyze the following changed file against the
 quality rules provided.
 
-Context (for your reference):
-{file_classification}
 
 Quality Rules to apply (YAML):
 ```yaml
 {quality_rules}
 ```
 
+
 Context Files (if any were provided for validation):
 {context_files}
+
 
 File Being Analyzed: {file_path}
 
