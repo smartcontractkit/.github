@@ -9,7 +9,8 @@ Rule to validate:
 
 File being analyzed: {file_path}
 
-All changed files in this PR: {all_changed_files}
+All changed files in this PR: 
+{all_changed_files}
 
 Instructions:
 

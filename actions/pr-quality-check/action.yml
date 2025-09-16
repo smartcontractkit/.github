@@ -90,31 +90,14 @@ runs:
       shell: bash
       env:
         EVENT_NAME: ${{ github.event_name }}
-        # Prefer PR_NUMBER provided by the workflow (for issue_comment), fallback to PR context
-        PR_NUMBER: ${{ env.PR_NUMBER }}
         PR_NUMBER_FALLBACK: ${{ github.event.pull_request.number }}
-        IS_PR_COMMENT: ${{ github.event.issue.pull_request.url != '' }}
-        COMMENT_BODY: ${{ github.event.comment.body }}
-        PR_NUM_FROM_COMMENT: ${{ github.event.issue.number }}
       run: |
         echo "SHOULD_RUN=false" >> "$GITHUB_ENV"
-        # If PR_NUMBER is pre-set by the workflow (issue_comment path), trust it
-        if [[ -n "$PR_NUMBER" ]]; then
-          echo "SHOULD_RUN=true" >> "$GITHUB_ENV"
-          exit 0
-        fi
         # Otherwise, handle native pull_request events
         if [[ "$EVENT_NAME" == pull_request* ]] && [[ -n "$PR_NUMBER_FALLBACK" ]]; then
           echo "PR_NUMBER=$PR_NUMBER_FALLBACK" >> "$GITHUB_ENV"
           echo "SHOULD_RUN=true" >> "$GITHUB_ENV"
           exit 0
-        fi
-        # As a safety, allow direct comment-trigger inside the composite too
-        if [[ "$EVENT_NAME" == "issue_comment" && "$IS_PR_COMMENT" == "true" ]]; then
-          if echo "$COMMENT_BODY" | grep -Eqi '\\b(?:refresh|rerun)\\s+autofix\\b'; then
-            echo "PR_NUMBER=$PR_NUM_FROM_COMMENT" >> "$GITHUB_ENV"
-            echo "SHOULD_RUN=true" >> "$GITHUB_ENV"
-          fi
         fi
 
     - name: Setup Python
@@ -161,8 +144,8 @@ runs:
         HAS_PROJ: ${{ inputs.claude-code-gcp-project-id != '' }}
       run: |
         MISSING=""
-        if [ "$HAS_SA" != "true" ]; then MISSING="GCP_SERVICE_ACCOUNT_KEY"; fi
-        if [ "$HAS_PROJ" != "true" ]; then if [ -n "$MISSING" ]; then MISSING="$MISSING, "; fi; MISSING="${MISSING}GCP_PROJECT_ID"; fi
+        if [ "$HAS_SA" != "true" ]; then MISSING="claude-code-gcp-service-account-key"; fi
+        if [ "$HAS_PROJ" != "true" ]; then if [ -n "$MISSING" ]; then MISSING="$MISSING, "; fi; MISSING="${MISSING}claude-code-gcp-project-id"; fi
         if [ -z "$MISSING" ]; then
           echo "should-run-claude=true" >> $GITHUB_OUTPUT
           echo "missing=" >> $GITHUB_OUTPUT
@@ -255,7 +238,10 @@ runs:
         script: |
           const details = process.env.DETAILS || '';
           const missing = process.env.MISSING || 'Auto-fix disabled';
-          const body = ['# 🛡️ PR Quality Check', '', '## ⏸️ Auto-fix not run', '', details, '', `⚠️ Auto-fix skipped: ${missing.includes('GCP') ? 'missing required configuration (' + missing + ')' : missing}.`, 'Please set repository secret `GCP_SERVICE_ACCOUNT_KEY` and repository variable `GCP_PROJECT_ID` if you intend to enable auto-fix.'].join('\n');
+          const isDisabled = missing === 'Auto-fix disabled';
+          const reason = isDisabled ? missing : `missing required configuration (${missing})`;
+          const guidance = 'Provide inputs `claude-code-gcp-project-id` and `claude-code-gcp-service-account-key` (wire them from repository variables/secrets in your workflow).';
+          const body = ['# 🛡️ PR Quality Check', '', '## ⏸️ Auto-fix not run', '', details, '', `⚠️ Auto-fix skipped: ${reason}.`, guidance].join('\n');
           await github.rest.issues.createComment({
             owner: context.repo.owner,
             repo: context.repo.repo,
@@ -411,13 +397,26 @@ runs:
         env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
         'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
         steps.check-claude.outputs.should-run-claude == 'true' &&
-        (steps.check-fingerprint.outputs.fingerprint-changed == 'true' ||
-        steps.check-rerun.outputs.rerun-requested == 'true') &&
+        steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
       shell: bash
       run: |
         git add .
         git status --porcelain
+
+    - name: Compute short commit SHA
+      if:
+        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
+        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        steps.check-claude.outputs.should-run-claude == 'true' &&
+        steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      shell: bash
+      env:
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: |
+        SHORT="${HEAD_SHA:0:7}"
+        echo "HEAD_SHORT=$SHORT" >> "$GITHUB_ENV"
 
     - name: Create PR with auto-fixes targeting PR head branch
       id: create-autofix-pr
@@ -425,8 +424,7 @@ runs:
         env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
         'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
         steps.check-claude.outputs.should-run-claude == 'true' &&
-        (steps.check-fingerprint.outputs.fingerprint-changed == 'true' ||
-        steps.check-rerun.outputs.rerun-requested == 'true') &&
+        steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
       uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c #v6
       with:
@@ -442,7 +440,7 @@ runs:
           - Single Claude run was executed with a batched plan derived from analysis output.
           - Only files and rules listed in the plan were modified.
 
-          Based on commit: `${{ github.event.pull_request.head.sha }}`
+          Based on commit: `${{ env.HEAD_SHORT }}`
 
           Please review changes before merging.
         author:
@@ -452,13 +450,42 @@ runs:
           "pr-quality-check[bot]
           <pr-quality-check[bot]@users.noreply.github.com>"
 
+    - name: Request review from original PR author
+      if:
+        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
+        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        steps.check-claude.outputs.should-run-claude == 'true' &&
+        steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      uses: actions/github-script@v7
+      env:
+        PR_NUMBER_CREATED:
+          ${{ steps.create-autofix-pr.outputs.pull-request-number }}
+        REVIEWER_LOGIN: ${{ github.event.pull_request.user.login }}
+      with:
+        script: |
+          const prNumber = Number(process.env.PR_NUMBER_CREATED || '0');
+          const reviewer = process.env.REVIEWER_LOGIN || '';
+          if (prNumber > 0 && reviewer) {
+            try {
+              await github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                reviewers: [reviewer],
+              });
+              console.log(`Successfully requested review from ${reviewer}`);
+            } catch (e) {
+              console.log(`Could not request review from ${reviewer}: ${e?.message || String(e)}`);
+            }
+          }
+
     - name: Update auto-fix comment with PR link
       if:
         env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
         'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
         steps.check-claude.outputs.should-run-claude == 'true' &&
-        (steps.check-fingerprint.outputs.fingerprint-changed == 'true' ||
-        steps.check-rerun.outputs.rerun-requested == 'true') &&
+        steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
       uses: actions/github-script@v7
       env:

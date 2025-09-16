@@ -176,6 +176,13 @@ def main():
 
     prior_cache = _load_prior_cache() if cache_enabled else {"entries": []}
     prior_entries = prior_cache.get("entries") or []
+    
+    # Discard entire cache if config hash doesn't match
+    if cache_enabled and prior_cache.get("config_hash") != CONFIG_HASH:
+        print(f"Cache invalidated: config hash changed from {prior_cache.get('config_hash', 'none')[:8]}... to {CONFIG_HASH[:8]}...")
+        prior_entries = []
+        prior_cache = {"entries": []}
+    
     # Build per-file map from prior cache
     file_cache_by_path: Dict[str, Dict[str, Any]] = {}
     if isinstance(prior_entries, list):
@@ -237,9 +244,6 @@ def main():
             print(f"Skipping deleted file: {fpath}")
             continue
 
-        # sanitize hunk headers to remove code after @@ markers
-        patch = sanitize_patch(patch)
-
         total_files_checked += 1
 
         rules_yaml, matched_pats, filtered_rules = filter_rules_for_file(cfg, fpath, status)
@@ -247,18 +251,13 @@ def main():
         print(f"Matched patterns: {matched_patterns_desc or 'none'}")
 
         allowed_ids: List[str] = []
-        context_block = "No additional context files needed for the rules applied to this file."
         # Track which rules are allowed for this file and map by id (to access claude_code_fix)
         gated_rules: List[Dict[str, Any]] = []
 
         if filtered_rules:
             files_with_rules_count += 1
             all_ids = [r.get("id") for r in filtered_rules if r.get("id")]
-            no_ctx_ids = [r.get("id") for r in filtered_rules if r.get("id") and not bool(r.get("requires_context", False))]
-            if status == "added":
-                allowed_ids = sorted(set(all_ids))
-            else:
-                allowed_ids = sorted(set(no_ctx_ids))
+            allowed_ids = sorted(set(all_ids))
 
             # Gate rules by allowed_ids
             gated_rules = [r for r in filtered_rules if r.get("id") in allowed_ids]
@@ -279,34 +278,133 @@ def main():
                 for _r in gated_rules:
                     if not isinstance(_r, dict):
                         continue
-                    sanitized = {k: v for k, v in _r.items() if k != "auto_fix_instructions"}
+                    sanitized = {
+                    "id": _r.get("id"),
+                    "description": _r.get("description")
+                }
                     sanitized_rules.append(sanitized)
                 rules_yaml_all = _yaml.safe_dump(sanitized_rules, sort_keys=False, allow_unicode=True).strip()
             else:
                 rules_yaml_all = ""
 
-            # Only run context discovery if there are gated rules that require context
-            ctx_files: List[str] = []
-            requires_ctx_ids = [r.get("id") for r in gated_rules if bool(r.get("requires_context", False)) and r.get("id")]
-            if not requires_ctx_ids:
-                print("Context discovery: skipped (no rules require context)")
-            elif status != "added":
-                print(f"Context discovery: skipped for modified file; rules requiring context: {', '.join(requires_ctx_ids)}")
-            elif status == "added":
-                print(f"Context discovery: running for rules: {', '.join(requires_ctx_ids)}")
-                print(f"Context discovery: all changed files considered: {', '.join(all_changed_files) if all_changed_files else 'none'}")
-                ctx_files, per_rule_details = discover_context_for_rules(openai_key, model_ctx, fpath, all_changed_files, gated_rules, log_prompts, load_prompt)
-                if per_rule_details:
-                    print(">>> Context discovery results (per rule): ")
-                    for rid, details in per_rule_details.items():
-                        files_list = details.get("context_files") or []
-                        reason = details.get("reason") or ""
-                        print(f"  - {rid}: files=[{', '.join(files_list) if files_list else 'none'}] reason={reason}")
+
+        # Cache split (v2): per-file cache; reuse non-context issues when blob_sha matches
+        cached_issues_for_file: List[Dict[str, Any]] = []
+        rules_to_analyze: List[Dict[str, Any]] = []
+        cached_rule_ids: List[str] = []
+        cache_entry = file_cache_by_path.get(fpath) if cache_enabled else None
+        cache_hit = bool(cache_entry and cache_entry.get("blob_sha") == blob_sha)
+        # Pre-compute per-rule context signatures (only for rules with context_filter)
+        def _compute_ctx_sig(rule: Dict[str, Any]) -> str:
+            try:
+                cf = rule.get("context_filter")
+                pats: List[str] = []
+                if isinstance(cf, str) and cf.strip():
+                    pats = [cf.strip()]
+                elif isinstance(cf, list):
+                    pats = [str(x).strip() for x in cf if isinstance(x, str) and str(x).strip()]
+                if not pats:
+                    return ""
+                # Build signature of candidate files (filename:sha) matching the filter
+                matches: List[str] = []
+                for m in files_meta:
+                    fn = m.get("filename") or ""
+                    if not fn:
+                        continue
+                    if any(match_files([fn], pats, [])[0:1]):
+                        sh = (m.get("sha") or "")[:12]
+                        matches.append(f"{fn}:{sh}")
+                matches = sorted(set(matches))
+                import hashlib as _hash
+                return _hash.sha256("|".join(matches).encode("utf-8")).hexdigest() if matches else "-"
+            except Exception:
+                return ""
+        prior_ctx_sigs = {}
+        if cache_hit:
+            prior_ctx_sigs = cache_entry.get("ctx_sigs") or {}
+            cached_issues_for_file = list(cache_entry.get("issues") or [])
+            try:
+                print(f"Cache hit: file={fpath} sha={blob_sha[:7]} issues={len(cached_issues_for_file)}")
+            except Exception:
+                pass
+            files_cache_hits += 1
+            # Only analyze context-required rules whose filtered context signature changed
+            rules_to_analyze = []
+            for r in (gated_rules or []):
+                rid = r.get("id")
+                if not rid:
+                    continue
+                if not bool(r.get("requires_context", False)):
+                    continue
+                sig = _compute_ctx_sig(r)
+                prev_sig = str((prior_ctx_sigs or {}).get(rid) or "")
+                if sig and sig != prev_sig:
+                    rules_to_analyze.append(r)
+            cached_rule_ids = sorted({(it or {}).get("rule_id") for it in cached_issues_for_file if (it or {}).get("rule_id")})
+        else:
+            # First-time (no cache) analysis: analyze all gated rules
+            rules_to_analyze = [r for r in (gated_rules or []) if r.get("id")]
+            try:
+                print(f"No cache or blob changed: file={fpath} sha={blob_sha[:7]} → analyzing all gated rules")
+            except Exception:
+                pass
+
+        # Per-rule decision summary with explicit reasons
+        try:
+            analyze_ids = [r.get("id") for r in (rules_to_analyze or []) if r.get("id")]
+            print(f"Decision summary for {fpath} ({blob_sha[:7]}):")
+            for r in (gated_rules or []):
+                rid = r.get("id")
+                if not rid:
+                    continue
+                is_ctx = bool(r.get("requires_context", False))
+                analyzed_now = rid in (analyze_ids or [])
+                if is_ctx:
+                    curr_sig = _compute_ctx_sig(r)
+                    prev_sig = str((prior_ctx_sigs or {}).get(rid) or "")
+                    if analyzed_now:
+                        if cache_hit:
+                            prev_short = prev_sig[:8] if prev_sig else "-"
+                            curr_short = curr_sig[:8] if curr_sig else "-"
+                            reason = "context changed" if (prev_sig and curr_sig and curr_sig != prev_sig) else ("no prior context signature" if not prev_sig else "context candidates changed")
+                            print(f"  - rule {rid} [context]: analyzed ({reason}: {prev_short} -> {curr_short})")
+                        else:
+                            print(f"  - rule {rid} [context]: analyzed (no cache for file/blob or first run)")
+                    else:
+                        if cache_hit:
+                            sig_short = (prev_sig or curr_sig or "")[:8] if (prev_sig or curr_sig) else "-"
+                            print(f"  - rule {rid} [context]: served from cache (context unchanged, sig={sig_short})")
+                        else:
+                            print(f"  - rule {rid} [context]: not analyzed (no cache present and not selected)")
                 else:
-                    print(">>> Context discovery results (per rule): none")
-                if not ctx_files:
-                    print(">>> Context discovery: no context files identified")
-            if ctx_files:
+                    if analyzed_now:
+                        print(f"  - rule {rid} [no-context]: analyzed ({'file blob changed or no cache' if not cache_hit else 'forced analysis'})")
+                    else:
+                        if cache_hit:
+                            print(f"  - rule {rid} [no-context]: served from cache (file blob unchanged)")
+                        else:
+                            print(f"  - rule {rid} [no-context]: not analyzed (no cache present and not selected)")
+        except Exception:
+            pass
+
+        # Run context discovery only if we have context-required rules to analyze
+        context_block = "No additional context files provided."
+        ctx_rules_to_analyze = [r for r in rules_to_analyze if bool(r.get("requires_context", False))]
+        if ctx_rules_to_analyze:
+            print(f"Context discovery: running for rules: {', '.join([r.get('id') for r in ctx_rules_to_analyze if r.get('id')])}")
+            print(f"Context discovery: all changed files considered: {', '.join(all_changed_files) if all_changed_files else 'none'}")
+            ctx_files, per_rule_details = discover_context_for_rules(openai_key, model_ctx, fpath, all_changed_files, ctx_rules_to_analyze, log_prompts, load_prompt)
+            if per_rule_details:
+                print(">>> Context discovery results (per rule): ")
+                for rid, details in per_rule_details.items():
+                    files_list = details.get("context_files") or []
+                    reason = details.get("reason") or ""
+                    print(f"  - {rid}: files=[{', '.join(files_list) if files_list else 'none'}] reason={reason}")
+            else:
+                print(">>> Context discovery results (per rule): none")
+            if not ctx_files:
+                print(">>> Context discovery: no context files identified")
+            else:
                 blocks = []
                 for cf in ctx_files:
                     mmeta = next((x for x in files_meta if x.get("filename") == cf), {})
@@ -315,43 +413,8 @@ def main():
                         blocks.append(f"### Context Patch: {cf}\n```diff\n{cpatch}\n```")
                 if blocks:
                     context_block = "\n\n".join(blocks)
-
-        # Cache split (v2): per-file cache; reuse non-context issues when blob_sha matches
-        cached_issues_for_file: List[Dict[str, Any]] = []
-        rules_to_analyze: List[Dict[str, Any]] = []
-        cached_rule_ids: List[str] = []
-        cache_entry = file_cache_by_path.get(fpath) if cache_enabled else None
-        cache_hit = bool(cache_entry and cache_entry.get("blob_sha") == blob_sha)
-        if cache_hit:
-            cached_issues_for_file = list(cache_entry.get("issues") or [])
-            try:
-                print(f"Cache hit: file={fpath} sha={blob_sha[:7]} issues={len(cached_issues_for_file)}")
-            except Exception:
-                pass
-            files_cache_hits += 1
-            rules_to_analyze = [r for r in (gated_rules or []) if bool(r.get("requires_context", False)) and r.get("id")]
-            cached_rule_ids = sorted({(it or {}).get("rule_id") for it in cached_issues_for_file if (it or {}).get("rule_id")})
-        else:
-            rules_to_analyze = [r for r in (gated_rules or []) if r.get("id")]
-            try:
-                print(f"No cache or blob changed: file={fpath} sha={blob_sha[:7]} → analyzing all gated rules")
-            except Exception:
-                pass
-
-        # Per-file summary of cache vs analyze decisions
-        try:
-            ctx_ids_all = [r.get("id") for r in (gated_rules or []) if r.get("id") and bool(r.get("requires_context", False))]
-            noctx_ids_all = [r.get("id") for r in (gated_rules or []) if r.get("id") and not bool(r.get("requires_context", False))]
-            cached_ids_sorted = ", ".join(sorted(set(cached_rule_ids))) or "none"
-            analyze_ids = [r.get("id") for r in rules_to_analyze if r.get("id")]
-            analyze_ids_sorted = ", ".join(sorted(set(analyze_ids))) or "none"
-            print(f"Decision summary for {fpath} ({blob_sha[:7]}):")
-            print(f"  - cached (no LLM): {cached_ids_sorted}")
-            print(f"  - all non-context rules: {', '.join(sorted(set(noctx_ids_all))) or 'none'}")
-            print(f"  - all context rules: {', '.join(sorted(set(ctx_ids_all))) or 'none'}")
-            print(f"  - analyzing this run: {analyze_ids_sorted}")
-        except Exception:
-            pass
+        elif any(bool(r.get("requires_context", False)) for r in (gated_rules or [])):
+            print("Context discovery: skipped (all context rules served from cache)")
 
         # Build YAML for only rules to analyze
         rules_yaml = ""
@@ -359,39 +422,44 @@ def main():
             import yaml as _yaml
             sanitized_rules = []
             for _r in rules_to_analyze:
-                sanitized_rules.append({k: v for k, v in _r.items() if k != "auto_fix_instructions"})
+                sanitized_rules.append({
+                    "id": _r.get("id"),
+                    "description": _r.get("description")
+                })
             rules_yaml = _yaml.safe_dump(sanitized_rules, sort_keys=False, allow_unicode=True).strip()
 
         js = {"issues": []}
         if rules_to_analyze:
-            prompt = build_prompt(analysis_prompt_template, fpath, patch, rules_yaml, matched_patterns_desc, context_block)
+            # sanitize hunk headers to remove code after @@ markers
+            patch = sanitize_patch(patch)
+            prompt = build_prompt(analysis_prompt_template, fpath, patch, rules_yaml, context_block)
             if log_prompts:
                 print(f"=== Analysis prompt for: {fpath} ===")
                 print(prompt)
-            js = analyze_file_given_rules_and_context(openai_key, model_review, prompt)
-            try:
-                analyzed_ids = [r.get("id") for r in rules_to_analyze if r.get("id")]
-                if analyzed_ids:
-                    print(f"Model analyzed for {fpath} ({short_sha}): {', '.join(analyzed_ids)}")
-                    total_rules_analyzed += len(analyzed_ids)
-            except Exception:
-                pass
+                js = analyze_file_given_rules_and_context(openai_key, model_review, prompt)
+                try:
+                    analyzed_ids = [r.get("id") for r in rules_to_analyze if r.get("id")]
+                    if analyzed_ids:
+                        print(f"Model analyzed for {fpath} ({short_sha}): {', '.join(analyzed_ids)}")
+                        total_rules_analyzed += len(analyzed_ids)
+                except Exception:
+                    pass
         else:
-            if log_prompts:
-                print(f"All rules cached for: {fpath} — skipping analysis.")
+            print(f"All rules cached for: {fpath} — skipping analysis.")
 
         issues = js.get("issues") or []
         if not isinstance(issues, list):
             issues = []
-        # Merge cached non-context issues with analyzed issues
+        # Merge cached issues (both context and non-context) for rules we did NOT analyze this run
         if cached_issues_for_file:
-            nc_ids = {r.get("id") for r in (gated_rules or []) if r.get("id") and not bool(r.get("requires_context", False))}
-            cached_filtered = [it for it in cached_issues_for_file if (it or {}).get("rule_id") in nc_ids]
-            issues = list(issues) + cached_filtered
-            try:
-                cached_issues_reused += len(cached_filtered)
-            except Exception:
-                pass
+            analyzed_ids_merge = {r.get("id") for r in (rules_to_analyze or []) if r.get("id")}
+            cached_filtered = [it for it in cached_issues_for_file if (it or {}).get("rule_id") not in analyzed_ids_merge]
+            if cached_filtered:
+                issues = list(issues) + cached_filtered
+                try:
+                    cached_issues_reused += len(cached_filtered)
+                except Exception:
+                    pass
 
         # Compute counts using configured severities
         rule_by_id = {r.get("id"): r for r in (gated_rules or []) if r.get("id")}
@@ -433,8 +501,6 @@ def main():
         results_md.append("")
 
         print(f"Outcome: {errors_in_file} errors, {warnings_in_file} warnings")
-        print(" ------------------------------------------------------------")
-        print(" ------------------------------------------------------------")
 
         # Build auto-fix candidates straight from JSON issues
         try:
@@ -468,23 +534,44 @@ def main():
         except Exception as e:
             print(f"Warning: failed to build fix candidates for {fpath}: {e}")
 
-        # Update per-file cache with non-context issues (latest blob wins)
+        # Update per-file cache with all issues (latest blob wins) and persist context signatures
         try:
             if cache_enabled:
-                nc_ids = {r.get("id") for r in (gated_rules or []) if r.get("id") and not bool(r.get("requires_context", False))}
-                nc_issues = [
+                all_issues_norm = [
                     {"rule_id": (it or {}).get("rule_id"), "reason": ((it or {}).get("reason") or "").strip()}
                     for it in (issues or [])
-                    if (it or {}).get("rule_id") in nc_ids
+                    if (it or {}).get("rule_id")
                 ]
-                if (not cache_hit) or rules_to_analyze:
-                    updated_entries.append({
+                # Compute new ctx_sigs map for rules that declare context_filter
+                ctx_sigs_new: Dict[str, str] = {}
+                for r in (gated_rules or []):
+                    rid = r.get("id")
+                    if not rid or not bool(r.get("requires_context", False)):
+                        continue
+                    sig = _compute_ctx_sig(r)
+                    if sig:
+                        ctx_sigs_new[rid] = sig
+                # Determine whether we need to write an updated cache entry
+                write_cache = (not cache_hit) or bool(rules_to_analyze)
+                if cache_hit and not write_cache:
+                    # Write if context signatures changed vs prior
+                    prior_ctx = cache_entry.get("ctx_sigs") or {}
+                    if ctx_sigs_new != prior_ctx:
+                        write_cache = True
+                if write_cache:
+                    entry_obj = {
                         "path": fpath,
                         "blob_sha": blob_sha,
-                        "issues": nc_issues,
-                    })
+                        "issues": all_issues_norm,
+                    }
+                    if ctx_sigs_new:
+                        entry_obj["ctx_sigs"] = ctx_sigs_new
+                    updated_entries.append(entry_obj)
         except Exception as e:
             print(f"Warning: failed to update cache for {fpath}: {e}")
+
+        print(" ------------------------------------------------------------")
+        print(" ------------------------------------------------------------")
 
     results_md.append("## 📊 Summary")
     results_md.append("")
@@ -591,13 +678,13 @@ def main():
             for ent in (updated_entries or []):
                 if isinstance(ent, dict):
                     final_entries.append(ent)
-            if prior_cache.get("config_hash") == CONFIG_HASH and prior_cache.get("model") == model_review:
-                if isinstance(prior_entries, list):
-                    for ent in prior_entries:
-                        pth = (ent or {}).get("path")
-                        if not pth or pth in updated_paths:
-                            continue
-                        final_entries.append(ent)
+            # Since we discard cache upfront on config hash mismatch, we can simplify this
+            if isinstance(prior_entries, list):
+                for ent in prior_entries:
+                    pth = (ent or {}).get("path")
+                    if not pth or pth in updated_paths:
+                        continue
+                    final_entries.append(ent)
             cache_obj = {
                 "version": 2,
                 "model": model_review,
