@@ -92,6 +92,10 @@ inputs:
     description: ""
     required: false
     default: "."
+  artifact-name:
+    description: "prefix for artifact name"
+    required: false
+    default: "go-test"
 
 runs:
   using: composite
@@ -165,7 +169,7 @@ runs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: go-test-results
+        name: ${{ inputs.artifact-name }}-results
         path: |
           ./coverage.txt
           ./output.txt
@@ -174,5 +178,5 @@ runs:
       if: ${{ inputs.enable-go-test-race == 'true' }}
       uses: actions/upload-artifact@v4
       with:
-        name: go-test-race-results
+        name: ${{ inputs.artifact-name }}-race-results
         path: race/*.txt
