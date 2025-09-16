@@ -9,7 +9,7 @@ import {
   ValidationType,
 } from "./validation-check.js";
 
-const CURRENT_NODE_VERSION = 20;
+const OLDEST_ALLOWABLE_NODE_VERSION = 20;
 
 interface FileLineActionRef extends FileLine {
   actionReference?: ActionReference;
@@ -176,9 +176,14 @@ async function validateNodeActionVersion(
 
   const nodeVersionRegex = /^\s+using:\s*["']?node(\d{2})["']?/gm;
   const matches = nodeVersionRegex.exec(actionFile);
-  if (matches && matches[1] !== `${CURRENT_NODE_VERSION}`) {
+  if (!matches) {
+    return;
+  }
+
+  const nodeVersionParsed = parseInt(matches[1], 10);
+  if (nodeVersionParsed < OLDEST_ALLOWABLE_NODE_VERSION) {
     return {
-      message: `Action is using node${matches[1]}`,
+      message: `Action is using node${nodeVersionParsed}`,
       type: ValidationType.NODE_VERSION,
       severity: "warning",
     };
@@ -271,6 +276,7 @@ export function extractActionReferenceFromLine(
     ref: gitRef,
     comment: comment.join().trim(),
     isWorkflowFile: repoPath.endsWith(".yml") || repoPath.endsWith(".yaml"),
-    trusted: owner === "actions" || owner === "smartcontractkit",
+    trusted:
+      owner === "actions" || owner === "smartcontractkit" || owner === "github",
   };
 }

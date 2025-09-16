@@ -19,9 +19,9 @@ inputs:
     description: "openai api key"
     required: true
   openai-model:
-    description: "openai model. defaults to 'o3-mini-2025-01-31'."
+    description: "openai model. defaults to 'o4-mini-2025-04-16'."
     required: false
-    default: "o3-mini-2025-01-31"
+    default: "o4-mini-2025-04-16"
   exclude-paths:
     description: "semi-colon(;) separated paths to exclude from diff"
     required: false

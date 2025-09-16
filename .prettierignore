@@ -18,10 +18,13 @@ yarn.lock
 /apps/go-mod-validator/test/__fixtures__/
 /.nx/cache
 /.changeset/
+.github/CODEOWNERS
 
 # Don't LLM format prompt files
 /actions/llm-pr-writer/pr-writer-prompt.md
 /actions/llm-action-error-reporter/log-analyze-prompt.md
+/actions/pr-quality-check/prompts/analysis.md
+/actions/pr-quality-check/prompts/context_discovery.md
 
 # GQL generated type files
 **/src/generated/graphql.ts

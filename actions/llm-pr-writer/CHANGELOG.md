@@ -1,5 +1,14 @@
 # llm-pr-writer
 
+## 0.7.0
+
+### Minor Changes
+
+- [#1027](https://github.com/smartcontractkit/.github/pull/1027)
+  [`2ba16f3`](https://github.com/smartcontractkit/.github/commit/2ba16f39ae332105da20468e8855685ae2483a1e)
+  Thanks [@kalanyuz](https://github.com/kalanyuz)! - bump model version to
+  o4-mini
+
 ## 0.6.0
 
 ### Minor Changes

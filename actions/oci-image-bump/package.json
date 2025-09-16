@@ -1,0 +1,11 @@
+{
+  "name": "oci-image-bump",
+  "version": "1.1.0",
+  "description": "updates OCI image tag in a YAML file",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}

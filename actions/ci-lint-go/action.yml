@@ -57,9 +57,13 @@ inputs:
     required: false
     default: latest
   golangci-lint-args:
-    description: ""
+    description: "Additional args to set for golangci-lint. See inputs.golangci-lint-config
+      for config file options."
     required: false
-    default: --out-format checkstyle:golangci-lint-report.xml
+    default: --output.checkstyle.path=golangci-lint-report.xml
+  golangci-lint-config:
+    description: "Path to golangci-lint configuration file. If empty, uses the action's default config."
+    required: false
   only-new-issues:
     description: "Report only the new issues introduced in your code"
     required: false
@@ -79,7 +83,7 @@ runs:
 
     - name: Assume aws gati role
       if: inputs.use-gati == 'true'
-      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+      uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
       with:
         role-to-assume: ${{ inputs.aws-role-arn-gati }}
         role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
@@ -114,20 +118,35 @@ runs:
         cache: ${{ inputs.use-go-cache }}
         cache-dependency-path: ${{ inputs.go-cache-dep-path }}
 
+    - name: Set golangci-lint config
+      shell: bash
+      id: set-config
+      env:
+        GOLANGCI_LINT_CONFIG: ${{ inputs.golangci-lint-config }}
+      run: |
+        if [[ -z "${GOLANGCI_LINT_CONFIG}" ]]; then
+          echo "config-path=${GITHUB_ACTION_PATH}/files/golangci-default.yml" | tee -a $GITHUB_OUTPUT
+        else
+          echo "config-path=${GOLANGCI_LINT_CONFIG}" | tee -a $GITHUB_OUTPUT
+        fi
+
     - name: Setup golangci-lint
-      uses: golangci/golangci-lint-action@aaa42aa0628b4ae2578232a66b541047968fac86 # v6.1.0
+      uses: golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb7f4313a9 # v8.0.0
       with:
         version: ${{ inputs.golangci-lint-version }}
-        args: ${{ inputs.golangci-lint-args }}
+        args: >-
+          ${{ inputs.golangci-lint-args }}
+          --config=${{ steps.set-config.outputs.config-path }}
         working-directory: ${{ inputs.go-directory }}
         only-new-issues: ${{ inputs.only-new-issues }}
 
     - name: Print lint report artifact
       if: always()
       shell: bash
-      run:
-        (test -f ${{ inputs.go-directory }}/golangci-lint-report.xml && cat ${{
-        inputs.go-directory }}/golangci-lint-report.xml) || true
+      env:
+        GO_DIR: ${{ inputs.go-directory }}
+      run: |
+        (test -f "${GO_DIR}/golangci-lint-report.xml" && cat "${GO_DIR}/golangci-lint-report.xml") || true
 
     - name: Store lint report artifact
       if: always()

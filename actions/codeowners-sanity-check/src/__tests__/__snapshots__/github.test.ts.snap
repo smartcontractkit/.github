@@ -1,0 +1,87 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`checkCodeOwners > should check codeowners (invalid) 1`] = `
+{
+  "errors": [
+    {
+      "column": 31,
+      "kind": "Unknown owner",
+      "line": 2,
+      "message": "Unknown owner on line 2: make sure @tateexon exists and has write access to the repository
+
+  /chainlink-testing-framework/ @tateexon @kalverra @skudasov @anieeG @gheorghestrimtu
+                                ^",
+      "path": "CODEOWNERS",
+      "source": "/chainlink-testing-framework/ @tateexon @kalverra @skudasov @anieeG @gheorghestrimtu
+",
+      "suggestion": "make sure @tateexon exists and has write access to the repository",
+    },
+    {
+      "column": 61,
+      "kind": "Unknown owner",
+      "line": 2,
+      "message": "Unknown owner on line 2: make sure @anieeG exists and has write access to the repository
+
+  /chainlink-testing-framework/ @tateexon @kalverra @skudasov @anieeG @gheorghestrimtu
+                                                              ^",
+      "path": "CODEOWNERS",
+      "source": "/chainlink-testing-framework/ @tateexon @kalverra @skudasov @anieeG @gheorghestrimtu
+",
+      "suggestion": "make sure @anieeG exists and has write access to the repository",
+    },
+    {
+      "column": 69,
+      "kind": "Unknown owner",
+      "line": 2,
+      "message": "Unknown owner on line 2: make sure @gheorghestrimtu exists and has write access to the repository
+
+  /chainlink-testing-framework/ @tateexon @kalverra @skudasov @anieeG @gheorghestrimtu
+                                                                      ^",
+      "path": "CODEOWNERS",
+      "source": "/chainlink-testing-framework/ @tateexon @kalverra @skudasov @anieeG @gheorghestrimtu
+",
+      "suggestion": "make sure @gheorghestrimtu exists and has write access to the repository",
+    },
+    {
+      "column": 10,
+      "kind": "Unknown owner",
+      "line": 3,
+      "message": "Unknown owner on line 3: make sure @tateexon exists and has write access to the repository
+
+  /docker/ @tateexon @kalverra @skudasov @anieeG @gheorghestrimtu
+           ^",
+      "path": "CODEOWNERS",
+      "source": "/docker/ @tateexon @kalverra @skudasov @anieeG @gheorghestrimtu
+",
+      "suggestion": "make sure @tateexon exists and has write access to the repository",
+    },
+    {
+      "column": 40,
+      "kind": "Unknown owner",
+      "line": 3,
+      "message": "Unknown owner on line 3: make sure @anieeG exists and has write access to the repository
+
+  /docker/ @tateexon @kalverra @skudasov @anieeG @gheorghestrimtu
+                                         ^",
+      "path": "CODEOWNERS",
+      "source": "/docker/ @tateexon @kalverra @skudasov @anieeG @gheorghestrimtu
+",
+      "suggestion": "make sure @anieeG exists and has write access to the repository",
+    },
+    {
+      "column": 48,
+      "kind": "Unknown owner",
+      "line": 3,
+      "message": "Unknown owner on line 3: make sure @gheorghestrimtu exists and has write access to the repository
+
+  /docker/ @tateexon @kalverra @skudasov @anieeG @gheorghestrimtu
+                                                 ^",
+      "path": "CODEOWNERS",
+      "source": "/docker/ @tateexon @kalverra @skudasov @anieeG @gheorghestrimtu
+",
+      "suggestion": "make sure @gheorghestrimtu exists and has write access to the repository",
+    },
+  ],
+  "kind": "errors",
+}
+`;

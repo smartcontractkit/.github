@@ -1,5 +1,14 @@
 # nops-upgrade-checker
 
+## 0.1.2
+
+### Patch Changes
+
+- [#1135](https://github.com/smartcontractkit/.github/pull/1135)
+  [`4d506b7`](https://github.com/smartcontractkit/.github/commit/4d506b7725c274c2418cb56c70390e94f61d58e3)
+  Thanks [@chainchad](https://github.com/chainchad)! - Upgrading Dockerfile base
+  image to Python minor bump
+
 ## 0.1.1
 
 ### Patch Changes

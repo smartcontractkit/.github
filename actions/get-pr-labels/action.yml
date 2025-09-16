@@ -1,0 +1,192 @@
+name: get-pr-labels
+description:
+  "Gets the labels of a pull request and optionally checks for the existence of
+  a specific label."
+
+inputs:
+  pr-number:
+    description: |
+      The pull request number to get labels for. If not provided, the
+      action will attempt to get the pull request number from the event context.
+    required: false
+
+  check-label:
+    description: |
+      A label to check for. Optional, and will only affect the
+      "check-label-found" output if provided.
+    required: false
+
+  check-type:
+    description: |
+      Which source to check for the labels. Can be "event", "current", or "all".
+      See the outputs for more information on each source.
+    required: false
+    default: "current"
+
+  skip-merge-group:
+    description: |
+      Whether to skip the merge group event. If true, the action will not
+      attempt to get the pull request number from the merge group event.
+      All outputs will be 'false' or empty.
+    required: false
+    default: "false"
+
+outputs:
+  check-label-found:
+    description: |
+      Whether the specified label was found on the pull request. This output
+      will only be set if the `check-label` input is provided.
+    value:
+      ${{ steps.check-label.outputs.check-label-found != '' &&
+      steps.check-label.outputs.check-label-found }}
+
+  event-labels:
+    description: |
+      A string of comma separated labels on a PR. This is only available of pull_request events,
+      and it contains the labels of the pull request when the event was triggered.
+      If labels were added or removed after the event was triggered, this output
+      will not reflect those changes. Also, retried workflows maintain the labels from the original event.
+    value: ${{ steps.get-pr-labels.outputs.event-labels || '' }}
+
+  current-labels:
+    description: |
+      A string of comma separated labels on a PR. This list of labels is based on the Github API response.
+      This output will always reflect the state of the pull request at the time
+      the action was run, regardless of when the event was triggered. Useful, if you add a label
+      to the PR after the event was triggered.
+    value: ${{ steps.get-pr-labels.outputs.api-labels || '' }}
+
+  all-labels:
+    description: |
+      The combined list from event-labels and current-labels.
+    value: ${{ steps.get-pr-labels.outputs.all-labels || '' }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate Inputs
+      id: inputs
+      shell: bash
+      env:
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
+        CHECK_TYPE: ${{ inputs.check-type }}
+        SKIP_MERGE_GROUP: ${{ inputs.skip-merge-group }}
+      run: |
+        echo "::group::Validate event type"
+        if [[ "${GITHUB_EVENT_NAME}" != 'merge_group' ]] && [[ "${GITHUB_EVENT_NAME}" != 'pull_request' ]]; then
+          echo "Not running for event type: ${GITHUB_EVENT_NAME}"
+          echo "should-run=false" | tee -a $GITHUB_OUTPUT
+        elif [[ "${GITHUB_EVENT_NAME}" == 'merge_group' ]] && [[ "${SKIP_MERGE_GROUP}" == 'true' ]]; then
+          echo "Skipping merge group event"
+          echo "should-run=false" | tee -a $GITHUB_OUTPUT
+        else
+          echo "Running for event type: ${GITHUB_EVENT_NAME}"
+          echo "should-run=true" | tee -a $GITHUB_OUTPUT
+        fi
+
+        echo "::endgroup::"
+
+        echo "::group::Validate Check Type"
+        if [[ "${CHECK_TYPE}" != "event" ]] && [[ "${CHECK_TYPE}" != "current" ]] && [[ "${CHECK_TYPE}" != "all" ]]; then
+          echo "::error::Invalid check-type: ${CHECK_TYPE}. Must be 'event', 'current', or 'all'."
+          exit 1
+        fi
+        echo "::endgroup::"
+
+    - name: Get PR number
+      if: ${{ steps.inputs.outputs.should-run == 'true' }}
+      id: get-pr-number
+      shell: bash
+      env:
+        INPUT_PR_NUMBER: ${{ inputs.pr-number }}
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
+        EVENT_MERGE_GROUP_HEAD_REF:
+          ${{ github.event.merge_group.head_ref || '' }}
+        EVENT_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number || '' }}
+      run: |
+        if [[ -n "${INPUT_PR_NUMBER}" ]]; then
+          echo "PR number provided through input: ${INPUT_PR_NUMBER}"
+          echo "pr-number=${INPUT_PR_NUMBER}" | tee -a $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        if [[ "${GITHUB_EVENT_NAME}" == "merge_group" ]] && [[ -n "${EVENT_MERGE_GROUP_HEAD_REF}" ]]; then
+          # extract the PR number from a merge group branch name (queue/<base branch>/pr-<pr number>)
+          PR_NUMBER=$(echo ${EVENT_MERGE_GROUP_HEAD_REF} | grep -Eo "queue/[^/]+/pr-[0-9]+" | cut -d '/' -f3 | cut -d '-' -f2)
+          echo "PR number from merge group event: ${PR_NUMBER}"
+          echo "pr-number=${PR_NUMBER}" | tee -a $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]] && [[ -n "${EVENT_PULL_REQUEST_NUMBER}" ]]; then
+          echo "PR number from pull request event: ${EVENT_PULL_REQUEST_NUMBER}"
+          echo "pr-number=${EVENT_PULL_REQUEST_NUMBER}" | tee -a $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        echo "::error::No PR number found."
+        exit 1
+
+    - name: Get PR Labels
+      if: ${{ steps.inputs.outputs.should-run == 'true' }}
+      id: get-pr-labels
+      shell: bash
+      env:
+        PR_NUMBER: ${{ steps.get-pr-number.outputs.pr-number }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        GH_TOKEN: ${{ github.token }}
+        GITHUB_EVENT_PAYLOAD: ${{ toJson(github.event) }}
+      run: |
+        echo "::group::Get PR labels"
+        API_LABELS_JSON=$(gh pr view ${PR_NUMBER} --repo ${GITHUB_REPOSITORY} --json labels --jq '[.labels[].name]')
+        API_LABELS_CSV=$(echo ${API_LABELS_JSON} | jq -c -r 'join(",")')
+        echo "api-labels=${API_LABELS_CSV}" | tee -a $GITHUB_OUTPUT
+        echo "api-labels-json=${API_LABELS_JSON}" | tee -a $GITHUB_OUTPUT
+
+        EVENT_LABELS_JSON=$(echo ${GITHUB_EVENT_PAYLOAD} | jq -c '[(.pull_request.labels // [])[].name]')
+        EVENT_LABELS_CSV=$(echo ${EVENT_LABELS_JSON} | jq -c -r 'join(",")')
+        echo "event-labels=${EVENT_LABELS_CSV}" | tee -a $GITHUB_OUTPUT
+        echo "event-labels-json=${EVENT_LABELS_JSON}" | tee -a $GITHUB_OUTPUT
+
+        ALL_LABELS_JSON=$(jq -c -n \
+          --argjson api "${API_LABELS_JSON}" --argjson event "${EVENT_LABELS_JSON}" \
+          '$api + $event | unique'
+        )
+        ALL_LABELS_CSV=$(echo ${ALL_LABELS_JSON} | jq -c -r 'join(",")')
+        echo "all-labels=${ALL_LABELS_CSV}" | tee -a $GITHUB_OUTPUT
+        echo "all-labels-json=${ALL_LABELS_JSON}" | tee -a $GITHUB_OUTPUT
+        echo "::endgroup::"
+
+    - name: Check for label
+      id: check-label
+      if:
+        ${{ inputs.check-label != '' && steps.inputs.outputs.should-run ==
+        'true' }}
+      shell: bash
+      env:
+        EXISTS_API_LABELS: >-
+          ${{
+            steps.get-pr-labels.outputs.api-labels-json != '' &&
+            contains(fromJson(steps.get-pr-labels.outputs.api-labels-json),
+          inputs.check-label) }}
+        EXISTS_EVENT_LABELS: >-
+          ${{
+            steps.get-pr-labels.outputs.event-labels-json != '' &&
+            contains(fromJson(steps.get-pr-labels.outputs.event-labels-json),
+          inputs.check-label) }}
+        EXISTS_ALL_LABELS: >-
+          ${{
+            steps.get-pr-labels.outputs.all-labels-json != '' &&
+            contains(fromJson(steps.get-pr-labels.outputs.all-labels-json),
+          inputs.check-label) }}
+        INPUT_CHECK_TYPE: ${{ inputs.check-type }}
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
+        SKIP_MERGE_GROUP: ${{ inputs.skip-merge-group }}
+      run: |
+        if [[ "${INPUT_CHECK_TYPE}" == "event" ]]; then
+          echo "check-label-found=${EXISTS_EVENT_LABELS}" | tee -a $GITHUB_OUTPUT
+        elif [[ "${INPUT_CHECK_TYPE}" == "current" ]]; then
+          echo "check-label-found=${EXISTS_API_LABELS}" | tee -a $GITHUB_OUTPUT
+        elif [[ "${INPUT_CHECK_TYPE}" == "all" ]]; then
+          echo "check-label-found=${EXISTS_ALL_LABELS}" | tee -a $GITHUB_OUTPUT
+        fi

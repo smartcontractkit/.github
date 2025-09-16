@@ -1,0 +1,7 @@
+{
+  "name": "docker-image-patch",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "actions/docker-image-patch",
+  "targets": {}
+}

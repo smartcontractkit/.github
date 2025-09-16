@@ -59,3 +59,5 @@ exports[`ActionRefValidation > should invalidate single action reference (node16
   },
 ]
 `;
+
+exports[`ActionRefValidation > should validate single action reference (node24) 1`] = `[]`;

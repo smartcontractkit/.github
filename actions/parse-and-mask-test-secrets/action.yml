@@ -1,0 +1,24 @@
+name: parse-and-mask-test-secrets
+description:
+  "Parse base64-encoded test secrets, mask them and set as environment variables"
+
+inputs:
+  encoded_test_secrets:
+    required: true
+    description: The base64-encoded test secrets file
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: 1.21.3
+
+    - name: Parse and mask test secrets
+      shell: bash
+      env:
+        ENCODED_TEST_SECRETS: ${{ inputs.encoded_test_secrets }}
+        ACTION_PATH: ${{ github.action_path }}
+      run:
+        go run "$ACTION_PATH/mask-testsecrets/main.go" "$ENCODED_TEST_SECRETS"

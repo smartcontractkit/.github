@@ -21,10 +21,11 @@ inputs:
       Maps to a configuration file in the `configs` directory.
 
       Examples:
-        default-license-allow # fail if dependency is not in allow list
-        default-license-deny # fail if dependency is in deny list
-        default-vulnerability-check-high # fail if high severity vulnerability is found
-        default-vulnerability-check-moderate # fail if moderate severity vulnerability is found
+        license-deny-vulnerability-high # fail if dependency is in deny list and high+ severity vulnerability is found
+        license-allow # fail if dependency is not in allow list
+        license-deny # fail if dependency is in deny list
+        vulnerability-high # fail if high+ severity vulnerability is found
+        vulnerability-moderate # fail if moderate+ severity vulnerability is found
 
       NOTE: Mutually exclusive with `inputs.config-file`.
     required: false
@@ -38,6 +39,10 @@ inputs:
       Examples:
         $\{{ secrets.GITHUB_PAT }} # GitHub token that allows cross-repo `contents:read`. Use without the escape "\".
     required: false
+  show-openssf-scorecard:
+    description: Show a summary of the OpenSSF Scorecard scores.
+    required: false
+    default: "true"
 runs:
   using: composite
   steps:
@@ -76,3 +81,4 @@ runs:
       with:
         config-file: ${{ steps.set-config-file.outputs.path }}
         external-repo-token: ${{ inputs.external-repo-token }}
+        show-openssf-scorecard: ${{ inputs.show-openssf-scorecard }}

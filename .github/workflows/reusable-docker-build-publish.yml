@@ -29,7 +29,11 @@ name: Reusable Docker Build and Publish
 #         aws-region-gati: us-west-2
 #         dockerfile: Dockerfile
 #         docker-build-context: .
-#         docker-image-type: branch
+#         docker-image-tag-strip-prefix: v  # Optional: strip "v" prefix from tags
+#         docker-manifest-annotations: |  # Optional: supplement automatic annotations
+#           org.opencontainers.image.description=node of the decentralized oracle network
+#           org.opencontainers.image.licenses=NOASSERTION
+#           org.opencontainers.image.ref.name=ubuntu
 #         docker-manifest-sign: true
 #         git-sha: $\{{ github.sha }}
 #         github-event-name: $\{{ github.event_name }}
@@ -80,6 +84,12 @@ on:
         description: "AWS region for GATI (GitHub Actions Token Issuer)."
         required: false
         type: string
+      build-arm64-image:
+        description: "Enable arm64 Docker image build. Set to 'false' to disable which only
+          builds amd64 images."
+        required: false
+        type: string
+        default: "true"
       dockerfile:
         description: "Path to Dockerfile."
         required: true
@@ -88,29 +98,70 @@ on:
         description: "Docker build arguments."
         required: false
         type: string
-      docker-build-cache-disabled:
-        description: |
-          Disable Docker build cache. See `--no-cache` flag in:
-          https://docs.docker.com/engine/reference/commandline/buildx_build/#cache
+      docker-build-contexts:
+        description: "List of additional build contexts (e.g., name=path)"
         required: false
         type: string
-        default: "false"
+      docker-cache-behaviour:
+        description: |
+          Controls how the docker build cache is used.
+          - "disable" completely disables the cache.
+          - "enable" enables the cache, reading from and writing to it on every event.
+          - "write-on-trunk" enables the cache, but only writes to it on pushes to the default branch. (default)
+        required: false
+        type: string
+        default: "write-on-trunk"
       docker-build-context:
         description: "Path to Docker build context."
         required: true
         type: string
-      docker-image-type:
+      docker-image-tag-override:
         description: |
-          Generate pre-defined Docker image tags based on specified type.
+          When set, this will override the default Docker image tag.
 
-          Valid options (one of):
-            - branch
-            - manual  # workflow dispatch
-            - nightly # schedule
-            - pr
-            - sha
-            - tag
-        required: true
+          Otherwise, the tag will be generated based on the input.github-event-name.
+        required: false
+        type: string
+      docker-image-tag-strip-prefix:
+        description: |
+          When set, this prefix will be stripped from the GITHUB_REF_NAME when generating Docker image tags.
+
+          Useful for removing version prefixes like "v" from tag names.
+
+          Examples:
+            - "v" (strips "v" from "v1.0.0" to produce "1.0.0")
+        required: false
+        type: string
+      docker-manifest-annotations:
+        description: |
+          Multi-line string of annotations to add to the Docker manifest.
+          Each line should be in the format: key=value
+
+          If not provided, the following annotations will be automatically generated:
+            - org.opencontainers.image.source (from github-workflow-repository)
+            - org.opencontainers.image.url (from github-workflow-repository)
+            - org.opencontainers.image.revision (from git-sha)
+            - org.opencontainers.image.version (from docker manifest tag)
+            - org.opencontainers.image.title (from aws-ecr-name)
+
+          Even if provided, the following annotations will be automatically generated:
+            - org.opencontainers.image.created (current timestamp)
+
+          Provide this input to supplement the automatic annotations or override them
+          by specifying the same annotation keys. User-provided annotations are processed
+          after automatic ones, so they will take precedence for duplicate keys.
+
+          Uses OCI standard annotation keys. Common examples:
+            org.opencontainers.image.description=Description of the application
+            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.ref.name=ubuntu
+
+          Example:
+            docker-manifest-annotations: |
+              org.opencontainers.image.description=node of the decentralized oracle network
+              org.opencontainers.image.licenses=NOASSERTION
+              org.opencontainers.image.ref.name=ubuntu
+        required: false
         type: string
       docker-manifest-sign:
         description: "Sign docker manifest or not."
@@ -137,6 +188,8 @@ on:
           Examples:
             - "-ccip"
             - "-plugins"
+
+          NOTE: This will not be added when docker-image-tag-override is set.
         required: false
         type: string
       docker-target:
@@ -171,6 +224,14 @@ on:
             - v1.0.0            # tag on push events
         required: true
         type: string
+      github-ref-type:
+        description: |
+          > The type of ref that triggered the workflow run.
+          > Valid values are "branch" or "tag".
+
+          This is required to differentiate between branch push and tag push events.
+        required: false
+        type: string
       github-runner-amd64:
         description: |
           The GitHub Actions runner name for builds on the platform: amd64
@@ -192,13 +253,17 @@ on:
           Example: smartcontractkit/chainlink
         required: true
         type: string
-
+      timeout:
+        description: "Timeout in minutes for the Docker build job."
+        required: false
+        type: number
+        default: 30
     outputs:
       docker-image-sha-digest-amd64:
         description: "Docker image SHA digest for amd64 architecture"
         value: ${{ jobs.build-publish.outputs.docker-image-sha-digest-amd64 }}
       docker-image-sha-digest-arm64:
-        description: "Docker image SHA digest for arm64 architecture"
+        description: "Docker image SHA digest for arm64 architecture (empty if disabled)"
         value: ${{ jobs.build-publish.outputs.docker-image-sha-digest-arm64 }}
       docker-manifest-digest:
         description: "Docker manifest digest"
@@ -221,6 +286,9 @@ jobs:
       date: ${{ steps.get-date.outputs.date }}
       git-short-sha: ${{ steps.git-short-sha.outputs.short-sha }}
       pr-number: ${{ steps.set-extra-outputs.outputs.pr-number }}
+      build-type: ${{ steps.set-extra-outputs.outputs.build-type }}
+      docker-restore-cache: ${{ steps.should-cache.outputs.docker-restore-cache }}
+      docker-save-cache: ${{ steps.should-cache.outputs.docker-save-cache }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -254,32 +322,98 @@ jobs:
         env:
           GITHUB_EVENT_NAME: ${{ inputs.github-event-name }}
           GITHUB_REF_NAME: ${{ inputs.github-ref-name }}
+          GITHUB_REF_TYPE: ${{ inputs.github-ref-type }}
         run: |
-          echo "Setting extra outputs..."
-          if [[ "${GITHUB_EVENT_NAME:-}" == "pull_request" ]]; then
+          echo "Setting build type outputs..."
+          if [[ "${GITHUB_EVENT_NAME}" == "schedule" ]]; then
+            echo "build-type=nightly" | tee -a "$GITHUB_OUTPUT"
+          elif [[ "${GITHUB_EVENT_NAME}" == 'push' ]]; then
+            if [[ "${GITHUB_REF_TYPE}" == 'tag' ]]; then
+              echo "build-type=tag" | tee -a "$GITHUB_OUTPUT"
+            else
+              echo "build-type=branch" | tee -a "$GITHUB_OUTPUT"
+            fi
+          elif [[ "${GITHUB_EVENT_NAME}" == 'pull_request' ]]; then
             pr_number=$(echo "${GITHUB_REF_NAME}" | cut -d'/' -f1)
-            echo "pr-number=${pr_number}" | tee -a "${GITHUB_OUTPUT}"
+            echo "pr-number=${pr_number}" | tee -a "$GITHUB_OUTPUT"
+            echo "build-type=pr" | tee -a "$GITHUB_OUTPUT"
+          elif [[ "${GITHUB_EVENT_NAME}" == 'workflow_dispatch' ]]; then
+            echo "build-type=manual" | tee -a "$GITHUB_OUTPUT"
+          else
+            echo "::error::Unsupported GitHub event name: ${GITHUB_EVENT_NAME}"
+            exit 1
           fi
+
+      - name: Get repo trunk branch
+        id: get-trunk
+        if: ${{ inputs.docker-cache-behaviour == 'write-on-trunk' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
+        run: |
+          trunk=$(gh repo view "${GITHUB_WORKFLOW_REPOSITORY}" --json defaultBranchRef --jq .defaultBranchRef.name)
+          if [[ -z "${trunk}" ]]; then
+            echo "::warning::Failed to get trunk branch using gh cli. Defaulting to 'main'."
+            trunk="main"
+          fi
+          echo "trunk=${trunk}" | tee -a "${GITHUB_OUTPUT}"
+
+      - name: Check docker cache constraints
+        id: should-cache
+        env:
+          GITHUB_REF_NAME: ${{ inputs.github-ref-name }}
+          GITHUB_EVENT_NAME: ${{ inputs.github-event-name }}
+          REPO_TRUNK: ${{ steps.get-trunk.outputs.trunk }}
+          DOCKER_CACHE_BEHAVIOUR: ${{ inputs.docker-cache-behaviour }}
+        run: |
+          if [[ "${DOCKER_CACHE_BEHAVIOUR}" == "disable" ]]; then
+            echo "docker-restore-cache=false" | tee -a "${GITHUB_OUTPUT}"
+            echo "docker-save-cache=false" | tee -a "${GITHUB_OUTPUT}"
+          elif [[ "${DOCKER_CACHE_BEHAVIOUR}" == "enable" ]]; then
+            echo "docker-restore-cache=true" | tee -a "${GITHUB_OUTPUT}"
+            echo "docker-save-cache=true" | tee -a "${GITHUB_OUTPUT}"
+          elif [[ "${DOCKER_CACHE_BEHAVIOUR}" == "write-on-trunk" ]]; then
+              echo "docker-restore-cache=true" | tee -a "${GITHUB_OUTPUT}"
+            if [[ "${GITHUB_REF_NAME}" == "${REPO_TRUNK}" ]] && [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+              echo "docker-save-cache=true" | tee -a "${GITHUB_OUTPUT}"
+            else
+              echo "docker-save-cache=false" | tee -a "${GITHUB_OUTPUT}"
+            fi
+          else
+            echo "::error::Invalid DOCKER_CACHE_BEHAVIOUR: ${DOCKER_CACHE_BEHAVIOUR}. Must be one of: disabled, enabled, write-on-trunk."
+            exit 1
+          fi
+
+  set-build-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        env:
+          GITHUB_RUNNER_AMD64: ${{ inputs.github-runner-amd64 }}
+          GITHUB_RUNNER_ARM64: ${{ inputs.github-runner-arm64 }}
+          BUILD_ARM64_IMAGE: ${{ inputs.build-arm64-image }}
+        run: |
+          matrix="[{\"runner\":\"${GITHUB_RUNNER_AMD64}\",\"arch\":\"amd64\"}"
+          if [[ "${BUILD_ARM64_IMAGE}" == "true" ]]; then
+            matrix+=",{\"runner\":\"${GITHUB_RUNNER_ARM64}\",\"arch\":\"arm64\"}"
+          fi
+          matrix+="]"
+          echo "matrix=$matrix" | tee -a "$GITHUB_OUTPUT"
 
   build-publish:
     name: build-publish-${{ matrix.arch }}
-    needs: init
+    needs: [init, set-build-matrix]
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 30
+    timeout-minutes: ${{ inputs.timeout }}
     strategy:
       matrix:
-        include:
-          - runner: ${{ inputs.github-runner-amd64 }}
-            arch: amd64
-          - runner: ${{ inputs.github-runner-arm64}}
-            arch: arm64
+        include: ${{ fromJson(needs.set-build-matrix.outputs.matrix) }}
     outputs:
-      docker-image-sha-digest-amd64:
-        ${{ steps.build.outputs.docker-image-sha-digest-amd64 }}
-      docker-image-sha-digest-arm64:
-        ${{ steps.build.outputs.docker-image-sha-digest-arm64 }}
-      docker-manifest-tag:
-        ${{ steps.set-docker-image-tags.outputs.docker-manifest-tag }}
+      docker-image-sha-digest-amd64: ${{ steps.build.outputs.docker-image-sha-digest-amd64 }}
+      docker-image-sha-digest-arm64: ${{ steps.build.outputs.docker-image-sha-digest-arm64 }}
+      docker-manifest-tag: ${{ steps.set-docker-image-tags.outputs.docker-manifest-tag }}
     steps:
       - uses: actions/checkout@v4
         id: checkout
@@ -293,50 +427,67 @@ jobs:
         id: set-docker-image-tags
         env:
           DATE: ${{ needs.init.outputs.date }}
-          DOCKER_IMAGE_TYPE: ${{ inputs.docker-image-type }}
+          DOCKER_IMAGE_TAG_OVERRIDE: ${{ inputs.docker-image-tag-override }}
+          DOCKER_IMAGE_TAG_STRIP_PREFIX: ${{ inputs.docker-image-tag-strip-prefix }}
+          DOCKER_IMAGE_TYPE: ${{ needs.init.outputs.build-type }}
           DOCKER_TAG_CUSTOM_SUFFIX: ${{ inputs.docker-tag-custom-suffix }}
           GIT_SHORT_SHA: ${{ needs.init.outputs.git-short-sha }}
           GITHUB_REF_NAME: ${{ inputs.github-ref-name }}
           MATRIX_ARCH: ${{ matrix.arch }}
           PR_NUMBER: ${{ needs.init.outputs.pr-number }}
         run: |
-          case "${DOCKER_IMAGE_TYPE:-}" in
-            branch)
-              # Examples: main-d34db33 or main-d34db33-custom-suffix
-              tag_value="${GITHUB_REF_NAME}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
-              ;;
-            manual)
-              # Examples: manual-d34db33 or manual-d34db33-custom-suffix
-              tag_value="manual-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
-              ;;
-            nightly)
-              # Examples: nightly-20250307 or nightly-20250307-custom-suffix
-              tag_value="nightly-${DATE}${DOCKER_TAG_CUSTOM_SUFFIX}"
-              ;;
-            pr)
-              # Examples: pr-123-d34db33 or pr-123-d34db33-custom-suffix
-              if [[ -z "${PR_NUMBER:-}" ]]; then echo "::error::GITHUB_EVENT_NAME is pull_request but PR_NUMBER is not set"; exit 1; fi
-              tag_value="pr-${PR_NUMBER}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
-              ;;
-            sha)
-              # Examples: sha-d34db33 or sha-d34db33-custom-suffix
-              tag_value="sha-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
-              ;;
-            tag)
-              # Examples: v1.0.0 or v1.0.0-custom-suffix
-              tag_value="${GITHUB_REF_NAME}${DOCKER_TAG_CUSTOM_SUFFIX}"
-              ;;
-            *)
-              echo "::error::Invalid docker image type: ${DOCKER_IMAGE_TYPE}. Must be one of: branch, manual, nightly, pr, sha, tag."
-              exit 1
-              ;;
-          esac
+          # Apply tag prefix stripping if specified
+          ref_name="${GITHUB_REF_NAME}"
+          if [[ -n "${DOCKER_IMAGE_TAG_STRIP_PREFIX:-}" ]]; then
+            echo "Stripping prefix '${DOCKER_IMAGE_TAG_STRIP_PREFIX}' from ref name '${ref_name}'"
+            ref_name="${ref_name#"${DOCKER_IMAGE_TAG_STRIP_PREFIX}"}"
+            echo "Ref name after stripping: '${ref_name}'"
+          fi
+
+          if [[ -n "${DOCKER_IMAGE_TAG_OVERRIDE:-}" ]]; then
+            echo "Using override tag: ${DOCKER_IMAGE_TAG_OVERRIDE}"
+            tag_value="${DOCKER_IMAGE_TAG_OVERRIDE}"
+          else
+            # If no override, determine tag based on build type
+            case "${DOCKER_IMAGE_TYPE:-}" in
+              branch)
+                # Examples: main-d34db33 or main-d34db33-custom-suffix
+                tag_value="${ref_name}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              manual)
+                # Examples: manual-d34db33 or manual-d34db33-custom-suffix
+                tag_value="manual-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              nightly)
+                # Examples: nightly-20250307 or nightly-20250307-custom-suffix
+                tag_value="nightly-${DATE}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              pr)
+                # Examples: pr-123-d34db33 or pr-123-d34db33-custom-suffix
+                if [[ -z "${PR_NUMBER:-}" ]]; then echo "::error::GITHUB_EVENT_NAME is pull_request but PR_NUMBER is not set"; exit 1; fi
+                tag_value="pr-${PR_NUMBER}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              sha)
+                # Examples: sha-d34db33 or sha-d34db33-custom-suffix
+                tag_value="sha-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              tag)
+                # Examples: v1.0.0 or v1.0.0-custom-suffix (or 1.0.0 if prefix stripped)
+                tag_value="${ref_name}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                ;;
+              *)
+                echo "::error::Invalid docker image type: ${DOCKER_IMAGE_TYPE}. Must be one of: branch, manual, nightly, pr, sha, tag."
+                exit 1
+                ;;
+            esac
+          fi
+
           if ! [[ "${tag_value}-${MATRIX_ARCH}" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
             echo "::error::Invalid Docker tag value: ${tag_value}-${MATRIX_ARCH}."
             exit 1
           fi
           # Append the arch (example: "-arm64") to the tag value.
-          tags="type=raw,value=${tag_value}-${MATRIX_ARCH}"                
+          tags="type=raw,value=${tag_value}-${MATRIX_ARCH}"
           echo "tags=${tags}" | tee -a "${GITHUB_OUTPUT}"
           # This will be used to generate the docker manifest tag in a future
           # job (without the arch suffix).
@@ -366,7 +517,7 @@ jobs:
 
       - name: Docker image build
         id: build
-        uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/0.6.1
+        uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/0.9.0
         with:
           platform: ${{ format('linux/{0}', matrix.arch) }}
           docker-registry-url: >-
@@ -383,8 +534,10 @@ jobs:
           tags: ${{ steps.set-docker-image-tags.outputs.tags }}
           dockerfile: ${{ inputs.dockerfile }}
           docker-build-args: ${{ inputs.docker-build-args }}
-          docker-build-cache-disabled: ${{ inputs.docker-build-cache-disabled }}
+          docker-restore-cache: ${{ needs.init.outputs.docker-restore-cache }}
+          docker-save-cache: ${{ needs.init.outputs.docker-save-cache }}
           context: ${{ inputs.docker-build-context }}
+          docker-build-contexts: ${{ inputs.docker-build-contexts }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
           aws-region: ${{ inputs.aws-region-ecr }}
@@ -400,7 +553,98 @@ jobs:
       name: ${{ steps.docker-manifest.outputs.manifest-name }}
       tag: ${{ steps.docker-manifest.outputs.manifest-tag }}
     steps:
-      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@build-push-docker-manifest/0.2.0
+      - name: Prepare image digests for manifest
+        id: prepare-digests
+        env:
+          DOCKER_IMAGE_SHA_DIGEST_AMD64: ${{ needs.build-publish.outputs.docker-image-sha-digest-amd64 }}
+          DOCKER_IMAGE_SHA_DIGEST_ARM64: ${{ needs.build-publish.outputs.docker-image-sha-digest-arm64 }}
+          BUILD_ARM64_IMAGE: ${{ inputs.build-arm64-image }}
+        run: |
+          # Set default empty arm64 digest
+          echo "arm64_digest=" >> "$GITHUB_OUTPUT"
+
+          # Always include the AMD64 build
+          amd64_digest="${DOCKER_IMAGE_SHA_DIGEST_AMD64}"
+          echo "amd64_digest=$amd64_digest" | tee -a "$GITHUB_OUTPUT"
+
+          image_digests="$amd64_digest"
+
+          # Only include ARM64 if enabled and build succeeded
+          if [[ "${BUILD_ARM64_IMAGE}" == "true" ]]; then
+            arm64_digest="${DOCKER_IMAGE_SHA_DIGEST_ARM64}"
+            if [[ -n "$arm64_digest" ]]; then
+              image_digests="$image_digests,$arm64_digest"
+              echo "arm64_digest=$arm64_digest" | tee -a "$GITHUB_OUTPUT"
+            fi
+          fi
+
+          echo "image_digests=$image_digests" | tee -a "$GITHUB_OUTPUT"
+
+      - name: Generate manifest annotations
+        id: generate-manifest-annotations
+        env:
+          USER_ANNOTATIONS: ${{ inputs.docker-manifest-annotations }}
+          GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
+          GIT_SHA: ${{ inputs.git-sha }}
+          DOCKER_MANIFEST_TAG: ${{ needs.build-publish.outputs.docker-manifest-tag }}
+          AWS_ECR_NAME: ${{ inputs.aws-ecr-name }}
+        run: |
+          # Use associative array to store the annotations.
+          declare -A annotations
+
+          # Set the default annotations - can be overridden.
+          echo "Adding default annotations..."
+          annotations["org.opencontainers.image.source"]="https://github.com/${GITHUB_WORKFLOW_REPOSITORY}"
+          annotations["org.opencontainers.image.url"]="https://github.com/${GITHUB_WORKFLOW_REPOSITORY}"
+          annotations["org.opencontainers.image.revision"]="${GIT_SHA}"
+          annotations["org.opencontainers.image.version"]="${DOCKER_MANIFEST_TAG}"
+          annotations["org.opencontainers.image.title"]="${AWS_ECR_NAME}"
+
+          for key in "${!annotations[@]}"; do
+            echo "  Added default annotation: $key=${annotations[$key]}"
+          done
+
+          # Process user supplied annotations (will override defaults if keys match).
+          if [[ -n "${USER_ANNOTATIONS:-}" ]]; then
+            echo "Processing user-provided annotations..."
+            while IFS= read -r line; do
+              # Skip empty lines and comments.
+              if [[ -n "$line" && ! "$line" =~ ^[[:space:]]*# ]]; then
+                # Validate format: key=value.
+                if [[ "$line" =~ ^([^=]+)=(.*)$ ]]; then
+                  key="${BASH_REMATCH[1]}"
+                  value="${BASH_REMATCH[2]}"
+                  annotations["$key"]="$value"
+                  echo "  Added user annotation: $key=$value"
+                else
+                  echo "  WARNING: Skipping invalid annotation format: $line"
+                fi
+              fi
+            done <<< "$USER_ANNOTATIONS"
+          fi
+
+          # Force certain annotations (cannot be overridden by users).
+          timestamp_annotation="org.opencontainers.image.created=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)"
+          annotations["org.opencontainers.image.created"]="${timestamp_annotation#*=}"
+          echo "  Added forced annotation: org.opencontainers.image.created=${annotations["org.opencontainers.image.created"]}"
+
+          # Convert associative array to multiline string for output
+          final_annotations=""
+          for key in "${!annotations[@]}"; do
+            final_annotations+="$key=${annotations[$key]}"$'\n'
+          done
+
+          # Remove trailing newline
+          final_annotations="${final_annotations%$'\n'}"
+
+          # Output the combined annotations.
+          {
+            echo "manifest-annotations<<EOF"
+            echo "$final_annotations"
+            echo "EOF"
+          } | tee -a "$GITHUB_OUTPUT"
+
+      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@build-push-docker-manifest/0.3.1
         id: docker-manifest
         with:
           # Avoid using `github.workflow_ref` here because the `cosign sign`
@@ -418,16 +662,10 @@ jobs:
             }}
           docker-repository-name: ${{ inputs.aws-ecr-name }}
           docker-manifest-sign: ${{ inputs.docker-manifest-sign }}
-          docker-manifest-tag:
-            ${{ needs.build-publish.outputs.docker-manifest-tag }}
-          docker-image-name-digests: >-
-            ${{
-                format('{0},{1}',
-                  needs.build-publish.outputs.docker-image-sha-digest-amd64,
-                  needs.build-publish.outputs.docker-image-sha-digest-arm64
-                )
-            }}
+          docker-manifest-tag: ${{ needs.build-publish.outputs.docker-manifest-tag }}
+          docker-image-name-digests: ${{ steps.prepare-digests.outputs.image_digests }}
           github-workflow-repository: ${{ inputs.github-workflow-repository }}
+          manifest-annotations: ${{ steps.generate-manifest-annotations.outputs.manifest-annotations }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
           aws-region: ${{ inputs.aws-region-ecr }}

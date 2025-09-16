@@ -1,5 +1,41 @@
 # changesets-signed-commits
 
+## 1.7.2
+
+### Patch Changes
+
+- [#1157](https://github.com/smartcontractkit/.github/pull/1157)
+  [`521bc44`](https://github.com/smartcontractkit/.github/commit/521bc449ab3e07be22d841146de0e75a81c7ee38)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump depedency
+  @octokit/plugin-throttling
+
+## 1.7.1
+
+### Patch Changes
+
+- [#1042](https://github.com/smartcontractkit/.github/pull/1042)
+  [`29c7cf2`](https://github.com/smartcontractkit/.github/commit/29c7cf2f07b2280c7ca2e04883b2b32b5d0d9972)
+  Thanks [@chainchad](https://github.com/chainchad)! - Update to patched version
+  of vitest
+
+## 1.7.0
+
+### Minor Changes
+
+- [#1069](https://github.com/smartcontractkit/.github/pull/1069)
+  [`5dbee42`](https://github.com/smartcontractkit/.github/commit/5dbee425073faf71d4aaad45e43a436d9498db92)
+  Thanks [@chainchad](https://github.com/chainchad)! - Support scoped name
+  package git tags
+
+## 1.6.0
+
+### Minor Changes
+
+- [#1059](https://github.com/smartcontractkit/.github/pull/1059)
+  [`53922da`](https://github.com/smartcontractkit/.github/commit/53922da1e74d5047320d49bd4ab584ed4a7f78cf)
+  Thanks [@chainchad](https://github.com/chainchad)! - Support a designated root
+  package to use a git tag without package name prefix
+
 ## 1.5.0
 
 ### Minor Changes

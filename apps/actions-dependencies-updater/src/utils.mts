@@ -73,11 +73,13 @@ export function guessLatestVersion(
   }
 
   // Sort the versions by comparing major, minor, and patch numbers
-  const filteredSortedVersions = versions.filter(v => (!v.prerelease)).sort((a, b) => {
-    if (a.major !== b.major) return a.major - b.major;
-    if (a.minor !== b.minor) return a.minor - b.minor;
-    return a.patch - b.patch;
-  });
+  const filteredSortedVersions = versions
+    .filter((v) => !v.prerelease)
+    .sort((a, b) => {
+      if (a.major !== b.major) return a.major - b.major;
+      if (a.minor !== b.minor) return a.minor - b.minor;
+      return a.patch - b.patch;
+    });
 
   return filteredSortedVersions[filteredSortedVersions.length - 1];
 }
@@ -110,13 +112,27 @@ export function parseTagToVersion(tag: string) {
   const match = tag.match(versionRegex);
   if (match) {
     const major = match[1];
-    const minor = match[2] || '0'; // Default to '0' if not present
-    const patch = match[3] || '0'; // Default to '0' if not present
+    const minor = match[2] || "0"; // Default to '0' if not present
+    const patch = match[3] || "0"; // Default to '0' if not present
 
-    return { major: parseInt(major), minor: parseInt(minor), patch: parseInt(patch), prefix: prefix, tag: originalTag, prerelease: isPrerelease};
+    return {
+      major: parseInt(major),
+      minor: parseInt(minor),
+      patch: parseInt(patch),
+      prefix: prefix,
+      tag: originalTag,
+      prerelease: isPrerelease,
+    };
   }
 
-  return { major: 0, minor: 0, patch: 0, prefix: 'v', tag: 'error', prerelease: true };
+  return {
+    major: 0,
+    minor: 0,
+    patch: 0,
+    prefix: "v",
+    tag: "error",
+    prerelease: true,
+  };
 }
 
 /**

@@ -59,6 +59,13 @@ inputs:
       pkg/1.2.0.
     required: false
     default: "false"
+  rootVersionPackagePath:
+    description: |
+      Path to a package.json file that should use simplified v<version> tags 
+      instead of <name><separator><version> tags. The package.json must have 
+      chainlink.changesets.rootVersion set to true. If this path is provided 
+      but the field is not set correctly, the action will fail.
+    required: false
 
 outputs:
   published:

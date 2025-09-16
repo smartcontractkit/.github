@@ -6,7 +6,6 @@ $.verbose = false;
 
 export async function prepareRepository(ctx: RunContext) {
   await performInDir(ctx.repoDir, async () => {
-
     if (ctx.git.reset) {
       await $`git reset --hard HEAD`;
     }
@@ -60,7 +59,10 @@ export async function commit(ctx: RunContext, message: string) {
   });
 }
 
-async function performInDir<T>(repositoryDirectory: string, fn: () => Promise<T>) {
+async function performInDir<T>(
+  repositoryDirectory: string,
+  fn: () => Promise<T>,
+) {
   const prevDir = (await $`pwd`).stdout.trim();
   cd(repositoryDirectory);
 

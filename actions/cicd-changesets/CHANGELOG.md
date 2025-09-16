@@ -1,5 +1,41 @@
 # cicd-changesets
 
+## 1.1.3
+
+### Patch Changes
+
+- [#1202](https://github.com/smartcontractkit/.github/pull/1202)
+  [`2b6a2fa`](https://github.com/smartcontractkit/.github/commit/2b6a2fa519ea0a54ec96ecf90f18f8c69366dcda)
+  Thanks [@erikburt](https://github.com/erikburt)! - bump
+  aws-actions/configure-aws-credentials to v5.0.0
+
+## 1.1.2
+
+### Patch Changes
+
+- [#1071](https://github.com/smartcontractkit/.github/pull/1071)
+  [`74e0d7d`](https://github.com/smartcontractkit/.github/commit/74e0d7dd554230852b7b7a9037ab4269a463da70)
+  Thanks [@chainchad](https://github.com/chainchad)! - Use latest changesets
+  action with fix to scoped package names
+
+## 1.1.1
+
+### Patch Changes
+
+- [#1066](https://github.com/smartcontractkit/.github/pull/1066)
+  [`762b619`](https://github.com/smartcontractkit/.github/commit/762b61909a8bbf032b013474540b2bab10849d48)
+  Thanks [@chainchad](https://github.com/chainchad)! - Update dependency for
+  changesets signed commits action
+
+## 1.1.0
+
+### Minor Changes
+
+- [#1022](https://github.com/smartcontractkit/.github/pull/1022)
+  [`e663727`](https://github.com/smartcontractkit/.github/commit/e6637277f985dc4e37a7dd4edcc7e4519d96afcb)
+  Thanks [@chainchad](https://github.com/chainchad)! - Bump default version of
+  pnpm to 10
+
 ## 1.0.0
 
 ### Major Changes
