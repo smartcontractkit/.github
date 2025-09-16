@@ -1,5 +1,14 @@
 # ci-test-go
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1221](https://github.com/smartcontractkit/.github/pull/1221)
+  [`dfcba48`](https://github.com/smartcontractkit/.github/commit/dfcba48f05933158428bce867d790e3d5a9baa6b)
+  Thanks [@kdihalas](https://github.com/kdihalas)! - update artifact name to
+  support matrix strategy
+
 ## 1.0.1
 
 ### Patch Changes
