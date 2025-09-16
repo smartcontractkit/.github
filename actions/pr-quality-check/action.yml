@@ -415,7 +415,9 @@ runs:
       env:
         HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       run: |
-        SHORT="${HEAD_SHA:0:7}"
+        # Sanitize HEAD_SHA: allow only hexadecimal characters, then take first 7
+        SAFE_HEAD_SHA="$(echo "$HEAD_SHA" | tr -cd '0-9a-fA-F')"
+        SHORT="${SAFE_HEAD_SHA:0:7}"
         echo "HEAD_SHORT=$SHORT" >> "$GITHUB_ENV"
 
     - name: Create PR with auto-fixes targeting PR head branch
