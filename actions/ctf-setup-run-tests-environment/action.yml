@@ -188,7 +188,7 @@ runs:
 
     - name: Install Sui CLI
       if: inputs.sui_cli_version
-      uses: smartcontractkit/chainlink/.github/actions/setup-sui@15d6a908a60b195f508a080a909c595b1d2eb2cb # not merged yet
+      uses: smartcontractkit/chainlink/.github/actions/setup-sui@70abcce3f24f49a9cf2246f6544754e8b511509d # not merged yet
       with:
         version: ${{ inputs.sui_cli_version }}
 
