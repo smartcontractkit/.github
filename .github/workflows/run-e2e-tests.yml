@@ -1270,7 +1270,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@b261c4ee2f460bab1f7468c9841e587334229070
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ba226d862a82429f41f14e5ed64f37be120b96e4
         with:
           test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
