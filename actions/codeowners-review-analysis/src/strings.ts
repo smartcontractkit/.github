@@ -56,7 +56,7 @@ export function formatPendingReviewsMarkdown(
     );
   }
 
-  const recommendations = getReviewerRecommendations(minimumHittingSets, 2);
+  const recommendations = getReviewRecos(entryMap, minimumHittingSets, 2);
   if (recommendations.length > 0) {
     lines.push("");
     lines.push("### Reviewer Recommendations");
@@ -109,7 +109,7 @@ export async function formatAllReviewsSummaryByEntry(
     .addRaw(LEGEND)
     .addBreak();
 
-  const recommendations = getReviewerRecommendations(minimumHittingSets, 10);
+  const recommendations = getReviewRecos(entryMap, minimumHittingSets, 10);
   if (recommendations.length > 0) {
     core.summary.addHeading(
       `Reviewer Recommendations (${recommendations.length} of ${minimumHittingSets.size})`,
@@ -223,12 +223,19 @@ export async function formatAllReviewsSummaryByEntry(
   await core.summary.addSeparator().write();
 }
 
-function getReviewerRecommendations(
+function getReviewRecos(
+  entryMap: Map<CodeownersEntry, ProcessedCodeOwnersEntry>,
   minimumHittingSets: Set<string[]>,
   limit: number = 3,
 ): string[] {
-  // Return early if no hitting sets
   if (minimumHittingSets.size === 0) {
+  // Return early if no hitting sets
+    return [];
+  }
+
+  const numEntries = entryMap.size;
+  if (numEntries <= 1) {
+    // Return early for trivial cases
     return [];
   }
 

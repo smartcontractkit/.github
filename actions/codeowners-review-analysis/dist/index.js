@@ -25782,7 +25782,7 @@ function formatPendingReviewsMarkdown(entryMap, summaryUrl, minimumHittingSets) 
       `| ${patternCell} | ${overallIcon} | ${processed.files.length} |${owners.join(", ")} |`
     );
   }
-  const recommendations = getReviewerRecommendations(minimumHittingSets, 2);
+  const recommendations = getReviewRecos(entryMap, minimumHittingSets, 2);
   if (recommendations.length > 0) {
     lines.push("");
     lines.push("### Reviewer Recommendations");
@@ -25814,7 +25814,7 @@ function formatPendingReviewsMarkdown(entryMap, summaryUrl, minimumHittingSets) 
 }
 async function formatAllReviewsSummaryByEntry(entryMap, minimumHittingSets) {
   core6.summary.addHeading("Codeowners Review Details", 2).addRaw(LEGEND).addBreak();
-  const recommendations = getReviewerRecommendations(minimumHittingSets, 10);
+  const recommendations = getReviewRecos(entryMap, minimumHittingSets, 10);
   if (recommendations.length > 0) {
     core6.summary.addHeading(
       `Reviewer Recommendations (${recommendations.length} of ${minimumHittingSets.size})`,
@@ -25901,8 +25901,12 @@ async function formatAllReviewsSummaryByEntry(entryMap, minimumHittingSets) {
   }
   await core6.summary.addSeparator().write();
 }
-function getReviewerRecommendations(minimumHittingSets, limit = 3) {
+function getReviewRecos(entryMap, minimumHittingSets, limit = 3) {
   if (minimumHittingSets.size === 0) {
+    return [];
+  }
+  const numEntries = entryMap.size;
+  if (numEntries <= 1) {
     return [];
   }
   const setsArray = Array.from(minimumHittingSets);
@@ -26073,6 +26077,8 @@ async function run() {
       summaryUrl,
       minimumHittingSets
     );
+    core7.debug(`Pending review markdown:
+${pendingReviewMarkdown}`);
     if (inputs.postComment) {
       await upsertPRComment(
         octokit,

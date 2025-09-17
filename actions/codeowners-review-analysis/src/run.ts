@@ -107,6 +107,7 @@ export async function run(): Promise<void> {
       summaryUrl,
       minimumHittingSets,
     );
+    core.debug(`Pending review markdown:\n${pendingReviewMarkdown}`);
     if (inputs.postComment) {
       await upsertPRComment(
         octokit,
