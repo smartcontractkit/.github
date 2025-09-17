@@ -1,5 +1,15 @@
 # pr-quality-check
 
+## 1.2.0
+
+### Minor Changes
+
+- [#1222](https://github.com/smartcontractkit/.github/pull/1222)
+  [`d75ca89`](https://github.com/smartcontractkit/.github/commit/d75ca893d6ee13f30dc56d17c76137d7a7c51c7c)
+  Thanks [@miqlar](https://github.com/miqlar)! - New feature: context_filter to
+  filter context files, to be able to cache rules that depend on context files.
+  Bug fixes + clearer logs + small improvements
+
 ## 1.1.0
 
 ### Minor Changes
