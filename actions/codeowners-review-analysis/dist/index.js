@@ -23735,7 +23735,7 @@ var require_core = __commonJS({
       process.env["PATH"] = `${inputPath}${path.delimiter}${process.env["PATH"]}`;
     }
     exports2.addPath = addPath;
-    function getInput(name, options) {
+    function getInput2(name, options) {
       const val = process.env[`INPUT_${name.replace(/ /g, "_").toUpperCase()}`] || "";
       if (options && options.required && !val) {
         throw new Error(`Input required and not supplied: ${name}`);
@@ -23745,9 +23745,9 @@ var require_core = __commonJS({
       }
       return val.trim();
     }
-    exports2.getInput = getInput;
+    exports2.getInput = getInput2;
     function getMultilineInput(name, options) {
-      const inputs = getInput(name, options).split("\n").filter((x) => x !== "");
+      const inputs = getInput2(name, options).split("\n").filter((x) => x !== "");
       if (options && options.trimWhitespace === false) {
         return inputs;
       }
@@ -23757,7 +23757,7 @@ var require_core = __commonJS({
     function getBooleanInput2(name, options) {
       const trueValue = ["true", "True", "TRUE"];
       const falseValue = ["false", "False", "FALSE"];
-      const val = getInput(name, options);
+      const val = getInput2(name, options);
       if (trueValue.includes(val))
         return true;
       if (falseValue.includes(val))
@@ -25071,7 +25071,8 @@ var github = __toESM(require_github());
 function getInputs() {
   core.info("Getting inputs for run.");
   const inputs = {
-    postComment: getRunInputBoolean("postComment")
+    postComment: getRunInputBoolean("postComment"),
+    membersReadGitHubToken: getRunInputString("membersReadGitHubToken")
   };
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
   return inputs;
@@ -25108,11 +25109,21 @@ var runInputsConfiguration = {
   postComment: {
     parameter: "post-comment",
     localParameter: "POST_COMMENT"
+  },
+  membersReadGitHubToken: {
+    parameter: "members-read-github-token",
+    localParameter: "MEMBERS_READ_GITHUB_TOKEN"
   }
 };
 function getRunInputBoolean(input) {
   const inputKey = getInputKey(input);
   return core.getBooleanInput(inputKey, {
+    required: true
+  });
+}
+function getRunInputString(input) {
+  const inputKey = getInputKey(input);
+  return core.getInput(inputKey, {
     required: true
   });
 }
@@ -25772,11 +25783,21 @@ function iconFor(state) {
 }
 function getReviewForStatusFor(codeowner, currentReviewStatus, teamsToMembers) {
   if (codeowner.includes("/")) {
-    return getReviewStatusForTeam(codeowner, currentReviewStatus, teamsToMembers);
+    return getReviewStatusForTeam(
+      codeowner,
+      currentReviewStatus,
+      teamsToMembers
+    );
   }
   const userStatus = getReviewStatusForUser(codeowner, currentReviewStatus);
   if (!userStatus) {
-    return [{ state: PullRequestReviewStateExt.Pending, actor: codeowner, onBehalfOf: null }];
+    return [
+      {
+        state: PullRequestReviewStateExt.Pending,
+        actor: codeowner,
+        onBehalfOf: null
+      }
+    ];
   }
   return [userStatus];
 }
@@ -25787,17 +25808,25 @@ function getReviewStatusForTeam(codeowner, currentReviewStatus, teamsToMembers) 
   const [_, teamSlug] = codeowner.split("/");
   const teamLatest = currentReviewStatus.teamLatest[teamSlug];
   if (teamLatest) {
-    return [{
-      state: toExtended(teamLatest.state),
-      actor: teamLatest.byUser,
-      onBehalfOf: codeowner
-    }];
+    return [
+      {
+        state: toExtended(teamLatest.state),
+        actor: teamLatest.byUser,
+        onBehalfOf: codeowner
+      }
+    ];
   }
   const team = currentReviewStatus.pendingTeams.find(
     (t) => t.slug === teamSlug
   );
   if (team) {
-    return [{ state: PullRequestReviewStateExt.Pending, actor: null, onBehalfOf: codeowner }];
+    return [
+      {
+        state: PullRequestReviewStateExt.Pending,
+        actor: null,
+        onBehalfOf: codeowner
+      }
+    ];
   }
   const reviewStatuses = [];
   const members = teamsToMembers.get(codeowner);
@@ -25815,7 +25844,13 @@ function getReviewStatusForTeam(codeowner, currentReviewStatus, teamsToMembers) 
   core5.warning(
     `No status found for teamslug: ${teamSlug} - default to pending`
   );
-  return [{ state: PullRequestReviewStateExt.Pending, actor: null, onBehalfOf: codeowner }];
+  return [
+    {
+      state: PullRequestReviewStateExt.Pending,
+      actor: null,
+      onBehalfOf: codeowner
+    }
+  ];
 }
 function getReviewStatusForUser(actor, currentReviewStatus) {
   const userLatest = currentReviewStatus.userLatest[actor];
@@ -25830,7 +25865,11 @@ function getReviewStatusForUser(actor, currentReviewStatus) {
     (u) => u.login === actor
   );
   if (pendingUser) {
-    return { state: PullRequestReviewStateExt.Pending, actor, onBehalfOf: null };
+    return {
+      state: PullRequestReviewStateExt.Pending,
+      actor,
+      onBehalfOf: null
+    };
   }
   return null;
 }
@@ -26021,8 +26060,9 @@ async function run() {
     );
     core7.debug(`All codeowners: ${JSON.stringify(allCodeOwners)}`);
     core7.debug(`All team code owners: ${JSON.stringify(allTeamCodeOwners)}`);
+    const octokitMembers = github4.getOctokit(inputs.membersReadGitHubToken);
     const teamsToMembers = await getTeamToMembersMapping(
-      octokit,
+      octokitMembers,
       owner,
       Array.from(allTeamCodeOwners)
     );
@@ -26064,7 +26104,11 @@ function createReviewSummaryObject(currentReviewStatus, codeOwnersEntryToFiles, 
   for (const [entry, files] of codeOwnersEntryToFiles.entries()) {
     const ownerReviewStatuses = [];
     for (const owner of entry.owners) {
-      const statuses = getReviewForStatusFor(owner, currentReviewStatus, teamsToMembers);
+      const statuses = getReviewForStatusFor(
+        owner,
+        currentReviewStatus,
+        teamsToMembers
+      );
       if (statuses) {
         ownerReviewStatuses.push(...statuses);
       }

@@ -105,8 +105,9 @@ export async function run(): Promise<void> {
     );
     core.debug(`All codeowners: ${JSON.stringify(allCodeOwners)}`);
     core.debug(`All team code owners: ${JSON.stringify(allTeamCodeOwners)}`);
+    const octokitMembers = github.getOctokit(inputs.membersReadGitHubToken);
     const teamsToMembers = await getTeamToMembersMapping(
-      octokit,
+      octokitMembers,
       owner,
       Array.from(allTeamCodeOwners),
     );
