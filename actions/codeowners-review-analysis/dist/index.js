@@ -25085,20 +25085,14 @@ function getInvokeContext() {
     return process.exit(1);
   }
   const { pull_request } = context4.payload;
-  if (context4.eventName !== "pull_request" || !pull_request) {
-    core.setFailed(
-      `This action can only be run on pull requests events. Got ${context4.eventName}`
-    );
-    return process.exit(1);
+  if (!pull_request) {
+    throw new Error(`No pull request found in the context payload. Event name: ${context4.eventName}`);
   }
   const { number: prNumber } = pull_request;
   const { sha: base } = pull_request.base;
   const { sha: head } = pull_request.head;
   if (!base || !head || !prNumber) {
-    core.setFailed(
-      `Missing required pull request information. Base: ${base}, Head: ${head}, PR: ${prNumber}`
-    );
-    return process.exit(1);
+    throw new Error(`Missing required pull request information. Base: ${base}, Head: ${head}, PR: ${prNumber}`);
   }
   core.info(`Event name: ${context4.eventName}`);
   core.info(
