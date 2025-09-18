@@ -82,9 +82,7 @@ export async function run(): Promise<void> {
 
     core.startGroup("Get currrent state of PR reviews");
     const OctokitWithGQLPagination = Octokit.plugin(paginateGraphQL);
-    const octokitGQL = new OctokitWithGQLPagination({
-      auth: inputs.membersReadGitHubToken,
-    });
+    const octokitGQL = new OctokitWithGQLPagination({ auth: token });
     const currentPRReviewState = await getCurrentReviewStatus(
       octokitGQL,
       owner,

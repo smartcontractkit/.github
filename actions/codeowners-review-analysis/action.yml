@@ -13,8 +13,3 @@ inputs:
       "Whether to post a comment on the PR with the analysis results."
     required: false
     default: "true"
-  members-read-github-token:
-    description:
-      "A GitHub token with read access to members. Required to resolve reviews
-      to codeowners."
-    required: true
