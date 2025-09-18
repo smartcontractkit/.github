@@ -23735,7 +23735,7 @@ var require_core = __commonJS({
       process.env["PATH"] = `${inputPath}${path.delimiter}${process.env["PATH"]}`;
     }
     exports2.addPath = addPath;
-    function getInput(name, options) {
+    function getInput2(name, options) {
       const val = process.env[`INPUT_${name.replace(/ /g, "_").toUpperCase()}`] || "";
       if (options && options.required && !val) {
         throw new Error(`Input required and not supplied: ${name}`);
@@ -23745,9 +23745,9 @@ var require_core = __commonJS({
       }
       return val.trim();
     }
-    exports2.getInput = getInput;
+    exports2.getInput = getInput2;
     function getMultilineInput(name, options) {
-      const inputs = getInput(name, options).split("\n").filter((x) => x !== "");
+      const inputs = getInput2(name, options).split("\n").filter((x) => x !== "");
       if (options && options.trimWhitespace === false) {
         return inputs;
       }
@@ -23757,7 +23757,7 @@ var require_core = __commonJS({
     function getBooleanInput2(name, options) {
       const trueValue = ["true", "True", "TRUE"];
       const falseValue = ["false", "False", "FALSE"];
-      const val = getInput(name, options);
+      const val = getInput2(name, options);
       if (trueValue.includes(val))
         return true;
       if (falseValue.includes(val))
@@ -25071,7 +25071,8 @@ var github = __toESM(require_github());
 function getInputs() {
   core.info("Getting inputs for run.");
   const inputs = {
-    postComment: getRunInputBoolean("postComment")
+    postComment: getRunInputBoolean("postComment"),
+    membersReadGitHubToken: getRunInputString("membersReadGitHubToken")
   };
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
   return inputs;
@@ -25108,11 +25109,21 @@ var runInputsConfiguration = {
   postComment: {
     parameter: "post-comment",
     localParameter: "POST_COMMENT"
+  },
+  membersReadGitHubToken: {
+    parameter: "members-read-github-token",
+    localParameter: "MEMBERS_READ_GITHUB_TOKEN"
   }
 };
 function getRunInputBoolean(input) {
   const inputKey = getInputKey(input);
   return core.getBooleanInput(inputKey, {
+    required: true
+  });
+}
+function getRunInputString(input) {
+  const inputKey = getInputKey(input);
+  return core.getInput(inputKey, {
     required: true
   });
 }
@@ -25930,7 +25941,9 @@ async function run() {
     core7.endGroup();
     core7.startGroup("Get currrent state of PR reviews");
     const OctokitWithGQLPagination = Octokit.plugin(paginateGraphQL);
-    const octokitGQL = new OctokitWithGQLPagination({ auth: token });
+    const octokitGQL = new OctokitWithGQLPagination({
+      auth: inputs.membersReadGitHubToken
+    });
     const currentPRReviewState = await getCurrentReviewStatus(
       octokitGQL,
       owner,

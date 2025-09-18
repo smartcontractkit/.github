@@ -3,6 +3,7 @@ import * as github from "@actions/github";
 
 export interface RunInputs {
   postComment: boolean;
+  membersReadGitHubToken: string;
 }
 
 export function getInputs(): RunInputs {
@@ -10,6 +11,7 @@ export function getInputs(): RunInputs {
 
   const inputs: RunInputs = {
     postComment: getRunInputBoolean("postComment"),
+    membersReadGitHubToken: getRunInputString("membersReadGitHubToken"),
   };
 
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
@@ -77,11 +79,22 @@ const runInputsConfiguration: {
     parameter: "post-comment",
     localParameter: "POST_COMMENT",
   },
+  membersReadGitHubToken: {
+    parameter: "members-read-github-token",
+    localParameter: "MEMBERS_READ_GITHUB_TOKEN",
+  },
 };
 
 function getRunInputBoolean(input: keyof RunInputs) {
   const inputKey = getInputKey(input);
   return core.getBooleanInput(inputKey, {
+    required: true,
+  });
+}
+
+function getRunInputString(input: keyof RunInputs) {
+  const inputKey = getInputKey(input);
+  return core.getInput(inputKey, {
     required: true,
   });
 }
