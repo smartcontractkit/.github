@@ -1,0 +1,54 @@
+name: chip-config-register-schemas
+description: "Register schemas via a chip.json file"
+
+inputs:
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  aws_account_id:
+    description: "AWS Account ID"
+    required: false
+    default: "654654554896"
+  aws_region:
+    description: "AWS region"
+    required: false
+    default: "us-west-2"
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@v4.2.1
+
+    - name: Docker login to ECR
+      shell: bash
+      run: |
+        aws ecr get-login-password --region ${{ inputs.aws_region }} \
+        | docker login --username AWS --password-stdin \
+          ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com
+
+    - name: Pull container image
+      shell: bash
+      run: |
+        docker pull ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-chip-schema-registration:qa-latest
+        docker tag ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-chip-schema-registration:qa-latest chip-schema-registration
+
+    - name: Register schemas
+      shell: bash
+      env:
+        CHIP_CONFIG_HOST: ${{ env.chip_config_host }}
+        CHIP_CONFIG_PORT: ${{ env.chip_config_port }}
+        CHIP_CONFIG_USER: ${{ env.chip_config_user }}
+        CHIP_CONFIG_PASSWORD: ${{ env.chip_config_password }}
+        CHIP_SCHEMA_DIR: ${{ env.chip_schema_dir }}
+        CHIP_CONFIG_FILE: ${{ env.chip_config_file }}
+      run: |
+        docker run \
+          -v "$PWD:/workspace" \
+          -w /workspace \
+          -e CHIP_CONFIG_HOST \
+          -e CHIP_CONFIG_PORT \
+          -e CHIP_CONFIG_USER \
+          -e CHIP_CONFIG_PASSWORD \
+          chip-schema-registration register --schema-dir="$CHIP_SCHEMA_DIR" --config-file="$CHIP_CONFIG_FILE"
