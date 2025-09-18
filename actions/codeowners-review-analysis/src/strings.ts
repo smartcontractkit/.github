@@ -229,7 +229,7 @@ function getReviewRecos(
   limit: number = 3,
 ): string[] {
   if (minimumHittingSets.size === 0) {
-  // Return early if no hitting sets
+    // Return early if no hitting sets
     return [];
   }
 
