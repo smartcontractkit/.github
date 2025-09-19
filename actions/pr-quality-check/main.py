@@ -70,6 +70,24 @@ def main():
     all_changed_files = [f.get("filename", "") for f in files_meta]
     all_changed_files = [f for f in all_changed_files if f]
 
+    # Helper: read action version from package.json (printed early for visibility)
+    def _get_action_version() -> str:
+        try:
+            action_root = os.getenv("GITHUB_ACTION_PATH") or os.path.dirname(__file__)
+            package_json_path = os.path.join(action_root, "package.json")
+            with open(package_json_path, "r", encoding="utf-8") as _f:
+                package_data = json.loads(_f.read())
+                ver = str(package_data.get("version", "")).strip()
+                return ver or "unknown"
+        except Exception:
+            return "unknown"
+
+    action_version_for_log = _get_action_version()
+    if action_version_for_log and action_version_for_log != "unknown":
+        print(f"🛡️ PR Quality Check v{action_version_for_log}")
+    else:
+        print("🛡️ PR Quality Check (version unknown)")
+
     matching_files = match_files(all_changed_files, patterns, excludes)
     total_changed_files = len(all_changed_files)
     total_files_checked = 0
@@ -83,6 +101,8 @@ def main():
     cached_issues_reused = 0
 
     if not matching_files:
+        print("No files matched configured patterns — skipping analysis.")
+        print(f"Files changed in PR: {total_changed_files}")
         skip_md = [
             "# 🛡️ PR Quality Check Results",
             "",
@@ -136,11 +156,13 @@ def main():
                     qc_text = _f.read()
             except Exception:
                 qc_text = json.dumps(cfg or {}, sort_keys=True)
+            action_version = _get_action_version()
             payload = "\n".join([
                 qc_text,
                 analysis_prompt_template or "",
                 context_prompt_template or "",
                 model_review or "",
+                action_version or "unknown",
             ])
             import hashlib as _hash
             return _hash.sha256(payload.encode("utf-8")).hexdigest()
@@ -436,14 +458,14 @@ def main():
             if log_prompts:
                 print(f"=== Analysis prompt for: {fpath} ===")
                 print(prompt)
-                js = analyze_file_given_rules_and_context(openai_key, model_review, prompt)
-                try:
-                    analyzed_ids = [r.get("id") for r in rules_to_analyze if r.get("id")]
-                    if analyzed_ids:
-                        print(f"Model analyzed for {fpath} ({short_sha}): {', '.join(analyzed_ids)}")
-                        total_rules_analyzed += len(analyzed_ids)
-                except Exception:
-                    pass
+            js = analyze_file_given_rules_and_context(openai_key, model_review, prompt)
+            try:
+                analyzed_ids = [r.get("id") for r in rules_to_analyze if r.get("id")]
+                if analyzed_ids:
+                    print(f"Model analyzed for {fpath} ({short_sha}): {', '.join(analyzed_ids)}")
+                    total_rules_analyzed += len(analyzed_ids)
+            except Exception:
+                pass
         else:
             print(f"All rules cached for: {fpath} — skipping analysis.")
 
