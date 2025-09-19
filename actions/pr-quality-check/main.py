@@ -436,14 +436,14 @@ def main():
             if log_prompts:
                 print(f"=== Analysis prompt for: {fpath} ===")
                 print(prompt)
-                js = analyze_file_given_rules_and_context(openai_key, model_review, prompt)
-                try:
-                    analyzed_ids = [r.get("id") for r in rules_to_analyze if r.get("id")]
-                    if analyzed_ids:
-                        print(f"Model analyzed for {fpath} ({short_sha}): {', '.join(analyzed_ids)}")
-                        total_rules_analyzed += len(analyzed_ids)
-                except Exception:
-                    pass
+            js = analyze_file_given_rules_and_context(openai_key, model_review, prompt)
+            try:
+                analyzed_ids = [r.get("id") for r in rules_to_analyze if r.get("id")]
+                if analyzed_ids:
+                    print(f"Model analyzed for {fpath} ({short_sha}): {', '.join(analyzed_ids)}")
+                    total_rules_analyzed += len(analyzed_ids)
+            except Exception:
+                pass
         else:
             print(f"All rules cached for: {fpath} — skipping analysis.")
 
