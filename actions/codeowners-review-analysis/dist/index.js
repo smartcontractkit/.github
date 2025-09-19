@@ -25068,6 +25068,7 @@ function paginateGraphQL(octokit) {
 // actions/codeowners-review-analysis/src/run-inputs.ts
 var core = __toESM(require_core());
 var github = __toESM(require_github());
+var CL_LOCAL_DEBUG = process.env.CL_LOCAL_DEBUG === "true";
 function getInputs() {
   core.info("Getting inputs for run.");
   const inputs = {
@@ -25132,8 +25133,7 @@ function getInputKey(input) {
   if (!config) {
     throw new Error(`No configuration found for input: ${input}`);
   }
-  const isLocalDebug = process.env.CL_LOCAL_DEBUG;
-  const inputKey = isLocalDebug ? config.localParameter : config.parameter;
+  const inputKey = CL_LOCAL_DEBUG ? config.localParameter : config.parameter;
   return inputKey;
 }
 
@@ -25211,7 +25211,6 @@ async function getTeamToMembersMapping(octokit, org, teams) {
       continue;
     }
     core2.info(`Found ${members.length} members for team: ${org}/${slug}`);
-    core2.debug(`Members: ${JSON.stringify(members, null, 2)}`);
     teamToMembers.set(team, members);
   }
   return teamToMembers;
@@ -26056,8 +26055,10 @@ async function run() {
       owner,
       Array.from(allTeamCodeOwners)
     );
-    core7.debug(`Teams to members mapping:`);
-    core7.debug(`${JSON.stringify([...teamsToMembers])}`);
+    if (CL_LOCAL_DEBUG) {
+      core7.debug(`Teams to members mapping:`);
+      core7.debug(`${JSON.stringify([...teamsToMembers])}`);
+    }
     core7.endGroup();
     core7.startGroup("Create CODEOWNERS Summary");
     const codeownersSummary = createReviewSummaryObject(
@@ -26065,8 +26066,10 @@ async function run() {
       codeOwnersEntryToFiles,
       teamsToMembers
     );
-    core7.debug("CODEOWNERS Summary:");
-    core7.debug(`${JSON.stringify([...codeownersSummary])}`);
+    if (CL_LOCAL_DEBUG) {
+      core7.debug("CODEOWNERS Summary:");
+      core7.debug(`${JSON.stringify([...codeownersSummary])}`);
+    }
     const overallStatuses = [...codeownersSummary.values()].map((e) => ({
       state: e.overallStatus
     }));

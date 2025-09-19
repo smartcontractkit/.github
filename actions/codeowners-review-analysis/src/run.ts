@@ -4,7 +4,7 @@ import * as core from "@actions/core";
 import { Octokit } from "@octokit/core";
 import { paginateGraphQL } from "@octokit/plugin-paginate-graphql";
 
-import { getInvokeContext, getInputs } from "./run-inputs";
+import { CL_LOCAL_DEBUG, getInvokeContext, getInputs } from "./run-inputs";
 import {
   getChangedFilesForPR,
   getCodeownersFile,
@@ -111,8 +111,11 @@ export async function run(): Promise<void> {
       owner,
       Array.from(allTeamCodeOwners),
     );
-    core.debug(`Teams to members mapping:`);
-    core.debug(`${JSON.stringify([...teamsToMembers])}`);
+
+    if (CL_LOCAL_DEBUG) {
+      core.debug(`Teams to members mapping:`);
+      core.debug(`${JSON.stringify([...teamsToMembers])}`);
+    }
 
     core.endGroup();
 
@@ -123,8 +126,11 @@ export async function run(): Promise<void> {
       codeOwnersEntryToFiles,
       teamsToMembers,
     );
-    core.debug("CODEOWNERS Summary:");
-    core.debug(`${JSON.stringify([...codeownersSummary])}`);
+
+    if (CL_LOCAL_DEBUG) {
+      core.debug("CODEOWNERS Summary:");
+      core.debug(`${JSON.stringify([...codeownersSummary])}`);
+    }
 
     const overallStatuses = [...codeownersSummary.values()].map((e) => ({
       state: e.overallStatus,

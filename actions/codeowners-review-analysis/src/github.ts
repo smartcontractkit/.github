@@ -117,7 +117,6 @@ export async function getTeamToMembersMapping(
     }
 
     core.info(`Found ${members.length} members for team: ${org}/${slug}`);
-    core.debug(`Members: ${JSON.stringify(members, null, 2)}`);
     teamToMembers.set(team, members);
   }
 
