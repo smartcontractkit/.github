@@ -248,7 +248,7 @@ function stopOrGetStartCursor(pr: PullRequest) {
  * - Paginates backward (newest -> older) gathering latest per user/team.
  * - Captures who is currently requested (users & teams) and the overall reviewDecision.
  */
-export async function getCurrentReviewStatus(
+export async function getCurrentReviewStatusGQL(
   octokit: Octokit,
   owner: string,
   repo: string,
