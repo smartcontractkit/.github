@@ -37,6 +37,13 @@ export function getOverallState<T extends WithState>(
     .sort((a, b) => precedence[a] - precedence[b])[0];
 }
 
+export function filterFor<T extends WithState>(
+  statuses: readonly T[],
+  state: PullRequestReviewStateExt,
+): T[] {
+  return statuses.filter((s) => s.state === state);
+}
+
 function toExtended(state: PullRequestReviewState): PullRequestReviewStateExt {
   switch (state) {
     case PullRequestReviewState.Approved:

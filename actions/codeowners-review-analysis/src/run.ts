@@ -31,12 +31,6 @@ import type { OwnerReviewStatus } from "./review-status";
 import type { CodeownersEntry, CodeOwnersToFilesMap } from "./codeowners";
 import type { CurrentReviewStatus } from "./github-gql";
 
-export type ProcessedCodeOwnersEntry = {
-  files: string[];
-  ownerReviewStatuses: OwnerReviewStatus[];
-  overallStatus: PullRequestReviewStateExt;
-};
-
 export async function run(): Promise<void> {
   try {
     core.startGroup("Context");
@@ -132,10 +126,7 @@ export async function run(): Promise<void> {
       core.debug(`${JSON.stringify([...codeownersSummary])}`);
     }
 
-    const overallStatuses = [...codeownersSummary.values()].map((e) => ({
-      state: e.overallStatus,
-    }));
-    const overallStatus = getOverallState(overallStatuses);
+    const overallStatus = getOverallState([...codeownersSummary.values()]);
     core.info(`Overall codeowners review status: ${overallStatus}`);
 
     await formatAllReviewsSummaryByEntry(codeownersSummary);
@@ -162,14 +153,21 @@ export async function run(): Promise<void> {
   }
 }
 
+export type CodeOwnersReviewEntry = {
+  files: string[];
+  allOwnerReviewStatuses: OwnerReviewStatus[];
+  reviewStatusesByOwner: Map<string, OwnerReviewStatus[]>;
+  state: PullRequestReviewStateExt;
+};
+
 function createReviewSummaryObject(
   currentReviewStatus: CurrentReviewStatus,
   codeOwnersEntryToFiles: CodeOwnersToFilesMap,
   teamsToMembers: Map<string, string[]>,
-): Map<CodeownersEntry, ProcessedCodeOwnersEntry> {
-  const reviewSummary: Map<CodeownersEntry, ProcessedCodeOwnersEntry> =
-    new Map();
+): Map<CodeownersEntry, CodeOwnersReviewEntry> {
+  const reviewSummary: Map<CodeownersEntry, CodeOwnersReviewEntry> = new Map();
   for (const [entry, files] of codeOwnersEntryToFiles.entries()) {
+    const reviewStatusesByOwner: Map<string, OwnerReviewStatus[]> = new Map();
     const ownerReviewStatuses: OwnerReviewStatus[] = [];
     for (const owner of entry.owners) {
       const statuses = getReviewForStatusFor(
@@ -178,12 +176,17 @@ function createReviewSummaryObject(
         teamsToMembers,
       );
       if (statuses) {
+        reviewStatusesByOwner.set(owner, statuses);
         ownerReviewStatuses.push(...statuses);
       }
     }
-
     const overallStatus = getOverallState(ownerReviewStatuses);
-    reviewSummary.set(entry, { files, ownerReviewStatuses, overallStatus });
+    reviewSummary.set(entry, {
+      files,
+      allOwnerReviewStatuses: ownerReviewStatuses,
+      state: overallStatus,
+      reviewStatusesByOwner,
+    });
   }
 
   return reviewSummary;

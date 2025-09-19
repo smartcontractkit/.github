@@ -25739,6 +25739,9 @@ function getOverallState(statuses) {
   };
   return [...statuses].map((s) => s.state).sort((a, b) => precedence[a] - precedence[b])[0];
 }
+function filterFor(statuses, state) {
+  return statuses.filter((s) => s.state === state);
+}
 function toExtended(state) {
   switch (state) {
     case "APPROVED" /* Approved */:
@@ -25886,7 +25889,7 @@ function formatPendingReviewsMarkdown(entryMap, overallStatus, summaryUrl) {
     return a.lineNumber - b.lineNumber;
   });
   for (const [entry, processed] of sortedEntries) {
-    const overall = processed.overallStatus;
+    const overall = processed.state;
     if (overall === PullRequestReviewStateExt.Approved) {
       continue;
     }
@@ -25908,7 +25911,20 @@ function formatPendingReviewsMarkdown(entryMap, overallStatus, summaryUrl) {
 }
 async function formatAllReviewsSummaryByEntry(entryMap) {
   core6.summary.addHeading("Codeowners Review Details", 2).addRaw(LEGEND).addBreak();
-  const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
+  const escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const formatFilesList = (files, maxLines = 4) => {
+    if (files.length === 0) return "-";
+    if (files.length <= maxLines) {
+      return files.map((f) => `<code>${escapeHtml(f)}</code>`).join("<br/>");
+    }
+    const visible = files.slice(0, maxLines - 1);
+    const remaining = files.length - visible.length;
+    return [
+      ...visible.map((f) => `<code>${escapeHtml(f)}</code>`),
+      `+${remaining} more`
+    ].join("<br/>");
+  };
+  const sortedEntries = [...entryMap.entries()].sort(([a], [b]) => {
     return a.lineNumber - b.lineNumber;
   });
   for (const [entry, processed] of sortedEntries) {
@@ -25918,67 +25934,63 @@ async function formatAllReviewsSummaryByEntry(entryMap) {
       continue;
     }
     const owners = entry.owners && entry.owners.length > 0 ? entry.owners : ["_No owners found_"];
-    const ownerStatuses = processed.ownerReviewStatuses || [];
-    const overallIcon = iconFor(processed.overallStatus);
-    const rows = [];
-    for (const file of files) {
-      if (ownerStatuses.length === 0) {
-        rows.push([
-          { data: file },
-          { data: overallIcon },
-          // overall is per-entry
-          { data: owners[0] ?? "_No owners found_" },
-          { data: overallIcon },
-          { data: "-" }
-        ]);
-        continue;
-      }
-      const rowspan = String(ownerStatuses.length);
-      const filenameCell = { data: file, rowspan };
-      const overallCell = { data: overallIcon, rowspan };
-      ownerStatuses.forEach((status, idx) => {
-        let ownerName;
-        if (owners.length === ownerStatuses.length) {
-          ownerName = owners[idx] ?? "_Unknown owner_";
-        } else if (owners.length === 1) {
-          ownerName = owners[0];
-        } else {
-          ownerName = owners[idx] ?? owners[owners.length - 1] ?? "_Unknown owner_";
-        }
-        const ownerCell = { data: ownerName };
-        const stateCell = { data: iconFor(status.state) };
-        const reviewedByCell = { data: status.actor ?? "-" };
-        if (idx === 0) {
-          rows.push([
-            filenameCell,
-            overallCell,
-            ownerCell,
-            stateCell,
-            reviewedByCell
-          ]);
-        } else {
-          rows.push([ownerCell, stateCell, reviewedByCell]);
-        }
-      });
-    }
+    const overallIcon = iconFor(processed.state);
+    const grouped = processed.reviewStatusesByOwner ?? /* @__PURE__ */ new Map();
     const headerRow = [
-      { data: `Files (${files.length})`, header: true },
-      { data: "Overall", header: true },
       { data: "Owner", header: true },
-      { data: "State", header: true },
-      { data: "Reviewed By", header: true }
+      { data: "Team State", header: true },
+      { data: "Reviewers (individual)", header: true }
     ];
-    const escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const lineLink = entry.htmlLineUrl ? ` <a href="${entry.htmlLineUrl}">(#L${entry.lineNumber})</a>` : "";
     const metaRows = [
       [{ data: "Owners", header: true }, { data: owners.join(", ") }],
       [
         { data: `Entry ${lineLink}`, header: true },
-        {
-          data: `<code>${escapeHtml(entry.rawLine)}</code>`
-        }
-      ]
+        { data: `<code>${escapeHtml(entry.rawLine)}</code>` }
+      ],
+      [{ data: "Files", header: true }, { data: formatFilesList(files, 4) }]
     ];
+    const rows = owners.map((ownerName) => {
+      const statuses = grouped.get(ownerName) ?? [];
+      const teamState = statuses.length > 0 ? getOverallState(statuses) : PullRequestReviewStateExt.Pending;
+      const parts = [];
+      const changesRequested = filterFor(statuses, PullRequestReviewStateExt.ChangesRequested);
+      parts.push(
+        ...changesRequested.map(
+          (s) => `${s.actor ?? "-"} ${iconFor(s.state)}`
+        )
+      );
+      const approved = filterFor(statuses, PullRequestReviewStateExt.Approved);
+      parts.push(
+        ...approved.map((s) => `${s.actor ?? "-"} ${iconFor(s.state)}`)
+      );
+      const makeCollapsed = (label, icon, group) => {
+        const names = group.map((s) => s.actor ?? "-").join(", ");
+        return `<span title="${escapeHtml(names)}">+${group.length} ${label} ${icon}</span>`;
+      };
+      const commented = filterFor(statuses, PullRequestReviewStateExt.Commented);
+      if (commented.length > 0) {
+        parts.push(makeCollapsed("commented", iconFor(PullRequestReviewStateExt.Commented), commented));
+      }
+      const dismissed = filterFor(statuses, PullRequestReviewStateExt.Dismissed);
+      if (dismissed.length > 0) {
+        parts.push(makeCollapsed("dismissed", iconFor(PullRequestReviewStateExt.Dismissed), dismissed));
+      }
+      const pending = filterFor(statuses, PullRequestReviewStateExt.Pending);
+      if (pending.length > 0) {
+        parts.push(makeCollapsed("pending", iconFor(PullRequestReviewStateExt.Pending), pending));
+      }
+      const unknown = filterFor(statuses, "UNKNOWN" /* Unknown */);
+      if (unknown.length > 0) {
+        parts.push(makeCollapsed("unknown", iconFor("UNKNOWN" /* Unknown */), unknown));
+      }
+      const reviewers = parts.length > 0 ? parts.join("<br/>") : "-";
+      return [
+        { data: ownerName },
+        { data: iconFor(teamState) },
+        { data: reviewers }
+      ];
+    });
     core6.summary.addHeading(
       `${overallIcon} - <code>${escapeHtml(entry.rawPattern)}</code>`,
       3
@@ -26070,10 +26082,7 @@ async function run() {
       core7.debug("CODEOWNERS Summary:");
       core7.debug(`${JSON.stringify([...codeownersSummary])}`);
     }
-    const overallStatuses = [...codeownersSummary.values()].map((e) => ({
-      state: e.overallStatus
-    }));
-    const overallStatus = getOverallState(overallStatuses);
+    const overallStatus = getOverallState([...codeownersSummary.values()]);
     core7.info(`Overall codeowners review status: ${overallStatus}`);
     await formatAllReviewsSummaryByEntry(codeownersSummary);
     const summaryUrl = await getSummaryUrl(octokit, owner, repo);
@@ -26101,6 +26110,7 @@ async function run() {
 function createReviewSummaryObject(currentReviewStatus, codeOwnersEntryToFiles, teamsToMembers) {
   const reviewSummary = /* @__PURE__ */ new Map();
   for (const [entry, files] of codeOwnersEntryToFiles.entries()) {
+    const reviewStatusesByOwner = /* @__PURE__ */ new Map();
     const ownerReviewStatuses = [];
     for (const owner of entry.owners) {
       const statuses = getReviewForStatusFor(
@@ -26109,11 +26119,12 @@ function createReviewSummaryObject(currentReviewStatus, codeOwnersEntryToFiles, 
         teamsToMembers
       );
       if (statuses) {
+        reviewStatusesByOwner.set(owner, statuses);
         ownerReviewStatuses.push(...statuses);
       }
     }
     const overallStatus = getOverallState(ownerReviewStatuses);
-    reviewSummary.set(entry, { files, ownerReviewStatuses, overallStatus });
+    reviewSummary.set(entry, { files, allOwnerReviewStatuses: ownerReviewStatuses, state: overallStatus, reviewStatusesByOwner });
   }
   return reviewSummary;
 }
