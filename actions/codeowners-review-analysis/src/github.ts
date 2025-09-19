@@ -100,6 +100,59 @@ export async function getCodeownersFile(
   return undefined;
 }
 
+export async function getTeamToMembersMapping(
+  octokit: OctokitType,
+  org: string,
+  teams: string[],
+) {
+  core.info(`Fetching members for ${teams.length} teams...`);
+
+  const teamToMembers: Map<string, string[]> = new Map();
+  for (const team of teams) {
+    const [_, slug] = team.split("/");
+    const members = await getTeamMembers(octokit, org, slug);
+    if (members.length === 0) {
+      core.warning(`No members found for team: ${org}/${slug}`);
+      continue;
+    }
+
+    core.info(`Found ${members.length} members for team: ${org}/${slug}`);
+    core.debug(`Members: ${JSON.stringify(members, null, 2)}`);
+    teamToMembers.set(team, members);
+  }
+
+  return teamToMembers;
+}
+
+export async function getSummaryUrl(
+  octokit: OctokitType,
+  owner: string,
+  repo: string,
+): Promise<string> {
+  const runId = github.context.runId;
+
+  try {
+    const { data } = await octokit.rest.actions.listJobsForWorkflowRun({
+      owner,
+      repo,
+      run_id: runId,
+    });
+
+    if (data.jobs.length !== 1) {
+      core.warning(
+        `Expected exactly one job in workflow run, found ${data.jobs.length}. Cannot determine summary URL.`,
+      );
+      return "";
+    }
+
+    // Example format: https://github.com/smartcontractkit/chainlink-common/actions/runs/16783814681#summary-47529227742
+    return `https://github.com/${owner}/${repo}/actions/runs/${runId}/#summary-${data.jobs[0].id}`;
+  } catch (error) {
+    core.warning(`Failed to get summary link: ${error}`);
+    return "";
+  }
+}
+
 /**
  * Gets a file from specified ref.
  * See https://docs.github.com/en/rest/repos/contents?apiVersion=2022-11-28#get-repository-content
@@ -112,7 +165,7 @@ async function getFile(
   ref: string,
 ) {
   try {
-    core.info(`GitHub getContent: ${owner}/${repo} path:${path} ref:${ref}`);
+    core.debug(`GitHub getContent: ${owner}/${repo} path:${path} ref:${ref}`);
 
     const { data } = await octokit.rest.repos.getContent({
       owner,
@@ -163,6 +216,7 @@ async function getHeadSHAOfDefaultBranch(
   owner: string,
   repo: string,
 ): Promise<string> {
+  core.debug(`Getting default branch for ${owner}/${repo}`);
   try {
     const response = await octokit.rest.repos.listCommits({
       owner,
@@ -179,31 +233,24 @@ async function getHeadSHAOfDefaultBranch(
   }
 }
 
-export async function getSummaryUrl(
+async function getTeamMembers(
   octokit: OctokitType,
-  owner: string,
-  repo: string,
-): Promise<string> {
-  const runId = github.context.runId;
-
+  org: string,
+  teamSlug: string,
+) {
+  core.debug(`Getting members for team: ${org}/${teamSlug}`);
   try {
-    const { data } = await octokit.rest.actions.listJobsForWorkflowRun({
-      owner,
-      repo,
-      run_id: runId,
-    });
-
-    if (data.jobs.length !== 1) {
-      core.warning(
-        `Expected exactly one job in workflow run, found ${data.jobs.length}. Cannot determine summary URL.`,
-      );
-      return "";
-    }
-
-    // Example format: https://github.com/smartcontractkit/chainlink-common/actions/runs/16783814681#summary-47529227742
-    return `https://github.com/${owner}/${repo}/actions/runs/${runId}/#summary-${data.jobs[0].id}`;
+    const members = await octokit.paginate(
+      octokit.rest.teams.listMembersInOrg,
+      {
+        org,
+        team_slug: teamSlug,
+        per_page: 25,
+      },
+    );
+    return members.map((member) => member.login);
   } catch (error) {
-    core.warning(`Failed to get summary link: ${error}`);
-    return "";
+    core.warning(`Failed to get team ${org}/${teamSlug}: ${error}`);
+    return [];
   }
 }

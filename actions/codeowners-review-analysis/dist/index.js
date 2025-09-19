@@ -25189,9 +25189,45 @@ async function getCodeownersFile(octokit, owner, repo) {
   }
   return void 0;
 }
+async function getTeamToMembersMapping(octokit, org, teams) {
+  core2.info(`Fetching members for ${teams.length} teams...`);
+  const teamToMembers = /* @__PURE__ */ new Map();
+  for (const team of teams) {
+    const [_, slug] = team.split("/");
+    const members = await getTeamMembers(octokit, org, slug);
+    if (members.length === 0) {
+      core2.warning(`No members found for team: ${org}/${slug}`);
+      continue;
+    }
+    core2.info(`Found ${members.length} members for team: ${org}/${slug}`);
+    core2.debug(`Members: ${JSON.stringify(members, null, 2)}`);
+    teamToMembers.set(team, members);
+  }
+  return teamToMembers;
+}
+async function getSummaryUrl(octokit, owner, repo) {
+  const runId = github2.context.runId;
+  try {
+    const { data } = await octokit.rest.actions.listJobsForWorkflowRun({
+      owner,
+      repo,
+      run_id: runId
+    });
+    if (data.jobs.length !== 1) {
+      core2.warning(
+        `Expected exactly one job in workflow run, found ${data.jobs.length}. Cannot determine summary URL.`
+      );
+      return "";
+    }
+    return `https://github.com/${owner}/${repo}/actions/runs/${runId}/#summary-${data.jobs[0].id}`;
+  } catch (error) {
+    core2.warning(`Failed to get summary link: ${error}`);
+    return "";
+  }
+}
 async function getFile(octokit, owner, repo, path, ref) {
   try {
-    core2.info(`GitHub getContent: ${owner}/${repo} path:${path} ref:${ref}`);
+    core2.debug(`GitHub getContent: ${owner}/${repo} path:${path} ref:${ref}`);
     const { data } = await octokit.rest.repos.getContent({
       owner,
       repo,
@@ -25230,6 +25266,7 @@ async function getFile(octokit, owner, repo, path, ref) {
   }
 }
 async function getHeadSHAOfDefaultBranch(octokit, owner, repo) {
+  core2.debug(`Getting default branch for ${owner}/${repo}`);
   try {
     const response = await octokit.rest.repos.listCommits({
       owner,
@@ -25245,24 +25282,21 @@ async function getHeadSHAOfDefaultBranch(octokit, owner, repo) {
     return "";
   }
 }
-async function getSummaryUrl(octokit, owner, repo) {
-  const runId = github2.context.runId;
+async function getTeamMembers(octokit, org, teamSlug) {
+  core2.debug(`Getting members for team: ${org}/${teamSlug}`);
   try {
-    const { data } = await octokit.rest.actions.listJobsForWorkflowRun({
-      owner,
-      repo,
-      run_id: runId
-    });
-    if (data.jobs.length !== 1) {
-      core2.warning(
-        `Expected exactly one job in workflow run, found ${data.jobs.length}. Cannot determine summary URL.`
-      );
-      return "";
-    }
-    return `https://github.com/${owner}/${repo}/actions/runs/${runId}/#summary-${data.jobs[0].id}`;
+    const members = await octokit.paginate(
+      octokit.rest.teams.listMembersInOrg,
+      {
+        org,
+        team_slug: teamSlug,
+        per_page: 25
+      }
+    );
+    return members.map((member) => member.login);
   } catch (error) {
-    core2.warning(`Failed to get summary link: ${error}`);
-    return "";
+    core2.warning(`Failed to get team ${org}/${teamSlug}: ${error}`);
+    return [];
   }
 }
 
@@ -25435,6 +25469,7 @@ async function getCodeownersEntries({
 }
 function processChangedFiles(filenames, codeownersFile) {
   const codeOwnersEntryToFiles = /* @__PURE__ */ new Map();
+  const allCodeOwners = /* @__PURE__ */ new Set();
   const unownedFiles = [];
   for (const file of filenames) {
     const lastEntry = codeownersFile.findLast(
@@ -25446,11 +25481,20 @@ function processChangedFiles(filenames, codeownersFile) {
       continue;
     }
     addToMapOfArrays(codeOwnersEntryToFiles, lastEntry, file);
+    for (const owner of lastEntry.owners) {
+      allCodeOwners.add(owner);
+    }
     core3.debug(
       `File: ${file} matched pattern: ${lastEntry.rawPattern} with owners: ${lastEntry.rawOwners} (${lastEntry.lineNumber})`
     );
   }
-  return { unownedFiles, codeOwnersEntryToFiles };
+  if (unownedFiles.length > 0) {
+    core3.warning(
+      `There are ${unownedFiles.length} unowned files in the PR. Consider adding a catch-all entry in your CODEOWNERS file.`
+    );
+    core3.debug(`Unowned files: ${JSON.stringify(unownedFiles, null, 2)}`);
+  }
+  return { allCodeOwners, codeOwnersEntryToFiles };
 }
 function addToMapOfArrays(map, key, value) {
   if (!map.has(key)) {
@@ -25613,7 +25657,7 @@ function stopOrGetStartCursor(pr) {
   if (!hasPreviousPage || !startCursor) return null;
   return startCursor;
 }
-async function getCurrentReviewStatus(octokit, owner, repo, prNumber, pageSize = 100, maxPages = 10) {
+async function getCurrentReviewStatusGQL(octokit, owner, repo, prNumber, pageSize = 100, maxPages = 10) {
   const last = Math.min(Math.max(pageSize, 1), 100);
   let before = null;
   let pagesFetched = 0;
@@ -25726,42 +25770,69 @@ function iconFor(state) {
       return "\u2753";
   }
 }
-function getReviewForStatusFor(codeowner, currentReviewStatus) {
+function getReviewForStatusFor(codeowner, currentReviewStatus, teamsToMembers) {
   if (codeowner.includes("/")) {
-    const [_, teamSlug] = codeowner.split("/");
-    const teamLatest = currentReviewStatus.teamLatest[teamSlug];
-    if (teamLatest) {
-      return {
-        state: toExtended(teamLatest.state),
-        actor: teamLatest.byUser
-      };
-    }
-    const team = currentReviewStatus.pendingTeams.find(
-      (t) => t.slug === teamSlug
-    );
-    if (team) {
-      return { state: PullRequestReviewStateExt.Pending, actor: null };
-    }
-    core5.warning(
-      `No status found for teamslug: ${teamSlug} - default to pending`
-    );
-    return { state: PullRequestReviewStateExt.Pending, actor: null };
+    return getReviewStatusForTeam(codeowner, currentReviewStatus, teamsToMembers);
   }
-  const userLatest = currentReviewStatus.userLatest[codeowner];
+  const userStatus = getReviewStatusForUser(codeowner, currentReviewStatus);
+  if (!userStatus) {
+    return [{ state: PullRequestReviewStateExt.Pending, actor: codeowner, onBehalfOf: null }];
+  }
+  return [userStatus];
+}
+function getReviewStatusForTeam(codeowner, currentReviewStatus, teamsToMembers) {
+  if (!codeowner.includes("/")) {
+    throw new Error(`Codeowner ${codeowner} is not a team`);
+  }
+  const [_, teamSlug] = codeowner.split("/");
+  const teamLatest = currentReviewStatus.teamLatest[teamSlug];
+  if (teamLatest) {
+    return [{
+      state: toExtended(teamLatest.state),
+      actor: teamLatest.byUser,
+      onBehalfOf: codeowner
+    }];
+  }
+  const team = currentReviewStatus.pendingTeams.find(
+    (t) => t.slug === teamSlug
+  );
+  if (team) {
+    return [{ state: PullRequestReviewStateExt.Pending, actor: null, onBehalfOf: codeowner }];
+  }
+  const reviewStatuses = [];
+  const members = teamsToMembers.get(codeowner);
+  if (members && members.length > 0) {
+    for (const member of members) {
+      const status = getReviewStatusForUser(member, currentReviewStatus);
+      if (status) {
+        reviewStatuses.push({ ...status, onBehalfOf: codeowner });
+      }
+    }
+  }
+  if (reviewStatuses.length > 0) {
+    return reviewStatuses;
+  }
+  core5.warning(
+    `No status found for teamslug: ${teamSlug} - default to pending`
+  );
+  return [{ state: PullRequestReviewStateExt.Pending, actor: null, onBehalfOf: codeowner }];
+}
+function getReviewStatusForUser(actor, currentReviewStatus) {
+  const userLatest = currentReviewStatus.userLatest[actor];
   if (userLatest) {
     return {
       state: toExtended(userLatest.state),
-      actor: codeowner
+      actor,
+      onBehalfOf: null
     };
   }
   const pendingUser = currentReviewStatus.pendingUsers.find(
-    (u) => u.login === codeowner
+    (u) => u.login === actor
   );
   if (pendingUser) {
-    return { state: PullRequestReviewStateExt.Pending, actor: codeowner };
+    return { state: PullRequestReviewStateExt.Pending, actor, onBehalfOf: null };
   }
-  core5.warning(`No status found for user: ${codeowner} - default to pending`);
-  return { state: PullRequestReviewStateExt.Pending, actor: null };
+  return null;
 }
 
 // actions/codeowners-review-analysis/src/strings.ts
@@ -25923,27 +25994,49 @@ async function run() {
     }
     core7.endGroup();
     core7.startGroup("Analyze file paths and codeowners patterns");
-    const { unownedFiles, codeOwnersEntryToFiles } = processChangedFiles(
+    const { allCodeOwners, codeOwnersEntryToFiles } = processChangedFiles(
       filenames,
       codeownersEntries
     );
+    if (allCodeOwners.size === 0) {
+      core7.warning(
+        "No code owners identified for changed files. Skipping analysis."
+      );
+      return;
+    }
     core7.endGroup();
     core7.startGroup("Get currrent state of PR reviews");
     const OctokitWithGQLPagination = Octokit.plugin(paginateGraphQL);
     const octokitGQL = new OctokitWithGQLPagination({ auth: token });
-    const currentPRReviewState = await getCurrentReviewStatus(
+    const currentPRReviewState = await getCurrentReviewStatusGQL(
       octokitGQL,
       owner,
       repo,
       prNumber
     );
+    core7.debug(`Current PR review state:`);
     core7.debug(JSON.stringify(currentPRReviewState));
+    const allTeamCodeOwners = Array.from(allCodeOwners).filter(
+      (o) => o.includes("/")
+    );
+    core7.debug(`All codeowners: ${JSON.stringify(allCodeOwners)}`);
+    core7.debug(`All team code owners: ${JSON.stringify(allTeamCodeOwners)}`);
+    const teamsToMembers = await getTeamToMembersMapping(
+      octokit,
+      owner,
+      Array.from(allTeamCodeOwners)
+    );
+    core7.debug(`Teams to members mapping:`);
+    core7.debug(`${JSON.stringify([...teamsToMembers])}`);
     core7.endGroup();
     core7.startGroup("Create CODEOWNERS Summary");
-    const codeownersSummary = createReviewSummaryObjectV2(
+    const codeownersSummary = createReviewSummaryObject(
       currentPRReviewState,
-      codeOwnersEntryToFiles
+      codeOwnersEntryToFiles,
+      teamsToMembers
     );
+    core7.debug("CODEOWNERS Summary:");
+    core7.debug(`${JSON.stringify([...codeownersSummary])}`);
     await formatAllReviewsSummaryByEntry(codeownersSummary);
     const summaryUrl = await getSummaryUrl(octokit, owner, repo);
     const pendingReviewMarkdown = formatPendingReviewsMarkdown(
@@ -25966,14 +26059,14 @@ async function run() {
     core7.setFailed(`Action failed: ${error}`);
   }
 }
-function createReviewSummaryObjectV2(currentReviewStatus, codeOwnersEntryToFiles) {
+function createReviewSummaryObject(currentReviewStatus, codeOwnersEntryToFiles, teamsToMembers) {
   const reviewSummary = /* @__PURE__ */ new Map();
   for (const [entry, files] of codeOwnersEntryToFiles.entries()) {
     const ownerReviewStatuses = [];
     for (const owner of entry.owners) {
-      const status = getReviewForStatusFor(owner, currentReviewStatus);
-      if (status) {
-        ownerReviewStatuses.push(status);
+      const statuses = getReviewForStatusFor(owner, currentReviewStatus, teamsToMembers);
+      if (statuses) {
+        ownerReviewStatuses.push(...statuses);
       }
     }
     const overallStatus = getOverallState(ownerReviewStatuses);
