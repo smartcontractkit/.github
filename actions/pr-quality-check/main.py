@@ -156,16 +156,13 @@ def main():
                     qc_text = _f.read()
             except Exception:
                 qc_text = json.dumps(cfg or {}, sort_keys=True)
-            try:
-                action_version = _get_action_version()
-            except Exception:
-                action_version = ""
+            action_version = _get_action_version()
             payload = "\n".join([
                 qc_text,
                 analysis_prompt_template or "",
                 context_prompt_template or "",
                 model_review or "",
-                action_version or "",
+                action_version or "unknown",
             ])
             import hashlib as _hash
             return _hash.sha256(payload.encode("utf-8")).hexdigest()
