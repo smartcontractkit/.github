@@ -25876,12 +25876,12 @@ function getReviewStatusForUser(actor, currentReviewStatus) {
 
 // actions/codeowners-review-analysis/src/strings.ts
 var LEGEND = `Legend: ${iconFor(PullRequestReviewStateExt.Approved)} Approved | ${iconFor(PullRequestReviewStateExt.ChangesRequested)} Changes Requested | ${iconFor(PullRequestReviewStateExt.Commented)} Commented | ${iconFor(PullRequestReviewStateExt.Dismissed)} Dismissed | ${iconFor(PullRequestReviewStateExt.Pending)} Pending | ${iconFor("UNKNOWN" /* Unknown */)} Unknown`;
-function formatPendingReviewsMarkdown(entryMap, summaryUrl) {
-  const lines = [];
-  lines.push("### Codeowners Review Summary");
-  lines.push("");
-  lines.push(LEGEND);
-  lines.push("");
+function formatPendingReviewsMarkdown(entryMap, overallStatus, summaryUrl) {
+  const lines = ["### Codeowners Review Summary", "", LEGEND, ""];
+  if (overallStatus === PullRequestReviewStateExt.Approved) {
+    lines.push(`All codeowners have approved! ${iconFor(overallStatus)}`, "");
+    return lines.join("\n");
+  }
   lines.push("| Codeowners Entry | Overall | Files | Owners |");
   lines.push("| ---------------- | ------- | ----- | ------ |");
   const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
@@ -26077,10 +26077,16 @@ async function run() {
     );
     core7.debug("CODEOWNERS Summary:");
     core7.debug(`${JSON.stringify([...codeownersSummary])}`);
+    const overallStatuses = [...codeownersSummary.values()].map((e) => ({
+      state: e.overallStatus
+    }));
+    const overallStatus = getOverallState(overallStatuses);
+    core7.info(`Overall codeowners review status: ${overallStatus}`);
     await formatAllReviewsSummaryByEntry(codeownersSummary);
     const summaryUrl = await getSummaryUrl(octokit, owner, repo);
     const pendingReviewMarkdown = formatPendingReviewsMarkdown(
       codeownersSummary,
+      overallStatus,
       summaryUrl
     );
     console.log(pendingReviewMarkdown);

@@ -126,10 +126,17 @@ export async function run(): Promise<void> {
     core.debug("CODEOWNERS Summary:");
     core.debug(`${JSON.stringify([...codeownersSummary])}`);
 
+    const overallStatuses = [...codeownersSummary.values()].map((e) => ({
+      state: e.overallStatus,
+    }));
+    const overallStatus = getOverallState(overallStatuses);
+    core.info(`Overall codeowners review status: ${overallStatus}`);
+
     await formatAllReviewsSummaryByEntry(codeownersSummary);
     const summaryUrl = await getSummaryUrl(octokit, owner, repo);
     const pendingReviewMarkdown = formatPendingReviewsMarkdown(
       codeownersSummary,
+      overallStatus,
       summaryUrl,
     );
     console.log(pendingReviewMarkdown);

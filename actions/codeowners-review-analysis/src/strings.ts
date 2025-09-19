@@ -16,14 +16,16 @@ const LEGEND =
 
 export function formatPendingReviewsMarkdown(
   entryMap: Map<CodeownersEntry, ProcessedCodeOwnersEntry>,
+  overallStatus: PullRequestReviewStateExt,
   summaryUrl: string,
 ): string {
-  const lines: string[] = [];
+  const lines: string[] = ["### Codeowners Review Summary", "", LEGEND, ""];
 
-  lines.push("### Codeowners Review Summary");
-  lines.push("");
-  lines.push(LEGEND);
-  lines.push("");
+  if (overallStatus === PullRequestReviewStateExt.Approved) {
+    lines.push(`All codeowners have approved! ${iconFor(overallStatus)}`, "");
+    return lines.join("\n");
+  }
+
   lines.push("| Codeowners Entry | Overall | Files | Owners |");
   lines.push("| ---------------- | ------- | ----- | ------ |");
 

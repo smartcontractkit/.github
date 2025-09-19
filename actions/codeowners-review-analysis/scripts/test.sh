@@ -4,8 +4,8 @@ pnpm nx build codeowners-review-analysis
 
 export GITHUB_TOKEN=$(gh auth token)
 export GITHUB_ACTOR=$(gh api user --jq .login)
-export GITHUB_REPOSITORY="smartcontractkit/chainlink"
-# export GITHUB_REPOSITORY="smartcontractkit/releng-test"
+# export GITHUB_REPOSITORY="smartcontractkit/chainlink"
+export GITHUB_REPOSITORY="smartcontractkit/releng-test"
 export GITHUB_EVENT_NAME="pull_request_review"
 export GITHUB_EVENT_PATH="actions/codeowners-review-analysis/scripts/payload.json"
 
@@ -14,6 +14,7 @@ tmp_file=$(mktemp)
 export GITHUB_STEP_SUMMARY="$tmp_file"
 
 export INPUT_POST_COMMENT="false"
+export INPUT_MEMBERS_READ_GITHUB_TOKEN=$GITHUB_TOKEN
 export CL_LOCAL_DEBUG="true"
 
 node actions/codeowners-review-analysis/dist/index.js
