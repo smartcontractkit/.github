@@ -13,4 +13,4 @@
 /actions/devenv-*/** @smartcontractkit/cl-orchestration
 
 # data-applications
-/actions/chip-config-register-schemas/ @smartcontractkit/data-applications
+/actions/chip-config-register-schemas/ @smartcontractkit/data-tooling
