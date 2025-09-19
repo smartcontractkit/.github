@@ -25085,20 +25085,18 @@ function getInvokeContext() {
     return process.exit(1);
   }
   const { pull_request } = context4.payload;
-  if (context4.eventName !== "pull_request" || !pull_request) {
-    core.setFailed(
-      `This action can only be run on pull requests events. Got ${context4.eventName}`
+  if (!pull_request) {
+    throw new Error(
+      `No pull request found in the context payload. Event name: ${context4.eventName}`
     );
-    return process.exit(1);
   }
   const { number: prNumber } = pull_request;
   const { sha: base } = pull_request.base;
   const { sha: head } = pull_request.head;
   if (!base || !head || !prNumber) {
-    core.setFailed(
+    throw new Error(
       `Missing required pull request information. Base: ${base}, Head: ${head}, PR: ${prNumber}`
     );
-    return process.exit(1);
   }
   core.info(`Event name: ${context4.eventName}`);
   core.info(
@@ -25554,16 +25552,19 @@ function extractPending(pr) {
     const r = rr?.requestedReviewer;
     if (!r) continue;
     if (r.__typename === "User") {
+      core4.debug(`Found requested user review: ${r.login}`);
       pendingUsers.push({
         login: r.login,
         asCodeOwner: rr.asCodeOwner
       });
-    } else if (r.__typename === "Team")
+    } else if (r.__typename === "Team") {
+      core4.debug(`Found requested team review: ${r.slug}`);
       pendingTeams.push({
         slug: r.slug,
         id: r.id,
         asCodeOwner: rr.asCodeOwner
       });
+    }
   }
   return { pendingUsers, pendingTeams, decision };
 }
@@ -25576,6 +25577,9 @@ function accumulateLatestSignals(pr, userLatest, teamLatest) {
     const submittedAt = n.submittedAt;
     const onBehalfOfTeams = n.onBehalfOf?.nodes?.filter((t) => t !== null) ?? [];
     if (authorLogin && !(authorLogin in userLatest)) {
+      core4.debug(
+        `Found latest review by user: ${authorLogin} at ${submittedAt} - ${n.state}`
+      );
       userLatest[authorLogin] = {
         state: n.state,
         submittedAt,
@@ -25586,6 +25590,9 @@ function accumulateLatestSignals(pr, userLatest, teamLatest) {
     }
     for (const team of onBehalfOfTeams) {
       if (!(team.slug in teamLatest)) {
+        core4.debug(
+          `Found latest review by team: ${team.slug} at ${submittedAt} - ${n.state}`
+        );
         teamLatest[team.slug] = {
           state: n.state,
           submittedAt,
@@ -25930,6 +25937,7 @@ async function run() {
       repo,
       prNumber
     );
+    core7.debug(JSON.stringify(currentPRReviewState));
     core7.endGroup();
     core7.startGroup("Create CODEOWNERS Summary");
     const codeownersSummary = createReviewSummaryObjectV2(
