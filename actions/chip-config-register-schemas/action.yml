@@ -17,16 +17,12 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout repo
-      if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4.2.1
+    - uses: actions/checkout@v4.2.1
 
-    - name: Docker login to ECR
-      shell: bash
-      run: |
-        aws ecr get-login-password --region ${{ inputs.aws_region }} \
-        | docker login --username AWS --password-stdin \
-          ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com
+    - name: Login to ECR
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      with:
+        registries: ${{ inputs.aws_account_id }}
 
     - name: Pull container image
       shell: bash
