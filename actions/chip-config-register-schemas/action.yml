@@ -26,9 +26,12 @@ runs:
 
     - name: Pull container image
       shell: bash
+      env:
+        AWS_ACCOUNT_ID: ${{ inputs.aws_account_id }}
+        AWS_REGION: ${{ inputs.aws_region }}
       run: |
-        docker pull ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-chip-schema-registration:qa-latest
-        docker tag ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/atlas-chip-schema-registration:qa-latest chip-schema-registration
+        docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-schema-registration:qa-latest
+        docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-schema-registration:qa-latest chip-schema-registration
 
     - name: Register schemas
       shell: bash
