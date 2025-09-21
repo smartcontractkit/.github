@@ -1,5 +1,5 @@
 {
-  "name": "chip-config-register-schemas",
+  "name": "chip-schema-registration",
   "version": "0.0.0",
   "description": "",
   "private": true,

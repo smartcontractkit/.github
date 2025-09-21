@@ -1,4 +1,4 @@
-name: chip-config-register-schemas
+name: chip-schema-registration
 description: "Register schemas via a chip.json file"
 
 inputs:
