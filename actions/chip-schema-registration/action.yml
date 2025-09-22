@@ -8,16 +8,36 @@ inputs:
     default: "true"
   aws_account_id:
     description: "AWS Account ID"
-    required: false
-    default: "654654554896"
+    required: true
   aws_region:
     description: "AWS region"
     required: false
     default: "us-west-2"
+  chip_config_host:
+    description: "Host of chip-config service"
+    required: true
+  chip_config_port:
+    description: "Port of chip-config service"
+    required: false
+    default: "50051"
+  chip_config_user:
+    description: "User to authenticate to chip-config"
+    required: true
+  chip_config_password:
+    description: "Password to chip-config "
+    required: true
+  chip_schema_dir:
+    description: "Path to the schemas directory"
+    required: true
+  chip_config_file:
+    description: "Name of the schema configuration file in chip_schema_dir"
+    required: false
+    default: "chip.json"
+
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v4.2.1
+    - uses: actions/checkout@v5
 
     - name: Login to ECR
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
@@ -36,12 +56,12 @@ runs:
     - name: Register schemas
       shell: bash
       env:
-        CHIP_CONFIG_HOST: ${{ env.chip_config_host }}
-        CHIP_CONFIG_PORT: ${{ env.chip_config_port }}
-        CHIP_CONFIG_USER: ${{ env.chip_config_user }}
-        CHIP_CONFIG_PASSWORD: ${{ env.chip_config_password }}
-        CHIP_SCHEMA_DIR: ${{ env.chip_schema_dir }}
-        CHIP_CONFIG_FILE: ${{ env.chip_config_file }}
+        CHIP_CONFIG_HOST: ${{ inputs.chip_config_host }}
+        CHIP_CONFIG_PORT: ${{ inputs.chip_config_port }}
+        CHIP_CONFIG_USER: ${{ inputs.chip_config_user }}
+        CHIP_CONFIG_PASSWORD: ${{ inputs.chip_config_password }}
+        CHIP_SCHEMA_DIR: ${{ inputs.chip_schema_dir }}
+        CHIP_CONFIG_FILE: ${{ inputs.chip_config_file }}
       run: |
         docker run \
           -v "$PWD:/workspace" \
