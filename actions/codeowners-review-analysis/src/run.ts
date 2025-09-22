@@ -89,6 +89,8 @@ export async function run(): Promise<void> {
       repo,
       prNumber,
     );
+
+    core.debug(JSON.stringify(currentPRReviewState));
     core.endGroup();
 
     core.startGroup("Create CODEOWNERS Summary");
