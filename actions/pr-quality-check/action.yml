@@ -428,11 +428,12 @@ runs:
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
-      uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c #v6
+      uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e #v7
       with:
         token: ${{ inputs.gh-token }}
         branch: "auto-fix/pr-${{ github.event.pull_request.number }}"
         base: ${{ github.event.pull_request.head.ref }}
+        sign-commits: true
         title:
           "PR Quality Check: Auto-fixes for PR #${{
           github.event.pull_request.number }}"
