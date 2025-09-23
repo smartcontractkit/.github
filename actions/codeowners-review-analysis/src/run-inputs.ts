@@ -1,8 +1,11 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
+export const CL_LOCAL_DEBUG = process.env.CL_LOCAL_DEBUG === "true";
+
 export interface RunInputs {
   postComment: boolean;
+  membersReadGitHubToken: string;
 }
 
 export function getInputs(): RunInputs {
@@ -10,6 +13,7 @@ export function getInputs(): RunInputs {
 
   const inputs: RunInputs = {
     postComment: getRunInputBoolean("postComment"),
+    membersReadGitHubToken: getRunInputString("membersReadGitHubToken"),
   };
 
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
@@ -77,11 +81,22 @@ const runInputsConfiguration: {
     parameter: "post-comment",
     localParameter: "POST_COMMENT",
   },
+  membersReadGitHubToken: {
+    parameter: "members-read-github-token",
+    localParameter: "MEMBERS_READ_GITHUB_TOKEN",
+  },
 };
 
 function getRunInputBoolean(input: keyof RunInputs) {
   const inputKey = getInputKey(input);
   return core.getBooleanInput(inputKey, {
+    required: true,
+  });
+}
+
+function getRunInputString(input: keyof RunInputs) {
+  const inputKey = getInputKey(input);
+  return core.getInput(inputKey, {
     required: true,
   });
 }
@@ -94,7 +109,6 @@ function getInputKey(input: keyof RunInputs) {
   }
 
   // Use local debug input key if local debugging is enabled
-  const isLocalDebug = process.env.CL_LOCAL_DEBUG;
-  const inputKey = isLocalDebug ? config.localParameter : config.parameter;
+  const inputKey = CL_LOCAL_DEBUG ? config.localParameter : config.parameter;
   return inputKey;
 }

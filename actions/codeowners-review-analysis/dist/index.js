@@ -4123,18 +4123,18 @@ var require_webidl = __commonJS({
     webidl.errors.exception = function(message) {
       return new TypeError(`${message.header}: ${message.message}`);
     };
-    webidl.errors.conversionFailed = function(context4) {
-      const plural = context4.types.length === 1 ? "" : " one of";
-      const message = `${context4.argument} could not be converted to${plural}: ${context4.types.join(", ")}.`;
+    webidl.errors.conversionFailed = function(context3) {
+      const plural = context3.types.length === 1 ? "" : " one of";
+      const message = `${context3.argument} could not be converted to${plural}: ${context3.types.join(", ")}.`;
       return webidl.errors.exception({
-        header: context4.prefix,
+        header: context3.prefix,
         message
       });
     };
-    webidl.errors.invalidArgument = function(context4) {
+    webidl.errors.invalidArgument = function(context3) {
       return webidl.errors.exception({
-        header: context4.prefix,
-        message: `"${context4.value}" is an invalid ${context4.type}.`
+        header: context3.prefix,
+        message: `"${context3.value}" is an invalid ${context3.type}.`
       });
     };
     webidl.brandCheck = function(V, I, opts = void 0) {
@@ -9466,15 +9466,15 @@ var require_api_request = __commonJS({
         }
         addSignal(this, signal);
       }
-      onConnect(abort, context4) {
+      onConnect(abort, context3) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context4;
+        this.context = context3;
       }
       onHeaders(statusCode, rawHeaders, resume, statusMessage) {
-        const { callback, opaque, abort, context: context4, responseHeaders, highWaterMark } = this;
+        const { callback, opaque, abort, context: context3, responseHeaders, highWaterMark } = this;
         const headers = responseHeaders === "raw" ? util.parseRawHeaders(rawHeaders) : util.parseHeaders(rawHeaders);
         if (statusCode < 200) {
           if (this.onInfo) {
@@ -9501,7 +9501,7 @@ var require_api_request = __commonJS({
               trailers: this.trailers,
               opaque,
               body,
-              context: context4
+              context: context3
             });
           }
         }
@@ -9621,15 +9621,15 @@ var require_api_stream = __commonJS({
         }
         addSignal(this, signal);
       }
-      onConnect(abort, context4) {
+      onConnect(abort, context3) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context4;
+        this.context = context3;
       }
       onHeaders(statusCode, rawHeaders, resume, statusMessage) {
-        const { factory, opaque, context: context4, callback, responseHeaders } = this;
+        const { factory, opaque, context: context3, callback, responseHeaders } = this;
         const headers = responseHeaders === "raw" ? util.parseRawHeaders(rawHeaders) : util.parseHeaders(rawHeaders);
         if (statusCode < 200) {
           if (this.onInfo) {
@@ -9657,7 +9657,7 @@ var require_api_stream = __commonJS({
             statusCode,
             headers,
             opaque,
-            context: context4
+            context: context3
           });
           if (!res || typeof res.write !== "function" || typeof res.end !== "function" || typeof res.on !== "function") {
             throw new InvalidReturnValueError("expected Writable");
@@ -9849,17 +9849,17 @@ var require_api_pipeline = __commonJS({
         this.res = null;
         addSignal(this, signal);
       }
-      onConnect(abort, context4) {
+      onConnect(abort, context3) {
         const { ret, res } = this;
         assert(!res, "pipeline cannot be retried");
         if (ret.destroyed) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context4;
+        this.context = context3;
       }
       onHeaders(statusCode, rawHeaders, resume) {
-        const { opaque, handler, context: context4 } = this;
+        const { opaque, handler, context: context3 } = this;
         if (statusCode < 200) {
           if (this.onInfo) {
             const headers = this.responseHeaders === "raw" ? util.parseRawHeaders(rawHeaders) : util.parseHeaders(rawHeaders);
@@ -9877,7 +9877,7 @@ var require_api_pipeline = __commonJS({
             headers,
             opaque,
             body: this.res,
-            context: context4
+            context: context3
           });
         } catch (err) {
           this.res.on("error", util.nop);
@@ -9961,7 +9961,7 @@ var require_api_upgrade = __commonJS({
         this.context = null;
         addSignal(this, signal);
       }
-      onConnect(abort, context4) {
+      onConnect(abort, context3) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
@@ -9972,7 +9972,7 @@ var require_api_upgrade = __commonJS({
         throw new SocketError("bad upgrade", null);
       }
       onUpgrade(statusCode, rawHeaders, socket) {
-        const { callback, opaque, context: context4 } = this;
+        const { callback, opaque, context: context3 } = this;
         assert.strictEqual(statusCode, 101);
         removeSignal(this);
         this.callback = null;
@@ -9981,7 +9981,7 @@ var require_api_upgrade = __commonJS({
           headers,
           socket,
           opaque,
-          context: context4
+          context: context3
         });
       }
       onError(err) {
@@ -10049,18 +10049,18 @@ var require_api_connect = __commonJS({
         this.abort = null;
         addSignal(this, signal);
       }
-      onConnect(abort, context4) {
+      onConnect(abort, context3) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context4;
+        this.context = context3;
       }
       onHeaders() {
         throw new SocketError("bad connect", null);
       }
       onUpgrade(statusCode, rawHeaders, socket) {
-        const { callback, opaque, context: context4 } = this;
+        const { callback, opaque, context: context3 } = this;
         removeSignal(this);
         this.callback = null;
         let headers = rawHeaders;
@@ -10072,7 +10072,7 @@ var require_api_connect = __commonJS({
           headers,
           socket,
           opaque,
-          context: context4
+          context: context3
         });
       }
       onError(err) {
@@ -18196,8 +18196,8 @@ var require_dist_node2 = __commonJS({
     function isKeyOperator2(operator) {
       return operator === ";" || operator === "&" || operator === "?";
     }
-    function getValues2(context4, operator, key, modifier) {
-      var value = context4[key], result = [];
+    function getValues2(context3, operator, key, modifier) {
+      var value = context3[key], result = [];
       if (isDefined2(value) && value !== "") {
         if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
           value = value.toString();
@@ -18261,7 +18261,7 @@ var require_dist_node2 = __commonJS({
         expand: expand2.bind(null, template)
       };
     }
-    function expand2(template, context4) {
+    function expand2(template, context3) {
       var operators = ["+", "#", ".", "/", ";", "?", "&"];
       template = template.replace(
         /\{([^\{\}]+)\}|([^\{\}]+)/g,
@@ -18275,7 +18275,7 @@ var require_dist_node2 = __commonJS({
             }
             expression.split(/,/g).forEach(function(variable) {
               var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
-              values.push(getValues2(context4, operator, tmp[1], tmp[2] || tmp[3]));
+              values.push(getValues2(context3, operator, tmp[1], tmp[2] || tmp[3]));
             });
             if (operator && operator !== "+") {
               var separator = ",";
@@ -23735,7 +23735,7 @@ var require_core = __commonJS({
       process.env["PATH"] = `${inputPath}${path.delimiter}${process.env["PATH"]}`;
     }
     exports2.addPath = addPath;
-    function getInput(name, options) {
+    function getInput2(name, options) {
       const val = process.env[`INPUT_${name.replace(/ /g, "_").toUpperCase()}`] || "";
       if (options && options.required && !val) {
         throw new Error(`Input required and not supplied: ${name}`);
@@ -23745,9 +23745,9 @@ var require_core = __commonJS({
       }
       return val.trim();
     }
-    exports2.getInput = getInput;
+    exports2.getInput = getInput2;
     function getMultilineInput(name, options) {
-      const inputs = getInput(name, options).split("\n").filter((x) => x !== "");
+      const inputs = getInput2(name, options).split("\n").filter((x) => x !== "");
       if (options && options.trimWhitespace === false) {
         return inputs;
       }
@@ -23757,7 +23757,7 @@ var require_core = __commonJS({
     function getBooleanInput2(name, options) {
       const trueValue = ["true", "True", "TRUE"];
       const falseValue = ["false", "False", "FALSE"];
-      const val = getInput(name, options);
+      const val = getInput2(name, options);
       if (trueValue.includes(val))
         return true;
       if (falseValue.includes(val))
@@ -23966,7 +23966,7 @@ var require_fast_content_type_parse = __commonJS({
 });
 
 // actions/codeowners-review-analysis/src/run.ts
-var github4 = __toESM(require_github());
+var github3 = __toESM(require_github());
 var core7 = __toESM(require_core());
 
 // node_modules/.pnpm/universal-user-agent@7.0.3/node_modules/universal-user-agent/index.js
@@ -24218,8 +24218,8 @@ function isDefined(value) {
 function isKeyOperator(operator) {
   return operator === ";" || operator === "&" || operator === "?";
 }
-function getValues(context4, operator, key, modifier) {
-  var value = context4[key], result = [];
+function getValues(context3, operator, key, modifier) {
+  var value = context3[key], result = [];
   if (isDefined(value) && value !== "") {
     if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
       value = value.toString();
@@ -24283,7 +24283,7 @@ function parseUrl(template) {
     expand: expand.bind(null, template)
   };
 }
-function expand(template, context4) {
+function expand(template, context3) {
   var operators = ["+", "#", ".", "/", ";", "?", "&"];
   template = template.replace(
     /\{([^\{\}]+)\}|([^\{\}]+)/g,
@@ -24297,7 +24297,7 @@ function expand(template, context4) {
         }
         expression.split(/,/g).forEach(function(variable) {
           var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
-          values.push(getValues(context4, operator, tmp[1], tmp[2] || tmp[3]));
+          values.push(getValues(context3, operator, tmp[1], tmp[2] || tmp[3]));
         });
         if (operator && operator !== "+") {
           var separator = ",";
@@ -25068,26 +25068,28 @@ function paginateGraphQL(octokit) {
 // actions/codeowners-review-analysis/src/run-inputs.ts
 var core = __toESM(require_core());
 var github = __toESM(require_github());
+var CL_LOCAL_DEBUG = process.env.CL_LOCAL_DEBUG === "true";
 function getInputs() {
   core.info("Getting inputs for run.");
   const inputs = {
-    postComment: getRunInputBoolean("postComment")
+    postComment: getRunInputBoolean("postComment"),
+    membersReadGitHubToken: getRunInputString("membersReadGitHubToken")
   };
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
   return inputs;
 }
 function getInvokeContext() {
-  const { context: context4 } = github;
+  const { context: context3 } = github;
   const { owner, repo } = github.context.repo;
   const token = process.env.GITHUB_TOKEN;
   if (!token) {
     core.setFailed("GitHub token is not set.");
     return process.exit(1);
   }
-  const { pull_request } = context4.payload;
+  const { pull_request } = context3.payload;
   if (!pull_request) {
     throw new Error(
-      `No pull request found in the context payload. Event name: ${context4.eventName}`
+      `No pull request found in the context payload. Event name: ${context3.eventName}`
     );
   }
   const { number: prNumber } = pull_request;
@@ -25098,16 +25100,20 @@ function getInvokeContext() {
       `Missing required pull request information. Base: ${base}, Head: ${head}, PR: ${prNumber}`
     );
   }
-  core.info(`Event name: ${context4.eventName}`);
+  core.info(`Event name: ${context3.eventName}`);
   core.info(
-    `Owner: ${owner}, Repo: ${repo}, Base: ${base}, Head: ${head}, PR: ${prNumber ?? "N/A"} Actor: ${context4.actor}`
+    `Owner: ${owner}, Repo: ${repo}, Base: ${base}, Head: ${head}, PR: ${prNumber ?? "N/A"} Actor: ${context3.actor}`
   );
-  return { token, owner, repo, base, head, prNumber, actor: context4.actor };
+  return { token, owner, repo, base, head, prNumber, actor: context3.actor };
 }
 var runInputsConfiguration = {
   postComment: {
     parameter: "post-comment",
     localParameter: "POST_COMMENT"
+  },
+  membersReadGitHubToken: {
+    parameter: "members-read-github-token",
+    localParameter: "MEMBERS_READ_GITHUB_TOKEN"
   }
 };
 function getRunInputBoolean(input) {
@@ -25116,13 +25122,18 @@ function getRunInputBoolean(input) {
     required: true
   });
 }
+function getRunInputString(input) {
+  const inputKey = getInputKey(input);
+  return core.getInput(inputKey, {
+    required: true
+  });
+}
 function getInputKey(input) {
   const config = runInputsConfiguration[input];
   if (!config) {
     throw new Error(`No configuration found for input: ${input}`);
   }
-  const isLocalDebug = process.env.CL_LOCAL_DEBUG;
-  const inputKey = isLocalDebug ? config.localParameter : config.parameter;
+  const inputKey = CL_LOCAL_DEBUG ? config.localParameter : config.parameter;
   return inputKey;
 }
 
@@ -25189,9 +25200,44 @@ async function getCodeownersFile(octokit, owner, repo) {
   }
   return void 0;
 }
+async function getTeamToMembersMapping(octokit, org, teams) {
+  core2.info(`Fetching members for ${teams.length} teams...`);
+  const teamToMembers = /* @__PURE__ */ new Map();
+  for (const team of teams) {
+    const [_, slug] = team.split("/");
+    const members = await getTeamMembers(octokit, org, slug);
+    if (members.length === 0) {
+      core2.warning(`No members found for team: ${org}/${slug}`);
+      continue;
+    }
+    core2.info(`Found ${members.length} members for team: ${org}/${slug}`);
+    teamToMembers.set(team, members);
+  }
+  return teamToMembers;
+}
+async function getSummaryUrl(octokit, owner, repo) {
+  const runId = github2.context.runId;
+  try {
+    const { data } = await octokit.rest.actions.listJobsForWorkflowRun({
+      owner,
+      repo,
+      run_id: runId
+    });
+    if (data.jobs.length !== 1) {
+      core2.warning(
+        `Expected exactly one job in workflow run, found ${data.jobs.length}. Cannot determine summary URL.`
+      );
+      return "";
+    }
+    return `https://github.com/${owner}/${repo}/actions/runs/${runId}/#summary-${data.jobs[0].id}`;
+  } catch (error) {
+    core2.warning(`Failed to get summary link: ${error}`);
+    return "";
+  }
+}
 async function getFile(octokit, owner, repo, path, ref) {
   try {
-    core2.info(`GitHub getContent: ${owner}/${repo} path:${path} ref:${ref}`);
+    core2.debug(`GitHub getContent: ${owner}/${repo} path:${path} ref:${ref}`);
     const { data } = await octokit.rest.repos.getContent({
       owner,
       repo,
@@ -25230,6 +25276,7 @@ async function getFile(octokit, owner, repo, path, ref) {
   }
 }
 async function getHeadSHAOfDefaultBranch(octokit, owner, repo) {
+  core2.debug(`Getting default branch for ${owner}/${repo}`);
   try {
     const response = await octokit.rest.repos.listCommits({
       owner,
@@ -25245,24 +25292,21 @@ async function getHeadSHAOfDefaultBranch(octokit, owner, repo) {
     return "";
   }
 }
-async function getSummaryUrl(octokit, owner, repo) {
-  const runId = github2.context.runId;
+async function getTeamMembers(octokit, org, teamSlug) {
+  core2.debug(`Getting members for team: ${org}/${teamSlug}`);
   try {
-    const { data } = await octokit.rest.actions.listJobsForWorkflowRun({
-      owner,
-      repo,
-      run_id: runId
-    });
-    if (data.jobs.length !== 1) {
-      core2.warning(
-        `Expected exactly one job in workflow run, found ${data.jobs.length}. Cannot determine summary URL.`
-      );
-      return "";
-    }
-    return `https://github.com/${owner}/${repo}/actions/runs/${runId}/#summary-${data.jobs[0].id}`;
+    const members = await octokit.paginate(
+      octokit.rest.teams.listMembersInOrg,
+      {
+        org,
+        team_slug: teamSlug,
+        per_page: 25
+      }
+    );
+    return members.map((member) => member.login);
   } catch (error) {
-    core2.warning(`Failed to get summary link: ${error}`);
-    return "";
+    core2.warning(`Failed to get team ${org}/${teamSlug}: ${error}`);
+    return [];
   }
 }
 
@@ -25435,6 +25479,7 @@ async function getCodeownersEntries({
 }
 function processChangedFiles(filenames, codeownersFile) {
   const codeOwnersEntryToFiles = /* @__PURE__ */ new Map();
+  const allCodeOwners = /* @__PURE__ */ new Set();
   const unownedFiles = [];
   for (const file of filenames) {
     const lastEntry = codeownersFile.findLast(
@@ -25446,11 +25491,20 @@ function processChangedFiles(filenames, codeownersFile) {
       continue;
     }
     addToMapOfArrays(codeOwnersEntryToFiles, lastEntry, file);
+    for (const owner of lastEntry.owners) {
+      allCodeOwners.add(owner);
+    }
     core3.debug(
       `File: ${file} matched pattern: ${lastEntry.rawPattern} with owners: ${lastEntry.rawOwners} (${lastEntry.lineNumber})`
     );
   }
-  return { unownedFiles, codeOwnersEntryToFiles };
+  if (unownedFiles.length > 0) {
+    core3.warning(
+      `There are ${unownedFiles.length} unowned files in the PR. Consider adding a catch-all entry in your CODEOWNERS file.`
+    );
+    core3.debug(`Unowned files: ${JSON.stringify(unownedFiles, null, 2)}`);
+  }
+  return { allCodeOwners, codeOwnersEntryToFiles };
 }
 function addToMapOfArrays(map, key, value) {
   if (!map.has(key)) {
@@ -25613,7 +25667,7 @@ function stopOrGetStartCursor(pr) {
   if (!hasPreviousPage || !startCursor) return null;
   return startCursor;
 }
-async function getCurrentReviewStatus(octokit, owner, repo, prNumber, pageSize = 100, maxPages = 10) {
+async function getCurrentReviewStatusGQL(octokit, owner, repo, prNumber, pageSize = 100, maxPages = 10) {
   const last = Math.min(Math.max(pageSize, 1), 100);
   let before = null;
   let pagesFetched = 0;
@@ -25659,7 +25713,6 @@ async function getCurrentReviewStatus(octokit, owner, repo, prNumber, pageSize =
 
 // actions/codeowners-review-analysis/src/strings.ts
 var core6 = __toESM(require_core());
-var github3 = __toESM(require_github());
 
 // actions/codeowners-review-analysis/src/review-status.ts
 var core5 = __toESM(require_core());
@@ -25685,6 +25738,9 @@ function getOverallState(statuses) {
     ["UNKNOWN" /* Unknown */]: 5
   };
   return [...statuses].map((s) => s.state).sort((a, b) => precedence[a] - precedence[b])[0];
+}
+function filterFor(statuses, state) {
+  return statuses.filter((s) => s.state === state);
 }
 function toExtended(state) {
   switch (state) {
@@ -25726,59 +25782,114 @@ function iconFor(state) {
       return "\u2753";
   }
 }
-function getReviewForStatusFor(codeowner, currentReviewStatus) {
+function getReviewForStatusFor(codeowner, currentReviewStatus, teamsToMembers) {
   if (codeowner.includes("/")) {
-    const [_, teamSlug] = codeowner.split("/");
-    const teamLatest = currentReviewStatus.teamLatest[teamSlug];
-    if (teamLatest) {
-      return {
-        state: toExtended(teamLatest.state),
-        actor: teamLatest.byUser
-      };
-    }
-    const team = currentReviewStatus.pendingTeams.find(
-      (t) => t.slug === teamSlug
+    return getReviewStatusForTeam(
+      codeowner,
+      currentReviewStatus,
+      teamsToMembers
     );
-    if (team) {
-      return { state: PullRequestReviewStateExt.Pending, actor: null };
-    }
-    core5.warning(
-      `No status found for teamslug: ${teamSlug} - default to pending`
-    );
-    return { state: PullRequestReviewStateExt.Pending, actor: null };
   }
-  const userLatest = currentReviewStatus.userLatest[codeowner];
+  const userStatus = getReviewStatusForUser(codeowner, currentReviewStatus);
+  if (!userStatus) {
+    return [
+      {
+        state: PullRequestReviewStateExt.Pending,
+        actor: codeowner,
+        onBehalfOf: null
+      }
+    ];
+  }
+  return [userStatus];
+}
+function getReviewStatusForTeam(codeowner, currentReviewStatus, teamsToMembers) {
+  if (!codeowner.includes("/")) {
+    throw new Error(`Codeowner ${codeowner} is not a team`);
+  }
+  const [_, teamSlug] = codeowner.split("/");
+  const teamLatest = currentReviewStatus.teamLatest[teamSlug];
+  if (teamLatest) {
+    return [
+      {
+        state: toExtended(teamLatest.state),
+        actor: teamLatest.byUser,
+        onBehalfOf: codeowner
+      }
+    ];
+  }
+  const team = currentReviewStatus.pendingTeams.find(
+    (t) => t.slug === teamSlug
+  );
+  if (team) {
+    return [
+      {
+        state: PullRequestReviewStateExt.Pending,
+        actor: null,
+        onBehalfOf: codeowner
+      }
+    ];
+  }
+  const reviewStatuses = [];
+  const members = teamsToMembers.get(codeowner);
+  if (members && members.length > 0) {
+    for (const member of members) {
+      const status = getReviewStatusForUser(member, currentReviewStatus);
+      if (status) {
+        reviewStatuses.push({ ...status, onBehalfOf: codeowner });
+      }
+    }
+  }
+  if (reviewStatuses.length > 0) {
+    return reviewStatuses;
+  }
+  core5.warning(
+    `No status found for teamslug: ${teamSlug} - default to pending`
+  );
+  return [
+    {
+      state: PullRequestReviewStateExt.Pending,
+      actor: null,
+      onBehalfOf: codeowner
+    }
+  ];
+}
+function getReviewStatusForUser(actor, currentReviewStatus) {
+  const userLatest = currentReviewStatus.userLatest[actor];
   if (userLatest) {
     return {
       state: toExtended(userLatest.state),
-      actor: codeowner
+      actor,
+      onBehalfOf: null
     };
   }
   const pendingUser = currentReviewStatus.pendingUsers.find(
-    (u) => u.login === codeowner
+    (u) => u.login === actor
   );
   if (pendingUser) {
-    return { state: PullRequestReviewStateExt.Pending, actor: codeowner };
+    return {
+      state: PullRequestReviewStateExt.Pending,
+      actor,
+      onBehalfOf: null
+    };
   }
-  core5.warning(`No status found for user: ${codeowner} - default to pending`);
-  return { state: PullRequestReviewStateExt.Pending, actor: null };
+  return null;
 }
 
 // actions/codeowners-review-analysis/src/strings.ts
 var LEGEND = `Legend: ${iconFor(PullRequestReviewStateExt.Approved)} Approved | ${iconFor(PullRequestReviewStateExt.ChangesRequested)} Changes Requested | ${iconFor(PullRequestReviewStateExt.Commented)} Commented | ${iconFor(PullRequestReviewStateExt.Dismissed)} Dismissed | ${iconFor(PullRequestReviewStateExt.Pending)} Pending | ${iconFor("UNKNOWN" /* Unknown */)} Unknown`;
-function formatPendingReviewsMarkdown(entryMap, summaryUrl) {
-  const lines = [];
-  lines.push("### Codeowners Review Summary");
-  lines.push("");
-  lines.push(LEGEND);
-  lines.push("");
+function formatPendingReviewsMarkdown(entryMap, overallStatus, summaryUrl) {
+  const lines = ["### Codeowners Review Summary", "", LEGEND, ""];
+  if (overallStatus === PullRequestReviewStateExt.Approved) {
+    lines.push(`All codeowners have approved! ${iconFor(overallStatus)}`, "");
+    return lines.join("\n");
+  }
   lines.push("| Codeowners Entry | Overall | Files | Owners |");
   lines.push("| ---------------- | ------- | ----- | ------ |");
   const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
     return a.lineNumber - b.lineNumber;
   });
   for (const [entry, processed] of sortedEntries) {
-    const overall = processed.overallStatus;
+    const overall = processed.state;
     if (overall === PullRequestReviewStateExt.Approved) {
       continue;
     }
@@ -25796,20 +25907,24 @@ function formatPendingReviewsMarkdown(entryMap, summaryUrl) {
     );
     lines.push("");
   }
-  const {
-    runId,
-    repo: { owner, repo }
-  } = github3.context;
-  if (runId && owner && repo) {
-    lines.push(
-      `Refresh analysis with: \`gh run rerun ${runId} -R ${owner}/${repo}\``
-    );
-  }
   return lines.join("\n");
 }
 async function formatAllReviewsSummaryByEntry(entryMap) {
   core6.summary.addHeading("Codeowners Review Details", 2).addRaw(LEGEND).addBreak();
-  const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
+  const escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const formatFilesList = (files, maxLines = 4) => {
+    if (files.length === 0) return "-";
+    if (files.length <= maxLines) {
+      return files.map((f) => `<code>${escapeHtml(f)}</code>`).join("<br/>");
+    }
+    const visible = files.slice(0, maxLines - 1);
+    const remaining = files.length - visible.length;
+    return [
+      ...visible.map((f) => `<code>${escapeHtml(f)}</code>`),
+      `+${remaining} more`
+    ].join("<br/>");
+  };
+  const sortedEntries = [...entryMap.entries()].sort(([a], [b]) => {
     return a.lineNumber - b.lineNumber;
   });
   for (const [entry, processed] of sortedEntries) {
@@ -25819,67 +25934,63 @@ async function formatAllReviewsSummaryByEntry(entryMap) {
       continue;
     }
     const owners = entry.owners && entry.owners.length > 0 ? entry.owners : ["_No owners found_"];
-    const ownerStatuses = processed.ownerReviewStatuses || [];
-    const overallIcon = iconFor(processed.overallStatus);
-    const rows = [];
-    for (const file of files) {
-      if (ownerStatuses.length === 0) {
-        rows.push([
-          { data: file },
-          { data: overallIcon },
-          // overall is per-entry
-          { data: owners[0] ?? "_No owners found_" },
-          { data: overallIcon },
-          { data: "-" }
-        ]);
-        continue;
-      }
-      const rowspan = String(ownerStatuses.length);
-      const filenameCell = { data: file, rowspan };
-      const overallCell = { data: overallIcon, rowspan };
-      ownerStatuses.forEach((status, idx) => {
-        let ownerName;
-        if (owners.length === ownerStatuses.length) {
-          ownerName = owners[idx] ?? "_Unknown owner_";
-        } else if (owners.length === 1) {
-          ownerName = owners[0];
-        } else {
-          ownerName = owners[idx] ?? owners[owners.length - 1] ?? "_Unknown owner_";
-        }
-        const ownerCell = { data: ownerName };
-        const stateCell = { data: iconFor(status.state) };
-        const reviewedByCell = { data: status.actor ?? "-" };
-        if (idx === 0) {
-          rows.push([
-            filenameCell,
-            overallCell,
-            ownerCell,
-            stateCell,
-            reviewedByCell
-          ]);
-        } else {
-          rows.push([ownerCell, stateCell, reviewedByCell]);
-        }
-      });
-    }
+    const overallIcon = iconFor(processed.state);
+    const grouped = processed.reviewStatusesByOwner ?? /* @__PURE__ */ new Map();
     const headerRow = [
-      { data: `Files (${files.length})`, header: true },
-      { data: "Overall", header: true },
       { data: "Owner", header: true },
-      { data: "State", header: true },
-      { data: "Reviewed By", header: true }
+      { data: "Team State", header: true },
+      { data: "Reviewers (individual)", header: true }
     ];
-    const escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const lineLink = entry.htmlLineUrl ? ` <a href="${entry.htmlLineUrl}">(#L${entry.lineNumber})</a>` : "";
     const metaRows = [
       [{ data: "Owners", header: true }, { data: owners.join(", ") }],
       [
         { data: `Entry ${lineLink}`, header: true },
-        {
-          data: `<code>${escapeHtml(entry.rawLine)}</code>`
-        }
-      ]
+        { data: `<code>${escapeHtml(entry.rawLine)}</code>` }
+      ],
+      [{ data: "Files", header: true }, { data: formatFilesList(files, 4) }]
     ];
+    const rows = owners.map((ownerName) => {
+      const statuses = grouped.get(ownerName) ?? [];
+      const teamState = statuses.length > 0 ? getOverallState(statuses) : PullRequestReviewStateExt.Pending;
+      const parts = [];
+      const changesRequested = filterFor(statuses, PullRequestReviewStateExt.ChangesRequested);
+      parts.push(
+        ...changesRequested.map(
+          (s) => `${s.actor ?? "-"} ${iconFor(s.state)}`
+        )
+      );
+      const approved = filterFor(statuses, PullRequestReviewStateExt.Approved);
+      parts.push(
+        ...approved.map((s) => `${s.actor ?? "-"} ${iconFor(s.state)}`)
+      );
+      const makeCollapsed = (label, icon, group) => {
+        const names = group.map((s) => s.actor ?? "-").join(", ");
+        return `<span title="${escapeHtml(names)}">+${group.length} ${label} ${icon}</span>`;
+      };
+      const commented = filterFor(statuses, PullRequestReviewStateExt.Commented);
+      if (commented.length > 0) {
+        parts.push(makeCollapsed("commented", iconFor(PullRequestReviewStateExt.Commented), commented));
+      }
+      const dismissed = filterFor(statuses, PullRequestReviewStateExt.Dismissed);
+      if (dismissed.length > 0) {
+        parts.push(makeCollapsed("dismissed", iconFor(PullRequestReviewStateExt.Dismissed), dismissed));
+      }
+      const pending = filterFor(statuses, PullRequestReviewStateExt.Pending);
+      if (pending.length > 0) {
+        parts.push(makeCollapsed("pending", iconFor(PullRequestReviewStateExt.Pending), pending));
+      }
+      const unknown = filterFor(statuses, "UNKNOWN" /* Unknown */);
+      if (unknown.length > 0) {
+        parts.push(makeCollapsed("unknown", iconFor("UNKNOWN" /* Unknown */), unknown));
+      }
+      const reviewers = parts.length > 0 ? parts.join("<br/>") : "-";
+      return [
+        { data: ownerName },
+        { data: iconFor(teamState) },
+        { data: reviewers }
+      ];
+    });
     core6.summary.addHeading(
       `${overallIcon} - <code>${escapeHtml(entry.rawPattern)}</code>`,
       3
@@ -25892,13 +26003,13 @@ async function formatAllReviewsSummaryByEntry(entryMap) {
 async function run() {
   try {
     core7.startGroup("Context");
-    const context4 = getInvokeContext();
-    const octokit = github4.getOctokit(context4.token);
-    core7.debug(`Context: ${JSON.stringify(context4, null, 2)}`);
+    const context3 = getInvokeContext();
+    const octokit = github3.getOctokit(context3.token);
+    core7.debug(`Context: ${JSON.stringify(context3, null, 2)}`);
     const inputs = getInputs();
     core7.debug(`Inputs: ${JSON.stringify(inputs)}`);
     core7.endGroup();
-    const { token, owner, repo, prNumber } = context4;
+    const { token, owner, repo, prNumber } = context3;
     core7.startGroup("Get changed files for PR");
     const prFiles = await getChangedFilesForPR(octokit, owner, repo, prNumber);
     const filenames = prFiles.map((f) => f.filename);
@@ -25923,31 +26034,61 @@ async function run() {
     }
     core7.endGroup();
     core7.startGroup("Analyze file paths and codeowners patterns");
-    const { unownedFiles, codeOwnersEntryToFiles } = processChangedFiles(
+    const { allCodeOwners, codeOwnersEntryToFiles } = processChangedFiles(
       filenames,
       codeownersEntries
     );
+    if (allCodeOwners.size === 0) {
+      core7.warning(
+        "No code owners identified for changed files. Skipping analysis."
+      );
+      return;
+    }
     core7.endGroup();
     core7.startGroup("Get currrent state of PR reviews");
     const OctokitWithGQLPagination = Octokit.plugin(paginateGraphQL);
     const octokitGQL = new OctokitWithGQLPagination({ auth: token });
-    const currentPRReviewState = await getCurrentReviewStatus(
+    const currentPRReviewState = await getCurrentReviewStatusGQL(
       octokitGQL,
       owner,
       repo,
       prNumber
     );
+    core7.debug(`Current PR review state:`);
     core7.debug(JSON.stringify(currentPRReviewState));
+    const allTeamCodeOwners = Array.from(allCodeOwners).filter(
+      (o) => o.includes("/")
+    );
+    core7.debug(`All codeowners: ${JSON.stringify(allCodeOwners)}`);
+    core7.debug(`All team code owners: ${JSON.stringify(allTeamCodeOwners)}`);
+    const octokitMembers = github3.getOctokit(inputs.membersReadGitHubToken);
+    const teamsToMembers = await getTeamToMembersMapping(
+      octokitMembers,
+      owner,
+      Array.from(allTeamCodeOwners)
+    );
+    if (CL_LOCAL_DEBUG) {
+      core7.debug(`Teams to members mapping:`);
+      core7.debug(`${JSON.stringify([...teamsToMembers])}`);
+    }
     core7.endGroup();
     core7.startGroup("Create CODEOWNERS Summary");
-    const codeownersSummary = createReviewSummaryObjectV2(
+    const codeownersSummary = createReviewSummaryObject(
       currentPRReviewState,
-      codeOwnersEntryToFiles
+      codeOwnersEntryToFiles,
+      teamsToMembers
     );
+    if (CL_LOCAL_DEBUG) {
+      core7.debug("CODEOWNERS Summary:");
+      core7.debug(`${JSON.stringify([...codeownersSummary])}`);
+    }
+    const overallStatus = getOverallState([...codeownersSummary.values()]);
+    core7.info(`Overall codeowners review status: ${overallStatus}`);
     await formatAllReviewsSummaryByEntry(codeownersSummary);
     const summaryUrl = await getSummaryUrl(octokit, owner, repo);
     const pendingReviewMarkdown = formatPendingReviewsMarkdown(
       codeownersSummary,
+      overallStatus,
       summaryUrl
     );
     console.log(pendingReviewMarkdown);
@@ -25966,18 +26107,24 @@ async function run() {
     core7.setFailed(`Action failed: ${error}`);
   }
 }
-function createReviewSummaryObjectV2(currentReviewStatus, codeOwnersEntryToFiles) {
+function createReviewSummaryObject(currentReviewStatus, codeOwnersEntryToFiles, teamsToMembers) {
   const reviewSummary = /* @__PURE__ */ new Map();
   for (const [entry, files] of codeOwnersEntryToFiles.entries()) {
+    const reviewStatusesByOwner = /* @__PURE__ */ new Map();
     const ownerReviewStatuses = [];
     for (const owner of entry.owners) {
-      const status = getReviewForStatusFor(owner, currentReviewStatus);
-      if (status) {
-        ownerReviewStatuses.push(status);
+      const statuses = getReviewForStatusFor(
+        owner,
+        currentReviewStatus,
+        teamsToMembers
+      );
+      if (statuses) {
+        reviewStatusesByOwner.set(owner, statuses);
+        ownerReviewStatuses.push(...statuses);
       }
     }
     const overallStatus = getOverallState(ownerReviewStatuses);
-    reviewSummary.set(entry, { files, ownerReviewStatuses, overallStatus });
+    reviewSummary.set(entry, { files, allOwnerReviewStatuses: ownerReviewStatuses, state: overallStatus, reviewStatusesByOwner });
   }
   return reviewSummary;
 }

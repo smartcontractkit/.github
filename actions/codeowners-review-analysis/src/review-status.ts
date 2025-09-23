@@ -37,6 +37,13 @@ export function getOverallState<T extends WithState>(
     .sort((a, b) => precedence[a] - precedence[b])[0];
 }
 
+export function filterFor<T extends WithState>(
+  statuses: readonly T[],
+  state: PullRequestReviewStateExt,
+): T[] {
+  return statuses.filter((s) => s.state === state);
+}
+
 function toExtended(state: PullRequestReviewState): PullRequestReviewStateExt {
   switch (state) {
     case PullRequestReviewState.Approved:
@@ -81,57 +88,125 @@ export function iconFor(state: PullRequestReviewStateExt): string {
 
 export type OwnerReviewStatus = {
   state: PullRequestReviewStateExt;
-  actor: string | null;
+  actor?: string | null;
+  onBehalfOf: string | null;
 };
 
 export function getReviewForStatusFor(
   codeowner: string,
   currentReviewStatus: CurrentReviewStatus,
-): OwnerReviewStatus | null {
+  teamsToMembers: Map<string, string[]>,
+): OwnerReviewStatus[] | null {
   if (codeowner.includes("/")) {
-    // codeowner is a team
-    const [_, teamSlug] = codeowner.split("/");
-
-    // Find latest review by this team
-    const teamLatest = currentReviewStatus.teamLatest[teamSlug];
-    if (teamLatest) {
-      return {
-        state: toExtended(teamLatest.state),
-        actor: teamLatest.byUser,
-      };
-    }
-
-    // Not found in teamLatest, check if pending
-    const team = currentReviewStatus.pendingTeams.find(
-      (t) => t.slug === teamSlug,
+    return getReviewStatusForTeam(
+      codeowner,
+      currentReviewStatus,
+      teamsToMembers,
     );
-    if (team) {
-      return { state: PullRequestReviewStateExt.Pending, actor: null };
-    }
-
-    core.warning(
-      `No status found for teamslug: ${teamSlug} - default to pending`,
-    );
-    return { state: PullRequestReviewStateExt.Pending, actor: null };
   }
 
-  // codeowner is a user
-  const userLatest = currentReviewStatus.userLatest[codeowner];
+  const userStatus = getReviewStatusForUser(codeowner, currentReviewStatus);
+  if (!userStatus) {
+    return [
+      {
+        state: PullRequestReviewStateExt.Pending,
+        actor: codeowner,
+        onBehalfOf: null,
+      },
+    ];
+  }
+
+  return [userStatus];
+}
+
+function getReviewStatusForTeam(
+  codeowner: string,
+  currentReviewStatus: CurrentReviewStatus,
+  teamsToMembers: Map<string, string[]>,
+): OwnerReviewStatus[] {
+  if (!codeowner.includes("/")) {
+    throw new Error(`Codeowner ${codeowner} is not a team`);
+  }
+
+  const [_, teamSlug] = codeowner.split("/");
+
+  // Find latest review by this team
+  const teamLatest = currentReviewStatus.teamLatest[teamSlug];
+  if (teamLatest) {
+    return [
+      {
+        state: toExtended(teamLatest.state),
+        actor: teamLatest.byUser,
+        onBehalfOf: codeowner,
+      },
+    ];
+  }
+
+  // Not found in teamLatest, check if pending
+  const team = currentReviewStatus.pendingTeams.find(
+    (t) => t.slug === teamSlug,
+  );
+  if (team) {
+    return [
+      {
+        state: PullRequestReviewStateExt.Pending,
+        actor: null,
+        onBehalfOf: codeowner,
+      },
+    ];
+  }
+
+  const reviewStatuses: OwnerReviewStatus[] = [];
+  const members = teamsToMembers.get(codeowner);
+  if (members && members.length > 0) {
+    for (const member of members) {
+      const status = getReviewStatusForUser(member, currentReviewStatus);
+      if (status) {
+        reviewStatuses.push({ ...status, onBehalfOf: codeowner });
+      }
+    }
+  }
+
+  if (reviewStatuses.length > 0) {
+    return reviewStatuses;
+  }
+
+  core.warning(
+    `No status found for teamslug: ${teamSlug} - default to pending`,
+  );
+  return [
+    {
+      state: PullRequestReviewStateExt.Pending,
+      actor: null,
+      onBehalfOf: codeowner,
+    },
+  ];
+}
+
+function getReviewStatusForUser(
+  actor: string,
+  currentReviewStatus: CurrentReviewStatus,
+): OwnerReviewStatus | null {
+  const userLatest = currentReviewStatus.userLatest[actor];
   if (userLatest) {
     return {
       state: toExtended(userLatest.state),
-      actor: codeowner,
+      actor: actor,
+      onBehalfOf: null,
     };
   }
 
   // Not found in userLatest, check if pending
   const pendingUser = currentReviewStatus.pendingUsers.find(
-    (u) => u.login === codeowner,
+    (u) => u.login === actor,
   );
   if (pendingUser) {
-    return { state: PullRequestReviewStateExt.Pending, actor: codeowner };
+    return {
+      state: PullRequestReviewStateExt.Pending,
+      actor: actor,
+      onBehalfOf: null,
+    };
   }
 
-  core.warning(`No status found for user: ${codeowner} - default to pending`);
-  return { state: PullRequestReviewStateExt.Pending, actor: null };
+  return null;
 }
