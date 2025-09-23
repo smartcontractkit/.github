@@ -25766,7 +25766,7 @@ function getReviewForStatusFor(codeowner, currentReviewStatus) {
 
 // actions/codeowners-review-analysis/src/strings.ts
 var LEGEND = `Legend: ${iconFor(PullRequestReviewStateExt.Approved)} Approved | ${iconFor(PullRequestReviewStateExt.ChangesRequested)} Changes Requested | ${iconFor(PullRequestReviewStateExt.Commented)} Commented | ${iconFor(PullRequestReviewStateExt.Dismissed)} Dismissed | ${iconFor(PullRequestReviewStateExt.Pending)} Pending | ${iconFor("UNKNOWN" /* Unknown */)} Unknown`;
-function formatPendingReviewsMarkdown(entryMap, summaryUrl) {
+function formatPendingReviewsMarkdown(entryMap, summaryUrl, minimumHittingSets) {
   const lines = [];
   lines.push("### Codeowners Review Summary");
   lines.push("");
@@ -25789,13 +25789,18 @@ function formatPendingReviewsMarkdown(entryMap, summaryUrl) {
       `| ${patternCell} | ${overallIcon} | ${processed.files.length} |${owners.join(", ")} |`
     );
   }
-  if (summaryUrl) {
+  const recommendations = getReviewRecos(entryMap, minimumHittingSets, 2);
+  if (recommendations.length > 0) {
     lines.push("");
-    lines.push(
-      `For more details, see the [full review summary](${summaryUrl}).`
-    );
+    lines.push("### Reviewer Recommendations");
+    recommendations.forEach((rec) => {
+      lines.push(`- ${rec}`);
+    });
     lines.push("");
   }
+  lines.push("");
+  lines.push("---");
+  lines.push("");
   const {
     runId,
     repo: { owner, repo }
@@ -25805,10 +25810,26 @@ function formatPendingReviewsMarkdown(entryMap, summaryUrl) {
       `Refresh analysis with: \`gh run rerun ${runId} -R ${owner}/${repo}\``
     );
   }
+  if (summaryUrl) {
+    lines.push("");
+    lines.push(
+      `For more details, see the [full review summary](${summaryUrl}).`
+    );
+    lines.push("");
+  }
   return lines.join("\n");
 }
-async function formatAllReviewsSummaryByEntry(entryMap) {
+async function formatAllReviewsSummaryByEntry(entryMap, minimumHittingSets) {
   core6.summary.addHeading("Codeowners Review Details", 2).addRaw(LEGEND).addBreak();
+  const recommendations = getReviewRecos(entryMap, minimumHittingSets, 10);
+  if (recommendations.length > 0) {
+    core6.summary.addHeading(
+      `Reviewer Recommendations (${recommendations.length} of ${minimumHittingSets.size})`,
+      3
+    );
+    core6.summary.addList(recommendations);
+    core6.summary.addBreak();
+  }
   const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
     return a.lineNumber - b.lineNumber;
   });
@@ -25887,6 +25908,118 @@ async function formatAllReviewsSummaryByEntry(entryMap) {
   }
   await core6.summary.addSeparator().write();
 }
+function getReviewRecos(entryMap, minimumHittingSets, limit = 3) {
+  if (minimumHittingSets.size === 0) {
+    return [];
+  }
+  const numEntries = entryMap.size;
+  if (numEntries <= 1) {
+    return [];
+  }
+  const setsArray = Array.from(minimumHittingSets);
+  const minimumSize = setsArray[0].length;
+  const numberOfSetsToSuggest = Math.min(minimumSize, limit, setsArray.length);
+  const trimmedSets = setsArray.slice(0, numberOfSetsToSuggest);
+  return trimmedSets.map((set2) => `${set2.join(", ")}`);
+}
+
+// actions/codeowners-review-analysis/src/hitting-sets.ts
+function calculateAllMinimumHittingSets(reviewSummary) {
+  const { superset, subsets } = getSupersetAndSubsets(reviewSummary);
+  if (superset.size === 0 || superset.size > 12 || subsets.length === 0) {
+    return /* @__PURE__ */ new Set();
+  }
+  for (let k = 1; k <= superset.size; k++) {
+    const validHittingSets = /* @__PURE__ */ new Set();
+    for (const combo of combinations(superset, k)) {
+      const candidateSet = new Set(combo);
+      const hitsAll = subsets.every((subset) => {
+        for (const elem of subset) {
+          if (candidateSet.has(elem)) {
+            return true;
+          }
+        }
+        return false;
+      });
+      if (hitsAll) {
+        validHittingSets.add(combo);
+      }
+    }
+    if (validHittingSets.size > 0) {
+      return validHittingSets;
+    }
+  }
+  return /* @__PURE__ */ new Set();
+}
+function combinations(superset, k) {
+  const supersetArr = Array.from(superset).sort();
+  const results = [];
+  function backtrack(start, path) {
+    if (path.length === k) {
+      results.push([...path]);
+      return;
+    }
+    for (let i = start; i < supersetArr.length; i++) {
+      path.push(supersetArr[i]);
+      backtrack(i + 1, path);
+      path.pop();
+    }
+  }
+  backtrack(0, []);
+  return results;
+}
+function getSupersetAndSubsets(reviewSummary) {
+  const allPendingOwners = /* @__PURE__ */ new Set();
+  const allPendingEntries = [];
+  const subsetsSeen = /* @__PURE__ */ new Set();
+  for (const [entry, processed] of reviewSummary.entries()) {
+    if (processed.overallStatus !== PullRequestReviewStateExt.Approved) {
+      entry.owners.forEach((owner) => {
+        allPendingOwners.add(owner);
+      });
+      if (entry.owners.length > 0) {
+        addIfUnique(subsetsSeen, allPendingEntries, entry.owners);
+      }
+    }
+  }
+  const minimizedSubsets = removeSupersets(allPendingEntries);
+  return { superset: allPendingOwners, subsets: minimizedSubsets };
+}
+function addIfUnique(seen, set2, item) {
+  const normalized = JSON.stringify([...item].sort());
+  if (!seen.has(normalized)) {
+    seen.add(normalized);
+    set2.push(new Set(item));
+  }
+}
+function removeSupersets(sets) {
+  const arrs = sets.map((s) => [...s].sort());
+  arrs.sort((a, b) => a.length - b.length);
+  const keep = [];
+  outer: for (const S of arrs) {
+    for (const T of keep) {
+      if (isSubset(T, S)) {
+        continue outer;
+      }
+    }
+    keep.push(S);
+  }
+  return keep.map((a) => new Set(a));
+}
+function isSubset(A, B) {
+  let i = 0, j = 0;
+  while (i < A.length && j < B.length) {
+    if (A[i] === B[j]) {
+      i++;
+      j++;
+    } else if (A[i] > B[j]) {
+      j++;
+    } else {
+      return false;
+    }
+  }
+  return i === A.length;
+}
 
 // actions/codeowners-review-analysis/src/run.ts
 async function run() {
@@ -25940,17 +26073,20 @@ async function run() {
     core7.debug(JSON.stringify(currentPRReviewState));
     core7.endGroup();
     core7.startGroup("Create CODEOWNERS Summary");
-    const codeownersSummary = createReviewSummaryObjectV2(
+    const codeownersSummary = createReviewSummaryObject(
       currentPRReviewState,
       codeOwnersEntryToFiles
     );
-    await formatAllReviewsSummaryByEntry(codeownersSummary);
+    const minimumHittingSets = calculateAllMinimumHittingSets(codeownersSummary);
+    await formatAllReviewsSummaryByEntry(codeownersSummary, minimumHittingSets);
     const summaryUrl = await getSummaryUrl(octokit, owner, repo);
     const pendingReviewMarkdown = formatPendingReviewsMarkdown(
       codeownersSummary,
-      summaryUrl
+      summaryUrl,
+      minimumHittingSets
     );
-    console.log(pendingReviewMarkdown);
+    core7.debug(`Pending review markdown:
+${pendingReviewMarkdown}`);
     if (inputs.postComment) {
       await upsertPRComment(
         octokit,
@@ -25966,7 +26102,7 @@ async function run() {
     core7.setFailed(`Action failed: ${error}`);
   }
 }
-function createReviewSummaryObjectV2(currentReviewStatus, codeOwnersEntryToFiles) {
+function createReviewSummaryObject(currentReviewStatus, codeOwnersEntryToFiles) {
   const reviewSummary = /* @__PURE__ */ new Map();
   for (const [entry, files] of codeOwnersEntryToFiles.entries()) {
     const ownerReviewStatuses = [];

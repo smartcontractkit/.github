@@ -17,6 +17,7 @@ const LEGEND =
 export function formatPendingReviewsMarkdown(
   entryMap: Map<CodeownersEntry, ProcessedCodeOwnersEntry>,
   summaryUrl: string,
+  minimumHittingSets: Set<string[]>,
 ): string {
   const lines: string[] = [];
 
@@ -55,13 +56,19 @@ export function formatPendingReviewsMarkdown(
     );
   }
 
-  if (summaryUrl) {
+  const recommendations = getReviewRecos(entryMap, minimumHittingSets, 2);
+  if (recommendations.length > 0) {
     lines.push("");
-    lines.push(
-      `For more details, see the [full review summary](${summaryUrl}).`,
-    );
+    lines.push("### Reviewer Recommendations");
+    recommendations.forEach((rec) => {
+      lines.push(`- ${rec}`);
+    });
     lines.push("");
   }
+
+  lines.push("");
+  lines.push("---");
+  lines.push("");
 
   const {
     runId,
@@ -71,6 +78,14 @@ export function formatPendingReviewsMarkdown(
     lines.push(
       `Refresh analysis with: \`gh run rerun ${runId} -R ${owner}/${repo}\``,
     );
+  }
+
+  if (summaryUrl) {
+    lines.push("");
+    lines.push(
+      `For more details, see the [full review summary](${summaryUrl}).`,
+    );
+    lines.push("");
   }
 
   return lines.join("\n");
@@ -86,12 +101,23 @@ type TRow = TCell[];
 
 export async function formatAllReviewsSummaryByEntry(
   entryMap: Map<CodeownersEntry, ProcessedCodeOwnersEntry>,
+  minimumHittingSets: Set<string[]>,
 ): Promise<void> {
   // Top-level heading & legend once
   core.summary
     .addHeading("Codeowners Review Details", 2)
     .addRaw(LEGEND)
     .addBreak();
+
+  const recommendations = getReviewRecos(entryMap, minimumHittingSets, 10);
+  if (recommendations.length > 0) {
+    core.summary.addHeading(
+      `Reviewer Recommendations (${recommendations.length} of ${minimumHittingSets.size})`,
+      3,
+    );
+    core.summary.addList(recommendations);
+    core.summary.addBreak();
+  }
 
   const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
     return a.lineNumber - b.lineNumber;
@@ -195,4 +221,29 @@ export async function formatAllReviewsSummaryByEntry(
   }
 
   await core.summary.addSeparator().write();
+}
+
+function getReviewRecos(
+  entryMap: Map<CodeownersEntry, ProcessedCodeOwnersEntry>,
+  minimumHittingSets: Set<string[]>,
+  limit: number = 3,
+): string[] {
+  if (minimumHittingSets.size === 0) {
+    // Return early if no hitting sets
+    return [];
+  }
+
+  const numEntries = entryMap.size;
+  if (numEntries <= 1) {
+    // Return early for trivial cases
+    return [];
+  }
+
+  const setsArray = Array.from(minimumHittingSets);
+  const minimumSize = setsArray[0].length;
+
+  // Suggest up to `limit` sets of the minimum size
+  const numberOfSetsToSuggest = Math.min(minimumSize, limit, setsArray.length);
+  const trimmedSets = setsArray.slice(0, numberOfSetsToSuggest);
+  return trimmedSets.map((set) => `${set.join(", ")}`);
 }
