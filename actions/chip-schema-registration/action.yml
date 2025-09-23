@@ -40,9 +40,11 @@ runs:
     - uses: actions/checkout@v5
 
     - name: Login to ECR
-      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
       with:
-        registries: ${{ inputs.aws_account_id }}
+        registry:
+          ${{ inputs.AWS_ACCOUNT_ID }}.dkr.ecr.${{ inputs.AWS_REGION
+          }}.amazonaws.com
 
     - name: Pull container image
       shell: bash
