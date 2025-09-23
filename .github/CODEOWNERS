@@ -11,3 +11,6 @@
 # CRIB and devenv
 /actions/crib-*/** @smartcontractkit/cl-orchestration
 /actions/devenv-*/** @smartcontractkit/cl-orchestration
+
+# data-applications
+/actions/chip-schema-registration/ @smartcontractkit/data-tooling
