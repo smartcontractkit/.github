@@ -1,5 +1,14 @@
 # pr-quality-check
 
+## 1.2.2
+
+### Patch Changes
+
+- [#1233](https://github.com/smartcontractkit/.github/pull/1233)
+  [`a4b1935`](https://github.com/smartcontractkit/.github/commit/a4b1935ce43bfa423b71f425a2bf300f663ffe2b)
+  Thanks [@miqlar](https://github.com/miqlar)! - Added signed commits for github
+  actions
+
 ## 1.2.1
 
 ### Patch Changes
