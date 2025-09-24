@@ -436,6 +436,8 @@ jobs:
         with:
           repository: ${{ inputs.public-repo }}
           path: ./public-repo/${{ inputs.public-repo }}
+          fetch-depth: 1
+          persist-credentials: false
       # Generated tags must be compatible with:
       # https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
       - name: Set Docker image tags
