@@ -1,4 +1,4 @@
-# Codeowners Analysis
+# Codeowners Review Analysis (CORA)
 
 Analyzes changed files for a given PR, and displays current CODEOWNER
 requirements.
