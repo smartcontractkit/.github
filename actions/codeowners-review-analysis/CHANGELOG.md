@@ -1,5 +1,14 @@
 # codeowners-review-analysis
 
+## 0.2.0
+
+### Minor Changes
+
+- [#1231](https://github.com/smartcontractkit/.github/pull/1231)
+  [`7bf0b23`](https://github.com/smartcontractkit/.github/commit/7bf0b236f820f3313751dc53cbd3af77015e0ac5)
+  Thanks [@erikburt](https://github.com/erikburt)! - refactor review status
+  calculation due to gql permissions limitations
+
 ## 0.1.1
 
 ### Patch Changes
