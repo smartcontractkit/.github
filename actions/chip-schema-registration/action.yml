@@ -50,8 +50,8 @@ runs:
         AWS_ACCOUNT_ID: ${{ inputs.aws_account_id }}
         AWS_REGION: ${{ inputs.aws_region }}
       run: |
-        docker pull ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/atlas-chip-schema-registration:qa-latest
-        docker tag ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/atlas-chip-schema-registration:qa-latest chip-schema-registration
+        docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-schema-registration:qa-latest
+        docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-schema-registration:qa-latest chip-schema-registration
 
     - name: Register schemas
       shell: bash
@@ -70,4 +70,4 @@ runs:
           -e CHIP_CONFIG_PORT \
           -e CHIP_CONFIG_USER \
           -e CHIP_CONFIG_PASSWORD \
-          chip-schema-registration:qa-latest register --schema-dir="$CHIP_SCHEMA_DIR" --config-file="$CHIP_CONFIG_FILE"
+          chip-schema-registration register --schema-dir="$CHIP_SCHEMA_DIR" --config-file="$CHIP_CONFIG_FILE"
