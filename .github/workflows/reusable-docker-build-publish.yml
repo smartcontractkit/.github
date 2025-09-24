@@ -262,10 +262,9 @@ on:
       public-repo:
         description: |
           Public repository to clone for the Docker build.
+          Format: "owner/repo"
 
-          Format: "owner/repo@ref"
-
-          Example: "openshift/console@main"
+          Example: "openshift/console"
         required: false
         type: string
     outputs:
