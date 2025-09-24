@@ -35,6 +35,7 @@ name: Reusable Docker Build and Publish
 #           org.opencontainers.image.licenses=NOASSERTION
 #           org.opencontainers.image.ref.name=ubuntu
 #         docker-manifest-sign: true
+#         public-repo: openshift/console  # Optional: clone public repo
 #         git-sha: $\{{ github.sha }}
 #         github-event-name: $\{{ github.event_name }}
 #         github-ref-name: $\{{ github.ref_name }}
@@ -258,6 +259,15 @@ on:
         required: false
         type: number
         default: 30
+      public-repo:
+        description: |
+          Public repository to clone for the Docker build.
+
+          Format: "owner/repo@ref"
+
+          Example: "openshift/console@main"
+        required: false
+        type: string
     outputs:
       docker-image-sha-digest-amd64:
         description: "Docker image SHA digest for amd64 architecture"
@@ -421,6 +431,12 @@ jobs:
           persist-credentials: false
           fetch-depth: 1
           ref: ${{ inputs.git-sha }}
+      - name: Checkout public repository
+        if: ${{ inputs.public-repo != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.public-repo }}
+          path: ./public-repo/${{ inputs.public-repo }}
       # Generated tags must be compatible with:
       # https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
       - name: Set Docker image tags
