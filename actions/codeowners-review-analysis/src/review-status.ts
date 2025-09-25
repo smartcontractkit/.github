@@ -15,7 +15,52 @@ export enum PullRequestReviewStateExt {
 }
 
 type WithState = { state: PullRequestReviewStateExt };
-export function getOverallState<T extends WithState>(
+
+/**
+ * Determines the overall review state for all codeowners entries. This differs from getOverallStateForSingleEntry
+ * in that it takes a map of entries and determines the overall state across all of them.
+ * Meaning that if any entry is still pending, the overall state is Pending.
+ * As other entries with approvals do not satisfy every entry.
+ */
+export function getOverallStateForAllEntries<T extends WithState>(
+  map: Map<unknown, T>,
+): PullRequestReviewStateExt {
+  const statuses = Array.from(map.values()).map((entry) => entry.state);
+
+  if (statuses.length === 0) {
+    return PullRequestReviewStateExt.Pending;
+  }
+
+  if (statuses.includes(PullRequestReviewStateExt.ChangesRequested)) {
+    return PullRequestReviewStateExt.ChangesRequested;
+  }
+
+  if (statuses.includes(PullRequestReviewStateExt.Pending)) {
+    return PullRequestReviewStateExt.Pending;
+  }
+
+  if (statuses.includes(PullRequestReviewStateExt.Commented)) {
+    return PullRequestReviewStateExt.Commented;
+  }
+
+  if (statuses.includes(PullRequestReviewStateExt.Dismissed)) {
+    return PullRequestReviewStateExt.Dismissed;
+  }
+
+  if (statuses.every((s) => s === PullRequestReviewStateExt.Approved)) {
+    return PullRequestReviewStateExt.Approved;
+  }
+
+  return PullRequestReviewStateExt.Unknown;
+}
+
+/**
+ * Determines the overall review state for a single codeowners entry based on the precedence.
+ * Meaning that if any owner has requested changes, the overall state is ChangesRequested.
+ * Or if any owner has approved, the overall state is Approved, (without any ChangesRequested).
+ * etc.
+ */
+export function getOverallStateForSingleEntry<T extends WithState>(
   statuses: readonly T[],
 ): PullRequestReviewStateExt {
   if (!statuses || statuses.length === 0) {

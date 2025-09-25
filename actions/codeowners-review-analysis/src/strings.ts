@@ -5,7 +5,7 @@ import type { CodeOwnersReviewEntry } from "./run";
 
 import {
   filterFor,
-  getOverallState,
+  getOverallStateForSingleEntry,
   OwnerReviewStatus,
   PullRequestReviewStateExt,
   iconFor,
@@ -24,42 +24,42 @@ export function formatPendingReviewsMarkdown(
   overallStatus: PullRequestReviewStateExt,
   summaryUrl: string,
 ): string {
-  const lines: string[] = ["### Codeowners Review Summary", "", LEGEND, ""];
+  const lines: string[] = ["### Codeowners Review Summary", ""];
 
   if (overallStatus === PullRequestReviewStateExt.Approved) {
     lines.push(`All codeowners have approved! ${iconFor(overallStatus)}`, "");
-    return lines.join("\n");
-  }
+  } else {
+    lines.push(LEGEND, "");
+    lines.push("| Codeowners Entry | Overall | Files | Owners |");
+    lines.push("| ---------------- | ------- | ----- | ------ |");
 
-  lines.push("| Codeowners Entry | Overall | Files | Owners |");
-  lines.push("| ---------------- | ------- | ----- | ------ |");
+    const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
+      return a.lineNumber - b.lineNumber;
+    });
 
-  const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
-    return a.lineNumber - b.lineNumber;
-  });
+    for (const [entry, processed] of sortedEntries) {
+      const overall = processed.state;
 
-  for (const [entry, processed] of sortedEntries) {
-    const overall = processed.state;
+      // Only show if not satisfied (skip Approved)
+      if (overall === PullRequestReviewStateExt.Approved) {
+        continue;
+      }
 
-    // Only show if not satisfied (skip Approved)
-    if (overall === PullRequestReviewStateExt.Approved) {
-      continue;
+      const owners =
+        entry.owners && entry.owners.length > 0
+          ? entry.owners
+          : ["_No owners found_"];
+      const overallIcon = iconFor(overall);
+
+      const patternCell = entry.htmlLineUrl
+        ? "[`" + `${entry.rawPattern}` + "`](" + `${entry.htmlLineUrl})`
+        : "[`" + `${entry.rawPattern}` + "`]";
+
+      // Just one row per entry, pattern as inline code
+      lines.push(
+        `| ${patternCell} | ${overallIcon} | ${processed.files.length} |${owners.join(", ")} |`,
+      );
     }
-
-    const owners =
-      entry.owners && entry.owners.length > 0
-        ? entry.owners
-        : ["_No owners found_"];
-    const overallIcon = iconFor(overall);
-
-    const patternCell = entry.htmlLineUrl
-      ? "[`" + `${entry.rawPattern}` + "`](" + `${entry.htmlLineUrl})`
-      : "[`" + `${entry.rawPattern}` + "`]";
-
-    // Just one row per entry, pattern as inline code
-    lines.push(
-      `| ${patternCell} | ${overallIcon} | ${processed.files.length} |${owners.join(", ")} |`,
-    );
   }
 
   if (summaryUrl) {
@@ -152,7 +152,7 @@ export async function formatAllReviewsSummaryByEntry(
       const statuses = grouped.get(ownerName) ?? [];
       const teamState =
         statuses.length > 0
-          ? getOverallState(statuses)
+          ? getOverallStateForSingleEntry(statuses)
           : PullRequestReviewStateExt.Pending;
 
       const parts: string[] = [];

@@ -25725,7 +25725,29 @@ var PullRequestReviewStateExt = ((PullRequestReviewStateExt3) => {
   PullRequestReviewStateExt3["Unknown"] = "UNKNOWN";
   return PullRequestReviewStateExt3;
 })(PullRequestReviewStateExt || {});
-function getOverallState(statuses) {
+function getOverallStateForAllEntries(map) {
+  const statuses = Array.from(map.values()).map((entry) => entry.state);
+  if (statuses.length === 0) {
+    return PullRequestReviewStateExt.Pending;
+  }
+  if (statuses.includes(PullRequestReviewStateExt.ChangesRequested)) {
+    return PullRequestReviewStateExt.ChangesRequested;
+  }
+  if (statuses.includes(PullRequestReviewStateExt.Pending)) {
+    return PullRequestReviewStateExt.Pending;
+  }
+  if (statuses.includes(PullRequestReviewStateExt.Commented)) {
+    return PullRequestReviewStateExt.Commented;
+  }
+  if (statuses.includes(PullRequestReviewStateExt.Dismissed)) {
+    return PullRequestReviewStateExt.Dismissed;
+  }
+  if (statuses.every((s) => s === PullRequestReviewStateExt.Approved)) {
+    return PullRequestReviewStateExt.Approved;
+  }
+  return "UNKNOWN" /* Unknown */;
+}
+function getOverallStateForSingleEntry(statuses) {
   if (!statuses || statuses.length === 0) {
     return PullRequestReviewStateExt.Pending;
   }
@@ -25878,27 +25900,28 @@ function getReviewStatusForUser(actor, currentReviewStatus) {
 // actions/codeowners-review-analysis/src/strings.ts
 var LEGEND = `Legend: ${iconFor(PullRequestReviewStateExt.Approved)} Approved | ${iconFor(PullRequestReviewStateExt.ChangesRequested)} Changes Requested | ${iconFor(PullRequestReviewStateExt.Commented)} Commented | ${iconFor(PullRequestReviewStateExt.Dismissed)} Dismissed | ${iconFor(PullRequestReviewStateExt.Pending)} Pending | ${iconFor("UNKNOWN" /* Unknown */)} Unknown`;
 function formatPendingReviewsMarkdown(entryMap, overallStatus, summaryUrl) {
-  const lines = ["### Codeowners Review Summary", "", LEGEND, ""];
+  const lines = ["### Codeowners Review Summary", ""];
   if (overallStatus === PullRequestReviewStateExt.Approved) {
     lines.push(`All codeowners have approved! ${iconFor(overallStatus)}`, "");
-    return lines.join("\n");
-  }
-  lines.push("| Codeowners Entry | Overall | Files | Owners |");
-  lines.push("| ---------------- | ------- | ----- | ------ |");
-  const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
-    return a.lineNumber - b.lineNumber;
-  });
-  for (const [entry, processed] of sortedEntries) {
-    const overall = processed.state;
-    if (overall === PullRequestReviewStateExt.Approved) {
-      continue;
+  } else {
+    lines.push(LEGEND, "");
+    lines.push("| Codeowners Entry | Overall | Files | Owners |");
+    lines.push("| ---------------- | ------- | ----- | ------ |");
+    const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
+      return a.lineNumber - b.lineNumber;
+    });
+    for (const [entry, processed] of sortedEntries) {
+      const overall = processed.state;
+      if (overall === PullRequestReviewStateExt.Approved) {
+        continue;
+      }
+      const owners = entry.owners && entry.owners.length > 0 ? entry.owners : ["_No owners found_"];
+      const overallIcon = iconFor(overall);
+      const patternCell = entry.htmlLineUrl ? `[\`${entry.rawPattern}\`](${entry.htmlLineUrl})` : `[\`${entry.rawPattern}\`]`;
+      lines.push(
+        `| ${patternCell} | ${overallIcon} | ${processed.files.length} |${owners.join(", ")} |`
+      );
     }
-    const owners = entry.owners && entry.owners.length > 0 ? entry.owners : ["_No owners found_"];
-    const overallIcon = iconFor(overall);
-    const patternCell = entry.htmlLineUrl ? `[\`${entry.rawPattern}\`](${entry.htmlLineUrl})` : `[\`${entry.rawPattern}\`]`;
-    lines.push(
-      `| ${patternCell} | ${overallIcon} | ${processed.files.length} |${owners.join(", ")} |`
-    );
   }
   if (summaryUrl) {
     lines.push("");
@@ -25952,13 +25975,14 @@ async function formatAllReviewsSummaryByEntry(entryMap) {
     ];
     const rows = owners.map((ownerName) => {
       const statuses = grouped.get(ownerName) ?? [];
-      const teamState = statuses.length > 0 ? getOverallState(statuses) : PullRequestReviewStateExt.Pending;
+      const teamState = statuses.length > 0 ? getOverallStateForSingleEntry(statuses) : PullRequestReviewStateExt.Pending;
       const parts = [];
-      const changesRequested = filterFor(statuses, PullRequestReviewStateExt.ChangesRequested);
+      const changesRequested = filterFor(
+        statuses,
+        PullRequestReviewStateExt.ChangesRequested
+      );
       parts.push(
-        ...changesRequested.map(
-          (s) => `${s.actor ?? "-"} ${iconFor(s.state)}`
-        )
+        ...changesRequested.map((s) => `${s.actor ?? "-"} ${iconFor(s.state)}`)
       );
       const approved = filterFor(statuses, PullRequestReviewStateExt.Approved);
       parts.push(
@@ -25968,21 +25992,51 @@ async function formatAllReviewsSummaryByEntry(entryMap) {
         const names = group.map((s) => s.actor ?? "-").join(", ");
         return `<span title="${escapeHtml(names)}">+${group.length} ${label} ${icon}</span>`;
       };
-      const commented = filterFor(statuses, PullRequestReviewStateExt.Commented);
+      const commented = filterFor(
+        statuses,
+        PullRequestReviewStateExt.Commented
+      );
       if (commented.length > 0) {
-        parts.push(makeCollapsed("commented", iconFor(PullRequestReviewStateExt.Commented), commented));
+        parts.push(
+          makeCollapsed(
+            "commented",
+            iconFor(PullRequestReviewStateExt.Commented),
+            commented
+          )
+        );
       }
-      const dismissed = filterFor(statuses, PullRequestReviewStateExt.Dismissed);
+      const dismissed = filterFor(
+        statuses,
+        PullRequestReviewStateExt.Dismissed
+      );
       if (dismissed.length > 0) {
-        parts.push(makeCollapsed("dismissed", iconFor(PullRequestReviewStateExt.Dismissed), dismissed));
+        parts.push(
+          makeCollapsed(
+            "dismissed",
+            iconFor(PullRequestReviewStateExt.Dismissed),
+            dismissed
+          )
+        );
       }
       const pending = filterFor(statuses, PullRequestReviewStateExt.Pending);
       if (pending.length > 0) {
-        parts.push(makeCollapsed("pending", iconFor(PullRequestReviewStateExt.Pending), pending));
+        parts.push(
+          makeCollapsed(
+            "pending",
+            iconFor(PullRequestReviewStateExt.Pending),
+            pending
+          )
+        );
       }
       const unknown = filterFor(statuses, "UNKNOWN" /* Unknown */);
       if (unknown.length > 0) {
-        parts.push(makeCollapsed("unknown", iconFor("UNKNOWN" /* Unknown */), unknown));
+        parts.push(
+          makeCollapsed(
+            "unknown",
+            iconFor("UNKNOWN" /* Unknown */),
+            unknown
+          )
+        );
       }
       const reviewers = parts.length > 0 ? parts.join("<br/>") : "-";
       return [
@@ -26082,7 +26136,7 @@ async function run() {
       core7.debug("CODEOWNERS Summary:");
       core7.debug(`${JSON.stringify([...codeownersSummary])}`);
     }
-    const overallStatus = getOverallState([...codeownersSummary.values()]);
+    const overallStatus = getOverallStateForAllEntries(codeownersSummary);
     core7.info(`Overall codeowners review status: ${overallStatus}`);
     await formatAllReviewsSummaryByEntry(codeownersSummary);
     const summaryUrl = await getSummaryUrl(octokit, owner, repo);
@@ -26123,8 +26177,13 @@ function createReviewSummaryObject(currentReviewStatus, codeOwnersEntryToFiles, 
         ownerReviewStatuses.push(...statuses);
       }
     }
-    const overallStatus = getOverallState(ownerReviewStatuses);
-    reviewSummary.set(entry, { files, allOwnerReviewStatuses: ownerReviewStatuses, state: overallStatus, reviewStatusesByOwner });
+    const overallStatus = getOverallStateForSingleEntry(ownerReviewStatuses);
+    reviewSummary.set(entry, {
+      files,
+      allOwnerReviewStatuses: ownerReviewStatuses,
+      state: overallStatus,
+      reviewStatusesByOwner
+    });
   }
   return reviewSummary;
 }
