@@ -50,8 +50,8 @@ runs:
         AWS_ACCOUNT_ID: ${{ inputs.aws_account_id }}
         AWS_REGION: ${{ inputs.aws_region }}
       run: |
-        docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-schema-registration:54a15c80b90a8d0cb2f57bd763e7bbc654f7b91b
-        docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-schema-registration:54a15c80b90a8d0cb2f57bd763e7bbc654f7b91b chip-schema-registration
+        docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-schema-registration:qa-latest
+        docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-schema-registration:qa-latest chip-schema-registration
 
     - name: Register schemas
       shell: bash
