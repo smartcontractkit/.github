@@ -131,6 +131,30 @@ export function iconFor(state: PullRequestReviewStateExt): string {
   }
 }
 
+export function textFor(state: PullRequestReviewStateExt): string {
+  const icon = iconFor(state);
+
+  switch (state) {
+    case PullRequestReviewStateExt.Approved:
+      return `${icon} Approved`;
+    case PullRequestReviewStateExt.ChangesRequested:
+      return `${icon} Changes Requested`;
+    case PullRequestReviewStateExt.Commented:
+      return `${icon} Commented`;
+    case PullRequestReviewStateExt.Dismissed:
+      return `${icon} Dismissed`;
+    case PullRequestReviewStateExt.Pending:
+      return `${icon} Pending`;
+    case PullRequestReviewStateExt.Unknown:
+      return `${icon} Unknown`;
+    default:
+      core.warning(
+        `Unknown ExtendedPullRequestReviewState: ${state} - using Unknown text`,
+      );
+      return `${icon} Unknown`;
+  }
+}
+
 export type OwnerReviewStatus = {
   state: PullRequestReviewStateExt;
   actor?: string | null;

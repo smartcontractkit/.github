@@ -269,7 +269,7 @@ var require_tunnel = __commonJS({
         connectOptions.headers = connectOptions.headers || {};
         connectOptions.headers["Proxy-Authorization"] = "Basic " + new Buffer(connectOptions.proxyAuth).toString("base64");
       }
-      debug5("making CONNECT request");
+      debug6("making CONNECT request");
       var connectReq = self.request(connectOptions);
       connectReq.useChunkedEncodingByDefault = false;
       connectReq.once("response", onResponse);
@@ -289,7 +289,7 @@ var require_tunnel = __commonJS({
         connectReq.removeAllListeners();
         socket.removeAllListeners();
         if (res.statusCode !== 200) {
-          debug5(
+          debug6(
             "tunneling socket could not be established, statusCode=%d",
             res.statusCode
           );
@@ -301,7 +301,7 @@ var require_tunnel = __commonJS({
           return;
         }
         if (head.length > 0) {
-          debug5("got illegal response body from proxy");
+          debug6("got illegal response body from proxy");
           socket.destroy();
           var error = new Error("got illegal response body from proxy");
           error.code = "ECONNRESET";
@@ -309,13 +309,13 @@ var require_tunnel = __commonJS({
           self.removeSocket(placeholder);
           return;
         }
-        debug5("tunneling connection has established");
+        debug6("tunneling connection has established");
         self.sockets[self.sockets.indexOf(placeholder)] = socket;
         return cb(socket);
       }
       function onError(cause) {
         connectReq.removeAllListeners();
-        debug5(
+        debug6(
           "tunneling socket could not be established, cause=%s\n",
           cause.message,
           cause.stack
@@ -377,9 +377,9 @@ var require_tunnel = __commonJS({
       }
       return target;
     }
-    var debug5;
+    var debug6;
     if (process.env.NODE_DEBUG && /\btunnel\b/.test(process.env.NODE_DEBUG)) {
-      debug5 = function() {
+      debug6 = function() {
         var args = Array.prototype.slice.call(arguments);
         if (typeof args[0] === "string") {
           args[0] = "TUNNEL: " + args[0];
@@ -389,10 +389,10 @@ var require_tunnel = __commonJS({
         console.error.apply(console, args);
       };
     } else {
-      debug5 = function() {
+      debug6 = function() {
       };
     }
-    exports2.debug = debug5;
+    exports2.debug = debug6;
   }
 });
 
@@ -23788,10 +23788,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       return process.env["RUNNER_DEBUG"] === "1";
     }
     exports2.isDebug = isDebug;
-    function debug5(message) {
+    function debug6(message) {
       (0, command_1.issueCommand)("debug", {}, message);
     }
-    exports2.debug = debug5;
+    exports2.debug = debug6;
     function error(message, properties = {}) {
       (0, command_1.issueCommand)("error", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
@@ -25086,25 +25086,34 @@ function getInvokeContext() {
     core.setFailed("GitHub token is not set.");
     return process.exit(1);
   }
-  const { pull_request } = context3.payload;
-  if (!pull_request) {
-    throw new Error(
-      `No pull request found in the context payload. Event name: ${context3.eventName}`
-    );
+  let prNumber = -1;
+  switch (context3.eventName) {
+    case "pull_request":
+    case "pull_request_target":
+    case "pull_request_review":
+    case "pull_request_review_comment":
+      prNumber = context3.payload.pull_request?.number;
+      break;
+    case "issue_comment":
+      const { issue } = context3.payload;
+      if (issue?.pull_request) {
+        prNumber = issue.pull_request?.number || issue.number;
+        break;
+      }
+    default:
+      prNumber = github.context?.issue?.number;
+      break;
   }
-  const { number: prNumber } = pull_request;
-  const { sha: base } = pull_request.base;
-  const { sha: head } = pull_request.head;
-  if (!base || !head || !prNumber) {
-    throw new Error(
-      `Missing required pull request information. Base: ${base}, Head: ${head}, PR: ${prNumber}`
+  if (!prNumber || prNumber <= 0) {
+    core.setFailed(
+      `Could not determine PR number from context for event: ${context3.eventName}`
     );
+    return process.exit(1);
   }
+  const { actor } = context3;
   core.info(`Event name: ${context3.eventName}`);
-  core.info(
-    `Owner: ${owner}, Repo: ${repo}, Base: ${base}, Head: ${head}, PR: ${prNumber ?? "N/A"} Actor: ${context3.actor}`
-  );
-  return { token, owner, repo, base, head, prNumber, actor: context3.actor };
+  core.info(`Owner: ${owner}, Repo: ${repo}, PR: ${prNumber} Actor: ${actor}`);
+  return { token, owner, repo, prNumber, actor };
 }
 var runInputsConfiguration = {
   postComment: {
@@ -25804,6 +25813,28 @@ function iconFor(state) {
       return "\u2753";
   }
 }
+function textFor(state) {
+  const icon = iconFor(state);
+  switch (state) {
+    case PullRequestReviewStateExt.Approved:
+      return `${icon} Approved`;
+    case PullRequestReviewStateExt.ChangesRequested:
+      return `${icon} Changes Requested`;
+    case PullRequestReviewStateExt.Commented:
+      return `${icon} Commented`;
+    case PullRequestReviewStateExt.Dismissed:
+      return `${icon} Dismissed`;
+    case PullRequestReviewStateExt.Pending:
+      return `${icon} Pending`;
+    case "UNKNOWN" /* Unknown */:
+      return `${icon} Unknown`;
+    default:
+      core5.warning(
+        `Unknown ExtendedPullRequestReviewState: ${state} - using Unknown text`
+      );
+      return `${icon} Unknown`;
+  }
+}
 function getReviewForStatusFor(codeowner, currentReviewStatus, teamsToMembers) {
   if (codeowner.includes("/")) {
     return getReviewStatusForTeam(
@@ -25900,13 +25931,12 @@ function getReviewStatusForUser(actor, currentReviewStatus) {
 // actions/codeowners-review-analysis/src/strings.ts
 var LEGEND = `Legend: ${iconFor(PullRequestReviewStateExt.Approved)} Approved | ${iconFor(PullRequestReviewStateExt.ChangesRequested)} Changes Requested | ${iconFor(PullRequestReviewStateExt.Commented)} Commented | ${iconFor(PullRequestReviewStateExt.Dismissed)} Dismissed | ${iconFor(PullRequestReviewStateExt.Pending)} Pending | ${iconFor("UNKNOWN" /* Unknown */)} Unknown`;
 function formatPendingReviewsMarkdown(entryMap, overallStatus, summaryUrl) {
-  const lines = ["### Codeowners Review Summary", ""];
+  const lines = ["### CORA - Pending Reviewers", ""];
   if (overallStatus === PullRequestReviewStateExt.Approved) {
     lines.push(`All codeowners have approved! ${iconFor(overallStatus)}`, "");
   } else {
-    lines.push(LEGEND, "");
-    lines.push("| Codeowners Entry | Overall | Files | Owners |");
-    lines.push("| ---------------- | ------- | ----- | ------ |");
+    lines.push("| Codeowners Entry | Overall | Num Files | Owners |");
+    lines.push("| ---------------- | ------- | --------- | ------ |");
     const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
       return a.lineNumber - b.lineNumber;
     });
@@ -25923,6 +25953,7 @@ function formatPendingReviewsMarkdown(entryMap, overallStatus, summaryUrl) {
       );
     }
   }
+  lines.push(LEGEND, "");
   if (summaryUrl) {
     lines.push("");
     lines.push(
@@ -25933,7 +25964,7 @@ function formatPendingReviewsMarkdown(entryMap, overallStatus, summaryUrl) {
   return lines.join("\n");
 }
 async function formatAllReviewsSummaryByEntry(entryMap) {
-  core6.summary.addHeading("Codeowners Review Details", 2).addRaw(LEGEND).addBreak();
+  core6.summary.addHeading("Codeowners Review Details", 2).addBreak();
   const escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const formatFilesList = (files, maxLines = 4) => {
     if (files.length === 0) return "-";
@@ -25957,7 +25988,7 @@ async function formatAllReviewsSummaryByEntry(entryMap) {
       continue;
     }
     const owners = entry.owners && entry.owners.length > 0 ? entry.owners : ["_No owners found_"];
-    const overallIcon = iconFor(processed.state);
+    const overallSummary = textFor(processed.state);
     const grouped = processed.reviewStatusesByOwner ?? /* @__PURE__ */ new Map();
     const headerRow = [
       { data: "Owner", header: true },
@@ -25989,6 +26020,8 @@ async function formatAllReviewsSummaryByEntry(entryMap) {
         ...approved.map((s) => `${s.actor ?? "-"} ${iconFor(s.state)}`)
       );
       const makeCollapsed = (label, icon, group) => {
+        core6.debug(`Collapsing ${group.length} ${label} for ${ownerName}`);
+        core6.debug(JSON.stringify(group, null, 2));
         const names = group.map((s) => s.actor ?? "-").join(", ");
         return `<span title="${escapeHtml(names)}">+${group.length} ${label} ${icon}</span>`;
       };
@@ -26046,11 +26079,11 @@ async function formatAllReviewsSummaryByEntry(entryMap) {
       ];
     });
     core6.summary.addHeading(
-      `${overallIcon} - <code>${escapeHtml(entry.rawPattern)}</code>`,
+      `${overallSummary} - <code>${escapeHtml(entry.rawPattern)}</code>`,
       3
     ).addTable(metaRows).addTable([headerRow, ...rows]).addBreak();
   }
-  await core6.summary.addSeparator().write();
+  await core6.summary.addBreak().addRaw(LEGEND).addSeparator().write();
 }
 
 // actions/codeowners-review-analysis/src/run.ts
