@@ -33,7 +33,7 @@ runs:
   steps:
     - name: wait-for-workflows
       id: wfw
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       env:
         MAX_TIMEOUT: ${{ inputs.max-timeout }}
         POLLING_INTERVAL: ${{ inputs.polling-interval }}
