@@ -62,7 +62,7 @@ export function formatPendingReviewsMarkdown(
     }
   }
 
-  lines.push(LEGEND, "");
+  lines.push("", "", LEGEND, "");
 
   if (summaryUrl) {
     lines.push("");

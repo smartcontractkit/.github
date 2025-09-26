@@ -25953,7 +25953,7 @@ function formatPendingReviewsMarkdown(entryMap, overallStatus, summaryUrl) {
       );
     }
   }
-  lines.push(LEGEND, "");
+  lines.push("", "", LEGEND, "");
   if (summaryUrl) {
     lines.push("");
     lines.push(
