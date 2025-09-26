@@ -1,5 +1,14 @@
 # codeowners-review-analysis
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1240](https://github.com/smartcontractkit/.github/pull/1240)
+  [`42ca835`](https://github.com/smartcontractkit/.github/commit/42ca8355010a7a1f94b143251f346eb9d6475b25)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix formatting, add support
+  for more triggers
+
 ## 1.0.0
 
 ### Major Changes
