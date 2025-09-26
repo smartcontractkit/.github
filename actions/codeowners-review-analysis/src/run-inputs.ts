@@ -34,31 +34,39 @@ export function getInvokeContext() {
     return process.exit(1);
   }
 
-  const { pull_request } = context.payload;
-  if (!pull_request) {
-    throw new Error(
-      `No pull request found in the context payload. Event name: ${context.eventName}`,
-    );
+  let prNumber: number | undefined = -1;
+  switch (context.eventName) {
+    case "pull_request":
+    case "pull_request_target":
+    case "pull_request_review":
+    case "pull_request_review_comment":
+      prNumber = context.payload.pull_request?.number;
+      break;
+    case "issue_comment":
+      // Only present if the comment is on a PR (not a plain issue)
+      const { issue } = context.payload;
+      if (issue?.pull_request) {
+        prNumber = issue.pull_request?.number || issue.number;
+        break;
+      }
+    default:
+      // Generic fallback: some events still populate context.issue.number for PRs
+      prNumber = github.context?.issue?.number;
+      break;
   }
 
-  const { number: prNumber } = pull_request;
-  const { sha: base } = pull_request.base;
-  const { sha: head } = pull_request.head;
-
-  if (!base || !head || !prNumber) {
-    throw new Error(
-      `Missing required pull request information. Base: ${base}, Head: ${head}, PR: ${prNumber}`,
+  if (!prNumber || prNumber <= 0) {
+    core.setFailed(
+      `Could not determine PR number from context for event: ${context.eventName}`,
     );
+    return process.exit(1);
   }
 
+  const { actor } = context;
   core.info(`Event name: ${context.eventName}`);
-  core.info(
-    `Owner: ${owner}, Repo: ${repo}, Base: ${base}, Head: ${head}, PR: ${
-      prNumber ?? "N/A"
-    } Actor: ${context.actor}`,
-  );
+  core.info(`Owner: ${owner}, Repo: ${repo}, PR: ${prNumber} Actor: ${actor}`);
 
-  return { token, owner, repo, base, head, prNumber, actor: context.actor };
+  return { token, owner, repo, prNumber, actor };
 }
 
 interface RunInputConfiguration {
