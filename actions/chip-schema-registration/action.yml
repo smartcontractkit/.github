@@ -70,4 +70,4 @@ runs:
           -e CHIP_CONFIG_PORT \
           -e CHIP_CONFIG_USER \
           -e CHIP_CONFIG_PASSWORD \
-          chip-schema-registration:qa-latest register --schema-dir="$CHIP_SCHEMA_DIR" --config-file="$CHIP_CONFIG_FILE"
+          chip-schema-registration register --schema-dir="$CHIP_SCHEMA_DIR" --config-file="$CHIP_CONFIG_FILE"
