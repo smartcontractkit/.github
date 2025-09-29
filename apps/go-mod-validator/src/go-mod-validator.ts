@@ -52,7 +52,7 @@ function getContext() {
   const octokit = github.getOctokit(
     githubToken,
     options,
-    // @ts-ignore
+    // @ts-expect-error @actions/github uses octokit/core ^5.0.1 whereas @octokit/plugin-throttling uses octokit/core ^7.0.5
     throttling,
   );
 
