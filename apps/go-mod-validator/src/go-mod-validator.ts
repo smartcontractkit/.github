@@ -1,39 +1,59 @@
-import { getDefaultBranch, isGoModReferencingDefaultBranch } from "./github";
-import { getDeps, BaseGoModule, lineForDependencyPathFinder } from "./deps";
-import { FIXING_ERRORS } from "./strings";
 import * as github from "@actions/github";
 import * as core from "@actions/core";
 import { throttling } from "@octokit/plugin-throttling";
+
+import { getDeps, BaseGoModule, lineForDependencyPathFinder } from "./deps";
 import { getChangedGoModFiles } from "./diff";
+import { getDefaultBranch, isGoModReferencingDefaultBranch } from "./github";
+import { FIXING_ERRORS } from "./strings";
 
 function getContext() {
   const goModDir = core.getInput("go-mod-dir", { required: true });
   const githubToken = core.getInput("github-token", { required: true });
   const depPrefix = core.getInput("dep-prefix", { required: true });
 
-  const gh = github.getOctokit(
-    githubToken,
-    {
-      throttle: {
-        onRateLimit: (retryAfter, options, octokit, retryCount) => {
-          octokit.log.warn(
-            `Request quota exhausted for request ${options.method} ${options.url}`,
-          );
+  type ThrottlingOptions = Parameters<typeof throttling>[1];
+  interface IRequestRateLimitOptions {
+    method: string;
+    url: string;
+  }
 
-          if (retryCount < 1) {
-            // only retries once
-            octokit.log.info(`Retrying after ${retryAfter} seconds!`);
-            return true;
-          }
-        },
-        onSecondaryRateLimit: (retryAfter, options, octokit) => {
-          // does not retry, only logs a warning
-          octokit.log.warn(
-            `SecondaryRateLimit detected for request ${options.method} ${options.url}`,
-          );
-        },
+  const options: ThrottlingOptions = {
+    throttle: {
+      onRateLimit: (
+        retryAfter,
+        options: IRequestRateLimitOptions,
+        octokit,
+        retryCount,
+      ) => {
+        octokit.log.warn(
+          `Request quota exhausted for request ${options.method} ${options.url}`,
+        );
+
+        if (retryCount < 1) {
+          // only retries once
+          octokit.log.info(`Retrying after ${retryAfter} seconds!`);
+          return true;
+        }
+      },
+      onSecondaryRateLimit: (
+        _,
+        options: IRequestRateLimitOptions,
+        octokit,
+        retryCount,
+      ) => {
+        // does not retry, only logs a warning
+        octokit.log.warn(
+          `SecondaryRateLimit detected for request ${options.method} ${options.url} (retry count: ${retryCount})`,
+        );
       },
     },
+  };
+
+  const gh = github.getOctokit(
+    githubToken,
+    options,
+    // @ts-ignore
     throttling,
   );
 
