@@ -6,7 +6,7 @@ export GITHUB_TOKEN=$(gh auth token)
 export GITHUB_ACTOR=$(gh api user --jq .login)
 export GITHUB_REPOSITORY="smartcontractkit/chainlink"
 # export GITHUB_REPOSITORY="smartcontractkit/releng-test"
-export GITHUB_EVENT_NAME="pull_request_review"
+export GITHUB_EVENT_NAME="pull_request"
 export GITHUB_EVENT_PATH="actions/codeowners-review-analysis/scripts/payload.json"
 
 

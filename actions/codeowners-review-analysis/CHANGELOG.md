@@ -1,5 +1,23 @@
 # codeowners-review-analysis
 
+## 1.1.1
+
+### Patch Changes
+
+- [#1242](https://github.com/smartcontractkit/.github/pull/1242)
+  [`7194db1`](https://github.com/smartcontractkit/.github/commit/7194db17f42af314761ab1b75a2258103f844ec2)
+  Thanks [@erikburt](https://github.com/erikburt)! - add separation between
+  table and legend on PR comments
+
+## 1.1.0
+
+### Minor Changes
+
+- [#1240](https://github.com/smartcontractkit/.github/pull/1240)
+  [`42ca835`](https://github.com/smartcontractkit/.github/commit/42ca8355010a7a1f94b143251f346eb9d6475b25)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix formatting, add support
+  for more triggers
+
 ## 1.0.0
 
 ### Major Changes
