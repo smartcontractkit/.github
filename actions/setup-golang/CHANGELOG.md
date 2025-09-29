@@ -1,5 +1,18 @@
 # setup-golang
 
+## 1.1.1
+
+### Patch Changes
+
+- [#1246](https://github.com/smartcontractkit/.github/pull/1246)
+  [`4278ebe`](https://github.com/smartcontractkit/.github/commit/4278ebe5eb912c9a001e84211d7b94fcd5898c11)
+  Thanks [@graham-chainlink](https://github.com/graham-chainlink)! -
+  fix(setup-golang): use path from input
+
+  In multiple places, we assume the go.mod and go.sum files are located on the
+  root which is not the case when the project is a monorepo, we should use the
+  path provided in the input instead of assuming
+
 ## 1.1.0
 
 ### Minor Changes
