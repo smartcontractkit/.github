@@ -17444,12 +17444,12 @@ var require_lib = __commonJS({
             throw new Error("Client has already been disposed.");
           }
           const parsedUrl = new URL(requestUrl);
-          let info3 = this._prepareRequest(verb, parsedUrl, headers);
+          let info4 = this._prepareRequest(verb, parsedUrl, headers);
           const maxTries = this._allowRetries && RetryableHttpVerbs.includes(verb) ? this._maxRetries + 1 : 1;
           let numTries = 0;
           let response;
           do {
-            response = yield this.requestRaw(info3, data);
+            response = yield this.requestRaw(info4, data);
             if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
               let authenticationHandler;
               for (const handler of this.handlers) {
@@ -17459,7 +17459,7 @@ var require_lib = __commonJS({
                 }
               }
               if (authenticationHandler) {
-                return authenticationHandler.handleAuthentication(this, info3, data);
+                return authenticationHandler.handleAuthentication(this, info4, data);
               } else {
                 return response;
               }
@@ -17482,8 +17482,8 @@ var require_lib = __commonJS({
                   }
                 }
               }
-              info3 = this._prepareRequest(verb, parsedRedirectUrl, headers);
-              response = yield this.requestRaw(info3, data);
+              info4 = this._prepareRequest(verb, parsedRedirectUrl, headers);
+              response = yield this.requestRaw(info4, data);
               redirectsRemaining--;
             }
             if (!response.message.statusCode || !HttpResponseRetryCodes.includes(response.message.statusCode)) {
@@ -17512,7 +17512,7 @@ var require_lib = __commonJS({
        * @param info
        * @param data
        */
-      requestRaw(info3, data) {
+      requestRaw(info4, data) {
         return __awaiter2(this, void 0, void 0, function* () {
           return new Promise((resolve, reject) => {
             function callbackForResult(err, res) {
@@ -17524,7 +17524,7 @@ var require_lib = __commonJS({
                 resolve(res);
               }
             }
-            this.requestRawWithCallback(info3, data, callbackForResult);
+            this.requestRawWithCallback(info4, data, callbackForResult);
           });
         });
       }
@@ -17534,12 +17534,12 @@ var require_lib = __commonJS({
        * @param data
        * @param onResult
        */
-      requestRawWithCallback(info3, data, onResult) {
+      requestRawWithCallback(info4, data, onResult) {
         if (typeof data === "string") {
-          if (!info3.options.headers) {
-            info3.options.headers = {};
+          if (!info4.options.headers) {
+            info4.options.headers = {};
           }
-          info3.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
+          info4.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
         }
         let callbackCalled = false;
         function handleResult(err, res) {
@@ -17548,7 +17548,7 @@ var require_lib = __commonJS({
             onResult(err, res);
           }
         }
-        const req = info3.httpModule.request(info3.options, (msg) => {
+        const req = info4.httpModule.request(info4.options, (msg) => {
           const res = new HttpClientResponse(msg);
           handleResult(void 0, res);
         });
@@ -17560,7 +17560,7 @@ var require_lib = __commonJS({
           if (socket) {
             socket.end();
           }
-          handleResult(new Error(`Request timeout: ${info3.options.path}`));
+          handleResult(new Error(`Request timeout: ${info4.options.path}`));
         });
         req.on("error", function(err) {
           handleResult(err);
@@ -17596,27 +17596,27 @@ var require_lib = __commonJS({
         return this._getProxyAgentDispatcher(parsedUrl, proxyUrl);
       }
       _prepareRequest(method, requestUrl, headers) {
-        const info3 = {};
-        info3.parsedUrl = requestUrl;
-        const usingSsl = info3.parsedUrl.protocol === "https:";
-        info3.httpModule = usingSsl ? https : http;
+        const info4 = {};
+        info4.parsedUrl = requestUrl;
+        const usingSsl = info4.parsedUrl.protocol === "https:";
+        info4.httpModule = usingSsl ? https : http;
         const defaultPort = usingSsl ? 443 : 80;
-        info3.options = {};
-        info3.options.host = info3.parsedUrl.hostname;
-        info3.options.port = info3.parsedUrl.port ? parseInt(info3.parsedUrl.port) : defaultPort;
-        info3.options.path = (info3.parsedUrl.pathname || "") + (info3.parsedUrl.search || "");
-        info3.options.method = method;
-        info3.options.headers = this._mergeHeaders(headers);
+        info4.options = {};
+        info4.options.host = info4.parsedUrl.hostname;
+        info4.options.port = info4.parsedUrl.port ? parseInt(info4.parsedUrl.port) : defaultPort;
+        info4.options.path = (info4.parsedUrl.pathname || "") + (info4.parsedUrl.search || "");
+        info4.options.method = method;
+        info4.options.headers = this._mergeHeaders(headers);
         if (this.userAgent != null) {
-          info3.options.headers["user-agent"] = this.userAgent;
+          info4.options.headers["user-agent"] = this.userAgent;
         }
-        info3.options.agent = this._getAgent(info3.parsedUrl);
+        info4.options.agent = this._getAgent(info4.parsedUrl);
         if (this.handlers) {
           for (const handler of this.handlers) {
-            handler.prepareRequest(info3.options);
+            handler.prepareRequest(info4.options);
           }
         }
-        return info3;
+        return info4;
       }
       _mergeHeaders(headers) {
         if (this.requestOptions && this.requestOptions.headers) {
@@ -22941,10 +22941,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       command_1.issueCommand("notice", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
     exports2.notice = notice;
-    function info3(message) {
+    function info4(message) {
       process.stdout.write(message + os.EOL);
     }
-    exports2.info = info3;
+    exports2.info = info4;
     function startGroup(name) {
       command_1.issue("group", name);
     }
@@ -24887,12 +24887,12 @@ var require_lib2 = __commonJS({
             throw new Error("Client has already been disposed.");
           }
           const parsedUrl = new URL(requestUrl);
-          let info3 = this._prepareRequest(verb, parsedUrl, headers);
+          let info4 = this._prepareRequest(verb, parsedUrl, headers);
           const maxTries = this._allowRetries && RetryableHttpVerbs.includes(verb) ? this._maxRetries + 1 : 1;
           let numTries = 0;
           let response;
           do {
-            response = yield this.requestRaw(info3, data);
+            response = yield this.requestRaw(info4, data);
             if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
               let authenticationHandler;
               for (const handler of this.handlers) {
@@ -24902,7 +24902,7 @@ var require_lib2 = __commonJS({
                 }
               }
               if (authenticationHandler) {
-                return authenticationHandler.handleAuthentication(this, info3, data);
+                return authenticationHandler.handleAuthentication(this, info4, data);
               } else {
                 return response;
               }
@@ -24925,8 +24925,8 @@ var require_lib2 = __commonJS({
                   }
                 }
               }
-              info3 = this._prepareRequest(verb, parsedRedirectUrl, headers);
-              response = yield this.requestRaw(info3, data);
+              info4 = this._prepareRequest(verb, parsedRedirectUrl, headers);
+              response = yield this.requestRaw(info4, data);
               redirectsRemaining--;
             }
             if (!response.message.statusCode || !HttpResponseRetryCodes.includes(response.message.statusCode)) {
@@ -24955,7 +24955,7 @@ var require_lib2 = __commonJS({
        * @param info
        * @param data
        */
-      requestRaw(info3, data) {
+      requestRaw(info4, data) {
         return __awaiter2(this, void 0, void 0, function* () {
           return new Promise((resolve, reject) => {
             function callbackForResult(err, res) {
@@ -24967,7 +24967,7 @@ var require_lib2 = __commonJS({
                 resolve(res);
               }
             }
-            this.requestRawWithCallback(info3, data, callbackForResult);
+            this.requestRawWithCallback(info4, data, callbackForResult);
           });
         });
       }
@@ -24977,12 +24977,12 @@ var require_lib2 = __commonJS({
        * @param data
        * @param onResult
        */
-      requestRawWithCallback(info3, data, onResult) {
+      requestRawWithCallback(info4, data, onResult) {
         if (typeof data === "string") {
-          if (!info3.options.headers) {
-            info3.options.headers = {};
+          if (!info4.options.headers) {
+            info4.options.headers = {};
           }
-          info3.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
+          info4.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
         }
         let callbackCalled = false;
         function handleResult(err, res) {
@@ -24991,7 +24991,7 @@ var require_lib2 = __commonJS({
             onResult(err, res);
           }
         }
-        const req = info3.httpModule.request(info3.options, (msg) => {
+        const req = info4.httpModule.request(info4.options, (msg) => {
           const res = new HttpClientResponse(msg);
           handleResult(void 0, res);
         });
@@ -25003,7 +25003,7 @@ var require_lib2 = __commonJS({
           if (socket) {
             socket.end();
           }
-          handleResult(new Error(`Request timeout: ${info3.options.path}`));
+          handleResult(new Error(`Request timeout: ${info4.options.path}`));
         });
         req.on("error", function(err) {
           handleResult(err);
@@ -25039,27 +25039,27 @@ var require_lib2 = __commonJS({
         return this._getProxyAgentDispatcher(parsedUrl, proxyUrl);
       }
       _prepareRequest(method, requestUrl, headers) {
-        const info3 = {};
-        info3.parsedUrl = requestUrl;
-        const usingSsl = info3.parsedUrl.protocol === "https:";
-        info3.httpModule = usingSsl ? https : http;
+        const info4 = {};
+        info4.parsedUrl = requestUrl;
+        const usingSsl = info4.parsedUrl.protocol === "https:";
+        info4.httpModule = usingSsl ? https : http;
         const defaultPort = usingSsl ? 443 : 80;
-        info3.options = {};
-        info3.options.host = info3.parsedUrl.hostname;
-        info3.options.port = info3.parsedUrl.port ? parseInt(info3.parsedUrl.port) : defaultPort;
-        info3.options.path = (info3.parsedUrl.pathname || "") + (info3.parsedUrl.search || "");
-        info3.options.method = method;
-        info3.options.headers = this._mergeHeaders(headers);
+        info4.options = {};
+        info4.options.host = info4.parsedUrl.hostname;
+        info4.options.port = info4.parsedUrl.port ? parseInt(info4.parsedUrl.port) : defaultPort;
+        info4.options.path = (info4.parsedUrl.pathname || "") + (info4.parsedUrl.search || "");
+        info4.options.method = method;
+        info4.options.headers = this._mergeHeaders(headers);
         if (this.userAgent != null) {
-          info3.options.headers["user-agent"] = this.userAgent;
+          info4.options.headers["user-agent"] = this.userAgent;
         }
-        info3.options.agent = this._getAgent(info3.parsedUrl);
+        info4.options.agent = this._getAgent(info4.parsedUrl);
         if (this.handlers) {
           for (const handler of this.handlers) {
-            handler.prepareRequest(info3.options);
+            handler.prepareRequest(info4.options);
           }
         }
-        return info3;
+        return info4;
       }
       _mergeHeaders(headers) {
         if (this.requestOptions && this.requestOptions.headers) {
@@ -27049,10 +27049,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       (0, command_1.issueCommand)("notice", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
     exports2.notice = notice;
-    function info3(message) {
+    function info4(message) {
       process.stdout.write(message + os.EOL);
     }
-    exports2.info = info3;
+    exports2.info = info4;
     function startGroup(name) {
       (0, command_1.issue)("group", name);
     }
@@ -27143,7 +27143,7 @@ var require_internal_glob_options_helper = __commonJS({
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getOptions = void 0;
-    var core5 = __importStar2(require_core2());
+    var core6 = __importStar2(require_core2());
     function getOptions(copy) {
       const result = {
         followSymbolicLinks: true,
@@ -27154,19 +27154,19 @@ var require_internal_glob_options_helper = __commonJS({
       if (copy) {
         if (typeof copy.followSymbolicLinks === "boolean") {
           result.followSymbolicLinks = copy.followSymbolicLinks;
-          core5.debug(`followSymbolicLinks '${result.followSymbolicLinks}'`);
+          core6.debug(`followSymbolicLinks '${result.followSymbolicLinks}'`);
         }
         if (typeof copy.implicitDescendants === "boolean") {
           result.implicitDescendants = copy.implicitDescendants;
-          core5.debug(`implicitDescendants '${result.implicitDescendants}'`);
+          core6.debug(`implicitDescendants '${result.implicitDescendants}'`);
         }
         if (typeof copy.matchDirectories === "boolean") {
           result.matchDirectories = copy.matchDirectories;
-          core5.debug(`matchDirectories '${result.matchDirectories}'`);
+          core6.debug(`matchDirectories '${result.matchDirectories}'`);
         }
         if (typeof copy.omitBrokenSymbolicLinks === "boolean") {
           result.omitBrokenSymbolicLinks = copy.omitBrokenSymbolicLinks;
-          core5.debug(`omitBrokenSymbolicLinks '${result.omitBrokenSymbolicLinks}'`);
+          core6.debug(`omitBrokenSymbolicLinks '${result.omitBrokenSymbolicLinks}'`);
         }
       }
       return result;
@@ -28622,7 +28622,7 @@ var require_internal_globber = __commonJS({
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.DefaultGlobber = void 0;
-    var core5 = __importStar2(require_core2());
+    var core6 = __importStar2(require_core2());
     var fs = __importStar2(require("fs"));
     var globOptionsHelper = __importStar2(require_internal_glob_options_helper());
     var path = __importStar2(require("path"));
@@ -28673,7 +28673,7 @@ var require_internal_globber = __commonJS({
           }
           const stack = [];
           for (const searchPath of patternHelper.getSearchPaths(patterns)) {
-            core5.debug(`Search path '${searchPath}'`);
+            core6.debug(`Search path '${searchPath}'`);
             try {
               yield __await2(fs.promises.lstat(searchPath));
             } catch (err) {
@@ -28745,7 +28745,7 @@ var require_internal_globber = __commonJS({
             } catch (err) {
               if (err.code === "ENOENT") {
                 if (options.omitBrokenSymbolicLinks) {
-                  core5.debug(`Broken symlink '${item.path}'`);
+                  core6.debug(`Broken symlink '${item.path}'`);
                   return void 0;
                 }
                 throw new Error(`No information found for the path '${item.path}'. This may indicate a broken symbolic link.`);
@@ -28761,7 +28761,7 @@ var require_internal_globber = __commonJS({
               traversalChain.pop();
             }
             if (traversalChain.some((x) => x === realPath)) {
-              core5.debug(`Symlink cycle detected for path '${item.path}' and realpath '${realPath}'`);
+              core6.debug(`Symlink cycle detected for path '${item.path}' and realpath '${realPath}'`);
               return void 0;
             }
             traversalChain.push(realPath);
@@ -28850,7 +28850,7 @@ var require_internal_hash_files = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.hashFiles = void 0;
     var crypto4 = __importStar2(require("crypto"));
-    var core5 = __importStar2(require_core2());
+    var core6 = __importStar2(require_core2());
     var fs = __importStar2(require("fs"));
     var stream = __importStar2(require("stream"));
     var util = __importStar2(require("util"));
@@ -28859,7 +28859,7 @@ var require_internal_hash_files = __commonJS({
       var e_1, _a;
       var _b;
       return __awaiter2(this, void 0, void 0, function* () {
-        const writeDelegate = verbose ? core5.info : core5.debug;
+        const writeDelegate = verbose ? core6.info : core6.debug;
         let hasMatch = false;
         const githubWorkspace = currentWorkspace ? currentWorkspace : (_b = process.env["GITHUB_WORKSPACE"]) !== null && _b !== void 0 ? _b : process.cwd();
         const result = crypto4.createHash("sha256");
@@ -30126,7 +30126,7 @@ var require_dist = __commonJS({
 
 // apps/go-mod-validator/src/go-mod-validator.ts
 var github = __toESM(require_github());
-var core4 = __toESM(require_core());
+var core5 = __toESM(require_core());
 
 // node_modules/.pnpm/@octokit+plugin-throttling@11.0.1_@octokit+core@7.0.3/node_modules/@octokit/plugin-throttling/dist-bundle/index.js
 var import_light = __toESM(require_light(), 1);
@@ -30288,8 +30288,8 @@ function throttling(octokit, octokitOptions) {
     "error",
     (e) => octokit.log.warn("Error in throttling-plugin limit handler", e)
   );
-  state.retryLimiter.on("failed", async function(error2, info3) {
-    const [state2, request, options] = info3.args;
+  state.retryLimiter.on("failed", async function(error2, info4) {
+    const [state2, request, options] = info4.args;
     const { pathname } = new URL(options.url, "http://github.test");
     const shouldRetryGraphQL = pathname.startsWith("/graphql") && error2.status !== 401;
     if (!(shouldRetryGraphQL || error2.status === 403 || error2.status === 429)) {
@@ -30697,6 +30697,48 @@ async function getDefaultBranch(gh, { owner, repo }) {
   return promise;
 }
 
+// apps/go-mod-validator/src/run-inputs.ts
+var core4 = __toESM(require_core());
+var CL_LOCAL_DEBUG = process.env.CL_LOCAL_DEBUG === "true";
+function getInputs() {
+  core4.info("Getting inputs for run.");
+  const inputs = {
+    githubToken: getRunInputString("githubToken"),
+    goModDir: getRunInputString("goModDir"),
+    depPrefix: getRunInputString("depPrefix")
+  };
+  core4.info(`Inputs: ${JSON.stringify(inputs)}`);
+  return inputs;
+}
+var runInputsConfiguration = {
+  githubToken: {
+    parameter: "github-token",
+    localParameter: "GITHUB_TOKEN"
+  },
+  goModDir: {
+    parameter: "go-mod-dir",
+    localParameter: "GO_MOD_DIR"
+  },
+  depPrefix: {
+    parameter: "dep-prefix",
+    localParameter: "DEP_PREFIX"
+  }
+};
+function getRunInputString(input) {
+  const inputKey = getInputKey(input);
+  return core4.getInput(inputKey, {
+    required: true
+  });
+}
+function getInputKey(input) {
+  const config = runInputsConfiguration[input];
+  if (!config) {
+    throw new Error(`No configuration found for input: ${input}`);
+  }
+  const inputKey = CL_LOCAL_DEBUG ? config.localParameter : config.parameter;
+  return inputKey;
+}
+
 // apps/go-mod-validator/src/strings.ts
 var FIXING_ERRORS = `
 #### Fixing Errors
@@ -30721,41 +30763,39 @@ e.g.,
 
 // apps/go-mod-validator/src/go-mod-validator.ts
 function getContext() {
-  const goModDir = core4.getInput("go-mod-dir", { required: true });
-  const githubToken = core4.getInput("github-token", { required: true });
-  const depPrefix = core4.getInput("dep-prefix", { required: true });
+  const { goModDir, githubToken, depPrefix } = getInputs();
   const options = {
     throttle: {
-      onRateLimit: (retryAfter, options2, octokit, retryCount) => {
-        octokit.log.warn(
+      onRateLimit: (retryAfter, options2, octokit2, retryCount) => {
+        octokit2.log.warn(
           `Request quota exhausted for request ${options2.method} ${options2.url}`
         );
         if (retryCount < 1) {
-          octokit.log.info(`Retrying after ${retryAfter} seconds!`);
+          octokit2.log.info(`Retrying after ${retryAfter} seconds!`);
           return true;
         }
       },
-      onSecondaryRateLimit: (_, options2, octokit, retryCount) => {
-        octokit.log.warn(
+      onSecondaryRateLimit: (_, options2, octokit2, retryCount) => {
+        octokit2.log.warn(
           `SecondaryRateLimit detected for request ${options2.method} ${options2.url} (retry count: ${retryCount})`
         );
       }
     }
   };
-  const gh = github.getOctokit(
+  const octokit = github.getOctokit(
     githubToken,
     options,
     // @ts-ignore
     throttling
   );
   const isPullRequest = !!github.context.payload.pull_request;
-  return { goModDir, gh, depPrefix, isPullRequest };
+  return { goModDir, octokit, depPrefix, isPullRequest };
 }
 async function run() {
-  const { goModDir, gh, depPrefix, isPullRequest } = getContext();
+  const { goModDir, octokit, depPrefix, isPullRequest } = getContext();
   let depsToValidate = await getDeps(goModDir, depPrefix);
   if (isPullRequest) {
-    core4.info(
+    core5.info(
       "Running in pull request mode, filtering dependencies to validate based on changed files and only checking for pseudo-versions."
     );
     const pr = github.context.payload.pull_request;
@@ -30766,17 +30806,17 @@ async function run() {
     const head = pr.head.sha;
     const { owner, repo } = github.context.repo;
     const changedFiles = await getChangedGoModFiles(
-      gh,
+      octokit,
       base,
       head,
       owner,
       repo,
       depPrefix
     );
-    core4.debug(
+    core5.debug(
       `Changed files: ${JSON.stringify(changedFiles.map((f) => f.filename))}`
     );
-    core4.debug(
+    core5.debug(
       `Deps to validate: ${JSON.stringify(depsToValidate.map((d) => d.path))}`
     );
     depsToValidate = depsToValidate.filter((d) => {
@@ -30786,14 +30826,18 @@ async function run() {
     });
     depsToValidate = depsToValidate.filter((d) => !("tag" in d));
   } else {
-    core4.info(
+    core5.info(
       "Running in non-pull request mode, checking all dependencies for default branch references."
     );
   }
   const invalidations = /* @__PURE__ */ new Map();
   const validating = depsToValidate.map(async (d) => {
-    const defaultBranch = await getDefaultBranch(gh, d);
-    const result = await isGoModReferencingDefaultBranch(gh, d, defaultBranch);
+    const defaultBranch = await getDefaultBranch(octokit, d);
+    const result = await isGoModReferencingDefaultBranch(
+      octokit,
+      d,
+      defaultBranch
+    );
     const { commitSha, isInDefault } = result;
     const repoUrl = `https://github.com/${d.owner}/${d.repo}`;
     let detailString = "";
@@ -30833,7 +30877,7 @@ ${detailString}`;
   });
   await Promise.all(validating);
   if (invalidations.size > 0) {
-    core4.info(`Found ${invalidations.size} invalid dependencies.`);
+    core5.info(`Found ${invalidations.size} invalid dependencies.`);
     const depLineFinder = lineForDependencyPathFinder();
     const sortedErrs = [...invalidations.entries()].sort((a, b) => {
       const aKey = a[0].goModFilePath + a[0].name;
@@ -30844,26 +30888,26 @@ ${detailString}`;
       const line = goMod.name.endsWith("// indirect") ? void 0 : depLineFinder(goMod);
       switch (invalidation.type) {
         case "error":
-          core4.error(invalidation.msg, {
+          core5.error(invalidation.msg, {
             file: goMod.goModFilePath,
             startLine: line
           });
           break;
         case "warning":
-          core4.warning(invalidation.msg, {
+          core5.warning(invalidation.msg, {
             file: goMod.goModFilePath,
             startLine: line
           });
       }
     });
-    core4.summary.addRaw(FIXING_ERRORS, true);
-    const summary2 = core4.summary.stringify();
-    await core4.summary.write();
-    core4.setFailed(`validation failed for ${invalidations.size} dependencies`);
+    core5.summary.addRaw(FIXING_ERRORS, true);
+    const summary2 = core5.summary.stringify();
+    await core5.summary.write();
+    core5.setFailed(`validation failed for ${invalidations.size} dependencies`);
     return summary2;
   } else {
     const msg = "validation successful for all go.mod dependencies";
-    core4.info(msg);
+    core5.info(msg);
     return msg;
   }
 }

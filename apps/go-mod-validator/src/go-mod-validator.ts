@@ -5,12 +5,11 @@ import { throttling } from "@octokit/plugin-throttling";
 import { getDeps, BaseGoModule, lineForDependencyPathFinder } from "./deps";
 import { getChangedGoModFiles } from "./diff";
 import { getDefaultBranch, isGoModReferencingDefaultBranch } from "./github";
+import { getInputs } from "./run-inputs";
 import { FIXING_ERRORS } from "./strings";
 
 function getContext() {
-  const goModDir = core.getInput("go-mod-dir", { required: true });
-  const githubToken = core.getInput("github-token", { required: true });
-  const depPrefix = core.getInput("dep-prefix", { required: true });
+  const { goModDir, githubToken, depPrefix } = getInputs();
 
   type ThrottlingOptions = Parameters<typeof throttling>[1];
   interface IRequestRateLimitOptions {
@@ -50,7 +49,7 @@ function getContext() {
     },
   };
 
-  const gh = github.getOctokit(
+  const octokit = github.getOctokit(
     githubToken,
     options,
     // @ts-ignore
@@ -59,11 +58,11 @@ function getContext() {
 
   const isPullRequest = !!github.context.payload.pull_request;
 
-  return { goModDir, gh, depPrefix, isPullRequest };
+  return { goModDir, octokit, depPrefix, isPullRequest };
 }
 
 export async function run(): Promise<string> {
-  const { goModDir, gh, depPrefix, isPullRequest } = getContext();
+  const { goModDir, octokit, depPrefix, isPullRequest } = getContext();
 
   let depsToValidate = await getDeps(goModDir, depPrefix);
   if (isPullRequest) {
@@ -79,7 +78,7 @@ export async function run(): Promise<string> {
     const { owner, repo } = github.context.repo;
 
     const changedFiles = await getChangedGoModFiles(
-      gh,
+      octokit,
       base,
       head,
       owner,
@@ -119,8 +118,12 @@ export async function run(): Promise<string> {
     // Bit of a code smell, but I wanted to avoid adding the defaultBranchGetter to deps.ts to keep it separate from
     // the GitHub API client.
     // And we want the default branch available in this scope for context.
-    const defaultBranch = await getDefaultBranch(gh, d);
-    const result = await isGoModReferencingDefaultBranch(gh, d, defaultBranch);
+    const defaultBranch = await getDefaultBranch(octokit, d);
+    const result = await isGoModReferencingDefaultBranch(
+      octokit,
+      d,
+      defaultBranch,
+    );
     const { commitSha, isInDefault } = result;
 
     const repoUrl = `https://github.com/${d.owner}/${d.repo}`;
