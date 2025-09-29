@@ -56,7 +56,6 @@ describe("getDependenciesMap", () => {
           "owner": "smartcontractkit",
           "path": "github.com/smartcontractkit/go-plugin",
           "repo": "go-plugin",
-          "subModulePath": undefined,
           "version": "v0.0.0-20240208201424-b3b91517de16",
         },
         {
@@ -66,7 +65,6 @@ describe("getDependenciesMap", () => {
           "owner": "smartcontractkit",
           "path": "github.com/smartcontractkit/grpc-proxy",
           "repo": "grpc-proxy",
-          "subModulePath": undefined,
           "version": "v0.0.0-20230731113816-f1be6620749f",
         },
         {
@@ -75,7 +73,6 @@ describe("getDependenciesMap", () => {
           "owner": "smartcontractkit",
           "path": "github.com/smartcontractkit/chainlink-protos/cre/go",
           "repo": "chainlink-protos",
-          "subModulePath": "cre/go",
           "tag": "cre/go/v1.0.0-beta",
           "version": "v1.0.0-beta",
         },
