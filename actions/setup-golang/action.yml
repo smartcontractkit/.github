@@ -76,7 +76,7 @@ runs:
           ${{ steps.go-cache-dir.outputs.gomodcache }}
         key:
           ${{ runner.os }}-gomod-${{ inputs.cache-version }}-${{
-          hashFiles('./go.sum') }}
+          hashFiles(inputs.go-cache-dep-path) }}
         restore-keys: |
           ${{ runner.os }}-gomod-${{ inputs.cache-version }}-
 
@@ -89,7 +89,7 @@ runs:
           ${{ steps.go-cache-dir.outputs.gomodcache }}
         key:
           ${{ runner.os }}-gomod-${{ inputs.cache-version }}-${{
-          hashFiles('./go.sum') }}
+          hashFiles(inputs.go-cache-dep-path) }}
         restore-keys: |
           ${{ runner.os }}-gomod-${{ inputs.cache-version }}-
 
@@ -104,10 +104,10 @@ runs:
           ${{ steps.go-cache-dir.outputs.gobuildcache }}
         key:
           ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{
-          hashFiles('./go.sum') }}-${{ steps.branch-name.outputs.current_branch
-          }}
+          hashFiles(inputs.go-cache-dep-path) }}-${{
+          steps.branch-name.outputs.current_branch }}
         restore-keys: |
-          ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{ hashFiles('./go.sum') }}-
+          ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{ hashFiles(inputs.go-cache-dep-path) }}-
           ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-
 
     - uses: actions/cache@v4
@@ -121,8 +121,8 @@ runs:
           ${{ steps.go-cache-dir.outputs.gobuildcache }}
         key:
           ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{
-          hashFiles('./go.sum') }}-${{ steps.branch-name.outputs.current_branch
-          }}
+          hashFiles(inputs.go-cache-dep-path) }}-${{
+          steps.branch-name.outputs.current_branch }}
         restore-keys: |
-          ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{ hashFiles('./go.sum') }}-
+          ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{ hashFiles(inputs.go-cache-dep-path) }}-
           ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-
