@@ -9,7 +9,6 @@
   },
   "main": "out/index.js",
   "scripts": {
-    "local": "GITHUB_STEP_SUMMARY=/dev/null ts-node src/index.ts",
     "test": "vitest",
     "fixtures:gomods": "ts-node test/__helpers__/generate-gomod-fixtures.ts"
   },
