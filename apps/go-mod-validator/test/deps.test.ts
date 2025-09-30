@@ -3,6 +3,7 @@ import { getDeps, getVersionType } from "../src/deps";
 import { describe, expect, it, vi, MockedObject } from "vitest";
 import * as glob from "@actions/glob";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 vi.mock("@actions/core", async (importOriginal: any) => ({
   ...(await importOriginal(typeof import("@actions/core"))),
   setFailed: (msg: string) => {

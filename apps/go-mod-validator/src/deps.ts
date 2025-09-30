@@ -49,6 +49,7 @@ interface GoMod {
   Retracted: string[];
   Deprecated: string;
   Error: ModuleError | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Origin: any;
   Reuse: boolean;
 }

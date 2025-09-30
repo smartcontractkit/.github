@@ -1,49 +1,68 @@
-import { getDefaultBranch, isGoModReferencingDefaultBranch } from "./github";
-import { getDeps, BaseGoModule, lineForDependencyPathFinder } from "./deps";
-import { FIXING_ERRORS } from "./strings";
 import * as github from "@actions/github";
 import * as core from "@actions/core";
 import { throttling } from "@octokit/plugin-throttling";
+
+import { getDeps, BaseGoModule, lineForDependencyPathFinder } from "./deps";
 import { getChangedGoModFiles } from "./diff";
+import { getDefaultBranch, isGoModReferencingDefaultBranch } from "./github";
+import { getInputs } from "./run-inputs";
+import { FIXING_ERRORS } from "./strings";
 
 function getContext() {
-  const goModDir = core.getInput("go-mod-dir", { required: true });
-  const githubToken = core.getInput("github-token", { required: true });
-  const depPrefix = core.getInput("dep-prefix", { required: true });
+  const { goModDir, githubToken, depPrefix } = getInputs();
 
-  const gh = github.getOctokit(
-    githubToken,
-    {
-      throttle: {
-        onRateLimit: (retryAfter, options, octokit, retryCount) => {
-          octokit.log.warn(
-            `Request quota exhausted for request ${options.method} ${options.url}`,
-          );
+  type ThrottlingOptions = Parameters<typeof throttling>[1];
+  interface IRequestRateLimitOptions {
+    method: string;
+    url: string;
+  }
 
-          if (retryCount < 1) {
-            // only retries once
-            octokit.log.info(`Retrying after ${retryAfter} seconds!`);
-            return true;
-          }
-        },
-        onSecondaryRateLimit: (retryAfter, options, octokit) => {
-          // does not retry, only logs a warning
-          octokit.log.warn(
-            `SecondaryRateLimit detected for request ${options.method} ${options.url}`,
-          );
-        },
+  const options: ThrottlingOptions = {
+    throttle: {
+      onRateLimit: (
+        retryAfter,
+        options: IRequestRateLimitOptions,
+        octokit,
+        retryCount,
+      ) => {
+        octokit.log.warn(
+          `Request quota exhausted for request ${options.method} ${options.url}`,
+        );
+
+        if (retryCount < 1) {
+          // only retries once
+          octokit.log.info(`Retrying after ${retryAfter} seconds!`);
+          return true;
+        }
+      },
+      onSecondaryRateLimit: (
+        _,
+        options: IRequestRateLimitOptions,
+        octokit,
+        retryCount,
+      ) => {
+        // does not retry, only logs a warning
+        octokit.log.warn(
+          `SecondaryRateLimit detected for request ${options.method} ${options.url} (retry count: ${retryCount})`,
+        );
       },
     },
+  };
+
+  const octokit = github.getOctokit(
+    githubToken,
+    options,
+    // @ts-expect-error @actions/github uses octokit/core ^5.0.1 whereas @octokit/plugin-throttling uses octokit/core ^7.0.5
     throttling,
   );
 
   const isPullRequest = !!github.context.payload.pull_request;
 
-  return { goModDir, gh, depPrefix, isPullRequest };
+  return { goModDir, octokit, depPrefix, isPullRequest };
 }
 
 export async function run(): Promise<string> {
-  const { goModDir, gh, depPrefix, isPullRequest } = getContext();
+  const { goModDir, octokit, depPrefix, isPullRequest } = getContext();
 
   let depsToValidate = await getDeps(goModDir, depPrefix);
   if (isPullRequest) {
@@ -59,7 +78,7 @@ export async function run(): Promise<string> {
     const { owner, repo } = github.context.repo;
 
     const changedFiles = await getChangedGoModFiles(
-      gh,
+      octokit,
       base,
       head,
       owner,
@@ -99,8 +118,12 @@ export async function run(): Promise<string> {
     // Bit of a code smell, but I wanted to avoid adding the defaultBranchGetter to deps.ts to keep it separate from
     // the GitHub API client.
     // And we want the default branch available in this scope for context.
-    const defaultBranch = await getDefaultBranch(gh, d);
-    const result = await isGoModReferencingDefaultBranch(gh, d, defaultBranch);
+    const defaultBranch = await getDefaultBranch(octokit, d);
+    const result = await isGoModReferencingDefaultBranch(
+      octokit,
+      d,
+      defaultBranch,
+    );
     const { commitSha, isInDefault } = result;
 
     const repoUrl = `https://github.com/${d.owner}/${d.repo}`;
