@@ -838,7 +838,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ fromJson(env.DOCKER_TESTS_TIMEOUT_MINUTES) }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.9.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.10.0
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION: ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
@@ -1110,7 +1110,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.9.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.10.0
         env:
           DETACH_RUNNER: true
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
@@ -1235,7 +1235,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.9.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.10.0
         with:
           test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
