@@ -29,7 +29,7 @@ inputs:
     default: "false"
 
   trunk-job-url:
-    description: The URL to the job run"
+    description: "The URL to the job run"
     required: false
 
   trunk-previous-step-outcome:
