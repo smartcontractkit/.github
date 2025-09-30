@@ -905,8 +905,17 @@ jobs:
           enable-gap: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }} != '' && ${{
             secrets.AWS_K8S_CLUSTER_NAME_SDLC }} != ''
 
+      - name: Check if /tmp/junit.xml exists
+        id: check-junit
+        run: |
+          if [ -f /tmp/junit.xml ]; then
+            echo "junit_exists=true" | tee -a "$GITHUB_OUTPUT"
+          else
+            echo "junit_exists=false" | tee -a "$GITHUB_OUTPUT"
+          fi
+
       - name: Run branch-out-upload
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.check-junit.outputs.junit_exists == 'true' }}
         uses: smartcontractkit/.github/actions/branch-out-upload@branch-out-upload/0.1.0
         with:
           junit-file-path: "/tmp/junit.xml"
@@ -1186,11 +1195,20 @@ jobs:
           main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
           k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
 
+      - name: Check if /tmp/junit.xml exists
+        id: check-junit
+        run: |
+          if [ -f /tmp/junit.xml ]; then
+            echo "junit_exists=true" | tee -a "$GITHUB_OUTPUT"
+          else
+            echo "junit_exists=false" | tee -a "$GITHUB_OUTPUT"
+          fi
+
       - name: Run branch-out-upload
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.check-junit.outputs.junit_exists == 'true' }}
         uses: smartcontractkit/.github/actions/branch-out-upload@branch-out-upload/0.1.0
         with:
-          junit-file-path: "/tmp/junit-report.xml"
+          junit-file-path: "/tmp/junit.xml"
           trunk-org-slug: chainlink
           trunk-token: ${{ secrets.TRUNK_API_KEY }}
           trunk-previous-step-outcome: ${{ steps.run_tests.outcome }}
