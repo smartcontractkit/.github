@@ -33,8 +33,16 @@ inputs:
     required: false
 
   trunk-previous-step-outcome:
-    description: "The outcome of the previous step"
+    description:
+      "The outcome of the testing step. Used to determine failure status of this
+      action."
     required: true
+
+  trunk-variant:
+    description: |
+      The variant of the test. Used to differentiate between the same test suite
+      run in different environments (e.g., OSes, browsers, DON topologies).
+    required: false
 
 runs:
   using: composite
@@ -64,3 +72,4 @@ runs:
         org-slug: ${{ inputs.trunk-org-slug }}
         token: ${{ inputs.trunk-token }}
         previous-step-outcome: ${{ inputs.trunk-previous-step-outcome }}
+        variant: ${{ inputs.trunk-variant }}
