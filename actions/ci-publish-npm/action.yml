@@ -12,9 +12,6 @@ inputs:
       the root of the repository."
     required: false
     default: "."
-  npm-token:
-    description: The NPM token with publish access
-    required: true
   github-token:
     description:
       "The `GITHUB_TOKEN` issued for the workflow. Supply when creating Github
@@ -24,7 +21,7 @@ inputs:
   create-github-release:
     description: "Whether or not to create a GitHub release."
     required: false
-    default: false
+    default: "false"
   github-release-tag-name:
     description:
       "The name of the GitHub release. Defaults to the current branch name"
@@ -40,14 +37,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Configure npmrc
-      shell: bash
-      env:
-        NODE_AUTH_TOKEN: ${{ inputs.npm-token }}
-      run: |
-        echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" >> ~/.npmrc
-        echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
-
     - name: Publish to NPM
       shell: bash
       working-directory: ${{ inputs.package-json-directory }}
@@ -58,5 +47,10 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_RELEASE_TAG_NAME: ${{ inputs.github-release-tag-name }}
+        GITHUB_RELEASE_CHANGELOG_PATH:
+          ${{ inputs.github-release-changelog-path }}
       run: |
-        gh release create ${{ inputs.github-release-tag-name }} --title ${{ inputs.github-release-tag-name }} --notes "View the changelog at [${{ inputs.github-release-changelog-path }}](${{ inputs.github-release-changelog-path }})"
+        gh release create "${GITHUB_RELEASE_TAG_NAME}" \
+          --title "${GITHUB_RELEASE_TAG_NAME}" \
+          --notes "View the changelog at [${GITHUB_RELEASE_CHANGELOG_PATH}](${GITHUB_RELEASE_CHANGELOG_PATH})"
