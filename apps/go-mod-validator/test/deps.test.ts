@@ -36,12 +36,15 @@ describe("getDependenciesMap", () => {
       '{"Path": "github.com/smartcontractkit/go-plugin", "Version": "v0.0.0-20240208201424-b3b91517de16"}';
     const goList2 =
       '{"Path": "github.com/smartcontractkit/grpc-proxy", "Version": "v0.0.0-20230731113816-f1be6620749f"}';
+    const goList3 =
+      '{"Path": "github.com/smartcontractkit/chainlink-protos/cre/go", "Version": "v1.0.0-beta"}';
+
     mockedGlob.create.mockResolvedValueOnce({
       glob: vi.fn().mockResolvedValue(paths),
     } as MockedGlob);
 
     mockedExecSync.mockImplementationOnce(() => goList1);
-    mockedExecSync.mockImplementationOnce(() => goList2);
+    mockedExecSync.mockImplementationOnce(() => goList2 + "\n" + goList3);
 
     const result = await getDeps("", "github.com/smartcontractkit");
     expect(result).toMatchInlineSnapshot(`
@@ -63,6 +66,15 @@ describe("getDependenciesMap", () => {
           "path": "github.com/smartcontractkit/grpc-proxy",
           "repo": "grpc-proxy",
           "version": "v0.0.0-20230731113816-f1be6620749f",
+        },
+        {
+          "goModFilePath": "/path/to/second/go.mod",
+          "name": "github.com/smartcontractkit/chainlink-protos/cre/go@v1.0.0-beta",
+          "owner": "smartcontractkit",
+          "path": "github.com/smartcontractkit/chainlink-protos/cre/go",
+          "repo": "chainlink-protos",
+          "tag": "cre/go/v1.0.0-beta",
+          "version": "v1.0.0-beta",
         },
       ]
     `);

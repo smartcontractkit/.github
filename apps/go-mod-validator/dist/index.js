@@ -30491,7 +30491,7 @@ function lineForDependencyPathFinder() {
 }
 function goModsToGoModules(goModFilePath, goMods, depPrefix) {
   const goModules = goMods.map((d) => d.Replace || d).filter((d) => !d.Main && d.Path.startsWith(depPrefix)).map((d) => {
-    const [, owner, repo] = d.Path.split("/");
+    const [_, owner, repo, ...subModulePathElements] = d.Path.split("/");
     const baseModule = {
       owner,
       repo,
@@ -30512,27 +30512,29 @@ function goModsToGoModules(goModFilePath, goMods, depPrefix) {
         commitSha: versionType.commitSha
       };
     } else {
+      const subModulePath = subModulePathElements.join("/");
+      const gitTag = subModulePath ? `${subModulePath}/${versionType.tag}` : versionType.tag;
       return {
         ...baseModule,
-        tag: versionType.tag
+        tag: gitTag
       };
     }
   });
   return goModules;
 }
 function getVersionType(versionString) {
-  const versionRegex = /^(v\d+\.\d+\.\d+)$/;
   if (isPseudoVersion(versionString)) {
     return {
       commitSha: pseudoVersionRev(versionString),
       tag: void 0
     };
   }
-  const versionMatch = versionString.match(versionRegex);
+  const semverTagRe = /^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?$/;
+  const versionMatch = versionString.match(semverTagRe);
   if (versionMatch) {
     return {
       commitSha: void 0,
-      tag: versionMatch?.[1]
+      tag: versionString
     };
   }
   return {
