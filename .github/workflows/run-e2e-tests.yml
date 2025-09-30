@@ -256,6 +256,9 @@ on:
         required: false
       OPTIONAL_GATI_LAMBDA_URL:
         required: false
+      TRUNK_API_KEY:
+        description: "The Trunk API key for reporting flaky tests."
+        required: false
 
 env:
   CHAINLINK_IMAGE: >-
@@ -813,6 +816,13 @@ jobs:
             done
           fi
 
+      - name: Set up gotestsum
+        shell: bash
+        run: |
+          echo "::startgroup::Install gotestsum"
+          go install gotest.tools/gotestsum@v1.12.3
+          echo "::endgroup::"
+
       - name: Get Test Secrets from AWS Secret Manager
         if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
         id: aws-test-secrets
@@ -894,6 +904,17 @@ jobs:
           # since GAP is required only, when running tests in k8s
           enable-gap: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }} != '' && ${{
             secrets.AWS_K8S_CLUSTER_NAME_SDLC }} != ''
+
+      - name: Run branch-out-upload
+        if: ${{ !cancelled() }}
+        uses: smartcontractkit/.github/actions/branch-out-upload@branch-out-upload/0.1.0
+        with:
+          junit-file-path: "/tmp/junit-report.xml"
+          trunk-org-slug: chainlink
+          trunk-token: ${{ secrets.TRUNK_API_KEY }}
+          trunk-previous-step-outcome: ${{ steps.run_tests.outcome }}
+          trunk-job-url: ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}/attempts/{3}', github.repository, github.run_id, job.check_run_id, github.run_attempt) }}
+          trunk-upload-only: "true"
 
       - name: Show Otel-Collector logs
         if: inputs.enable_otel_traces_for_ocr2_plugins &&
@@ -1108,6 +1129,13 @@ jobs:
           aws_region: ${{ secrets.QA_AWS_REGION }}
           aws_role_to_assume: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
 
+      - name: Set up gotestsum
+        shell: bash
+        run: |
+          echo "::startgroup::Install gotestsum"
+          go install gotest.tools/gotestsum@v1.12.3
+          echo "::endgroup::"
+
       - name: Run tests
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
@@ -1232,6 +1260,13 @@ jobs:
               echo "$key=$value" >> "$GITHUB_ENV"
             done
           fi
+
+      - name: Set up gotestsum
+        shell: bash
+        run: |
+          echo "::startgroup::Install gotestsum"
+          go install gotest.tools/gotestsum@v1.12.3
+          echo "::endgroup::"
 
       - name: Run tests
         id: run_tests
