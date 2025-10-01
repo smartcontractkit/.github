@@ -210,6 +210,11 @@ inputs:
     required: false
     default: ""
     description: "Set to an Aptos CLI version to install (e.g. 7.2.0, latest)"
+  sui_cli_version:
+    required: false
+    default: ""
+    description:
+      "Set to a Sui CLI version to install (e.g. mainnet-v1.50.1, mainnet)"
   setup_db:
     required: false
     description: |
@@ -223,7 +228,7 @@ runs:
     - name: Setup environment
       if: inputs.run_setup == 'true'
       id: setup-env
-      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@ctf-setup-run-tests-environment/0.7.0
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@ctf-setup-run-tests-environment/0.8.0
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
@@ -250,6 +255,7 @@ runs:
         enable-proxy-debug: ${{ inputs.enable-proxy-debug }}
         install_plugins_public: ${{ inputs.install_plugins_public }}
         aptos_cli_version: ${{ inputs.aptos_cli_version }}
+        sui_cli_version: ${{ inputs.sui_cli_version }}
         setup_db: ${{ inputs.setup_db }}
 
     - name: Replace chainlink/integration-tests deps
