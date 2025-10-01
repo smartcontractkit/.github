@@ -189,12 +189,7 @@ export function formatApidiffMarkdown(
     }
   }
 
-  lines.push(
-    `---`,
-    ``,
-    `📄 [View full apidiff report](${summaryUrl})`,
-    ``,
-  );
+  lines.push(`---`, ``, `📄 [View full apidiff report](${summaryUrl})`, ``);
   return lines.join("\n");
 }
 
@@ -209,21 +204,28 @@ export async function formatApidiffJobSummary(
   const s = core.summary;
 
   if (!diffs.length) {
-    s.addHeading("📊 API Diff Results", 2)
-      .addRaw("<blockquote>No modules to analyze</blockquote>", true)
+    s.addHeading("📊 API Diff Results", 2).addRaw(
+      "<blockquote>No modules to analyze</blockquote>",
+      true,
+    );
     await s.write();
     return;
   }
 
   const hasIncompat = diffs.some((d) => d.incompatible.length > 0);
-  const totalIncompat = diffs.reduce((sum, d) => sum + d.incompatible.length, 0);
+  const totalIncompat = diffs.reduce(
+    (sum, d) => sum + d.incompatible.length,
+    0,
+  );
   const totalCompat = diffs.reduce((sum, d) => sum + d.compatible.length, 0);
   const modulesWithChanges = diffs.filter(
     (d) => d.incompatible.length || d.compatible.length,
   ).length;
 
   const statusEmoji = hasIncompat ? "⚠️" : "✅";
-  const statusText = hasIncompat ? "Breaking changes detected" : "No breaking changes";
+  const statusText = hasIncompat
+    ? "Breaking changes detected"
+    : "No breaking changes";
 
   s.addHeading(`${statusEmoji} API Diff Results – ${statusText}`, 2);
 
@@ -248,9 +250,15 @@ export async function formatApidiffJobSummary(
   ]);
 
   const breaking = diffs.filter((d) => d.incompatible.length);
-  const compatOnly = diffs.filter((d) => !d.incompatible.length && d.compatible.length);
+  const compatOnly = diffs.filter(
+    (d) => !d.incompatible.length && d.compatible.length,
+  );
 
-  const renderGrouped = (title: string, changes: Change[], isBreaking = false) => {
+  const renderGrouped = (
+    title: string,
+    changes: Change[],
+    isBreaking = false,
+  ) => {
     if (!changes.length) return;
     const icon = isBreaking ? "🔴" : "🟢";
     s.addHeading(`${icon} ${title} (${changes.length})`, 3);
