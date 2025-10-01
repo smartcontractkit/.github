@@ -3,7 +3,7 @@ import * as core from "@actions/core";
 import { installApidiff, runApidiff } from "./apidiff";
 import { setupWorktree, cleanupWorktrees } from "./git-worktree";
 import { getSummaryUrl, upsertPRComment } from "./github";
-import { getInputs, getInvokeContext } from "./run-inputs";
+import { CL_LOCAL_DEBUG, getInputs, getInvokeContext } from "./run-inputs";
 import { parseApidiffOutputs, formatApidiffMarkdown } from "./string-processor";
 
 export async function run(): Promise<void> {
@@ -52,13 +52,21 @@ export async function run(): Promise<void> {
         summaryUrl,
         false,
       );
-      await upsertPRComment(
-        context.token,
-        context.owner,
-        context.repo,
-        context.prNumber,
-        markdownOutputIncompatibleOnly,
-      );
+
+      if (CL_LOCAL_DEBUG) {
+        core.info("Markdown Output (Incompatible Only):");
+        core.info(markdownOutputIncompatibleOnly);
+      }
+
+      if (inputs.postComment) {
+        await upsertPRComment(
+          context.token,
+          context.owner,
+          context.repo,
+          context.prNumber,
+          markdownOutputIncompatibleOnly,
+        );
+      }
     }
     core.endGroup();
 

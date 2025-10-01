@@ -2,6 +2,7 @@ import * as core from "@actions/core";
 import { join, basename } from "path";
 import { execa } from "execa";
 import * as fs from "fs";
+import { CL_LOCAL_DEBUG } from "./run-inputs";
 
 // Rough type for execa result
 type ExecResult = Awaited<ReturnType<typeof execa>>;
@@ -49,6 +50,11 @@ export async function runApidiff(
         ["-m", baseExportFile, headExportFile],
         { reject: false },
       );
+
+      if (CL_LOCAL_DEBUG) {
+        // write output to file
+        await fs.promises.writeFile(`./apidiff-output.txt`, stdout);
+      }
 
       if (stderr) {
         core.warning(`apidiff stderr: ${stderr}`);
