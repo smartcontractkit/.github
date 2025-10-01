@@ -453,7 +453,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@d12aaf98c18c7711bdb211e4d0bc0a5317c80e02 # 23-06-2025
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@b4310af038bfe519db8058aae94d3555a04df1ed # 19-09-2025
 
       - name: Generate Docker Tests Matrix
         id: set-docker-matrix
@@ -1270,13 +1270,8 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.9.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
         with:
-          flakeguard_enable: ${{ env.FLAKEGUARD_ENABLE }}
-          flakeguard_run_count: ${{ env.FLAKEGUARD_RUN_COUNT }}
-          flakeguard_rerun_failed_count: ${{ env.FLAKEGUARD_RERUN_FAILED_COUNT }}
-          flakeguard_main_results_path: ./flakeguard_run_results/main/flakeguard_results.json
-          flakeguard_rerun_results_path: ./flakeguard_run_results/rerun/flakeguard_results.json
           test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command: cd $(dirname ${{ matrix.tests.path }}) && go mod download
@@ -1299,6 +1294,7 @@ jobs:
           enable-gap: false
           install_plugins_public: ${{ matrix.tests.install_plugins_public }}
           aptos_cli_version: ${{ matrix.tests.aptos_cli_version }}
+          sui_cli_version: ${{ matrix.tests.sui_cli_version }}
           setup_db: "true"
 
   after_tests:
