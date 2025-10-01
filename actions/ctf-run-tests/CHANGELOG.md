@@ -1,5 +1,13 @@
 # ctf-run-tests
 
+## 0.11.0
+
+### Minor Changes
+
+- [#1259](https://github.com/smartcontractkit/.github/pull/1259)
+  [`b324df0`](https://github.com/smartcontractkit/.github/commit/b324df08cae50ff70797b426e6ffbf6eed764ff7)
+  Thanks [@friedemannf](https://github.com/friedemannf)! - Add Sui CLI support
+
 ## 0.10.0
 
 ### Minor Changes
