@@ -135,6 +135,8 @@ importers:
 
   actions/check-if-verified: {}
 
+  actions/chip-schema-registration: {}
+
   actions/ci-beholder-schema-validate: {}
 
   actions/ci-beholder-validator: {}

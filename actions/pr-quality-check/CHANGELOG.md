@@ -1,5 +1,23 @@
 # pr-quality-check
 
+## 1.2.2
+
+### Patch Changes
+
+- [#1233](https://github.com/smartcontractkit/.github/pull/1233)
+  [`a4b1935`](https://github.com/smartcontractkit/.github/commit/a4b1935ce43bfa423b71f425a2bf300f663ffe2b)
+  Thanks [@miqlar](https://github.com/miqlar)! - Added signed commits for github
+  actions
+
+## 1.2.1
+
+### Patch Changes
+
+- [#1228](https://github.com/smartcontractkit/.github/pull/1228)
+  [`abd8d6e`](https://github.com/smartcontractkit/.github/commit/abd8d6e99f66b529232a26d6576bfb53f3d6784d)
+  Thanks [@miqlar](https://github.com/miqlar)! - Fix indentation bug, add
+  version to cache key calculation
+
 ## 1.2.0
 
 ### Minor Changes

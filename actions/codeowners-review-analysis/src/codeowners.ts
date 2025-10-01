@@ -51,6 +51,7 @@ export function processChangedFiles(
   codeownersFile: CodeownersEntry[],
 ) {
   const codeOwnersEntryToFiles: Map<CodeownersEntry, string[]> = new Map();
+  const allCodeOwners = new Set<string>();
   const unownedFiles: string[] = [];
   for (const file of filenames) {
     // Use last entry because later entries override earlier ones
@@ -63,12 +64,22 @@ export function processChangedFiles(
       continue;
     }
     addToMapOfArrays(codeOwnersEntryToFiles, lastEntry, file);
+    for (const owner of lastEntry.owners) {
+      allCodeOwners.add(owner);
+    }
     core.debug(
       `File: ${file} matched pattern: ${lastEntry.rawPattern} with owners: ${lastEntry.rawOwners} (${lastEntry.lineNumber})`,
     );
   }
 
-  return { unownedFiles, codeOwnersEntryToFiles };
+  if (unownedFiles.length > 0) {
+    core.warning(
+      `There are ${unownedFiles.length} unowned files in the PR. Consider adding a catch-all entry in your CODEOWNERS file.`,
+    );
+    core.debug(`Unowned files: ${JSON.stringify(unownedFiles, null, 2)}`);
+  }
+
+  return { allCodeOwners, codeOwnersEntryToFiles };
 }
 
 function addToMapOfArrays<K, V>(map: Map<K, V[]>, key: K, value: V): void {

@@ -155,16 +155,19 @@ function extractPending(pr: NonNullable<Repository["pullRequest"]>): {
     const r = rr?.requestedReviewer;
     if (!r) continue;
     if (r.__typename === "User") {
+      core.debug(`Found requested user review: ${r.login}`);
       pendingUsers.push({
         login: r.login,
         asCodeOwner: rr.asCodeOwner,
       });
-    } else if (r.__typename === "Team")
+    } else if (r.__typename === "Team") {
+      core.debug(`Found requested team review: ${r.slug}`);
       pendingTeams.push({
         slug: r.slug,
         id: r.id,
         asCodeOwner: rr.asCodeOwner,
       });
+    }
   }
 
   return { pendingUsers, pendingTeams, decision };
@@ -198,6 +201,9 @@ function accumulateLatestSignals(
 
     // Newest-to-older (because we use last/before). First time we see a user => their latest.
     if (authorLogin && !(authorLogin in userLatest)) {
+      core.debug(
+        `Found latest review by user: ${authorLogin} at ${submittedAt} - ${n.state}`,
+      );
       userLatest[authorLogin] = {
         state: n.state,
         submittedAt,
@@ -209,6 +215,9 @@ function accumulateLatestSignals(
 
     for (const team of onBehalfOfTeams) {
       if (!(team.slug in teamLatest)) {
+        core.debug(
+          `Found latest review by team: ${team.slug} at ${submittedAt} - ${n.state}`,
+        );
         teamLatest[team.slug] = {
           state: n.state,
           submittedAt,
@@ -239,7 +248,7 @@ function stopOrGetStartCursor(pr: PullRequest) {
  * - Paginates backward (newest -> older) gathering latest per user/team.
  * - Captures who is currently requested (users & teams) and the overall reviewDecision.
  */
-export async function getCurrentReviewStatus(
+export async function getCurrentReviewStatusGQL(
   octokit: Octokit,
   owner: string,
   repo: string,

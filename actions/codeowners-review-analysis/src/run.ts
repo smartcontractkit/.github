@@ -4,37 +4,33 @@ import * as core from "@actions/core";
 import { Octokit } from "@octokit/core";
 import { paginateGraphQL } from "@octokit/plugin-paginate-graphql";
 
-import { getInvokeContext, getInputs } from "./run-inputs";
+import { CL_LOCAL_DEBUG, getInvokeContext, getInputs } from "./run-inputs";
 import {
   getChangedFilesForPR,
   getCodeownersFile,
   getSummaryUrl,
+  getTeamToMembersMapping,
   upsertPRComment,
 } from "./github";
 import {
   getCodeownersEntries,
   processChangedFiles as processChangedFiles,
 } from "./codeowners";
-import { getCurrentReviewStatus } from "./github-gql";
+import { getCurrentReviewStatusGQL } from "./github-gql";
 import {
   formatPendingReviewsMarkdown,
   formatAllReviewsSummaryByEntry,
 } from "./strings";
 import {
   PullRequestReviewStateExt,
-  getOverallState,
+  getOverallStateForAllEntries,
+  getOverallStateForSingleEntry,
   getReviewForStatusFor,
 } from "./review-status";
 
 import type { OwnerReviewStatus } from "./review-status";
 import type { CodeownersEntry, CodeOwnersToFilesMap } from "./codeowners";
 import type { CurrentReviewStatus } from "./github-gql";
-
-export type ProcessedCodeOwnersEntry = {
-  files: string[];
-  ownerReviewStatuses: OwnerReviewStatus[];
-  overallStatus: PullRequestReviewStateExt;
-};
 
 export async function run(): Promise<void> {
   try {
@@ -74,34 +70,71 @@ export async function run(): Promise<void> {
     core.endGroup();
 
     core.startGroup("Analyze file paths and codeowners patterns");
-    const { unownedFiles, codeOwnersEntryToFiles } = processChangedFiles(
+    const { allCodeOwners, codeOwnersEntryToFiles } = processChangedFiles(
       filenames,
       codeownersEntries,
     );
+    if (allCodeOwners.size === 0) {
+      core.warning(
+        "No code owners identified for changed files. Skipping analysis.",
+      );
+      return;
+    }
     core.endGroup();
 
     core.startGroup("Get currrent state of PR reviews");
+
     const OctokitWithGQLPagination = Octokit.plugin(paginateGraphQL);
     const octokitGQL = new OctokitWithGQLPagination({ auth: token });
-    const currentPRReviewState = await getCurrentReviewStatus(
+    const currentPRReviewState = await getCurrentReviewStatusGQL(
       octokitGQL,
       owner,
       repo,
       prNumber,
     );
+    core.debug(`Current PR review state:`);
+    core.debug(JSON.stringify(currentPRReviewState));
+
+    const allTeamCodeOwners = Array.from(allCodeOwners).filter((o) =>
+      o.includes("/"),
+    );
+    core.debug(`All codeowners: ${JSON.stringify(allCodeOwners)}`);
+    core.debug(`All team code owners: ${JSON.stringify(allTeamCodeOwners)}`);
+    const octokitMembers = github.getOctokit(inputs.membersReadGitHubToken);
+    const teamsToMembers = await getTeamToMembersMapping(
+      octokitMembers,
+      owner,
+      Array.from(allTeamCodeOwners),
+    );
+
+    if (CL_LOCAL_DEBUG) {
+      core.debug(`Teams to members mapping:`);
+      core.debug(`${JSON.stringify([...teamsToMembers])}`);
+    }
+
     core.endGroup();
 
     core.startGroup("Create CODEOWNERS Summary");
 
-    const codeownersSummary = createReviewSummaryObjectV2(
+    const codeownersSummary = createReviewSummaryObject(
       currentPRReviewState,
       codeOwnersEntryToFiles,
+      teamsToMembers,
     );
+
+    if (CL_LOCAL_DEBUG) {
+      core.debug("CODEOWNERS Summary:");
+      core.debug(`${JSON.stringify([...codeownersSummary])}`);
+    }
+
+    const overallStatus = getOverallStateForAllEntries(codeownersSummary);
+    core.info(`Overall codeowners review status: ${overallStatus}`);
 
     await formatAllReviewsSummaryByEntry(codeownersSummary);
     const summaryUrl = await getSummaryUrl(octokit, owner, repo);
     const pendingReviewMarkdown = formatPendingReviewsMarkdown(
       codeownersSummary,
+      overallStatus,
       summaryUrl,
     );
     console.log(pendingReviewMarkdown);
@@ -121,22 +154,40 @@ export async function run(): Promise<void> {
   }
 }
 
-function createReviewSummaryObjectV2(
+export type CodeOwnersReviewEntry = {
+  files: string[];
+  allOwnerReviewStatuses: OwnerReviewStatus[];
+  reviewStatusesByOwner: Map<string, OwnerReviewStatus[]>;
+  state: PullRequestReviewStateExt;
+};
+
+function createReviewSummaryObject(
   currentReviewStatus: CurrentReviewStatus,
   codeOwnersEntryToFiles: CodeOwnersToFilesMap,
-): Map<CodeownersEntry, ProcessedCodeOwnersEntry> {
-  const reviewSummary: Map<CodeownersEntry, ProcessedCodeOwnersEntry> =
-    new Map();
+  teamsToMembers: Map<string, string[]>,
+): Map<CodeownersEntry, CodeOwnersReviewEntry> {
+  const reviewSummary: Map<CodeownersEntry, CodeOwnersReviewEntry> = new Map();
   for (const [entry, files] of codeOwnersEntryToFiles.entries()) {
+    const reviewStatusesByOwner: Map<string, OwnerReviewStatus[]> = new Map();
     const ownerReviewStatuses: OwnerReviewStatus[] = [];
     for (const owner of entry.owners) {
-      const status = getReviewForStatusFor(owner, currentReviewStatus);
-      if (status) {
-        ownerReviewStatuses.push(status);
+      const statuses = getReviewForStatusFor(
+        owner,
+        currentReviewStatus,
+        teamsToMembers,
+      );
+      if (statuses) {
+        reviewStatusesByOwner.set(owner, statuses);
+        ownerReviewStatuses.push(...statuses);
       }
     }
-    const overallStatus = getOverallState(ownerReviewStatuses);
-    reviewSummary.set(entry, { files, ownerReviewStatuses, overallStatus });
+    const overallStatus = getOverallStateForSingleEntry(ownerReviewStatuses);
+    reviewSummary.set(entry, {
+      files,
+      allOwnerReviewStatuses: ownerReviewStatuses,
+      state: overallStatus,
+      reviewStatusesByOwner,
+    });
   }
 
   return reviewSummary;

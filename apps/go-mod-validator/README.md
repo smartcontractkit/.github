@@ -37,8 +37,7 @@ steps:
 
 ## Running locally
 
-1. Set github token by setting env variable `INPUT_GITHUB-TOKEN`
-2. Set directory containing `go.mod` files (also any child directories) by
-   setting env var `INPUT_GO-MOD-DIR`, default will be current working directory
-3. Set prefix to filter dependencies by setting env var `INPUT_DEP-PREFIX`
-4. Run `pnpm local`
+1. Update `scripts/test.sh` and `scripts/payload.json`
+2. Make sure to check out your local repo to the proper commit as per
+   `payload.json`
+3. Run `./apps/go-mod-validator/scripts/test.sh`

@@ -1,6 +1,6 @@
 {
   "name": "go-mod-validator",
-  "version": "0.5.4",
+  "version": "1.0.0",
   "private": true,
   "description": "Parses 'go.mod' file given as input, and verifies it's dependencies",
   "engines": {
@@ -9,7 +9,6 @@
   },
   "main": "out/index.js",
   "scripts": {
-    "local": "GITHUB_STEP_SUMMARY=/dev/null ts-node src/index.ts",
     "test": "vitest",
     "fixtures:gomods": "ts-node test/__helpers__/generate-gomod-fixtures.ts"
   },

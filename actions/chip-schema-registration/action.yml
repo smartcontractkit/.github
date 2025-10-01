@@ -1,0 +1,73 @@
+name: chip-schema-registration
+description: "Register schemas via a chip.json file"
+
+inputs:
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  aws_account_id:
+    description: "AWS Account ID"
+    required: true
+  aws_region:
+    description: "AWS region"
+    required: false
+    default: "us-west-2"
+  chip_config_host:
+    description: "Host of chip-config service"
+    required: true
+  chip_config_port:
+    description: "Port of chip-config service"
+    required: false
+    default: "50051"
+  chip_config_user:
+    description: "User to authenticate to chip-config"
+    required: true
+  chip_config_password:
+    description: "Password to chip-config "
+    required: true
+  chip_schema_dir:
+    description: "Path to the schemas directory"
+    required: true
+  chip_config_file:
+    description: "Name of the schema configuration file in chip_schema_dir"
+    required: false
+    default: "chip.json"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v5
+
+    - name: Login to ECR
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      with:
+        registries: ${{ inputs.aws_account_id }}
+
+    - name: Pull container image
+      shell: bash
+      env:
+        AWS_ACCOUNT_ID: ${{ inputs.aws_account_id }}
+        AWS_REGION: ${{ inputs.aws_region }}
+      run: |
+        docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-schema-registration:qa-latest
+        docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-schema-registration:qa-latest chip-schema-registration
+
+    - name: Register schemas
+      shell: bash
+      env:
+        CHIP_CONFIG_HOST: ${{ inputs.chip_config_host }}
+        CHIP_CONFIG_PORT: ${{ inputs.chip_config_port }}
+        CHIP_CONFIG_USER: ${{ inputs.chip_config_user }}
+        CHIP_CONFIG_PASSWORD: ${{ inputs.chip_config_password }}
+        CHIP_SCHEMA_DIR: ${{ inputs.chip_schema_dir }}
+        CHIP_CONFIG_FILE: ${{ inputs.chip_config_file }}
+      run: |
+        docker run \
+          -v "$PWD:/workspace" \
+          -w /workspace \
+          -e CHIP_CONFIG_HOST \
+          -e CHIP_CONFIG_PORT \
+          -e CHIP_CONFIG_USER \
+          -e CHIP_CONFIG_PASSWORD \
+          chip-schema-registration register --schema-dir="$CHIP_SCHEMA_DIR" --config-file="$CHIP_CONFIG_FILE"

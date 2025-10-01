@@ -1,5 +1,21 @@
 # go-mod-validator
 
+## 1.0.0
+
+### Major Changes
+
+- [#1250](https://github.com/smartcontractkit/.github/pull/1250)
+  [`db46e40`](https://github.com/smartcontractkit/.github/commit/db46e40e236e0ed4cafb6601d21f6a92b79e4fc8)
+  Thanks [@erikburt](https://github.com/erikburt)! - initial 1.0 release, fix
+  parsing logic related to sub-module git tags
+
+### Patch Changes
+
+- [#1249](https://github.com/smartcontractkit/.github/pull/1249)
+  [`68d1f0a`](https://github.com/smartcontractkit/.github/commit/68d1f0acc43b056f976ad6f472799ebf4e8d35d5)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix typings, and adjust
+  input resolution
+
 ## 0.5.4
 
 ### Patch Changes
