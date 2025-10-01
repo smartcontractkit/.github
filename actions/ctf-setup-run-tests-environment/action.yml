@@ -107,7 +107,8 @@ inputs:
   sui_cli_version:
     required: false
     default: ""
-    description: "Set to a Sui CLI version to install (e.g. mainnet-v1.50.1, mainnet"
+    description:
+      "Set to a Sui CLI version to install (e.g. mainnet-v1.50.1, mainnet"
   setup_db:
     required: false
     default: "false"
