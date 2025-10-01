@@ -104,6 +104,10 @@ inputs:
     required: false
     default: ""
     description: "Set to an Aptos CLI version to install (e.g. 7.2.0, latest)"
+  sui_cli_version:
+    required: false
+    default: ""
+    description: "Set to a Sui CLI version to install (e.g. mainnet-v1.50.1, mainnet"
   setup_db:
     required: false
     default: "false"
@@ -181,6 +185,12 @@ runs:
       uses: aptos-labs/actions/install-aptos-cli@63740b290d839b87ecfafbcf75ed03a36a54a29f # jan 15, 2025
       with:
         CLI_VERSION: ${{ inputs.aptos_cli_version }}
+
+    - name: Install Sui CLI
+      if: inputs.sui_cli_version
+      uses: smartcontractkit/chainlink-sui/.github/actions/setup-sui@4b810a59d905f512d3c989f5291f969f6fc69eb2 # 30-09-2025
+      with:
+        version: ${{ inputs.sui_cli_version }}
 
     # Setup AWS cred and K8s context
     - name: Configure AWS Credentials
