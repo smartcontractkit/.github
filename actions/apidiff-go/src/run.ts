@@ -1,10 +1,13 @@
 import * as core from "@actions/core";
 
-import { installApidiff, runApidiff } from "./apidiff";
+import { parseApidiffOutputs, installApidiff, runApidiff } from "./apidiff";
 import { setupWorktree, cleanupWorktrees } from "./git-worktree";
 import { getSummaryUrl, upsertPRComment } from "./github";
-import { getInputs, getInvokeContext } from "./run-inputs";
-import { parseApidiffOutputs, formatApidiffMarkdown } from "./string-processor";
+import { CL_LOCAL_DEBUG, getInputs, getInvokeContext } from "./run-inputs";
+import {
+  formatApidiffMarkdown,
+  formatApidiffJobSummary,
+} from "./string-processor";
 
 export async function run(): Promise<void> {
   try {
@@ -37,9 +40,7 @@ export async function run(): Promise<void> {
 
     // 4. Format and output results
     core.startGroup("Formatting and Outputting Results");
-    const markdownOutputAll = formatApidiffMarkdown(parsedOutputs, "", true);
-    await core.summary.addRaw(markdownOutputAll).write();
-
+    formatApidiffJobSummary(parsedOutputs);
     if (context.prNumber) {
       const summaryUrl = await getSummaryUrl(
         context.token,
@@ -52,13 +53,21 @@ export async function run(): Promise<void> {
         summaryUrl,
         false,
       );
-      await upsertPRComment(
-        context.token,
-        context.owner,
-        context.repo,
-        context.prNumber,
-        markdownOutputIncompatibleOnly,
-      );
+
+      if (CL_LOCAL_DEBUG) {
+        core.info("Markdown Output (Incompatible Only):");
+        core.info(markdownOutputIncompatibleOnly);
+      }
+
+      if (inputs.postComment) {
+        await upsertPRComment(
+          context.token,
+          context.owner,
+          context.repo,
+          context.prNumber,
+          markdownOutputIncompatibleOnly,
+        );
+      }
     }
     core.endGroup();
 

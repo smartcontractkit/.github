@@ -2,6 +2,7 @@ import * as core from "@actions/core";
 import { join, basename } from "path";
 import { execa } from "execa";
 import * as fs from "fs";
+import { CL_LOCAL_DEBUG } from "./run-inputs";
 
 // Rough type for execa result
 type ExecResult = Awaited<ReturnType<typeof execa>>;
@@ -49,6 +50,11 @@ export async function runApidiff(
         ["-m", baseExportFile, headExportFile],
         { reject: false },
       );
+
+      if (CL_LOCAL_DEBUG) {
+        // write output to file
+        await fs.promises.writeFile(`./apidiff-output.txt`, stdout);
+      }
 
       if (stderr) {
         core.warning(`apidiff stderr: ${stderr}`);
@@ -169,4 +175,91 @@ async function checkApidiffInstalled(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+interface MetaDiff {
+  header: string;
+  first: string;
+  second: string;
+}
+export interface Change {
+  element: string;
+  change: string;
+}
+export interface ApiDiffResult {
+  moduleName: string;
+  meta: MetaDiff[];
+  incompatible: Change[];
+  compatible: Change[];
+}
+
+export function parseApidiffOutputs(
+  output: Record<string, string>,
+): ApiDiffResult[] {
+  const out: ApiDiffResult[] = [];
+  for (const [moduleName, moduleOutput] of Object.entries(output)) {
+    out.push(parseApidiffOutput(moduleName, moduleOutput));
+  }
+  return out;
+}
+
+function parseApidiffOutput(moduleName: string, output: string): ApiDiffResult {
+  const lines = output.split(/\r?\n/);
+  const result: ApiDiffResult = {
+    moduleName,
+    meta: [],
+    incompatible: [],
+    compatible: [],
+  };
+  let section: "meta" | "incompatible" | "compatible" | null = null;
+  let currentMeta: MetaDiff | null = null;
+
+  for (const raw of lines) {
+    const line = raw.trim();
+
+    if (line.startsWith("! ")) {
+      if (currentMeta) result.meta.push(currentMeta);
+      currentMeta = { header: line.slice(2), first: "", second: "" };
+      section = "meta";
+      continue;
+    }
+    if (section === "meta" && currentMeta) {
+      if (line.startsWith("first:")) {
+        currentMeta.first = line.slice(6).trim();
+        continue;
+      }
+      if (line.startsWith("second:")) {
+        currentMeta.second = line.slice(7).trim();
+        continue;
+      }
+    }
+    if (line === "Incompatible changes:") {
+      if (currentMeta) result.meta.push(currentMeta);
+      currentMeta = null;
+      section = "incompatible";
+      continue;
+    }
+    if (line === "Compatible changes:") {
+      section = "compatible";
+      continue;
+    }
+
+    if (
+      (section === "incompatible" || section === "compatible") &&
+      line.startsWith("- ")
+    ) {
+      const content = line.slice(2);
+      const sepIdx = content.indexOf(": ");
+      if (sepIdx >= 0) {
+        const element = content.slice(0, sepIdx);
+        const change = content.slice(sepIdx + 2);
+        (section === "incompatible"
+          ? result.incompatible
+          : result.compatible
+        ).push({ element, change });
+      }
+    }
+  }
+  if (currentMeta) result.meta.push(currentMeta);
+  return result;
 }

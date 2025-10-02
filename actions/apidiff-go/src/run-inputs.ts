@@ -1,12 +1,15 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
+export const CL_LOCAL_DEBUG = process.env.CL_LOCAL_DEBUG === "true";
+
 export interface RunInputs {
   directory: string;
   goModPaths: string[];
   baseRef: string;
   headRef: string;
   enforceCompatible: boolean;
+  postComment: boolean;
   apidiffVersion: string;
 }
 
@@ -19,6 +22,7 @@ export function getInputs(): RunInputs {
     baseRef: getRunInputString("baseRef"),
     headRef: getRunInputString("headRef"),
     enforceCompatible: getRunInputBoolean("enforceCompatible"),
+    postComment: getRunInputBoolean("postComment"),
     apidiffVersion: getRunInputString("apidiffVersion"),
   };
 
@@ -91,6 +95,10 @@ const runInputsConfiguration: {
   enforceCompatible: {
     parameter: "enforce-compatible",
     localParameter: "ENFORCE_COMPATIBLE",
+  },
+  postComment: {
+    parameter: "post-comment",
+    localParameter: "POST_COMMENT",
   },
   apidiffVersion: {
     parameter: "apidiff-version",
