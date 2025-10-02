@@ -852,6 +852,7 @@ jobs:
         continue-on-error: true # auto-quarantine will handle result
         env:
           DETACH_RUNNER: true
+          RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
           E2E_TEST_CHAINLINK_VERSION: ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
             env.DEFAULT_CHAINLINK_VERSION }}
           E2E_TEST_LOKI_TENANT_ID: ${{ secrets.LOKI_TENANT_ID }}
@@ -1159,6 +1160,7 @@ jobs:
         continue-on-error: true # auto-quarantine will handle result
         env:
           DETACH_RUNNER: true
+          RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
           TEST_ARGS: -test.timeout 900h -test.memprofile memprofile.out -test.cpuprofile
             profile.out
@@ -1314,6 +1316,8 @@ jobs:
       - name: Run tests
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        env:
+          RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
         with:
           test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
