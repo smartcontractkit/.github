@@ -121,6 +121,31 @@ inputs:
 
       Required when inputs.docker-push is true.
     required: false
+  # ECR login inputs for private base images
+  enable-ecr-login:
+    description: |
+      Enable AWS ECR login before Docker build.
+
+      This is useful when your Dockerfile uses private ECR images as base images.
+      When enabled, you must also provide ecr-registries and ecr-aws-region.
+    required: false
+    default: "false"
+  ecr-registries:
+    description: |
+      Comma-separated list of ECR registry IDs to authenticate with.
+
+      Example: "123456789012,987654321098"
+
+      Required when enable-ecr-login is true.
+    required: false
+  ecr-aws-region:
+    description: |
+      AWS region for ECR authentication.
+
+      Example: "us-east-1"
+
+      Required when enable-ecr-login is true.
+    required: false
 
 outputs:
   docker-repository-name:
@@ -190,15 +215,24 @@ runs:
         fi
 
     - name: Configure AWS credentials
-      if: ${{ inputs.docker-push == 'true' }}
+      if:
+        ${{ inputs.enable-ecr-login == 'true' || inputs.docker-push == 'true' }}
       uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
         role-duration-seconds: 900
-        aws-region: ${{ inputs.aws-region }}
+        aws-region:
+          ${{ inputs.enable-ecr-login == 'true' && inputs.ecr-aws-region ||
+          inputs.aws-region }}
         mask-aws-account-id: true
 
-    - name: Login to ECR
+    - name: Login to Amazon ECR for base images
+      if: ${{ inputs.enable-ecr-login == 'true' }}
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      with:
+        registries: ${{ inputs.ecr-registries }}
+
+    - name: Login to ECR for publishing
       if: ${{ inputs.docker-push == 'true' }}
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
