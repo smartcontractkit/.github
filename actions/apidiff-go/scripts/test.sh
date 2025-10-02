@@ -10,15 +10,17 @@ export GITHUB_EVENT_PATH="actions/apidiff-go/scripts/payload.json"
 tmp_file=$(mktemp)
 export GITHUB_STEP_SUMMARY="$tmp_file"
 
-export INPUT_DIRECTORY="/Users/erik/Documents/test-repos/chainlink-common"
-export INPUT_GO_MOD_PATHS=".,./observability-lib"
-export INPUT_HEAD_REF="17115c3a4453e0347dae7f035bf94c959ca5bbda"
-export INPUT_BASE_REF="182a3d1ef5af6c5e9a21bca84d904251847fc315"
+export INPUT_DIRECTORY="/Users/erik/Documents/repos/chainlink-common"
+export INPUT_GO_MOD_PATHS="./"
+export INPUT_HEAD_REF="PRIV-192"
+export INPUT_BASE_REF="main"
 export INPUT_ENFORCE_COMPATIBLE="true"
+export INPUT_POST_COMMENT="false"
+export INPUT_APIDIFF_VERSION="latest"
 
 export CL_LOCAL_DEBUG="true"
 
 node actions/apidiff-go/dist/index.js
 
-echo "Summary Output: $tmp_file"
-cat "$tmp_file"
+echo "Writing to summary.md"
+cat "$tmp_file" > actions/apidiff-go/summary.md

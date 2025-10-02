@@ -36,7 +36,12 @@ inputs:
       "Enforce that the API changes are compatible. Fails the action if
       incompatible changes are detected."
     required: false
-    default: true
+    default: "true"
+
+  post-comment:
+    description: "Post a comment on the pull request with the apidiff results."
+    required: false
+    default: "true"
 
   apidiff-version:
     description: |
