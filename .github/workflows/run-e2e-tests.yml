@@ -849,6 +849,7 @@ jobs:
         id: run_tests
         timeout-minutes: ${{ fromJson(env.DOCKER_TESTS_TIMEOUT_MINUTES) }}
         uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        continue-on-error: true # auto-quarantine will handle result
         env:
           DETACH_RUNNER: true
           E2E_TEST_CHAINLINK_VERSION: ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
@@ -905,13 +906,20 @@ jobs:
           enable-gap: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }} != '' && ${{
             secrets.AWS_K8S_CLUSTER_NAME_SDLC }} != ''
 
-      - name: Check if /tmp/junit.xml exists
+      - name: Enforce /tmp/junit.xml exists
         id: check-junit
+        # This fails the job if there is no junit report and the test step did not succeed.
+        # If there is no report then the branch-out-upload step will not be able to properly
+        # determine the test result, so we need to fail the job here instead.
+        if: ${{ !cancelled() && steps.run_tests.outcome != 'success' }}
+        shell: bash
+        env:
+          RESULT: ${{ steps.run_tests.outcome }}
         run: |
           if [ -f /tmp/junit.xml ]; then
             echo "junit_exists=true" | tee -a "$GITHUB_OUTPUT"
           else
-            echo "junit_exists=false" | tee -a "$GITHUB_OUTPUT"
+            echo "::error::Junit report not found, and run_tests outcome is $RESULT. Failing the job."
           fi
 
       - name: Run branch-out-upload
@@ -923,7 +931,7 @@ jobs:
           trunk-token: ${{ secrets.TRUNK_API_KEY }}
           trunk-previous-step-outcome: ${{ steps.run_tests.outcome }}
           trunk-job-url: ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}/attempts/{3}', github.repository, github.run_id, job.check_run_id, github.run_attempt) }}
-          trunk-upload-only: "true"
+          trunk-upload-only: "false"
 
       - name: Show Otel-Collector logs
         if: inputs.enable_otel_traces_for_ocr2_plugins &&
@@ -1148,6 +1156,7 @@ jobs:
       - name: Run tests
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        continue-on-error: true # auto-quarantine will handle result
         env:
           DETACH_RUNNER: true
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
@@ -1195,13 +1204,20 @@ jobs:
           main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
           k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
 
-      - name: Check if /tmp/junit.xml exists
+      - name: Enforce /tmp/junit.xml exists
         id: check-junit
+        # This fails the job if there is no junit report and the test step did not succeed.
+        # If there is no report then the branch-out-upload step will not be able to properly
+        # determine the test result, so we need to fail the job here instead.
+        if: ${{ !cancelled() && steps.run_tests.outcome != 'success' }}
+        shell: bash
+        env:
+          RESULT: ${{ steps.run_tests.outcome }}
         run: |
           if [ -f /tmp/junit.xml ]; then
             echo "junit_exists=true" | tee -a "$GITHUB_OUTPUT"
           else
-            echo "junit_exists=false" | tee -a "$GITHUB_OUTPUT"
+            echo "::error::Junit report not found, and run_tests outcome is $RESULT. Failing the job."
           fi
 
       - name: Run branch-out-upload
@@ -1213,7 +1229,7 @@ jobs:
           trunk-token: ${{ secrets.TRUNK_API_KEY }}
           trunk-previous-step-outcome: ${{ steps.run_tests.outcome }}
           trunk-job-url: ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}/attempts/{3}', github.repository, github.run_id, job.check_run_id, github.run_attempt) }}
-          trunk-upload-only: "true"
+          trunk-upload-only: "false"
 
       - name: Show Grafana URL in the test summary
         if: always()
