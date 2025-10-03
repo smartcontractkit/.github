@@ -102,6 +102,11 @@ on:
         description: "List of additional build contexts (e.g., name=path)"
         required: false
         type: string
+      docker-push:
+        description: "Push the docker image. Build only (no push) if set to false."
+        required: false
+        type: string
+        default: "true"
       docker-cache-behaviour:
         description: |
           Controls how the docker build cache is used.
@@ -545,6 +550,7 @@ jobs:
           docker-save-cache: ${{ needs.init.outputs.docker-save-cache }}
           context: ${{ inputs.docker-build-context }}
           docker-build-contexts: ${{ inputs.docker-build-contexts }}
+          docker-push: ${{ inputs.docker-push }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
           aws-region: ${{ inputs.aws-region-ecr }}
@@ -552,6 +558,7 @@ jobs:
 
   docker-manifest:
     name: docker-manifest
+    if: ${{ inputs.docker-push == 'true' }}
     needs: [init, build-publish]
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-24.04
