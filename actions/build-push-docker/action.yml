@@ -197,7 +197,7 @@ runs:
         CONTEXT_PATH: ${{ inputs.context }}
         AWS_ROLE_ARN: ${{ inputs.aws-role-arn }}
         AWS_REGION: ${{ inputs.aws-region }}
-      run: ${{ github.action_path }}/scripts/dockerfile_ecr_parse.sh
+      run: ${GITHUB_ACTION_PATH}/scripts/dockerfile_ecr_parse.sh
 
     - name: Configure AWS credentials
       if:
