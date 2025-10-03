@@ -1,4 +1,4 @@
-* @smartcontractkit/devex
+* @smartcontractkit/devex-cicd
 
 /.github/workflows/reusable-docker-build-publish.yml @smartcontractkit/devex-cicd
 /actions/dependency-review/ @smartcontractkit/devex-cicd
