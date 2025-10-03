@@ -1,5 +1,14 @@
 # build-push-docker
 
+## 1.0.0
+
+### Major Changes
+
+- [#1264](https://github.com/smartcontractkit/.github/pull/1264)
+  [`06009aa`](https://github.com/smartcontractkit/.github/commit/06009aa8b59da942971f2b05c3fb2fc6f9029689)
+  Thanks [@chainchad](https://github.com/chainchad)! - Allow ECR login for
+  private ECR base images
+
 ## 0.9.0
 
 ### Minor Changes
