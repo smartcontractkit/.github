@@ -20,28 +20,21 @@ output_result() {
   fi
 }
 
-# Construct full dockerfile path
-if [[ "${CONTEXT_PATH:-}" ]]; then
-  dockerfile_full_path="${CONTEXT_PATH}/${DOCKERFILE_PATH}"
-else
-  dockerfile_full_path="${DOCKERFILE_PATH}"
-fi
-
-if [[ ! -f "${dockerfile_full_path}" ]]; then
-  echo "::warning::Dockerfile not found at: ${dockerfile_full_path}"
+if [[ ! -f "${DOCKERFILE_PATH}" ]]; then
+  echo "::warning::Dockerfile not found at: ${DOCKERFILE_PATH}"
   output_result "ecr-registries" ""
   output_result "needs-ecr-login" "false"
   exit 0
 fi
 
-echo "Analyzing Dockerfile: ${dockerfile_full_path}"
+echo "Analyzing Dockerfile: ${DOCKERFILE_PATH}"
 
 # Extract FROM statements and look for private ECR registry patterns
 # Private ECR pattern: <account-id>.dkr.ecr.<region>.amazonaws.com
 # This excludes public ECR which uses: public.ecr.aws
 # Note: FROM statements are case-insensitive (FROM, from, From, etc.)
 echo "Looking for FROM statements..."
-from_statements=$(grep -i '^FROM' "${dockerfile_full_path}" || true)
+from_statements=$(grep -i '^FROM' "${DOCKERFILE_PATH}" || true)
 if [[ -n "${from_statements}" ]]; then
   echo "Found FROM statements:"
   echo "${from_statements}"
