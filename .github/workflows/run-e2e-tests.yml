@@ -256,6 +256,9 @@ on:
         required: false
       OPTIONAL_GATI_LAMBDA_URL:
         required: false
+      TRUNK_API_KEY:
+        description: "The Trunk API key for reporting flaky tests."
+        required: false
 
 env:
   CHAINLINK_IMAGE: >-
@@ -813,6 +816,13 @@ jobs:
             done
           fi
 
+      - name: Set up gotestsum
+        shell: bash
+        run: |
+          echo "::startgroup::Install gotestsum"
+          go install gotest.tools/gotestsum@v1.12.3
+          echo "::endgroup::"
+
       - name: Get Test Secrets from AWS Secret Manager
         if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
         id: aws-test-secrets
@@ -839,8 +849,10 @@ jobs:
         id: run_tests
         timeout-minutes: ${{ fromJson(env.DOCKER_TESTS_TIMEOUT_MINUTES) }}
         uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        continue-on-error: true # auto-quarantine will handle result
         env:
           DETACH_RUNNER: true
+          RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
           E2E_TEST_CHAINLINK_VERSION: ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
             env.DEFAULT_CHAINLINK_VERSION }}
           E2E_TEST_LOKI_TENANT_ID: ${{ secrets.LOKI_TENANT_ID }}
@@ -894,6 +906,34 @@ jobs:
           # since GAP is required only, when running tests in k8s
           enable-gap: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }} != '' && ${{
             secrets.AWS_K8S_CLUSTER_NAME_SDLC }} != ''
+
+      - name: Enforce /tmp/junit.xml exists
+        id: check-junit
+        # This fails the job if there is no junit report and the test step did not succeed.
+        # If there is no report then the branch-out-upload step will not be able to properly
+        # determine the test result, so we need to fail the job here instead.
+        if: ${{ !cancelled() }}
+        shell: bash
+        env:
+          RESULT: ${{ steps.run_tests.outcome }}
+        run: |
+          if [ -f /tmp/junit.xml ]; then
+            echo "junit_exists=true" | tee -a "$GITHUB_OUTPUT"
+          else
+            echo "::error::Junit report not found, and run_tests outcome is $RESULT. Failing the job."
+            exit 1
+          fi
+
+      - name: Run branch-out-upload
+        if: ${{ !cancelled() && steps.check-junit.outputs.junit_exists == 'true' }}
+        uses: smartcontractkit/.github/actions/branch-out-upload@branch-out-upload/0.1.0
+        with:
+          junit-file-path: "/tmp/junit.xml"
+          trunk-org-slug: chainlink
+          trunk-token: ${{ secrets.TRUNK_API_KEY }}
+          trunk-previous-step-outcome: ${{ steps.run_tests.outcome }}
+          trunk-job-url: ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}/attempts/{3}', github.repository, github.run_id, job.check_run_id, github.run_attempt) }}
+          trunk-upload-only: "false"
 
       - name: Show Otel-Collector logs
         if: inputs.enable_otel_traces_for_ocr2_plugins &&
@@ -1108,11 +1148,20 @@ jobs:
           aws_region: ${{ secrets.QA_AWS_REGION }}
           aws_role_to_assume: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
 
+      - name: Set up gotestsum
+        shell: bash
+        run: |
+          echo "::startgroup::Install gotestsum"
+          go install gotest.tools/gotestsum@v1.12.3
+          echo "::endgroup::"
+
       - name: Run tests
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        continue-on-error: true # auto-quarantine will handle result
         env:
           DETACH_RUNNER: true
+          RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
           TEST_ARGS: -test.timeout 900h -test.memprofile memprofile.out -test.cpuprofile
             profile.out
@@ -1137,9 +1186,7 @@ jobs:
             '' }}
           DATABASE_URL: postgresql://postgres:node@localhost:5432/chainlink_test?sslmode=disable
         with:
-          test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1
-            | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage
-            -hidepassingtests=false' }}
+          test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command: make gomod
           test_secrets_override_base64: ${{ steps.aws-test-secrets.outputs.secret_value ||
             secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
@@ -1159,6 +1206,34 @@ jobs:
           QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
           main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
           k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
+
+      - name: Enforce /tmp/junit.xml exists
+        id: check-junit
+        # This fails the job if there is no junit report and the test step did not succeed.
+        # If there is no report then the branch-out-upload step will not be able to properly
+        # determine the test result, so we need to fail the job here instead.
+        if: ${{ !cancelled() }}
+        shell: bash
+        env:
+          RESULT: ${{ steps.run_tests.outcome }}
+        run: |
+          if [ -f /tmp/junit.xml ]; then
+            echo "junit_exists=true" | tee -a "$GITHUB_OUTPUT"
+          else
+            echo "::error::Junit report not found, and run_tests outcome is $RESULT. Failing the job."
+            exit 1
+          fi
+
+      - name: Run branch-out-upload
+        if: ${{ !cancelled() && steps.check-junit.outputs.junit_exists == 'true' }}
+        uses: smartcontractkit/.github/actions/branch-out-upload@branch-out-upload/0.1.0
+        with:
+          junit-file-path: "/tmp/junit.xml"
+          trunk-org-slug: chainlink
+          trunk-token: ${{ secrets.TRUNK_API_KEY }}
+          trunk-previous-step-outcome: ${{ steps.run_tests.outcome }}
+          trunk-job-url: ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}/attempts/{3}', github.repository, github.run_id, job.check_run_id, github.run_attempt) }}
+          trunk-upload-only: "false"
 
       - name: Show Grafana URL in the test summary
         if: always()
@@ -1233,9 +1308,18 @@ jobs:
             done
           fi
 
+      - name: Set up gotestsum
+        shell: bash
+        run: |
+          echo "::startgroup::Install gotestsum"
+          go install gotest.tools/gotestsum@v1.12.3
+          echo "::endgroup::"
+
       - name: Run tests
         id: run_tests
         uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        env:
+          RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
         with:
           test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
