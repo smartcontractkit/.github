@@ -325,12 +325,10 @@ jobs:
           WORKFLOW_NAME: ${{ inputs.workflow_name }}
           CHAINLINK_VERSION: ${{ inputs.chainlink_version }}
           USE_SELF_HOSTED_RUNNERS: ${{ inputs.use-self-hosted-runners }}
-          EXTRA_ARGS: ${{ inputs.extraArgs }}
         run: |
           echo "Workflow Name: ${WORKFLOW_NAME}"
           echo "Chainlink Version: ${CHAINLINK_VERSION}"
           echo "Use Self-Hosted Runners: ${USE_SELF_HOSTED_RUNNERS}"
-          echo "Extra Args: ${EXTRA_ARGS}"
 
       - name: Create matrix for required Chainlink image versions
         id: set-required-chainlink-image-versions-matrix
