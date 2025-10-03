@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Script to parse Dockerfile for private ECR base images and extract registry IDs
 # This script identifies ECR registries used in FROM statements and outputs them
