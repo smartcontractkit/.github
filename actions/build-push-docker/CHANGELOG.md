@@ -1,5 +1,14 @@
 # build-push-docker
 
+## 1.0.1
+
+### Patch Changes
+
+- [#1269](https://github.com/smartcontractkit/.github/pull/1269)
+  [`dbc2003`](https://github.com/smartcontractkit/.github/commit/dbc20033889046b15a5b683987be85f123dfa5a3)
+  Thanks [@chainchad](https://github.com/chainchad)! - Fix reference to
+  Dockerfile in ECR parse script
+
 ## 1.0.0
 
 ### Major Changes
