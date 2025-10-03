@@ -196,7 +196,6 @@ runs:
         DOCKERFILE_PATH: ${{ inputs.dockerfile }}
         CONTEXT_PATH: ${{ inputs.context }}
         AWS_ROLE_ARN: ${{ inputs.aws-role-arn }}
-        AWS_REGION: ${{ inputs.aws-region }}
       run: ${GITHUB_ACTION_PATH}/scripts/dockerfile_ecr_parse.sh
 
     - name: Configure AWS credentials
