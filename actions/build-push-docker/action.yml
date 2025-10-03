@@ -189,8 +189,19 @@ runs:
           exit 1
         fi
 
+    - name: Parse Dockerfile for private ECR base images
+      id: dockerfile-ecr-parse
+      shell: bash
+      env:
+        DOCKERFILE_PATH: ${{ inputs.dockerfile }}
+        CONTEXT_PATH: ${{ inputs.context }}
+        AWS_ROLE_ARN: ${{ inputs.aws-role-arn }}
+      run: ${GITHUB_ACTION_PATH}/scripts/dockerfile_ecr_parse.sh
+
     - name: Configure AWS credentials
-      if: ${{ inputs.docker-push == 'true' }}
+      if:
+        ${{ steps.dockerfile-ecr-parse.outputs.needs-ecr-login == 'true' ||
+        inputs.docker-push == 'true' }}
       uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
@@ -198,7 +209,13 @@ runs:
         aws-region: ${{ inputs.aws-region }}
         mask-aws-account-id: true
 
-    - name: Login to ECR
+    - name: Login to private ECR registries for base images
+      if: ${{ steps.dockerfile-ecr-parse.outputs.needs-ecr-login == 'true' }}
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      with:
+        registries: ${{ steps.dockerfile-ecr-parse.outputs.ecr-registries }}
+
+    - name: Login to ECR for publishing
       if: ${{ inputs.docker-push == 'true' }}
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1

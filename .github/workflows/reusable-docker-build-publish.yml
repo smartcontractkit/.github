@@ -196,6 +196,11 @@ on:
         description: "Target stage in the Dockerfile to build."
         required: false
         type: string
+      environment:
+        description: "Environment name for the workflow run."
+        required: false
+        type: string
+        default: ""
       git-sha:
         description: |
           The full git SHA to build from.
@@ -258,6 +263,7 @@ on:
         required: false
         type: number
         default: 30
+
     outputs:
       docker-image-sha-digest-amd64:
         description: "Docker image SHA digest for amd64 architecture"
@@ -405,6 +411,7 @@ jobs:
   build-publish:
     name: build-publish-${{ matrix.arch }}
     needs: [init, set-build-matrix]
+    environment: ${{ inputs.environment }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: ${{ inputs.timeout }}
     strategy:
@@ -517,7 +524,7 @@ jobs:
 
       - name: Docker image build
         id: build
-        uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/0.9.0
+        uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/v1
         with:
           platform: ${{ format('linux/{0}', matrix.arch) }}
           docker-registry-url: >-
@@ -546,6 +553,7 @@ jobs:
   docker-manifest:
     name: docker-manifest
     needs: [init, build-publish]
+    environment: ${{ inputs.environment }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
