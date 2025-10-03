@@ -912,7 +912,7 @@ jobs:
         # This fails the job if there is no junit report and the test step did not succeed.
         # If there is no report then the branch-out-upload step will not be able to properly
         # determine the test result, so we need to fail the job here instead.
-        if: ${{ !cancelled() && steps.run_tests.outcome != 'success' }}
+        if: ${{ !cancelled() }}
         shell: bash
         env:
           RESULT: ${{ steps.run_tests.outcome }}
@@ -921,6 +921,7 @@ jobs:
             echo "junit_exists=true" | tee -a "$GITHUB_OUTPUT"
           else
             echo "::error::Junit report not found, and run_tests outcome is $RESULT. Failing the job."
+            exit 1
           fi
 
       - name: Run branch-out-upload
@@ -1211,7 +1212,7 @@ jobs:
         # This fails the job if there is no junit report and the test step did not succeed.
         # If there is no report then the branch-out-upload step will not be able to properly
         # determine the test result, so we need to fail the job here instead.
-        if: ${{ !cancelled() && steps.run_tests.outcome != 'success' }}
+        if: ${{ !cancelled() }}
         shell: bash
         env:
           RESULT: ${{ steps.run_tests.outcome }}
@@ -1220,6 +1221,7 @@ jobs:
             echo "junit_exists=true" | tee -a "$GITHUB_OUTPUT"
           else
             echo "::error::Junit report not found, and run_tests outcome is $RESULT. Failing the job."
+            exit 1
           fi
 
       - name: Run branch-out-upload
