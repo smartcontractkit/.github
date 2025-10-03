@@ -118,16 +118,6 @@ on:
         description: "Set Slack user id to notify on test failure"
         required: false
         type: string
-      test_log_upload_on_failure:
-        description: 'Set to "true" to upload the test log on failure as Github artifact'
-        required: false
-        type: boolean
-        default: true
-      test_log_upload_retention_days:
-        description: "Number of days to retain the test log. Default is 3 days"
-        required: false
-        type: number
-        default: 5
       test_log_level:
         description: 'Set the log level for the tests. Default is "debug"'
         required: false
@@ -139,10 +129,6 @@ on:
         required: false
         type: boolean
         default: false
-      upload_cl_node_coverage_artifact_prefix:
-        description: "Prefix for the Chainlink node coverage artifact"
-        required: false
-        type: string
       enable_otel_traces_for_ocr2_plugins:
         description: 'Set to "true" to enable OpenTelemetry traces for OCR2 plugins tests'
         required: false
@@ -188,11 +174,16 @@ on:
         required: false
         type: string
         default: "chainlink"
-      extraArgs:
+      quarantine:
+        description: "Set to true to enable auto-quaranting functionality"
         required: false
-        type: string
-        default: "{}"
-        description: "JSON of extra arguments for the workflow."
+        type: boolean
+        default: false
+      test-timeout-minutes:
+        description: "Overall timeout for each test in minutes. Default is 180 minutes."
+        required: false
+        type: number
+        default: 60
     outputs:
       test_results:
         description: "Test results from all executed tests"
@@ -287,8 +278,6 @@ env:
   SLACK_USER: ${{ inputs.SLACK_USER }}
   SLACK_CHANNEL: ${{ inputs.slack_notification_after_tests_channel_id || inputs.SLACK_CHANNEL
     || secrets.SLACK_CHANNEL }}
-
-  DOCKER_TESTS_TIMEOUT_MINUTES: ${{ fromJSON(inputs.extraArgs)['docker_tests_timeout_minutes'] || 60 }}
 
 jobs:
   validate-inputs:
@@ -847,9 +836,9 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        timeout-minutes: ${{ fromJson(env.DOCKER_TESTS_TIMEOUT_MINUTES) }}
+        timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
         uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
-        continue-on-error: true # auto-quarantine will handle result
+        continue-on-error: ${{ inputs.quarantine == 'true' }} # auto-quarantine will handle result
         env:
           DETACH_RUNNER: true
           RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
@@ -907,12 +896,12 @@ jobs:
           enable-gap: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }} != '' && ${{
             secrets.AWS_K8S_CLUSTER_NAME_SDLC }} != ''
 
-      - name: Enforce /tmp/junit.xml exists
+      - name: Enforce /tmp/junit.xml exists (quarantine only)
         id: check-junit
         # This fails the job if there is no junit report and the test step did not succeed.
         # If there is no report then the branch-out-upload step will not be able to properly
         # determine the test result, so we need to fail the job here instead.
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && inputs.quarantine == 'true' }}
         shell: bash
         env:
           RESULT: ${{ steps.run_tests.outcome }}
@@ -924,7 +913,7 @@ jobs:
             exit 1
           fi
 
-      - name: Run branch-out-upload
+      - name: Run branch-out-upload (quarantine only)
         if: ${{ !cancelled() && steps.check-junit.outputs.junit_exists == 'true' }}
         uses: smartcontractkit/.github/actions/branch-out-upload@branch-out-upload/0.1.0
         with:
@@ -959,11 +948,11 @@ jobs:
 
       - name: Upload test log as artifact
         uses: actions/upload-artifact@v4.4.3
-        if: inputs.test_log_upload_on_failure && failure()
+        if: failure()
         with:
           name: test_log_${{ env.TEST_ID }}
           path: /tmp/gotest.log
-          retention-days: ${{ inputs.test_log_upload_retention_days }}
+          retention-days: 7
         continue-on-error: true
 
       - name: Upload cl node coverage data as artifact
@@ -972,8 +961,7 @@ jobs:
         timeout-minutes: 2
         continue-on-error: true
         with:
-          name: ${{ inputs.upload_cl_node_coverage_artifact_prefix }}${{ env.TEST_ID
-            }}
+          name: ${{ format('cl_node_coverage_data_{0}', env.TEST_ID) }}
           path: .covdata
           retention-days: 1
 
@@ -1157,8 +1145,9 @@ jobs:
 
       - name: Run tests
         id: run_tests
+        timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
         uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
-        continue-on-error: true # auto-quarantine will handle result
+        continue-on-error: ${{ inputs.quarantine == 'true' }} # auto-quarantine will handle result
         env:
           DETACH_RUNNER: true
           RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
@@ -1207,12 +1196,12 @@ jobs:
           main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
           k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
 
-      - name: Enforce /tmp/junit.xml exists
+      - name: Enforce /tmp/junit.xml exists (quarantine only)
         id: check-junit
         # This fails the job if there is no junit report and the test step did not succeed.
         # If there is no report then the branch-out-upload step will not be able to properly
         # determine the test result, so we need to fail the job here instead.
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && inputs.quarantine == 'true' }}
         shell: bash
         env:
           RESULT: ${{ steps.run_tests.outcome }}
@@ -1224,7 +1213,7 @@ jobs:
             exit 1
           fi
 
-      - name: Run branch-out-upload
+      - name: Run branch-out-upload (quarantine only)
         if: ${{ !cancelled() && steps.check-junit.outputs.junit_exists == 'true' }}
         uses: smartcontractkit/.github/actions/branch-out-upload@branch-out-upload/0.1.0
         with:
@@ -1244,19 +1233,18 @@ jobs:
 
       - name: Upload test log as artifact
         uses: actions/upload-artifact@v4.4.3
-        if: inputs.test_log_upload_on_failure && failure()
+        if: failure()
         with:
           name: test_log_${{ env.TEST_ID }}
           path: /tmp/gotest.log
-          retention-days: ${{ inputs.test_log_upload_retention_days }}
+          retention-days: 7
         continue-on-error: true
 
       - name: Upload custom test artifacts
         if: failure() && matrix.tests.test_artifacts_on_failure != ''
         uses: actions/upload-artifact@v4.4.3
         with:
-          name: custom_test_artifacts_${{ env.TEST_ID }}_${{
-            needs.load-test-configurations.outputs.workflow_id }}
+          name: ${{ format('custom_test_artifacts_{0}_{1}', env.TEST_ID, needs.load-test-configurations.outputs.workflow_id) }}
           path: ${{ matrix.tests.test_artifacts_on_failure }}
           retention-days: 1
 
@@ -1317,6 +1305,7 @@ jobs:
 
       - name: Run tests
         id: run_tests
+        timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
         uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
         env:
           RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
