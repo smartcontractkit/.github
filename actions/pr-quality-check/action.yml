@@ -158,7 +158,7 @@ runs:
       if:
         env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
         'true'
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       env:
         FIX_CANDIDATES_PATH: ${{ steps.run-py.outputs.fix-candidates-path }}
       with:
@@ -191,7 +191,7 @@ runs:
       if:
         env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
         'true'
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       env:
         FP: ${{ steps.run-py.outputs.fix-candidates-fingerprint }}
       with:
@@ -230,7 +230,7 @@ runs:
         env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
         'true' && (inputs.claude-code-auto-fix-enabled != 'true' ||
         steps.check-claude.outputs.should-run-claude != 'true')
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       env:
         DETAILS: ${{ steps.build-details.outputs.details }}
         MISSING: ${{ steps.check-claude.outputs.missing }}
@@ -257,7 +257,7 @@ runs:
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       env:
         DETAILS: ${{ steps.build-details.outputs.details }}
         TOTAL_DETECTED: ${{ steps.run-py.outputs.total-issues-detected }}
@@ -460,7 +460,7 @@ runs:
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       env:
         PR_NUMBER_CREATED:
           ${{ steps.create-autofix-pr.outputs.pull-request-number }}
@@ -490,7 +490,7 @@ runs:
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       env:
         COMMENT_ID: ${{ steps.post-comment.outputs.comment-id }}
         PR_URL: ${{ steps.create-autofix-pr.outputs.pull-request-url }}

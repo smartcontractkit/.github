@@ -196,7 +196,7 @@ runs:
 
     - name: post pr comment
       if: ${{ env.SKIP_ACTION == 'false' }}
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
         PR_NUMBER: ${{ steps.get_pr_number.outputs.pr_number }}
