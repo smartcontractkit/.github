@@ -220,6 +220,7 @@ on:
           Examples:
             - pull_request
             - push
+            - release
             - schedule
         required: true
         type: string
@@ -350,6 +351,8 @@ jobs:
             echo "build-type=pr" | tee -a "$GITHUB_OUTPUT"
           elif [[ "${GITHUB_EVENT_NAME}" == 'workflow_dispatch' ]]; then
             echo "build-type=manual" | tee -a "$GITHUB_OUTPUT"
+          elif [[ "${GITHUB_EVENT_NAME}" == 'release' ]]; then
+            echo "build-type=tag" | tee -a "$GITHUB_OUTPUT"
           else
             echo "::error::Unsupported GitHub event name: ${GITHUB_EVENT_NAME}"
             exit 1
