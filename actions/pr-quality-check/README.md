@@ -158,7 +158,7 @@ name: PR Quality Check
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, closed]
 
 jobs:
   quality-check:
@@ -221,6 +221,7 @@ Notes:
   performs one Claude Code run to propose fixes across those files.
 - Creates or updates a dedicated PR targeting the original PR's head branch,
   using a stable branch name: `auto-fix/pr-<PR_NUMBER>`.
+- Cleans up all hanging auto-fix PRs in the repository when a PR is closed.
 
 #### Prerequisites
 
