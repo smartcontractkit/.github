@@ -4,7 +4,7 @@
  */
 import * as core from "@actions/core";
 
-import { renderTwoLineDiffPre } from "./render-diff";
+import { renderFuncDiffCompactPre } from "./render-diff";
 import type { ApiDiffResult, Change } from "./apidiff";
 
 /* ------------------------------ Shared helpers ----------------------------- */
@@ -35,7 +35,8 @@ function formatTypeChangeMarkdown(change: string): string {
   const m = change.match(/^changed from (.+?) to (.+)$/);
   if (m) {
     const [, oldType, newType] = m;
-    return "\n" + renderTwoLineDiffPre(oldType, newType); // full lines, no trimming
+
+    return "\n" + renderFuncDiffCompactPre(oldType, newType); // stays <pre>/<ins>/<del>
   }
   if (change.startsWith("removed")) return "🗑️ Removed";
   if (change.startsWith("added")) return "➕ Added";
