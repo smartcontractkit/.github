@@ -1,5 +1,14 @@
 # pr-quality-check
 
+## 1.3.0
+
+### Minor Changes
+
+- [#1278](https://github.com/smartcontractkit/.github/pull/1278)
+  [`8a3561d`](https://github.com/smartcontractkit/.github/commit/8a3561d571a34a6c7d544be73cd36f3b49c26358)
+  Thanks [@miqlar](https://github.com/miqlar)! - New feature: Cleanup hanging
+  autofix PRs at PR closing
+
 ## 1.2.2
 
 ### Patch Changes
