@@ -358,6 +358,15 @@ importers:
       '@actions/github':
         specifier: ^6.0.1
         version: 6.0.1
+      '@actions/glob':
+        specifier: ^0.4.0
+        version: 0.4.0
+      gitdiff-parser:
+        specifier: ^0.3.1
+        version: 0.3.1
+      simple-git:
+        specifier: ^3.26.0
+        version: 3.26.0
     devDependencies:
       '@octokit/types':
         specifier: ^15.0.0
@@ -4613,6 +4622,9 @@ packages:
 
   get-tsconfig@4.8.1:
     resolution: {integrity: sha512-k9PN+cFBmaLWtVz29SkUoqU5O0slLuHJXt/2P+tMVFT+phsSGXGkp9t3rQIqdz0e+06EHNGs3oM6ZX1s2zHxRg==}
+
+  gitdiff-parser@0.3.1:
+    resolution: {integrity: sha512-YQJnY8aew65id8okGxKCksH3efDCJ9HzV7M9rsvd65habf39Pkh4cgYJ27AaoDMqo1X98pgNJhNMrm/kpV7UVQ==}
 
   glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
@@ -9775,21 +9787,6 @@ snapshots:
       - typescript
       - verdaccio
 
-  '@nrwl/js@17.3.2(@babel/traverse@7.27.4)(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11))(@types/node@20.14.13)(nx@17.3.2(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11)))(typescript@5.3.3)':
-    dependencies:
-      '@nx/js': 17.3.2(@babel/traverse@7.27.4)(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11))(@types/node@20.14.13)(nx@17.3.2(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11)))(typescript@5.3.3)
-    transitivePeerDependencies:
-      - '@babel/traverse'
-      - '@swc-node/register'
-      - '@swc/core'
-      - '@swc/wasm'
-      - '@types/node'
-      - debug
-      - nx
-      - supports-color
-      - typescript
-      - verdaccio
-
   '@nrwl/js@17.3.2(@babel/traverse@7.27.4)(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11))(@types/node@20.14.13)(nx@17.3.2(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11)))(typescript@5.5.3)':
     dependencies:
       '@nx/js': 17.3.2(@babel/traverse@7.27.4)(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11))(@types/node@20.14.13)(nx@17.3.2(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11)))(typescript@5.5.3)
@@ -9966,7 +9963,7 @@ snapshots:
       '@babel/preset-env': 7.24.7(@babel/core@7.23.9)
       '@babel/preset-typescript': 7.22.5(@babel/core@7.23.9)
       '@babel/runtime': 7.23.9
-      '@nrwl/js': 17.3.2(@babel/traverse@7.27.4)(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11))(@types/node@20.14.13)(nx@17.3.2(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11)))(typescript@5.3.3)
+      '@nrwl/js': 17.3.2(@babel/traverse@7.27.4)(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11))(@types/node@20.14.13)(nx@17.3.2(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11)))(typescript@5.5.3)
       '@nx/devkit': 17.3.2(nx@17.3.2(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11)))
       '@nx/workspace': 17.3.2(@swc-node/register@1.10.0(@swc/core@1.7.36(@swc/helpers@0.5.11))(@swc/types@0.1.13)(typescript@5.5.3))(@swc/core@1.7.36(@swc/helpers@0.5.11))
       '@phenomnomnominal/tsquery': 5.0.1(typescript@5.3.3)
@@ -12435,6 +12432,8 @@ snapshots:
   get-tsconfig@4.8.1:
     dependencies:
       resolve-pkg-maps: 1.0.0
+
+  gitdiff-parser@0.3.1: {}
 
   glob-parent@5.1.2:
     dependencies:
