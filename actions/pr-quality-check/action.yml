@@ -101,13 +101,13 @@ runs:
         fi
 
     - name: Setup Python
-      if: env.SHOULD_RUN == 'true'
+      if: env.SHOULD_RUN == 'true' && github.event.action != 'closed'
       uses: actions/setup-python@v5
       with:
         python-version: "3.11"
 
     - name: Install dependencies
-      if: env.SHOULD_RUN == 'true'
+      if: env.SHOULD_RUN == 'true' && github.event.action != 'closed'
       shell: bash
       run: |
         python -m pip install --upgrade pip
@@ -115,7 +115,7 @@ runs:
 
     - name: Run PR Quality Check (Python)
       id: run-py
-      if: env.SHOULD_RUN == 'true'
+      if: env.SHOULD_RUN == 'true' && github.event.action != 'closed'
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
@@ -135,8 +135,9 @@ runs:
     - name: Check Claude prerequisites
       id: check-claude
       if:
-        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
-        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
+        steps.run-py.outputs.has-fix-candidates == 'true' &&
+        inputs.claude-code-auto-fix-enabled == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
       shell: bash
       env:
@@ -156,8 +157,8 @@ runs:
     - name: Build details markdown
       id: build-details
       if:
-        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
-        'true'
+        env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
+        steps.run-py.outputs.has-fix-candidates == 'true'
       uses: actions/github-script@v7
       env:
         FIX_CANDIDATES_PATH: ${{ steps.run-py.outputs.fix-candidates-path }}
@@ -189,8 +190,8 @@ runs:
     - name: Check candidate fingerprint changed
       id: check-fingerprint
       if:
-        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
-        'true'
+        env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
+        steps.run-py.outputs.has-fix-candidates == 'true'
       uses: actions/github-script@v7
       env:
         FP: ${{ steps.run-py.outputs.fix-candidates-fingerprint }}
@@ -227,8 +228,9 @@ runs:
 
     - name: Post auto-fix skipped (missing prereqs)
       if:
-        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
-        'true' && (inputs.claude-code-auto-fix-enabled != 'true' ||
+        env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
+        steps.run-py.outputs.has-fix-candidates == 'true' &&
+        (inputs.claude-code-auto-fix-enabled != 'true' ||
         steps.check-claude.outputs.should-run-claude != 'true')
       uses: actions/github-script@v7
       env:
@@ -252,8 +254,9 @@ runs:
     - name: Post auto-fix progress comment
       id: post-comment
       if:
-        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
-        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
+        steps.run-py.outputs.has-fix-candidates == 'true' &&
+        inputs.claude-code-auto-fix-enabled == 'true' &&
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
@@ -293,8 +296,9 @@ runs:
 
     - name: Set up Node.js
       if:
-        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
-        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
+        steps.run-py.outputs.has-fix-candidates == 'true' &&
+        inputs.claude-code-auto-fix-enabled == 'true' &&
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
@@ -304,8 +308,9 @@ runs:
 
     - name: Install Claude Code CLI
       if:
-        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
-        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
+        steps.run-py.outputs.has-fix-candidates == 'true' &&
+        inputs.claude-code-auto-fix-enabled == 'true' &&
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
@@ -315,8 +320,9 @@ runs:
 
     - name: Authenticate to Google Cloud (Vertex)
       if:
-        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
-        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
+        steps.run-py.outputs.has-fix-candidates == 'true' &&
+        inputs.claude-code-auto-fix-enabled == 'true' &&
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
@@ -330,8 +336,9 @@ runs:
 
     - name: Configure environment for Claude Code
       if:
-        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
-        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
+        steps.run-py.outputs.has-fix-candidates == 'true' &&
+        inputs.claude-code-auto-fix-enabled == 'true' &&
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
@@ -360,8 +367,9 @@ runs:
 
     - name: Run Claude Code (single run)
       if:
-        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
-        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
+        steps.run-py.outputs.has-fix-candidates == 'true' &&
+        inputs.claude-code-auto-fix-enabled == 'true' &&
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
@@ -382,8 +390,8 @@ runs:
 
     - name: Cleanup sensitive artifacts
       if:
-        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
-        'true'
+        env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
+        steps.run-py.outputs.has-fix-candidates == 'true'
       shell: bash
       run: |
         find . -name "gha-creds-*.json" -delete || true
@@ -394,8 +402,9 @@ runs:
 
     - name: Stage changes
       if:
-        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
-        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
+        steps.run-py.outputs.has-fix-candidates == 'true' &&
+        inputs.claude-code-auto-fix-enabled == 'true' &&
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
@@ -406,8 +415,9 @@ runs:
 
     - name: Compute short commit SHA
       if:
-        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
-        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
+        steps.run-py.outputs.has-fix-candidates == 'true' &&
+        inputs.claude-code-auto-fix-enabled == 'true' &&
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
@@ -423,8 +433,9 @@ runs:
     - name: Create PR with auto-fixes targeting PR head branch
       id: create-autofix-pr
       if:
-        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
-        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
+        steps.run-py.outputs.has-fix-candidates == 'true' &&
+        inputs.claude-code-auto-fix-enabled == 'true' &&
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
@@ -455,8 +466,9 @@ runs:
 
     - name: Request review from original PR author
       if:
-        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
-        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
+        steps.run-py.outputs.has-fix-candidates == 'true' &&
+        inputs.claude-code-auto-fix-enabled == 'true' &&
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
@@ -485,8 +497,9 @@ runs:
 
     - name: Update auto-fix comment with PR link
       if:
-        env.SHOULD_RUN == 'true' && steps.run-py.outputs.has-fix-candidates ==
-        'true' && inputs.claude-code-auto-fix-enabled == 'true' &&
+        env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
+        steps.run-py.outputs.has-fix-candidates == 'true' &&
+        inputs.claude-code-auto-fix-enabled == 'true' &&
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
@@ -531,3 +544,66 @@ runs:
               body
             });
           }
+
+    # --- Cleanup flow (on PR close) ---
+    - name: Cleanup orphaned auto-fix PRs
+      if: env.SHOULD_RUN == 'true' && github.event.action == 'closed'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          console.log('🧹 Checking for orphaned auto-fix PRs...');
+
+          // Get all open PRs
+          const { data: allOpenPRs } = await github.rest.pulls.list({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'open',
+            per_page: 100
+          });
+
+          // Create a set of open PR numbers for quick lookup
+          const openPRNumbers = new Set(allOpenPRs.map(pr => pr.number));
+
+          // Filter for auto-fix PRs (branch starts with 'auto-fix/pr-')
+          const autoFixPRs = allOpenPRs.filter(pr => 
+            pr.head.ref?.startsWith('auto-fix/pr-')
+          );
+
+          console.log(`Found ${autoFixPRs.length} auto-fix PR(s)`);
+
+          // Check each auto-fix PR
+          for (const autoFixPR of autoFixPRs) {
+            // Extract original PR number from branch name (e.g., 'auto-fix/pr-123' -> 123)
+            const match = autoFixPR.head.ref.match(/^auto-fix\/pr-(\d+)$/);
+            if (!match) {
+              console.log(`⚠️ Could not parse PR number from branch: ${autoFixPR.head.ref}`);
+              continue;
+            }
+            
+            const originalPRNumber = parseInt(match[1], 10);
+            
+            // Check if the original PR is still open
+            if (!openPRNumbers.has(originalPRNumber)) {
+              console.log(`🗑️ Closing orphaned auto-fix PR #${autoFixPR.number} (original PR #${originalPRNumber} is closed)`);
+              
+              // Post a comment explaining why we're closing
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: autoFixPR.number,
+                body: `🤖 Automatically closing this auto-fix PR because the original PR #${originalPRNumber} has been closed or merged.`
+              });
+              
+              // Close the auto-fix PR
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: autoFixPR.number,
+                state: 'closed'
+              });
+            } else {
+              console.log(`✅ Auto-fix PR #${autoFixPR.number} is still valid (original PR #${originalPRNumber} is open)`);
+            }
+          }
+
+          console.log('✨ Cleanup complete!');
