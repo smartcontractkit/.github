@@ -118,16 +118,6 @@ on:
         description: "Set Slack user id to notify on test failure"
         required: false
         type: string
-      test_log_upload_on_failure:
-        description: 'Set to "true" to upload the test log on failure as Github artifact'
-        required: false
-        type: boolean
-        default: true
-      test_log_upload_retention_days:
-        description: "Number of days to retain the test log. Default is 3 days"
-        required: false
-        type: number
-        default: 5
       test_log_level:
         description: 'Set the log level for the tests. Default is "debug"'
         required: false
@@ -139,10 +129,6 @@ on:
         required: false
         type: boolean
         default: false
-      upload_cl_node_coverage_artifact_prefix:
-        description: "Prefix for the Chainlink node coverage artifact"
-        required: false
-        type: string
       enable_otel_traces_for_ocr2_plugins:
         description: 'Set to "true" to enable OpenTelemetry traces for OCR2 plugins tests'
         required: false
@@ -188,11 +174,16 @@ on:
         required: false
         type: string
         default: "chainlink"
-      extraArgs:
+      quarantine:
+        description: "Set to true to enable auto-quaranting functionality"
         required: false
         type: string
-        default: "{}"
-        description: "JSON of extra arguments for the workflow."
+        default: "false"
+      test-timeout-minutes:
+        description: "Overall timeout for each test in minutes. Default is 180 minutes."
+        required: false
+        type: number
+        default: 60
     outputs:
       test_results:
         description: "Test results from all executed tests"
@@ -256,11 +247,8 @@ on:
         required: false
       OPTIONAL_GATI_LAMBDA_URL:
         required: false
-      FLAKEGUARD_SPLUNK_ENDPOINT:
-        description: "The Splunk HTTP Event Collector (HEC) endpoint."
-        required: false
-      FLAKEGUARD_SPLUNK_HEC:
-        description: "The Splunk HTTP Event Collector (HEC) token."
+      TRUNK_API_KEY:
+        description: "The Trunk API key for reporting flaky tests."
         required: false
 
 env:
@@ -290,12 +278,6 @@ env:
   SLACK_USER: ${{ inputs.SLACK_USER }}
   SLACK_CHANNEL: ${{ inputs.slack_notification_after_tests_channel_id || inputs.SLACK_CHANNEL
     || secrets.SLACK_CHANNEL }}
-
-  FLAKEGUARD_ENABLE: ${{ fromJSON(inputs.extraArgs)['flakeguard_enable'] || 'false' }}
-  FLAKEGUARD_MAX_PASS_RATIO: ${{ fromJSON(inputs.extraArgs)['flakeguard_max_pass_ratio'] || '1.0' }}
-  FLAKEGUARD_RUN_COUNT: ${{ fromJSON(inputs.extraArgs)['flakeguard_run_count'] || '3' }}
-  FLAKEGUARD_RERUN_FAILED_COUNT: ${{ fromJSON(inputs.extraArgs)['flakeguard_rerun_failed_count'] || '0' }}
-  DOCKER_TESTS_TIMEOUT_MINUTES: ${{ fromJSON(inputs.extraArgs)['docker_tests_timeout_minutes'] || 60 }}
 
 jobs:
   validate-inputs:
@@ -343,12 +325,10 @@ jobs:
           WORKFLOW_NAME: ${{ inputs.workflow_name }}
           CHAINLINK_VERSION: ${{ inputs.chainlink_version }}
           USE_SELF_HOSTED_RUNNERS: ${{ inputs.use-self-hosted-runners }}
-          EXTRA_ARGS: ${{ inputs.extraArgs }}
         run: |
           echo "Workflow Name: ${WORKFLOW_NAME}"
           echo "Chainlink Version: ${CHAINLINK_VERSION}"
           echo "Use Self-Hosted Runners: ${USE_SELF_HOSTED_RUNNERS}"
-          echo "Extra Args: ${EXTRA_ARGS}"
 
       - name: Create matrix for required Chainlink image versions
         id: set-required-chainlink-image-versions-matrix
@@ -453,7 +433,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@d12aaf98c18c7711bdb211e4d0bc0a5317c80e02 # 23-06-2025
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@b4310af038bfe519db8058aae94d3555a04df1ed # 19-09-2025
 
       - name: Generate Docker Tests Matrix
         id: set-docker-matrix
@@ -823,6 +803,13 @@ jobs:
             done
           fi
 
+      - name: Set up gotestsum
+        shell: bash
+        run: |
+          echo "::startgroup::Install gotestsum"
+          go install gotest.tools/gotestsum@v1.12.3
+          echo "::endgroup::"
+
       - name: Get Test Secrets from AWS Secret Manager
         if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
         id: aws-test-secrets
@@ -847,10 +834,12 @@ jobs:
 
       - name: Run tests
         id: run_tests
-        timeout-minutes: ${{ fromJson(env.DOCKER_TESTS_TIMEOUT_MINUTES) }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.9.0
+        timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        continue-on-error: ${{ inputs.quarantine == 'true' }} # auto-quarantine will handle result
         env:
           DETACH_RUNNER: true
+          RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
           E2E_TEST_CHAINLINK_VERSION: ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
             env.DEFAULT_CHAINLINK_VERSION }}
           E2E_TEST_LOKI_TENANT_ID: ${{ secrets.LOKI_TENANT_ID }}
@@ -867,11 +856,6 @@ jobs:
             secrets.QA_AWS_REGION }}.amazonaws.com
           GITHUB_API_TOKEN: ${{ steps.setup-optional-gati-token.outputs.access-token || ''}}
         with:
-          flakeguard_enable: ${{ env.FLAKEGUARD_ENABLE }}
-          flakeguard_run_count: ${{ env.FLAKEGUARD_RUN_COUNT }}
-          flakeguard_rerun_failed_count: ${{ env.FLAKEGUARD_RERUN_FAILED_COUNT }}
-          flakeguard_main_results_path: ./flakeguard_run_results/main/flakeguard_results.json
-          flakeguard_rerun_results_path: ./flakeguard_run_results/rerun/flakeguard_results.json
           test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command: cd $(dirname ${{ matrix.tests.path }}) && go mod download
@@ -910,6 +894,32 @@ jobs:
           enable-gap: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }} != '' && ${{
             secrets.AWS_K8S_CLUSTER_NAME_SDLC }} != ''
 
+      - name: Enforce /tmp/junit.xml exists (quarantine only)
+        id: check-junit
+        # This fails the job if there is no junit report and the test step did not succeed.
+        # If there is no report then the branch-out-upload step will not be able to properly
+        # determine the test result, so we need to fail the job here instead.
+        if: ${{ !cancelled() && inputs.quarantine == 'true' }}
+        shell: bash
+        env:
+          RESULT: ${{ steps.run_tests.outcome }}
+        run: |
+          if [ ! -f /tmp/junit.xml ]; then
+            echo "::error::Junit report not found, and run_tests outcome is $RESULT. Failing the job."
+            exit 1
+          fi
+
+      - name: Run branch-out-upload (quarantine only)
+        if: ${{ !cancelled() && inputs.quarantine == 'true' }}
+        uses: smartcontractkit/.github/actions/branch-out-upload@branch-out-upload/0.1.0
+        with:
+          junit-file-path: "/tmp/junit.xml"
+          trunk-org-slug: chainlink
+          trunk-token: ${{ secrets.TRUNK_API_KEY }}
+          trunk-previous-step-outcome: ${{ steps.run_tests.outcome }}
+          trunk-job-url: ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}/attempts/{3}', github.repository, github.run_id, job.check_run_id, github.run_attempt) }}
+          trunk-upload-only: "false"
+
       - name: Show Otel-Collector logs
         if: inputs.enable_otel_traces_for_ocr2_plugins &&
           matrix.tests.test_env_vars.ENABLE_OTEL_TRACES == 'true'
@@ -934,11 +944,11 @@ jobs:
 
       - name: Upload test log as artifact
         uses: actions/upload-artifact@v4.4.3
-        if: inputs.test_log_upload_on_failure && failure()
+        if: failure()
         with:
           name: test_log_${{ env.TEST_ID }}
           path: /tmp/gotest.log
-          retention-days: ${{ inputs.test_log_upload_retention_days }}
+          retention-days: 7
         continue-on-error: true
 
       - name: Upload cl node coverage data as artifact
@@ -947,8 +957,7 @@ jobs:
         timeout-minutes: 2
         continue-on-error: true
         with:
-          name: ${{ inputs.upload_cl_node_coverage_artifact_prefix }}${{ env.TEST_ID
-            }}
+          name: ${{ format('cl_node_coverage_data_{0}', env.TEST_ID) }}
           path: .covdata
           retention-days: 1
 
@@ -966,26 +975,6 @@ jobs:
           name: test_result_${{ needs.load-test-configurations.outputs.workflow_id
             }}_${{ env.TEST_ID }}
           path: test_result.json
-          retention-days: 1
-
-      - name: Upload Flakeguard Main Run Results
-        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
-        uses: actions/upload-artifact@v4.4.3
-        with:
-          name: flakeguard_main_run_results_${{
-            needs.load-test-configurations.outputs.workflow_id }}_${{
-            env.TEST_ID }}
-          path: flakeguard_run_results/main/*
-          retention-days: 1
-
-      - name: Upload Flakeguard Rerun Results
-        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
-        uses: actions/upload-artifact@v4.4.3
-        with:
-          name: flakeguard_rerun_results_${{
-            needs.load-test-configurations.outputs.workflow_id }}_${{
-            env.TEST_ID }}
-          path: flakeguard_run_results/rerun/*
           retention-days: 1
 
       - name: Upload custom test artifacts
@@ -1143,11 +1132,21 @@ jobs:
           aws_region: ${{ secrets.QA_AWS_REGION }}
           aws_role_to_assume: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
 
+      - name: Set up gotestsum
+        shell: bash
+        run: |
+          echo "::startgroup::Install gotestsum"
+          go install gotest.tools/gotestsum@v1.12.3
+          echo "::endgroup::"
+
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.9.0
+        timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        continue-on-error: ${{ inputs.quarantine == 'true' }} # auto-quarantine will handle result
         env:
           DETACH_RUNNER: true
+          RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
           TEST_ARGS: -test.timeout 900h -test.memprofile memprofile.out -test.cpuprofile
             profile.out
@@ -1172,9 +1171,7 @@ jobs:
             '' }}
           DATABASE_URL: postgresql://postgres:node@localhost:5432/chainlink_test?sslmode=disable
         with:
-          test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts || '2>&1
-            | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage
-            -hidepassingtests=false' }}
+          test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command: make gomod
           test_secrets_override_base64: ${{ steps.aws-test-secrets.outputs.secret_value ||
             secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
@@ -1195,6 +1192,32 @@ jobs:
           main-dns-zone: ${{ secrets.MAIN_DNS_ZONE_PUBLIC_SDLC }}
           k8s-cluster-name: ${{ secrets.AWS_K8S_CLUSTER_NAME_SDLC }}
 
+      - name: Enforce /tmp/junit.xml exists (quarantine only)
+        id: check-junit
+        # This fails the job if there is no junit report and the test step did not succeed.
+        # If there is no report then the branch-out-upload step will not be able to properly
+        # determine the test result, so we need to fail the job here instead.
+        if: ${{ !cancelled() && inputs.quarantine == 'true' }}
+        shell: bash
+        env:
+          RESULT: ${{ steps.run_tests.outcome }}
+        run: |
+          if [ ! -f /tmp/junit.xml ]; then
+            echo "::error::Junit report not found, and run_tests outcome is $RESULT. Failing the job."
+            exit 1
+          fi
+
+      - name: Run branch-out-upload (quarantine only)
+        if: ${{ !cancelled() && inputs.quarantine == 'true' }}
+        uses: smartcontractkit/.github/actions/branch-out-upload@branch-out-upload/0.1.0
+        with:
+          junit-file-path: "/tmp/junit.xml"
+          trunk-org-slug: chainlink
+          trunk-token: ${{ secrets.TRUNK_API_KEY }}
+          trunk-previous-step-outcome: ${{ steps.run_tests.outcome }}
+          trunk-job-url: ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}/attempts/{3}', github.repository, github.run_id, job.check_run_id, github.run_attempt) }}
+          trunk-upload-only: "false"
+
       - name: Show Grafana URL in the test summary
         if: always()
         uses: smartcontractkit/.github/actions/ctf-show-grafana-in-test-summary@ctf-show-grafana-in-test-summary/0.2.0
@@ -1204,19 +1227,18 @@ jobs:
 
       - name: Upload test log as artifact
         uses: actions/upload-artifact@v4.4.3
-        if: inputs.test_log_upload_on_failure && failure()
+        if: failure()
         with:
           name: test_log_${{ env.TEST_ID }}
           path: /tmp/gotest.log
-          retention-days: ${{ inputs.test_log_upload_retention_days }}
+          retention-days: 7
         continue-on-error: true
 
       - name: Upload custom test artifacts
         if: failure() && matrix.tests.test_artifacts_on_failure != ''
         uses: actions/upload-artifact@v4.4.3
         with:
-          name: custom_test_artifacts_${{ env.TEST_ID }}_${{
-            needs.load-test-configurations.outputs.workflow_id }}
+          name: ${{ format('custom_test_artifacts_{0}_{1}', env.TEST_ID, needs.load-test-configurations.outputs.workflow_id) }}
           path: ${{ matrix.tests.test_artifacts_on_failure }}
           retention-days: 1
 
@@ -1268,15 +1290,20 @@ jobs:
             done
           fi
 
+      - name: Set up gotestsum
+        shell: bash
+        run: |
+          echo "::startgroup::Install gotestsum"
+          go install gotest.tools/gotestsum@v1.12.3
+          echo "::endgroup::"
+
       - name: Run tests
         id: run_tests
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.9.0
+        timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        env:
+          RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
         with:
-          flakeguard_enable: ${{ env.FLAKEGUARD_ENABLE }}
-          flakeguard_run_count: ${{ env.FLAKEGUARD_RUN_COUNT }}
-          flakeguard_rerun_failed_count: ${{ env.FLAKEGUARD_RERUN_FAILED_COUNT }}
-          flakeguard_main_results_path: ./flakeguard_run_results/main/flakeguard_results.json
-          flakeguard_rerun_results_path: ./flakeguard_run_results/rerun/flakeguard_results.json
           test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command: cd $(dirname ${{ matrix.tests.path }}) && go mod download
@@ -1299,6 +1326,7 @@ jobs:
           enable-gap: false
           install_plugins_public: ${{ matrix.tests.install_plugins_public }}
           aptos_cli_version: ${{ matrix.tests.aptos_cli_version }}
+          sui_cli_version: ${{ matrix.tests.sui_cli_version }}
           setup_db: "true"
 
   after_tests:
@@ -1311,346 +1339,6 @@ jobs:
     outputs:
       test_results: ${{ steps.set_test_results.outputs.results }}
     steps:
-      # Needed for codeowners in Flakeguard
-      - name: Checkout repository
-        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
-        uses: actions/checkout@v4.2.1
-        with:
-          persist-credentials: false
-
-      - name: Download All Flakeguard Main Run Results
-        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
-        uses: actions/download-artifact@v4.1.8
-        with:
-          path: flakeguard_main_results
-          pattern: flakeguard_main_run_results_${{
-            needs.load-test-configurations.outputs.workflow_id }}_*
-
-      - name: Download All Flakeguard Rerun Results
-        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
-        uses: actions/download-artifact@v4.1.8
-        with:
-          path: flakeguard_rerun_results
-          pattern: flakeguard_rerun_results_${{
-            needs.load-test-configurations.outputs.workflow_id }}_*
-
-      - name: Install flakeguard
-        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
-        shell: bash
-        run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/flakeguard@b08cab0f49aa13d5adb849554b56086f4dba8984 # flakguard@0.1.0
-
-      - name: Generate Flakeguard Reports
-        if: ${{ always() && env.FLAKEGUARD_ENABLE == 'true' }}
-        id: results
-        shell: bash
-        env:
-          # Directories where your test results may be
-          MAIN_RESULTS_DIR: "./flakeguard_main_results"
-          RERUN_RESULTS_DIR: "./flakeguard_rerun_results"
-          # Each directory's output
-          MAIN_REPORT_OUTPUT_PATH: "./flakeguard_run_report/main"
-          RERUN_REPORT_OUTPUT_PATH: "./flakeguard_run_report/rerun"
-          GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
-          GITHUB_WORKSPACE: ${{ github.workspace }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_WORKFLOW: ${{ github.workflow }}
-          GITHUB_SERVER_URL: ${{ github.server_url }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-          # If needed, override HEAD_REF or REF_NAME
-          GH_HEAD_REF: ${{ github.head_ref || github.ref_name }}
-        run: |
-          #!/usr/bin/env bash
-          set -euo pipefail
-
-          # ------------------------------------------------------------------------------
-          # Ensure flakeguard is on the PATH (assuming installed via 'go install')
-          # ------------------------------------------------------------------------------
-          export PATH="$PATH:$(go env GOPATH)/bin"
-
-          # ------------------------------------------------------------------------------
-          # Required environment variables
-          # ------------------------------------------------------------------------------
-          : "${MAIN_RESULTS_DIR:?Environment variable MAIN_RESULTS_DIR must be set}"
-          : "${RERUN_RESULTS_DIR:?Environment variable RERUN_RESULTS_DIR must be set}"
-          : "${MAIN_REPORT_OUTPUT_PATH:?Environment variable MAIN_REPORT_OUTPUT_PATH must be set}"
-          : "${RERUN_REPORT_OUTPUT_PATH:?Environment variable RERUN_REPORT_OUTPUT_PATH must be set}"
-          : "${GH_INPUTS_MAX_PASS_RATIO:?Environment variable GH_INPUTS_MAX_PASS_RATIO must be set}"
-          : "${GITHUB_WORKSPACE:?Environment variable GITHUB_WORKSPACE must be set}"
-          : "${GITHUB_REPOSITORY:?Environment variable GITHUB_REPOSITORY must be set}"
-          : "${GITHUB_WORKFLOW:?Environment variable GITHUB_WORKFLOW must be set}"
-          : "${GITHUB_SERVER_URL:?Environment variable GITHUB_SERVER_URL must be set}"
-          : "${GITHUB_RUN_ID:?Environment variable GITHUB_RUN_ID must be set}"
-
-          # If the branch name is passed in, we'll use it; otherwise fallback or leave empty
-          : "${GH_HEAD_REF:=${GITHUB_REF_NAME:-}}"
-
-          # GITHUB_STEP_SUMMARY / GITHUB_OUTPUT can be defined by GitHub automatically,
-          # but if they're not set, we define a fallback.
-          : "${GITHUB_STEP_SUMMARY:=${GITHUB_WORKSPACE}/step_summary.txt}"
-          : "${GITHUB_OUTPUT:=${GITHUB_WORKSPACE}/github_output.txt}"
-
-          echo "--------------------------------------------------------------------------------"
-          echo "Flakeguard Report Generation"
-          echo "--------------------------------------------------------------------------------"
-          echo "MAIN_RESULTS_DIR           : $MAIN_RESULTS_DIR"
-          echo "RERUN_RESULTS_DIR          : $RERUN_RESULTS_DIR"
-          echo "MAIN_REPORT_OUTPUT_PATH    : $MAIN_REPORT_OUTPUT_PATH"
-          echo "RERUN_REPORT_OUTPUT_PATH   : $RERUN_REPORT_OUTPUT_PATH"
-          echo "GH_INPUTS_MAX_PASS_RATIO   : $GH_INPUTS_MAX_PASS_RATIO"
-          echo "GITHUB_WORKSPACE           : $GITHUB_WORKSPACE"
-          echo "GITHUB_REPOSITORY          : $GITHUB_REPOSITORY"
-          echo "GITHUB_WORKFLOW            : $GITHUB_WORKFLOW"
-          echo "GITHUB_SERVER_URL          : $GITHUB_SERVER_URL"
-          echo "GITHUB_RUN_ID              : $GITHUB_RUN_ID"
-          echo "GH_HEAD_REF                : $GH_HEAD_REF"
-          echo "--------------------------------------------------------------------------------"
-
-          # ------------------------------------------------------------------------------
-          # Generate a UUID for the main report
-          # ------------------------------------------------------------------------------
-          MAIN_REPORT_ID=$(uuidgen)
-          echo "Using Main Report ID: $MAIN_REPORT_ID"
-
-          # Ensure the results directories exist (even if empty)
-          mkdir -p "$MAIN_RESULTS_DIR"
-
-          # ------------------------------------------------------------------------------
-          # Helper function: generate a Flakeguard test report for a given dir -> output file
-          #   - Accepts extra parameters (e.g., --report-id, --gen-report-id, --rerun-of-report-id)
-          # ------------------------------------------------------------------------------
-          generate_report() {
-            local results_dir="$1"
-            local output_path="$2"
-            shift 2
-            # The remaining arguments ($@) will be passed directly to `flakeguard generate-test-report`
-
-            # Check if directory exists and is non-empty
-            if [ -d "$results_dir" ]; then
-              echo "Generating Flakeguard report from '$results_dir' => '$output_path'..."
-
-              flakeguard generate-test-report \
-                --test-results-dir "$results_dir" \
-                --output-path "$output_path" \
-                --repo-path "$GITHUB_WORKSPACE" \
-                --codeowners-path "$GITHUB_WORKSPACE/.github/CODEOWNERS" \
-                --max-pass-ratio "$GH_INPUTS_MAX_PASS_RATIO" \
-                --repo-url "https://github.com/$GITHUB_REPOSITORY" \
-                --github-workflow-name "$GITHUB_WORKFLOW" \
-                --github-workflow-run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
-                --branch-name "$GH_HEAD_REF" \
-                --head-sha "$(git rev-parse HEAD)" \
-                "$@"  # pass along extra flags
-
-              local exit_code=$?
-              if [ "$exit_code" -eq 2 ]; then
-                echo "ERROR: Flakeguard encountered an error generating results from '$results_dir'"
-                echo "ERROR: Flakeguard encountered an error generating results from '$results_dir'" >> "$GITHUB_STEP_SUMMARY"
-                exit 2
-              elif [ "$exit_code" -ne 0 ]; then
-                echo "ERROR: Flakeguard failed (exit=$exit_code) for '$results_dir'"
-                exit "$exit_code"
-              fi
-            else
-              echo "Directory '$results_dir' does not exist. Skipping."
-            fi
-          }
-
-          # ------------------------------------------------------------------------------
-          # 1) Generate the "main" report (use explicit --report-id)
-          # ------------------------------------------------------------------------------
-          generate_report "$MAIN_RESULTS_DIR" "$MAIN_REPORT_OUTPUT_PATH" \
-            --report-id "$MAIN_REPORT_ID"
-
-          # ------------------------------------------------------------------------------
-          # 2) Generate the "rerun" report (use --gen-report-id + --rerun-of-report-id)
-          # ------------------------------------------------------------------------------
-          generate_report "$RERUN_RESULTS_DIR" "$RERUN_REPORT_OUTPUT_PATH" \
-            --gen-report-id \
-            --rerun-of-report-id "$MAIN_REPORT_ID"
-
-          # ------------------------------------------------------------------------------
-          # Print summary for each report (if it exists) and store in GITHUB_OUTPUT
-          # ------------------------------------------------------------------------------
-          if [ -f "$MAIN_REPORT_OUTPUT_PATH" ]; then
-            echo -e "\nFlakeguard Summary from '$MAIN_REPORT_OUTPUT_PATH':"
-            jq .summary_data "$MAIN_REPORT_OUTPUT_PATH" || true
-
-            main_summary="$(jq -c '.summary_data' "$MAIN_REPORT_OUTPUT_PATH" 2>/dev/null || echo '{}')"
-            echo "main_summary=$main_summary" >> "$GITHUB_OUTPUT"
-          fi
-
-          if [ -f "$RERUN_REPORT_OUTPUT_PATH" ]; then
-            echo -e "\nFlakeguard Summary from '$RERUN_REPORT_OUTPUT_PATH':"
-            jq .summary_data "$RERUN_REPORT_OUTPUT_PATH" || true
-
-            rerun_summary="$(jq -c '.summary_data' "$RERUN_REPORT_OUTPUT_PATH" 2>/dev/null || echo '{}')"
-            echo "rerun_summary=$rerun_summary" >> "$GITHUB_OUTPUT"
-          fi
-
-          echo "All done."
-          exit 0
-
-      - name: Upload Test Report as Artifact
-        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
-        uses: actions/upload-artifact@v4
-        with:
-          path: ./flakeguard_run_report
-          name: flakeguard_report_${{
-            needs.load-test-configurations.outputs.workflow_id }}
-          retention-days: 14
-
-      - name: Upload Failed Main Test Report With Logs as Artifact
-        id: upload-failed-report-with-logs
-        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
-        uses: actions/upload-artifact@v4.4.3
-        with:
-          path: ./flakeguard_run_report/main/failed-test-report-with-logs.json
-          name: failed-main-test-report-with-logs.json
-          retention-days: 90
-
-      - name: Send Flakeguard Results to Splunk
-        shell: bash
-        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
-        id: generate-report
-        env:
-          MAIN_REPORT_PATH: "./flakeguard_run_report/main/all-test-report.json"
-          RERUN_REPORT_PATH: "./flakeguard_run_report/rerun/all-test-report.json"
-          FAILED_LOGS_URL: ${{ steps.upload-failed-report-with-logs.outputs.artifact-url }}
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
-          GH_EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref }}
-          GH_EVENT_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          FLAKEGUARD_SPLUNK_ENDPOINT: ${{ secrets.FLAKEGUARD_SPLUNK_ENDPOINT }}
-          FLAKEGUARD_SPLUNK_HEC: ${{ secrets.FLAKEGUARD_SPLUNK_HEC }}
-        run: |
-          set -euo pipefail
-
-          # Ensure flakeguard is on PATH
-          export PATH="$PATH:$(go env GOPATH)/bin"
-
-          # ----------------------------------------------------------------------------
-          # Ensure required environment variables are set
-          # ----------------------------------------------------------------------------
-          : "${FLAKEGUARD_SPLUNK_ENDPOINT:?Environment variable FLAKEGUARD_SPLUNK_ENDPOINT must be set}"
-          : "${FLAKEGUARD_SPLUNK_HEC:?Environment variable FLAKEGUARD_SPLUNK_HEC must be set}"
-          : "${GITHUB_EVENT_NAME:?Environment variable GITHUB_EVENT_NAME must be set}"
-          : "${MAIN_REPORT_PATH:?Environment variable MAIN_REPORT_PATH must be set}"
-          # : "${RERUN_REPORT_PATH:?Environment variable RERUN_REPORT_PATH must be set}"
-
-          echo "Using Flakeguard Splunk Endpoint: $FLAKEGUARD_SPLUNK_ENDPOINT"
-          echo "Using GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME"
-          echo "Failed Logs URL: $FAILED_LOGS_URL"
-          echo "Main report path: $MAIN_REPORT_PATH"
-          echo "Rerun report path: $RERUN_REPORT_PATH"
-
-          # ----------------------------------------------------------------------------
-          # Helper function: send a single report if it exists
-          # ----------------------------------------------------------------------------
-          send_report_to_splunk() {
-            local report_path="$1"
-
-            echo "Checking if report exists: $report_path"
-            if [ -f "$report_path" ]; then
-              echo "Sending report to Splunk: $report_path"
-              flakeguard send-to-splunk \
-                --report-path "$report_path" \
-                --failed-logs-url "${FAILED_LOGS_URL}" \
-                --splunk-url "${FLAKEGUARD_SPLUNK_ENDPOINT}" \
-                --splunk-token "${FLAKEGUARD_SPLUNK_HEC}" \
-                --splunk-event "${GITHUB_EVENT_NAME}"
-
-              local exit_code=$?
-              if [ "$exit_code" -ne 0 ]; then
-                echo "ERROR: Flakeguard encountered an error sending report '$report_path' to Splunk"
-                exit "$exit_code"
-              fi
-            else
-              echo "File not found at '$report_path'. Skipping."
-            fi
-          }
-
-          # ----------------------------------------------------------------------------
-          # Attempt to send the main and rerun reports
-          # ----------------------------------------------------------------------------
-          send_report_to_splunk "$MAIN_REPORT_PATH"
-          send_report_to_splunk "$RERUN_REPORT_PATH"
-
-          # ----------------------------------------------------------------------------
-          # If we get here, any existing reports were sent successfully
-          # ----------------------------------------------------------------------------
-          echo "All done!"
-          exit 0
-
-      - name: Generate Flakeguard Github Reports
-        shell: bash
-        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
-        env:
-          MAIN_REPORT_PATH: "./flakeguard_run_report/main/all-test-report.json"
-          SUMMARY_MD_PATH: "./flakeguard_run_report/main/all-test-summary.md"
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-          GH_HEAD_REF: ${{ github.head_ref || github.ref_name }}
-          GH_INPUTS_MAX_PASS_RATIO: ${{ env.FLAKEGUARD_MAX_PASS_RATIO }}
-          GH_EVENT_NAME: ${{ github.event_name }}
-          GH_EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref }}
-          GH_EVENT_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          FAILED_LOGS_URL: ${{ steps.upload-failed-report-with-logs.outputs.artifact-url }}
-        run: |
-          #!/usr/bin/env bash
-          set -euo pipefail
-
-          # Fix flakeguard binary path
-          export PATH="$PATH:$(go env GOPATH)/bin"
-
-          # Ensure required environment variables are set
-          : "${GITHUB_REPOSITORY:?Environment variable GITHUB_REPOSITORY must be set}"
-          : "${GITHUB_RUN_ID:?Environment variable GITHUB_RUN_ID must be set}"
-          : "${GH_HEAD_REF:?Environment variable GH_HEAD_REF must be set}"
-          : "${GH_INPUTS_MAX_PASS_RATIO:?Environment variable GH_INPUTS_MAX_PASS_RATIO must be set}"
-          : "${MAIN_REPORT_PATH:?Environment variable MAIN_REPORT_PATH must be set}"
-          : "${SUMMARY_MD_PATH:?Environment variable SUMMARY_MD_PATH must be set}"
-
-          # Run flakeguard command
-          flakeguard generate-github-report \
-            --flakeguard-report "${MAIN_REPORT_PATH}" \
-            --summary-report-md-path "${SUMMARY_MD_PATH}" \
-            --failed-logs-url "${FAILED_LOGS_URL:-}" \
-            --github-repository "${GITHUB_REPOSITORY:-}" \
-            --github-run-id "${GITHUB_RUN_ID:-}" \
-            --current-branch "${GH_HEAD_REF:-}" \
-            --repo-url "https://github.com/${GITHUB_REPOSITORY:-}" \
-            --action-run-id "${GITHUB_RUN_ID:-}" \
-            --max-pass-ratio "${GH_INPUTS_MAX_PASS_RATIO:-}"
-
-          EXIT_CODE=$?
-          if [ "$EXIT_CODE" -eq 2 ]; then
-            echo "ERROR: Flakeguard encountered an error while generating reports"
-            # Append the same message to the step summary
-            if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
-              echo "ERROR: Flakeguard encountered an error while generating reports" >> "$GITHUB_STEP_SUMMARY"
-            fi
-            exit 2
-          fi
-
-          exit "$EXIT_CODE"
-
-      - name: Add Github Summary For Main Flakeguard Report
-        if: ${{ env.FLAKEGUARD_ENABLE == 'true' && (success() || failure()) }}
-        run: |
-          FILE_SIZE=$(wc -c < ./flakeguard_run_report/main/all-test-summary.md)
-                    echo "File size: $FILE_SIZE bytes"
-          SIZE_LIMIT=$((1024 * 1024))
-
-          if [ "$FILE_SIZE" -le "$SIZE_LIMIT" ]; then
-            cat ./flakeguard_run_report/main/all-test-summary.md >> $GITHUB_STEP_SUMMARY
-          else
-            echo "**We found flaky tests, so many flaky tests that the summary is too large for github actions step summaries!**" >> $GITHUB_STEP_SUMMARY
-            echo "**Please see logs, or the attached `all-test-summary.md` artifact**" >> $GITHUB_STEP_SUMMARY
-            cat ./flakeguard_run_report/main/all-test-summary.md
-          fi
-
       - name: Download all test result artifacts
         uses: actions/download-artifact@v4.1.8
         with:

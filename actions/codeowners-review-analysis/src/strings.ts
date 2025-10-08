@@ -5,10 +5,11 @@ import type { CodeOwnersReviewEntry } from "./run";
 
 import {
   filterFor,
-  getOverallState,
+  getOverallStateForSingleEntry,
   OwnerReviewStatus,
   PullRequestReviewStateExt,
   iconFor,
+  textFor,
 } from "./review-status";
 
 const LEGEND =
@@ -24,43 +25,44 @@ export function formatPendingReviewsMarkdown(
   overallStatus: PullRequestReviewStateExt,
   summaryUrl: string,
 ): string {
-  const lines: string[] = ["### Codeowners Review Summary", "", LEGEND, ""];
+  const lines: string[] = ["### CORA - Pending Reviewers", ""];
 
   if (overallStatus === PullRequestReviewStateExt.Approved) {
     lines.push(`All codeowners have approved! ${iconFor(overallStatus)}`, "");
-    return lines.join("\n");
-  }
+  } else {
+    lines.push("| Codeowners Entry | Overall | Num Files | Owners |");
+    lines.push("| ---------------- | ------- | --------- | ------ |");
 
-  lines.push("| Codeowners Entry | Overall | Files | Owners |");
-  lines.push("| ---------------- | ------- | ----- | ------ |");
+    const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
+      return a.lineNumber - b.lineNumber;
+    });
 
-  const sortedEntries = [...entryMap.entries()].sort(([a, _], [b, __]) => {
-    return a.lineNumber - b.lineNumber;
-  });
+    for (const [entry, processed] of sortedEntries) {
+      const overall = processed.state;
 
-  for (const [entry, processed] of sortedEntries) {
-    const overall = processed.state;
+      // Only show if not satisfied (skip Approved)
+      if (overall === PullRequestReviewStateExt.Approved) {
+        continue;
+      }
 
-    // Only show if not satisfied (skip Approved)
-    if (overall === PullRequestReviewStateExt.Approved) {
-      continue;
+      const owners =
+        entry.owners && entry.owners.length > 0
+          ? entry.owners
+          : ["_No owners found_"];
+      const overallIcon = iconFor(overall);
+
+      const patternCell = entry.htmlLineUrl
+        ? "[`" + `${entry.rawPattern}` + "`](" + `${entry.htmlLineUrl})`
+        : "[`" + `${entry.rawPattern}` + "`]";
+
+      // Just one row per entry, pattern as inline code
+      lines.push(
+        `| ${patternCell} | ${overallIcon} | ${processed.files.length} |${owners.join(", ")} |`,
+      );
     }
-
-    const owners =
-      entry.owners && entry.owners.length > 0
-        ? entry.owners
-        : ["_No owners found_"];
-    const overallIcon = iconFor(overall);
-
-    const patternCell = entry.htmlLineUrl
-      ? "[`" + `${entry.rawPattern}` + "`](" + `${entry.htmlLineUrl})`
-      : "[`" + `${entry.rawPattern}` + "`]";
-
-    // Just one row per entry, pattern as inline code
-    lines.push(
-      `| ${patternCell} | ${overallIcon} | ${processed.files.length} |${owners.join(", ")} |`,
-    );
   }
+
+  lines.push("", "", LEGEND, "");
 
   if (summaryUrl) {
     lines.push("");
@@ -86,10 +88,7 @@ export async function formatAllReviewsSummaryByEntry(
   entryMap: Map<CodeownersEntry, CodeOwnersReviewEntry>,
 ): Promise<void> {
   // Top-level heading & legend once
-  core.summary
-    .addHeading("Codeowners Review Details", 2)
-    .addRaw(LEGEND)
-    .addBreak();
+  core.summary.addHeading("Codeowners Review Details", 2).addBreak();
 
   const escapeHtml = (s: string) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -123,7 +122,7 @@ export async function formatAllReviewsSummaryByEntry(
         ? entry.owners
         : ["_No owners found_"];
 
-    const overallIcon = iconFor(processed.state);
+    const overallSummary = textFor(processed.state);
 
     const grouped =
       (processed.reviewStatusesByOwner as Map<string, OwnerReviewStatus[]>) ??
@@ -152,7 +151,7 @@ export async function formatAllReviewsSummaryByEntry(
       const statuses = grouped.get(ownerName) ?? [];
       const teamState =
         statuses.length > 0
-          ? getOverallState(statuses)
+          ? getOverallStateForSingleEntry(statuses)
           : PullRequestReviewStateExt.Pending;
 
       const parts: string[] = [];
@@ -178,6 +177,9 @@ export async function formatAllReviewsSummaryByEntry(
         icon: string,
         group: OwnerReviewStatus[],
       ) => {
+        core.debug(`Collapsing ${group.length} ${label} for ${ownerName}`);
+        core.debug(JSON.stringify(group, null, 2));
+
         const names = group.map((s) => s.actor ?? "-").join(", ");
         return `<span title="${escapeHtml(names)}">+${group.length} ${label} ${icon}</span>`;
       };
@@ -240,7 +242,7 @@ export async function formatAllReviewsSummaryByEntry(
 
     core.summary
       .addHeading(
-        `${overallIcon} - <code>${escapeHtml(entry.rawPattern)}</code>`,
+        `${overallSummary} - <code>${escapeHtml(entry.rawPattern)}</code>`,
         3,
       )
       .addTable(metaRows)
@@ -248,5 +250,5 @@ export async function formatAllReviewsSummaryByEntry(
       .addBreak();
   }
 
-  await core.summary.addSeparator().write();
+  await core.summary.addBreak().addRaw(LEGEND).addSeparator().write();
 }

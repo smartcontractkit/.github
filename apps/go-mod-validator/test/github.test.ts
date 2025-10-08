@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/no-explicit-any: 0 */
 import { isGoModReferencingDefaultBranch, Octokit } from "../src/github";
 import { describe, expect, it, vi } from "vitest";
 import { GoModule } from "../src/deps";
@@ -35,6 +36,7 @@ const mockOctokit = vi.mocked<{
       } satisfies Partial<Octokit["rest"]["repos"]> as any,
       git: {
         getRef: vi.fn() as any,
+
         getTag: vi.fn() as any,
       } satisfies Partial<Octokit["rest"]["git"]> as any,
     },

@@ -1,5 +1,23 @@
 # build-push-docker
 
+## 1.0.1
+
+### Patch Changes
+
+- [#1269](https://github.com/smartcontractkit/.github/pull/1269)
+  [`dbc2003`](https://github.com/smartcontractkit/.github/commit/dbc20033889046b15a5b683987be85f123dfa5a3)
+  Thanks [@chainchad](https://github.com/chainchad)! - Fix reference to
+  Dockerfile in ECR parse script
+
+## 1.0.0
+
+### Major Changes
+
+- [#1264](https://github.com/smartcontractkit/.github/pull/1264)
+  [`06009aa`](https://github.com/smartcontractkit/.github/commit/06009aa8b59da942971f2b05c3fb2fc6f9029689)
+  Thanks [@chainchad](https://github.com/chainchad)! - Allow ECR login for
+  private ECR base images
+
 ## 0.9.0
 
 ### Minor Changes

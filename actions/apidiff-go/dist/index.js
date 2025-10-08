@@ -19881,11 +19881,11 @@ var require_isexe = __commonJS({
   "node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js"(exports2, module2) {
     "use strict";
     var fs3 = require("fs");
-    var core6;
+    var core7;
     if (process.platform === "win32" || global.TESTING_WINDOWS) {
-      core6 = require_windows();
+      core7 = require_windows();
     } else {
-      core6 = require_mode();
+      core7 = require_mode();
     }
     module2.exports = isexe;
     isexe.sync = sync;
@@ -19908,7 +19908,7 @@ var require_isexe = __commonJS({
           });
         });
       }
-      core6(path7, options || {}, function(er, is) {
+      core7(path7, options || {}, function(er, is) {
         if (er) {
           if (er.code === "EACCES" || options && options.ignoreErrors) {
             er = null;
@@ -19920,7 +19920,7 @@ var require_isexe = __commonJS({
     }
     function sync(path7, options) {
       try {
-        return core6.sync(path7, options || {});
+        return core7.sync(path7, options || {});
       } catch (er) {
         if (options && options.ignoreErrors || er.code === "EACCES") {
           return false;
@@ -24371,10 +24371,10 @@ var require_github = __commonJS({
 });
 
 // actions/apidiff-go/src/run.ts
-var core5 = __toESM(require_core());
+var core6 = __toESM(require_core());
 
 // actions/apidiff-go/src/apidiff.ts
-var core = __toESM(require_core());
+var core2 = __toESM(require_core());
 var import_path = require("path");
 
 // node_modules/.pnpm/is-plain-obj@4.1.0/node_modules/is-plain-obj/index.js
@@ -30558,17 +30558,17 @@ var addConcurrentStream = (concurrentStreams, stream, waitName) => {
   if (!weakMap.has(stream)) {
     weakMap.set(stream, []);
   }
-  const promises = weakMap.get(stream);
+  const promises2 = weakMap.get(stream);
   const promise = createDeferred();
-  promises.push(promise);
+  promises2.push(promise);
   const resolve2 = promise.resolve.bind(promise);
-  return { resolve: resolve2, promises };
+  return { resolve: resolve2, promises: promises2 };
 };
-var waitForConcurrentStreams = async ({ resolve: resolve2, promises }, subprocess) => {
+var waitForConcurrentStreams = async ({ resolve: resolve2, promises: promises2 }, subprocess) => {
   resolve2();
   const [isSubprocessExit] = await Promise.race([
     Promise.allSettled([true, subprocess]),
-    Promise.all([false, ...promises])
+    Promise.all([false, ...promises2])
   ]);
   return !isSubprocessExit;
 };
@@ -31152,21 +31152,121 @@ var {
 
 // actions/apidiff-go/src/apidiff.ts
 var fs = __toESM(require("fs"));
+
+// actions/apidiff-go/src/run-inputs.ts
+var core = __toESM(require_core());
+var github = __toESM(require_github());
+var CL_LOCAL_DEBUG = process.env.CL_LOCAL_DEBUG === "true";
+function getInputs() {
+  core.info("Getting inputs for run.");
+  const inputs = {
+    directory: getRunInputString("directory"),
+    goModPaths: getRunInputStringArray("goModPaths"),
+    baseRef: getRunInputString("baseRef"),
+    headRef: getRunInputString("headRef"),
+    enforceCompatible: getRunInputBoolean("enforceCompatible"),
+    postComment: getRunInputBoolean("postComment"),
+    apidiffVersion: getRunInputString("apidiffVersion")
+  };
+  core.info(`Inputs: ${JSON.stringify(inputs)}`);
+  return inputs;
+}
+function getInvokeContext() {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    core.setFailed("GitHub token is not set.");
+    return process.exit(1);
+  }
+  const { context: context3 } = github;
+  const { pull_request } = context3.payload;
+  const { owner, repo } = github.context.repo;
+  const base = pull_request?.base.sha;
+  const head = pull_request?.head.sha;
+  const prNumber = pull_request?.number;
+  core.info(`Event name: ${context3.eventName}`);
+  core.info(
+    `Owner: ${owner}, Repo: ${repo}, Base: ${base}, Head: ${head}, PR: ${prNumber ?? "N/A"}`
+  );
+  return { token, owner, repo, base, head, prNumber };
+}
+var runInputsConfiguration = {
+  directory: {
+    parameter: "directory",
+    localParameter: "DIRECTORY"
+  },
+  goModPaths: {
+    parameter: "go-mod-paths",
+    localParameter: "GO_MOD_PATHS"
+  },
+  baseRef: {
+    parameter: "base-ref",
+    localParameter: "BASE_REF"
+  },
+  headRef: {
+    parameter: "head-ref",
+    localParameter: "HEAD_REF"
+  },
+  enforceCompatible: {
+    parameter: "enforce-compatible",
+    localParameter: "ENFORCE_COMPATIBLE"
+  },
+  postComment: {
+    parameter: "post-comment",
+    localParameter: "POST_COMMENT"
+  },
+  apidiffVersion: {
+    parameter: "apidiff-version",
+    localParameter: "APIDIFF_VERSION"
+  }
+};
+function getRunInputString(input) {
+  const inputKey = getInputKey(input);
+  return core.getInput(inputKey, {
+    required: true
+  });
+}
+function getRunInputStringArray(input) {
+  const inputKey = getInputKey(input);
+  const value = core.getInput(inputKey, {
+    required: true
+  }).trim();
+  if (value.includes(",")) {
+    return value.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
+  }
+  return [value];
+}
+function getRunInputBoolean(input) {
+  const inputKey = getInputKey(input);
+  return core.getBooleanInput(inputKey, {
+    required: true
+  });
+}
+function getInputKey(input) {
+  const config = runInputsConfiguration[input];
+  if (!config) {
+    throw new Error(`No configuration found for input: ${input}`);
+  }
+  const isLocalDebug = process.env.CL_LOCAL_DEBUG;
+  const inputKey = isLocalDebug ? config.localParameter : config.parameter;
+  return inputKey;
+}
+
+// actions/apidiff-go/src/apidiff.ts
 async function runApidiff(baseDir, headDir, goModPaths) {
-  core.startGroup("Running apidiff");
-  core.info(`Running apidiff between base and head directories`);
-  core.info(`Base directory: ${baseDir}`);
-  core.info(`Head directory: ${headDir}`);
-  core.info(`Go module paths: ${goModPaths.join(", ")}`);
+  core2.startGroup("Running apidiff");
+  core2.info(`Running apidiff between base and head directories`);
+  core2.info(`Base directory: ${baseDir}`);
+  core2.info(`Head directory: ${headDir}`);
+  core2.info(`Go module paths: ${goModPaths.join(", ")}`);
   const results = {};
   for (const goModPath of goModPaths) {
     const fullModulePathBase = (0, import_path.join)(baseDir, goModPath);
     const fullModulePathHead = (0, import_path.join)(headDir, goModPath);
     if (!fs.existsSync(fullModulePathBase)) {
-      core.warning(`Module not found: ${fullModulePathBase}`);
+      core2.warning(`Module not found: ${fullModulePathBase}`);
       continue;
     } else if (!fs.existsSync(fullModulePathHead)) {
-      core.warning(`Module not found: ${fullModulePathHead}`);
+      core2.warning(`Module not found: ${fullModulePathHead}`);
       continue;
     }
     const moduleName = await getModuleName(fullModulePathBase);
@@ -31177,23 +31277,26 @@ async function runApidiff(baseDir, headDir, goModPaths) {
         generateExport(fullModulePathBase, baseExportFile),
         generateExport(fullModulePathHead, headExportFile)
       ]);
-      core.info(`Comparing exports for module ${moduleName}`);
-      core.info(`Base export file: ${baseExportFile}`);
-      core.info(`Head export file: ${headExportFile}`);
+      core2.info(`Comparing exports for module ${moduleName}`);
+      core2.info(`Base export file: ${baseExportFile}`);
+      core2.info(`Head export file: ${headExportFile}`);
       const { stdout, stderr, exitCode } = await execa(
         "apidiff",
         ["-m", baseExportFile, headExportFile],
         { reject: false }
       );
+      if (CL_LOCAL_DEBUG) {
+        await fs.promises.writeFile(`./apidiff-output.txt`, stdout);
+      }
       if (stderr) {
-        core.warning(`apidiff stderr: ${stderr}`);
+        core2.warning(`apidiff stderr: ${stderr}`);
       }
       if (exitCode !== 0 && exitCode !== 1) {
         throw new Error(`apidiff failed with exit code ${exitCode}: ${stderr}`);
       }
       results[moduleName] = stdout;
     } catch (error2) {
-      core.setFailed(
+      core2.setFailed(
         `Failed to generate exports for module ${moduleName}: ${error2}`
       );
       continue;
@@ -31206,15 +31309,15 @@ async function runApidiff(baseDir, headDir, goModPaths) {
           fs.unlinkSync(headExportFile);
         }
       } catch (error2) {
-        core.warning(`Failed to clean up export files: ${error2}`);
+        core2.warning(`Failed to clean up export files: ${error2}`);
       }
-      core.endGroup();
+      core2.endGroup();
     }
   }
   return results;
 }
 async function generateExport(modulePath, outFile) {
-  core.info(
+  core2.info(
     `Generating export for module at ${modulePath}. Writing to ${outFile}`
   );
   await execa("apidiff", ["-m", "-w", outFile, "."], {
@@ -31225,7 +31328,7 @@ async function getModuleName(goModDir) {
   try {
     const goModPath = (0, import_path.join)(goModDir, "go.mod");
     if (!fs.existsSync(goModPath)) {
-      core.warning(`go.mod not found at ${goModPath}, using directory name`);
+      core2.warning(`go.mod not found at ${goModPath}, using directory name`);
       return (0, import_path.basename)(goModDir);
     }
     const goModContent = fs.readFileSync(goModPath, "utf8");
@@ -31234,45 +31337,45 @@ async function getModuleName(goModDir) {
       const moduleName = moduleMatch[1].trim();
       return moduleName.replace(/[^a-zA-Z0-9\-_]/g, "-");
     }
-    core.warning(
+    core2.warning(
       `Could not parse module name from ${goModPath}, using directory name`
     );
     return (0, import_path.basename)(goModDir);
   } catch (error2) {
-    core.warning(`Error reading go.mod: ${error2}, using directory name`);
+    core2.warning(`Error reading go.mod: ${error2}, using directory name`);
     return (0, import_path.basename)(goModDir);
   }
 }
 async function installApidiff(apidiffVersion, forceInstall = false) {
-  core.startGroup("Installing apidiff");
-  core.info(`Requested apidiff version: ${apidiffVersion}`);
-  core.info(`Force install? ${forceInstall}`);
+  core2.startGroup("Installing apidiff");
+  core2.info(`Requested apidiff version: ${apidiffVersion}`);
+  core2.info(`Force install? ${forceInstall}`);
   try {
     const isInstalled = await checkApidiffInstalled();
     if (isInstalled && !forceInstall) {
-      core.info("apidiff is already installed");
+      core2.info("apidiff is already installed");
       return;
     }
-    core.info("Installing apidiff...");
+    core2.info("Installing apidiff...");
     await execa("go", [
       "install",
       `golang.org/x/exp/cmd/apidiff@${apidiffVersion}`
     ]);
     const goPath = process.env.GOPATH || (0, import_path.join)(process.env.HOME || "", "go");
     const goBin = (0, import_path.join)(goPath, "bin");
-    core.addPath(goBin);
-    core.info("apidiff installed successfully");
+    core2.addPath(goBin);
+    core2.info("apidiff installed successfully");
   } catch (error2) {
     const message = error2 && typeof error2 === "object" && "message" in error2 ? String(error2.message) : String(error2);
     throw new Error(`Failed to install apidiff: ${message}`);
   } finally {
-    core.endGroup();
+    core2.endGroup();
   }
 }
 async function checkApidiffInstalled() {
   try {
     await execa("which", ["apidiff"], { stderr: "ignore", stdout: "ignore" });
-    core.warning(
+    core2.warning(
       "apidiff is already installed and may not be the correct version"
     );
     return true;
@@ -31280,17 +31383,75 @@ async function checkApidiffInstalled() {
     return false;
   }
 }
+function parseApidiffOutputs(output) {
+  const out = [];
+  for (const [moduleName, moduleOutput] of Object.entries(output)) {
+    out.push(parseApidiffOutput(moduleName, moduleOutput));
+  }
+  return out;
+}
+function parseApidiffOutput(moduleName, output) {
+  const lines = output.split(/\r?\n/);
+  const result = {
+    moduleName,
+    meta: [],
+    incompatible: [],
+    compatible: []
+  };
+  let section = null;
+  let currentMeta = null;
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (line.startsWith("! ")) {
+      if (currentMeta) result.meta.push(currentMeta);
+      currentMeta = { header: line.slice(2), first: "", second: "" };
+      section = "meta";
+      continue;
+    }
+    if (section === "meta" && currentMeta) {
+      if (line.startsWith("first:")) {
+        currentMeta.first = line.slice(6).trim();
+        continue;
+      }
+      if (line.startsWith("second:")) {
+        currentMeta.second = line.slice(7).trim();
+        continue;
+      }
+    }
+    if (line === "Incompatible changes:") {
+      if (currentMeta) result.meta.push(currentMeta);
+      currentMeta = null;
+      section = "incompatible";
+      continue;
+    }
+    if (line === "Compatible changes:") {
+      section = "compatible";
+      continue;
+    }
+    if ((section === "incompatible" || section === "compatible") && line.startsWith("- ")) {
+      const content = line.slice(2);
+      const sepIdx = content.indexOf(": ");
+      if (sepIdx >= 0) {
+        const element = content.slice(0, sepIdx);
+        const change = content.slice(sepIdx + 2);
+        (section === "incompatible" ? result.incompatible : result.compatible).push({ element, change });
+      }
+    }
+  }
+  if (currentMeta) result.meta.push(currentMeta);
+  return result;
+}
 
 // actions/apidiff-go/src/git-worktree.ts
-var core2 = __toESM(require_core());
+var core3 = __toESM(require_core());
 var fs2 = __toESM(require("fs"));
 var path6 = __toESM(require("path"));
 async function setupWorktree(directory, base, head, repoName) {
-  core2.startGroup("Setting up git worktree");
+  core3.startGroup("Setting up git worktree");
   await validateGitRepositoryRoot(directory);
-  core2.info(`Setting up worktrees for repository: ${directory}`);
-  core2.info(`Head ref: ${head}`);
-  core2.info(`Base ref: ${base}`);
+  core3.info(`Setting up worktrees for repository: ${directory}`);
+  core3.info(`Head ref: ${head}`);
+  core3.info(`Base ref: ${base}`);
   try {
     const { stdout: currentHead } = await execa("git", ["rev-parse", "HEAD"], {
       cwd: directory
@@ -31303,42 +31464,42 @@ async function setupWorktree(directory, base, head, repoName) {
     const { stdout: remotes } = await execa("git", ["remote", "-v"], {
       cwd: directory
     });
-    core2.info(`Current HEAD: ${currentHead.trim()}`);
-    core2.info(`Current branch: ${currentBranch.trim()}`);
-    core2.info(`Available remotes:
+    core3.info(`Current HEAD: ${currentHead.trim()}`);
+    core3.info(`Current branch: ${currentBranch.trim()}`);
+    core3.info(`Available remotes:
 ${remotes}`);
   } catch (error2) {
-    core2.warning(`Failed to get git debug info: ${error2}`);
+    core3.warning(`Failed to get git debug info: ${error2}`);
   }
   let actualBaseRef = base;
   const baseIsSha = await isCommitSha(directory, base);
   const headIsSha = await isCommitSha(directory, head);
   if (!baseIsSha && !headIsSha) {
     actualBaseRef = await findMergeBase(directory, head, base);
-    core2.info(`Both refs are branches - using merge-base: ${actualBaseRef}`);
-    core2.info(`Will compare changes from ${actualBaseRef} to ${head}`);
+    core3.info(`Both refs are branches - using merge-base: ${actualBaseRef}`);
+    core3.info(`Will compare changes from ${actualBaseRef} to ${head}`);
   } else {
-    core2.info(`Using direct ref comparison (at least one ref is a SHA)`);
-    core2.info(`Will compare changes from ${base} to ${head}`);
+    core3.info(`Using direct ref comparison (at least one ref is a SHA)`);
+    core3.info(`Will compare changes from ${base} to ${head}`);
   }
   const worktreePath = createWorktreePath(directory, repoName, actualBaseRef);
   try {
     await checkoutRef(directory, head);
     await cleanupExistingWorktree(directory, worktreePath);
     await createWorktree(directory, worktreePath, actualBaseRef);
-    core2.info(`Successfully created worktree at: ${worktreePath}`);
+    core3.info(`Successfully created worktree at: ${worktreePath}`);
     return {
       headRepoPath: directory,
       baseRepoPath: worktreePath
     };
   } catch (error2) {
-    core2.error(`Failed to setup worktree: ${error2}`);
+    core3.error(`Failed to setup worktree: ${error2}`);
     throw error2;
   } finally {
-    core2.info(`Worktree setup completed for ${repoName}`);
-    core2.info(`Head worktree: ${directory}`);
-    core2.info(`Base worktree: ${worktreePath}`);
-    core2.endGroup();
+    core3.info(`Worktree setup completed for ${repoName}`);
+    core3.info(`Head worktree: ${directory}`);
+    core3.info(`Base worktree: ${worktreePath}`);
+    core3.endGroup();
   }
 }
 async function validateGitRepositoryRoot(directory) {
@@ -31373,7 +31534,7 @@ async function resolveRef(repoDir, ref) {
       await execa("git", ["rev-parse", "--verify", remoteRef], {
         cwd: repoDir
       });
-      core2.info(`Resolved ${ref} to ${remoteRef}`);
+      core3.info(`Resolved ${ref} to ${remoteRef}`);
       return remoteRef;
     } catch (remoteError) {
       throw new Error(
@@ -31383,11 +31544,11 @@ async function resolveRef(repoDir, ref) {
   }
 }
 async function findMergeBase(repoDir, head, base) {
-  core2.info(`Finding merge-base between ${head} and ${base}`);
+  core3.info(`Finding merge-base between ${head} and ${base}`);
   try {
     const resolvedHead = await resolveRef(repoDir, head);
     const resolvedBase = await resolveRef(repoDir, base);
-    core2.info(`Resolved refs: head=${resolvedHead}, base=${resolvedBase}`);
+    core3.info(`Resolved refs: head=${resolvedHead}, base=${resolvedBase}`);
     const { stdout: mergeBase } = await execa(
       "git",
       ["merge-base", resolvedHead, resolvedBase],
@@ -31396,7 +31557,7 @@ async function findMergeBase(repoDir, head, base) {
       }
     );
     const trimmedMergeBase = mergeBase.trim();
-    core2.info(`Found merge-base: ${trimmedMergeBase}`);
+    core3.info(`Found merge-base: ${trimmedMergeBase}`);
     return trimmedMergeBase;
   } catch (error2) {
     throw new Error(
@@ -31424,7 +31585,7 @@ function createWorktreePath(repoDir, repoName, ref) {
   return path6.join(parentDir, `worktree-${worktreeName}`);
 }
 async function checkoutRef(repoDir, ref) {
-  core2.info(`Checking out ref: ${ref}`);
+  core3.info(`Checking out ref: ${ref}`);
   try {
     const resolvedRef = await resolveRef(repoDir, ref);
     const { stdout: currentShaRef } = await execa(
@@ -31434,7 +31595,7 @@ async function checkoutRef(repoDir, ref) {
         cwd: repoDir
       }
     );
-    core2.info(`Current SHA Ref: ${currentShaRef}`);
+    core3.info(`Current SHA Ref: ${currentShaRef}`);
     const { stdout: currentBranch } = await execa(
       "git",
       ["rev-parse", "--abbrev-ref", "HEAD"],
@@ -31442,7 +31603,7 @@ async function checkoutRef(repoDir, ref) {
         cwd: repoDir
       }
     );
-    core2.info(`Current branch: ${currentBranch}`);
+    core3.info(`Current branch: ${currentBranch}`);
     const { stdout: targetSha } = await execa(
       "git",
       ["rev-parse", resolvedRef],
@@ -31451,13 +31612,13 @@ async function checkoutRef(repoDir, ref) {
       }
     );
     if (currentShaRef.trim() === targetSha.trim()) {
-      core2.info(
+      core3.info(
         `Already at ref: ${ref} (${targetSha.trim()}) - skipping checkout`
       );
       return;
     }
     await execa("git", ["checkout", resolvedRef], { cwd: repoDir });
-    core2.info(`Successfully checked out: ${resolvedRef}`);
+    core3.info(`Successfully checked out: ${resolvedRef}`);
   } catch (error2) {
     throw new Error(`Failed to checkout ref ${ref}: ${error2}`);
   }
@@ -31466,7 +31627,7 @@ async function cleanupExistingWorktree(repoDir, worktreePath) {
   if (!fs2.existsSync(worktreePath)) {
     return;
   }
-  core2.info(`Cleaning up existing worktree: ${worktreePath}`);
+  core3.info(`Cleaning up existing worktree: ${worktreePath}`);
   try {
     const worktreeName = path6.basename(worktreePath);
     try {
@@ -31474,17 +31635,17 @@ async function cleanupExistingWorktree(repoDir, worktreePath) {
         cwd: repoDir
       });
     } catch (error2) {
-      core2.debug(`Worktree not tracked by Git: ${error2}`);
+      core3.debug(`Worktree not tracked by Git: ${error2}`);
     }
     if (fs2.existsSync(worktreePath)) {
       fs2.rmSync(worktreePath, { recursive: true, force: true });
     }
   } catch (error2) {
-    core2.warning(`Failed to clean up existing worktree: ${error2}`);
+    core3.warning(`Failed to clean up existing worktree: ${error2}`);
   }
 }
 async function createWorktree(repoDir, worktreePath, ref) {
-  core2.info(`Creating worktree for ref: ${ref} at ${worktreePath}`);
+  core3.info(`Creating worktree for ref: ${ref} at ${worktreePath}`);
   try {
     await execa("git", ["worktree", "add", worktreePath, ref], {
       cwd: repoDir
@@ -31507,27 +31668,27 @@ async function createWorktree(repoDir, worktreePath, ref) {
         `Worktree has wrong ref. Expected: ${expectedRef.trim()}, Got: ${checkedOutRef.trim()}`
       );
     }
-    core2.info(`Worktree created successfully at: ${worktreePath}`);
+    core3.info(`Worktree created successfully at: ${worktreePath}`);
   } catch (error2) {
     throw new Error(`Failed to create worktree: ${error2}`);
   }
 }
 async function cleanupWorktrees(result) {
-  core2.info(`Cleaning up worktree: ${result.baseRepoPath}`);
+  core3.info(`Cleaning up worktree: ${result.baseRepoPath}`);
   try {
     await cleanupExistingWorktree(result.headRepoPath, result.baseRepoPath);
-    core2.info("Worktree cleanup completed");
+    core3.info("Worktree cleanup completed");
   } catch (error2) {
-    core2.warning(`Failed to cleanup worktree: ${error2}`);
+    core3.warning(`Failed to cleanup worktree: ${error2}`);
   }
 }
 
 // actions/apidiff-go/src/github.ts
-var core3 = __toESM(require_core());
-var github = __toESM(require_github());
+var core4 = __toESM(require_core());
+var github2 = __toESM(require_github());
 var MARKDOWN_FINGERPRINT = "<!-- chainlink-apidiff-go -->";
 async function upsertPRComment(token, owner, repo, pull_number, commentBody) {
-  const octokit = github.getOctokit(token);
+  const octokit = github2.getOctokit(token);
   const { data: comments } = await octokit.rest.issues.listComments({
     owner,
     repo,
@@ -31557,12 +31718,12 @@ ${MARKDOWN_FINGERPRINT}`;
       });
     }
   } catch (error2) {
-    core3.warning(`Failed to upsert PR comment: ${error2}`);
+    core4.warning(`Failed to upsert PR comment: ${error2}`);
   }
 }
 async function getSummaryUrl(token, owner, repo) {
-  const runId = github.context.runId;
-  const octokit = github.getOctokit(token);
+  const runId = github2.context.runId;
+  const octokit = github2.getOctokit(token);
   try {
     const { data } = await octokit.rest.actions.listJobsForWorkflowRun({
       owner,
@@ -31570,284 +31731,591 @@ async function getSummaryUrl(token, owner, repo) {
       run_id: runId
     });
     if (data.jobs.length !== 1) {
-      core3.warning(
+      core4.warning(
         `Expected exactly one job in workflow run, found ${data.jobs.length}. Cannot determine summary URL.`
       );
       return "";
     }
     return `https://github.com/${owner}/${repo}/actions/runs/${runId}/#summary-${data.jobs[0].id}`;
   } catch (error2) {
-    core3.warning(`Failed to get summary link: ${error2}`);
+    core4.warning(`Failed to get summary link: ${error2}`);
     return "";
   }
 }
 
-// actions/apidiff-go/src/run-inputs.ts
-var core4 = __toESM(require_core());
-var github2 = __toESM(require_github());
-function getInputs() {
-  core4.info("Getting inputs for run.");
-  const inputs = {
-    directory: getRunInputString("directory"),
-    goModPaths: getRunInputStringArray("goModPaths"),
-    baseRef: getRunInputString("baseRef"),
-    headRef: getRunInputString("headRef"),
-    enforceCompatible: getRunInputBoolean("enforceCompatible"),
-    apidiffVersion: getRunInputString("apidiffVersion")
-  };
-  core4.info(`Inputs: ${JSON.stringify(inputs)}`);
-  return inputs;
-}
-function getInvokeContext() {
-  const token = process.env.GITHUB_TOKEN;
-  if (!token) {
-    core4.setFailed("GitHub token is not set.");
-    return process.exit(1);
+// actions/apidiff-go/src/string-processor.ts
+var core5 = __toESM(require_core());
+
+// node_modules/.pnpm/diff@8.0.2/node_modules/diff/libesm/diff/base.js
+var Diff = class {
+  diff(oldStr, newStr, options = {}) {
+    let callback;
+    if (typeof options === "function") {
+      callback = options;
+      options = {};
+    } else if ("callback" in options) {
+      callback = options.callback;
+    }
+    const oldString = this.castInput(oldStr, options);
+    const newString = this.castInput(newStr, options);
+    const oldTokens = this.removeEmpty(this.tokenize(oldString, options));
+    const newTokens = this.removeEmpty(this.tokenize(newString, options));
+    return this.diffWithOptionsObj(oldTokens, newTokens, options, callback);
   }
-  const { context: context3 } = github2;
-  const { pull_request } = context3.payload;
-  const { owner, repo } = github2.context.repo;
-  const base = pull_request?.base.sha;
-  const head = pull_request?.head.sha;
-  const prNumber = pull_request?.number;
-  core4.info(`Event name: ${context3.eventName}`);
-  core4.info(
-    `Owner: ${owner}, Repo: ${repo}, Base: ${base}, Head: ${head}, PR: ${prNumber ?? "N/A"}`
-  );
-  return { token, owner, repo, base, head, prNumber };
-}
-var runInputsConfiguration = {
-  directory: {
-    parameter: "directory",
-    localParameter: "DIRECTORY"
-  },
-  goModPaths: {
-    parameter: "go-mod-paths",
-    localParameter: "GO_MOD_PATHS"
-  },
-  baseRef: {
-    parameter: "base-ref",
-    localParameter: "BASE_REF"
-  },
-  headRef: {
-    parameter: "head-ref",
-    localParameter: "HEAD_REF"
-  },
-  enforceCompatible: {
-    parameter: "enforce-compatible",
-    localParameter: "ENFORCE_COMPATIBLE"
-  },
-  apidiffVersion: {
-    parameter: "apidiff-version",
-    localParameter: "APIDIFF_VERSION"
+  diffWithOptionsObj(oldTokens, newTokens, options, callback) {
+    var _a;
+    const done = (value) => {
+      value = this.postProcess(value, options);
+      if (callback) {
+        setTimeout(function() {
+          callback(value);
+        }, 0);
+        return void 0;
+      } else {
+        return value;
+      }
+    };
+    const newLen = newTokens.length, oldLen = oldTokens.length;
+    let editLength = 1;
+    let maxEditLength = newLen + oldLen;
+    if (options.maxEditLength != null) {
+      maxEditLength = Math.min(maxEditLength, options.maxEditLength);
+    }
+    const maxExecutionTime = (_a = options.timeout) !== null && _a !== void 0 ? _a : Infinity;
+    const abortAfterTimestamp = Date.now() + maxExecutionTime;
+    const bestPath = [{ oldPos: -1, lastComponent: void 0 }];
+    let newPos = this.extractCommon(bestPath[0], newTokens, oldTokens, 0, options);
+    if (bestPath[0].oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
+      return done(this.buildValues(bestPath[0].lastComponent, newTokens, oldTokens));
+    }
+    let minDiagonalToConsider = -Infinity, maxDiagonalToConsider = Infinity;
+    const execEditLength = () => {
+      for (let diagonalPath = Math.max(minDiagonalToConsider, -editLength); diagonalPath <= Math.min(maxDiagonalToConsider, editLength); diagonalPath += 2) {
+        let basePath;
+        const removePath = bestPath[diagonalPath - 1], addPath2 = bestPath[diagonalPath + 1];
+        if (removePath) {
+          bestPath[diagonalPath - 1] = void 0;
+        }
+        let canAdd = false;
+        if (addPath2) {
+          const addPathNewPos = addPath2.oldPos - diagonalPath;
+          canAdd = addPath2 && 0 <= addPathNewPos && addPathNewPos < newLen;
+        }
+        const canRemove = removePath && removePath.oldPos + 1 < oldLen;
+        if (!canAdd && !canRemove) {
+          bestPath[diagonalPath] = void 0;
+          continue;
+        }
+        if (!canRemove || canAdd && removePath.oldPos < addPath2.oldPos) {
+          basePath = this.addToPath(addPath2, true, false, 0, options);
+        } else {
+          basePath = this.addToPath(removePath, false, true, 1, options);
+        }
+        newPos = this.extractCommon(basePath, newTokens, oldTokens, diagonalPath, options);
+        if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
+          return done(this.buildValues(basePath.lastComponent, newTokens, oldTokens)) || true;
+        } else {
+          bestPath[diagonalPath] = basePath;
+          if (basePath.oldPos + 1 >= oldLen) {
+            maxDiagonalToConsider = Math.min(maxDiagonalToConsider, diagonalPath - 1);
+          }
+          if (newPos + 1 >= newLen) {
+            minDiagonalToConsider = Math.max(minDiagonalToConsider, diagonalPath + 1);
+          }
+        }
+      }
+      editLength++;
+    };
+    if (callback) {
+      (function exec() {
+        setTimeout(function() {
+          if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
+            return callback(void 0);
+          }
+          if (!execEditLength()) {
+            exec();
+          }
+        }, 0);
+      })();
+    } else {
+      while (editLength <= maxEditLength && Date.now() <= abortAfterTimestamp) {
+        const ret = execEditLength();
+        if (ret) {
+          return ret;
+        }
+      }
+    }
+  }
+  addToPath(path7, added, removed, oldPosInc, options) {
+    const last = path7.lastComponent;
+    if (last && !options.oneChangePerToken && last.added === added && last.removed === removed) {
+      return {
+        oldPos: path7.oldPos + oldPosInc,
+        lastComponent: { count: last.count + 1, added, removed, previousComponent: last.previousComponent }
+      };
+    } else {
+      return {
+        oldPos: path7.oldPos + oldPosInc,
+        lastComponent: { count: 1, added, removed, previousComponent: last }
+      };
+    }
+  }
+  extractCommon(basePath, newTokens, oldTokens, diagonalPath, options) {
+    const newLen = newTokens.length, oldLen = oldTokens.length;
+    let oldPos = basePath.oldPos, newPos = oldPos - diagonalPath, commonCount = 0;
+    while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(oldTokens[oldPos + 1], newTokens[newPos + 1], options)) {
+      newPos++;
+      oldPos++;
+      commonCount++;
+      if (options.oneChangePerToken) {
+        basePath.lastComponent = { count: 1, previousComponent: basePath.lastComponent, added: false, removed: false };
+      }
+    }
+    if (commonCount && !options.oneChangePerToken) {
+      basePath.lastComponent = { count: commonCount, previousComponent: basePath.lastComponent, added: false, removed: false };
+    }
+    basePath.oldPos = oldPos;
+    return newPos;
+  }
+  equals(left, right, options) {
+    if (options.comparator) {
+      return options.comparator(left, right);
+    } else {
+      return left === right || !!options.ignoreCase && left.toLowerCase() === right.toLowerCase();
+    }
+  }
+  removeEmpty(array) {
+    const ret = [];
+    for (let i2 = 0; i2 < array.length; i2++) {
+      if (array[i2]) {
+        ret.push(array[i2]);
+      }
+    }
+    return ret;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  castInput(value, options) {
+    return value;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  tokenize(value, options) {
+    return Array.from(value);
+  }
+  join(chars) {
+    return chars.join("");
+  }
+  postProcess(changeObjects, options) {
+    return changeObjects;
+  }
+  get useLongestToken() {
+    return false;
+  }
+  buildValues(lastComponent, newTokens, oldTokens) {
+    const components = [];
+    let nextComponent;
+    while (lastComponent) {
+      components.push(lastComponent);
+      nextComponent = lastComponent.previousComponent;
+      delete lastComponent.previousComponent;
+      lastComponent = nextComponent;
+    }
+    components.reverse();
+    const componentLen = components.length;
+    let componentPos = 0, newPos = 0, oldPos = 0;
+    for (; componentPos < componentLen; componentPos++) {
+      const component = components[componentPos];
+      if (!component.removed) {
+        if (!component.added && this.useLongestToken) {
+          let value = newTokens.slice(newPos, newPos + component.count);
+          value = value.map(function(value2, i2) {
+            const oldValue = oldTokens[oldPos + i2];
+            return oldValue.length > value2.length ? oldValue : value2;
+          });
+          component.value = this.join(value);
+        } else {
+          component.value = this.join(newTokens.slice(newPos, newPos + component.count));
+        }
+        newPos += component.count;
+        if (!component.added) {
+          oldPos += component.count;
+        }
+      } else {
+        component.value = this.join(oldTokens.slice(oldPos, oldPos + component.count));
+        oldPos += component.count;
+      }
+    }
+    return components;
   }
 };
-function getRunInputString(input) {
-  const inputKey = getInputKey(input);
-  return core4.getInput(inputKey, {
-    required: true
-  });
-}
-function getRunInputStringArray(input) {
-  const inputKey = getInputKey(input);
-  const value = core4.getInput(inputKey, {
-    required: true
-  }).trim();
-  if (value.includes(",")) {
-    return value.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
+
+// node_modules/.pnpm/diff@8.0.2/node_modules/diff/libesm/diff/array.js
+var ArrayDiff = class extends Diff {
+  tokenize(value) {
+    return value.slice();
   }
-  return [value];
-}
-function getRunInputBoolean(input) {
-  const inputKey = getInputKey(input);
-  return core4.getBooleanInput(inputKey, {
-    required: true
-  });
-}
-function getInputKey(input) {
-  const config = runInputsConfiguration[input];
-  if (!config) {
-    throw new Error(`No configuration found for input: ${input}`);
+  join(value) {
+    return value;
   }
-  const isLocalDebug = process.env.CL_LOCAL_DEBUG;
-  const inputKey = isLocalDebug ? config.localParameter : config.parameter;
-  return inputKey;
+  removeEmpty(value) {
+    return value;
+  }
+};
+var arrayDiff = new ArrayDiff();
+function diffArrays(oldArr, newArr, options) {
+  return arrayDiff.diff(oldArr, newArr, options);
+}
+
+// actions/apidiff-go/src/render-diff.ts
+function escapeHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function tokenizeGeneric(s) {
+  const re = /(\s+|->|=>|::|\.{3}|[A-Za-z0-9_.$/-]+|\[\]|[\[\]{}()<>]|[,;:?*|&=+!%^~]|\\|\.|\|{2}|&{2})/g;
+  const tokens = s.match(re);
+  return tokens ?? [s];
+}
+function diffTokenized(a2, b) {
+  const A = tokenizeGeneric(a2);
+  const B = tokenizeGeneric(b);
+  const parts = diffArrays(A, B);
+  return parts.map((p) => ({
+    value: p.value.join(""),
+    added: p.added,
+    removed: p.removed
+  }));
+}
+function splitSegments(s) {
+  const parts = s.split(/(, ?)/);
+  const segs = [];
+  for (let i2 = 0; i2 < parts.length; i2 += 2) {
+    segs.push(parts[i2] + (parts[i2 + 1] ?? ""));
+  }
+  return segs;
+}
+function renderTwoLineDiffPre(oldText, newText) {
+  const oldSegs = splitSegments(oldText);
+  const newSegs = splitSegments(newText);
+  const segDiff = diffArrays(oldSegs, newSegs);
+  const ops = [];
+  for (const part of segDiff) {
+    if (part.added) {
+      const prev = ops[ops.length - 1];
+      if (prev && prev.kind === "del" && !prev.b) {
+        prev.kind = "replace";
+        prev.b = part.value;
+      } else {
+        ops.push({ kind: "add", b: part.value });
+      }
+    } else if (part.removed) {
+      ops.push({ kind: "del", a: part.value });
+    } else {
+      ops.push({ kind: "equal", a: part.value });
+    }
+  }
+  const outOld = [];
+  const outNew = [];
+  for (const op of ops) {
+    if (op.kind === "equal") {
+      const stable = escapeHtml((op.a ?? []).join(""));
+      outOld.push(stable);
+      outNew.push(stable);
+      continue;
+    }
+    if (op.kind === "add") {
+      outNew.push(`<ins>${escapeHtml((op.b ?? []).join(""))}</ins>`);
+      continue;
+    }
+    if (op.kind === "del") {
+      outOld.push(`<del>${escapeHtml((op.a ?? []).join(""))}</del>`);
+      continue;
+    }
+    const a2 = (op.a ?? []).join("");
+    const b = (op.b ?? []).join("");
+    const inner = diffTokenized(a2, b);
+    let aHtml = "", bHtml = "";
+    for (const c3 of inner) {
+      const esc = escapeHtml(c3.value);
+      if (c3.added) bHtml += `<ins>${esc}</ins>`;
+      else if (c3.removed) aHtml += `<del>${esc}</del>`;
+      else {
+        aHtml += esc;
+        bHtml += esc;
+      }
+    }
+    outOld.push(aHtml);
+    outNew.push(bHtml);
+  }
+  return `<pre>- ${outOld.join("")}
++ ${outNew.join("")}</pre>`;
 }
 
 // actions/apidiff-go/src/string-processor.ts
-function parseApidiffOutputs(output) {
-  const results = [];
-  for (const [moduleName, moduleOutput] of Object.entries(output)) {
-    const parsed = parseApidiffOutput(moduleName, moduleOutput);
-    results.push(parsed);
-  }
-  return results;
+var apidiffUrl = "https://pkg.go.dev/golang.org/x/exp/cmd/apidiff";
+function parseElement(element) {
+  let path7 = element.startsWith("./") ? element.slice(2) : element;
+  const i2 = path7.lastIndexOf(".");
+  if (i2 === -1) return { packagePath: "", elementName: path7 };
+  return { packagePath: path7.slice(0, i2), elementName: path7.slice(i2 + 1) };
 }
-function parseApidiffOutput(moduleName, output) {
-  const lines = output.split(/\r?\n/);
-  const result = {
-    moduleName,
-    meta: [],
-    incompatible: [],
-    compatible: []
-  };
-  let section = null;
-  let currentMeta = null;
-  for (const raw of lines) {
-    const line = raw.trim();
-    if (line.startsWith("! ")) {
-      if (currentMeta) result.meta.push(currentMeta);
-      currentMeta = {
-        header: line.slice(2),
-        first: "",
-        second: ""
-      };
-      section = "meta";
-      continue;
-    }
-    if (section === "meta" && currentMeta) {
-      if (line.startsWith("first:")) {
-        currentMeta.first = line.slice("first:".length).trim();
-        continue;
-      }
-      if (line.startsWith("second:")) {
-        currentMeta.second = line.slice("second:".length).trim();
-        continue;
-      }
-    }
-    if (line === "Incompatible changes:") {
-      if (currentMeta) {
-        result.meta.push(currentMeta);
-        currentMeta = null;
-      }
-      section = "incompatible";
-      continue;
-    }
-    if (line === "Compatible changes:") {
-      section = "compatible";
-      continue;
-    }
-    if ((section === "incompatible" || section === "compatible") && line.startsWith("- ")) {
-      const content = line.slice(2);
-      const sepIdx = content.indexOf(": ");
-      if (sepIdx >= 0) {
-        const element = content.slice(0, sepIdx);
-        const change = content.slice(sepIdx + 2);
-        const target = section === "incompatible" ? result.incompatible : result.compatible;
-        target.push({ element, change });
-      }
-    }
+function groupByPackage(changes) {
+  const m = /* @__PURE__ */ new Map();
+  for (const c3 of changes) {
+    const { packagePath } = parseElement(c3.element);
+    if (!m.has(packagePath)) m.set(packagePath, []);
+    m.get(packagePath).push(c3);
   }
-  if (currentMeta) result.meta.push(currentMeta);
-  return result;
+  for (const list of m.values())
+    list.sort((a2, b) => a2.element.localeCompare(b.element));
+  return m;
+}
+function formatTypeChangeMarkdown(change) {
+  const m = change.match(/^changed from (.+?) to (.+)$/);
+  if (m) {
+    const [, oldType, newType] = m;
+    return "\n" + renderTwoLineDiffPre(oldType, newType);
+  }
+  if (change.startsWith("removed")) return "\u{1F5D1}\uFE0F Removed";
+  if (change.startsWith("added")) return "\u2795 Added";
+  return change.charAt(0).toUpperCase() + change.slice(1);
+}
+function formatTypeChangeJobSummary(change) {
+  return formatTypeChangeMarkdown(change);
+}
+function escapeHtml2(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 function formatApidiffMarkdown(diffs, summaryUrl, includeFullOutput = false) {
   if (diffs.length === 0) {
-    return `## [apidiff](${summaryUrl}) results - no modules to analyze`;
+    return `## \u{1F4CA} API Diff Results
+
+> No modules to analyze
+
+[View full report](${summaryUrl})`;
   }
-  const hasIncompatibleChanges = diffs.some(
-    (diff) => diff.incompatible.length > 0
-  );
-  const totalIncompatible = diffs.reduce(
-    (sum, diff) => sum + diff.incompatible.length,
-    0
-  );
-  const totalCompatible = diffs.reduce(
-    (sum, diff) => sum + diff.compatible.length,
-    0
-  );
-  const header = hasIncompatibleChanges ? `backwards-incompatible changes detected \u274C` : `no incompatible changes detected \u2705`;
+  const hasIncompat = diffs.some((d) => d.incompatible.length > 0);
+  const totalIncompat = diffs.reduce((s, d) => s + d.incompatible.length, 0);
+  const totalCompat = diffs.reduce((s, d) => s + d.compatible.length, 0);
+  const modulesWithChanges = diffs.filter(
+    (d) => d.incompatible.length || d.compatible.length
+  ).length;
+  const statusEmoji = hasIncompat ? "\u26A0\uFE0F" : "\u2705";
+  const statusText = hasIncompat ? "Breaking changes detected" : "No breaking changes";
   const lines = [
-    `## [apidiff](${summaryUrl}) results - ${header}`,
+    `## ${statusEmoji} API Diff Results - ${statusText}`,
     ``
   ];
-  function formatChange(change) {
-    const re = /^changed from (.+?) to (.+)$/;
-    const match = change.match(re);
-    if (match) {
-      const [, oldType, newType] = match;
-      return `changed from \`${oldType}\` to \`${newType}\``;
-    }
-    return change;
+  function apidiffShield(label, count2, color) {
+    const escapedLabel = label.replace(/ /g, "_").replace(/-/g, "--");
+    return `![${label}](https://img.shields.io/badge/${escapedLabel}-${count2}-${color})`;
   }
-  function createTable(title, elements) {
-    const uniqueElements = Array.from(
-      new Map(
-        elements.map((item) => [`${item.element}:${item.change}`, item])
-      ).values()
+  if (includeFullOutput) {
+    const analyzedShield = apidiffShield(
+      "modules analyzed",
+      modulesWithChanges,
+      "blue"
     );
-    const sortedElements = uniqueElements.sort(
-      (a2, b) => a2.element.localeCompare(b.element)
+    const breakingShield = apidiffShield(
+      "breaking changes",
+      totalIncompat,
+      "red"
     );
-    const rows = sortedElements.map(({ element, change }) => {
-      const formatted = formatChange(change);
-      return `| \`${element}\` | ${formatted} |`;
-    });
-    return [
-      `#### ${title} (${sortedElements.length})`,
+    const compatibleShield = apidiffShield(
+      "compatible changes",
+      totalCompat,
+      "green"
+    );
+    lines.push(
       ``,
-      `| Element | Change |`,
-      `| ------- | ------ |`,
-      ...rows
-    ];
+      `${analyzedShield} ${breakingShield} ${compatibleShield}`,
+      ``
+    );
   }
-  for (const diff of diffs) {
-    if (diff.incompatible.length === 0 && diff.compatible.length === 0 && diff.meta.length === 0) {
-      continue;
-    }
-    lines.push(`### Module: \`${diff.moduleName}\``);
-    lines.push(``);
-    const moduleStatus = diff.incompatible.length > 0 ? `\u274C ${diff.incompatible.length} incompatible, ${diff.compatible.length} compatible` : `\u2705 ${diff.compatible.length} compatible changes`;
-    lines.push(`**Status:** ${moduleStatus}`);
-    lines.push(``);
-    if (diff.incompatible.length > 0) {
-      lines.push(...createTable("Incompatible Changes", diff.incompatible));
-      lines.push(``);
-    }
-    if (diff.compatible.length > 0 && includeFullOutput) {
-      lines.push(...createTable("Compatible Changes", diff.compatible));
-      lines.push(``);
-    }
-    if (diff.meta.length > 0 && includeFullOutput) {
-      lines.push(`<details>`);
-      lines.push(
-        `<summary>Meta diff messages for ${diff.moduleName}</summary>`
+  function formatGroupedChanges(title, changes, isBreaking = false) {
+    if (!changes.length) return [];
+    const out = [];
+    const icon = isBreaking ? "\u{1F534}" : "\u{1F7E2}";
+    out.push(`#### ${icon} ${title} (${changes.length})`, ``);
+    const grouped = groupByPackage(changes);
+    for (const packagePath of Array.from(grouped.keys()).sort()) {
+      const packageChanges = grouped.get(packagePath);
+      out.push(
+        `##### \`${packagePath || "(root)"}\` (${packageChanges.length})`,
+        ``
       );
-      lines.push(``);
-      lines.push("```text");
-      for (const m of diff.meta) {
-        lines.push(`! ${m.header}`);
-        lines.push(`  first: ${m.first}`);
-        lines.push(`  second: ${m.second}`);
-        lines.push(``);
+      for (const change of packageChanges) {
+        const { elementName } = parseElement(change.element);
+        const formatted = formatTypeChangeMarkdown(change.change);
+        const isBlock = formatted.startsWith("\n<pre>");
+        if (isBlock) {
+          out.push(`- **\`${elementName}\`** \u2014 Type changed:`);
+          out.push(formatted);
+        } else {
+          out.push(`- **\`${elementName}\`** \u2014 ${formatted}`);
+        }
+        out.push(``);
       }
-      if (lines[lines.length - 1] === "") {
-        lines.pop();
-      }
-      lines.push("```");
-      lines.push(`</details>`);
-      lines.push(``);
     }
-    lines.push(`---`);
-    lines.push(``);
+    return out;
   }
-  if (lines[lines.length - 2] === "---") {
-    lines.splice(-2, 2);
+  const breaking = diffs.filter((d) => d.incompatible.length);
+  const compatOnly = diffs.filter(
+    (d) => !d.incompatible.length && d.compatible.length
+  );
+  if (breaking.length) {
+    if (includeFullOutput) {
+      lines.push(`---`, ``, `## \u26A0\uFE0F Modules with Breaking Changes`, ``);
+    }
+    for (const d of breaking) {
+      lines.push(`### \u{1F4E6} Module: \`${d.moduleName}\``, ``);
+      lines.push(
+        ...formatGroupedChanges("Breaking Changes", d.incompatible, true)
+      );
+      if (includeFullOutput && d.compatible.length) {
+        lines.push(
+          ...formatGroupedChanges("Compatible Changes", d.compatible, false)
+        );
+      }
+      if (includeFullOutput && d.meta.length) {
+        lines.push(`#### \u{1F4CB} Metadata (${d.meta.length})`, ``);
+        lines.push("```diff");
+        for (const m of d.meta) {
+          lines.push(`! ${m.header}`);
+          lines.push(`  first:  ${m.first}`);
+          lines.push(`  second: ${m.second}`);
+          lines.push("");
+        }
+        lines.push("```", ``);
+      }
+    }
   }
-  if (summaryUrl) {
-    lines.push(`*(Full summary: [${summaryUrl}](${summaryUrl}))*`);
-    lines.push(``);
+  if (includeFullOutput && compatOnly.length) {
+    lines.push(`---`, ``, `## \u2705 Modules with Only Compatible Changes`, ``);
+    for (const d of compatOnly) {
+      lines.push(`### \u{1F4E6} ${d.moduleName} (${d.compatible.length})`, ``);
+      lines.push(
+        ...formatGroupedChanges("Compatible Changes", d.compatible, false)
+      );
+    }
   }
+  lines.push(
+    `---`,
+    ``,
+    `\u{1F4C4} [View full apidiff report](${summaryUrl}) | \u{1F4DA} [Learn about apidiff](${apidiffUrl})`,
+    ``
+  );
   return lines.join("\n");
+}
+async function formatApidiffJobSummary(diffs) {
+  const s = core5.summary;
+  if (!diffs.length) {
+    s.addHeading("\u{1F4CA} API Diff Results", 2).addRaw("<blockquote>No modules to analyze</blockquote>", true).addRaw(`<p>\u{1F4DA} <a href="${apidiffUrl}">Learn about apidiff</a></p>`, true);
+    await s.write();
+    return;
+  }
+  const hasIncompat = diffs.some((d) => d.incompatible.length > 0);
+  const totalIncompat = diffs.reduce((sum, d) => sum + d.incompatible.length, 0);
+  const totalCompat = diffs.reduce((sum, d) => sum + d.compatible.length, 0);
+  const modulesWithChanges = diffs.filter(
+    (d) => d.incompatible.length || d.compatible.length
+  ).length;
+  const statusEmoji = hasIncompat ? "\u26A0\uFE0F" : "\u2705";
+  const statusText = hasIncompat ? "Breaking changes detected" : "No breaking changes";
+  s.addHeading(`${statusEmoji} API Diff Results \u2013 ${statusText}`, 2);
+  s.addTable([
+    [
+      { data: "Metric", header: true },
+      { data: "Count", header: true }
+    ],
+    [
+      { data: "Modules analyzed" },
+      { data: `<div align="right">${modulesWithChanges}</div>` }
+    ],
+    [
+      { data: "Breaking changes" },
+      { data: `<div align="right">${totalIncompat}</div>` }
+    ],
+    [
+      { data: "Compatible changes" },
+      { data: `<div align="right">${totalCompat}</div>` }
+    ]
+  ]);
+  const breaking = diffs.filter((d) => d.incompatible.length);
+  const compatOnly = diffs.filter((d) => !d.incompatible.length && d.compatible.length);
+  const renderGrouped = (title, changes, isBreaking = false) => {
+    if (!changes.length) return;
+    const icon = isBreaking ? "\u{1F534}" : "\u{1F7E2}";
+    s.addHeading(`${icon} ${title} (${changes.length})`, 3);
+    const grouped = groupByPackage(changes);
+    for (const packagePath of Array.from(grouped.keys()).sort()) {
+      const pkg = packagePath || "(root)";
+      const list = grouped.get(packagePath);
+      s.addHeading(`\u{1F4E6} ${pkg} (${list.length})`, 4);
+      s.addRaw("<ul>", true);
+      for (const change of list) {
+        const { elementName } = parseElement(change.element);
+        const formatted = formatTypeChangeJobSummary(change.change);
+        const isBlock = formatted.startsWith("\n<pre>");
+        if (isBlock) {
+          s.addRaw(
+            `<li><strong><code>${elementName}</code></strong> \u2014 Type changed:${formatted}</li>`,
+            true
+          );
+        } else {
+          s.addRaw(
+            `<li><strong><code>${elementName}</code></strong> \u2014 ${formatted}</li>`,
+            true
+          );
+        }
+      }
+      s.addRaw("</ul></details>", true);
+    }
+  };
+  if (breaking.length) {
+    s.addSeparator();
+    s.addHeading("\u26A0\uFE0F Modules with Breaking Changes", 2);
+    for (const d of breaking) {
+      s.addHeading(`\u{1F4E6} ${d.moduleName}`, 3);
+      renderGrouped("Breaking Changes", d.incompatible, true);
+      if (d.compatible.length) {
+        renderGrouped("Compatible Changes", d.compatible, false);
+      }
+      if (d.meta.length) {
+        s.addHeading(`\u{1F4CB} Metadata (${d.meta.length})`, 4);
+        s.addTable([
+          [
+            { data: "Header", header: true },
+            { data: "First", header: true },
+            { data: "Second", header: true }
+          ],
+          ...d.meta.map((m) => [
+            { data: `<code>${escapeHtml2(m.header)}</code>` },
+            { data: escapeHtml2(m.first) },
+            { data: escapeHtml2(m.second) }
+          ])
+        ]);
+      }
+    }
+  }
+  if (compatOnly.length) {
+    s.addSeparator();
+    s.addHeading("\u2705 Modules with Only Compatible Changes", 2);
+    for (const d of compatOnly) {
+      s.addHeading(`\u{1F4E6} ${d.moduleName} (${d.compatible.length})`, 3);
+      renderGrouped("Compatible Changes", d.compatible, false);
+    }
+  }
+  s.addSeparator();
+  s.addRaw(`<p>\u{1F4DA} <a href="${apidiffUrl}">Learn about apidiff</a></p>`, true);
+  await s.write();
 }
 
 // actions/apidiff-go/src/run.ts
 async function run() {
   try {
-    core5.startGroup("Inputs and Context");
+    core6.startGroup("Inputs and Context");
     const inputs = getInputs();
     const context3 = getInvokeContext();
-    core5.endGroup();
+    core6.endGroup();
     const worktreeResult = await setupWorktree(
       inputs.directory,
       inputs.baseRef,
@@ -31865,12 +32333,11 @@ async function run() {
       // Relative paths to go.mod files
     );
     const parsedOutputs = parseApidiffOutputs(apidiffOutputs);
-    if (core5.isDebug()) {
-      core5.debug(JSON.stringify(parsedOutputs));
+    if (core6.isDebug()) {
+      core6.debug(JSON.stringify(parsedOutputs));
     }
-    core5.startGroup("Formatting and Outputting Results");
-    const markdownOutputAll = formatApidiffMarkdown(parsedOutputs, "", true);
-    await core5.summary.addRaw(markdownOutputAll).write();
+    core6.startGroup("Formatting and Outputting Results");
+    formatApidiffJobSummary(parsedOutputs);
     if (context3.prNumber) {
       const summaryUrl = await getSummaryUrl(
         context3.token,
@@ -31882,29 +32349,35 @@ async function run() {
         summaryUrl,
         false
       );
-      await upsertPRComment(
-        context3.token,
-        context3.owner,
-        context3.repo,
-        context3.prNumber,
-        markdownOutputIncompatibleOnly
-      );
+      if (CL_LOCAL_DEBUG) {
+        core6.info("Markdown Output (Incompatible Only):");
+        core6.info(markdownOutputIncompatibleOnly);
+      }
+      if (inputs.postComment) {
+        await upsertPRComment(
+          context3.token,
+          context3.owner,
+          context3.repo,
+          context3.prNumber,
+          markdownOutputIncompatibleOnly
+        );
+      }
     }
-    core5.endGroup();
+    core6.endGroup();
     const incompatibleCount = parsedOutputs.reduce(
       (sum, diff) => sum + diff.incompatible.length,
       0
     );
-    core5.info(`Total incompatible changes: ${incompatibleCount}`);
+    core6.info(`Total incompatible changes: ${incompatibleCount}`);
     if (inputs.enforceCompatible && incompatibleCount > 0) {
-      core5.setFailed(
+      core6.setFailed(
         `Incompatible API changes detected. See PR comment, or summary for details.`
       );
     }
     await cleanupWorktrees(worktreeResult);
   } catch (error2) {
-    core5.endGroup();
-    core5.setFailed(`Action failed: ${error2}`);
+    core6.endGroup();
+    core6.setFailed(`Action failed: ${error2}`);
   }
 }
 

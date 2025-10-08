@@ -23,7 +23,8 @@ import {
 } from "./strings";
 import {
   PullRequestReviewStateExt,
-  getOverallState,
+  getOverallStateForAllEntries,
+  getOverallStateForSingleEntry,
   getReviewForStatusFor,
 } from "./review-status";
 
@@ -126,7 +127,7 @@ export async function run(): Promise<void> {
       core.debug(`${JSON.stringify([...codeownersSummary])}`);
     }
 
-    const overallStatus = getOverallState([...codeownersSummary.values()]);
+    const overallStatus = getOverallStateForAllEntries(codeownersSummary);
     core.info(`Overall codeowners review status: ${overallStatus}`);
 
     await formatAllReviewsSummaryByEntry(codeownersSummary);
@@ -180,7 +181,7 @@ function createReviewSummaryObject(
         ownerReviewStatuses.push(...statuses);
       }
     }
-    const overallStatus = getOverallState(ownerReviewStatuses);
+    const overallStatus = getOverallStateForSingleEntry(ownerReviewStatuses);
     reviewSummary.set(entry, {
       files,
       allOwnerReviewStatuses: ownerReviewStatuses,
