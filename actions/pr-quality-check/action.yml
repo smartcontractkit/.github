@@ -566,7 +566,7 @@ runs:
 
           // Filter for auto-fix PRs (branch starts with 'auto-fix/pr-')
           const autoFixPRs = allOpenPRs.filter(pr => 
-            pr.head.ref && pr.head.ref.startsWith('auto-fix/pr-')
+            pr.head.ref?.startsWith('auto-fix/pr-')
           );
 
           console.log(`Found ${autoFixPRs.length} auto-fix PR(s)`);
