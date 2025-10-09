@@ -31992,9 +31992,43 @@ function splitSegments(s) {
   }
   return segs;
 }
-function renderTwoLineDiffPre(oldText, newText) {
-  const oldSegs = splitSegments(oldText);
-  const newSegs = splitSegments(newText);
+function splitFuncSignature(sig) {
+  const funcIdx = sig.indexOf("func(");
+  if (funcIdx === -1) return { head: "", params: sig, ret: "" };
+  let i2 = funcIdx + 4;
+  let depthPar = 0, depthBr = 0, depthBrace = 0;
+  let startParams = -1, endParams = -1;
+  for (; i2 < sig.length; i2++) {
+    const ch = sig[i2];
+    if (ch === "(") {
+      depthPar++;
+      if (startParams === -1) startParams = i2 + 1;
+    } else if (ch === ")") {
+      depthPar--;
+      if (depthPar === 0) {
+        endParams = i2;
+        i2++;
+        break;
+      }
+    } else if (ch === "[") depthBr++;
+    else if (ch === "]") depthBr--;
+    else if (ch === "{") depthBrace++;
+    else if (ch === "}") depthBrace--;
+  }
+  if (startParams === -1 || endParams === -1) {
+    return { head: sig, params: "", ret: "" };
+  }
+  const head = sig.slice(0, funcIdx + 5);
+  const params = sig.slice(startParams, endParams);
+  const after = sig.slice(i2);
+  const ret = after.trim();
+  return { head, params, ret };
+}
+function renderFuncDiffCompactPre(oldText, newText) {
+  const oldParts = splitFuncSignature(oldText);
+  const newParts = splitFuncSignature(newText);
+  const oldSegs = splitSegments(oldParts.params);
+  const newSegs = splitSegments(newParts.params);
   const segDiff = diffArrays(oldSegs, newSegs);
   const ops = [];
   for (const part of segDiff) {
@@ -32003,54 +32037,94 @@ function renderTwoLineDiffPre(oldText, newText) {
       if (prev && prev.kind === "del" && !prev.b) {
         prev.kind = "replace";
         prev.b = part.value;
-      } else {
-        ops.push({ kind: "add", b: part.value });
-      }
+      } else ops.push({ kind: "add", b: part.value });
     } else if (part.removed) {
       ops.push({ kind: "del", a: part.value });
     } else {
       ops.push({ kind: "equal", a: part.value });
     }
   }
-  const outOld = [];
-  const outNew = [];
+  const lines = [];
+  const IND = "  ";
+  lines.push(`${escapeHtml(oldParts.head)}`);
+  const pushStable = (s) => {
+    const stable = escapeHtml(s);
+    if (stable.trim()) lines.push(`${IND}${stable}`);
+  };
+  const pushDel = (s) => {
+    const esc = escapeHtml(s);
+    if (esc.trim()) lines.push(`${IND}- <del>${esc}</del>`);
+  };
+  const pushAdd = (s) => {
+    const esc = escapeHtml(s);
+    if (esc.trim()) lines.push(`${IND}+ <ins>${esc}</ins>`);
+  };
   for (const op of ops) {
     if (op.kind === "equal") {
-      const stable = escapeHtml((op.a ?? []).join(""));
-      outOld.push(stable);
-      outNew.push(stable);
-      continue;
-    }
-    if (op.kind === "add") {
-      outNew.push(`<ins>${escapeHtml((op.b ?? []).join(""))}</ins>`);
+      for (const s of op.a ?? []) pushStable(s);
       continue;
     }
     if (op.kind === "del") {
-      outOld.push(`<del>${escapeHtml((op.a ?? []).join(""))}</del>`);
+      for (const s of op.a ?? []) pushDel(s);
       continue;
     }
-    const a2 = (op.a ?? []).join("");
-    const b = (op.b ?? []).join("");
-    const inner = diffTokenized(a2, b);
-    let aHtml = "", bHtml = "";
-    for (const c3 of inner) {
-      const esc = escapeHtml(c3.value);
-      if (c3.added) bHtml += `<ins>${esc}</ins>`;
-      else if (c3.removed) aHtml += `<del>${esc}</del>`;
-      else {
-        aHtml += esc;
-        bHtml += esc;
-      }
+    if (op.kind === "add") {
+      for (const s of op.b ?? []) pushAdd(s);
+      continue;
     }
-    outOld.push(aHtml);
-    outNew.push(bHtml);
+    const aList = op.a ?? [];
+    const bList = op.b ?? [];
+    if (aList.length === 1 && bList.length === 1) {
+      const a2 = aList[0], b = bList[0];
+      const inner = diffTokenized(a2, b);
+      let aHtml = "", bHtml = "";
+      for (const c3 of inner) {
+        const esc = escapeHtml(c3.value);
+        if (c3.added) bHtml += `<ins>${esc}</ins>`;
+        else if (c3.removed) aHtml += `<del>${esc}</del>`;
+        else {
+          aHtml += esc;
+          bHtml += esc;
+        }
+      }
+      if (aHtml.trim()) lines.push(`${IND}- ${aHtml}`);
+      if (bHtml.trim()) lines.push(`${IND}+ ${bHtml}`);
+    } else {
+      for (const s of aList) pushDel(s);
+      for (const s of bList) pushAdd(s);
+    }
   }
-  return `<pre>- ${outOld.join("")}
-+ ${outNew.join("")}</pre>`;
+  lines.push(`)`);
+  const oldRet = oldParts.ret;
+  const newRet = newParts.ret;
+  if (oldRet === newRet) {
+    if (oldRet) lines.push(escapeHtml(oldRet));
+  } else {
+    if (oldRet) {
+      const d = diffTokenized(oldRet, newRet);
+      let oHtml = "";
+      for (const c3 of d) {
+        const esc = escapeHtml(c3.value);
+        if (c3.removed) oHtml += `<del>${esc}</del>`;
+        else if (!c3.added) oHtml += esc;
+      }
+      lines.push(`- ${oHtml}`);
+    }
+    if (newRet) {
+      const d = diffTokenized(oldRet, newRet);
+      let nHtml = "";
+      for (const c3 of d) {
+        const esc = escapeHtml(c3.value);
+        if (c3.added) nHtml += `<ins>${esc}</ins>`;
+        else if (!c3.removed) nHtml += esc;
+      }
+      lines.push(`+ ${nHtml}`);
+    }
+  }
+  return `<pre>${lines.join("\n")}</pre>`;
 }
 
 // actions/apidiff-go/src/string-processor.ts
-var apidiffUrl = "https://pkg.go.dev/golang.org/x/exp/cmd/apidiff";
 function parseElement(element) {
   let path7 = element.startsWith("./") ? element.slice(2) : element;
   const i2 = path7.lastIndexOf(".");
@@ -32072,7 +32146,7 @@ function formatTypeChangeMarkdown(change) {
   const m = change.match(/^changed from (.+?) to (.+)$/);
   if (m) {
     const [, oldType, newType] = m;
-    return "\n" + renderTwoLineDiffPre(oldType, newType);
+    return "\n" + renderFuncDiffCompactPre(oldType, newType);
   }
   if (change.startsWith("removed")) return "\u{1F5D1}\uFE0F Removed";
   if (change.startsWith("added")) return "\u2795 Added";
@@ -32197,23 +32271,24 @@ function formatApidiffMarkdown(diffs, summaryUrl, includeFullOutput = false) {
       );
     }
   }
-  lines.push(
-    `---`,
-    ``,
-    `\u{1F4C4} [View full apidiff report](${summaryUrl}) | \u{1F4DA} [Learn about apidiff](${apidiffUrl})`,
-    ``
-  );
+  lines.push(`---`, ``, `\u{1F4C4} [View full apidiff report](${summaryUrl})`, ``);
   return lines.join("\n");
 }
 async function formatApidiffJobSummary(diffs) {
   const s = core5.summary;
   if (!diffs.length) {
-    s.addHeading("\u{1F4CA} API Diff Results", 2).addRaw("<blockquote>No modules to analyze</blockquote>", true).addRaw(`<p>\u{1F4DA} <a href="${apidiffUrl}">Learn about apidiff</a></p>`, true);
+    s.addHeading("\u{1F4CA} API Diff Results", 2).addRaw(
+      "<blockquote>No modules to analyze</blockquote>",
+      true
+    );
     await s.write();
     return;
   }
   const hasIncompat = diffs.some((d) => d.incompatible.length > 0);
-  const totalIncompat = diffs.reduce((sum, d) => sum + d.incompatible.length, 0);
+  const totalIncompat = diffs.reduce(
+    (sum, d) => sum + d.incompatible.length,
+    0
+  );
   const totalCompat = diffs.reduce((sum, d) => sum + d.compatible.length, 0);
   const modulesWithChanges = diffs.filter(
     (d) => d.incompatible.length || d.compatible.length
@@ -32240,7 +32315,9 @@ async function formatApidiffJobSummary(diffs) {
     ]
   ]);
   const breaking = diffs.filter((d) => d.incompatible.length);
-  const compatOnly = diffs.filter((d) => !d.incompatible.length && d.compatible.length);
+  const compatOnly = diffs.filter(
+    (d) => !d.incompatible.length && d.compatible.length
+  );
   const renderGrouped = (title, changes, isBreaking = false) => {
     if (!changes.length) return;
     const icon = isBreaking ? "\u{1F534}" : "\u{1F7E2}";
@@ -32304,8 +32381,6 @@ async function formatApidiffJobSummary(diffs) {
       renderGrouped("Compatible Changes", d.compatible, false);
     }
   }
-  s.addSeparator();
-  s.addRaw(`<p>\u{1F4DA} <a href="${apidiffUrl}">Learn about apidiff</a></p>`, true);
   await s.write();
 }
 

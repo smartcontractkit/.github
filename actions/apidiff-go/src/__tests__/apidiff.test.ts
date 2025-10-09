@@ -127,7 +127,7 @@ describe("apidiff", () => {
         installApidiff("invalid-version", true),
       ).rejects.toThrowError(/Failed to install apidiff:/);
     });
-  });
+  }, 25000); // 25 second timeout for installation
 
   describe("runApidiff", () => {
     let baseDir: string;

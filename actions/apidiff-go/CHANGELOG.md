@@ -1,5 +1,14 @@
 # apidiff-go
 
+## 1.0.0
+
+### Major Changes
+
+- [#1277](https://github.com/smartcontractkit/.github/pull/1277)
+  [`0073384`](https://github.com/smartcontractkit/.github/commit/0073384a3dc63f307a5bd998a16498c9f6061ddd)
+  Thanks [@erikburt](https://github.com/erikburt)! - initial v1 release, refine
+  output formatting
+
 ## 0.2.0
 
 ### Minor Changes
