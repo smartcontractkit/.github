@@ -33,10 +33,20 @@ inputs:
       `CHANGELOG.md`"
     required: false
     default: CHANGELOG.md
+  node-version:
+    description: The node version to use
+    required: false
+    # Use Node ^20.17.0 (or newer) to ensure compatibility with npm 11
+    default: "20.17.0"
 
 runs:
   using: composite
   steps:
+    - name: Setup node
+      uses: actions/setup-node@v5
+      with:
+        node-version: ${{ inputs.node-version }}
+
     # Ensure npm 11.5.1 or later for trusted publishing
     - name: Install npm 11
       shell: bash
