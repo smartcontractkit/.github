@@ -38,6 +38,9 @@ runs:
   using: composite
   steps:
     # Ensure npm 11.5.1 or later for trusted publishing
+    # TODO: Remove when GitHub Actions runners have npm 11.5.1 or later by default
+    #  - https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md
+    #  - https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
     - name: Install npm 11
       shell: bash
       run: |
