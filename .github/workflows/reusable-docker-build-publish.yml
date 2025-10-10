@@ -687,9 +687,7 @@ jobs:
           } | tee -a "$GITHUB_OUTPUT"
 
       - name: Docker manifest index
-        # TODO: switch back to official action version when released.
-        # uses: smartcontractkit/.github/actions/build-push-docker-manifest@build-push-docker-manifest/v1
-        uses: smartcontractkit/.github/actions/build-push-docker-manifest@dx-2086/additional-tags-manifest
+        uses: smartcontractkit/.github/actions/build-push-docker-manifest@build-push-docker-manifest/v1
         id: docker-manifest
         with:
           # Avoid using `github.workflow_ref` here because the `cosign sign`
