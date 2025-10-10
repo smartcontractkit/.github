@@ -1,5 +1,16 @@
 # build-push-docker-manifest
 
+## 1.0.0
+
+### Major Changes
+
+- [#1285](https://github.com/smartcontractkit/.github/pull/1285)
+  [`a252481`](https://github.com/smartcontractkit/.github/commit/a252481a6d1743617c076e6d9a4d8170b2074df1)
+  Thanks [@chainchad](https://github.com/chainchad)! - Support additional Docker
+  tags for the manifest index.
+
+  Bump to major version due to signify stability.
+
 ## 0.3.1
 
 ### Patch Changes
