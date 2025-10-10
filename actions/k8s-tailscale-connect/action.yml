@@ -32,7 +32,7 @@ runs:
   steps:
     - name: Connect to Tailscale
       # v3
-      uses: tailscale/github-action@84a3f23bb4d843bcf4da6cf824ec1be473daf4de
+      uses: tailscale/github-action@7bdbdbb51995cb7a885cd660b5af1bb686fdd2ce
       with:
         oauth-client-id: ${{ inputs.tailscale-oauth-client-id }}
         oauth-secret: ${{ inputs.tailscale-oauth-secret }}
