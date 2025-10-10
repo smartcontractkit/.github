@@ -154,6 +154,15 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Generate docker manifest name
+      id: manifest-name
+      shell: bash
+      env:
+        DOCKER_REGISTRY_URL: ${{ inputs.docker-registry-url }}
+        DOCKER_REPOSITORY_NAME: ${{ inputs.docker-repository-name }}
+      run: |
+        echo "name=${DOCKER_REGISTRY_URL}/${DOCKER_REPOSITORY_NAME}" | tee -a "$GITHUB_OUTPUT"
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
       with:
@@ -217,14 +226,7 @@ runs:
       shell: bash
       env:
         ADDITIONAL_TAGS: ${{ inputs.manifest-additional-tags }}
-        DOCKER_MANIFEST_NAME: >-
-          ${{
-            format(
-              '{0}/{1}',
-              inputs.docker-registry-url,
-              inputs.docker-repository-name
-            )
-          }}
+        DOCKER_MANIFEST_NAME: ${{ steps.manifest-name.outputs.name }}
       run: |
         # Build tag flags for manifest
         TAG_FLAGS=()
@@ -256,14 +258,7 @@ runs:
     - name: Wait for source images to be available
       shell: bash
       env:
-        DOCKER_MANIFEST_NAME: >-
-          ${{
-            format(
-              '{0}/{1}',
-              inputs.docker-registry-url,
-              inputs.docker-repository-name
-            )
-          }}
+        DOCKER_MANIFEST_NAME: ${{ steps.manifest-name.outputs.name }}
         DOCKER_IMAGE_NAME_DIGESTS: ${{ inputs.docker-image-name-digests }}
         DOCKER_IMAGE_AVAILABILITY_CHECK:
           ${{ inputs.docker-image-availability-check }}
@@ -323,14 +318,7 @@ runs:
       id: create-push-docker-manifest
       shell: bash
       env:
-        DOCKER_MANIFEST_NAME: >-
-          ${{
-            format(
-              '{0}/{1}',
-              inputs.docker-registry-url,
-              inputs.docker-repository-name
-            )
-          }}
+        DOCKER_MANIFEST_NAME: ${{ steps.manifest-name.outputs.name }}
         DOCKER_MANIFEST_TAG: ${{ inputs.docker-manifest-tag }}
         DOCKER_REGISTRY_URL: ${{ inputs.docker-registry-url }}
         DOCKER_REPOSITORY_NAME: ${{ inputs.docker-repository-name }}
@@ -368,8 +356,9 @@ runs:
           CMD_ARGS+=("${ANNOTATION_ARRAY[@]}")
         fi
 
-        # Add the source images
+        # Add the source images (target images to tag).
         CMD_ARGS+=("${PREFIXED_DIGESTS[@]}")
+        echo "::debug::Final docker buildx imagetools command arguments: ${CMD_ARGS[*]}"
 
         # Execute the command
         docker buildx imagetools create "${CMD_ARGS[@]}"
@@ -420,6 +409,9 @@ runs:
       env:
         DOCKER_MANIFEST_SIGNED: ${{ inputs.docker-manifest-sign }}
         GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
+        MANIFEST_ADDITIONAL_TAGS:
+          ${{ steps.create-push-docker-manifest.outputs.manifest-additional-tags
+          }}
         MANIFEST_DIGEST:
           ${{ steps.create-push-docker-manifest.outputs.manifest-digest }}
         MANIFEST_NAME:
@@ -441,6 +433,7 @@ runs:
         echo "Manifest digest: \`${MANIFEST_DIGEST}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
         echo "Manifest name: \`${MANIFEST_NAME}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
         echo "Manifest tag: \`${MANIFEST_TAG}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
+        echo "Manifest additional tags: \`${MANIFEST_ADDITIONAL_TAGS:-None}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
         echo "Manifest name with tag: \`${MANIFEST_NAME_WITH_TAG}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
         echo "Manifest name with digest: \`${MANIFEST_NAME_WITH_DIGEST}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
         if [[ "${DOCKER_MANIFEST_SIGNED}" == 'true' ]]; then
