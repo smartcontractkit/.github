@@ -34,6 +34,9 @@ name: Reusable Docker Build and Publish
 #           org.opencontainers.image.description=node of the decentralized oracle network
 #           org.opencontainers.image.licenses=NOASSERTION
 #           org.opencontainers.image.ref.name=ubuntu
+#         docker-manifest-additional-tags: |  # Optional: add alias tags to manifest
+#           latest
+#           qa-latest
 #         docker-manifest-sign: true
 #         git-sha: $\{{ github.sha }}
 #         github-event-name: $\{{ github.event_name }}
@@ -166,6 +169,27 @@ on:
               org.opencontainers.image.description=node of the decentralized oracle network
               org.opencontainers.image.licenses=NOASSERTION
               org.opencontainers.image.ref.name=ubuntu
+        required: false
+        type: string
+      docker-manifest-additional-tags:
+        description: |
+          Multi-line string of additional tags to apply to the Docker manifest index.
+          Each line should contain a single tag name.
+
+          These tags will be created as aliases pointing to the same manifest created
+          with the primary tag. They are applied only to the manifest index, not to
+          the individual architecture-specific images.
+
+          Useful for creating stable tags like "latest", "qa-latest", or environment-specific
+          tags that should point to a specific build.
+
+          Tags will be validated to ensure they follow Docker tag naming conventions.
+
+          Example:
+            docker-manifest-additional-tags: |
+              latest
+              qa-latest
+              stable
         required: false
         type: string
       docker-manifest-sign:
@@ -662,7 +686,8 @@ jobs:
             echo "EOF"
           } | tee -a "$GITHUB_OUTPUT"
 
-      - uses: smartcontractkit/.github/actions/build-push-docker-manifest@build-push-docker-manifest/0.3.1
+      - name: Docker manifest index
+        uses: smartcontractkit/.github/actions/build-push-docker-manifest@build-push-docker-manifest/v1
         id: docker-manifest
         with:
           # Avoid using `github.workflow_ref` here because the `cosign sign`
@@ -683,6 +708,7 @@ jobs:
           docker-manifest-tag: ${{ needs.build-publish.outputs.docker-manifest-tag }}
           docker-image-name-digests: ${{ steps.prepare-digests.outputs.image_digests }}
           github-workflow-repository: ${{ inputs.github-workflow-repository }}
+          manifest-additional-tags: ${{ inputs.docker-manifest-additional-tags }}
           manifest-annotations: ${{ steps.generate-manifest-annotations.outputs.manifest-annotations }}
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
