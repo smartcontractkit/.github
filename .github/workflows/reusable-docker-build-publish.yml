@@ -67,6 +67,9 @@ on:
       AWS_LAMBDA_GATI_URL:
         description: "AWS Lambda URL for GATI."
         required: false
+      DOCKER_BUILD_ARGS:
+        description: "Docker build arguments - optional, secret build args"
+        required: false
     inputs:
       aws-ecr-name:
         description: |
@@ -286,8 +289,9 @@ on:
           The repository name of the workflow that triggered the workflow run.
 
           Example: smartcontractkit/chainlink
-        required: true
+        required: false
         type: string
+        default: ${{ github.repository }}
       timeout:
         description: "Timeout in minutes for the Docker build job."
         required: false
@@ -326,11 +330,37 @@ jobs:
       docker-restore-cache: ${{ steps.should-cache.outputs.docker-restore-cache }}
       docker-save-cache: ${{ steps.should-cache.outputs.docker-save-cache }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Check for GATI
+        id: check-gati
+        env:
+          AWS_ROLE_GATI_ARN: ${{ secrets.AWS_ROLE_GATI_ARN }}
+          AWS_LAMBDA_GATI_URL: ${{ secrets.AWS_LAMBDA_GATI_URL }}
+        run: |
+          if [[ -n "${AWS_ROLE_GATI_ARN}" && -n "${AWS_LAMBDA_GATI_URL}" ]]; then
+            echo "use-gati=true" | tee -a "${GITHUB_OUTPUT}"
+          else
+            echo "Skipping GATI because secrets.AWS_ROLE_GATI_ARN and/or secrets.AWS_LAMBDA_GATI_URL is not set."
+          fi
+
+      - name: Setup GitHub token using GATI
+        if: steps.check-gati.outputs.use-gati == 'true'
+        id: token
+        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/1.0.0
         with:
+          aws-role-arn: ${{ secrets.AWS_ROLE_GATI_ARN }}
+          aws-lambda-url: ${{ secrets.AWS_LAMBDA_GATI_URL }}
+          aws-region: ${{ inputs.aws-region-gati }}
+          aws-role-duration-seconds: "1800"
+
+      - uses: actions/checkout@v4
+        id: checkout
+        with:
+          repository: ${{ inputs.github-workflow-repository }} # defaults to ${{ github.repository }}
+          ref: ${{ inputs.git-sha }}
+          token: ${{ steps.token.outputs.access-token || github.token }}
           persist-credentials: false
           fetch-depth: 1
-          ref: ${{ inputs.git-sha }}
+
       - name: Get Date
         id: get-date
         run: |
@@ -454,12 +484,36 @@ jobs:
       docker-image-sha-digest-arm64: ${{ steps.build.outputs.docker-image-sha-digest-arm64 }}
       docker-manifest-tag: ${{ steps.set-docker-image-tags.outputs.docker-manifest-tag }}
     steps:
+      - name: Check for GATI
+        id: check-gati
+        env:
+          AWS_ROLE_GATI_ARN: ${{ secrets.AWS_ROLE_GATI_ARN }}
+          AWS_LAMBDA_GATI_URL: ${{ secrets.AWS_LAMBDA_GATI_URL }}
+        run: |
+          if [[ -n "${AWS_ROLE_GATI_ARN}" && -n "${AWS_LAMBDA_GATI_URL}" ]]; then
+            echo "use-gati=true" | tee -a "${GITHUB_OUTPUT}"
+          else
+            echo "Skipping GATI because secrets.AWS_ROLE_GATI_ARN and/or secrets.AWS_LAMBDA_GATI_URL is not set."
+          fi
+
+      - name: Setup GitHub token using GATI
+        if: steps.check-gati.outputs.use-gati == 'true'
+        id: token
+        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/1.0.0
+        with:
+          aws-role-arn: ${{ secrets.AWS_ROLE_GATI_ARN }}
+          aws-lambda-url: ${{ secrets.AWS_LAMBDA_GATI_URL }}
+          aws-region: ${{ inputs.aws-region-gati }}
+          aws-role-duration-seconds: "1800"
+
       - uses: actions/checkout@v4
         id: checkout
         with:
+          repository: ${{ inputs.github-workflow-repository }} # defaults to ${{ github.repository }}
+          ref: ${{ inputs.git-sha }}
+          token: ${{ steps.token.outputs.access-token || github.token }}
           persist-credentials: false
           fetch-depth: 1
-          ref: ${{ inputs.git-sha }}
       # Generated tags must be compatible with:
       # https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
       - name: Set Docker image tags
@@ -532,28 +586,6 @@ jobs:
           # job (without the arch suffix).
           echo "docker-manifest-tag=${tag_value}" | tee -a "${GITHUB_OUTPUT}"
 
-      - name: Check for GATI
-        id: check-gati
-        env:
-          AWS_ROLE_GATI_ARN: ${{ secrets.AWS_ROLE_GATI_ARN }}
-          AWS_LAMBDA_GATI_URL: ${{ secrets.AWS_LAMBDA_GATI_URL }}
-        run: |
-          if [[ -n "${AWS_ROLE_GATI_ARN}" && -n "${AWS_LAMBDA_GATI_URL}" ]]; then
-            echo "use-gati=true" | tee -a "${GITHUB_OUTPUT}"
-          else
-            echo "Skipping GATI because secrets.AWS_ROLE_GATI_ARN and/or secrets.AWS_LAMBDA_GATI_URL is not set."
-          fi
-
-      - name: Setup GitHub token using GATI
-        if: steps.check-gati.outputs.use-gati == 'true'
-        id: token
-        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/1.0.0
-        with:
-          aws-role-arn: ${{ secrets.AWS_ROLE_GATI_ARN }}
-          aws-lambda-url: ${{ secrets.AWS_LAMBDA_GATI_URL }}
-          aws-region: ${{ inputs.aws-region-gati }}
-          aws-role-duration-seconds: "1800"
-
       - name: Docker image build
         id: build
         uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/v1
@@ -572,7 +604,7 @@ jobs:
           docker-repository-name: ${{ inputs.aws-ecr-name }}
           tags: ${{ steps.set-docker-image-tags.outputs.tags }}
           dockerfile: ${{ inputs.dockerfile }}
-          docker-build-args: ${{ inputs.docker-build-args }}
+          docker-build-args: ${{ secrets.DOCKER_BUILD_ARGS || inputs.docker-build-args }}
           docker-restore-cache: ${{ needs.init.outputs.docker-restore-cache }}
           docker-save-cache: ${{ needs.init.outputs.docker-save-cache }}
           context: ${{ inputs.docker-build-context }}
