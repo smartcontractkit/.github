@@ -350,6 +350,7 @@ runs:
       shell: bash
       continue-on-error: ${{ inputs.quarantine == 'true' }}
       env:
+        RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
         CHAINLINK_IMAGE: ${{ inputs.cl_repo }} # TODO: to remove
         CHAINLINK_VERSION: ${{ inputs.cl_image_tag }} # TODO: to remove
         CHAINLINK_ENV_USER: ${{ github.actor }}
