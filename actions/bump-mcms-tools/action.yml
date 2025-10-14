@@ -1,0 +1,114 @@
+name: "Bump mcms-tools version"
+description: "Detect latest mcms-tools release and update workflow inputs"
+
+inputs:
+  github_token:
+    description: "Token for GitHub API (gh cli)"
+    required: true
+  mcms_repo:
+    description: "Repo to read releases from (owner/name)"
+    required: false
+    default: "smartcontractkit/mcms-tools"
+  workflows_regex:
+    description: "Regex pattern to match workflow files to update"
+    required: false
+    default: "^\\.github/workflows/.*\\.(yml|yaml)$"
+  action_uses_pattern:
+    description: "String to match the composite action step (prefix of uses:)"
+    required: false
+    default: "smartcontractkit/.github/actions/get-mcms-tools@"
+  version_input_path:
+    description: "The YAML path to the input (relative to the step) to set"
+    required: false
+    default: "with.version"
+
+outputs:
+  latest_tag:
+    description: "Latest mcms-tools release tag"
+    value: ${{ steps.latest.outputs.tag }}
+  changed:
+    description: "true if any file changed, false otherwise"
+    value: ${{ steps.update.outputs.changed }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check out
+      uses: actions/checkout@v4
+
+    - name: Install yq
+      uses: dcarbone/install-yq-action@3b5b9f8b5d98b7d7e4cf94337336e414a2d79a8b # v1.3.1
+      with:
+        version: v4
+
+    - name: Resolve latest tag
+      id: latest
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        MCMS_REPO: ${{ inputs.mcms_repo }}
+      run: |
+        set -euo pipefail
+        TAG=$(gh api "repos/$MCMS_REPO/releases/latest" --jq .tag_name)
+        if [[ -z "$TAG" || "$TAG" == "null" ]]; then
+          echo "Failed to resolve latest release tag from $MCMS_REPO" >&2
+          exit 1
+        fi
+        echo "Latest tag: $TAG"
+        echo "tag=$TAG" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Update workflow files
+      id: update
+      shell: bash
+      env:
+        LATEST: ${{ steps.latest.outputs.tag }}
+        PATTERN: ${{ inputs.action_uses_pattern }}
+        VERSION_KEY: ${{ inputs.version_input_path }}
+        WORKFLOWS_REGEX: ${{ inputs.workflows_regex }}
+      run: |
+        set -Eeuo pipefail
+        IFS=$'\n\t'
+
+        changed=false
+
+        sha1() {
+          if command -v sha1sum >/dev/null 2>&1; then
+            sha1sum "$1" | awk '{print $1}'
+          elif command -v shasum >/dev/null 2>&1; then
+            shasum -a 1 "$1" | awk '{print $1}'
+          else
+            echo "error: no sha1sum or shasum found" >&2
+            exit 1
+          fi
+        }
+
+        yq_patch() {
+          printf '(.jobs[]?.steps[]? | select((.uses // "") | type == "!!str" and (.uses | startswith("%s"))) | %s) = "%s"\n' \
+            "$PATTERN" "$VERSION_KEY" "$LATEST"
+        }
+
+        patch_expr=$(yq_patch)
+
+        # Find all files matching the provided workflows regex. This will be the files to search for mcms-tools versions
+        mapfile -d '' files < <(find . -regextype posix-extended -regex "$WORKFLOWS_REGEX" -type f -print0 || true)
+
+        if [[ ${#files[@]} -eq 0 ]]; then
+          echo "No workflow files matched regex: $WORKFLOWS_REGEX"
+          echo "changed=$changed" | tee -a "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        for f in "${files[@]}"; do
+          before=$(sha1 "$f")
+          if ! yq -i "$patch_expr" "$f"; then
+            echo "Skipped (yq error): $f"
+            continue
+          fi
+          after=$(sha1 "$f")
+          if [[ "$before" != "$after" ]]; then
+            echo "Updated: $f"
+            changed=true
+          fi
+        done
+
+        echo "changed=$changed" | tee -a "$GITHUB_OUTPUT"
