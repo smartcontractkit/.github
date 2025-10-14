@@ -19,7 +19,7 @@ inputs:
   chip_config_port:
     description: "Port of chip-config service"
     required: false
-    default: "50051"
+    default: "443"
   chip_config_user:
     description: "User to authenticate to chip-config"
     required: true
@@ -78,6 +78,7 @@ runs:
         CHIP_CONFIG_FILE: ${{ inputs.chip_config_file }}
       run: |
         docker run \
+          --dns 100.100.100.100 \
           -v "$PWD:/workspace" \
           -w /workspace \
           -e CHIP_CONFIG_HOST \
