@@ -220,6 +220,12 @@ inputs:
     description: |
       Whether to setup the database before running the tests. Typically used for in-memory tests.
     default: "false"
+  quarantine:
+    required: false
+    description: |
+      Whether the tests are being auto-quarantined. If true, the action will not fail the workflow on test failures.
+      This should only be used in conjunction with "branch-out".
+    default: "false"
 
 runs:
   using: composite
@@ -287,13 +293,6 @@ runs:
       shell: bash
       run: ${{ inputs.build_gauntlet_command }}
 
-    # gotestloghelper gives us pretty test output
-    - name: Set Up gotestloghelper
-      shell: bash
-      run:
-        go install
-        github.com/smartcontractkit/chainlink-testing-framework/tools/gotestloghelper@v1.1.1
-
     - name: Set default enironment variables
       shell: bash
       run: |
@@ -349,6 +348,7 @@ runs:
 
     - name: Run Tests
       shell: bash
+      continue-on-error: ${{ inputs.quarantine == 'true' }}
       env:
         CHAINLINK_IMAGE: ${{ inputs.cl_repo }} # TODO: to remove
         CHAINLINK_VERSION: ${{ inputs.cl_image_tag }} # TODO: to remove
@@ -370,7 +370,7 @@ runs:
         fi
 
         # Run the test command
-        ${{ inputs.test_command_to_run }} 2>&1 | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage -hidepassingtests=false
+        ${{ inputs.test_command_to_run }}
 
     - name: Publish Artifacts
       if: failure()
