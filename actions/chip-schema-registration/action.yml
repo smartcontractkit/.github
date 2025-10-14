@@ -33,6 +33,12 @@ inputs:
     description: "Name of the schema configuration file in chip_schema_dir"
     required: false
     default: "chip.json"
+  TS_OAUTH_CLIENT_ID:
+    description: "Tailscale OAuth Client ID"
+    required: true
+  TS_OAUTH_SECRET:
+    description: "Tailscale OAuth Secret"
+    required: true
 
 runs:
   using: composite
@@ -47,8 +53,8 @@ runs:
     - name: Connect to Tailscale
       uses: tailscale/github-action@84a3f23bb4d843bcf4da6cf824ec1be473daf4de
       with:
-        oauth-client-id: ${{ secrets.CHIP_SCHEMA_REG_GHA_TS_OAUTH_CLIENT_ID }}
-        oauth-secret: ${{ secrets.CHIP_SCHEMA_REG_GHA_TS_OAUTH_SECRET }}
+        oauth-client-id: ${{ inputs.TS_OAUTH_CLIENT_ID }}
+        oauth-secret: ${{ inputs.TS_OAUTH_SECRET }}
         tags: "tag:chip-config-gha"
 
     - name: Pull container image
