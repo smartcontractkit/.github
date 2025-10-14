@@ -44,6 +44,13 @@ runs:
       with:
         registries: ${{ inputs.aws_account_id }}
 
+    - name: Connect to Tailscale
+      uses: tailscale/github-action@84a3f23bb4d843bcf4da6cf824ec1be473daf4de
+      with:
+        oauth-client-id: ${{ secrets.CHIP_SCHEMA_REG_GHA_TS_OAUTH_CLIENT_ID }}
+        oauth-secret: ${{ secrets.CHIP_SCHEMA_REG_GHA_TS_OAUTH_SECRET }}
+        tags: "tag:chip-config-gha"
+
     - name: Pull container image
       shell: bash
       env:
