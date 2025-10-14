@@ -29,10 +29,11 @@ inputs:
   chip_schema_dir:
     description: "Path to the schemas directory"
     required: true
-  chip_config_file:
-    description: "Name of the schema configuration file in chip_schema_dir"
+  chip_config_file_path:
+    description:
+      "The full path of the schema configuration file. By default, chip.json in
+      schema directory is used."
     required: false
-    default: "chip.json"
   TS_OAUTH_CLIENT_ID:
     description: "Tailscale OAuth Client ID"
     required: true
@@ -83,4 +84,4 @@ runs:
           -e CHIP_CONFIG_PORT \
           -e CHIP_CONFIG_USER \
           -e CHIP_CONFIG_PASSWORD \
-          chip-schema-registration register --schema-dir="$CHIP_SCHEMA_DIR" --config-file="$CHIP_CONFIG_FILE"
+          chip-schema-registration register --schema-dir="$CHIP_SCHEMA_DIR" --config="$CHIP_CONFIG_FILE_PATH"
