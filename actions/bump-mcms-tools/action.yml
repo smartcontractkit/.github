@@ -90,18 +90,34 @@ runs:
           fi
         }
 
-        yq_patch() {
-          printf '(.jobs[]?.steps[]? | select((.uses // "") | type == "!!str" and (.uses | startswith("%s"))) | %s) = "%s"\n' \
+        # Build yq expressions robustly (avoid fragile shell quoting)
+        make_query_expr() {
+          # Emits existing with.version (or empty) for steps whose .uses starts with PATTERN
+          printf '(.jobs[]?.steps[]? | select((.uses // "") | tostring | startswith("%s")) | %s) // empty' \
+            "$PATTERN" "$VERSION_KEY"
+        }
+
+        make_dump_expr() {
+          # For debugging: dump the matched steps' id, name, uses, and with.version
+          printf '[.jobs[]? as $j ireduce ({}; .) | $j.steps[]? | select((.uses // "") | tostring | startswith("%s")) | {id, name, uses, version: (%s // "<missing>")}]' \
+            "$PATTERN" "$VERSION_KEY"
+        }
+
+        make_patch_expr() {
+          # Set with.version to LATEST on matched steps
+          printf '(.jobs[]?.steps[]? | select((.uses // "") | tostring | startswith("%s")) | %s) = "%s"' \
             "$PATTERN" "$VERSION_KEY" "$LATEST"
         }
 
-        # escape PATTERN for grep regex and sed printing (slashes & special chars)
+        query_expr="$(make_query_expr)"
+        dump_expr="$(make_dump_expr)"
+        patch_expr="$(make_patch_expr)"
+
+        # Grep prefilter (just to print context lines)
         esc_grep_pat="$(printf '%s' "$PATTERN" | sed -E 's/[][\.^$*+?(){}|/]/\\&/g')"
 
-        patch_expr=$(yq_patch)
-
         echo "::group::Discovery"
-        echo "Workflows regex: $WORKFLOWS_REGEX"
+        echo "Effective workflows regex: $WORKFLOWS_REGEX"
         echo "Action uses pattern (startswith in yq): $PATTERN"
         echo "grep prefilter (regex): uses:\\s*['\"]?${esc_grep_pat}"
         echo "Version key path: $VERSION_KEY"
@@ -126,10 +142,8 @@ runs:
         for f in "${files[@]}"; do
           echo "::group::Analyze $f"
 
-          # Prefilter: show lines that look like they reference the action
           if grep -Eq "uses:\\s*['\"]?${esc_grep_pat}" "$f"; then
             echo "Prefilter: found 'uses:' lines referencing the action:"
-            # print matching lines with line numbers for context
             grep -En "uses:\\s*['\"]?${esc_grep_pat}.*" "$f" || true
           else
             echo "Prefilter: no 'uses:' lines referencing the action → skip"
@@ -138,29 +152,24 @@ runs:
             continue
           fi
 
-          # Collect current versions (only on steps whose uses startswith PATTERN)
-          current_versions="$(yq -r '
-            (.jobs[]?.steps[]? |
-              select((.uses // "") | type == "!!str" and (.uses | startswith("'"$PATTERN"'"))) |
-              '"$VERSION_KEY"'
-            ) // empty
-          ' "$f" 2>/dev/null || true)"
+          # Dump matched steps for visibility
+          echo "Matched steps (pre-update):"
+          yq -r "$dump_expr" "$f" || true
 
-          if [[ -z "$current_versions" ]]; then
-            echo "Matches: prefilter matched, but no '"$VERSION_KEY"' values found"
-            echo "::endgroup::"
-            skipped_no_match=$((skipped_no_match+1))
-            continue
+          # Collect current versions (may be blank if VERSION_KEY is missing)
+          current_versions="$(yq -r "$query_expr" "$f" 2>/dev/null || true)"
+          if [[ -n "$current_versions" ]]; then
+            matched_files=$((matched_files+1))
+            unique_versions="$(printf "%s\n" "$current_versions" | sed '/^$/d' | sort -u)"
+            match_count=$(printf "%s\n" "$unique_versions" | wc -l | tr -d ' ')
+            echo "Existing '$VERSION_KEY' values: $match_count"
+            while read -r v; do
+              [[ -n "$v" ]] && echo "  - $v"
+            done <<< "$unique_versions"
+          else
+            echo "No existing '$VERSION_KEY' found on matched steps (will set it to $LATEST)."
           fi
 
-          matched_files=$((matched_files+1))
-          unique_versions="$(printf "%s\n" "$current_versions" | sed '/^$/d' | sort -u)"
-          match_count=$(printf "%s\n" "$unique_versions" | wc -l | tr -d ' ')
-          echo "Matches (yq): $match_count"
-          echo "Current versions found:"
-          while read -r v; do
-            [[ -n "$v" ]] && echo "  - $v"
-          done <<< "$unique_versions"
           echo "Target version: $LATEST"
 
           before=$(sha1 "$f")
@@ -180,12 +189,16 @@ runs:
             echo "Status: ALREADY LATEST (no changes)"
             already_latest_count=$((already_latest_count+1))
           fi
+
+          # Show post-update snapshot for this file
+          echo "Matched steps (post-update):"
+          yq -r "$dump_expr" "$f" || true
+
           echo "::endgroup::"
         done
 
         echo "::group::Summary"
         echo "Files scanned:        $total_files"
-        echo "Files with matches:   $matched_files"
         echo "Files updated:        $updated_count"
         echo "Already at latest:    $already_latest_count"
         echo "No matching steps:    $skipped_no_match"
