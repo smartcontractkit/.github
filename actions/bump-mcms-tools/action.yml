@@ -90,7 +90,6 @@ runs:
           fi
         }
 
-        # yq patch to set with.version (or custom VERSION_KEY) for matching steps
         yq_patch() {
           printf '(.jobs[]?.steps[]? | select((.uses // "") | type == "!!str" and (.uses | startswith("%s"))) | %s) = "%s"\n' \
             "$PATTERN" "$VERSION_KEY" "$LATEST"
@@ -122,7 +121,6 @@ runs:
 
         for f in "${files[@]}"; do
           echo "::group::Analyze $f"
-          # Collect current versions for matching steps (one per line)
           current_versions="$(yq -r '
             (.jobs[]?.steps[]? |
               select((.uses // "") | type == "!!str" and (.uses | startswith("'"$PATTERN"'"))) |
@@ -133,12 +131,11 @@ runs:
           if [[ -z "$current_versions" ]]; then
             echo "Matches: 0 (no steps using pattern)"
             echo "::endgroup::"
-            ((skipped_no_match++))
+            skipped_no_match=$((skipped_no_match+1))
             continue
           fi
 
           matched_files=$((matched_files+1))
-          # Unique + sorted for readability
           unique_versions="$(printf "%s\n" "$current_versions" | sed '/^$/d' | sort -u)"
           match_count=$(printf "%s\n" "$unique_versions" | wc -l | tr -d ' ')
           echo "Matches: $match_count"
@@ -152,7 +149,7 @@ runs:
           if ! yq -i "$patch_expr" "$f"; then
             echo "yq error updating file; leaving unchanged."
             echo "::endgroup::"
-            ((yq_errors++))
+            yq_errors=$((yq_errors+1))
             continue
           fi
           after=$(sha1 "$f")
@@ -160,10 +157,10 @@ runs:
           if [[ "$before" != "$after" ]]; then
             echo "Status: UPDATED → set to $LATEST"
             changed=true
-            ((updated_count++))
+            updated_count=$((updated_count+1))
           else
             echo "Status: ALREADY LATEST (no changes)"
-            ((already_latest_count++))
+            already_latest_count=$((already_latest_count+1))
           fi
           echo "::endgroup::"
         done
