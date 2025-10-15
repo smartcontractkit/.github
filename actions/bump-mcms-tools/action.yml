@@ -95,11 +95,15 @@ runs:
             "$PATTERN" "$VERSION_KEY" "$LATEST"
         }
 
+        # escape PATTERN for grep regex and sed printing (slashes & special chars)
+        esc_grep_pat="$(printf '%s' "$PATTERN" | sed -E 's/[][\.^$*+?(){}|/]/\\&/g')"
+
         patch_expr=$(yq_patch)
 
         echo "::group::Discovery"
         echo "Workflows regex: $WORKFLOWS_REGEX"
-        echo "Action uses pattern: $PATTERN"
+        echo "Action uses pattern (startswith in yq): $PATTERN"
+        echo "grep prefilter (regex): uses:\\s*['\"]?${esc_grep_pat}"
         echo "Version key path: $VERSION_KEY"
         mapfile -d '' files < <(find . -regextype posix-extended -regex "$WORKFLOWS_REGEX" -type f -print0 || true)
         total_files=${#files[@]}
@@ -121,6 +125,20 @@ runs:
 
         for f in "${files[@]}"; do
           echo "::group::Analyze $f"
+
+          # Prefilter: show lines that look like they reference the action
+          if grep -Eq "uses:\\s*['\"]?${esc_grep_pat}" "$f"; then
+            echo "Prefilter: found 'uses:' lines referencing the action:"
+            # print matching lines with line numbers for context
+            grep -En "uses:\\s*['\"]?${esc_grep_pat}.*" "$f" || true
+          else
+            echo "Prefilter: no 'uses:' lines referencing the action → skip"
+            echo "::endgroup::"
+            skipped_no_match=$((skipped_no_match+1))
+            continue
+          fi
+
+          # Collect current versions (only on steps whose uses startswith PATTERN)
           current_versions="$(yq -r '
             (.jobs[]?.steps[]? |
               select((.uses // "") | type == "!!str" and (.uses | startswith("'"$PATTERN"'"))) |
@@ -129,7 +147,7 @@ runs:
           ' "$f" 2>/dev/null || true)"
 
           if [[ -z "$current_versions" ]]; then
-            echo "Matches: 0 (no steps using pattern)"
+            echo "Matches: prefilter matched, but no '"$VERSION_KEY"' values found"
             echo "::endgroup::"
             skipped_no_match=$((skipped_no_match+1))
             continue
@@ -138,7 +156,7 @@ runs:
           matched_files=$((matched_files+1))
           unique_versions="$(printf "%s\n" "$current_versions" | sed '/^$/d' | sort -u)"
           match_count=$(printf "%s\n" "$unique_versions" | wc -l | tr -d ' ')
-          echo "Matches: $match_count"
+          echo "Matches (yq): $match_count"
           echo "Current versions found:"
           while read -r v; do
             [[ -n "$v" ]] && echo "  - $v"
