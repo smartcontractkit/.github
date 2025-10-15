@@ -71,7 +71,7 @@ runs:
       env:
         LATEST: ${{ steps.latest.outputs.tag }}
         PATTERN: ${{ inputs.action_uses_pattern }} # e.g. smartcontractkit/.github/actions/get-mcms-tools@
-        VERSION_KEY: ${{ inputs.version_input_path }} # e.g. with.version
+        VERSION_KEY: ${{ inputs.version_input_path }} # usually with.version
         WORKFLOWS_REGEX: ${{ inputs.workflows_regex }}
       run: |
         set -Eeuo pipefail
@@ -79,129 +79,56 @@ runs:
 
         changed=false
 
-        sha1() {
-          if command -v sha1sum >/dev/null 2>&1; then
-            sha1sum "$1" | awk '{print $1}'
-          elif command -v shasum >/dev/null 2>&1; then
-            shasum -a 1 "$1" | awk '{print $1}'
-          else
-            echo "error: no sha1sum or shasum found" >&2
-            exit 1
-          fi
-        }
+        echo "::notice::Searching for steps using pattern: $PATTERN"
+        echo "::notice::Latest version to set: $LATEST"
+        echo "::notice::Workflows regex: $WORKFLOWS_REGEX"
 
-        # Build a safe regex for yq's test() — anchor to beginning.
-        # Escape chars meaningful to regex: []^$.*+?(){}|\ 
-        esc_for_regex() { sed -E 's/([][\^$.|?*+(){}])/\\\1/g' ; }
-        PATTERN_REGEX="^$(printf '%s' "$PATTERN" | esc_for_regex)"
-
-        # yq programs (v4 syntax)
-        make_query_expr() {
-          printf '(.jobs[]?.steps[]? | select((.uses // "") | type == "!!str" and (.uses | test("%s"))) | %s) // empty' \
-            "$PATTERN_REGEX" "$VERSION_KEY"
-        }
-        make_dump_expr() {
-          printf '[.jobs[]? as $j ireduce ({}; .) | $j.steps[]? | select((.uses // "") | type == "!!str" and (.uses | test("%s"))) | {id, name, uses, version: (%s // "<missing>")}]' \
-            "$PATTERN_REGEX" "$VERSION_KEY"
-        }
-        make_patch_expr() {
-          printf '(.jobs[]?.steps[]? | select((.uses // "") | type == "!!str" and (.uses | test("%s"))) | %s) = "%s"' \
-            "$PATTERN_REGEX" "$VERSION_KEY" "$LATEST"
-        }
-
-        query_expr="$(make_query_expr)"
-        dump_expr="$(make_dump_expr)"
-        patch_expr="$(make_patch_expr)"
-
-        # Grep prefilter for visibility
-        esc_grep_pat="$(printf '%s' "$PATTERN" | sed -E 's/[][\.^$*+?(){}|/]/\\&/g')"
-
-        echo "::group::Discovery"
-        echo "Effective workflows regex: $WORKFLOWS_REGEX"
-        echo "Action uses pattern: $PATTERN"
-        echo "YQ test() regex: $PATTERN_REGEX"
-        echo "grep prefilter: uses:\\s*['\"]?${esc_grep_pat}"
-        echo "Version key path: $VERSION_KEY"
+        # Find workflow files matching regex
         mapfile -d '' files < <(find . -regextype posix-extended -regex "$WORKFLOWS_REGEX" -type f -print0 || true)
-        total_files=${#files[@]}
-        echo "Files matched by regex: $total_files"
-        for f in "${files[@]}"; do echo "  - $f"; done
-        echo "::endgroup::"
+        total=${#files[@]}
+        echo "::notice::Found $total potential workflow file(s)"
 
-        if [[ $total_files -eq 0 ]]; then
-          echo "No workflow files matched regex."
+        if [[ $total -eq 0 ]]; then
+          echo "::warning::No workflow files matched regex ($WORKFLOWS_REGEX)"
           echo "changed=$changed" | tee -a "$GITHUB_OUTPUT"
           exit 0
         fi
 
-        updated_count=0
-        matched_files=0
-        already_latest_count=0
-        skipped_no_match=0
-        yq_errors=0
-
         for f in "${files[@]}"; do
-          echo "::group::Analyze $f"
+          echo "::group::Processing $f"
 
-          if grep -Eq "uses:\\s*['\"]?${esc_grep_pat}" "$f"; then
-            echo "Prefilter: found 'uses:' lines referencing the action:"
-            grep -En "uses:\\s*['\"]?${esc_grep_pat}.*" "$f" || true
-          else
-            echo "Prefilter: no 'uses:' lines referencing the action → skip"
-            echo "::endgroup::"
-            skipped_no_match=$((skipped_no_match+1))
-            continue
-          fi
+          before_hash=$(sha1sum "$f" | cut -d' ' -f1)
 
-          echo "Matched steps (pre-update):"
-          # dump_expr returns JSON array of objects
-          yq -o=json "$dump_expr" "$f" || true
+          echo "::notice::Checking for existing versions in $f"
+          yq -r '
+            .jobs[]?.steps[]?
+            | select((.uses // "") | type == "!!str" and (.uses | test("^'"$PATTERN"'")))
+            | .with.version
+          ' "$f" | sed '/^$/d' || true
 
-          current_versions="$(yq -r "$query_expr" "$f" 2>/dev/null || true)"
-          if [[ -n "$current_versions" ]]; then
-            matched_files=$((matched_files+1))
-            unique_versions="$(printf "%s\n" "$current_versions" | sed '/^$/d' | sort -u)"
-            match_count=$(printf "%s\n" "$unique_versions" | wc -l | tr -d ' ')
-            echo "Existing '$VERSION_KEY' values: $match_count"
-            while read -r v; do
-              [[ -n "$v" ]] && echo "  - $v"
-            done <<< "$unique_versions"
-          else
-            echo "No existing '$VERSION_KEY' found on matched steps (will set it to $LATEST)."
-          fi
+          # Apply update
+          yq -i '
+            (.jobs[]?.steps[]?
+             | select((.uses // "") | type == "!!str" and (.uses | test("^'"$PATTERN"'")))
+             | .with.version) = "'"$LATEST"'"
+          ' "$f"
 
-          echo "Target version: $LATEST"
+          after_hash=$(sha1sum "$f" | cut -d' ' -f1)
 
-          before=$(sha1 "$f")
-          if ! yq -i "$patch_expr" "$f"; then
-            echo "yq error updating file; leaving unchanged."
-            echo "::endgroup::"
-            yq_errors=$((yq_errors+1))
-            continue
-          fi
-          after=$(sha1 "$f")
-
-          if [[ "$before" != "$after" ]]; then
-            echo "Status: UPDATED → set to $LATEST"
+          if [[ "$before_hash" != "$after_hash" ]]; then
+            echo "::notice::✅ Updated $f → version set to $LATEST"
             changed=true
-            updated_count=$((updated_count+1))
           else
-            echo "Status: ALREADY LATEST (no changes)"
-            already_latest_count=$((already_latest_count+1))
+            echo "::notice::↩️ No change needed (already at $LATEST)"
           fi
-
-          echo "Matched steps (post-update):"
-          yq -o=json "$dump_expr" "$f" || true
 
           echo "::endgroup::"
         done
 
-        echo "::group::Summary"
-        echo "Files scanned:        $total_files"
-        echo "Files updated:        $updated_count"
-        echo "Already at latest:    $already_latest_count"
-        echo "No matching steps:    $skipped_no_match"
-        echo "yq errors:            $yq_errors"
-        echo "::endgroup::"
+        if [[ "$changed" == "true" ]]; then
+          echo "::notice::Workflow(s) updated to $LATEST"
+        else
+          echo "::notice::All workflows already at latest version ($LATEST)"
+        fi
 
         echo "changed=$changed" | tee -a "$GITHUB_OUTPUT"
