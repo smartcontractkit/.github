@@ -75,7 +75,7 @@ runs:
         CHIP_CONFIG_USER: ${{ inputs.chip_config_user }}
         CHIP_CONFIG_PASSWORD: ${{ inputs.chip_config_password }}
         CHIP_SCHEMA_DIR: ${{ inputs.chip_schema_dir }}
-        CHIP_CONFIG_FILE: ${{ inputs.chip_config_file }}
+        CHIP_CONFIG_FILE_PATH: ${{ inputs.chip_config_file_path }}
       run: |
         docker run \
           --dns 100.100.100.100 \
