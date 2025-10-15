@@ -46,14 +46,20 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github_token }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
         MCMS_REPO: ${{ inputs.mcms_repo }}
       run: |
         set -euo pipefail
-        TAG=$(gh api "repos/$MCMS_REPO/releases/latest" --jq .tag_name)
-        if [[ -z "$TAG" || "$TAG" == "null" ]]; then
-          echo "Failed to resolve latest release tag from $MCMS_REPO" >&2
+
+        echo "Fetching most recent non-draft release from $MCMS_REPO"
+        TAG=$(gh api "repos/$MCMS_REPO/releases" --paginate \
+          --jq '[.[] | select(.draft==false)][0].tag_name')
+
+        if [[ -z "${TAG:-}" || "${TAG}" == "null" ]]; then
+          echo "No non-draft releases found in $MCMS_REPO" >&2
           exit 1
         fi
+
         echo "Latest tag: $TAG"
         echo "tag=$TAG" | tee -a "$GITHUB_OUTPUT"
 
