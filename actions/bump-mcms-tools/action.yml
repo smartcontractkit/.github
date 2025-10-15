@@ -71,7 +71,6 @@ runs:
       env:
         LATEST: ${{ steps.latest.outputs.tag }}
         PATTERN: ${{ inputs.action_uses_pattern }} # e.g. smartcontractkit/.github/actions/get-mcms-tools@
-        VERSION_KEY: ${{ inputs.version_input_path }} # usually with.version
         WORKFLOWS_REGEX: ${{ inputs.workflows_regex }}
       run: |
         set -Eeuo pipefail
@@ -83,11 +82,10 @@ runs:
         echo "::notice::Latest version to set: $LATEST"
         echo "::notice::Workflows regex: $WORKFLOWS_REGEX"
 
-        # Find workflow files matching regex
+        # Find workflow files
         mapfile -d '' files < <(find . -regextype posix-extended -regex "$WORKFLOWS_REGEX" -type f -print0 || true)
         total=${#files[@]}
         echo "::notice::Found $total potential workflow file(s)"
-
         if [[ $total -eq 0 ]]; then
           echo "::warning::No workflow files matched regex ($WORKFLOWS_REGEX)"
           echo "changed=$changed" | tee -a "$GITHUB_OUTPUT"
@@ -97,30 +95,47 @@ runs:
         for f in "${files[@]}"; do
           echo "::group::Processing $f"
 
-          # Collect all existing versions for this action
-          current_versions="$(yq -r '
-            .jobs[]?.steps[]?
-            | select((.uses // "") | type == "!!str" and (.uses | test("^'"$PATTERN"'")))
-            | .with.version
-          ' "$f" | sed '/^$/d' || true)"
+          # Count steps that use the action
+          match_count=$(yq -r '
+            [
+              .jobs[]?.steps[]?
+              | select((.uses // "") | type == "!!str" and (.uses | test("^'"$PATTERN"'")))
+            ] | length
+          ' "$f")
 
-          if [[ -z "$current_versions" ]]; then
-            echo "::notice::No existing version found — will set to $LATEST"
-          else
-            echo "::notice::Existing version(s):"
-            echo "$current_versions" | sed 's/^/  - /'
+          if [[ "$match_count" -eq 0 ]]; then
+            echo "::notice::No steps using the action — skipping."
+            echo "::endgroup::"
+            continue
           fi
 
-          # If all existing versions already equal the latest tag, skip update
-          if [[ -n "$current_versions" ]] && ! echo "$current_versions" | grep -qv "$LATEST"; then
-            echo "::notice::↩️ All versions already at $LATEST — no update needed."
+          # Count how many of those are NOT already at the latest version (missing or different)
+          diff_count=$(yq -r '
+            [
+              .jobs[]?.steps[]?
+              | select((.uses // "") | type == "!!str" and (.uses | test("^'"$PATTERN"'")))
+              | (.with.version // "") | select(. != "'"$LATEST"'")
+            ] | length
+          ' "$f")
+
+          # For visibility, list current distinct versions on matched steps
+          echo "::notice::Matched steps: $match_count"
+          echo "::notice::Current versions on matched steps:"
+          yq -r '
+            .jobs[]?.steps[]?
+            | select((.uses // "") | type == "!!str" and (.uses | test("^'"$PATTERN"'")))
+            | (.with.version // "<missing>")
+          ' "$f" | sed 's/^/  - /'
+
+          if [[ "$diff_count" -eq 0 ]]; then
+            echo "::notice::↩️ All matched steps already at $LATEST — no update needed."
             echo "::endgroup::"
             continue
           fi
 
           before_hash=$(sha1sum "$f" | cut -d' ' -f1)
 
-          # Apply patch
+          # Patch ONLY matched steps
           yq -i '
             (.jobs[]?.steps[]?
              | select((.uses // "") | type == "!!str" and (.uses | test("^'"$PATTERN"'")))
@@ -133,7 +148,7 @@ runs:
             echo "::notice::✅ Updated $f → version set to $LATEST"
             changed=true
           else
-            echo "::notice::↩️ No change detected (already up-to-date)"
+            echo "::notice::↩️ No change detected after patch (already up-to-date/normalized)."
           fi
 
           echo "::endgroup::"
@@ -142,7 +157,7 @@ runs:
         if [[ "$changed" == "true" ]]; then
           echo "::notice::Workflow(s) updated to $LATEST"
         else
-          echo "::notice::All workflows already at latest version ($LATEST)"
+          echo "::notice::All relevant workflows already at latest version ($LATEST)"
         fi
 
         echo "changed=$changed" | tee -a "$GITHUB_OUTPUT"
