@@ -60,7 +60,7 @@ runs:
           exit 1
         fi
 
-        echo "Latest tag: $TAG"
+        echo "Latest tag discovered: $TAG"
         echo "tag=$TAG" | tee -a "$GITHUB_OUTPUT"
 
     - name: Update workflow files
@@ -88,6 +88,7 @@ runs:
           fi
         }
 
+        # yq patch to set with.version (or custom VERSION_KEY) for matching steps
         yq_patch() {
           printf '(.jobs[]?.steps[]? | select((.uses // "") | type == "!!str" and (.uses | startswith("%s"))) | %s) = "%s"\n' \
             "$PATTERN" "$VERSION_KEY" "$LATEST"
@@ -95,26 +96,83 @@ runs:
 
         patch_expr=$(yq_patch)
 
-        # Find all files matching the provided workflows regex. This will be the files to search for mcms-tools versions
+        echo "::group::Discovery"
+        echo "Workflows regex: $WORKFLOWS_REGEX"
+        echo "Action uses pattern: $PATTERN"
+        echo "Version key path: $VERSION_KEY"
         mapfile -d '' files < <(find . -regextype posix-extended -regex "$WORKFLOWS_REGEX" -type f -print0 || true)
+        total_files=${#files[@]}
+        echo "Files matched by regex: $total_files"
+        for f in "${files[@]}"; do echo "  - $f"; done
+        echo "::endgroup::"
 
-        if [[ ${#files[@]} -eq 0 ]]; then
-          echo "No workflow files matched regex: $WORKFLOWS_REGEX"
+        if [[ $total_files -eq 0 ]]; then
+          echo "No workflow files matched regex."
           echo "changed=$changed" | tee -a "$GITHUB_OUTPUT"
           exit 0
         fi
 
+        updated_count=0
+        matched_files=0
+        already_latest_count=0
+        skipped_no_match=0
+        yq_errors=0
+
         for f in "${files[@]}"; do
+          echo "::group::Analyze $f"
+          # Collect current versions for matching steps (one per line)
+          current_versions="$(yq -r '
+            (.jobs[]?.steps[]? |
+              select((.uses // "") | type == "!!str" and (.uses | startswith("'"$PATTERN"'"))) |
+              '"$VERSION_KEY"'
+            ) // empty
+          ' "$f" 2>/dev/null || true)"
+
+          if [[ -z "$current_versions" ]]; then
+            echo "Matches: 0 (no steps using pattern)"
+            echo "::endgroup::"
+            ((skipped_no_match++))
+            continue
+          fi
+
+          matched_files=$((matched_files+1))
+          # Unique + sorted for readability
+          unique_versions="$(printf "%s\n" "$current_versions" | sed '/^$/d' | sort -u)"
+          match_count=$(printf "%s\n" "$unique_versions" | wc -l | tr -d ' ')
+          echo "Matches: $match_count"
+          echo "Current versions found:"
+          while read -r v; do
+            [[ -n "$v" ]] && echo "  - $v"
+          done <<< "$unique_versions"
+          echo "Target version: $LATEST"
+
           before=$(sha1 "$f")
           if ! yq -i "$patch_expr" "$f"; then
-            echo "Skipped (yq error): $f"
+            echo "yq error updating file; leaving unchanged."
+            echo "::endgroup::"
+            ((yq_errors++))
             continue
           fi
           after=$(sha1 "$f")
+
           if [[ "$before" != "$after" ]]; then
-            echo "Updated: $f"
+            echo "Status: UPDATED → set to $LATEST"
             changed=true
+            ((updated_count++))
+          else
+            echo "Status: ALREADY LATEST (no changes)"
+            ((already_latest_count++))
           fi
+          echo "::endgroup::"
         done
+
+        echo "::group::Summary"
+        echo "Files scanned:        $total_files"
+        echo "Files with matches:   $matched_files"
+        echo "Files updated:        $updated_count"
+        echo "Already at latest:    $already_latest_count"
+        echo "No matching steps:    $skipped_no_match"
+        echo "yq errors:            $yq_errors"
+        echo "::endgroup::"
 
         echo "changed=$changed" | tee -a "$GITHUB_OUTPUT"
