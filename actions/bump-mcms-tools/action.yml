@@ -10,9 +10,11 @@ inputs:
     required: false
     default: "smartcontractkit/mcms-tools"
   workflows_regex:
-    description: "Regex pattern to match workflow files to update"
+    description:
+      "Regex pattern to match workflow files to update (can live under any
+      directory)"
     required: false
-    default: "^\\.github/workflows/.*\\.(yml|yaml)$"
+    default: ".*/\\.github/workflows/.*\\.(yml|yaml)$"
   action_uses_pattern:
     description: "String to match the composite action step (prefix of uses:)"
     required: false
