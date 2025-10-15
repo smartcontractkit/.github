@@ -70,8 +70,8 @@ runs:
       shell: bash
       env:
         LATEST: ${{ steps.latest.outputs.tag }}
-        PATTERN: ${{ inputs.action_uses_pattern }}
-        VERSION_KEY: ${{ inputs.version_input_path }}
+        PATTERN: ${{ inputs.action_uses_pattern }} # e.g. smartcontractkit/.github/actions/get-mcms-tools@
+        VERSION_KEY: ${{ inputs.version_input_path }} # e.g. with.version
         WORKFLOWS_REGEX: ${{ inputs.workflows_regex }}
       run: |
         set -Eeuo pipefail
@@ -90,36 +90,37 @@ runs:
           fi
         }
 
-        # Build yq expressions robustly (avoid fragile shell quoting)
+        # Build a safe regex for yq's test() — anchor to beginning.
+        # Escape chars meaningful to regex: []^$.*+?(){}|\ 
+        esc_for_regex() { sed -E 's/([][\^$.|?*+(){}])/\\\1/g' ; }
+        PATTERN_REGEX="^$(printf '%s' "$PATTERN" | esc_for_regex)"
+
+        # yq programs (v4 syntax)
         make_query_expr() {
-          # Emits existing with.version (or empty) for steps whose .uses starts with PATTERN
-          printf '(.jobs[]?.steps[]? | select((.uses // "") | tostring | startswith("%s")) | %s) // empty' \
-            "$PATTERN" "$VERSION_KEY"
+          printf '(.jobs[]?.steps[]? | select((.uses // "") | type == "!!str" and (.uses | test("%s"))) | %s) // empty' \
+            "$PATTERN_REGEX" "$VERSION_KEY"
         }
-
         make_dump_expr() {
-          # For debugging: dump the matched steps' id, name, uses, and with.version
-          printf '[.jobs[]? as $j ireduce ({}; .) | $j.steps[]? | select((.uses // "") | tostring | startswith("%s")) | {id, name, uses, version: (%s // "<missing>")}]' \
-            "$PATTERN" "$VERSION_KEY"
+          printf '[.jobs[]? as $j ireduce ({}; .) | $j.steps[]? | select((.uses // "") | type == "!!str" and (.uses | test("%s"))) | {id, name, uses, version: (%s // "<missing>")}]' \
+            "$PATTERN_REGEX" "$VERSION_KEY"
         }
-
         make_patch_expr() {
-          # Set with.version to LATEST on matched steps
-          printf '(.jobs[]?.steps[]? | select((.uses // "") | tostring | startswith("%s")) | %s) = "%s"' \
-            "$PATTERN" "$VERSION_KEY" "$LATEST"
+          printf '(.jobs[]?.steps[]? | select((.uses // "") | type == "!!str" and (.uses | test("%s"))) | %s) = "%s"' \
+            "$PATTERN_REGEX" "$VERSION_KEY" "$LATEST"
         }
 
         query_expr="$(make_query_expr)"
         dump_expr="$(make_dump_expr)"
         patch_expr="$(make_patch_expr)"
 
-        # Grep prefilter (just to print context lines)
+        # Grep prefilter for visibility
         esc_grep_pat="$(printf '%s' "$PATTERN" | sed -E 's/[][\.^$*+?(){}|/]/\\&/g')"
 
         echo "::group::Discovery"
         echo "Effective workflows regex: $WORKFLOWS_REGEX"
-        echo "Action uses pattern (startswith in yq): $PATTERN"
-        echo "grep prefilter (regex): uses:\\s*['\"]?${esc_grep_pat}"
+        echo "Action uses pattern: $PATTERN"
+        echo "YQ test() regex: $PATTERN_REGEX"
+        echo "grep prefilter: uses:\\s*['\"]?${esc_grep_pat}"
         echo "Version key path: $VERSION_KEY"
         mapfile -d '' files < <(find . -regextype posix-extended -regex "$WORKFLOWS_REGEX" -type f -print0 || true)
         total_files=${#files[@]}
@@ -152,11 +153,10 @@ runs:
             continue
           fi
 
-          # Dump matched steps for visibility
           echo "Matched steps (pre-update):"
-          yq -r "$dump_expr" "$f" || true
+          # dump_expr returns JSON array of objects
+          yq -o=json "$dump_expr" "$f" || true
 
-          # Collect current versions (may be blank if VERSION_KEY is missing)
           current_versions="$(yq -r "$query_expr" "$f" 2>/dev/null || true)"
           if [[ -n "$current_versions" ]]; then
             matched_files=$((matched_files+1))
@@ -190,9 +190,8 @@ runs:
             already_latest_count=$((already_latest_count+1))
           fi
 
-          # Show post-update snapshot for this file
           echo "Matched steps (post-update):"
-          yq -r "$dump_expr" "$f" || true
+          yq -o=json "$dump_expr" "$f" || true
 
           echo "::endgroup::"
         done
