@@ -97,16 +97,30 @@ runs:
         for f in "${files[@]}"; do
           echo "::group::Processing $f"
 
-          before_hash=$(sha1sum "$f" | cut -d' ' -f1)
-
-          echo "::notice::Checking for existing versions in $f"
-          yq -r '
+          # Collect all existing versions for this action
+          current_versions="$(yq -r '
             .jobs[]?.steps[]?
             | select((.uses // "") | type == "!!str" and (.uses | test("^'"$PATTERN"'")))
             | .with.version
-          ' "$f" | sed '/^$/d' || true
+          ' "$f" | sed '/^$/d' || true)"
 
-          # Apply update
+          if [[ -z "$current_versions" ]]; then
+            echo "::notice::No existing version found — will set to $LATEST"
+          else
+            echo "::notice::Existing version(s):"
+            echo "$current_versions" | sed 's/^/  - /'
+          fi
+
+          # If all existing versions already equal the latest tag, skip update
+          if [[ -n "$current_versions" ]] && ! echo "$current_versions" | grep -qv "$LATEST"; then
+            echo "::notice::↩️ All versions already at $LATEST — no update needed."
+            echo "::endgroup::"
+            continue
+          fi
+
+          before_hash=$(sha1sum "$f" | cut -d' ' -f1)
+
+          # Apply patch
           yq -i '
             (.jobs[]?.steps[]?
              | select((.uses // "") | type == "!!str" and (.uses | test("^'"$PATTERN"'")))
@@ -119,7 +133,7 @@ runs:
             echo "::notice::✅ Updated $f → version set to $LATEST"
             changed=true
           else
-            echo "::notice::↩️ No change needed (already at $LATEST)"
+            echo "::notice::↩️ No change detected (already up-to-date)"
           fi
 
           echo "::endgroup::"
