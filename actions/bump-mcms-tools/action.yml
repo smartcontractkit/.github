@@ -1,0 +1,163 @@
+name: "Bump mcms-tools version"
+description: "Detect latest mcms-tools release and update workflow inputs"
+
+inputs:
+  github_token:
+    description: "Token for GitHub API (gh cli)"
+    required: true
+  mcms_repo:
+    description: "Repo to read releases from (owner/name)"
+    required: false
+    default: "smartcontractkit/mcms-tools"
+  workflows_regex:
+    description:
+      "Regex pattern to match workflow files to update (can live under any
+      directory)"
+    required: false
+    default: ".*/\\.github/workflows/.*\\.(yml|yaml)$"
+  action_uses_pattern:
+    description: "String to match the composite action step (prefix of uses:)"
+    required: false
+    default: "smartcontractkit/.github/actions/get-mcms-tools@"
+  version_input_path:
+    description: "The YAML path to the input (relative to the step) to set"
+    required: false
+    default: "with.version"
+
+outputs:
+  latest_tag:
+    description: "Latest mcms-tools release tag"
+    value: ${{ steps.latest.outputs.tag }}
+  changed:
+    description: "true if any file changed, false otherwise"
+    value: ${{ steps.update.outputs.changed }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check out
+      uses: actions/checkout@v4
+
+    - name: Install yq
+      uses: dcarbone/install-yq-action@3b5b9f8b5d98b7d7e4cf94337336e414a2d79a8b # v1.3.1
+      with:
+        version: v4
+
+    - name: Resolve latest tag
+      id: latest
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        MCMS_REPO: ${{ inputs.mcms_repo }}
+      run: |
+        set -euo pipefail
+
+        echo "Fetching most recent non-draft release from $MCMS_REPO"
+        TAG=$(gh api "repos/$MCMS_REPO/releases" --paginate \
+          --jq '[.[] | select(.draft==false)][0].tag_name')
+
+        if [[ -z "${TAG:-}" || "${TAG}" == "null" ]]; then
+          echo "No non-draft releases found in $MCMS_REPO" >&2
+          exit 1
+        fi
+
+        echo "Latest tag discovered: $TAG"
+        echo "tag=$TAG" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Update workflow files
+      id: update
+      shell: bash
+      env:
+        LATEST: ${{ steps.latest.outputs.tag }}
+        PATTERN: ${{ inputs.action_uses_pattern }} # e.g. smartcontractkit/.github/actions/get-mcms-tools@
+        WORKFLOWS_REGEX: ${{ inputs.workflows_regex }}
+      run: |
+        set -Eeuo pipefail
+        IFS=$'\n\t'
+
+        changed=false
+
+        echo "::notice::Searching for steps using pattern: $PATTERN"
+        echo "::notice::Latest version to set: $LATEST"
+        echo "::notice::Workflows regex: $WORKFLOWS_REGEX"
+
+        # Find workflow files
+        mapfile -d '' files < <(find . -regextype posix-extended -regex "$WORKFLOWS_REGEX" -type f -print0 || true)
+        total=${#files[@]}
+        echo "::notice::Found $total potential workflow file(s)"
+        if [[ $total -eq 0 ]]; then
+          echo "::warning::No workflow files matched regex ($WORKFLOWS_REGEX)"
+          echo "changed=$changed" | tee -a "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        for f in "${files[@]}"; do
+          echo "::group::Processing $f"
+
+          # Count steps that use the action
+          match_count=$(yq -r '
+            [
+              .jobs[]?.steps[]?
+              | select((.uses // "") | type == "!!str" and (.uses | test("^'"$PATTERN"'")))
+            ] | length
+          ' "$f")
+
+          if [[ "$match_count" -eq 0 ]]; then
+            echo "::notice::No steps using the action — skipping."
+            echo "::endgroup::"
+            continue
+          fi
+
+          # Count how many of those are NOT already at the latest version (missing or different)
+          diff_count=$(yq -r '
+            [
+              .jobs[]?.steps[]?
+              | select((.uses // "") | type == "!!str" and (.uses | test("^'"$PATTERN"'")))
+              | (.with.version // "") | select(. != "'"$LATEST"'")
+            ] | length
+          ' "$f")
+
+          # For visibility, list current distinct versions on matched steps
+          echo "::notice::Matched steps: $match_count"
+          echo "::notice::Current versions on matched steps:"
+          yq -r '
+            .jobs[]?.steps[]?
+            | select((.uses // "") | type == "!!str" and (.uses | test("^'"$PATTERN"'")))
+            | (.with.version // "<missing>")
+          ' "$f" | sed 's/^/  - /'
+
+          if [[ "$diff_count" -eq 0 ]]; then
+            echo "::notice::↩️ All matched steps already at $LATEST — no update needed."
+            echo "::endgroup::"
+            continue
+          fi
+
+          before_hash=$(sha1sum "$f" | cut -d' ' -f1)
+
+          # Patch ONLY matched steps
+          yq -i '
+            (.jobs[]?.steps[]?
+             | select((.uses // "") | type == "!!str" and (.uses | test("^'"$PATTERN"'")))
+             | .with.version) = "'"$LATEST"'"
+          ' "$f"
+
+          after_hash=$(sha1sum "$f" | cut -d' ' -f1)
+
+          if [[ "$before_hash" != "$after_hash" ]]; then
+            echo "::notice::✅ Updated $f → version set to $LATEST"
+            changed=true
+          else
+            echo "::notice::↩️ No change detected after patch (already up-to-date/normalized)."
+          fi
+
+          echo "::endgroup::"
+        done
+
+        if [[ "$changed" == "true" ]]; then
+          echo "::notice::Workflow(s) updated to $LATEST"
+        else
+          echo "::notice::All relevant workflows already at latest version ($LATEST)"
+        fi
+
+        echo "changed=$changed" | tee -a "$GITHUB_OUTPUT"
