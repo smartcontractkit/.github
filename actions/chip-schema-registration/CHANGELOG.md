@@ -1,5 +1,14 @@
 # chip-schema-registration
 
+## 1.0.2
+
+### Patch Changes
+
+- [#1288](https://github.com/smartcontractkit/.github/pull/1288)
+  [`6fcf464`](https://github.com/smartcontractkit/.github/commit/6fcf464d30c3678d46f775dc97e71704ead79184)
+  Thanks [@engnke](https://github.com/engnke)! - Add tailscale step to allow
+  connectivity to chip-config service and some changes to the command line args.
+
 ## 1.0.1
 
 ### Patch Changes
