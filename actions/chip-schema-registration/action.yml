@@ -6,33 +6,40 @@ inputs:
     description: "enable git checkout repo"
     required: false
     default: "true"
-  aws_account_id:
+  aws-account-id:
     description: "AWS Account ID"
     required: true
-  aws_region:
+  aws-region:
     description: "AWS region"
     required: false
     default: "us-west-2"
-  chip_config_host:
+  chip-config-host:
     description: "Host of chip-config service"
     required: true
-  chip_config_port:
+  chip-config-port:
     description: "Port of chip-config service"
     required: false
-    default: "50051"
-  chip_config_user:
+    default: "443"
+  chip-config-user:
     description: "User to authenticate to chip-config"
     required: true
-  chip_config_password:
+  chip-config-password:
     description: "Password to chip-config "
     required: true
-  chip_schema_dir:
+  chip-schema-dir:
     description: "Path to the schemas directory"
     required: true
-  chip_config_file:
-    description: "Name of the schema configuration file in chip_schema_dir"
+  chip-config-file-path:
+    description:
+      "The full path of the schema configuration file. By default, chip.json in
+      schema directory is used."
     required: false
-    default: "chip.json"
+  ts-ouath-client-id:
+    description: "Tailscale OAuth Client ID"
+    required: true
+  ts-ouath-secret:
+    description: "Tailscale OAuth Secret"
+    required: true
 
 runs:
   using: composite
@@ -42,32 +49,40 @@ runs:
     - name: Login to ECR
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
       with:
-        registries: ${{ inputs.aws_account_id }}
+        registries: ${{ inputs.aws-account-id }}
 
     - name: Pull container image
       shell: bash
       env:
-        AWS_ACCOUNT_ID: ${{ inputs.aws_account_id }}
-        AWS_REGION: ${{ inputs.aws_region }}
+        AWS_ACCOUNT_ID: ${{ inputs.aws-account-id }}
+        AWS_REGION: ${{ inputs.aws-region }}
       run: |
         docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-schema-registration:qa-latest
         docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-schema-registration:qa-latest chip-schema-registration
 
+    - name: Connect to Tailscale
+      uses: tailscale/github-action@84a3f23bb4d843bcf4da6cf824ec1be473daf4de
+      with:
+        oauth-client-id: ${{ inputs.ts-ouath-client-id }}
+        oauth-secret: ${{ inputs.ts-ouath-secret }}
+        tags: "tag:chip-config-gha"
+
     - name: Register schemas
       shell: bash
       env:
-        CHIP_CONFIG_HOST: ${{ inputs.chip_config_host }}
-        CHIP_CONFIG_PORT: ${{ inputs.chip_config_port }}
-        CHIP_CONFIG_USER: ${{ inputs.chip_config_user }}
-        CHIP_CONFIG_PASSWORD: ${{ inputs.chip_config_password }}
-        CHIP_SCHEMA_DIR: ${{ inputs.chip_schema_dir }}
-        CHIP_CONFIG_FILE: ${{ inputs.chip_config_file }}
+        CHIP_CONFIG_HOST: ${{ inputs.chip-config-host }}
+        CHIP_CONFIG_PORT: ${{ inputs.chip-config-port }}
+        CHIP_CONFIG_USER: ${{ inputs.chip-config-user }}
+        CHIP_CONFIG_PASSWORD: ${{ inputs.chip-config-password }}
+        CHIP_SCHEMA_DIR: ${{ inputs.chip-schema-dir }}
+        CHIP_CONFIG_FILE_PATH: ${{ inputs.chip-config-file-path }}
       run: |
         docker run \
+          --dns 100.100.100.100 \
           -v "$PWD:/workspace" \
           -w /workspace \
           -e CHIP_CONFIG_HOST \
           -e CHIP_CONFIG_PORT \
           -e CHIP_CONFIG_USER \
           -e CHIP_CONFIG_PASSWORD \
-          chip-schema-registration register --schema-dir="$CHIP_SCHEMA_DIR" --config-file="$CHIP_CONFIG_FILE"
+          chip-schema-registration register --schema-dir="$CHIP_SCHEMA_DIR" --config="$CHIP_CONFIG_FILE_PATH"
