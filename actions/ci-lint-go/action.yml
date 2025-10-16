@@ -60,7 +60,7 @@ inputs:
     description: "Additional args to set for golangci-lint. See inputs.golangci-lint-config
       for config file options."
     required: false
-    default: --output.checkstyle.path=golangci-lint-report.xml
+    default: --output.checkstyle.path=golangci-lint-report.xml --output.text.path=stdout
   golangci-lint-config:
     description: "Path to golangci-lint configuration file. If empty, uses the action's default config."
     required: false
