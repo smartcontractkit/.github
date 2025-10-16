@@ -1,5 +1,11 @@
 # ci-lint-go
 
+## 3.1.0
+
+### Minor Changes
+
+- [#1293](https://github.com/smartcontractkit/.github/pull/1293) [`31f7a92`](https://github.com/smartcontractkit/.github/commit/31f7a923a25f7672641b5099cbb85ce4a984fc05) Thanks [@chainchad](https://github.com/chainchad)! - Add golangci-lint output for stdout
+
 ## 3.0.1
 
 ### Patch Changes
