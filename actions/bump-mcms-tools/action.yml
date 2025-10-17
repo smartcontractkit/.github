@@ -67,4 +67,4 @@ runs:
         LATEST: ${{ steps.latest.outputs.tag }}
         PATTERN: ${{ inputs.action_uses_pattern }} # e.g. smartcontractkit/.github/actions/get-mcms-tools@
         WORKFLOWS_REGEX: ${{ inputs.workflows_regex }}
-      run: ./scripts/update-workflow-files.sh
+      run: ${{ github.action_path }}/scripts/update-workflow-files.sh
