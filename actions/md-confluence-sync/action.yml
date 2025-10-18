@@ -50,7 +50,7 @@ runs:
         prettier-command: pnpm prettier --check ${{ inputs.files }}
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
 
     - name: Setup tools
       shell: bash
