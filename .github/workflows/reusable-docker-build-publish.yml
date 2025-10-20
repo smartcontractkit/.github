@@ -46,6 +46,7 @@ name: Reusable Docker Build and Publish
 #         AWS_ROLE_PUBLISH_ARN: $\{{ secrets.AWS_ROLE_PUBLISH_ARN }} # Remove the "\" escape character.
 #         AWS_ROLE_GATI_ARN: $\{{ secrets.AWS_ROLE_GATI_ARN }} # Remove the "\" escape character.
 #         AWS_LAMBDA_GATI_URL: $\{{ secrets.AWS_LAMBDA_GATI_URL }} # Remove the "\" escape character.
+#         GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE: $\{{ secrets.MY_FPAT_TOKEN }} # Optional: Override GitHub token
 ##
 on:
   workflow_call:
@@ -66,6 +67,16 @@ on:
         required: false
       AWS_LAMBDA_GATI_URL:
         description: "AWS Lambda URL for GATI."
+        required: false
+      GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE:
+        description: |
+          Override the GitHub token mounted as a secret for Docker builds.
+
+          If not specified, we will try and use GATI for GitHub auth if its
+          required secrets are provided.
+
+          This can be used to provide a FPAT (fine-grained personal access 
+          token) for accessing private repositories during Docker builds.
         required: false
     inputs:
       aws-ecr-name:
@@ -537,11 +548,14 @@ jobs:
         env:
           AWS_ROLE_GATI_ARN: ${{ secrets.AWS_ROLE_GATI_ARN }}
           AWS_LAMBDA_GATI_URL: ${{ secrets.AWS_LAMBDA_GATI_URL }}
+          GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE: ${{ secrets.GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE }}
         run: |
           if [[ -n "${AWS_ROLE_GATI_ARN}" && -n "${AWS_LAMBDA_GATI_URL}" ]]; then
-            echo "use-gati=true" | tee -a "${GITHUB_OUTPUT}"
+            if [[ -z "${GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE:-}" ]]; then
+                echo "use-gati=true" | tee -a "${GITHUB_OUTPUT}"
+            fi
           else
-            echo "Skipping GATI because secrets.AWS_ROLE_GATI_ARN and/or secrets.AWS_LAMBDA_GATI_URL is not set."
+            echo "Skipping GATI because secrets.AWS_ROLE_GATI_ARN and/or secrets.AWS_LAMBDA_GATI_URL or GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE is not set."
           fi
 
       - name: Setup GitHub token using GATI
@@ -581,7 +595,7 @@ jobs:
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
           aws-region: ${{ inputs.aws-region-ecr }}
-          github-token: ${{ steps.token.outputs.access-token || '' }}
+          github-token: ${{ secrets.GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE || steps.token.outputs.access-token || '' }}
 
   docker-manifest:
     name: docker-manifest
