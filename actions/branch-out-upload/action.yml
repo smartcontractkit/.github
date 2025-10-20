@@ -52,7 +52,9 @@ runs:
       env:
         VERSION: ${{ inputs.junit-enhancer-version }}
       run: |
+        echo "::group::Install JUnit Enhancer"
         go install github.com/smartcontractkit/quarantine/cmd/junit-enhancer@${VERSION}
+        echo "::endgroup::"
 
     - name: Run JUnit Enhancer
       id: run-junit-enhancer
@@ -88,4 +90,6 @@ runs:
         elif [[ "${TRUNK_UPLOAD_OUTCOME}" == "failure" ]]; then
           echo "The trunk upload step failed. This step determines whether to fail the workflow based on the contents of the junit test report, and the currently quarantined tests."
           echo "A failure here likely means that there were unquarantined unit test failures."
+        else
+          echo "The action failed for an unknown reason."
         fi
