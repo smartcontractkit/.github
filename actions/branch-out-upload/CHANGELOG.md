@@ -1,5 +1,13 @@
 # branch-out-upload
 
+## 1.0.0
+
+### Major Changes
+
+- [#1299](https://github.com/smartcontractkit/.github/pull/1299)
+  [`cfb9eb7`](https://github.com/smartcontractkit/.github/commit/cfb9eb74b20d31740e8aad78a68c3f9f51b7f5de)
+  Thanks [@erikburt](https://github.com/erikburt)! - initial major release
+
 ## 0.1.1
 
 ### Patch Changes
