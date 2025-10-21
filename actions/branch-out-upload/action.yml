@@ -80,25 +80,14 @@ runs:
         previous-step-outcome: ${{ inputs.trunk-previous-step-outcome }}
         variant: ${{ inputs.trunk-variant }}
 
-    - name: Explain Failures (if any)
-      if:
-        ${{ steps.run-junit-enhancer.outcome == 'failure' ||
-        steps.upload-to-trunk.outcome == 'failure' }}
+    - name: Check junit-enhancer outcomes
+      if: ${{ steps.run-junit-enhancer.outcome == 'failure' }}
       shell: bash
       env:
         TRUNK_UPLOAD_ONLY: ${{ inputs.trunk-upload-only }}
-        JUNIT_ENHANCER_OUTCOME: ${{ steps.run-junit-enhancer.outcome }}
-        TRUNK_UPLOAD_OUTCOME: ${{ steps.upload-to-trunk.outcome }}
       run: |
-        if [[ "${JUNIT_ENHANCER_OUTCOME}" == "failure" ]]; then
-          echo "The JUnit Enhancer step failed. This is typically due to build failures."
-          if [[ "${TRUNK_UPLOAD_ONLY}" == "false" ]]; then
-            echo "Failing the workflow as auto-quarantine is enabled, and junit-enhancer reported failures."
-            exit 1
-          fi
-        elif [[ "${TRUNK_UPLOAD_OUTCOME}" == "failure" ]]; then
-          echo "The trunk upload step failed. This step determines whether to fail the workflow based on the contents of the junit test report, and the currently quarantined tests."
-          echo "A failure here likely means that there were unquarantined unit test failures."
-        else
-          echo "The action failed for an unknown reason."
+        echo "The JUnit Enhancer step failed. This is typically due to it detecting build failures in the test reports."
+        if [[ "${TRUNK_UPLOAD_ONLY}" == "false" ]]; then
+          echo "::error::Failing the workflow as auto-quarantine is enabled, and junit-enhancer reported failures."
+          exit 1
         fi
