@@ -47,21 +47,25 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Install JUnit Enhancer and Run
+    - name: Install JUnit Enhancer
       shell: bash
       env:
         VERSION: ${{ inputs.junit-enhancer-version }}
-        JUNIT_PATH: ${{ inputs.junit-file-path }}
       run: |
         echo "::group::Install JUnit Enhancer"
-        go install github.com/smartcontractkit/quarantine/cmd/junit-enhancer@${VERSION}
+        GOPROXY=direct go install github.com/smartcontractkit/quarantine/cmd/junit-enhancer@${VERSION}
         echo "::endgroup::"
 
-        echo "::group::Run JUnit Enhancer"
+    - name: Run JUnit Enhancer
+      id: run-junit-enhancer
+      shell: bash
+      env:
+        JUNIT_PATH: ${{ inputs.junit-file-path }}
+      run: |
         junit-enhancer -input ${JUNIT_PATH} -output ./junit-enhanced.xml -verbose
-        echo "::endgroup::"
 
     - name: Upload Test Results to Trunk.io
+      id: upload-to-trunk
       uses: trunk-io/analytics-uploader@f2631c653f9675d391e6e68cc877370db927c64c # v2.0.0
       continue-on-error: ${{ inputs.trunk-upload-only == 'true' }}
       env:
@@ -73,3 +77,19 @@ runs:
         token: ${{ inputs.trunk-token }}
         previous-step-outcome: ${{ inputs.trunk-previous-step-outcome }}
         variant: ${{ inputs.trunk-variant }}
+
+    - name: Explain Failures (if any)
+      if: ${{ failure() }}
+      shell: bash
+      env:
+        JUNIT_ENHANCER_OUTCOME: ${{ inputs.run-junit-enhancer.outcome }}
+        TRUNK_UPLOAD_OUTCOME: ${{ inputs.upload-to-trunk.outcome }}
+      run: |
+        if [[ "${JUNIT_ENHANCER_OUTCOME}" == "failure" ]]; then
+          echo "The JUnit Enhancer step failed. This is typically due to build failures while running unit tests. Please check the above logs for details."
+        elif [[ "${TRUNK_UPLOAD_OUTCOME}" == "failure" ]]; then
+          echo "The trunk upload step failed. This step determines whether to fail the workflow based on the contents of the junit test report, and the currently quarantined tests."
+          echo "A failure here likely means that there were unquarantined unit test failures."
+        else
+          echo "The action failed for an unknown reason."
+        fi
