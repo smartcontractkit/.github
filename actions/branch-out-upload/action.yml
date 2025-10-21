@@ -53,7 +53,7 @@ runs:
         VERSION: ${{ inputs.junit-enhancer-version }}
       run: |
         echo "::group::Install JUnit Enhancer"
-        GOPROXY=direct go install github.com/smartcontractkit/quarantine/cmd/junit-enhancer@${VERSION}
+        go install github.com/smartcontractkit/quarantine/cmd/junit-enhancer@${VERSION}
         echo "::endgroup::"
 
     - name: Run JUnit Enhancer
