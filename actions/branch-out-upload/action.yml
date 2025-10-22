@@ -90,7 +90,7 @@ runs:
         echo "Found junit-enhancer step result: ${STEP_RESULT}, and TRUNK_UPLOAD_ONLY is set to: ${TRUNK_UPLOAD_ONLY}"
 
         if [[ "${STEP_RESULT}" == "failure" ]]; then
-          echo "::error::The JUnit Enhancer step failed. This is typically due to it detecting build failures in the test reports."
+          echo "::error::The JUnit Enhancer step failed. This is typically due to it detecting build failures or timeouts in the test reports."
 
           if [[ "${TRUNK_UPLOAD_ONLY}" == "false" ]]; then
             echo "::error::Failing the workflow as auto-quarantine is enabled, and junit-enhancer reported failures."
