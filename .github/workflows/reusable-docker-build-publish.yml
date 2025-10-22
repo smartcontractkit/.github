@@ -501,8 +501,10 @@ jobs:
             # If no override, determine tag based on build type
             case "${DOCKER_IMAGE_TYPE:-}" in
               branch)
-                # Examples: main-d34db33 or main-d34db33-custom-suffix
-                tag_value="${ref_name}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                # Normalize branch name: replace "/" with "-" and ensure lowercase for consistency
+                safe_ref_name=$(echo "${ref_name}" | tr '[:upper:]' '[:lower:]' | tr '/' '-')
+                # Examples: main-d34db33 or release-2.29.1-cre-d34db33-custom-suffix
+                tag_value="${safe_ref_name}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
                 ;;
               manual)
                 # Examples: manual-d34db33 or manual-d34db33-custom-suffix
