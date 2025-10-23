@@ -1,5 +1,21 @@
 # branch-out-upload
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1303](https://github.com/smartcontractkit/.github/pull/1303)
+  [`ae38317`](https://github.com/smartcontractkit/.github/commit/ae38317a628edfe5da5cf7704d081c958d08f348)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix error scenarios when
+  processing junit file
+
+### Patch Changes
+
+- [#1301](https://github.com/smartcontractkit/.github/pull/1301)
+  [`28cd3c3`](https://github.com/smartcontractkit/.github/commit/28cd3c341ab4e627b8fd012a2cf9ef28543c56b6)
+  Thanks [@erikburt](https://github.com/erikburt)! - remove GOPROXY="direct"
+  from junit-enhancer install
+
 ## 1.0.0
 
 ### Major Changes
