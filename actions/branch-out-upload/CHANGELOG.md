@@ -1,5 +1,14 @@
 # branch-out-upload
 
+## 1.1.1
+
+### Patch Changes
+
+- [#1306](https://github.com/smartcontractkit/.github/pull/1306)
+  [`2f8f0ba`](https://github.com/smartcontractkit/.github/commit/2f8f0baf38e46140c6a119eb551a56eaaabcc09e)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: always run
+  junit-enhancer outcomes step
+
 ## 1.1.0
 
 ### Minor Changes

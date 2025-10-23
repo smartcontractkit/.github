@@ -1,5 +1,14 @@
 # chip-schema-registration
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1305](https://github.com/smartcontractkit/.github/pull/1305)
+  [`b1bec0a`](https://github.com/smartcontractkit/.github/commit/b1bec0ae729606681897cbf7fad5d7c1d572173e)
+  Thanks [@engnke](https://github.com/engnke)! - Update atlas ecr repo for the
+  chip cli
+
 ## 1.0.2
 
 ### Patch Changes
