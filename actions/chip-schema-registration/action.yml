@@ -57,8 +57,8 @@ runs:
         AWS_ACCOUNT_ID: ${{ inputs.aws-account-id }}
         AWS_REGION: ${{ inputs.aws-region }}
       run: |
-        docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-schema-registration:qa-latest
-        docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-schema-registration:qa-latest chip-schema-registration
+        docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-cli:qa-latest
+        docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-cli:qa-latest chip-cli
 
     - name: Connect to Tailscale
       uses: tailscale/github-action@84a3f23bb4d843bcf4da6cf824ec1be473daf4de
@@ -85,4 +85,4 @@ runs:
           -e CHIP_CONFIG_PORT \
           -e CHIP_CONFIG_USER \
           -e CHIP_CONFIG_PASSWORD \
-          chip-schema-registration register --schema-dir="$CHIP_SCHEMA_DIR" --config="$CHIP_CONFIG_FILE_PATH"
+          chip-cli register --schema-dir="$CHIP_SCHEMA_DIR" --config="$CHIP_CONFIG_FILE_PATH"
