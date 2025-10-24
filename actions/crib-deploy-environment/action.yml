@@ -238,7 +238,7 @@ runs:
       with:
         registries: ${{ inputs.aws-ecr-private-registry }}
 
-    - uses: actions/setup-go@v5
+    - uses: actions/setup-go@v6
       with:
         go-version-file: "${{ github.workspace }}/crib/cli/go.mod"
         cache-dependency-path: "${{ github.workspace }}/crib/**/*.sum"
