@@ -341,37 +341,6 @@ jobs:
       docker-restore-cache: ${{ steps.should-cache.outputs.docker-restore-cache }}
       docker-save-cache: ${{ steps.should-cache.outputs.docker-save-cache }}
     steps:
-      - name: Check for GATI
-        id: check-gati
-        env:
-          AWS_ROLE_GATI_ARN: ${{ secrets.AWS_ROLE_GATI_ARN }}
-          AWS_LAMBDA_GATI_URL: ${{ secrets.AWS_LAMBDA_GATI_URL }}
-        run: |
-          if [[ -n "${AWS_ROLE_GATI_ARN}" && -n "${AWS_LAMBDA_GATI_URL}" ]]; then
-            echo "use-gati=true" | tee -a "${GITHUB_OUTPUT}"
-          else
-            echo "Skipping GATI because secrets.AWS_ROLE_GATI_ARN and/or secrets.AWS_LAMBDA_GATI_URL is not set."
-          fi
-
-      - name: Setup GitHub token using GATI
-        if: steps.check-gati.outputs.use-gati == 'true'
-        id: token
-        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/1.0.0
-        with:
-          aws-role-arn: ${{ secrets.AWS_ROLE_GATI_ARN }}
-          aws-lambda-url: ${{ secrets.AWS_LAMBDA_GATI_URL }}
-          aws-region: ${{ inputs.aws-region-gati }}
-          aws-role-duration-seconds: "1800"
-
-      - uses: actions/checkout@v4
-        id: checkout
-        with:
-          repository: ${{ inputs.github-workflow-repository }} # defaults to ${{ github.repository }}
-          ref: ${{ inputs.git-sha }}
-          token: ${{ steps.token.outputs.access-token || github.token }}
-          persist-credentials: false
-          fetch-depth: 1
-
       - name: Get Date
         id: get-date
         run: |
@@ -380,9 +349,11 @@ jobs:
           echo "date=${date}" | tee -a "${GITHUB_OUTPUT}"
       - name: Get Short SHA
         id: git-short-sha
+        env:
+          GIT_SHA: ${{ inputs.git-sha }}
         run: |
           echo "Getting 7 character git short SHA from HEAD..."
-          short_sha=$(git rev-parse --short=7 HEAD)
+          short_sha=${GIT_SHA:0:7}
           echo "short-sha=${short_sha}" | tee -a "${GITHUB_OUTPUT}"
       - name: Validate inputs
         env:
