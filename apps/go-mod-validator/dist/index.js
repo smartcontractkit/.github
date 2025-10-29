@@ -30484,7 +30484,16 @@ function lineForDependencyPathFinder() {
       }
     }
     if (line === -1) {
-      throw new Error(`dependency path not found: ${path}`);
+      const isIndirect = name.endsWith(" // indirect");
+      if (isIndirect) {
+        core.debug(
+          `Indirect dependency path ${path} not found in ${goModFilePath}. This is expected for transitive dependencies.`
+        );
+        return void 0;
+      }
+      throw new Error(
+        `Direct dependency path not found in ${goModFilePath}: ${path}. This may indicate a problem with the go.mod file.`
+      );
     }
     return line;
   };
