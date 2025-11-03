@@ -302,7 +302,7 @@ runs:
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
-      uses: actions/setup-node@v4.0.3
+      uses: actions/setup-node@v6.0.0
       with:
         node-version: "22"
 
