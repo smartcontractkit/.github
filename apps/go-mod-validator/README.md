@@ -23,19 +23,32 @@ Requirements:
    upstream repositories.
 2. Exits 1, if a _dependency is not on the default branch_
 
-## Example usage
+## Usage
+
+### Org-wide Workflow
+
+To integrate this into your repository, it is best to use the org-wide workflow.
+Ask in `#team-releng` to have it enabled for you. If your repository has private
+dependencies, then you will have to configurate the workflow yourself.
+
+Here is the org-wide workflow:
+https://github.com/smartcontractkit/gha-org-workflows/blob/main/.github/workflows/go-mod-validation.yml
+
+### Workflow Excerpt
 
 ```yaml
 steps:
   - name: Check out the repository
-    uses: actions/checkout
+    uses: actions/checkout@<version>
+
   - name: Setup go
-    uses: actions/setup-go
+    uses: actions/setup-go@<version>
+
   - name: Validate go.mod
-    uses: smartcontractkit/.github/apps/go-mod-validator@<commit> # go-mod-validator@x.y.z
+    uses: smartcontractkit/.github/apps/go-mod-validator@go-mod-validator/<version>
 ```
 
-## Running locally
+### Running locally
 
 1. Update `scripts/test.sh` and `scripts/payload.json`
 2. Make sure to check out your local repo to the proper commit as per
