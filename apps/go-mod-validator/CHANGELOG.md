@@ -1,5 +1,14 @@
 # go-mod-validator
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1312](https://github.com/smartcontractkit/.github/pull/1312)
+  [`f2ee0d3`](https://github.com/smartcontractkit/.github/commit/f2ee0d34a68615aca6fddf366e7830d84ad17c75)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: changed files endpoint
+  bug
+
 ## 1.0.0
 
 ### Major Changes

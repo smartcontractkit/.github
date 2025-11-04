@@ -1,5 +1,21 @@
 # ctf-build-image
 
+## 1.2.0
+
+### Minor Changes
+
+- [#1313](https://github.com/smartcontractkit/.github/pull/1313)
+  [`0c19bf6`](https://github.com/smartcontractkit/.github/commit/0c19bf616bb44fe3c3a12ee82b6471c7a0121958)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: add platform input -
+  defaulting to linux/amd64
+
+### Patch Changes
+
+- [#1313](https://github.com/smartcontractkit/.github/pull/1313)
+  [`0c19bf6`](https://github.com/smartcontractkit/.github/commit/0c19bf616bb44fe3c3a12ee82b6471c7a0121958)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump
+  build-push-docker to v1
+
 ## 1.1.0
 
 ### Minor Changes
