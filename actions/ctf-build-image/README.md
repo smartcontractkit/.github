@@ -64,3 +64,5 @@ environments. If you find something broken, and need support reach out on
   - Must be present along with `gati-role-arn`
 - `gati-aws-region` - Optional - defaults to `us-west-2`. You should probably
   leave this alone.
+- `platform` - Defaults to `linux/amd64`, use `linux/arm64` for arm-based
+  runners. Cross-platform builds are not supported.
