@@ -28787,8 +28787,10 @@ var core4 = __toESM(require_core());
 var CL_LOCAL_DEBUG = process.env.CL_LOCAL_DEBUG === "true";
 function getInputs() {
   core4.info("Getting inputs for run.");
+  const githubToken = getRunInputString("githubToken");
   const inputs = {
-    githubToken: getRunInputString("githubToken"),
+    githubToken,
+    githubPrReadToken: getRunInputString("githubPrReadToken", githubToken),
     goModDir: getRunInputString("goModDir"),
     depPrefix: getRunInputString("depPrefix")
   };
@@ -28800,6 +28802,10 @@ var runInputsConfiguration = {
     parameter: "github-token",
     localParameter: "GITHUB_TOKEN"
   },
+  githubPrReadToken: {
+    parameter: "github-pr-read-token",
+    localParameter: "GITHUB_PR_READ_TOKEN"
+  },
   goModDir: {
     parameter: "go-mod-dir",
     localParameter: "GO_MOD_DIR"
@@ -28809,11 +28815,16 @@ var runInputsConfiguration = {
     localParameter: "DEP_PREFIX"
   }
 };
-function getRunInputString(input) {
+function getRunInputString(input, defaultValue = "") {
+  const defaulted = defaultValue === "";
   const inputKey = getInputKey(input);
-  return core4.getInput(inputKey, {
-    required: true
+  const inputValue = core4.getInput(inputKey, {
+    required: !defaulted
   });
+  if (defaulted && !inputValue) {
+    return defaultValue;
+  }
+  return inputValue;
 }
 function getInputKey(input) {
   const config = runInputsConfiguration[input];
@@ -28873,11 +28884,17 @@ function getContext() {
     // @ts-expect-error @actions/github uses octokit/core ^5.0.1 whereas @octokit/plugin-throttling uses octokit/core ^7.0.5
     throttling
   );
+  const prReadOctokit = github.getOctokit(
+    githubToken,
+    options,
+    // @ts-expect-error @actions/github uses octokit/core ^5.0.1 whereas @octokit/plugin-throttling uses octokit/core ^7.0.5
+    throttling
+  );
   const isPullRequest = !!github.context.payload.pull_request;
-  return { goModDir, octokit, depPrefix, isPullRequest };
+  return { goModDir, octokit, prReadOctokit, depPrefix, isPullRequest };
 }
 async function run() {
-  const { goModDir, octokit, depPrefix, isPullRequest } = getContext();
+  const { goModDir, octokit, prReadOctokit, depPrefix, isPullRequest } = getContext();
   core5.debug(`Go module directory: ${goModDir}`);
   core5.debug(`Dependency prefix filter: ${depPrefix || "none"}`);
   core5.debug(`Pull request mode: ${isPullRequest}`);
@@ -28892,7 +28909,7 @@ async function run() {
     }
     const { owner, repo } = github.context.repo;
     const changedFiles = await getChangedGoModFiles(
-      octokit,
+      prReadOctokit,
       pr.number,
       owner,
       repo,

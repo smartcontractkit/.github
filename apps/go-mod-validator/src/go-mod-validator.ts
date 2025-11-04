@@ -56,13 +56,21 @@ function getContext() {
     throttling,
   );
 
+  const prReadOctokit = github.getOctokit(
+    githubToken,
+    options,
+    // @ts-expect-error @actions/github uses octokit/core ^5.0.1 whereas @octokit/plugin-throttling uses octokit/core ^7.0.5
+    throttling,
+  );
+
   const isPullRequest = !!github.context.payload.pull_request;
 
-  return { goModDir, octokit, depPrefix, isPullRequest };
+  return { goModDir, octokit, prReadOctokit, depPrefix, isPullRequest };
 }
 
 export async function run(): Promise<string> {
-  const { goModDir, octokit, depPrefix, isPullRequest } = getContext();
+  const { goModDir, octokit, prReadOctokit, depPrefix, isPullRequest } =
+    getContext();
 
   core.debug(`Go module directory: ${goModDir}`);
   core.debug(`Dependency prefix filter: ${depPrefix || "none"}`);
@@ -80,7 +88,7 @@ export async function run(): Promise<string> {
 
     const { owner, repo } = github.context.repo;
     const changedFiles = await getChangedGoModFiles(
-      octokit,
+      prReadOctokit,
       pr.number,
       owner,
       repo,

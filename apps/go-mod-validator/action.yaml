@@ -8,6 +8,11 @@ inputs:
     description:
       "Github token with read permissions on all smartcontractkit repos"
     default: ${{ github.token }}
+  github-pr-read-token:
+    description:
+      "Github API token with pull-requests: read, for the currrent repository.
+      Defaults to the above github token if not provided."
+    required: false
   go-mod-dir:
     description: "Common directory where go.mod files are located"
     default: ${{ github.workspace }}
