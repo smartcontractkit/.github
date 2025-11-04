@@ -1,5 +1,14 @@
 # go-mod-validator
 
+## 1.2.0
+
+### Minor Changes
+
+- [#1314](https://github.com/smartcontractkit/.github/pull/1314)
+  [`f5ba535`](https://github.com/smartcontractkit/.github/commit/f5ba535f15fa1174336b612262e43dcf89c31663)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: add
+  github-pr-read-token input, to better support validating private dependencies
+
 ## 1.1.0
 
 ### Minor Changes
