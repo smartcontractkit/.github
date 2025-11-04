@@ -59,7 +59,7 @@ const runInputsConfiguration: {
   },
 };
 
-function getRunInputString(input: keyof RunInputs, defaultValue: string = "") {
+function getRunInputString(input: keyof RunInputs, defaultValue = "") {
   const defaulted = defaultValue === "";
   const inputKey = getInputKey(input);
   const inputValue = core.getInput(inputKey, {
