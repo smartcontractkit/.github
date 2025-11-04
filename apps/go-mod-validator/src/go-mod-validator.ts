@@ -64,39 +64,40 @@ function getContext() {
 export async function run(): Promise<string> {
   const { goModDir, octokit, depPrefix, isPullRequest } = getContext();
 
+  core.debug(`Go module directory: ${goModDir}`);
+  core.debug(`Dependency prefix filter: ${depPrefix || "none"}`);
+  core.debug(`Pull request mode: ${isPullRequest}`);
+
   let depsToValidate = await getDeps(goModDir, depPrefix);
   if (isPullRequest) {
     core.info(
       "Running in pull request mode, filtering dependencies to validate based on changed files and only checking for pseudo-versions.",
     );
     const pr = github.context.payload.pull_request;
-    if (!pr) {
+    if (!pr || !pr.number) {
       throw new Error("Expected pull request context to be present");
     }
-    const base: string = pr.base.sha;
-    const head: string = pr.head.sha;
-    const { owner, repo } = github.context.repo;
 
+    const { owner, repo } = github.context.repo;
     const changedFiles = await getChangedGoModFiles(
       octokit,
-      base,
-      head,
+      pr.number,
       owner,
       repo,
       depPrefix,
     );
 
     core.debug(
-      `Changed files: ${JSON.stringify(changedFiles.map((f) => f.filename))}`,
+      `Filtered changed files: ${JSON.stringify(changedFiles.map((f) => f.filename))}`,
     );
     core.debug(
       `Deps to validate: ${JSON.stringify(depsToValidate.map((d) => d.path))}`,
     );
     depsToValidate = depsToValidate.filter((d) => {
       return changedFiles.some(
-        (f) =>
-          d.goModFilePath.includes(f.filename) &&
-          f.addedLines.some((l) => l.content.includes(d.path)),
+        (changedFile) =>
+          d.goModFilePath.includes(changedFile.filename) &&
+          changedFile.addedLines.some((l) => l.content.includes(d.path)),
       );
     });
 
