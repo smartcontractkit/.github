@@ -4,6 +4,7 @@ export const CL_LOCAL_DEBUG = process.env.CL_LOCAL_DEBUG === "true";
 
 export interface RunInputs {
   githubToken: string;
+  githubPrReadToken: string;
   goModDir: string;
   depPrefix: string;
 }
@@ -11,8 +12,11 @@ export interface RunInputs {
 export function getInputs(): RunInputs {
   core.info("Getting inputs for run.");
 
+  const githubToken = getRunInputString("githubToken");
+
   const inputs: RunInputs = {
-    githubToken: getRunInputString("githubToken"),
+    githubToken,
+    githubPrReadToken: getRunInputString("githubPrReadToken", githubToken),
     goModDir: getRunInputString("goModDir"),
     depPrefix: getRunInputString("depPrefix"),
   };
@@ -41,6 +45,10 @@ const runInputsConfiguration: {
     parameter: "github-token",
     localParameter: "GITHUB_TOKEN",
   },
+  githubPrReadToken: {
+    parameter: "github-pr-read-token",
+    localParameter: "GITHUB_PR_READ_TOKEN",
+  },
   goModDir: {
     parameter: "go-mod-dir",
     localParameter: "GO_MOD_DIR",
@@ -51,11 +59,18 @@ const runInputsConfiguration: {
   },
 };
 
-function getRunInputString(input: keyof RunInputs) {
+function getRunInputString(input: keyof RunInputs, defaultValue = "") {
+  const defaulted = defaultValue !== "";
   const inputKey = getInputKey(input);
-  return core.getInput(inputKey, {
-    required: true,
+  const inputValue = core.getInput(inputKey, {
+    required: !defaulted,
   });
+
+  if (defaulted && !inputValue) {
+    return defaultValue;
+  }
+
+  return inputValue;
 }
 
 function getInputKey(input: keyof RunInputs) {

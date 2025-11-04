@@ -10,11 +10,16 @@ Requirements:
 
 ## Inputs
 
-- github-token: token with read permissions on all smartcontractkit repos. By
-  default, we use ${{ github.token }}
-- go-mod-dir: Common directory where go.mod files are located. By default, we
-  use ${{ github.workspace }}
-- dep-prefix: Prefix to filter dependencies to check. By default, we use
+- `github-token`: token with read permissions on all smartcontractkit repos.
+  Defaults to ${{ github.token }}, which won't have access to private
+  repositories.
+- `github-pr-read-token`: token with `pull-requests: read` permissions on the
+  calling repository. Defaults to the above `github-token` input if not
+  provided. This should only be required if the above token is a GATI token for
+  reading private dependencies.
+- `go-mod-dir`: Common directory where go.mod files are located. Defaults to
+  `${{ github.workspace }}`
+- `dep-prefix`: Prefix to filter dependencies to check. By default, we use
   `github.com/smartcontractkit`
 
 ## Outputs
@@ -34,9 +39,12 @@ dependencies, then you will have to configurate the workflow yourself.
 Here is the org-wide workflow:
 https://github.com/smartcontractkit/gha-org-workflows/blob/main/.github/workflows/go-mod-validation.yml
 
-### Workflow Excerpt
+### Workflow Example
 
 ```yaml
+permissions:
+  contents: read
+  pull-requests: read
 steps:
   - name: Check out the repository
     uses: actions/checkout@<version>
@@ -46,6 +54,36 @@ steps:
 
   - name: Validate go.mod
     uses: smartcontractkit/.github/apps/go-mod-validator@go-mod-validator/<version>
+```
+
+### Workflow Example (private deps)
+
+```yaml
+permissions:
+  contents: read
+  pull-requests: read
+  id-token: write
+steps:
+  - name: Check out the repository
+    uses: actions/checkout@<version>
+
+  - name: Setup go
+    uses: actions/setup-go@<version>
+
+  - name: Setup-github-token
+    id: setup-github-token
+    uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/<version>
+    with:
+      aws-role-arn: ${{ secrets.<role arn> }}
+      aws-lambda-url: ${{ secrets.<lambda url> }}
+      aws-region: ${{ secrets.<region> }}
+      set-git-config: true
+
+  - name: Validate go.mod
+    uses: smartcontractkit/.github/apps/go-mod-validator@go-mod-validator/<version>
+    with:
+      github-token: ${{ steps.setup-github-token.outputs.access-token }} # GATI token
+      github-pr-read-token: ${{ secrets.GITHUB_TOKEN }} # CI-generated token
 ```
 
 ### Running locally
