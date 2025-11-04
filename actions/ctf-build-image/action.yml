@@ -21,6 +21,13 @@ inputs:
     description: The tag to use for the image.
     default: sha-${{ github.sha }}
 
+  platform:
+    # See: https://docs.docker.com/reference/cli/docker/buildx/build/#platform
+    description:
+      "Platform for the docker image, e.g. linux/amd64 or linux/arm64"
+    required: false
+    default: "linux/amd64"
+
   # Registry/ECR inputs
   docker-registry-url:
     description: |
@@ -149,10 +156,10 @@ runs:
         echo "::endgroup::"
 
     - name: Build push docker image
-      uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/0.7.1
+      uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/v1
       with:
         context: .
-        platform: linux/amd64
+        platform: ${{ inputs.platform }}
 
         dockerfile: ${{ inputs.dockerfile }}
         docker-build-args: |
