@@ -28816,7 +28816,7 @@ var runInputsConfiguration = {
   }
 };
 function getRunInputString(input, defaultValue = "") {
-  const defaulted = defaultValue === "";
+  const defaulted = defaultValue !== "";
   const inputKey = getInputKey(input);
   const inputValue = core4.getInput(inputKey, {
     required: !defaulted
