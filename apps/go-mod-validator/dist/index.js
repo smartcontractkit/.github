@@ -28859,7 +28859,7 @@ e.g.,
 
 // apps/go-mod-validator/src/go-mod-validator.ts
 function getContext() {
-  const { goModDir, githubToken, depPrefix } = getInputs();
+  const { goModDir, githubToken, githubPrReadToken, depPrefix } = getInputs();
   const options = {
     throttle: {
       onRateLimit: (retryAfter, options2, octokit2, retryCount) => {
@@ -28885,7 +28885,7 @@ function getContext() {
     throttling
   );
   const prReadOctokit = github.getOctokit(
-    githubToken,
+    githubPrReadToken,
     options,
     // @ts-expect-error @actions/github uses octokit/core ^5.0.1 whereas @octokit/plugin-throttling uses octokit/core ^7.0.5
     throttling

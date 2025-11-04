@@ -9,7 +9,7 @@ import { getInputs } from "./run-inputs";
 import { FIXING_ERRORS } from "./strings";
 
 function getContext() {
-  const { goModDir, githubToken, depPrefix } = getInputs();
+  const { goModDir, githubToken, githubPrReadToken, depPrefix } = getInputs();
 
   type ThrottlingOptions = Parameters<typeof throttling>[1];
   interface IRequestRateLimitOptions {
@@ -57,7 +57,7 @@ function getContext() {
   );
 
   const prReadOctokit = github.getOctokit(
-    githubToken,
+    githubPrReadToken,
     options,
     // @ts-expect-error @actions/github uses octokit/core ^5.0.1 whereas @octokit/plugin-throttling uses octokit/core ^7.0.5
     throttling,
