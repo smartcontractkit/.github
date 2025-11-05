@@ -111,10 +111,10 @@ inputs:
 outputs:
   docker-image-sha-digest-amd64:
     description: "Docker image SHA digest for platform: amd64"
-    value: ${{ steps.set-outputs.outputs.docker-image-sha-digest-amd64 }}
+    value: ${{ steps.build-image.outputs.docker-image-sha-digest-amd64 }}
   docker-image-sha-digest-arm64:
     description: "Docker image SHA digest for platform: arm64"
-    value: ${{ steps.set-outputs.outputs.docker-image-sha-digest-arm64 }}
+    value: ${{ steps.build-image.outputs.docker-image-sha-digest-arm64 }}
 
 runs:
   using: composite
@@ -190,16 +190,3 @@ runs:
         aws-region: ${{ inputs.aws-region }}
 
         github-token: ${{ steps.github-token.outputs.access-token || '' }}
-
-    - name: Set outputs
-      id: set-outputs
-      shell: bash
-      env:
-        DOCKER_IMAGE_DIGEST: ${{ steps.build-image.outputs.digest }}
-        INPUT_PLATFORM: ${{ inputs.platform }}
-      run: |
-        if [[ "${INPUT_PLATFORM}" == "linux/amd64" ]]; then
-          echo "docker-image-sha-digest-amd64=${DOCKER_IMAGE_DIGEST}" | tee -a "${GITHUB_OUTPUT}"
-        elif [[ "${INPUT_PLATFORM}" == "linux/arm64" ]]; then
-          echo "docker-image-sha-digest-arm64=${DOCKER_IMAGE_DIGEST}" | tee -a "${GITHUB_OUTPUT}"
-        fi
