@@ -108,6 +108,14 @@ inputs:
       go get github.com/smartcontractkit/chainlink-solana@abc123
       go get github.com/smartcontractkit/chainlink-evm@def456
 
+outputs:
+  docker-image-sha-digest-amd64:
+    description: "Docker image SHA digest for platform: amd64"
+    value: ${{ steps.build-image.outputs.docker-image-sha-digest-amd64 }}
+  docker-image-sha-digest-arm64:
+    description: "Docker image SHA digest for platform: arm64"
+    value: ${{ steps.build-image.outputs.docker-image-sha-digest-arm64 }}
+
 runs:
   using: composite
   steps:
@@ -156,6 +164,7 @@ runs:
         echo "::endgroup::"
 
     - name: Build push docker image
+      id: build-image
       uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/v1
       with:
         context: .
