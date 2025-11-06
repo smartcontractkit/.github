@@ -1,5 +1,14 @@
 # ctf-build-image
 
+## 1.3.0
+
+### Minor Changes
+
+- [#1316](https://github.com/smartcontractkit/.github/pull/1316)
+  [`61c6a8d`](https://github.com/smartcontractkit/.github/commit/61c6a8d174fcae10d436cc38c577f962396babbe)
+  Thanks [@augustbleeds](https://github.com/augustbleeds)! - Include docker
+  image digests in output
+
 ## 1.2.0
 
 ### Minor Changes
