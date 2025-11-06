@@ -75,7 +75,7 @@ on:
           If not specified, we will try and use GATI for GitHub auth if its
           required secrets are provided.
 
-          This can be used to provide a FPAT (fine-grained personal access 
+          This can be used to provide a FPAT (fine-grained personal access
           token) for accessing private repositories during Docker builds.
         required: false
     inputs:
@@ -98,6 +98,11 @@ on:
         description: "AWS region for GATI (GitHub Actions Token Issuer)."
         required: false
         type: string
+      set-git-config-gati:
+        description: "Setup git config for GATI usage in Docker build. Set to 'true' to enable."
+        required: false
+        type: string
+        default: "false"
       build-arm64-image:
         description: "Enable arm64 Docker image build. Set to 'false' to disable which only
           builds amd64 images."
@@ -234,6 +239,18 @@ on:
         type: string
       docker-target:
         description: "Target stage in the Dockerfile to build."
+        required: false
+        type: string
+      docker-pre-build-commands:
+        description: |
+          Custom shell commands to run before the Docker build step.
+          Useful for setting up environment variables or performing setup tasks
+          required for the Docker build.
+
+          Example:
+            pre-build-commands: |
+              echo "Setting up build environment..."
+              export MY_VAR=value
         required: false
         type: string
       environment:
@@ -569,6 +586,15 @@ jobs:
           aws-lambda-url: ${{ secrets.AWS_LAMBDA_GATI_URL }}
           aws-region: ${{ inputs.aws-region-gati }}
           aws-role-duration-seconds: "1800"
+          set-git-config: ${{ inputs.set-git-config-gati }}
+
+      - name: Run custom pre-build commands
+        if: ${{ inputs.docker-pre-build-commands != '' }}
+        env:
+          DOCKER_PRE_BUILD_COMMANDS: ${{ inputs.docker-pre-build-commands }}
+        run: |
+          echo "Running custom pre-build commands..."
+          eval "${DOCKER_PRE_BUILD_COMMANDS}"
 
       - name: Docker image build
         id: build
