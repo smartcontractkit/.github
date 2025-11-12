@@ -31,3 +31,5 @@ This action is used to:
     trunk-token: ${{ secrets.TRUNK_TOKEN }}
     trunk-previous-step-outcome: ${{ steps.test.outcome }}
 ```
+
+sdfsdfsdfsdf
