@@ -55,6 +55,7 @@ jobs:
               - '**/action.yaml'
             self-changes:
               - '.github/workflows/codeql.yaml'
+              - '.github/workflows/codeql.yml'
 
   analyze:
     name: Analyze (${{ matrix.language }})
@@ -67,8 +68,6 @@ jobs:
       packages: read
       # required to get workflow run info via API
       actions: read
-      # required for assumiming AWS IAM roles with OIDC
-      id-token: write
     needs: filter
 
     strategy:
@@ -90,19 +89,19 @@ jobs:
 
     steps:
       - name: Checkout repository
-        if: matrix.should-run
+        if: ${{ matrix.should-run == 'true' }}
         uses: actions/checkout@v4
 
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
-        if: matrix.should-run
+        if: ${{ matrix.should-run == 'true' }}
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode || '' }}
 
       - name: Perform CodeQL Analysis
-        if: matrix.should-run
+        if: ${{ matrix.should-run == 'true' }}
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{matrix.language}}"
