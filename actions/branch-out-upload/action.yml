@@ -69,12 +69,11 @@ runs:
           echo "Go test suite detected, will run JUnit Enhancer."
           echo "run-enhancer=true" | tee -a "$GITHUB_OUTPUT"
           echo "junit-path-to-upload=./junit-enhanced.xml" | tee -a "$GITHUB_OUTPUT"
-          exit 1
+        else
+          echo "Non-Go test suite detected, skipping JUnit Enhancer."
+          echo "run-enhancer=false" | tee -a "$GITHUB_OUTPUT"
+          echo "junit-path-to-upload=$JUNIT_FILE_PATH" | tee -a "$GITHUB_OUTPUT"
         fi
-
-        echo "Non-Go test suite detected, skipping JUnit Enhancer."
-        echo "run-enhancer=false" | tee -a "$GITHUB_OUTPUT"
-        echo "junit-path-to-upload=$JUNIT_FILE_PATH" | tee -a "$GITHUB_OUTPUT"
 
     - name: Install JUnit Enhancer (go)
       if: ${{ steps.inputs-ext.outputs.run-enhancer == 'true' }}
