@@ -1,5 +1,14 @@
 # branch-out-upload
 
+## 1.2.0
+
+### Minor Changes
+
+- [#1320](https://github.com/smartcontractkit/.github/pull/1320)
+  [`37653ec`](https://github.com/smartcontractkit/.github/commit/37653ec5c95e5ab032ff6754604f9b6aab573b26)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: add
+  `test-suite-language` input, and modify behaviour based on the language
+
 ## 1.1.1
 
 ### Patch Changes
