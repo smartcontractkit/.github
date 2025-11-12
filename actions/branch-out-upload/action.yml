@@ -2,6 +2,11 @@ name: branch-out-upload
 description: "Processes JUnit XML reports and uploads to trunk.io"
 
 inputs:
+  test-suite-language:
+    description: "The programming language of the test suite"
+    required: true
+    default: "go"
+
   junit-file-path:
     description: "Path to the JUnit XML file to be processed"
     required: true
@@ -30,7 +35,10 @@ inputs:
 
   trunk-job-url:
     description: "The URL to the job run"
-    required: false
+    required: true
+    default:
+      ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}/attempts/{3}',
+      github.repository, github.run_id, job.check_run_id, github.run_attempt) }}
 
   trunk-previous-step-outcome:
     description:
@@ -47,24 +55,48 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Install JUnit Enhancer
+    - name: Process inputs
+      id: inputs-ext
       shell: bash
       env:
-        VERSION: ${{ inputs.junit-enhancer-version }}
+        TEST_SUITE_LANGUAGE: ${{ inputs.test-suite-language }}
+        JUNIT_FILE_PATH: ${{ inputs.junit-file-path }}
+      run: |
+        echo "Test suite language: $TEST_SUITE_LANGUAGE"
+        echo "JUnit file path: $JUNIT_FILE_PATH"
+
+        if [[ "$TEST_SUITE_LANGUAGE" == "go" ]]; then
+          echo "Go test suite detected, will run JUnit Enhancer."
+          echo "run-enhancer=true" | tee -a "$GITHUB_OUTPUT"
+          echo "junit-path-to-upload=./junit-enhanced.xml" | tee -a "$GITHUB_OUTPUT"
+          exit 1
+        fi
+
+        echo "Non-Go test suite detected, skipping JUnit Enhancer."
+        echo "run-enhancer=false" | tee -a "$GITHUB_OUTPUT"
+        echo "junit-path-to-upload=$JUNIT_FILE_PATH" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Install JUnit Enhancer (go)
+      if: ${{ steps.inputs-ext.outputs.run-enhancer == 'true' }}
+      shell: bash
+      env:
+        JUNIT_ENHANCER_VERSION: ${{ inputs.junit-enhancer-version }}
       run: |
         echo "::group::Install JUnit Enhancer"
-        go install github.com/smartcontractkit/quarantine/cmd/junit-enhancer@${VERSION}
+        go install github.com/smartcontractkit/quarantine/cmd/junit-enhancer@${JUNIT_ENHANCER_VERSION}
         echo "::endgroup::"
 
-    - name: Run JUnit Enhancer
+    - name: Run JUnit Enhancer (go)
       id: run-junit-enhancer
+      if: ${{ steps.inputs-ext.outputs.run-enhancer == 'true' }}
       # continue even if this step fails as it should still have produced an output file that we can upload.
       continue-on-error: true
       shell: bash
       env:
-        JUNIT_PATH: ${{ inputs.junit-file-path }}
+        JUNIT_INPUT_PATH: ${{ inputs.junit-file-path }}
+        JUNIT_OUTPUT_PATH: ${{ steps.inputs-ext.outputs.junit-path-to-upload }}
       run: |
-        junit-enhancer -input ${JUNIT_PATH} -output ./junit-enhanced.xml -verbose
+        junit-enhancer -input ${JUNIT_INPUT_PATH} -output ${JUNIT_OUTPUT_PATH} -verbose
 
     - name: Upload Test Results to Trunk.io
       id: upload-to-trunk
@@ -74,7 +106,7 @@ runs:
         TRUNK_TELEMETRY: "off"
         JOB_URL: ${{ inputs.job-url }}
       with:
-        junit-paths: "./junit-enhanced.xml"
+        junit-paths: ${{ steps.inputs-ext.outputs.junit-path-to-upload }}
         org-slug: ${{ inputs.trunk-org-slug }}
         token: ${{ inputs.trunk-token }}
         previous-step-outcome: ${{ inputs.trunk-previous-step-outcome }}
@@ -82,7 +114,7 @@ runs:
 
     - name: Check junit-enhancer outcomes
       shell: bash
-      if: ${{ always() }}
+      if: ${{ always() && steps.inputs-ext.outputs.run-enhancer == 'true' }}
       env:
         TRUNK_UPLOAD_ONLY: ${{ inputs.trunk-upload-only }}
         STEP_RESULT: ${{ steps.run-junit-enhancer.outcome }}

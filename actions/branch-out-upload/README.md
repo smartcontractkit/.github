@@ -8,16 +8,17 @@ This action is used to:
 
 ## Inputs
 
-| Input                         | Description                                                                                                                                | Required | Default       |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------------- |
-| `junit-file-path`             | Path to the JUnit XML file to be processed                                                                                                 | **Yes**  | `./junit.xml` |
-| `junit-enhancer-version`      | The version of the junit-enhancer to install                                                                                               | No       | `latest`      |
-| `trunk-org-slug`              | The organization slug for Trunk.io                                                                                                         | **Yes**  | -             |
-| `trunk-token`                 | The token for Trunk.io                                                                                                                     | **Yes**  | -             |
-| `trunk-upload-only`           | Whether to only upload to Trunk.io, and not let Trunk.io fail the job. Useful when onboarding a repository, and letting Trunk gather data. | No       | `false`       |
-| `trunk-job-url`               | The URL to the job run                                                                                                                     | No       | -             |
-| `trunk-previous-step-outcome` | The outcome of the testing step. Used to determine failure status of this action                                                           | **Yes**  | -             |
-| `trunk-variant`               | The variant of the test report. Used to differentiate the same test suite across different environments                                    | No       | -             |
+| Input                         | Description                                                                                                               | Required | Default          |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------- | ---------------- |
+| `test-suite-language`         | The language of the test suite. This determines how the junit file is processed.                                          | **Yes**  | `go`             |
+| `junit-file-path`             | Path to the JUnit XML file to be processed                                                                                | **Yes**  | `./junit.xml`    |
+| `junit-enhancer-version`      | The version of the junit-enhancer to install                                                                              | No       | `latest`         |
+| `trunk-org-slug`              | The organization slug for Trunk.io.                                                                                       | **Yes**  | -                |
+| `trunk-token`                 | The token for Trunk.io.                                                                                                   | **Yes**  | -                |
+| `trunk-upload-only`           | Upload the result to Trunk.io without using the response to determine the outcome. Common during initial repo onboarding. | No       | `false`          |
+| `trunk-job-url`               | The URL to the job run.                                                                                                   | **Yes**  | See `action.yml` |
+| `trunk-previous-step-outcome` | The outcome of the testing step. Used to determine failure status of this action.                                         | **Yes**  | -                |
+| `trunk-variant`               | The variant of the test report. Used to differentiate the same test suite across different environments.                  | No       | -                |
 
 ## Usage
 
