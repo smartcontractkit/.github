@@ -360,12 +360,6 @@
     :versions: []
     :when: 2024-08-28 01:29:50.486438000 Z
 - - :restrict
-  - CC0-1.0
-  - :who: default
-    :why: default
-    :versions: []
-    :when: 2024-08-28 01:29:50.826482000 Z
-- - :restrict
   - EPL-1.0
   - :who: default
     :why: default
