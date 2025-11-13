@@ -1,5 +1,14 @@
 # branch-out-upload
 
+## 1.2.1
+
+### Patch Changes
+
+- [#1326](https://github.com/smartcontractkit/.github/pull/1326)
+  [`b40fe77`](https://github.com/smartcontractkit/.github/commit/b40fe773d32b5c643fab7b6d40892485a51f09d2)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: bad exit on
+  branch-out-upload
+
 ## 1.2.0
 
 ### Minor Changes
