@@ -250,6 +250,10 @@ on:
       TRUNK_API_KEY:
         description: "The Trunk API key for reporting flaky tests."
         required: false
+      OPTIONAL_DOCKERHUB_USERNAME:
+        required: false
+      OPTIONAL_DOCKERHUB_PASSWORD:
+        required: false
 
 env:
   CHAINLINK_IMAGE: >-
@@ -856,6 +860,8 @@ jobs:
             secrets.QA_AWS_REGION }}.amazonaws.com
           GITHUB_API_TOKEN: ${{ steps.setup-optional-gati-token.outputs.access-token || ''}}
         with:
+          dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
           test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command: cd $(dirname ${{ matrix.tests.path }}) && go mod download
@@ -1171,6 +1177,8 @@ jobs:
             '' }}
           DATABASE_URL: postgresql://postgres:node@localhost:5432/chainlink_test?sslmode=disable
         with:
+          dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command: make gomod
           test_secrets_override_base64: ${{ steps.aws-test-secrets.outputs.secret_value ||
@@ -1304,6 +1312,8 @@ jobs:
         env:
           RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
         with:
+          dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
           test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command: cd $(dirname ${{ matrix.tests.path }}) && go mod download
