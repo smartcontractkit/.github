@@ -1,0 +1,42 @@
+name: Reusable CodeOwners Review Analysis (CORA)
+
+on:
+  workflow_call:
+    inputs:
+      cora-post-comment:
+        description: "Whether to post a comment on the PR with the analysis results."
+        required: false
+        type: boolean
+        default: true
+
+    secrets:
+      AWS_ROLE_GATI_ARN:
+        description: "AWS OIDC role ARN used for getting token from GATI."
+        required: false
+      AWS_LAMBDA_GATI_URL:
+        description: "AWS Lambda URL for GATI."
+        required: false
+
+jobs:
+  codeowners-review-analysis:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read # needed to pull actions run url
+      contents: read # needed to pull codeowners file
+      id-token: write # used to assume aws role
+      pull-requests: write # needed to read pull request and add comments
+    steps:
+      - name: Setup github token
+        id: setup-github-token
+        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
+        with:
+          aws-role-arn: ${{ secrets.AWS_ROLE_GATI_ARN }}
+          aws-lambda-url: ${{ secrets.AWS_LAMBDA_GATI_URL }}
+          aws-region: us-west-2
+
+      - name: CORA
+        uses: smartcontractkit/.github/actions/codeowners-review-analysis@codeowners-review-analysis/v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          members-read-github-token: ${{ steps.setup-github-token.outputs.access-token }}
