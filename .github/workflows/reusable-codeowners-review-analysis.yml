@@ -9,6 +9,25 @@ on:
         type: boolean
         default: true
 
+      cora-minimum-codeowners:
+        description: |
+          The minimum numbers of codeowners for the current PR required to trigger CORA.
+          If the number of codeowners is less than this value, the analysis will be skipped.
+        required: false
+        type: number
+        default: 5
+
+      cora-minimum-codeowners-entries:
+        description: |
+          The minimum number of codeowner entries (lines in the CODEOWNERS file) for the
+          current PR required to trigger CORA. If the number of codeowner entries is less
+          than this value, no comment will be posted.
+
+          This is useful to avoid triggering CORA for PRs that touch a single entry which contains an expansive list of codeowners.
+        required: false
+        type: number
+        default: 2
+
     secrets:
       AWS_ROLE_GATI_ARN:
         description: "AWS OIDC role ARN used for getting token from GATI."
@@ -25,6 +44,7 @@ jobs:
       contents: read # needed to pull codeowners file
       id-token: write # used to assume aws role
       pull-requests: write # needed to read pull request and add comments
+      issues: write # needed to add labels on PRs (weirdly)
     steps:
       - name: Setup github token
         id: setup-github-token
@@ -35,8 +55,10 @@ jobs:
           aws-region: us-west-2
 
       - name: CORA
-        uses: smartcontractkit/.github/actions/codeowners-review-analysis@codeowners-review-analysis/v1
+        uses: smartcontractkit/.github/actions/codeowners-review-analysis@feat/automatic-cora
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           members-read-github-token: ${{ steps.setup-github-token.outputs.access-token }}
+          minimum-codeowners: ${{ inputs.cora-minimum-codeowners }}
+          minimum-codeowners-entries: ${{ inputs.cora-minimum-codeowners-entries }}

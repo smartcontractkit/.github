@@ -25073,7 +25073,9 @@ function getInputs() {
   core.info("Getting inputs for run.");
   const inputs = {
     postComment: getRunInputBoolean("postComment"),
-    membersReadGitHubToken: getRunInputString("membersReadGitHubToken")
+    membersReadGitHubToken: getRunInputString("membersReadGitHubToken"),
+    minimumCodeOwners: getRunInputNumber("minimumCodeOwners"),
+    minimumCodeOwnersEntries: getRunInputNumber("minimumCodeOwnersEntries")
   };
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
   return inputs;
@@ -25123,6 +25125,14 @@ var runInputsConfiguration = {
   membersReadGitHubToken: {
     parameter: "members-read-github-token",
     localParameter: "MEMBERS_READ_GITHUB_TOKEN"
+  },
+  minimumCodeOwners: {
+    parameter: "minimum-codeowners",
+    localParameter: "MINIMUM_CODE_OWNERS"
+  },
+  minimumCodeOwnersEntries: {
+    parameter: "minimum-codeowners-entries",
+    localParameter: "MINIMUM_CODE_OWNERS_ENTRIES"
   }
 };
 function getRunInputBoolean(input) {
@@ -25136,6 +25146,17 @@ function getRunInputString(input) {
   return core.getInput(inputKey, {
     required: true
   });
+}
+function getRunInputNumber(input) {
+  const inputKey = getInputKey(input);
+  const inputValue = core.getInput(inputKey, {
+    required: true
+  });
+  const parsed = Number(inputValue);
+  if (isNaN(parsed)) {
+    throw new Error(`Input ${inputKey} is not a valid number: ${inputValue}`);
+  }
+  return parsed;
 }
 function getInputKey(input) {
   const config = runInputsConfiguration[input];
@@ -26128,6 +26149,14 @@ async function run() {
     if (allCodeOwners.size === 0) {
       core7.warning(
         "No code owners identified for changed files. Skipping analysis."
+      );
+      return;
+    }
+    if (allCodeOwners.size < inputs.minimumCodeOwners && codeOwnersEntryToFiles.size < inputs.minimumCodeOwnersEntries) {
+      core7.info(`Number of CODEOWNERS: ${allCodeOwners.size}, minimum required: ${inputs.minimumCodeOwners}`);
+      core7.info(`Number of CODEOWNERS entries: ${codeOwnersEntryToFiles.size}, minimum required: ${inputs.minimumCodeOwnersEntries}`);
+      core7.info(
+        `Number of code owners (${allCodeOwners.size}) and number of CODEOWNERS entries with changed files (${codeOwnersEntryToFiles.size}) doesn't meet thresholds for analysis. Skipping.`
       );
       return;
     }

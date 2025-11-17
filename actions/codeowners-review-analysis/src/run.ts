@@ -80,6 +80,19 @@ export async function run(): Promise<void> {
       );
       return;
     }
+
+    if (
+      allCodeOwners.size < inputs.minimumCodeOwners &&
+      codeOwnersEntryToFiles.size < inputs.minimumCodeOwnersEntries
+    ) {
+      core.info(`Number of CODEOWNERS: ${allCodeOwners.size}, minimum required: ${inputs.minimumCodeOwners}`);
+      core.info(`Number of CODEOWNERS entries: ${codeOwnersEntryToFiles.size}, minimum required: ${inputs.minimumCodeOwnersEntries}`);
+      core.info(
+        `Number of code owners (${allCodeOwners.size}) and number of CODEOWNERS entries with changed files (${codeOwnersEntryToFiles.size}) doesn't meet thresholds for analysis. Skipping.`,
+      );
+      return;
+    }
+
     core.endGroup();
 
     core.startGroup("Get currrent state of PR reviews");
