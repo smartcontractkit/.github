@@ -26195,7 +26195,7 @@ async function run() {
       );
       return;
     }
-    if (allCodeOwners.size < inputs.minimumCodeOwners && codeOwnersEntryToFiles.size < inputs.minimumCodeOwnersEntries) {
+    if (allCodeOwners.size < inputs.minimumCodeOwners || codeOwnersEntryToFiles.size < inputs.minimumCodeOwnersEntries) {
       core7.info(`Number of CODEOWNERS: ${allCodeOwners.size}, minimum required: ${inputs.minimumCodeOwners}`);
       core7.info(`Number of CODEOWNERS entries: ${codeOwnersEntryToFiles.size}, minimum required: ${inputs.minimumCodeOwnersEntries}`);
       const reason = `The number of code owners (${allCodeOwners.size}) is less than the minimum required (${inputs.minimumCodeOwners}) and/or the number of CODEOWNERS entries with changed files (${codeOwnersEntryToFiles.size}) is less than the minimum required (${inputs.minimumCodeOwnersEntries}).`;

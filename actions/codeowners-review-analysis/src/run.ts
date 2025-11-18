@@ -84,7 +84,7 @@ export async function run(): Promise<void> {
     }
 
     if (
-      allCodeOwners.size < inputs.minimumCodeOwners &&
+      allCodeOwners.size < inputs.minimumCodeOwners ||
       codeOwnersEntryToFiles.size < inputs.minimumCodeOwnersEntries
     ) {
       core.info(`Number of CODEOWNERS: ${allCodeOwners.size}, minimum required: ${inputs.minimumCodeOwners}`);
