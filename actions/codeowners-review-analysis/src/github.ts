@@ -29,6 +29,9 @@ export async function getChangedFilesForPR(
   return prFiles;
 }
 
+/**
+ * Upserts (creates or updates) a comment on the specified PR with the given body.
+ */
 export async function upsertPRComment(
   octokit: OctokitType,
   owner: string,
@@ -36,27 +39,24 @@ export async function upsertPRComment(
   pull_number: number,
   commentBody: string,
 ): Promise<void> {
-  // 1. List all comments on the PR (issues API covers PR comments)
-  const { data: comments } = await octokit.rest.issues.listComments({
+  const commentId = await findPRSummaryComment(
+    octokit,
     owner,
     repo,
-    issue_number: pull_number,
-    per_page: 100,
-  });
-
-  // 2. Look for a comment containing our identifier
-  const existingComment = comments.find((c) =>
-    c.body?.includes(MARKDOWN_FINGERPRINT),
+    pull_number,
   );
-  const fingerprintedCommentBody = commentBody + `\n\n${MARKDOWN_FINGERPRINT}`;
 
   try {
-    if (existingComment) {
+    const commentExists = commentId !== -1;
+    const fingerprintedCommentBody =
+      commentBody + `\n\n${MARKDOWN_FINGERPRINT}`;
+
+    if (commentExists) {
       // 3a. Update the existing comment
       await octokit.rest.issues.updateComment({
         owner,
         repo,
-        comment_id: existingComment.id,
+        comment_id: commentId,
         body: fingerprintedCommentBody,
       });
     } else {
@@ -71,6 +71,65 @@ export async function upsertPRComment(
   } catch (error) {
     core.warning(`Failed to upsert PR comment: ${error}`);
   }
+}
+
+/**
+ * Edits an existing PR comment identified by the fingerprint. If no comment is found, does nothing.
+ */
+export async function editPRComment(
+  octokit: OctokitType,
+  owner: string,
+  repo: string,
+  pull_number: number,
+  commentBody: string,
+): Promise<void> {
+  const commentId = await findPRSummaryComment(
+    octokit,
+    owner,
+    repo,
+    pull_number,
+  );
+
+  if (commentId === -1) {
+    core.info("No existing comment found to edit.");
+    return;
+  }
+
+  try {
+    const fingerprintedCommentBody =
+      commentBody + `\n\n${MARKDOWN_FINGERPRINT}`;
+
+    await octokit.rest.issues.updateComment({
+      owner,
+      repo,
+      comment_id: commentId,
+      body: fingerprintedCommentBody,
+    });
+  } catch (error) {
+    core.warning(`Failed to edit PR comment: ${error}`);
+  }
+}
+
+async function findPRSummaryComment(
+  octokit: OctokitType,
+  owner: string,
+  repo: string,
+  pull_number: number,
+): Promise<number> {
+  // 1. List all comments on the PR (issues API covers PR comments)
+  const { data: comments } = await octokit.rest.issues.listComments({
+    owner,
+    repo,
+    issue_number: pull_number,
+    per_page: 100,
+  });
+
+  // 2. Look for a comment containing our identifier
+  const existingComment = comments.find((c) =>
+    c.body?.includes(MARKDOWN_FINGERPRINT),
+  );
+
+  return existingComment ? existingComment.id : -1;
 }
 
 /**
