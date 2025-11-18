@@ -25182,24 +25182,22 @@ async function getChangedFilesForPR(octokit, owner, repo, prNumber) {
   return prFiles;
 }
 async function upsertPRComment(octokit, owner, repo, pull_number, commentBody) {
-  const { data: comments } = await octokit.rest.issues.listComments({
+  const commentId = await findPRSummaryComment(
+    octokit,
     owner,
     repo,
-    issue_number: pull_number,
-    per_page: 100
-  });
-  const existingComment = comments.find(
-    (c) => c.body?.includes(MARKDOWN_FINGERPRINT)
+    pull_number
   );
-  const fingerprintedCommentBody = commentBody + `
+  try {
+    const commentExists = commentId !== -1;
+    const fingerprintedCommentBody = commentBody + `
 
 ${MARKDOWN_FINGERPRINT}`;
-  try {
-    if (existingComment) {
+    if (commentExists) {
       await octokit.rest.issues.updateComment({
         owner,
         repo,
-        comment_id: existingComment.id,
+        comment_id: commentId,
         body: fingerprintedCommentBody
       });
     } else {
@@ -25213,6 +25211,43 @@ ${MARKDOWN_FINGERPRINT}`;
   } catch (error) {
     core2.warning(`Failed to upsert PR comment: ${error}`);
   }
+}
+async function editPRComment(octokit, owner, repo, pull_number, commentBody) {
+  const commentId = await findPRSummaryComment(
+    octokit,
+    owner,
+    repo,
+    pull_number
+  );
+  if (commentId === -1) {
+    core2.info("No existing comment found to edit.");
+    return;
+  }
+  try {
+    const fingerprintedCommentBody = commentBody + `
+
+${MARKDOWN_FINGERPRINT}`;
+    await octokit.rest.issues.updateComment({
+      owner,
+      repo,
+      comment_id: commentId,
+      body: fingerprintedCommentBody
+    });
+  } catch (error) {
+    core2.warning(`Failed to edit PR comment: ${error}`);
+  }
+}
+async function findPRSummaryComment(octokit, owner, repo, pull_number) {
+  const { data: comments } = await octokit.rest.issues.listComments({
+    owner,
+    repo,
+    issue_number: pull_number,
+    per_page: 100
+  });
+  const existingComment = comments.find(
+    (c) => c.body?.includes(MARKDOWN_FINGERPRINT)
+  );
+  return existingComment ? existingComment.id : -1;
 }
 async function getCodeownersFile(octokit, owner, repo) {
   const possibleFilenames = [
@@ -25950,6 +25985,14 @@ function getReviewStatusForUser(actor, currentReviewStatus) {
 }
 
 // actions/codeowners-review-analysis/src/strings.ts
+function formatSkippedAnalysisMarkdown(reason) {
+  const lines = [
+    "### CORA - Analysis Skipped",
+    "",
+    `**Reason:** ${reason}`
+  ];
+  return lines.join("\n");
+}
 var LEGEND = `Legend: ${iconFor(PullRequestReviewStateExt.Approved)} Approved | ${iconFor(PullRequestReviewStateExt.ChangesRequested)} Changes Requested | ${iconFor(PullRequestReviewStateExt.Commented)} Commented | ${iconFor(PullRequestReviewStateExt.Dismissed)} Dismissed | ${iconFor(PullRequestReviewStateExt.Pending)} Pending | ${iconFor("UNKNOWN" /* Unknown */)} Unknown`;
 function formatPendingReviewsMarkdown(entryMap, overallStatus, summaryUrl) {
   const lines = ["### CORA - Pending Reviewers", ""];
@@ -26155,8 +26198,17 @@ async function run() {
     if (allCodeOwners.size < inputs.minimumCodeOwners && codeOwnersEntryToFiles.size < inputs.minimumCodeOwnersEntries) {
       core7.info(`Number of CODEOWNERS: ${allCodeOwners.size}, minimum required: ${inputs.minimumCodeOwners}`);
       core7.info(`Number of CODEOWNERS entries: ${codeOwnersEntryToFiles.size}, minimum required: ${inputs.minimumCodeOwnersEntries}`);
+      const reason = `The number of code owners (${allCodeOwners.size}) is less than the minimum required (${inputs.minimumCodeOwners}) and/or the number of CODEOWNERS entries with changed files (${codeOwnersEntryToFiles.size}) is less than the minimum required (${inputs.minimumCodeOwnersEntries}).`;
       core7.info(
-        `Number of code owners (${allCodeOwners.size}) and number of CODEOWNERS entries with changed files (${codeOwnersEntryToFiles.size}) doesn't meet thresholds for analysis. Skipping.`
+        `${reason} Skipping analysis.`
+      );
+      const skippedMarkdown = formatSkippedAnalysisMarkdown(reason);
+      await editPRComment(
+        octokit,
+        owner,
+        repo,
+        prNumber,
+        skippedMarkdown
       );
       return;
     }
