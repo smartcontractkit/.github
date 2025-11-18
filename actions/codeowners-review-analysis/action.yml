@@ -25,7 +25,7 @@ inputs:
       The minimum numbers of codeowners for the current PR required to trigger CORA.
       If the number of codeowners is less than this value, the analysis will be skipped.
     required: false
-    default: "5"
+    default: "4"
 
   minimum-codeowners-entries:
     description: |

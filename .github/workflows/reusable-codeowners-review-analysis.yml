@@ -54,8 +54,8 @@ jobs:
           aws-lambda-url: ${{ secrets.AWS_LAMBDA_GATI_URL }}
           aws-region: us-west-2
 
-      - name: CORA
-        uses: smartcontractkit/.github/actions/codeowners-review-analysis@feat/automatic-cora
+      - name: Analyze (cora)
+        uses: smartcontractkit/.github/actions/codeowners-review-analysis@codeowners-review-analysis/v2
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
