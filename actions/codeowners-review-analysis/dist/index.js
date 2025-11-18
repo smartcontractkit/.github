@@ -26196,20 +26196,16 @@ async function run() {
       return;
     }
     if (allCodeOwners.size < inputs.minimumCodeOwners || codeOwnersEntryToFiles.size < inputs.minimumCodeOwnersEntries) {
-      core7.info(`Number of CODEOWNERS: ${allCodeOwners.size}, minimum required: ${inputs.minimumCodeOwners}`);
-      core7.info(`Number of CODEOWNERS entries: ${codeOwnersEntryToFiles.size}, minimum required: ${inputs.minimumCodeOwnersEntries}`);
-      const reason = `The number of code owners (${allCodeOwners.size}) is less than the minimum required (${inputs.minimumCodeOwners}) and/or the number of CODEOWNERS entries with changed files (${codeOwnersEntryToFiles.size}) is less than the minimum required (${inputs.minimumCodeOwnersEntries}).`;
       core7.info(
-        `${reason} Skipping analysis.`
+        `Number of CODEOWNERS: ${allCodeOwners.size}, minimum required: ${inputs.minimumCodeOwners}`
       );
+      core7.info(
+        `Number of CODEOWNERS entries: ${codeOwnersEntryToFiles.size}, minimum required: ${inputs.minimumCodeOwnersEntries}`
+      );
+      const reason = `The number of code owners (${allCodeOwners.size}) is less than the minimum required (${inputs.minimumCodeOwners}) and/or the number of CODEOWNERS entries with changed files (${codeOwnersEntryToFiles.size}) is less than the minimum required (${inputs.minimumCodeOwnersEntries}).`;
+      core7.info(`${reason} Skipping analysis.`);
       const skippedMarkdown = formatSkippedAnalysisMarkdown(reason);
-      await editPRComment(
-        octokit,
-        owner,
-        repo,
-        prNumber,
-        skippedMarkdown
-      );
+      await editPRComment(octokit, owner, repo, prNumber, skippedMarkdown);
       return;
     }
     core7.endGroup();

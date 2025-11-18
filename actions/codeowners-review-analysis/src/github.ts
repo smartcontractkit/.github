@@ -48,7 +48,8 @@ export async function upsertPRComment(
 
   try {
     const commentExists = commentId !== -1;
-    const fingerprintedCommentBody = commentBody + `\n\n${MARKDOWN_FINGERPRINT}`;
+    const fingerprintedCommentBody =
+      commentBody + `\n\n${MARKDOWN_FINGERPRINT}`;
 
     if (commentExists) {
       // 3a. Update the existing comment
@@ -95,7 +96,8 @@ export async function editPRComment(
   }
 
   try {
-    const fingerprintedCommentBody = commentBody + `\n\n${MARKDOWN_FINGERPRINT}`;
+    const fingerprintedCommentBody =
+      commentBody + `\n\n${MARKDOWN_FINGERPRINT}`;
 
     await octokit.rest.issues.updateComment({
       owner,
