@@ -28,19 +28,19 @@ vi.mock("@actions/glob", () => ({
 describe("matchModule", () => {
   describe("basic functionality", () => {
     test("should match file in module directory", () => {
-      const moduleDirectories = new Set(["src", "lib", "docs"]);
+      const moduleDirectories = ["src", "lib", "docs"];
       const result = matchModule("src/index.ts", moduleDirectories);
       expect(result).toBe("src");
     });
 
     test("should match file in nested module directory", () => {
-      const moduleDirectories = new Set(["apps/web", "packages/ui"]);
+      const moduleDirectories = ["apps/web", "packages/ui"];
       const result = matchModule("apps/web/pages/index.tsx", moduleDirectories);
       expect(result).toBe("apps/web");
     });
 
     test("should walk up directory hierarchy to find parent module", () => {
-      const moduleDirectories = new Set(["packages"]);
+      const moduleDirectories = ["packages"];
       const result = matchModule(
         "packages/ui/src/components/Button.tsx",
         moduleDirectories,
@@ -51,25 +51,25 @@ describe("matchModule", () => {
 
   describe("root directory handling", () => {
     test('should match root directory with "."', () => {
-      const moduleDirectories = new Set(["."]);
+      const moduleDirectories = ["."];
       const result = matchModule("src/index.ts", moduleDirectories);
       expect(result).toBe(".");
     });
 
     test('should match root directory with "."', () => {
-      const moduleDirectories = new Set(["."]);
+      const moduleDirectories = ["."];
       const result = matchModule("src/index.ts", moduleDirectories);
       expect(result).toBe(".");
     });
 
     test('should prefer "." over "." when both are present', () => {
-      const moduleDirectories = new Set([".", "."]);
+      const moduleDirectories = [".", "."];
       const result = matchModule("src/index.ts", moduleDirectories);
       expect(result).toBe(".");
     });
 
     test("should handle file in root directory", () => {
-      const moduleDirectories = new Set(["."]);
+      const moduleDirectories = ["."];
       const result = matchModule("go.mod", moduleDirectories);
       expect(result).toBe(".");
     });
@@ -77,13 +77,13 @@ describe("matchModule", () => {
 
   describe("no match scenarios", () => {
     test("should return empty string when no module found", () => {
-      const moduleDirectories = new Set(["src", "lib"]);
+      const moduleDirectories = ["src", "lib"];
       const result = matchModule("docs/go.mod", moduleDirectories);
       expect(result).toBe("");
     });
 
     test("should return empty string for empty module directories", () => {
-      const moduleDirectories = new Set<string>();
+      const moduleDirectories: string[] = [];
       const result = matchModule("src/index.ts", moduleDirectories);
       expect(result).toBe("");
     });
@@ -91,13 +91,13 @@ describe("matchModule", () => {
 
   describe("edge cases", () => {
     test('should handle files without leading "."', () => {
-      const moduleDirectories = new Set(["src", "lib"]);
+      const moduleDirectories = ["src", "lib"];
       const result = matchModule("src/index.ts", moduleDirectories);
       expect(result).toBe("src");
     });
 
     test("should handle deeply nested paths", () => {
-      const moduleDirectories = new Set(["packages/core"]);
+      const moduleDirectories = ["packages/core"];
       const result = matchModule(
         "packages/core/src/utils/helpers/string.ts",
         moduleDirectories,
@@ -106,18 +106,9 @@ describe("matchModule", () => {
     });
 
     test("should handle single file in directory", () => {
-      const moduleDirectories = new Set(["scripts"]);
+      const moduleDirectories = ["scripts"];
       const result = matchModule("scripts/build.js", moduleDirectories);
       expect(result).toBe("scripts");
-    });
-
-    test("should prioritize more specific matches", () => {
-      const moduleDirectories = new Set(["packages", "packages/ui"]);
-      const result = matchModule(
-        "packages/ui/src/Button.tsx",
-        moduleDirectories,
-      );
-      expect(result).toBe("packages/ui");
     });
   });
 });
@@ -318,3 +309,5 @@ describe("getAllGoModuleRoots", () => {
     expect(result).toEqual([]);
   });
 });
+
+

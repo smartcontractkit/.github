@@ -1,62 +1,108 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
-import { getInputs, RunInputs } from "./run-inputs";
-import { getAllGoModuleRoots, matchModules } from "./path-ops";
-import { getChangedFiles, resolveBaseAndHeadRefs } from "./git";
+import { getInvokeContext, getInputs, RunInputs } from "./run-inputs";
+import { getAllGoModuleRoots, matchModules, filterPaths } from "./path-ops";
+import { getChangedFilesGit } from "./git";
+
+import { getChangedFilesForPR } from "./github";
+
+import type { OctokitType } from "./github";
+import type { InvokeContext } from "./run-inputs";
 
 export async function run(): Promise<void> {
   try {
     // 1. Get inputs and context
     core.startGroup("Inputs and Context");
+    const context = getInvokeContext();
+    core.info(`Extracted Context: ${JSON.stringify({ context, ...{ token: "<redacted>" }}, null, 2)}`);
+
     const inputs = getInputs();
-    // const context = getInvokeContext();
+    core.info(`Extracted Inputs: ${JSON.stringify(inputs, null, 2)}`);
+
+    const octokit = github.getOctokit(context.token);
     core.endGroup();
 
     // 2. Get all go modules in current directory
-    const goModuleDirsRelative = await getAllGoModuleRoots(inputs.subDirectory);
+    const goModuleDirsRelative = await getAllGoModuleRoots();
+    core.info(`Found ${goModuleDirsRelative.length} Go modules.`);
+    core.debug(`Go modules: ${JSON.stringify(goModuleDirsRelative, null, 2)}`);
 
-    // 3. Get proper SHA refs
-    const headRefToResolve = inputs.headRef || "HEAD";
-    const baseRefToResolve = chooseBaseRef(inputs, headRefToResolve);
-    const { base, head } = await resolveBaseAndHeadRefs(
-      process.cwd(),
-      headRefToResolve,
-      baseRefToResolve,
+    const filteredGoModuleDirs = filterPaths(
+      goModuleDirsRelative,
+      inputs.ignoreModules,
+    );
+    core.info(`After filtering, ${filteredGoModuleDirs.length} Go modules remain.`);
+    core.debug(`Filtered Go modules: ${JSON.stringify(filteredGoModuleDirs, null, 2)}`);
+
+    const modifiedModules = await determineChangedModules(
+      octokit,
+      context,
+      filteredGoModuleDirs,
+      inputs,
     );
 
-    // 4. Get all files modified between the two refs
-    const changedFiles = await getChangedFiles(process.cwd(), base, head);
-    const filesToModules = matchModules(changedFiles, goModuleDirsRelative);
-    const modulePaths = filesToModules.map(([_, module]) => module);
-    const uniqueModulePaths = Array.from(new Set(modulePaths));
-
-    core.info(`Modified modules: ${uniqueModulePaths.join(", ")}`);
-    core.setOutput("modified-modules", uniqueModulePaths.join(", "));
+    core.info(`Modified modules: ${modifiedModules.join(", ")}`);
+    core.setOutput("modified-modules", modifiedModules.join(", "));
   } catch (error) {
     core.endGroup();
     core.setFailed(`Action failed: ${error}`);
   }
 }
 
-/**
- * Chooses the base ref to use, based on the inputs and event context.
- */
-function chooseBaseRef(inputs: RunInputs, headRef: string) {
-  if (inputs.baseRef) {
-    return inputs.baseRef;
-  }
-  if (github.context.eventName === "pull_request") {
-    if (
-      !github.context.payload.pull_request ||
-      !github.context.payload.pull_request.base.ref
-    ) {
-      throw new Error("Base ref is not available in pull request context.");
+async function determineChangedModules(
+  octokit: OctokitType,
+  context: InvokeContext,
+  modules: string[],
+  inputs: RunInputs,
+) {
+  if (context.event.eventName === "schedule") {
+    core.info("Schedule event detected.");
+    if (inputs.scheduleBehaviour === "all") {
+      core.info("Schedule behaviour set to 'all'. All modules will be considered changed.");
+      return modules;
+    } else if (inputs.scheduleBehaviour === "none") {
+      core.info("Schedule behaviour set to 'none'. No modules will be considered changed.");
+      return [];
     }
-    return github.context.payload.pull_request.base.ref;
+    // type guard to ensure all cases are handled
+    const never: never = inputs.scheduleBehaviour;
   }
 
-  // For push, merge_group, schedule, workflow_dipatch, etc...
-  // Compare only the most recent commit
-  return `${headRef}^`;
+  const changedFiles = await getChangedFiles(octokit, context);
+  core.info(`Found ${changedFiles.length} changed files.`);
+  core.debug(`Changed files: ${JSON.stringify(changedFiles, null, 2)}`);
+
+  const filteredChangedFiles = filterPaths(
+    changedFiles,
+    inputs.ignoreFiles,
+  );
+  core.info(`After filtering, ${filteredChangedFiles.length} changed files remain.`);
+  core.debug(`Filtered changed files: ${JSON.stringify(filteredChangedFiles, null, 2)}`);
+
+  const filesToModules = matchModules(filteredChangedFiles, modules);
+  const modulePaths = filesToModules.map(([_, module]) => module);
+  const uniqueModulePaths = Array.from(new Set(modulePaths));
+
+  core.info(`Modified modules: ${uniqueModulePaths.join(", ")}`);
+  return uniqueModulePaths;
+}
+
+
+
+async function getChangedFiles(octokit: OctokitType, { owner, repo, event }: InvokeContext): Promise<string[]> {
+
+  switch (event.eventName) {
+    case "pull_request":
+      const files = await getChangedFilesForPR(octokit, owner, repo, event.prNumber);
+      return files.map((f) => f.filename);
+    case "push":
+      core.info(`Push event detected. Base: ${event.base}, Head: ${event.head}`);
+      return await getChangedFilesGit(event.base, event.head);
+    case "merge_group":
+      core.info(`Merge Group event detected. Base: ${event.base}, Head: ${event.head}`);
+      return await getChangedFilesGit(event.base, event.head);
+    default:
+      throw new Error(`Cannot determine changed files for unsupported event type: ${event}`);
+  }
 }

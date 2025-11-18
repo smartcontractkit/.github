@@ -1,22 +1,30 @@
 name: changed-modules-go
-description: "gets the go modules changed for a github event"
+description: "Gets the go modules changed for a github event"
 
 inputs:
-  sub-directory:
-    description:
-      "The sub-directory to search for go.mod files. Defaults to './'"
+  ignore-files:
+    description: |
+      A comma-separated list of glob patterns to ignore when detecting changed files.
+      Files which match any of these patterns will be removed from the list of changed files, which determines which modules are considered changed.
     required: false
-    default: "./"
+    default: ""
 
-  # ref inputs
-  base-ref:
-    description: "Base branch or commit to compare against"
+  ignore-modules:
+    description: |
+      A comma-separated list of glob patterns to ignore when finding modules.
+      Modules in this list will never be considered changed, even if files within them have changed.
+      Note: a pattern like 'module/**' will ignore all modules within the module/ directory, and the module/ itself. Use 'module/**/*' to only ignore sub-modules.
     required: false
-    default: "${{ github.event.pull_request.base.ref }}"
-  head-ref:
-    description: "Head branch or commit to compare against"
+    default: ""
+
+  schedule-behaviour:
+    description: |
+      Defines the behaviour of the action when triggered by a schedule event.
+      Options are:
+      - 'all': All modules will be considered changed (will still respect ignore-modules).
+      - 'none': No modules will be considered changed.
     required: false
-    default: "${{ github.event.pull_request.head.ref }}"
+    default: "all"
 
 outputs:
   modified-modules:
