@@ -8,6 +8,12 @@ runs:
   main: "dist/index.js"
 
 inputs:
+  force-analysis:
+    description: |
+      Whether to force the analysis to run regardless of the number of codeowners/entries.
+    required: false
+    default: "false"
+
   post-comment:
     description:
       "Whether to post a comment on the PR with the analysis results."

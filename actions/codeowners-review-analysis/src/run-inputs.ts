@@ -4,9 +4,9 @@ import * as github from "@actions/github";
 export const CL_LOCAL_DEBUG = process.env.CL_LOCAL_DEBUG === "true";
 
 export interface RunInputs {
+  forceAnalysis: boolean;
   postComment: boolean;
   membersReadGitHubToken: string;
-
   minimumCodeOwners: number;
   minimumCodeOwnersEntries: number;
 }
@@ -15,6 +15,7 @@ export function getInputs(): RunInputs {
   core.info("Getting inputs for run.");
 
   const inputs: RunInputs = {
+    forceAnalysis: getRunInputBoolean("forceAnalysis"),
     postComment: getRunInputBoolean("postComment"),
     membersReadGitHubToken: getRunInputString("membersReadGitHubToken"),
     minimumCodeOwners: getRunInputNumber("minimumCodeOwners"),
@@ -90,6 +91,10 @@ interface RunInputConfiguration {
 const runInputsConfiguration: {
   [K in keyof RunInputs]: RunInputConfiguration;
 } = {
+  forceAnalysis: {
+    parameter: "force-analysis",
+    localParameter: "FORCE_ANALYSIS",
+  },
   postComment: {
     parameter: "post-comment",
     localParameter: "POST_COMMENT",
