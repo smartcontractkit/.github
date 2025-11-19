@@ -137,5 +137,5 @@ runs:
       uses: actions/upload-artifact@v5.0.0
       with:
         name: individual_test_logs
-        path: "${{ steps.inputs-ext.outputs.junit-dir }}/*.log"
+        path: "${{ steps.inputs-ext.outputs.junit-dir }}/raw-test-logs/"
         retention-days: 10
