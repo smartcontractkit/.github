@@ -63,9 +63,9 @@ runs:
         JUNIT_FILE_PATH: ${{ inputs.junit-file-path }}
       run: |
         echo "Test suite language: $TEST_SUITE_LANGUAGE"
-        junit-dir=$(dirname $JUNIT_FILE_PATH)
-        echo "junit-dir=${junit-dir}" | tee -a "$GITHUB_OUTPUT"
-        echo "JUnit directory: $junit-dir"
+        JUNIT_DIR=$(dirname $JUNIT_FILE_PATH)
+        echo "junit-dir=${JUNIT_DIR}" | tee -a "$GITHUB_OUTPUT"
+        echo "JUnit directory: $JUNIT_DIR"
         echo "JUnit file path: $JUNIT_FILE_PATH"
 
         if [[ "$TEST_SUITE_LANGUAGE" == "go" ]]; then
