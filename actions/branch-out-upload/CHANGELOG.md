@@ -1,5 +1,14 @@
 # branch-out-upload
 
+## 1.3.0
+
+### Minor Changes
+
+- [#1340](https://github.com/smartcontractkit/.github/pull/1340)
+  [`038df1b`](https://github.com/smartcontractkit/.github/commit/038df1b9ae21cd0da335bd09208137944a33bff9)
+  Thanks [@kalverra](https://github.com/kalverra)! - Uploads raw logs for
+  failing tests as artifacts
+
 ## 1.2.1
 
 ### Patch Changes
