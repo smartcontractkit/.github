@@ -1,5 +1,13 @@
 # branch-out-upload
 
+## 1.3.1
+
+### Patch Changes
+
+- [#1342](https://github.com/smartcontractkit/.github/pull/1342)
+  [`f26aee3`](https://github.com/smartcontractkit/.github/commit/f26aee30a4a00a0bd16341da85dcd45e29fbd079)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: shell variable name
+
 ## 1.3.0
 
 ### Minor Changes
