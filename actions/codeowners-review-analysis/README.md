@@ -14,6 +14,7 @@ https://github.com/hmarr/codeowners
 
 | input                        | description                                                                   | default           |
 | ---------------------------- | ----------------------------------------------------------------------------- | ----------------- |
+| `force-analysis`             | Force running the analysis ignoring codeowners/entries thresholds             | `false`           |
 | `post-comment`               | Whether to post a small comment on the PR summarizing codeowners requirements | `true`            |
 | `members-read-github-token`  | A `GITHUB_TOKEN` with org-wide members:read permissions                       | `none` - required |
 | `minimum-codeowners`         | The minimum number of CODEOWNERS required to trigger the analysis             | `4`               |
