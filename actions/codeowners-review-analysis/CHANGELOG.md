@@ -1,5 +1,15 @@
 # codeowners-review-analysis
 
+## 2.0.1
+
+### Patch Changes
+
+- [#1339](https://github.com/smartcontractkit/.github/pull/1339)
+  [`5166e93`](https://github.com/smartcontractkit/.github/commit/5166e93aa65a984743a1e1116e8b44db25fb2b9d)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: add `force-analysis`
+  input parameter, allowing to override `minimum-codeowners` and
+  `minimum-codeowners-entries` thresholds.
+
 ## 2.0.0
 
 ### Major Changes
