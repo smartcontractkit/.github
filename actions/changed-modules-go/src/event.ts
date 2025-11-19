@@ -1,7 +1,15 @@
 import * as github from "@actions/github";
-import { PushEvent, PullRequestEvent, MergeGroupEvent } from '@octokit/webhooks-types'
+import {
+  PushEvent,
+  PullRequestEvent,
+  MergeGroupEvent,
+} from "@octokit/webhooks-types";
 
-export type EventData = PullRequestEventData | PushEventData | MergeGroupEventData | ScheduleEventData;
+export type EventData =
+  | PullRequestEventData
+  | PushEventData
+  | MergeGroupEventData
+  | ScheduleEventData;
 
 export interface PullRequestEventData {
   eventName: "pull_request";

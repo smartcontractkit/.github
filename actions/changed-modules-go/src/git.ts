@@ -6,7 +6,9 @@ export async function getChangedFilesGit(
   head: string,
   directory: string = process.cwd(),
 ): Promise<string[]> {
-  core.info(`Getting changed files between ${base} and ${head} in ${directory}`);
+  core.info(
+    `Getting changed files between ${base} and ${head} in ${directory}`,
+  );
 
   const { stdout: changedFiles } = await execa(
     "git",

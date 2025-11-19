@@ -34,10 +34,7 @@ function sortDeepestFirst(mods: string[]): string[] {
  * Matches a single file path to a module directory.
  * Ensure moduleDirectories are sorted deepest-first and normalized before calling.
  */
-export function matchModule(
-  file: string,
-  moduleDirectories: string[],
-): string {
+export function matchModule(file: string, moduleDirectories: string[]): string {
   const fileNorm = normalizePath(file);
 
   for (const mod of moduleDirectories) {
@@ -70,7 +67,9 @@ export function matchModules(
 
   // Normalize & pre-sort once
   const normalizedFiles = files.map(normalizePath);
-  const normalizedModules = sortDeepestFirst(moduleDirectories.map(normalizePath));
+  const normalizedModules = sortDeepestFirst(
+    moduleDirectories.map(normalizePath),
+  );
 
   const results: [string, string][] = [];
   for (const file of normalizedFiles) {
@@ -119,7 +118,10 @@ export async function getAllGoModuleRoots(
   }
 }
 
-export function filterPaths(paths: string[], ignorePatterns: string[]): string[] {
+export function filterPaths(
+  paths: string[],
+  ignorePatterns: string[],
+): string[] {
   core.info(
     `Checking ${paths.length} paths against ${ignorePatterns.length} ignore patterns.`,
   );

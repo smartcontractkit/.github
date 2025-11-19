@@ -17,7 +17,10 @@ export function getInputs(): RunInputs {
   const inputs: RunInputs = {
     ignoreFiles: getRunInputStringArray("ignoreFiles", false),
     ignoreModules: getRunInputStringArray("ignoreModules", false),
-    scheduleBehaviour: getRunInputString("scheduleBehaviour", true) as RunInputs["scheduleBehaviour"],
+    scheduleBehaviour: getRunInputString(
+      "scheduleBehaviour",
+      true,
+    ) as RunInputs["scheduleBehaviour"],
   };
 
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
@@ -38,7 +41,9 @@ export function getInvokeContext() {
   }
 
   const event = getEventData();
-  core.info(`Invoke context: ${JSON.stringify({ token: "****", owner, repo, event }, null, 2)}`);
+  core.info(
+    `Invoke context: ${JSON.stringify({ token: "****", owner, repo, event }, null, 2)}`,
+  );
 
   return { token, owner, repo, event };
 }

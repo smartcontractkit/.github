@@ -29020,7 +29020,10 @@ function getInputs() {
   const inputs = {
     ignoreFiles: getRunInputStringArray("ignoreFiles", false),
     ignoreModules: getRunInputStringArray("ignoreModules", false),
-    scheduleBehaviour: getRunInputString("scheduleBehaviour", true)
+    scheduleBehaviour: getRunInputString(
+      "scheduleBehaviour",
+      true
+    )
   };
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
   return inputs;
@@ -29033,7 +29036,9 @@ function getInvokeContext() {
     return process.exit(1);
   }
   const event = getEventData();
-  core.info(`Invoke context: ${JSON.stringify({ token: "****", owner, repo, event }, null, 2)}`);
+  core.info(
+    `Invoke context: ${JSON.stringify({ token: "****", owner, repo, event }, null, 2)}`
+  );
   return { token, owner, repo, event };
 }
 var runInputsConfiguration = {
@@ -29120,7 +29125,9 @@ function matchModule(file, moduleDirectories) {
 function matchModules(files, moduleDirectories) {
   core2.startGroup("Matching modified files to modules");
   const normalizedFiles = files.map(normalizePath);
-  const normalizedModules = sortDeepestFirst(moduleDirectories.map(normalizePath));
+  const normalizedModules = sortDeepestFirst(
+    moduleDirectories.map(normalizePath)
+  );
   const results = [];
   for (const file of normalizedFiles) {
     const matched = matchModule(file, normalizedModules);
@@ -35952,7 +35959,9 @@ var {
 
 // actions/changed-modules-go/src/git.ts
 async function getChangedFilesGit(base, head, directory = process.cwd()) {
-  core3.info(`Getting changed files between ${base} and ${head} in ${directory}`);
+  core3.info(
+    `Getting changed files between ${base} and ${head} in ${directory}`
+  );
   const { stdout: changedFiles } = await execa(
     "git",
     ["diff", "--name-only", base, head],
@@ -35981,26 +35990,38 @@ async function run() {
   try {
     core5.startGroup("Inputs and Context");
     const context3 = getInvokeContext();
-    core5.info(`Extracted Context: ${JSON.stringify({ context: context3, ...{ token: "<redacted>" } }, null, 2)}`);
+    core5.info(
+      `Extracted Context: ${JSON.stringify({ context: context3, ...{ token: "<redacted>" } }, null, 2)}`
+    );
     const inputs = getInputs();
     core5.info(`Extracted Inputs: ${JSON.stringify(inputs, null, 2)}`);
     const octokit = github3.getOctokit(context3.token);
     core5.endGroup();
+    core5.startGroup("Determining modules");
     const goModuleDirsRelative = await getAllGoModuleRoots();
     core5.info(`Found ${goModuleDirsRelative.length} Go modules.`);
     core5.debug(`Go modules: ${JSON.stringify(goModuleDirsRelative, null, 2)}`);
+    core5.endGroup();
+    core5.startGroup("Filtering modules");
     const filteredGoModuleDirs = filterPaths(
       goModuleDirsRelative,
       inputs.ignoreModules
     );
-    core5.info(`After filtering, ${filteredGoModuleDirs.length} Go modules remain.`);
-    core5.debug(`Filtered Go modules: ${JSON.stringify(filteredGoModuleDirs, null, 2)}`);
+    core5.info(
+      `After filtering, ${filteredGoModuleDirs.length} Go modules remain.`
+    );
+    core5.debug(
+      `Filtered Go modules: ${JSON.stringify(filteredGoModuleDirs, null, 2)}`
+    );
+    core5.endGroup();
+    core5.startGroup("Determining changed modules");
     const modifiedModules = await determineChangedModules(
       octokit,
       context3,
       filteredGoModuleDirs,
       inputs
     );
+    core5.endGroup();
     core5.info(`Modified modules: ${modifiedModules.join(", ")}`);
     core5.setOutput("modified-modules", modifiedModules.join(", "));
   } catch (error) {
@@ -36012,10 +36033,14 @@ async function determineChangedModules(octokit, context3, modules, inputs) {
   if (context3.event.eventName === "schedule") {
     core5.info("Schedule event detected.");
     if (inputs.scheduleBehaviour === "all") {
-      core5.info("Schedule behaviour set to 'all'. All modules will be considered changed.");
+      core5.info(
+        "Schedule behaviour set to 'all'. All modules will be considered changed."
+      );
       return modules;
     } else if (inputs.scheduleBehaviour === "none") {
-      core5.info("Schedule behaviour set to 'none'. No modules will be considered changed.");
+      core5.info(
+        "Schedule behaviour set to 'none'. No modules will be considered changed."
+      );
       return [];
     }
     const never = inputs.scheduleBehaviour;
@@ -36023,12 +36048,13 @@ async function determineChangedModules(octokit, context3, modules, inputs) {
   const changedFiles = await getChangedFiles(octokit, context3);
   core5.info(`Found ${changedFiles.length} changed files.`);
   core5.debug(`Changed files: ${JSON.stringify(changedFiles, null, 2)}`);
-  const filteredChangedFiles = filterPaths(
-    changedFiles,
-    inputs.ignoreFiles
+  const filteredChangedFiles = filterPaths(changedFiles, inputs.ignoreFiles);
+  core5.info(
+    `After filtering, ${filteredChangedFiles.length} changed files remain.`
   );
-  core5.info(`After filtering, ${filteredChangedFiles.length} changed files remain.`);
-  core5.debug(`Filtered changed files: ${JSON.stringify(filteredChangedFiles, null, 2)}`);
+  core5.debug(
+    `Filtered changed files: ${JSON.stringify(filteredChangedFiles, null, 2)}`
+  );
   const filesToModules = matchModules(filteredChangedFiles, modules);
   const modulePaths = filesToModules.map(([_, module2]) => module2);
   const uniqueModulePaths = Array.from(new Set(modulePaths));
@@ -36038,16 +36064,27 @@ async function determineChangedModules(octokit, context3, modules, inputs) {
 async function getChangedFiles(octokit, { owner, repo, event }) {
   switch (event.eventName) {
     case "pull_request":
-      const files = await getChangedFilesForPR(octokit, owner, repo, event.prNumber);
+      const files = await getChangedFilesForPR(
+        octokit,
+        owner,
+        repo,
+        event.prNumber
+      );
       return files.map((f) => f.filename);
     case "push":
-      core5.info(`Push event detected. Base: ${event.base}, Head: ${event.head}`);
+      core5.info(
+        `Push event detected. Base: ${event.base}, Head: ${event.head}`
+      );
       return await getChangedFilesGit(event.base, event.head);
     case "merge_group":
-      core5.info(`Merge Group event detected. Base: ${event.base}, Head: ${event.head}`);
+      core5.info(
+        `Merge Group event detected. Base: ${event.base}, Head: ${event.head}`
+      );
       return await getChangedFilesGit(event.base, event.head);
     default:
-      throw new Error(`Cannot determine changed files for unsupported event type: ${event}`);
+      throw new Error(
+        `Cannot determine changed files for unsupported event type: ${event}`
+      );
   }
 }
 

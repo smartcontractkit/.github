@@ -309,5 +309,3 @@ describe("getAllGoModuleRoots", () => {
     expect(result).toEqual([]);
   });
 });
-
-
