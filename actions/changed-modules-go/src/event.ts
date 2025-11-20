@@ -9,7 +9,7 @@ export type EventData =
   | PullRequestEventData
   | PushEventData
   | MergeGroupEventData
-  | ScheduleEventData;
+  | NoChangeEventData;
 
 export interface PullRequestEventData {
   eventName: "pull_request";
@@ -28,10 +28,13 @@ export interface MergeGroupEventData {
   head: string;
 }
 
-export interface ScheduleEventData {
-  eventName: "schedule";
+export interface NoChangeEventData {
+  eventName: "no-change";
 }
 
+/**
+ * This determines the relevant event data from the event payload, used to determine the changed files.
+ */
 export function getEventData(): EventData {
   const { context } = github;
 
@@ -57,8 +60,9 @@ export function getEventData(): EventData {
         head: mgEvent.merge_group.head_sha,
       };
     case "schedule":
+    case "workflow_dispatch":
       return {
-        eventName: "schedule",
+        eventName: "no-change",
       };
     default:
       throw new Error(`Unsupported event type: ${context.eventName}`);

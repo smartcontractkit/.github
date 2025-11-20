@@ -29006,8 +29006,9 @@ function getEventData() {
         head: mgEvent.merge_group.head_sha
       };
     case "schedule":
+    case "workflow_dispatch":
       return {
-        eventName: "schedule"
+        eventName: "no-change"
       };
     default:
       throw new Error(`Unsupported event type: ${context3.eventName}`);
@@ -29018,10 +29019,10 @@ function getEventData() {
 function getInputs() {
   core.info("Getting inputs for run.");
   const inputs = {
-    ignoreFiles: getRunInputStringArray("ignoreFiles", false),
-    ignoreModules: getRunInputStringArray("ignoreModules", false),
-    scheduleBehaviour: getRunInputString(
-      "scheduleBehaviour",
+    filePatterns: getRunInputStringArray("filePatterns", true),
+    modulePatterns: getRunInputStringArray("modulePatterns", true),
+    noChangeBehaviour: getRunInputString(
+      "noChangeBehaviour",
       true
     )
   };
@@ -29042,18 +29043,18 @@ function getInvokeContext() {
   return { token, owner, repo, event };
 }
 var runInputsConfiguration = {
-  ignoreFiles: {
-    parameter: "ignore-files",
-    localParameter: "IGNORE_FILES"
+  filePatterns: {
+    parameter: "file-patterns",
+    localParameter: "FILE_PATTERNS"
   },
-  ignoreModules: {
-    parameter: "ignore-modules",
-    localParameter: "IGNORE_MODULES"
+  modulePatterns: {
+    parameter: "module-patterns",
+    localParameter: "MODULE_PATTERNS"
   },
-  scheduleBehaviour: {
-    parameter: "schedule-behaviour",
-    localParameter: "SCHEDULE_BEHAVIOUR",
-    validator: validateScheduleBehaviour
+  noChangeBehaviour: {
+    parameter: "no-change-behaviour",
+    localParameter: "NO_CHANGE_BEHAVIOUR",
+    validator: validateNoChangeBehaviourInput
   }
 };
 function getRunInputString(input, required = true) {
@@ -29075,7 +29076,11 @@ function getRunInputStringArray(input, required = false) {
   if (!inputValue) {
     return [];
   }
-  return inputValue.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
+  const seperator = inputValue.includes(",") ? "," : "\n";
+  core.info(
+    `Parsing input ${inputKey} as string array using separator '${seperator}'`
+  );
+  return inputValue.split(seperator).map((s) => s.trim()).filter((s) => s.length > 0);
 }
 function getInputKey(input) {
   const config = runInputsConfiguration[input];
@@ -29086,8 +29091,8 @@ function getInputKey(input) {
   const inputKey = isLocalDebug ? config.localParameter : config.parameter;
   return inputKey;
 }
-function validateScheduleBehaviour(value) {
-  return value === "all" || value === "none";
+function validateNoChangeBehaviourInput(value) {
+  return value === "all" || value === "none" || value === "root" || value === "latest-commit";
 }
 
 // actions/changed-modules-go/src/path-ops.ts
@@ -29165,16 +29170,29 @@ async function getAllGoModuleRoots(subDir = ".") {
     core2.endGroup();
   }
 }
-function filterPaths(paths, ignorePatterns) {
+function filterPaths(paths, filePatterns) {
   core2.info(
-    `Checking ${paths.length} paths against ${ignorePatterns.length} ignore patterns.`
+    `Checking ${paths.length} paths against ${filePatterns.length} patterns.`
   );
+  if (filePatterns.length === 0) {
+    core2.info(
+      "No include patterns specified, defaulting to include all paths."
+    );
+    filePatterns.push("**");
+  }
   core2.debug(`Initial paths: ${JSON.stringify(paths)}`);
-  core2.debug(`Ignore patterns: ${JSON.stringify(ignorePatterns)}`);
+  core2.debug(`File patterns: ${JSON.stringify(filePatterns)}`);
+  const includePatterns = filePatterns.filter((p) => !p.startsWith("!"));
+  const excludePatterns = filePatterns.filter((p) => p.startsWith("!")).map((p) => p.slice(1));
   const filteredPaths = paths.filter((path7) => {
-    const isIgnored = import_micromatch.default.isMatch(path7, ignorePatterns, { dot: true });
-    core2.debug(`Path: ${path7}, is ignored: ${isIgnored}`);
-    return !isIgnored;
+    const isExcluded = import_micromatch.default.isMatch(path7, excludePatterns, { dot: true });
+    if (isExcluded) {
+      core2.debug(`Excluded by negation: ${path7}`);
+      return false;
+    }
+    const isIncluded = includePatterns.length === 0 || import_micromatch.default.isMatch(path7, includePatterns, { dot: true });
+    core2.debug(`Path: ${path7}, included: ${isIncluded}`);
+    return isIncluded;
   });
   core2.info(`After filtering, ${filteredPaths.length} paths remain.`);
   core2.debug(`Filtered paths: ${JSON.stringify(filteredPaths)}`);
@@ -35986,6 +36004,14 @@ async function getChangedFilesForPR(octokit, owner, repo, prNumber) {
 }
 
 // actions/changed-modules-go/src/run.ts
+function setOutputs(outputs) {
+  const csvOut = outputs.modifiedModules.join(", ");
+  core5.debug(`modified-modules-csv: ${csvOut}`);
+  core5.setOutput("modified-modules-csv", csvOut);
+  const jsonOut = JSON.stringify(outputs.modifiedModules);
+  core5.debug(`modified-modules-json: ${jsonOut}`);
+  core5.setOutput("modified-modules-json", jsonOut);
+}
 async function run() {
   try {
     core5.startGroup("Inputs and Context");
@@ -36005,7 +36031,7 @@ async function run() {
     core5.startGroup("Filtering modules");
     const filteredGoModuleDirs = filterPaths(
       goModuleDirsRelative,
-      inputs.ignoreModules
+      inputs.modulePatterns
     );
     core5.info(
       `After filtering, ${filteredGoModuleDirs.length} Go modules remain.`
@@ -36023,67 +36049,84 @@ async function run() {
     );
     core5.endGroup();
     core5.info(`Modified modules: ${modifiedModules.join(", ")}`);
-    core5.setOutput("modified-modules", modifiedModules.join(", "));
+    setOutputs({ modifiedModules });
   } catch (error) {
     core5.endGroup();
     core5.setFailed(`Action failed: ${error}`);
   }
 }
-async function determineChangedModules(octokit, context3, modules, inputs) {
-  if (context3.event.eventName === "schedule") {
-    core5.info("Schedule event detected.");
-    if (inputs.scheduleBehaviour === "all") {
-      core5.info(
-        "Schedule behaviour set to 'all'. All modules will be considered changed."
-      );
-      return modules;
-    } else if (inputs.scheduleBehaviour === "none") {
-      core5.info(
-        "Schedule behaviour set to 'none'. No modules will be considered changed."
-      );
-      return [];
-    }
-    const never = inputs.scheduleBehaviour;
-  }
-  const changedFiles = await getChangedFiles(octokit, context3);
-  core5.info(`Found ${changedFiles.length} changed files.`);
-  core5.debug(`Changed files: ${JSON.stringify(changedFiles, null, 2)}`);
-  const filteredChangedFiles = filterPaths(changedFiles, inputs.ignoreFiles);
-  core5.info(
-    `After filtering, ${filteredChangedFiles.length} changed files remain.`
-  );
-  core5.debug(
-    `Filtered changed files: ${JSON.stringify(filteredChangedFiles, null, 2)}`
-  );
-  const filesToModules = matchModules(filteredChangedFiles, modules);
-  const modulePaths = filesToModules.map(([_, module2]) => module2);
-  const uniqueModulePaths = Array.from(new Set(modulePaths));
-  core5.info(`Modified modules: ${uniqueModulePaths.join(", ")}`);
-  return uniqueModulePaths;
-}
-async function getChangedFiles(octokit, { owner, repo, event }) {
+async function determineChangedModules(octokit, { owner, repo, event }, modules, inputs) {
   switch (event.eventName) {
     case "pull_request":
+      core5.info("Determining changed files for Pull Request event.");
       const files = await getChangedFilesForPR(
         octokit,
         owner,
         repo,
         event.prNumber
       );
-      return files.map((f) => f.filename);
+      const changedFiles = files.map((f) => f.filename);
+      return determineModulesFromChangedFiles(inputs, changedFiles, modules);
     case "push":
-      core5.info(
-        `Push event detected. Base: ${event.base}, Head: ${event.head}`
+      core5.info("Determining changed files for Push event.");
+      const changedFilesPush = await getChangedFilesGit(event.base, event.head);
+      return determineModulesFromChangedFiles(
+        inputs,
+        changedFilesPush,
+        modules
       );
-      return await getChangedFilesGit(event.base, event.head);
     case "merge_group":
-      core5.info(
-        `Merge Group event detected. Base: ${event.base}, Head: ${event.head}`
-      );
-      return await getChangedFilesGit(event.base, event.head);
+      core5.info("Determining changed files for Merge Group event.");
+      const changedFilesMG = await getChangedFilesGit(event.base, event.head);
+      return determineModulesFromChangedFiles(inputs, changedFilesMG, modules);
+    case "no-change":
+      core5.info('A "no-change" event detected. Handling accordingly.');
+      return determineModulesForNoChangeEvent(inputs, modules);
     default:
+      event;
+      throw new Error(`Unsupported event ${JSON.stringify(event)}`);
+  }
+}
+function determineModulesFromChangedFiles({ filePatterns }, changedFiles, modules) {
+  const changedFilesFiltered = filterPaths(changedFiles, filePatterns);
+  const filesToModules = matchModules(changedFilesFiltered, modules);
+  const modulePaths = filesToModules.map(([_, module2]) => module2);
+  const uniqueModulePaths = Array.from(new Set(modulePaths));
+  core5.info(`Found ${uniqueModulePaths.length} modified modules.`);
+  core5.debug(`Modified modules: ${JSON.stringify(uniqueModulePaths, null, 2)}`);
+  return uniqueModulePaths;
+}
+async function determineModulesForNoChangeEvent(inputs, modules) {
+  switch (inputs.noChangeBehaviour) {
+    case "all":
+      core5.info(
+        "No-change behaviour set to 'all'. All modules will be considered changed."
+      );
+      return modules;
+    case "none":
+      core5.info(
+        "No-change behaviour set to 'none'. No modules will be considered changed."
+      );
+      return [];
+    case "root":
+      core5.info(
+        "No-change behaviour set to 'root'. Only the root module (if exists) will be considered changed."
+      );
+      return modules.includes(".") ? ["."] : [];
+    case "latest-commit":
+      core5.info(
+        "No-change behaviour set to 'latest-commit'. Determining changed files from the latest commit."
+      );
+      const changedFilesPush = await getChangedFilesGit("HEAD~1", "HEAD");
+      return determineModulesFromChangedFiles(
+        inputs,
+        changedFilesPush,
+        modules
+      );
+    default:
+      inputs.noChangeBehaviour;
       throw new Error(
-        `Cannot determine changed files for unsupported event type: ${event}`
+        `Unvalidated/Unhandled no-change behaviour: ${inputs.noChangeBehaviour}`
       );
   }
 }

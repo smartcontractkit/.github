@@ -4,9 +4,9 @@ import * as github from "@actions/github";
 import { getEventData } from "./event";
 
 export interface RunInputs {
-  ignoreFiles: string[];
-  ignoreModules: string[];
-  scheduleBehaviour: "all" | "none";
+  filePatterns: string[];
+  modulePatterns: string[];
+  noChangeBehaviour: "all" | "none" | "root" | "latest-commit";
 }
 
 export type InvokeContext = ReturnType<typeof getInvokeContext>;
@@ -15,12 +15,12 @@ export function getInputs(): RunInputs {
   core.info("Getting inputs for run.");
 
   const inputs: RunInputs = {
-    ignoreFiles: getRunInputStringArray("ignoreFiles", false),
-    ignoreModules: getRunInputStringArray("ignoreModules", false),
-    scheduleBehaviour: getRunInputString(
-      "scheduleBehaviour",
+    filePatterns: getRunInputStringArray("filePatterns", true),
+    modulePatterns: getRunInputStringArray("modulePatterns", true),
+    noChangeBehaviour: getRunInputString(
+      "noChangeBehaviour",
       true,
-    ) as RunInputs["scheduleBehaviour"],
+    ) as RunInputs["noChangeBehaviour"],
   };
 
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
@@ -69,18 +69,18 @@ interface RunInputConfiguration {
 const runInputsConfiguration: {
   [K in keyof RunInputs]: RunInputConfiguration;
 } = {
-  ignoreFiles: {
-    parameter: "ignore-files",
-    localParameter: "IGNORE_FILES",
+  filePatterns: {
+    parameter: "file-patterns",
+    localParameter: "FILE_PATTERNS",
   },
-  ignoreModules: {
-    parameter: "ignore-modules",
-    localParameter: "IGNORE_MODULES",
+  modulePatterns: {
+    parameter: "module-patterns",
+    localParameter: "MODULE_PATTERNS",
   },
-  scheduleBehaviour: {
-    parameter: "schedule-behaviour",
-    localParameter: "SCHEDULE_BEHAVIOUR",
-    validator: validateScheduleBehaviour,
+  noChangeBehaviour: {
+    parameter: "no-change-behaviour",
+    localParameter: "NO_CHANGE_BEHAVIOUR",
+    validator: validateNoChangeBehaviourInput,
   },
 };
 
@@ -96,7 +96,10 @@ function getRunInputString(input: keyof RunInputs, required: boolean = true) {
   return inputValue;
 }
 
-function getRunInputStringArray(
+/**
+ * Note: Exported for testing purposes.
+ */
+export function getRunInputStringArray(
   input: keyof RunInputs,
   required: boolean = false,
 ): string[] {
@@ -107,8 +110,12 @@ function getRunInputStringArray(
   if (!inputValue) {
     return [];
   }
+  const seperator = inputValue.includes(",") ? "," : "\n";
+  core.info(
+    `Parsing input ${inputKey} as string array using separator '${seperator}'`,
+  );
   return inputValue
-    .split(",")
+    .split(seperator)
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
 }
@@ -126,6 +133,13 @@ function getInputKey(input: keyof RunInputs) {
   return inputKey;
 }
 
-function validateScheduleBehaviour(value: string): value is "all" | "none" {
-  return value === "all" || value === "none";
+function validateNoChangeBehaviourInput(
+  value: string,
+): value is RunInputs["noChangeBehaviour"] {
+  return (
+    value === "all" ||
+    value === "none" ||
+    value === "root" ||
+    value === "latest-commit"
+  );
 }

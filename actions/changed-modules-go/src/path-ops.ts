@@ -118,22 +118,42 @@ export async function getAllGoModuleRoots(
   }
 }
 
-export function filterPaths(
-  paths: string[],
-  ignorePatterns: string[],
-): string[] {
+export function filterPaths(paths: string[], filePatterns: string[]): string[] {
   core.info(
-    `Checking ${paths.length} paths against ${ignorePatterns.length} ignore patterns.`,
+    `Checking ${paths.length} paths against ${filePatterns.length} patterns.`,
   );
-  core.debug(`Initial paths: ${JSON.stringify(paths)}`);
-  core.debug(`Ignore patterns: ${JSON.stringify(ignorePatterns)}`);
 
-  // micromatch.isMatch(file, patterns) -> true if the file matches ANY of the patterns
-  // Use { dot: true } so patterns can match dotfiles if intended (common in repos).
+  if (filePatterns.length === 0) {
+    core.info(
+      "No include patterns specified, defaulting to include all paths.",
+    );
+    filePatterns.push("**");
+  }
+
+  core.debug(`Initial paths: ${JSON.stringify(paths)}`);
+  core.debug(`File patterns: ${JSON.stringify(filePatterns)}`);
+
+  // Separate include and exclude patterns explicitly
+  const includePatterns = filePatterns.filter((p) => !p.startsWith("!"));
+  const excludePatterns = filePatterns
+    .filter((p) => p.startsWith("!"))
+    .map((p) => p.slice(1)); // strip the leading '!'
+
   const filteredPaths = paths.filter((path) => {
-    const isIgnored = micromatch.isMatch(path, ignorePatterns, { dot: true });
-    core.debug(`Path: ${path}, is ignored: ${isIgnored}`);
-    return !isIgnored;
+    // Always exclude if any negation matches
+    const isExcluded = micromatch.isMatch(path, excludePatterns, { dot: true });
+    if (isExcluded) {
+      core.debug(`Excluded by negation: ${path}`);
+      return false;
+    }
+
+    // Otherwise include if it matches any include pattern
+    const isIncluded =
+      includePatterns.length === 0 ||
+      micromatch.isMatch(path, includePatterns, { dot: true });
+
+    core.debug(`Path: ${path}, included: ${isIncluded}`);
+    return isIncluded;
   });
 
   core.info(`After filtering, ${filteredPaths.length} paths remain.`);

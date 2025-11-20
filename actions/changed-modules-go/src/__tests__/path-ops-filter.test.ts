@@ -1,5 +1,4 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
-import * as core from "@actions/core";
 
 import { filterPaths } from "../path-ops";
 
@@ -15,63 +14,90 @@ describe("filterPaths (files)", () => {
     vi.clearAllMocks();
   });
 
-  test("should return all files when no ignore patterns are provided", () => {
+  test("returns all files when no patterns are provided (defaults to include all)", () => {
     const files = ["src/index.ts", "src/utils/helper.ts"];
-    const ignorePatterns: string[] = [];
+    const filePatterns: string[] = [];
 
-    const result = filterPaths(files, ignorePatterns);
+    const result = filterPaths(files, filePatterns);
 
     expect(result).toEqual(files);
   });
 
-  test("should filter out files matching ignore patterns", () => {
+  test("excludes files via negations", () => {
     const files = [
       "src/index.ts",
       "src/utils/helper.ts",
       "test/index.test.ts",
       "README.md",
     ];
-    const ignorePatterns = ["**/*.test.ts", "README.md"];
+    // Negate test files and README, include all else by default (no positive includes provided)
+    const filePatterns = ["!**/*.test.ts", "!README.md"];
 
-    const result = filterPaths(files, ignorePatterns);
+    const result = filterPaths(files, filePatterns);
 
     expect(result).toEqual(["src/index.ts", "src/utils/helper.ts"]);
   });
 
-  test("should handle nested directory ignore patterns", () => {
-    const files = [
-      "src/app/main.ts",
-      "src/app/config/settings.ts",
-      "src/app/config/.env",
-    ];
-    const ignorePatterns = ["src/app/config/**"];
+  test("includes only specific extensions when only positive patterns are provided", () => {
+    const files = ["src/main.ts", "src/other.ts", "src/ignore.js", "README.md"];
+    const filePatterns = ["**/*.ts"];
 
-    const result = filterPaths(files, ignorePatterns);
+    const result = filterPaths(files, filePatterns);
 
-    expect(result).toEqual(["src/app/main.ts"]);
+    expect(result).toEqual(["src/main.ts", "src/other.ts"]);
   });
 
-  test("should ignore files matching multiple patterns", () => {
+  test("negations override includes (order-independent)", () => {
+    const files = [
+      "src/main.ts",
+      "src/main.test.ts",
+      "src/aux.ts",
+      "docs/README.md",
+    ];
+
+    // Case A: include-then-negate
+    const a = filterPaths(files, ["**/*.ts", "!**/*.test.ts"]);
+    // Case B: negate-then-include (should be identical because negations always win)
+    const b = filterPaths(files, ["!**/*.test.ts", "**/*.ts"]);
+
+    expect(a).toEqual(["src/main.ts", "src/aux.ts"]);
+    expect(b).toEqual(["src/main.ts", "src/aux.ts"]);
+  });
+
+  test("handles multiple negations", () => {
     const files = [
       "src/main.ts",
       "docs/README.md",
       "scripts/deploy.sh",
       "scripts/cleanup.sh",
     ];
-    const ignorePatterns = ["**/*.md", "scripts/*.sh"];
+    const filePatterns = ["!**/*.md", "!scripts/*.sh"];
 
-    const result = filterPaths(files, ignorePatterns);
+    const result = filterPaths(files, filePatterns);
 
     expect(result).toEqual(["src/main.ts"]);
   });
 
-  test("should return empty array when all files are ignored", () => {
+  test("returns empty array when everything is negated", () => {
     const files = ["a.ts", "b.ts", "c.ts"];
-    const ignorePatterns = ["**/*.ts"];
+    const filePatterns = ["!**/*.ts"];
 
-    const result = filterPaths(files, ignorePatterns);
+    const result = filterPaths(files, filePatterns);
 
     expect(result).toEqual([]);
+  });
+
+  test("nested directory negation excludes descendants", () => {
+    const files = [
+      "src/app/main.ts",
+      "src/app/config/settings.ts",
+      "src/app/config/.env",
+    ];
+    const filePatterns = ["!src/app/config/**"];
+
+    const result = filterPaths(files, filePatterns);
+
+    expect(result).toEqual(["src/app/main.ts"]);
   });
 });
 
@@ -80,20 +106,20 @@ describe("filterPaths (directories/modules)", () => {
     vi.clearAllMocks();
   });
 
-  test("returns all paths when no ignore patterns are provided", () => {
+  test("returns all paths when no patterns are provided (defaults to include all)", () => {
     const paths = [
       "services/payment",
       "services/payment/submodule",
       "services/billing",
       "tools",
     ];
-    const ignore: string[] = [];
+    const filePatterns: string[] = [];
 
-    const result = filterPaths(paths, ignore);
+    const result = filterPaths(paths, filePatterns);
     expect(result).toEqual(paths);
   });
 
-  test("filters out an exact module", () => {
+  test("negates an exact module only (keeps submodules)", () => {
     const paths = [
       "services/payment",
       "services/payment/submodule",
@@ -103,9 +129,9 @@ describe("filterPaths (directories/modules)", () => {
       "tools",
     ];
 
-    const ignore = ["services/payment"];
+    const filePatterns = ["!services/payment"];
 
-    const result = filterPaths(paths, ignore);
+    const result = filterPaths(paths, filePatterns);
 
     expect(result).toEqual([
       "services/payment/submodule",
@@ -116,7 +142,7 @@ describe("filterPaths (directories/modules)", () => {
     ]);
   });
 
-  test("filters out an exact module and all of its submodules", () => {
+  test("negates a module and all of its submodules", () => {
     const paths = [
       "services/payment",
       "services/payment/submodule",
@@ -126,14 +152,14 @@ describe("filterPaths (directories/modules)", () => {
       "tools",
     ];
 
-    const ignore = ["services/payment/**"];
+    const filePatterns = ["!services/payment/**"];
 
-    const result = filterPaths(paths, ignore);
+    const result = filterPaths(paths, filePatterns);
 
     expect(result).toEqual(["services/billing", "services/payments", "tools"]);
   });
 
-  test("filters only submodules when using `dir/**/*`", () => {
+  test("negates only submodules when using `dir/**/*` (root remains)", () => {
     const paths = [
       "services/payment",
       "services/payment/submodule",
@@ -141,10 +167,9 @@ describe("filterPaths (directories/modules)", () => {
       "services/billing",
     ];
 
-    // Only ignore descendants; the root 'services/payment' remains.
-    const ignore = ["services/payment/**/*"];
+    const filePatterns = ["!services/payment/**/*"];
 
-    const result = filterPaths(paths, ignore);
+    const result = filterPaths(paths, filePatterns);
 
     expect(result).toEqual(["services/payment", "services/billing"]);
   });
@@ -152,20 +177,19 @@ describe("filterPaths (directories/modules)", () => {
   test("does not accidentally match similar prefixes", () => {
     const paths = [
       "services/pay",
-      "services/payment", // similar prefix but different
-      "services/payroll", // similar prefix but different
-      "services/pay/sub", // child of services/pay
+      "services/payment",
+      "services/payroll",
+      "services/pay/sub",
     ];
 
-    // Ignore exactly "services/pay" and its children.
-    const ignore = ["services/pay/**"];
+    const filePatterns = ["!services/pay/**"];
 
-    const result = filterPaths(paths, ignore);
+    const result = filterPaths(paths, filePatterns);
 
     expect(result).toEqual(["services/payment", "services/payroll"]);
   });
 
-  test("handles prefixed wildcards", () => {
+  test("handles prefixed wildcards for internal folders across the tree", () => {
     const paths = [
       "services/payments",
       "services/payments/internal/crypto",
@@ -173,22 +197,35 @@ describe("filterPaths (directories/modules)", () => {
       "services/billing/internal/logs",
     ];
 
-    // Ignore a hidden module and all its descendants.
-    const ignore = ["**/internal/**"];
+    const filePatterns = ["!**/internal/**"];
 
-    const result = filterPaths(paths, ignore);
+    const result = filterPaths(paths, filePatterns);
 
     expect(result).toEqual(["services/payments", "services/billing"]);
   });
 
-  test("handles dot-directories when ignored (dot: true behavior)", () => {
+  test("handles dot-directories with negations (dot: true behavior)", () => {
     const paths = [".internal", ".internal/crypto", "services/api", ".github"];
 
-    // Ignore a hidden module and all its descendants.
-    const ignore = [".internal", ".internal/**"];
+    const filePatterns = ["!.internal", "!.internal/**"];
 
-    const result = filterPaths(paths, ignore);
+    const result = filterPaths(paths, filePatterns);
 
     expect(result).toEqual(["services/api", ".github"]);
+  });
+
+  test("includes only a subtree when positive include is given, still allowing negations to exclude inside it", () => {
+    const paths = [
+      "services/payment",
+      "services/payment/internal/crypto",
+      "services/payment/api",
+      "services/billing",
+    ];
+
+    const filePatterns = ["services/payment/**", "!**/internal/**"];
+
+    const result = filterPaths(paths, filePatterns);
+
+    expect(result).toEqual(["services/payment", "services/payment/api"]);
   });
 });

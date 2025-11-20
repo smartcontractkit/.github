@@ -2,34 +2,41 @@ name: changed-modules-go
 description: "Gets the go modules changed for a github event"
 
 inputs:
-  ignore-files:
+  file-patterns:
     description: |
-      A comma-separated list of glob patterns to ignore when detecting changed files.
-      Files which match any of these patterns will be removed from the list of changed files, which determines which modules are considered changed.
+      A comma or newline-separated list of glob patterns to include when determining changed modules.
+      Only files matching these patterns will be considered when determining which modules have changed.
+      Supports standard glob syntax. Any negations (exclusions) are processed first (e.g. '!**/*_test.go' to exclude test files).
     required: false
-    default: ""
+    default: "**/*.go,**/go.mod,**/go.sum"
 
-  ignore-modules:
+  module-patterns:
     description: |
-      A comma-separated list of glob patterns to ignore when finding modules.
-      Modules in this list will never be considered changed, even if files within them have changed.
-      Note: a pattern like 'module/**' will ignore all modules within the module/ directory, and the module/ itself. Use 'module/**/*' to only ignore sub-modules.
+      A comma or newline-separated list of glob patterns to match module paths to include when determining changed modules.
+      Only modules matching these patterns will be considered when determining which modules have changed.
+      Supports standard glob syntax. Any negations (exclusions) are processed first (e.g. '!**/test/**' to exclude test modules).
     required: false
-    default: ""
+    default: "**"
 
-  schedule-behaviour:
+  no-change-behaviour:
     description: |
-      Defines the behaviour of the action when triggered by a schedule event.
+      Defines the behaviour of the action when triggered by events that do not have an associated changeset.
+      Right now only supports: schedule, workflow_dispatch. All below options still respect ignore-files and ignore-modules.
       Options are:
-      - 'all': All modules will be considered changed (will still respect ignore-modules).
+      - 'all': All modules will be considered changed.
+      - 'root': Only the root module (.) will be considered changed.
+      - 'latest-commit': Only modules changed in the latest commit will be considered changed.
       - 'none': No modules will be considered changed.
     required: false
     default: "all"
 
 outputs:
-  modified-modules:
+  modified-modules-csv:
     description: |
       The paths to the go modules, relative to the CWD, separated by commas
+  modified-modules-json:
+    description: |
+      A JSON array of the paths to the go modules, relative to the CWD
 
 runs:
   using: "node20"

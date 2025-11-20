@@ -10,6 +10,20 @@ import { getChangedFilesForPR } from "./github";
 import type { OctokitType } from "./github";
 import type { InvokeContext } from "./run-inputs";
 
+interface Outputs {
+  modifiedModules: string[];
+}
+
+function setOutputs(outputs: Outputs) {
+  const csvOut = outputs.modifiedModules.join(", ");
+  core.debug(`modified-modules-csv: ${csvOut}`);
+  core.setOutput("modified-modules-csv", csvOut);
+
+  const jsonOut = JSON.stringify(outputs.modifiedModules);
+  core.debug(`modified-modules-json: ${jsonOut}`);
+  core.setOutput("modified-modules-json", jsonOut);
+}
+
 export async function run(): Promise<void> {
   try {
     // 1. Get inputs and context
@@ -37,7 +51,7 @@ export async function run(): Promise<void> {
     core.startGroup("Filtering modules");
     const filteredGoModuleDirs = filterPaths(
       goModuleDirsRelative,
-      inputs.ignoreModules,
+      inputs.modulePatterns,
     );
     core.info(
       `After filtering, ${filteredGoModuleDirs.length} Go modules remain.`,
@@ -58,86 +72,120 @@ export async function run(): Promise<void> {
     core.endGroup();
 
     core.info(`Modified modules: ${modifiedModules.join(", ")}`);
-    core.setOutput("modified-modules", modifiedModules.join(", "));
+    setOutputs({ modifiedModules });
   } catch (error) {
     core.endGroup();
     core.setFailed(`Action failed: ${error}`);
   }
 }
 
+/**
+ * Determines the changed modules based on the event type.
+ */
 async function determineChangedModules(
   octokit: OctokitType,
-  context: InvokeContext,
+  { owner, repo, event }: InvokeContext,
   modules: string[],
   inputs: RunInputs,
 ) {
-  // Special handling for scheduled events
-  if (context.event.eventName === "schedule") {
-    core.info("Schedule event detected.");
-    if (inputs.scheduleBehaviour === "all") {
-      core.info(
-        "Schedule behaviour set to 'all'. All modules will be considered changed.",
-      );
-      return modules;
-    } else if (inputs.scheduleBehaviour === "none") {
-      core.info(
-        "Schedule behaviour set to 'none'. No modules will be considered changed.",
-      );
-      return [];
-    }
-    // type guard to ensure all cases are handled
-    const never: never = inputs.scheduleBehaviour;
-  }
-
-  // Get changed files for other event types
-  const changedFiles = await getChangedFiles(octokit, context);
-  core.info(`Found ${changedFiles.length} changed files.`);
-  core.debug(`Changed files: ${JSON.stringify(changedFiles, null, 2)}`);
-
-  // Filter changed files based on ignore patterns
-  const filteredChangedFiles = filterPaths(changedFiles, inputs.ignoreFiles);
-  core.info(
-    `After filtering, ${filteredChangedFiles.length} changed files remain.`,
-  );
-  core.debug(
-    `Filtered changed files: ${JSON.stringify(filteredChangedFiles, null, 2)}`,
-  );
-
-  // Match changed files to modules
-  const filesToModules = matchModules(filteredChangedFiles, modules);
-  const modulePaths = filesToModules.map(([_, module]) => module);
-  const uniqueModulePaths = Array.from(new Set(modulePaths));
-
-  core.info(`Modified modules: ${uniqueModulePaths.join(", ")}`);
-  return uniqueModulePaths;
-}
-
-async function getChangedFiles(
-  octokit: OctokitType,
-  { owner, repo, event }: InvokeContext,
-): Promise<string[]> {
   switch (event.eventName) {
     case "pull_request":
+      core.info("Determining changed files for Pull Request event.");
       const files = await getChangedFilesForPR(
         octokit,
         owner,
         repo,
         event.prNumber,
       );
-      return files.map((f) => f.filename);
+      const changedFiles = files.map((f) => f.filename);
+      return determineModulesFromChangedFiles(inputs, changedFiles, modules);
+
     case "push":
-      core.info(
-        `Push event detected. Base: ${event.base}, Head: ${event.head}`,
+      core.info("Determining changed files for Push event.");
+      const changedFilesPush = await getChangedFilesGit(event.base, event.head);
+      return determineModulesFromChangedFiles(
+        inputs,
+        changedFilesPush,
+        modules,
       );
-      return await getChangedFilesGit(event.base, event.head);
+
     case "merge_group":
-      core.info(
-        `Merge Group event detected. Base: ${event.base}, Head: ${event.head}`,
-      );
-      return await getChangedFilesGit(event.base, event.head);
+      core.info("Determining changed files for Merge Group event.");
+      const changedFilesMG = await getChangedFilesGit(event.base, event.head);
+      return determineModulesFromChangedFiles(inputs, changedFilesMG, modules);
+
+    case "no-change":
+      core.info('A "no-change" event detected. Handling accordingly.');
+      return determineModulesForNoChangeEvent(inputs, modules);
+
     default:
+      event satisfies never; // type guard to ensure all cases are handled
+      throw new Error(`Unsupported event ${JSON.stringify(event)}`);
+  }
+}
+
+/**
+ * Determines the modules affected by the given changed files.
+ */
+function determineModulesFromChangedFiles(
+  { filePatterns }: RunInputs,
+  changedFiles: string[],
+  modules: string[],
+): string[] {
+  const changedFilesFiltered = filterPaths(changedFiles, filePatterns);
+
+  const filesToModules = matchModules(changedFilesFiltered, modules);
+  const modulePaths = filesToModules.map(([_, module]) => module);
+  const uniqueModulePaths = Array.from(new Set(modulePaths));
+
+  core.info(`Found ${uniqueModulePaths.length} modified modules.`);
+  core.debug(`Modified modules: ${JSON.stringify(uniqueModulePaths, null, 2)}`);
+
+  return uniqueModulePaths;
+}
+
+/**
+ * Determines the modules affected when a "no-change" event is detected.
+ * A no-change event is one that does not have an associated changeset, such as schedule or workflow_dispatch.
+ */
+async function determineModulesForNoChangeEvent(
+  inputs: RunInputs,
+  modules: string[],
+): Promise<string[]> {
+  switch (inputs.noChangeBehaviour) {
+    case "all":
+      core.info(
+        "No-change behaviour set to 'all'. All modules will be considered changed.",
+      );
+      return modules;
+
+    case "none":
+      core.info(
+        "No-change behaviour set to 'none'. No modules will be considered changed.",
+      );
+      return [];
+
+    case "root":
+      core.info(
+        "No-change behaviour set to 'root'. Only the root module (if exists) will be considered changed.",
+      );
+      return modules.includes(".") ? ["."] : [];
+
+    case "latest-commit":
+      core.info(
+        "No-change behaviour set to 'latest-commit'. Determining changed files from the latest commit.",
+      );
+      const changedFilesPush = await getChangedFilesGit("HEAD~1", "HEAD");
+      return determineModulesFromChangedFiles(
+        inputs,
+        changedFilesPush,
+        modules,
+      );
+
+    default:
+      inputs.noChangeBehaviour satisfies never; // type guard to ensure all cases are handled
       throw new Error(
-        `Cannot determine changed files for unsupported event type: ${event}`,
+        `Unvalidated/Unhandled no-change behaviour: ${inputs.noChangeBehaviour}`,
       );
   }
 }
