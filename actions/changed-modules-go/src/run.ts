@@ -16,11 +16,11 @@ interface Outputs {
 
 function setOutputs(outputs: Outputs) {
   const csvOut = outputs.modifiedModules.join(", ");
-  core.debug(`modified-modules-csv: ${csvOut}`);
+  core.info(`modified-modules-csv: ${csvOut}`);
   core.setOutput("modified-modules-csv", csvOut);
 
   const jsonOut = JSON.stringify(outputs.modifiedModules);
-  core.debug(`modified-modules-json: ${jsonOut}`);
+  core.info(`modified-modules-json: ${jsonOut}`);
   core.setOutput("modified-modules-json", jsonOut);
 }
 

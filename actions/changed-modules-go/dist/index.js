@@ -36008,10 +36008,10 @@ async function getChangedFilesForPR(octokit, owner, repo, prNumber) {
 // actions/changed-modules-go/src/run.ts
 function setOutputs(outputs) {
   const csvOut = outputs.modifiedModules.join(", ");
-  core5.debug(`modified-modules-csv: ${csvOut}`);
+  core5.info(`modified-modules-csv: ${csvOut}`);
   core5.setOutput("modified-modules-csv", csvOut);
   const jsonOut = JSON.stringify(outputs.modifiedModules);
-  core5.debug(`modified-modules-json: ${jsonOut}`);
+  core5.info(`modified-modules-json: ${jsonOut}`);
   core5.setOutput("modified-modules-json", jsonOut);
 }
 async function run() {
