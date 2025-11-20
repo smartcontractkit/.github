@@ -4,29 +4,29 @@ description: "Gets the go modules changed for a github event"
 inputs:
   file-patterns:
     description: |
-      A comma or newline-separated list of glob patterns to include when determining changed modules.
-      Only files matching these patterns will be considered when determining which modules have changed.
-      Supports standard glob syntax. Any negations (exclusions) are processed first (e.g. '!**/*_test.go' to exclude test files).
+      A list of glob patterns that specify which files to consider when detecting changed modules.
+      Supports standard glob syntax, including negations (e.g. `!**/*_test.go` to exclude test files).
+      Patterns can be separated by commas or newlines.
     required: false
     default: "**/*.go,**/go.mod,**/go.sum"
 
   module-patterns:
     description: |
-      A comma or newline-separated list of glob patterns to match module paths to include when determining changed modules.
-      Only modules matching these patterns will be considered when determining which modules have changed.
-      Supports standard glob syntax. Any negations (exclusions) are processed first (e.g. '!**/test/**' to exclude test modules).
+      A list of glob patterns that specify which Go modules to include when determining changes.
+      Supports negations (e.g. `!**/test/**` to exclude test modules).
+      Patterns can be separated by commas or newlines.
     required: false
     default: "**"
 
   no-change-behaviour:
     description: |
-      Defines the behaviour of the action when triggered by events that do not have an associated changeset.
-      Right now only supports: schedule, workflow_dispatch. All below options still respect ignore-files and ignore-modules.
-      Options are:
-      - 'all': All modules will be considered changed.
-      - 'root': Only the root module (.) will be considered changed.
-      - 'latest-commit': Only modules changed in the latest commit will be considered changed.
-      - 'none': No modules will be considered changed.
+      Defines how the action behaves when the triggering event has no associated changeset
+      (e.g. `schedule`, `workflow_dispatch`).
+      Available options:
+        - `all`: Treat all modules as changed.
+        - `root`: Treat only the root module (`.`) as changed.
+        - `latest-commit`: Use modules changed in the latest commit.
+        - `none`: Treat no modules as changed.
     required: false
     default: "all"
 
