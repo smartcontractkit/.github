@@ -2,6 +2,11 @@ name: changed-modules-go
 description: "Gets the go modules changed for a github event"
 
 inputs:
+  github-token:
+    description: "GitHub token to use for authentication"
+    default: ${{ github.token }}
+    required: true
+
   file-patterns:
     description: |
       A list of glob patterns that specify which files to consider when detecting changed modules.

@@ -29031,7 +29031,9 @@ function getInputs() {
 }
 function getInvokeContext() {
   const { owner, repo } = github2.context.repo;
-  const token = process.env.GITHUB_TOKEN;
+  const token = process.env.GITHUB_TOKEN || core.getInput("github-token", {
+    required: true
+  });
   if (!token) {
     core.setFailed("GitHub token is not set.");
     return process.exit(1);
