@@ -29019,6 +29019,7 @@ function getEventData() {
 function getInputs() {
   core.info("Getting inputs for run.");
   const inputs = {
+    repositoryRoot: getRunInputString("repositoryRoot", true),
     filePatterns: getRunInputStringArray("filePatterns", true),
     modulePatterns: getRunInputStringArray("modulePatterns", true),
     noChangeBehaviour: getRunInputString(
@@ -29045,6 +29046,10 @@ function getInvokeContext() {
   return { token, owner, repo, event };
 }
 var runInputsConfiguration = {
+  repositoryRoot: {
+    parameter: "repository-root",
+    localParameter: "REPOSITORY_ROOT"
+  },
   filePatterns: {
     parameter: "file-patterns",
     localParameter: "FILE_PATTERNS"
@@ -29148,20 +29153,20 @@ function matchModules(files, moduleDirectories) {
   core2.endGroup();
   return results;
 }
-async function getAllGoModuleRoots(subDir = ".") {
-  core2.startGroup(`Finding all go.mod files within ${subDir}`);
-  const pattern = `${subDir}/**/go.mod`;
+async function getAllGoModuleRoots(directory = ".") {
+  core2.startGroup(`Finding all go.mod files within ${directory}`);
+  const pattern = `${directory}/**/go.mod`;
   try {
     const globber = await glob.create(pattern);
     const files = await globber.glob();
     if (files.length === 0) {
-      core2.warning(`No go.mod files found within ${subDir}`);
+      core2.warning(`No go.mod files found within ${directory}`);
       return [];
     }
     core2.info(`Found ${files.length} go.mod files.`);
     core2.info(`Found go.mod files: ${JSON.stringify(files)}`);
     const directories = files.map((f) => {
-      const relativePath = path.relative(process.cwd(), f);
+      const relativePath = path.relative(directory, f);
       return path.dirname(relativePath);
     });
     core2.info(`Found go.mod directories: ${JSON.stringify(directories)}`);
@@ -36008,11 +36013,11 @@ async function getChangedFilesForPR(octokit, owner, repo, prNumber) {
 // actions/changed-modules-go/src/run.ts
 function setOutputs(outputs) {
   const csvOut = outputs.modifiedModules.join(", ");
-  core5.info(`modified-modules-csv: ${csvOut}`);
-  core5.setOutput("modified-modules-csv", csvOut);
+  core5.info(`(output) modules-csv: ${csvOut}`);
+  core5.setOutput("modules-csv", csvOut);
   const jsonOut = JSON.stringify(outputs.modifiedModules);
-  core5.info(`modified-modules-json: ${jsonOut}`);
-  core5.setOutput("modified-modules-json", jsonOut);
+  core5.info(`(output) modules-json: ${jsonOut}`);
+  core5.setOutput("modules-json", jsonOut);
 }
 async function run() {
   try {
@@ -36026,7 +36031,9 @@ async function run() {
     const octokit = github3.getOctokit(context3.token);
     core5.endGroup();
     core5.startGroup("Determining modules");
-    const goModuleDirsRelative = await getAllGoModuleRoots();
+    const goModuleDirsRelative = await getAllGoModuleRoots(
+      inputs.repositoryRoot
+    );
     core5.info(`Found ${goModuleDirsRelative.length} Go modules.`);
     core5.debug(`Go modules: ${JSON.stringify(goModuleDirsRelative, null, 2)}`);
     core5.endGroup();

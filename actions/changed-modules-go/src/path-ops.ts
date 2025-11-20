@@ -88,25 +88,25 @@ export function matchModules(
 
 /**
  * Recursively gets the relative paths of all go.mod files in the specified directory.
- * Note: relative to process.cwd().
+ * Note: relative to directory provided.
  */
 export async function getAllGoModuleRoots(
-  subDir: string = ".",
+  directory: string = ".",
 ): Promise<string[]> {
-  core.startGroup(`Finding all go.mod files within ${subDir}`);
-  const pattern = `${subDir}/**/go.mod`;
+  core.startGroup(`Finding all go.mod files within ${directory}`);
+  const pattern = `${directory}/**/go.mod`;
   try {
     const globber = await glob.create(pattern);
     const files = await globber.glob();
 
     if (files.length === 0) {
-      core.warning(`No go.mod files found within ${subDir}`);
+      core.warning(`No go.mod files found within ${directory}`);
       return [];
     }
     core.info(`Found ${files.length} go.mod files.`);
     core.info(`Found go.mod files: ${JSON.stringify(files)}`);
     const directories = files.map((f) => {
-      const relativePath = path.relative(process.cwd(), f);
+      const relativePath = path.relative(directory, f);
       return path.dirname(relativePath);
     });
     core.info(`Found go.mod directories: ${JSON.stringify(directories)}`);

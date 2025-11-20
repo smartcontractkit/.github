@@ -16,12 +16,12 @@ interface Outputs {
 
 function setOutputs(outputs: Outputs) {
   const csvOut = outputs.modifiedModules.join(", ");
-  core.info(`modified-modules-csv: ${csvOut}`);
-  core.setOutput("modified-modules-csv", csvOut);
+  core.info(`(output) modules-csv: ${csvOut}`);
+  core.setOutput("modules-csv", csvOut);
 
   const jsonOut = JSON.stringify(outputs.modifiedModules);
-  core.info(`modified-modules-json: ${jsonOut}`);
-  core.setOutput("modified-modules-json", jsonOut);
+  core.info(`(output) modules-json: ${jsonOut}`);
+  core.setOutput("modules-json", jsonOut);
 }
 
 export async function run(): Promise<void> {
@@ -42,7 +42,9 @@ export async function run(): Promise<void> {
     // 2. Get all go modules
     core.startGroup("Determining modules");
 
-    const goModuleDirsRelative = await getAllGoModuleRoots();
+    const goModuleDirsRelative = await getAllGoModuleRoots(
+      inputs.repositoryRoot,
+    );
     core.info(`Found ${goModuleDirsRelative.length} Go modules.`);
     core.debug(`Go modules: ${JSON.stringify(goModuleDirsRelative, null, 2)}`);
     core.endGroup();

@@ -4,6 +4,7 @@ import * as github from "@actions/github";
 import { getEventData } from "./event";
 
 export interface RunInputs {
+  repositoryRoot: string;
   filePatterns: string[];
   modulePatterns: string[];
   noChangeBehaviour: "all" | "none" | "root" | "latest-commit";
@@ -15,6 +16,7 @@ export function getInputs(): RunInputs {
   core.info("Getting inputs for run.");
 
   const inputs: RunInputs = {
+    repositoryRoot: getRunInputString("repositoryRoot", true),
     filePatterns: getRunInputStringArray("filePatterns", true),
     modulePatterns: getRunInputStringArray("modulePatterns", true),
     noChangeBehaviour: getRunInputString(
@@ -73,6 +75,10 @@ interface RunInputConfiguration {
 const runInputsConfiguration: {
   [K in keyof RunInputs]: RunInputConfiguration;
 } = {
+  repositoryRoot: {
+    parameter: "repository-root",
+    localParameter: "REPOSITORY_ROOT",
+  },
   filePatterns: {
     parameter: "file-patterns",
     localParameter: "FILE_PATTERNS",
