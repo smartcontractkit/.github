@@ -1,5 +1,22 @@
 # branch-out-upload
 
+## 1.3.1
+
+### Patch Changes
+
+- [#1342](https://github.com/smartcontractkit/.github/pull/1342)
+  [`f26aee3`](https://github.com/smartcontractkit/.github/commit/f26aee30a4a00a0bd16341da85dcd45e29fbd079)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: shell variable name
+
+## 1.3.0
+
+### Minor Changes
+
+- [#1340](https://github.com/smartcontractkit/.github/pull/1340)
+  [`038df1b`](https://github.com/smartcontractkit/.github/commit/038df1b9ae21cd0da335bd09208137944a33bff9)
+  Thanks [@kalverra](https://github.com/kalverra)! - Uploads raw logs for
+  failing tests as artifacts
+
 ## 1.2.1
 
 ### Patch Changes

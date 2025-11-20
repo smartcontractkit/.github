@@ -25072,6 +25072,7 @@ var CL_LOCAL_DEBUG = process.env.CL_LOCAL_DEBUG === "true";
 function getInputs() {
   core.info("Getting inputs for run.");
   const inputs = {
+    forceAnalysis: getRunInputBoolean("forceAnalysis"),
     postComment: getRunInputBoolean("postComment"),
     membersReadGitHubToken: getRunInputString("membersReadGitHubToken"),
     minimumCodeOwners: getRunInputNumber("minimumCodeOwners"),
@@ -25118,6 +25119,10 @@ function getInvokeContext() {
   return { token, owner, repo, prNumber, actor };
 }
 var runInputsConfiguration = {
+  forceAnalysis: {
+    parameter: "force-analysis",
+    localParameter: "FORCE_ANALYSIS"
+  },
   postComment: {
     parameter: "post-comment",
     localParameter: "POST_COMMENT"
@@ -26202,11 +26207,17 @@ async function run() {
       core7.info(
         `Number of CODEOWNERS entries: ${codeOwnersEntryToFiles.size}, minimum required: ${inputs.minimumCodeOwnersEntries}`
       );
-      const reason = `The number of code owners (${allCodeOwners.size}) is less than the minimum required (${inputs.minimumCodeOwners}) and/or the number of CODEOWNERS entries with changed files (${codeOwnersEntryToFiles.size}) is less than the minimum required (${inputs.minimumCodeOwnersEntries}).`;
-      core7.info(`${reason} Skipping analysis.`);
-      const skippedMarkdown = formatSkippedAnalysisMarkdown(reason);
-      await editPRComment(octokit, owner, repo, prNumber, skippedMarkdown);
-      return;
+      if (inputs.forceAnalysis) {
+        core7.info(
+          "Force analysis is enabled; proceeding with analysis despite minimum codeowners/entries not met."
+        );
+      } else {
+        const reason = `The number of code owners (${allCodeOwners.size}) is less than the minimum required (${inputs.minimumCodeOwners}) and/or the number of CODEOWNERS entries with changed files (${codeOwnersEntryToFiles.size}) is less than the minimum required (${inputs.minimumCodeOwnersEntries}).`;
+        core7.info(`${reason} Skipping analysis.`);
+        const skippedMarkdown = formatSkippedAnalysisMarkdown(reason);
+        await editPRComment(octokit, owner, repo, prNumber, skippedMarkdown);
+        return;
+      }
     }
     core7.endGroup();
     core7.startGroup("Get currrent state of PR reviews");

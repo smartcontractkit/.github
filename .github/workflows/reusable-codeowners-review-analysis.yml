@@ -3,6 +3,13 @@ name: Reusable CodeOwners Review Analysis (CORA)
 on:
   workflow_call:
     inputs:
+      cora-force-analysis:
+        description: |
+          Whether to force the analysis to run regardless of the number of codeowners.
+          This is useful for testing or debugging purposes.
+        required: false
+        type: boolean
+        default: ${{ contains(github.event.pull_request.labels.*.name, 'cora') }}
       cora-post-comment:
         description: "Whether to post a comment on the PR with the analysis results."
         required: false
@@ -59,6 +66,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
+          force-analysis: ${{ inputs.cora-force-analysis }}
           members-read-github-token: ${{ steps.setup-github-token.outputs.access-token }}
           minimum-codeowners: ${{ inputs.cora-minimum-codeowners }}
           minimum-codeowners-entries: ${{ inputs.cora-minimum-codeowners-entries }}
