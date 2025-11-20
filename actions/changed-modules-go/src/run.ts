@@ -104,7 +104,11 @@ async function determineChangedModules(
 
     case "push":
       core.info("Determining changed files for Push event.");
-      const changedFilesPush = await getChangedFilesGit(event.base, event.head);
+      const changedFilesPush = await getChangedFilesGit(
+        event.base,
+        event.head,
+        inputs.repositoryRoot,
+      );
       return determineModulesFromChangedFiles(
         inputs,
         changedFilesPush,
@@ -113,7 +117,11 @@ async function determineChangedModules(
 
     case "merge_group":
       core.info("Determining changed files for Merge Group event.");
-      const changedFilesMG = await getChangedFilesGit(event.base, event.head);
+      const changedFilesMG = await getChangedFilesGit(
+        event.base,
+        event.head,
+        inputs.repositoryRoot,
+      );
       return determineModulesFromChangedFiles(inputs, changedFilesMG, modules);
 
     case "no-change":
@@ -177,7 +185,11 @@ async function determineModulesForNoChangeEvent(
       core.info(
         "No-change behaviour set to 'latest-commit'. Determining changed files from the latest commit.",
       );
-      const changedFilesPush = await getChangedFilesGit("HEAD~1", "HEAD");
+      const changedFilesPush = await getChangedFilesGit(
+        "HEAD~1",
+        "HEAD",
+        inputs.repositoryRoot,
+      );
       return determineModulesFromChangedFiles(
         inputs,
         changedFilesPush,

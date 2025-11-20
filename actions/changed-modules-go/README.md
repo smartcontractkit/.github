@@ -46,6 +46,7 @@ on:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      pull-requests: read
     outputs:
       changed-modules: ${{ steps.changed-modules.outputs.modules-json }}
     steps:

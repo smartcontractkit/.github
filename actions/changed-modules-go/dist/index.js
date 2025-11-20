@@ -19728,10 +19728,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       (0, command_1.issueCommand)("error", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
     exports2.error = error;
-    function warning2(message, properties = {}) {
+    function warning3(message, properties = {}) {
       (0, command_1.issueCommand)("warning", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
-    exports2.warning = warning2;
+    exports2.warning = warning3;
     function notice(message, properties = {}) {
       (0, command_1.issueCommand)("notice", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
@@ -35987,14 +35987,52 @@ async function getChangedFilesGit(base, head, directory = process.cwd()) {
   core3.info(
     `Getting changed files between ${base} and ${head} in ${directory}`
   );
+  let resolvedHead = await resolveCommitish(head, directory);
+  if (!resolvedHead) {
+    core3.warning(
+      `Head ref ${head} could not be resolved. Using HEAD as fallback.`
+    );
+    resolvedHead = await resolveCommitish("HEAD", directory);
+  }
+  let resolvedBase = await resolveCommitish(base, directory);
+  if (!resolvedBase) {
+    core3.info(
+      `Base ref ${base} could not be resolved. Using ${resolvedHead}^ as fallback.`
+    );
+    resolvedBase = await resolveCommitish(`${resolvedHead}^`, directory);
+  }
+  if (!resolvedBase || !resolvedHead) {
+    core3.warning(
+      `One or both git references could not be resolved: base=${base} (${resolvedBase}), head=${head} (${resolvedHead})`
+    );
+    return [];
+  }
+  core3.info(
+    `Using (after fallback logic) - base: ${resolvedBase}, head: ${resolvedHead}`
+  );
   const { stdout: changedFiles } = await execa(
     "git",
-    ["diff", "--name-only", base, head],
+    ["diff", "--name-only", resolvedBase, resolvedHead],
     {
       cwd: directory
     }
   );
   return changedFiles.split("\n").filter(Boolean);
+}
+async function resolveCommitish(ref, directory) {
+  if (!ref || /\s/.test(ref) || ref.includes("..")) return null;
+  try {
+    const { stdout } = await execa(
+      "git",
+      ["rev-parse", "-q", "--verify", `${ref}^{commit}`],
+      {
+        cwd: directory
+      }
+    );
+    return stdout.trim();
+  } catch {
+    return null;
+  }
 }
 
 // actions/changed-modules-go/src/github.ts
@@ -36078,7 +36116,11 @@ async function determineChangedModules(octokit, { owner, repo, event }, modules,
       return determineModulesFromChangedFiles(inputs, changedFiles, modules);
     case "push":
       core5.info("Determining changed files for Push event.");
-      const changedFilesPush = await getChangedFilesGit(event.base, event.head);
+      const changedFilesPush = await getChangedFilesGit(
+        event.base,
+        event.head,
+        inputs.repositoryRoot
+      );
       return determineModulesFromChangedFiles(
         inputs,
         changedFilesPush,
@@ -36086,7 +36128,11 @@ async function determineChangedModules(octokit, { owner, repo, event }, modules,
       );
     case "merge_group":
       core5.info("Determining changed files for Merge Group event.");
-      const changedFilesMG = await getChangedFilesGit(event.base, event.head);
+      const changedFilesMG = await getChangedFilesGit(
+        event.base,
+        event.head,
+        inputs.repositoryRoot
+      );
       return determineModulesFromChangedFiles(inputs, changedFilesMG, modules);
     case "no-change":
       core5.info('A "no-change" event detected. Handling accordingly.');
@@ -36126,7 +36172,11 @@ async function determineModulesForNoChangeEvent(inputs, modules) {
       core5.info(
         "No-change behaviour set to 'latest-commit'. Determining changed files from the latest commit."
       );
-      const changedFilesPush = await getChangedFilesGit("HEAD~1", "HEAD");
+      const changedFilesPush = await getChangedFilesGit(
+        "HEAD~1",
+        "HEAD",
+        inputs.repositoryRoot
+      );
       return determineModulesFromChangedFiles(
         inputs,
         changedFilesPush,
