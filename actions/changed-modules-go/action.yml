@@ -1,0 +1,57 @@
+name: changed-modules-go
+description: "Gets the go modules changed for a github event"
+
+inputs:
+  github-token:
+    description: "GitHub token to use for authentication"
+    default: ${{ github.token }}
+    required: true
+
+  repository-root:
+    description:
+      "The root directory of the repository to analyze. It must be the
+      repository executing this action."
+    default: ${{ github.workspace }}
+    required: true
+
+  file-patterns:
+    description: |
+      A list of glob patterns that specify which files to consider when detecting changed modules.
+      Supports standard glob syntax, including negations (e.g. `!**/*_test.go` to exclude test files).
+      Patterns can be separated by commas or newlines.
+      Relative to the repository root.
+    required: false
+    default: "**/*.go,**/go.mod,**/go.sum"
+
+  module-patterns:
+    description: |
+      A list of glob patterns that specify which Go modules to include when determining changes.
+      Supports negations (e.g. `!**/test/**` to exclude test modules).
+      Patterns can be separated by commas or newlines.
+      Relative to the repository root.
+    required: false
+    default: "**"
+
+  no-change-behaviour:
+    description: |
+      Defines how the action behaves when the triggering event has no associated changeset
+      (e.g. `schedule`, `workflow_dispatch`).
+      Available options:
+        - `all`: Treat all modules as changed.
+        - `root`: Treat only the root module (`.`) as changed.
+        - `latest-commit`: Use modules changed in the latest commit.
+        - `none`: Treat no modules as changed.
+    required: false
+    default: "all"
+
+outputs:
+  modules-csv:
+    description: |
+      A CSV string of the paths to the go modules, relative to the repository root.
+  modules-json:
+    description: |
+      A JSON array of the paths to the go modules, relative to the repository root.
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
