@@ -35996,16 +35996,15 @@ async function getChangedFilesGit(base, head, directory = process.cwd()) {
   }
   let resolvedBase = await resolveCommitish(base, directory);
   if (!resolvedBase) {
-    core3.info(
+    core3.warning(
       `Base ref ${base} could not be resolved. Using ${resolvedHead}^ as fallback.`
     );
     resolvedBase = await resolveCommitish(`${resolvedHead}^`, directory);
   }
   if (!resolvedBase || !resolvedHead) {
-    core3.warning(
+    throw new Error(
       `One or both git references could not be resolved: base=${base} (${resolvedBase}), head=${head} (${resolvedHead})`
     );
-    return [];
   }
   core3.info(
     `Using (after fallback logic) - base: ${resolvedBase}, head: ${resolvedHead}`
