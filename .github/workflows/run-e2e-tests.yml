@@ -184,6 +184,11 @@ on:
         required: false
         type: number
         default: 60
+      free-disk-space:
+        description: "Set to true to enable freeing disk space before running tests"
+        required: false
+        type: string
+        default: "false"
     outputs:
       test_results:
         description: "Test results from all executed tests"
@@ -1273,6 +1278,10 @@ jobs:
         uses: actions/checkout@v4.2.1
         with:
           persist-credentials: false
+
+      - name: Free Disk Space
+        if: ${{ inputs.free-disk-space == 'true' }}
+        uses: smartcontractkit/.github/actions/free-disk-space@feat/clean-up-disk-space
 
       - name: Set dynamic env vars for tests
         shell: bash
