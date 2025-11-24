@@ -12,6 +12,15 @@ import {
   textFor,
 } from "./review-status";
 
+export function formatSkippedAnalysisMarkdown(reason: string): string {
+  const lines: string[] = [
+    "### CORA - Analysis Skipped",
+    "",
+    `**Reason:** ${reason}`,
+  ];
+  return lines.join("\n");
+}
+
 const LEGEND =
   `Legend: ${iconFor(PullRequestReviewStateExt.Approved)} Approved | ` +
   `${iconFor(PullRequestReviewStateExt.ChangesRequested)} Changes Requested | ` +

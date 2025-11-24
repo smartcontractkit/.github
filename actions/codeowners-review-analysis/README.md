@@ -12,112 +12,64 @@ https://github.com/hmarr/codeowners
 
 ### Inputs
 
-| input                       | description                                                                   | default           |
-| --------------------------- | ----------------------------------------------------------------------------- | ----------------- |
-| `post-comment`              | Whether to post a small comment on the PR summarizing codeowners requirements | `true`            |
-| `members-read-github-token` | A `GITHUB_TOKEN` with org-wide members:read permissions                       | `none` - required |
+| input                        | description                                                                   | default           |
+| ---------------------------- | ----------------------------------------------------------------------------- | ----------------- |
+| `force-analysis`             | Force running the analysis ignoring codeowners/entries thresholds             | `false`           |
+| `post-comment`               | Whether to post a small comment on the PR summarizing codeowners requirements | `true`            |
+| `members-read-github-token`  | A `GITHUB_TOKEN` with org-wide members:read permissions                       | `none` - required |
+| `minimum-codeowners`         | The minimum number of CODEOWNERS required to trigger the analysis             | `4`               |
+| `minimum-codeowners-entries` | The minumum number of CODEOWNERS entries (lines) to trigger the analysis.     | `2`               |
 
 ### Triggering
 
-With the below workflow, the best way to trigger the tool is to comment `.cora`.
+Analysis is automatically triggered when a pull request (PR) satisfies **both**
+of the following conditions:
 
-- When you comment `.cora`, the action will add the `cora` label to your PR, and
-  it will retrigger on any review events. This makes sure the information
-  displayed is up-to-date.
-- This will also work if you add the `cora` label manually, but it is not
-  recommended as it has the a side-effect of triggering all workflows with the
-  `labeled` trigger.
+- `minimum-codeowners` – The total number of unique code owners associated with
+  the PR must meet or exceed this threshold.
+  - This value represents the count of distinct individuals listed as code
+    owners across all relevant entries that apply to the files changed in the
+    PR.
+- `minimum-codeowners-entries` – The total number of code owner entries (or
+  lines) matched by the PR must meet or exceed this threshold.
+  - This refers to the number of individual lines in the CODEOWNERS file that
+    are triggered by the files included in the PR.
 
 ### Example Workflow
 
-The most up-to-date workflow reference is available here:
-https://github.com/smartcontractkit/chainlink/blob/develop/.github/workflows/codeowners-review-analysis.yaml
+You should use the reusable workflow to integrate `cora` into your repository.
 
 ```yaml
-name: "CodeOwners Review Analysis (cora)"
+name: Codeowners Review Analysis
 
 on:
   pull_request:
     types:
-      - labeled # when adding 'cora' label
-
+      - opened
+      - reopened
+      - synchronize
   pull_request_review:
     types:
       - submitted
       - edited
       - dismissed
 
-  issue_comment:
-    types: [created] # when commenting .cora
+# Cancel any in-progress runs for the same pull request when a new event is triggered
+# - This is mainly to stop concurrent 'synchronizes' and 'review dismissal' events
+concurrency:
+  group:
+    ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  analyze-reviews:
-    name: "analyze"
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read # needed to pull actions run url
-      contents: read # needed to pull codeowners file
-      id-token: write # used to assume aws role
-      pull-requests: write # needed to read pull request and add comments
-      issues: write # needed to add labels on PRs (weirdly)
-    steps:
-      - name: Run Conditions
-        id: run-conditions
-        env:
-          ISSUE_COMMENT:
-            ${{ github.event_name == 'issue_comment' &&
-            contains(github.event.comment.body, '.cora') }}
-          PR_LABEL:
-            ${{ contains(github.event.pull_request.labels.*.name, 'cora') }}
-        run: |
-          if [[ "$ISSUE_COMMENT" == "true" ]]; then
-            echo "cora-comment=true" | tee -a "${GITHUB_OUTPUT}"
-            echo "run-cora=true" | tee -a "${GITHUB_OUTPUT}"
-          elif [[ "$PR_LABEL" == "true" ]]; then
-            echo "run-cora=true" | tee -a "${GITHUB_OUTPUT}"
-          else
-            echo "run-cora=false" | tee -a "${GITHUB_OUTPUT}"
-            echo "To run this workflow, comment '.cora' on the PR."
-            echo "Commenting this will add the 'cora' label to the PR, and enable it for future events."
-            echo "Note: Adding the label manually will trigger other workflows, which is why we recommend commenting instead."
-          fi
-
-      - name: Add 'cora' label on comments
-        if: ${{ steps.run-conditions.outputs.cora-comment == 'true' }}
-        continue-on-error: true
-        env:
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PULL_REQUEST_NUMBER:
-            ${{ github.event.pull_request.number || github.event.issue.number }}
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          # See: https://docs.github.com/en/rest/issues/labels?apiVersion=2022-11-28#add-labels-to-an-issue
-          gh api \
-            --method POST \
-            /repos/${GITHUB_REPOSITORY}/issues/${PULL_REQUEST_NUMBER}/labels \
-            --input - <<< '{
-            "labels": [
-              "cora"
-            ]
-          }'
-
-      - name: Setup github token
-        id: setup-github-token
-        if: ${{ steps.run-conditions.outputs.run-cora == 'true' }}
-        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
-        with:
-          aws-role-arn: ${{ secrets.GATI_CODEOWNERS_IAM_ARN }}
-          aws-lambda-url: ${{ secrets.GATI_CODEOWNERS_LAMBDA_URL }}
-          aws-region: us-west-2
-
-      - name: CODEOWNERS Review Analysis
-        if: ${{ steps.run-conditions.outputs.run-cora == 'true' }}
-        uses: smartcontractkit/.github/actions/codeowners-review-analysis@codeowners-review-analysis/v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          members-read-github-token:
-            ${{ steps.setup-github-token.outputs.access-token }}
+  cora:
+    uses: smartcontractkit/.github/.github/workflows/reusable-codeowners-review-analysis.yml@<sha>
+    with:
+      cora-minimum-codeowners: 4
+      cora-minimum-codeowners-entries: 2
+    secrets:
+      AWS_ROLE_GATI_ARN: ${{ secrets.GATI_CODEOWNERS_IAM_ARN }}
+      AWS_LAMBDA_GATI_URL: ${{ secrets.GATI_CODEOWNERS_LAMBDA_URL }}
 ```
 
 ## Development

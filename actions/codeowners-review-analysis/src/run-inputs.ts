@@ -4,16 +4,22 @@ import * as github from "@actions/github";
 export const CL_LOCAL_DEBUG = process.env.CL_LOCAL_DEBUG === "true";
 
 export interface RunInputs {
+  forceAnalysis: boolean;
   postComment: boolean;
   membersReadGitHubToken: string;
+  minimumCodeOwners: number;
+  minimumCodeOwnersEntries: number;
 }
 
 export function getInputs(): RunInputs {
   core.info("Getting inputs for run.");
 
   const inputs: RunInputs = {
+    forceAnalysis: getRunInputBoolean("forceAnalysis"),
     postComment: getRunInputBoolean("postComment"),
     membersReadGitHubToken: getRunInputString("membersReadGitHubToken"),
+    minimumCodeOwners: getRunInputNumber("minimumCodeOwners"),
+    minimumCodeOwnersEntries: getRunInputNumber("minimumCodeOwnersEntries"),
   };
 
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
@@ -85,6 +91,10 @@ interface RunInputConfiguration {
 const runInputsConfiguration: {
   [K in keyof RunInputs]: RunInputConfiguration;
 } = {
+  forceAnalysis: {
+    parameter: "force-analysis",
+    localParameter: "FORCE_ANALYSIS",
+  },
   postComment: {
     parameter: "post-comment",
     localParameter: "POST_COMMENT",
@@ -92,6 +102,14 @@ const runInputsConfiguration: {
   membersReadGitHubToken: {
     parameter: "members-read-github-token",
     localParameter: "MEMBERS_READ_GITHUB_TOKEN",
+  },
+  minimumCodeOwners: {
+    parameter: "minimum-codeowners",
+    localParameter: "MINIMUM_CODE_OWNERS",
+  },
+  minimumCodeOwnersEntries: {
+    parameter: "minimum-codeowners-entries",
+    localParameter: "MINIMUM_CODE_OWNERS_ENTRIES",
   },
 };
 
@@ -107,6 +125,18 @@ function getRunInputString(input: keyof RunInputs) {
   return core.getInput(inputKey, {
     required: true,
   });
+}
+
+function getRunInputNumber(input: keyof RunInputs) {
+  const inputKey = getInputKey(input);
+  const inputValue = core.getInput(inputKey, {
+    required: true,
+  });
+  const parsed = Number(inputValue);
+  if (isNaN(parsed)) {
+    throw new Error(`Input ${inputKey} is not a valid number: ${inputValue}`);
+  }
+  return parsed;
 }
 
 function getInputKey(input: keyof RunInputs) {

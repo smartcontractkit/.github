@@ -11,6 +11,7 @@ import {
   getSummaryUrl,
   getTeamToMembersMapping,
   upsertPRComment,
+  editPRComment,
 } from "./github";
 import {
   getCodeownersEntries,
@@ -20,6 +21,7 @@ import { getCurrentReviewStatusGQL } from "./github-gql";
 import {
   formatPendingReviewsMarkdown,
   formatAllReviewsSummaryByEntry,
+  formatSkippedAnalysisMarkdown,
 } from "./strings";
 import {
   PullRequestReviewStateExt,
@@ -79,6 +81,33 @@ export async function run(): Promise<void> {
         "No code owners identified for changed files. Skipping analysis.",
       );
       return;
+    }
+
+    if (
+      allCodeOwners.size < inputs.minimumCodeOwners ||
+      codeOwnersEntryToFiles.size < inputs.minimumCodeOwnersEntries
+    ) {
+      core.info(
+        `Number of CODEOWNERS: ${allCodeOwners.size}, minimum required: ${inputs.minimumCodeOwners}`,
+      );
+      core.info(
+        `Number of CODEOWNERS entries: ${codeOwnersEntryToFiles.size}, minimum required: ${inputs.minimumCodeOwnersEntries}`,
+      );
+      if (inputs.forceAnalysis) {
+        core.info(
+          "Force analysis is enabled; proceeding with analysis despite minimum codeowners/entries not met.",
+        );
+      } else {
+        const reason = `The number of code owners (${allCodeOwners.size}) is less than the minimum required (${inputs.minimumCodeOwners}) and/or the number of CODEOWNERS entries with changed files (${codeOwnersEntryToFiles.size}) is less than the minimum required (${inputs.minimumCodeOwnersEntries}).`;
+        core.info(`${reason} Skipping analysis.`);
+        // If a comment already exists, edit it to indicate why the analysis is now skipping.
+        // This will only happen if:
+        // 1. the codeowners file changed and reduced the number of codeowners for the PR
+        // 2. the PR changed such that fewer codeowners are now involved
+        const skippedMarkdown = formatSkippedAnalysisMarkdown(reason);
+        await editPRComment(octokit, owner, repo, prNumber, skippedMarkdown);
+        return;
+      }
     }
     core.endGroup();
 

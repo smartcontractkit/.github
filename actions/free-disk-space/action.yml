@@ -1,0 +1,32 @@
+name: free-disk-space
+description: "Delete specific directories or files to free disk space"
+
+inputs: {}
+
+runs:
+  using: composite
+  steps:
+    - name: Free Disk Space (parallel)
+      shell: bash
+      run: |
+        set -Eeuo pipefail
+        shopt -s nullglob dotglob
+
+        TARGETS=(
+          /usr/share/dotnet
+          /usr/local/lib/android
+          /usr/local/share/powershell
+          /usr/local/share/chromium
+          /opt/hostedtoolcache/CodeQL
+          /usr/lib/jvm
+          /opt/microsoft
+          /opt/google
+        )
+
+        echo "Starting parallel disk cleanup..."
+
+        # Use nproc to limit parallelism sensibly (prevents I/O overload)
+        printf '%s\0' "${TARGETS[@]}" \
+          | xargs -0 -r -P "$(nproc)" -I{} bash -c 'sudo rm -rf -- "{}" 2>/dev/null || true'
+
+        echo "Disk cleanup complete."

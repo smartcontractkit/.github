@@ -8,13 +8,37 @@ runs:
   main: "dist/index.js"
 
 inputs:
+  force-analysis:
+    description: |
+      Whether to force the analysis to run regardless of the number of codeowners/entries.
+    required: false
+    default: "false"
+
   post-comment:
     description:
       "Whether to post a comment on the PR with the analysis results."
     required: false
     default: "true"
+
   members-read-github-token:
     description:
       "A GitHub token with read access to members. Required to resolve reviews
       to codeowners."
     required: true
+
+  minimum-codeowners:
+    description: |
+      The minimum numbers of codeowners for the current PR required to trigger CORA.
+      If the number of codeowners is less than this value, the analysis will be skipped.
+    required: false
+    default: "4"
+
+  minimum-codeowners-entries:
+    description: |
+      The minimum number of codeowner entries (lines in the CODEOWNERS file) for the
+      current PR required to trigger CORA. If the number of codeowner entries is less
+      than this value, no comment will be posted.
+
+      This is useful to avoid triggering CORA for PRs that touch a single entry which contains an expansive list of codeowners.
+    required: false
+    default: "2"

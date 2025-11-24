@@ -63,6 +63,9 @@ runs:
         JUNIT_FILE_PATH: ${{ inputs.junit-file-path }}
       run: |
         echo "Test suite language: $TEST_SUITE_LANGUAGE"
+        JUNIT_DIR=$(dirname $JUNIT_FILE_PATH)
+        echo "junit-dir=${JUNIT_DIR}" | tee -a "$GITHUB_OUTPUT"
+        echo "JUnit directory: $JUNIT_DIR"
         echo "JUnit file path: $JUNIT_FILE_PATH"
 
         if [[ "$TEST_SUITE_LANGUAGE" == "go" ]]; then
@@ -128,3 +131,11 @@ runs:
             exit 1
           fi
         fi
+
+    - name: Upload test logs as artifact
+      if: ${{ failure() && steps.inputs-ext.outputs.run-enhancer == 'true' }}
+      uses: actions/upload-artifact@v5.0.0
+      with:
+        name: individual_test_logs
+        path: "${{ steps.inputs-ext.outputs.junit-dir }}/raw-test-logs/"
+        retention-days: 10
