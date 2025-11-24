@@ -17,13 +17,8 @@ runs:
           /usr/local/lib/android
           /usr/local/share/powershell
           /usr/local/share/chromium
-          /usr/local/lib/heroku
-          /usr/local/share/boost
-          /usr/local/share/miniconda
           /opt/hostedtoolcache/CodeQL
-          /opt/hostedtoolcache/Ruby
           /usr/lib/jvm
-          /opt/hostedtoolcache/Java_*
           /opt/microsoft
           /opt/google
         )
