@@ -6,13 +6,13 @@ inputs: {}
 runs:
   using: composite
   steps:
-    - name: Free Disk Space (fast)
+    - name: Free Disk Space (parallel)
       shell: bash
       run: |
         set -Eeuo pipefail
         shopt -s nullglob dotglob
 
-        PATHS=(
+        TARGETS=(
           /usr/share/dotnet
           /usr/local/lib/android
           /usr/local/share/powershell
@@ -28,6 +28,10 @@ runs:
           /opt/google
         )
 
-        echo "Starting disk cleanup..."
-        sudo rm -rf -- "${PATHS[@]}" 2>/dev/null || true
+        echo "Starting parallel disk cleanup..."
+
+        # Use nproc to limit parallelism sensibly (prevents I/O overload)
+        printf '%s\0' "${TARGETS[@]}" \
+          | xargs -0 -r -P "$(nproc)" -I{} bash -c 'sudo rm -rf -- "{}" 2>/dev/null || true'
+
         echo "Disk cleanup complete."
