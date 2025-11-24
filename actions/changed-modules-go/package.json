@@ -1,0 +1,27 @@
+{
+  "name": "changed-modules-go",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "engines": {
+    "node": ">= 20"
+  },
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1",
+    "@actions/glob": "^0.4.0",
+    "execa": "^9.6.0",
+    "micromatch": "^4.0.8"
+  },
+  "repository": "https://github.com/smartcontractkit/.github",
+  "devDependencies": {
+    "@octokit/types": "^16.0.0",
+    "@octokit/webhooks-types": "^7.6.1",
+    "@types/micromatch": "^4.0.10",
+    "@types/node": "^24.3.0",
+    "vitest": "^2.1.9"
+  }
+}
