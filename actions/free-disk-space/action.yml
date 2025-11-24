@@ -6,36 +6,28 @@ inputs: {}
 runs:
   using: composite
   steps:
-    - name: Free Disk Space
+    - name: Free Disk Space (fast)
       shell: bash
       run: |
-        # Define a list of directories or files to delete
-        TO_DELETE=(
-          "/usr/share/dotnet"
-          "/usr/local/lib/android"
-          "/usr/local/share/powershell"
-          "/usr/local/share/chromium"
-          "/usr/local/lib/heroku"
-          "/usr/local/share/boost"
-          "/usr/local/share/miniconda"
-          "/opt/hostedtoolcache/CodeQL"
-          "/opt/hostedtoolcache/Ruby"
-          "/usr/lib/jvm"
-          "/opt/hostedtoolcache/Java_*"
-          "/opt/microsoft"
-          "/opt/google"
+        set -Eeuo pipefail
+        shopt -s nullglob dotglob
+
+        PATHS=(
+          /usr/share/dotnet
+          /usr/local/lib/android
+          /usr/local/share/powershell
+          /usr/local/share/chromium
+          /usr/local/lib/heroku
+          /usr/local/share/boost
+          /usr/local/share/miniconda
+          /opt/hostedtoolcache/CodeQL
+          /opt/hostedtoolcache/Ruby
+          /usr/lib/jvm
+          /opt/hostedtoolcache/Java_*
+          /opt/microsoft
+          /opt/google
         )
 
         echo "Starting disk cleanup..."
-
-        # Loop through and delete each item if it exists
-        for path in "${TO_DELETE[@]}"; do
-          if [ -e "$path" ]; then
-            echo "::info::Deleting: $path"
-            sudo rm -rf "$path" || true
-          else
-            echo "::info::Not found (skipping): $path"
-          fi
-        done
-
+        sudo rm -rf -- "${PATHS[@]}" 2>/dev/null || true
         echo "Disk cleanup complete."
