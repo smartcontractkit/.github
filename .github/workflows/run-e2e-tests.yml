@@ -1274,6 +1274,10 @@ jobs:
         if: ${{ env.RUNS_ON_INSTANCE_ID != '' && env.ACTIONS_CACHE_URL != '' }}
         uses: runs-on/action@66d4449b717b5462159659523d1241051ff470b9 # v1
 
+      - name: Collect Test Telemetry
+        if: inputs.collect_test_telemetry
+        uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
+
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
         with:
