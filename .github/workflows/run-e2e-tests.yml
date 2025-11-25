@@ -184,11 +184,6 @@ on:
         required: false
         type: number
         default: 60
-      free-disk-space:
-        description: "Set to true to enable freeing disk space before running tests"
-        required: false
-        type: string
-        default: "false"
     outputs:
       test_results:
         description: "Test results from all executed tests"
@@ -380,7 +375,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@d12aaf98c18c7711bdb211e4d0bc0a5317c80e02 # 23-06-2025
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@9dd72293a108a7bc75f04c66fe5fb2e392f288e5 # 2025-11-25
       - name: Run Check Tests Command
         env:
           TEST_PATH: ${{ inputs.test_path }}
@@ -438,7 +433,7 @@ jobs:
       - name: Install citool
         shell: bash
         run: go install
-          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@b4310af038bfe519db8058aae94d3555a04df1ed # 19-09-2025
+          github.com/smartcontractkit/chainlink-testing-framework/tools/citool@9dd72293a108a7bc75f04c66fe5fb2e392f288e5 # 2025-11-25
 
       - name: Generate Docker Tests Matrix
         id: set-docker-matrix
@@ -728,6 +723,10 @@ jobs:
       - name: Collect Test Telemetry
         if: inputs.collect_test_telemetry
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
+
+      - name: Free Disk Space
+        if: ${{ matrix.tests.free_disk_space }}
+        uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
@@ -1085,6 +1084,10 @@ jobs:
         if: inputs.collect_test_telemetry
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
 
+      - name: Free Disk Space
+        if: ${{ matrix.tests.free_disk_space }}
+        uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
+
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
         with:
@@ -1278,14 +1281,14 @@ jobs:
         if: inputs.collect_test_telemetry
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
 
+      - name: Free Disk Space
+        if: ${{ matrix.tests.free_disk_space }}
+        uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
+
       - name: Checkout repository
         uses: actions/checkout@v4.2.1
         with:
           persist-credentials: false
-
-      - name: Free Disk Space
-        if: ${{ inputs.free-disk-space == 'true' }}
-        uses: smartcontractkit/.github/actions/free-disk-space@feat/clean-up-disk-space
 
       - name: Set dynamic env vars for tests
         shell: bash
