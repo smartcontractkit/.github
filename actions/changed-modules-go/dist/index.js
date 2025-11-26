@@ -28986,13 +28986,19 @@ function getEventData() {
   const { context: context3 } = github;
   switch (context3.eventName) {
     case "pull_request":
-      const prEvent = github.context.payload;
+      const prEvent = context3.payload.pull_request;
+      if (!prEvent.number) {
+        throw new Error("Pull request number not found in event payload.");
+      }
       return {
         eventName: "pull_request",
         prNumber: prEvent.number
       };
     case "push":
       const pushEvent = github.context.payload;
+      if (!pushEvent.before || !pushEvent.after) {
+        throw new Error("Push event payload missing 'before' or 'after' SHAs.");
+      }
       return {
         eventName: "push",
         base: pushEvent.before,
@@ -29000,6 +29006,9 @@ function getEventData() {
       };
     case "merge_group":
       const mgEvent = github.context.payload;
+      if (!mgEvent.merge_group.base_sha || !mgEvent.merge_group.head_sha) {
+        throw new Error("Merge group event payload missing 'base_sha' or 'head_sha'.");
+      }
       return {
         eventName: "merge_group",
         base: mgEvent.merge_group.base_sha,
@@ -29191,14 +29200,16 @@ function filterPaths(paths, filePatterns) {
   core2.debug(`File patterns: ${JSON.stringify(filePatterns)}`);
   const includePatterns = filePatterns.filter((p) => !p.startsWith("!"));
   const excludePatterns = filePatterns.filter((p) => p.startsWith("!")).map((p) => p.slice(1));
-  const filteredPaths = paths.filter((path7) => {
-    const isExcluded = import_micromatch.default.isMatch(path7, excludePatterns, { dot: true });
+  const normalizeDotForMatch = (p) => p === "." ? "__ROOT__" : p;
+  const filteredPaths = paths.filter((rawPath) => {
+    const path7 = normalizeDotForMatch(rawPath);
+    const isExcluded = excludePatterns.length > 0 && import_micromatch.default.isMatch(path7, excludePatterns, { dot: true });
     if (isExcluded) {
-      core2.debug(`Excluded by negation: ${path7}`);
+      core2.debug(`Excluded by negation: ${rawPath}`);
       return false;
     }
     const isIncluded = includePatterns.length === 0 || import_micromatch.default.isMatch(path7, includePatterns, { dot: true });
-    core2.debug(`Path: ${path7}, included: ${isIncluded}`);
+    core2.debug(`Path: ${rawPath}, included: ${isIncluded}`);
     return isIncluded;
   });
   core2.info(`After filtering, ${filteredPaths.length} paths remain.`);
