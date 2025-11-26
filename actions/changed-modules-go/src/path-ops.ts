@@ -139,20 +139,25 @@ export function filterPaths(paths: string[], filePatterns: string[]): string[] {
     .filter((p) => p.startsWith("!"))
     .map((p) => p.slice(1)); // strip the leading '!'
 
-  const filteredPaths = paths.filter((path) => {
-    // Always exclude if any negation matches
-    const isExcluded = micromatch.isMatch(path, excludePatterns, { dot: true });
+  // normalize '.' to '__ROOT__' for matching purposes. As '*', '**' doesn't match '.'
+  const normalizeDotForMatch = (p: string) => (p === "." ? "__ROOT__" : p);
+  const filteredPaths = paths.filter((rawPath) => {
+    const path = normalizeDotForMatch(rawPath);
+
+    const isExcluded =
+      excludePatterns.length > 0 &&
+      micromatch.isMatch(path, excludePatterns, { dot: true });
+
     if (isExcluded) {
-      core.debug(`Excluded by negation: ${path}`);
+      core.debug(`Excluded by negation: ${rawPath}`);
       return false;
     }
 
-    // Otherwise include if it matches any include pattern
     const isIncluded =
       includePatterns.length === 0 ||
       micromatch.isMatch(path, includePatterns, { dot: true });
 
-    core.debug(`Path: ${path}, included: ${isIncluded}`);
+    core.debug(`Path: ${rawPath}, included: ${isIncluded}`);
     return isIncluded;
   });
 

@@ -18,8 +18,7 @@ inputs:
     description: |
       A list of glob patterns that specify which files to consider when detecting changed modules.
       Supports standard glob syntax, including negations (e.g. `!**/*_test.go` to exclude test files).
-      Patterns can be separated by commas or newlines.
-      Relative to the repository root.
+      Patterns can be separated by commas or newlines. Relative to the repository root.
     required: false
     default: "**/*.go,**/go.mod,**/go.sum"
 
@@ -27,8 +26,8 @@ inputs:
     description: |
       A list of glob patterns that specify which Go modules to include when determining changes.
       Supports negations (e.g. `!**/test/**` to exclude test modules).
-      Patterns can be separated by commas or newlines.
-      Relative to the repository root.
+      Patterns can be separated by commas or newlines. Relative to the repository root.
+      Note: "*" and "**"" patterns will match the root module ".". To exclude the root module, use "!__ROOT__".
     required: false
     default: "**"
 

@@ -106,6 +106,22 @@ describe("filterPaths (directories/modules)", () => {
     vi.clearAllMocks();
   });
 
+  test('matches root module (".") with wildcard patterns', () => {
+    const paths = [".", "services/api", "tools"];
+    const filePatterns = ["**"];
+
+    const result = filterPaths(paths, filePatterns);
+    expect(result).toEqual(paths);
+  });
+
+  test('negates root module (".") correctly', () => {
+    const paths = [".", "services/api", "tools"];
+    const filePatterns = ["!__ROOT__"];
+
+    const result = filterPaths(paths, filePatterns);
+    expect(result).toEqual(["services/api", "tools"]);
+  });
+
   test("returns all paths when no patterns are provided (defaults to include all)", () => {
     const paths = [
       "services/payment",
