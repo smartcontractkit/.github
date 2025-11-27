@@ -241,7 +241,7 @@ export function lineForDependencyPathFinder() {
     goModFilePath,
     path,
     name,
-  }: BaseGoModule): number {
+  }: BaseGoModule): number | undefined {
     core.debug(
       `Finding line number for ${path} in ${goModFilePath}. (${name})`,
     );
@@ -266,7 +266,22 @@ export function lineForDependencyPathFinder() {
     }
 
     if (line === -1) {
-      throw new Error(`dependency path not found: ${path}`);
+      // Check if this is an indirect dependency
+      const isIndirect = name.endsWith(" // indirect");
+
+      if (isIndirect) {
+        // Dependency not found in go.mod - this is expected for indirect/transitive dependencies
+        // that aren't explicitly listed (e.g., nested modules like chipingress)
+        core.debug(
+          `Indirect dependency path ${path} not found in ${goModFilePath}. This is expected for transitive dependencies.`,
+        );
+        return undefined;
+      }
+
+      // Direct dependency should be in go.mod - this is an error
+      throw new Error(
+        `Direct dependency path not found in ${goModFilePath}: ${path}. This may indicate a problem with the go.mod file.`,
+      );
     }
 
     return line;
