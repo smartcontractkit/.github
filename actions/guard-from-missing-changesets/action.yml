@@ -11,6 +11,11 @@ inputs:
     required: false
     default: "false"
 
+  trunk-branch:
+    description: The name of the trunk branch (e.g., main or master)
+    required: false
+    default: "main"
+
 runs:
   using: composite
   steps:
