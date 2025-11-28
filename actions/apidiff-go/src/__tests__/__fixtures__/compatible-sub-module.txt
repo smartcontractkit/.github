@@ -1,0 +1,3 @@
+Compatible changes:
+- WithMeterProvider: added
+- WithTracerProvider: added

@@ -1,0 +1,1236 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`parseApidiffOutput > parses API diff output fixture: compatible-sub-module.txt 1`] = `
+{
+  "compatible": [
+    {
+      "change": "added",
+      "element": "WithMeterProvider",
+    },
+    {
+      "change": "added",
+      "element": "WithTracerProvider",
+    },
+  ],
+  "incompatible": [],
+  "meta": [],
+  "moduleName": "compatible-sub-module",
+  "rawOutput": "Compatible changes:
+- WithMeterProvider: added
+- WithTracerProvider: added",
+}
+`;
+
+exports[`parseApidiffOutput > parses API diff output fixture: incompatible-1.txt 1`] = `
+{
+  "compatible": [
+    {
+      "change": "added",
+      "element": "./pkg/types/core.SettingsBroadcaster",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/core.SettingsBroadcasterLocal",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/core.SettingsUpdate",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/core.StandardCapabilitiesDependencies.CRESettings",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/timeutil.Sleep",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.(*InitialiseRequest).GetCreSettingsId",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.InitialiseRequest.CreSettingsId",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.NewSettingsClient",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.RegisterSettingsServer",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.SettingsClient",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.SettingsServer",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.SettingsUpdate",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.Settings_ServiceDesc",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.Settings_SubscribeClient",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.Settings_SubscribeServer",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.Settings_Subscribe_FullMethodName",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.UnimplementedSettingsServer",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.UnsafeSettingsServer",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.AtomicSettings",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.NewAtomicSettings",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.ServerConfig",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.ServerOpt",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.WithOtelViews",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.WithSettingsGetter",
+    },
+  ],
+  "incompatible": [
+    {
+      "change": "changed from func(string) *Server to func(string, ...ServerOpt) *Server",
+      "element": "./pkg/loop.MustNewStartedServer",
+    },
+    {
+      "change": "changed from func(string) (*Server, error) to func(string, ...ServerOpt) (*Server, error)",
+      "element": "./pkg/loop.NewStartedServer",
+    },
+  ],
+  "meta": [],
+  "moduleName": "incompatible-1",
+  "rawOutput": "Incompatible changes:
+- ./pkg/loop.MustNewStartedServer: changed from func(string) *Server to func(string, ...ServerOpt) *Server
+- ./pkg/loop.NewStartedServer: changed from func(string) (*Server, error) to func(string, ...ServerOpt) (*Server, error)
+Compatible changes:
+- ./pkg/types/core.SettingsBroadcaster: added
+- ./pkg/types/core.SettingsBroadcasterLocal: added
+- ./pkg/types/core.SettingsUpdate: added
+- ./pkg/types/core.StandardCapabilitiesDependencies.CRESettings: added
+- ./pkg/timeutil.Sleep: added
+- ./pkg/capabilities/pb.(*InitialiseRequest).GetCreSettingsId: added
+- ./pkg/capabilities/pb.InitialiseRequest.CreSettingsId: added
+- ./pkg/capabilities/pb.NewSettingsClient: added
+- ./pkg/capabilities/pb.RegisterSettingsServer: added
+- ./pkg/capabilities/pb.SettingsClient: added
+- ./pkg/capabilities/pb.SettingsServer: added
+- ./pkg/capabilities/pb.SettingsUpdate: added
+- ./pkg/capabilities/pb.Settings_ServiceDesc: added
+- ./pkg/capabilities/pb.Settings_SubscribeClient: added
+- ./pkg/capabilities/pb.Settings_SubscribeServer: added
+- ./pkg/capabilities/pb.Settings_Subscribe_FullMethodName: added
+- ./pkg/capabilities/pb.UnimplementedSettingsServer: added
+- ./pkg/capabilities/pb.UnsafeSettingsServer: added
+- ./pkg/loop.AtomicSettings: added
+- ./pkg/loop.NewAtomicSettings: added
+- ./pkg/loop.ServerConfig: added
+- ./pkg/loop.ServerOpt: added
+- ./pkg/loop.WithOtelViews: added
+- ./pkg/loop.WithSettingsGetter: added",
+}
+`;
+
+exports[`parseApidiffOutput > parses API diff output fixture: incompatible-2.txt 1`] = `
+{
+  "compatible": [
+    {
+      "change": "added",
+      "element": "./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop/reportingplugins/ocr3.GRPCService[github.com/smartcontractkit/chainlink-common/pkg/types.PluginProvider], github.com/smartcontractkit/chainlink-common/pkg/types/core.OCR3ReportingPluginFactory]).Wait",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/workflows/wasm/host.ModuleConfig.MaxCompressedBinaryLimiter",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/workflows/wasm/host.ModuleConfig.MaxDecompressedBinaryLimiter",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/workflows/wasm/host.ModuleConfig.MaxLogCountDONMode",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/workflows/wasm/host.ModuleConfig.MaxLogCountNodeMode",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/workflows/wasm/host.ModuleConfig.MaxLogLenBytes",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/workflows/wasm/host.ModuleConfig.MaxResponseSizeLimiter",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/workflows/wasm/host.ModuleConfig.MemoryLimiter",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/logger.NewCore",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop/reportingplugins.GRPCService[github.com/smartcontractkit/chainlink-common/pkg/types.PluginProvider], github.com/smartcontractkit/chainlink-common/pkg/types.ReportingPluginFactory]).Wait",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop/reportingplugins.GRPCService[github.com/smartcontractkit/chainlink-common/pkg/types.PluginProvider], github.com/smartcontractkit/chainlink-common/pkg/types/core.ValidationService]).Wait",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/chains/evm.LPBlock",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.(*CapabilityConfig).GetLocalOnly",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.(*InitialiseRequest).GetCreSettingsId",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.(*InitialiseRequest).GetOrgResolverId",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.(*RequestMetadata).GetEngineVersion",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.(*RequestMetadata).GetWorkflowRegistryAddress",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.(*RequestMetadata).GetWorkflowRegistryChainSelector",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.(*ResponseMetadata).GetCapdonN",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.CapabilityConfig.LocalOnly",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.InitialiseRequest.CreSettingsId",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.InitialiseRequest.OrgResolverId",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.NewSettingsClient",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.RegisterSettingsServer",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.RequestMetadata.EngineVersion",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.RequestMetadata.WorkflowRegistryAddress",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.RequestMetadata.WorkflowRegistryChainSelector",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.ResponseMetadata.CapdonN",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.SettingsClient",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.SettingsServer",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.SettingsUpdate",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.Settings_ServiceDesc",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.Settings_SubscribeClient",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.Settings_SubscribeServer",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.Settings_Subscribe_FullMethodName",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.UnimplementedSettingsServer",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/pb.UnsafeSettingsServer",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/consensus/requests.(*Store[T]).All",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/consensus/requests.(*Store[T]).All",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/consensus/requests.(*Store[T]).All",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/consensus/requests.(*Store[T]).All",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/chains/evm.EVMServer.GetLatestLPBlock",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/chains/evm.EVM_GetLatestLPBlock_FullMethodName",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/chains/evm.GetLatestLPBlockReply",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/chains/evm.LPBlock",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/chains/evm.UnimplementedEVMServer.GetLatestLPBlock",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities.(*RegistrationMetadata).ContextWithCRE",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities.(*RequestMetadata).ContextWithCRE",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities.CapabilityConfiguration.LocalOnly",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities.ParseID",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities.RequestMetadata.EngineVersion",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities.RequestMetadata.WorkflowRegistryAddress",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities.RequestMetadata.WorkflowRegistryChainSelector",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities.ResponseMetadata.CapDON_N",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/consensus/ocr3/types.(*ReportingPluginConfig).GetHistoricalOutcomeExpirySeqNrSpan",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/consensus/ocr3/types.ReportingPluginConfig.HistoricalOutcomeExpirySeqNrSpan",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/config.SizeOf",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.AtomicSettings",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.EnvConfig.TelemetryAuthHeadersTTL",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.EnvConfig.TelemetryLogBatchProcessor",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.EnvConfig.TelemetryLogExportInterval",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.EnvConfig.TelemetryLogExportMaxBatchSize",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.EnvConfig.TelemetryLogExportTimeout",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.EnvConfig.TelemetryLogLevel",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.EnvConfig.TelemetryLogMaxQueueSize",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.MustNewStartedServerWithOtelViews",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.NewAtomicSettings",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.NewOtelLogger",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.NewStartedServerWithOtelViews",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.ServerConfig",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.ServerOpt",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.WithOtelViews",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop.WithSettingsGetter",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.CommitLoop, github.com/smartcontractkit/chainlink-common/pkg/types.ReportingPluginFactory]).Wait",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.ExecutionLoop, github.com/smartcontractkit/chainlink-common/pkg/types.ReportingPluginFactory]).Wait",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.GRPCPluginKeystore, github.com/smartcontractkit/chainlink-common/pkg/loop/internal/keystore.GRPCService]).Wait",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.GRPCPluginMedian, github.com/smartcontractkit/chainlink-common/pkg/types.ReportingPluginFactory]).Wait",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.GRPCPluginMercury, github.com/smartcontractkit/chainlink-common/pkg/types.MercuryPluginFactory]).Wait",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.GRPCPluginRelayer, github.com/smartcontractkit/chainlink-common/pkg/loop.Relayer]).Wait",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.StandardCapabilitiesLoop, github.com/smartcontractkit/chainlink-common/pkg/loop.StandardCapabilities]).Wait",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/settings/cresettings.DefaultGetter",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/settings/cresettings.Owners.WorkflowTriggerRateLimit",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/settings/cresettings.Schema.WorkflowTriggerRateLimit",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/settings/cresettings.Workflows.Consensus",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/settings/cresettings.Workflows.WASMCompressedBinarySizeLimit",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/settings/cresettings.Workflows.WASMConfigSizeLimit",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/settings/cresettings.Workflows.WASMResponseSizeLimit",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/settings/cresettings.Workflows.WASMSecretsSizeLimit",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/settings/cresettings.httpAction.CallLimit",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/settings/cresettings.logTrigger.EventSizeLimit",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/beholder.(*ChipIngressEmitter).Close",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/beholder.(*Client).IsSignerSet",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/beholder.(*Client).SetSigner",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/beholder.(*DualSourceEmitter).Close",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/beholder.Auth",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/beholder.Config.AuthHeadersTTL",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/beholder.Config.AuthKeySigner",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/beholder.Config.LogLevel",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/beholder.HeaderProvider",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/beholder.NewAuthHeaderV2",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/beholder.NewRotatingAuth",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/beholder.NewStaticAuth",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/beholder.PerRPCCredentialsProvider",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/beholder.Signer",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/beholder.writerClientConfig.AuthHeadersTTL",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/beholder.writerClientConfig.AuthKeySigner",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/beholder.writerClientConfig.LogLevel",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/actions/vault.(*ReportingPluginConfig).GetLimitsMaxKeyValueModifiedKeys",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/actions/vault.(*ReportingPluginConfig).GetLimitsMaxPerOracleUnexpiredBlobCount",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/actions/vault.(*ReportingPluginConfig).GetLimitsMaxPerOracleUnexpiredBlobCumulativePayloadBytes",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/actions/vault.ReportingPluginConfig.LimitsMaxKeyValueModifiedKeys",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/actions/vault.ReportingPluginConfig.LimitsMaxPerOracleUnexpiredBlobCount",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/actions/vault.ReportingPluginConfig.LimitsMaxPerOracleUnexpiredBlobCumulativePayloadBytes",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/v2/actions/confidentialhttp.EnclaveActionInput",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/v2/actions/confidentialhttp.HTTPEnclaveRequestData",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/v2/actions/confidentialhttp.HTTPEnclaveResponseData",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/v2/actions/confidentialhttp.ResponseTemplate",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/ratelimit.(*RateLimiter).SetConfig",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/capabilities/registry.StateGetter",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types.CCIPProviderArgs.ExtraDataCodecBundle",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types.CCIPProviderArgs.TransmitterAddress",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types.UnimplementedEVMService",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/sqlutil.Interval",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/sqlutil.NewInterval",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/gateway.CacheSettings.Store",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/gateway.OutboundHTTPRequest.WorkflowOwner",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/gateway.OutboundHTTPResponse.IsValidationError",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/mocks.(*EVMService).GetLatestLPBlock",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/mocks.(*EVMService_Expecter).GetLatestLPBlock",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/mocks.EVMService_GetLatestLPBlock_Call",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/ccipocr3.Codec.MessageHasher",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/ccipocr3.ExtraDataCodecBundle",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/ccipocr3.ExtraDataCodecMap",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/ccipocr3.ExtraDataDecoded",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/ccipocr3.MessageHasher.Hash",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/ccipocr3.PluginType",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/ccipocr3.PluginTypeCCIPCommit",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/ccipocr3.PluginTypeCCIPExec",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/timeutil.Sleep",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/core.SettingsBroadcaster",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/core.SettingsBroadcasterLocal",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/core.SettingsUpdate",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types/core.StandardCapabilitiesDependencies",
+    },
+    {
+      "change": "added",
+      "element": "package github.com/smartcontractkit/chainlink-common/pkg/workflows/events",
+    },
+    {
+      "change": "added",
+      "element": "package github.com/smartcontractkit/chainlink-common/pkg/services/orgresolver",
+    },
+    {
+      "change": "added",
+      "element": "package github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/chain-capabilities/consensus/ocr3/types",
+    },
+  ],
+  "incompatible": [
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/protoc/pkg/test_capabilities/importclash/server.(*BasicActionServer).Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/protoc/pkg/test_capabilities/importclash/server.BasicActionCapability.Initialise",
+    },
+    {
+      "change": "changed from func(*ModuleConfig, []byte, ...func(*ModuleConfig)) (*module, error) to func(context.Context, *ModuleConfig, []byte, ...func(*ModuleConfig)) (*module, error)",
+      "element": "./pkg/workflows/wasm/host.NewModule",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/protoc/pkg/test_capabilities/actionandtrigger/server.(*BasicServer).Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/protoc/pkg/test_capabilities/actionandtrigger/server.BasicCapability.Initialise",
+    },
+    {
+      "change": "changed from func([]*HashValueComparator) []github.com/smartcontractkit/chainlink-common/pkg/types/query/primitives/evm.HashedValueComparator to func([]*HashValueComparator) ([]github.com/smartcontractkit/chainlink-common/pkg/types/query/primitives/evm.HashedValueComparator, error)",
+      "element": "./pkg/chains/evm.ConvertHashedValueComparatorsFromProto",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/chains/evm.EVMClient.GetLatestLPBlock",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/actions/http/server.(*ClientServer).Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/actions/http/server.ClientCapability.Initialise",
+    },
+    {
+      "change": "changed from func(string) *Server to func(string, ...ServerOpt) *Server",
+      "element": "./pkg/loop.MustNewStartedServer",
+    },
+    {
+      "change": "changed from func(string) (*Server, error) to func(string, ...ServerOpt) (*Server, error)",
+      "element": "./pkg/loop.NewStartedServer",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/loop.StandardCapabilities.Initialise",
+    },
+    {
+      "change": "removed",
+      "element": "./pkg/settings/cresettings.Schema.GatewayUnauthenticatedRequestRateLimit",
+    },
+    {
+      "change": "removed",
+      "element": "./pkg/settings/cresettings.Schema.GatewayUnauthenticatedRequestRateLimitPerIP",
+    },
+    {
+      "change": "removed",
+      "element": "./pkg/settings/cresettings.Schema.WorkflowRegistrationQueueLimit",
+    },
+    {
+      "change": "removed",
+      "element": "./pkg/settings/cresettings.Workflows.TriggerLimit",
+    },
+    {
+      "change": "removed",
+      "element": "./pkg/settings/cresettings.Workflows.WASMExecutionTimeout",
+    },
+    {
+      "change": "removed",
+      "element": "./pkg/settings/cresettings.chainWrite.RateLimit",
+    },
+    {
+      "change": "removed",
+      "element": "./pkg/settings/cresettings.httpAction.RateLimit",
+    },
+    {
+      "change": "removed",
+      "element": "./pkg/settings/cresettings.logTrigger.RateLimit",
+    },
+    {
+      "change": "changed from ChipIngressClient to github.com/smartcontractkit/chainlink-common/pkg/chipingress.Client",
+      "element": "./pkg/beholder.BeholderClient.Chip",
+    },
+    {
+      "change": "removed",
+      "element": "./pkg/beholder.ChipIngressClient",
+    },
+    {
+      "change": "changed from ChipIngressClient to github.com/smartcontractkit/chainlink-common/pkg/chipingress.Client",
+      "element": "./pkg/beholder.Client.Chip",
+    },
+    {
+      "change": "removed",
+      "element": "./pkg/beholder.NewChipIngressClient",
+    },
+    {
+      "change": "added",
+      "element": "io.Closer.Close",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/actions/confidentialhttp/server.(*ClientServer).Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/actions/confidentialhttp/server.ClientCapability.Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/capabilities.RequestMetadata, *github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.Input) (*github.com/smartcontractkit/chainlink-common/pkg/capabilities.ResponseAndMetadata[*github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.Output], error) to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/capabilities.RequestMetadata, *github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.EnclaveActionInput) (*github.com/smartcontractkit/chainlink-common/pkg/capabilities.ResponseAndMetadata[*github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.HTTPEnclaveResponseData], error)",
+      "element": "./pkg/capabilities/v2/actions/confidentialhttp/server.ClientCapability.SendRequests",
+    },
+    {
+      "change": "value changed from "confidential-http-actions@1.0.0-alpha" to "confidential-http@1.0.0-alpha"",
+      "element": "./pkg/capabilities/v2/actions/confidentialhttp/server.ClientID",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/triggers/cron/server.(*CronServer).Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/triggers/cron/server.CronCapability.Initialise",
+    },
+    {
+      "change": "changed from func() *google.golang.org/protobuf/types/known/structpb.Struct to func() map[string]string",
+      "element": "./pkg/capabilities/v2/actions/confidentialhttp.(*Request).GetPublicTemplateValues",
+    },
+    {
+      "change": "removed",
+      "element": "./pkg/capabilities/v2/actions/confidentialhttp.Input",
+    },
+    {
+      "change": "removed",
+      "element": "./pkg/capabilities/v2/actions/confidentialhttp.Output",
+    },
+    {
+      "change": "removed",
+      "element": "./pkg/capabilities/v2/actions/confidentialhttp.OutputResponsesElem",
+    },
+    {
+      "change": "changed from *google.golang.org/protobuf/types/known/structpb.Struct to map[string]string",
+      "element": "./pkg/capabilities/v2/actions/confidentialhttp.Request.PublicTemplateValues",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/consensus/server.(*ConsensusServer).Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/consensus/server.ConsensusCapability.Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/protoc/pkg/test_capabilities/basictrigger/server.(*BasicServer).Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/protoc/pkg/test_capabilities/basictrigger/server.BasicCapability.Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/protoc/pkg/test_capabilities/basicaction/server.(*BasicActionServer).Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/protoc/pkg/test_capabilities/basicaction/server.BasicActionCapability.Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/protoc/pkg/test_capabilities/nodeaction/server.(*BasicActionServer).Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/protoc/pkg/test_capabilities/nodeaction/server.BasicActionCapability.Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/chain-capabilities/evm/server.(*ClientServer).Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/chain-capabilities/evm/server.ClientCapability.Initialise",
+    },
+    {
+      "change": "changed from string to github.com/smartcontractkit/chainlink-common/pkg/types/ccipocr3.UnknownAddress",
+      "element": "./pkg/types.CCIPProviderArgs.OffRampAddress",
+    },
+    {
+      "change": "changed from uint32 to github.com/smartcontractkit/chainlink-common/pkg/types/ccipocr3.PluginType",
+      "element": "./pkg/types.CCIPProviderArgs.PluginType",
+    },
+    {
+      "change": "added",
+      "element": "./pkg/types.EVMService.GetLatestLPBlock",
+    },
+    {
+      "change": "removed",
+      "element": "./pkg/types/gateway.AuthorizedKey.MarshalJSON",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/protoc/pkg/test_capabilities/consensus/server.(*ConsensusServer).Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/protoc/pkg/test_capabilities/consensus/server.ConsensusCapability.Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/triggers/http/server.(*HTTPServer).Initialise",
+    },
+    {
+      "change": "changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error",
+      "element": "./pkg/capabilities/v2/triggers/http/server.HTTPCapability.Initialise",
+    },
+    {
+      "change": "removed",
+      "element": "./pkg/types/ccipocr3.ExtraDataCodec",
+    },
+    {
+      "change": "changed from func(context.Context, []UnknownEncodedAddress, ChainSelector) (map[UnknownEncodedAddress]TimestampedUnixBig, error) to func(context.Context, []UnknownAddress) (map[UnknownEncodedAddress]TimestampedUnixBig, error)",
+      "element": "./pkg/types/ccipocr3.PriceReader.GetFeeQuoterTokenUpdates",
+    },
+  ],
+  "meta": [],
+  "moduleName": "incompatible-2",
+  "rawOutput": "Incompatible changes:
+- ./pkg/capabilities/v2/protoc/pkg/test_capabilities/importclash/server.(*BasicActionServer).Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/protoc/pkg/test_capabilities/importclash/server.BasicActionCapability.Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/workflows/wasm/host.NewModule: changed from func(*ModuleConfig, []byte, ...func(*ModuleConfig)) (*module, error) to func(context.Context, *ModuleConfig, []byte, ...func(*ModuleConfig)) (*module, error)
+- ./pkg/capabilities/v2/protoc/pkg/test_capabilities/actionandtrigger/server.(*BasicServer).Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/protoc/pkg/test_capabilities/actionandtrigger/server.BasicCapability.Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/chains/evm.ConvertHashedValueComparatorsFromProto: changed from func([]*HashValueComparator) []github.com/smartcontractkit/chainlink-common/pkg/types/query/primitives/evm.HashedValueComparator to func([]*HashValueComparator) ([]github.com/smartcontractkit/chainlink-common/pkg/types/query/primitives/evm.HashedValueComparator, error)
+- ./pkg/chains/evm.EVMClient.GetLatestLPBlock: added
+- ./pkg/capabilities/v2/actions/http/server.(*ClientServer).Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/actions/http/server.ClientCapability.Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/loop.MustNewStartedServer: changed from func(string) *Server to func(string, ...ServerOpt) *Server
+- ./pkg/loop.NewStartedServer: changed from func(string) (*Server, error) to func(string, ...ServerOpt) (*Server, error)
+- ./pkg/loop.StandardCapabilities.Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/settings/cresettings.Schema.GatewayUnauthenticatedRequestRateLimit: removed
+- ./pkg/settings/cresettings.Schema.GatewayUnauthenticatedRequestRateLimitPerIP: removed
+- ./pkg/settings/cresettings.Schema.WorkflowRegistrationQueueLimit: removed
+- ./pkg/settings/cresettings.Workflows.TriggerLimit: removed
+- ./pkg/settings/cresettings.Workflows.WASMExecutionTimeout: removed
+- ./pkg/settings/cresettings.chainWrite.RateLimit: removed
+- ./pkg/settings/cresettings.httpAction.RateLimit: removed
+- ./pkg/settings/cresettings.logTrigger.RateLimit: removed
+- ./pkg/beholder.BeholderClient.Chip: changed from ChipIngressClient to github.com/smartcontractkit/chainlink-common/pkg/chipingress.Client
+- ./pkg/beholder.ChipIngressClient: removed
+- ./pkg/beholder.Client.Chip: changed from ChipIngressClient to github.com/smartcontractkit/chainlink-common/pkg/chipingress.Client
+- ./pkg/beholder.NewChipIngressClient: removed
+- io.Closer.Close: added
+- ./pkg/capabilities/v2/actions/confidentialhttp/server.(*ClientServer).Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/actions/confidentialhttp/server.ClientCapability.Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/actions/confidentialhttp/server.ClientCapability.SendRequests: changed from func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/capabilities.RequestMetadata, *github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.Input) (*github.com/smartcontractkit/chainlink-common/pkg/capabilities.ResponseAndMetadata[*github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.Output], error) to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/capabilities.RequestMetadata, *github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.EnclaveActionInput) (*github.com/smartcontractkit/chainlink-common/pkg/capabilities.ResponseAndMetadata[*github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.HTTPEnclaveResponseData], error)
+- ./pkg/capabilities/v2/actions/confidentialhttp/server.ClientID: value changed from "confidential-http-actions@1.0.0-alpha" to "confidential-http@1.0.0-alpha"
+- ./pkg/capabilities/v2/triggers/cron/server.(*CronServer).Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/triggers/cron/server.CronCapability.Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/actions/confidentialhttp.(*Request).GetPublicTemplateValues: changed from func() *google.golang.org/protobuf/types/known/structpb.Struct to func() map[string]string
+- ./pkg/capabilities/v2/actions/confidentialhttp.Input: removed
+- ./pkg/capabilities/v2/actions/confidentialhttp.Output: removed
+- ./pkg/capabilities/v2/actions/confidentialhttp.OutputResponsesElem: removed
+- ./pkg/capabilities/v2/actions/confidentialhttp.Request.PublicTemplateValues: changed from *google.golang.org/protobuf/types/known/structpb.Struct to map[string]string
+- ./pkg/capabilities/v2/consensus/server.(*ConsensusServer).Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/consensus/server.ConsensusCapability.Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/protoc/pkg/test_capabilities/basictrigger/server.(*BasicServer).Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/protoc/pkg/test_capabilities/basictrigger/server.BasicCapability.Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/protoc/pkg/test_capabilities/basicaction/server.(*BasicActionServer).Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/protoc/pkg/test_capabilities/basicaction/server.BasicActionCapability.Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/protoc/pkg/test_capabilities/nodeaction/server.(*BasicActionServer).Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/protoc/pkg/test_capabilities/nodeaction/server.BasicActionCapability.Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/chain-capabilities/evm/server.(*ClientServer).Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/chain-capabilities/evm/server.ClientCapability.Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/types.CCIPProviderArgs.OffRampAddress: changed from string to github.com/smartcontractkit/chainlink-common/pkg/types/ccipocr3.UnknownAddress
+- ./pkg/types.CCIPProviderArgs.PluginType: changed from uint32 to github.com/smartcontractkit/chainlink-common/pkg/types/ccipocr3.PluginType
+- ./pkg/types.EVMService.GetLatestLPBlock: added
+- ./pkg/types/gateway.AuthorizedKey.MarshalJSON: removed
+- ./pkg/capabilities/v2/protoc/pkg/test_capabilities/consensus/server.(*ConsensusServer).Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/protoc/pkg/test_capabilities/consensus/server.ConsensusCapability.Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/triggers/http/server.(*HTTPServer).Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/capabilities/v2/triggers/http/server.HTTPCapability.Initialise: changed from func(context.Context, string, github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore) error to func(context.Context, github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies) error
+- ./pkg/types/ccipocr3.ExtraDataCodec: removed
+- ./pkg/types/ccipocr3.PriceReader.GetFeeQuoterTokenUpdates: changed from func(context.Context, []UnknownEncodedAddress, ChainSelector) (map[UnknownEncodedAddress]TimestampedUnixBig, error) to func(context.Context, []UnknownAddress) (map[UnknownEncodedAddress]TimestampedUnixBig, error)
+Compatible changes:
+- ./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop/reportingplugins/ocr3.GRPCService[github.com/smartcontractkit/chainlink-common/pkg/types.PluginProvider], github.com/smartcontractkit/chainlink-common/pkg/types/core.OCR3ReportingPluginFactory]).Wait: added
+- ./pkg/workflows/wasm/host.ModuleConfig.MaxCompressedBinaryLimiter: added
+- ./pkg/workflows/wasm/host.ModuleConfig.MaxDecompressedBinaryLimiter: added
+- ./pkg/workflows/wasm/host.ModuleConfig.MaxLogCountDONMode: added
+- ./pkg/workflows/wasm/host.ModuleConfig.MaxLogCountNodeMode: added
+- ./pkg/workflows/wasm/host.ModuleConfig.MaxLogLenBytes: added
+- ./pkg/workflows/wasm/host.ModuleConfig.MaxResponseSizeLimiter: added
+- ./pkg/workflows/wasm/host.ModuleConfig.MemoryLimiter: added
+- ./pkg/logger.NewCore: added
+- ./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop/reportingplugins.GRPCService[github.com/smartcontractkit/chainlink-common/pkg/types.PluginProvider], github.com/smartcontractkit/chainlink-common/pkg/types.ReportingPluginFactory]).Wait: added
+- ./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop/reportingplugins.GRPCService[github.com/smartcontractkit/chainlink-common/pkg/types.PluginProvider], github.com/smartcontractkit/chainlink-common/pkg/types/core.ValidationService]).Wait: added
+- ./pkg/types/chains/evm.LPBlock: added
+- ./pkg/capabilities/pb.(*CapabilityConfig).GetLocalOnly: added
+- ./pkg/capabilities/pb.(*InitialiseRequest).GetCreSettingsId: added
+- ./pkg/capabilities/pb.(*InitialiseRequest).GetOrgResolverId: added
+- ./pkg/capabilities/pb.(*RequestMetadata).GetEngineVersion: added
+- ./pkg/capabilities/pb.(*RequestMetadata).GetWorkflowRegistryAddress: added
+- ./pkg/capabilities/pb.(*RequestMetadata).GetWorkflowRegistryChainSelector: added
+- ./pkg/capabilities/pb.(*ResponseMetadata).GetCapdonN: added
+- ./pkg/capabilities/pb.CapabilityConfig.LocalOnly: added
+- ./pkg/capabilities/pb.InitialiseRequest.CreSettingsId: added
+- ./pkg/capabilities/pb.InitialiseRequest.OrgResolverId: added
+- ./pkg/capabilities/pb.NewSettingsClient: added
+- ./pkg/capabilities/pb.RegisterSettingsServer: added
+- ./pkg/capabilities/pb.RequestMetadata.EngineVersion: added
+- ./pkg/capabilities/pb.RequestMetadata.WorkflowRegistryAddress: added
+- ./pkg/capabilities/pb.RequestMetadata.WorkflowRegistryChainSelector: added
+- ./pkg/capabilities/pb.ResponseMetadata.CapdonN: added
+- ./pkg/capabilities/pb.SettingsClient: added
+- ./pkg/capabilities/pb.SettingsServer: added
+- ./pkg/capabilities/pb.SettingsUpdate: added
+- ./pkg/capabilities/pb.Settings_ServiceDesc: added
+- ./pkg/capabilities/pb.Settings_SubscribeClient: added
+- ./pkg/capabilities/pb.Settings_SubscribeServer: added
+- ./pkg/capabilities/pb.Settings_Subscribe_FullMethodName: added
+- ./pkg/capabilities/pb.UnimplementedSettingsServer: added
+- ./pkg/capabilities/pb.UnsafeSettingsServer: added
+- ./pkg/capabilities/consensus/requests.(*Store[T]).All: added
+- ./pkg/capabilities/consensus/requests.(*Store[T]).All: added
+- ./pkg/capabilities/consensus/requests.(*Store[T]).All: added
+- ./pkg/capabilities/consensus/requests.(*Store[T]).All: added
+- ./pkg/chains/evm.EVMServer.GetLatestLPBlock: added
+- ./pkg/chains/evm.EVM_GetLatestLPBlock_FullMethodName: added
+- ./pkg/chains/evm.GetLatestLPBlockReply: added
+- ./pkg/chains/evm.LPBlock: added
+- ./pkg/chains/evm.UnimplementedEVMServer.GetLatestLPBlock: added
+- ./pkg/capabilities.(*RegistrationMetadata).ContextWithCRE: added
+- ./pkg/capabilities.(*RequestMetadata).ContextWithCRE: added
+- ./pkg/capabilities.CapabilityConfiguration.LocalOnly: added
+- ./pkg/capabilities.ParseID: added
+- ./pkg/capabilities.RequestMetadata.EngineVersion: added
+- ./pkg/capabilities.RequestMetadata.WorkflowRegistryAddress: added
+- ./pkg/capabilities.RequestMetadata.WorkflowRegistryChainSelector: added
+- ./pkg/capabilities.ResponseMetadata.CapDON_N: added
+- ./pkg/capabilities/consensus/ocr3/types.(*ReportingPluginConfig).GetHistoricalOutcomeExpirySeqNrSpan: added
+- ./pkg/capabilities/consensus/ocr3/types.ReportingPluginConfig.HistoricalOutcomeExpirySeqNrSpan: added
+- ./pkg/config.SizeOf: added
+- ./pkg/loop.AtomicSettings: added
+- ./pkg/loop.EnvConfig.TelemetryAuthHeadersTTL: added
+- ./pkg/loop.EnvConfig.TelemetryLogBatchProcessor: added
+- ./pkg/loop.EnvConfig.TelemetryLogExportInterval: added
+- ./pkg/loop.EnvConfig.TelemetryLogExportMaxBatchSize: added
+- ./pkg/loop.EnvConfig.TelemetryLogExportTimeout: added
+- ./pkg/loop.EnvConfig.TelemetryLogLevel: added
+- ./pkg/loop.EnvConfig.TelemetryLogMaxQueueSize: added
+- ./pkg/loop.MustNewStartedServerWithOtelViews: added
+- ./pkg/loop.NewAtomicSettings: added
+- ./pkg/loop.NewOtelLogger: added
+- ./pkg/loop.NewStartedServerWithOtelViews: added
+- ./pkg/loop.ServerConfig: added
+- ./pkg/loop.ServerOpt: added
+- ./pkg/loop.WithOtelViews: added
+- ./pkg/loop.WithSettingsGetter: added
+- ./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.CommitLoop, github.com/smartcontractkit/chainlink-common/pkg/types.ReportingPluginFactory]).Wait: added
+- ./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.ExecutionLoop, github.com/smartcontractkit/chainlink-common/pkg/types.ReportingPluginFactory]).Wait: added
+- ./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.GRPCPluginKeystore, github.com/smartcontractkit/chainlink-common/pkg/loop/internal/keystore.GRPCService]).Wait: added
+- ./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.GRPCPluginMedian, github.com/smartcontractkit/chainlink-common/pkg/types.ReportingPluginFactory]).Wait: added
+- ./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.GRPCPluginMercury, github.com/smartcontractkit/chainlink-common/pkg/types.MercuryPluginFactory]).Wait: added
+- ./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.GRPCPluginRelayer, github.com/smartcontractkit/chainlink-common/pkg/loop.Relayer]).Wait: added
+- ./pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.StandardCapabilitiesLoop, github.com/smartcontractkit/chainlink-common/pkg/loop.StandardCapabilities]).Wait: added
+- ./pkg/settings/cresettings.DefaultGetter: added
+- ./pkg/settings/cresettings.Owners.WorkflowTriggerRateLimit: added
+- ./pkg/settings/cresettings.Schema.WorkflowTriggerRateLimit: added
+- ./pkg/settings/cresettings.Workflows.Consensus: added
+- ./pkg/settings/cresettings.Workflows.WASMCompressedBinarySizeLimit: added
+- ./pkg/settings/cresettings.Workflows.WASMConfigSizeLimit: added
+- ./pkg/settings/cresettings.Workflows.WASMResponseSizeLimit: added
+- ./pkg/settings/cresettings.Workflows.WASMSecretsSizeLimit: added
+- ./pkg/settings/cresettings.httpAction.CallLimit: added
+- ./pkg/settings/cresettings.logTrigger.EventSizeLimit: added
+- ./pkg/beholder.(*ChipIngressEmitter).Close: added
+- ./pkg/beholder.(*Client).IsSignerSet: added
+- ./pkg/beholder.(*Client).SetSigner: added
+- ./pkg/beholder.(*DualSourceEmitter).Close: added
+- ./pkg/beholder.Auth: added
+- ./pkg/beholder.Config.AuthHeadersTTL: added
+- ./pkg/beholder.Config.AuthKeySigner: added
+- ./pkg/beholder.Config.LogLevel: added
+- ./pkg/beholder.HeaderProvider: added
+- ./pkg/beholder.NewAuthHeaderV2: added
+- ./pkg/beholder.NewRotatingAuth: added
+- ./pkg/beholder.NewStaticAuth: added
+- ./pkg/beholder.PerRPCCredentialsProvider: added
+- ./pkg/beholder.Signer: added
+- ./pkg/beholder.writerClientConfig.AuthHeadersTTL: added
+- ./pkg/beholder.writerClientConfig.AuthKeySigner: added
+- ./pkg/beholder.writerClientConfig.LogLevel: added
+- ./pkg/capabilities/actions/vault.(*ReportingPluginConfig).GetLimitsMaxKeyValueModifiedKeys: added
+- ./pkg/capabilities/actions/vault.(*ReportingPluginConfig).GetLimitsMaxPerOracleUnexpiredBlobCount: added
+- ./pkg/capabilities/actions/vault.(*ReportingPluginConfig).GetLimitsMaxPerOracleUnexpiredBlobCumulativePayloadBytes: added
+- ./pkg/capabilities/actions/vault.ReportingPluginConfig.LimitsMaxKeyValueModifiedKeys: added
+- ./pkg/capabilities/actions/vault.ReportingPluginConfig.LimitsMaxPerOracleUnexpiredBlobCount: added
+- ./pkg/capabilities/actions/vault.ReportingPluginConfig.LimitsMaxPerOracleUnexpiredBlobCumulativePayloadBytes: added
+- ./pkg/capabilities/v2/actions/confidentialhttp.EnclaveActionInput: added
+- ./pkg/capabilities/v2/actions/confidentialhttp.HTTPEnclaveRequestData: added
+- ./pkg/capabilities/v2/actions/confidentialhttp.HTTPEnclaveResponseData: added
+- ./pkg/capabilities/v2/actions/confidentialhttp.ResponseTemplate: added
+- ./pkg/ratelimit.(*RateLimiter).SetConfig: added
+- ./pkg/capabilities/registry.StateGetter: added
+- ./pkg/types.CCIPProviderArgs.ExtraDataCodecBundle: added
+- ./pkg/types.CCIPProviderArgs.TransmitterAddress: added
+- ./pkg/types.UnimplementedEVMService: added
+- ./pkg/sqlutil.Interval: added
+- ./pkg/sqlutil.NewInterval: added
+- ./pkg/types/gateway.CacheSettings.Store: added
+- ./pkg/types/gateway.OutboundHTTPRequest.WorkflowOwner: added
+- ./pkg/types/gateway.OutboundHTTPResponse.IsValidationError: added
+- ./pkg/types/mocks.(*EVMService).GetLatestLPBlock: added
+- ./pkg/types/mocks.(*EVMService_Expecter).GetLatestLPBlock: added
+- ./pkg/types/mocks.EVMService_GetLatestLPBlock_Call: added
+- ./pkg/types/ccipocr3.Codec.MessageHasher: added
+- ./pkg/types/ccipocr3.ExtraDataCodecBundle: added
+- ./pkg/types/ccipocr3.ExtraDataCodecMap: added
+- ./pkg/types/ccipocr3.ExtraDataDecoded: added
+- ./pkg/types/ccipocr3.MessageHasher.Hash: added
+- ./pkg/types/ccipocr3.PluginType: added
+- ./pkg/types/ccipocr3.PluginTypeCCIPCommit: added
+- ./pkg/types/ccipocr3.PluginTypeCCIPExec: added
+- ./pkg/timeutil.Sleep: added
+- ./pkg/types/core.SettingsBroadcaster: added
+- ./pkg/types/core.SettingsBroadcasterLocal: added
+- ./pkg/types/core.SettingsUpdate: added
+- ./pkg/types/core.StandardCapabilitiesDependencies: added
+- package github.com/smartcontractkit/chainlink-common/pkg/workflows/events: added
+- package github.com/smartcontractkit/chainlink-common/pkg/services/orgresolver: added
+- package github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/chain-capabilities/consensus/ocr3/types: added",
+}
+`;
+
+exports[`parseApidiffOutput > parses API diff output fixture: incompatible-sub-module.txt 1`] = `
+{
+  "compatible": [
+    {
+      "change": "added",
+      "element": "./mocks.(*Client).RegisterSchemas",
+    },
+    {
+      "change": "added",
+      "element": "./mocks.(*Client_Expecter).RegisterSchemas",
+    },
+    {
+      "change": "added",
+      "element": "./mocks.Client_RegisterSchemas_Call",
+    },
+    {
+      "change": "added",
+      "element": "NoopClient",
+    },
+    {
+      "change": "added",
+      "element": "WithMeterProvider",
+    },
+    {
+      "change": "added",
+      "element": "WithTracerProvider",
+    },
+  ],
+  "incompatible": [
+    {
+      "change": "added",
+      "element": "Client.RegisterSchemas",
+    },
+  ],
+  "meta": [],
+  "moduleName": "incompatible-sub-module",
+  "rawOutput": "Incompatible changes:
+- Client.RegisterSchemas: added
+Compatible changes:
+- ./mocks.(*Client).RegisterSchemas: added
+- ./mocks.(*Client_Expecter).RegisterSchemas: added
+- ./mocks.Client_RegisterSchemas_Call: added
+- NoopClient: added
+- WithMeterProvider: added
+- WithTracerProvider: added",
+}
+`;
