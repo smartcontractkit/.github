@@ -1,5 +1,22 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`markdown comment & job summary > formats diff as job summary: compatible-1.txt 1`] = `
+"# ✅ API Diff Results – No breaking changes (compatible-1)
+TABLE:
+Metric | Count
+Breaking changes | <div align="right">0</div>
+Compatible changes | <div align="right">2</div>
+Metadata entries | <div align="right">0</div>
+---
+# ✅ Compatible Changes
+# 🟢 Compatible Changes (2)
+# 📦 (root) (2)
+<ul>
+<li><code>WithMeterProvider</code> — ➕ Added</li>
+<li><code>WithTracerProvider</code> — ➕ Added</li>
+</ul>"
+`;
+
 exports[`markdown comment & job summary > formats diff as job summary: compatible-sub-module.txt 1`] = `
 "# ✅ API Diff Results – No breaking changes (compatible-sub-module)
 TABLE:
@@ -1081,6 +1098,43 @@ error</pre></li>
 </ul>"
 `;
 
+exports[`markdown comment & job summary > formats diff as job summary: incompatible-3.txt 1`] = `
+"# ⚠️ API Diff Results – Breaking changes detected (incompatible-3)
+TABLE:
+Metric | Count
+Breaking changes | <div align="right">1</div>
+Compatible changes | <div align="right">6</div>
+Metadata entries | <div align="right">0</div>
+---
+# ⚠️ Breaking Changes
+# 🔴 Breaking Changes (1)
+# 📦 Client (1)
+<ul>
+<li><code>RegisterSchemas</code> — ➕ Added</li>
+</ul>
+---
+# ✅ Compatible Changes
+# 🟢 Compatible Changes (6)
+# 📦 (root) (3)
+<ul>
+<li><code>NoopClient</code> — ➕ Added</li>
+<li><code>WithMeterProvider</code> — ➕ Added</li>
+<li><code>WithTracerProvider</code> — ➕ Added</li>
+</ul>
+# 📦 mocks (1)
+<ul>
+<li><code>Client_RegisterSchemas_Call</code> — ➕ Added</li>
+</ul>
+# 📦 mocks.(*Client) (1)
+<ul>
+<li><code>RegisterSchemas</code> — ➕ Added</li>
+</ul>
+# 📦 mocks.(*Client_Expecter) (1)
+<ul>
+<li><code>RegisterSchemas</code> — ➕ Added</li>
+</ul>"
+`;
+
 exports[`markdown comment & job summary > formats diff as job summary: incompatible-sub-module.txt 1`] = `
 "# ⚠️ API Diff Results – Breaking changes detected (incompatible-sub-module)
 TABLE:
@@ -1116,6 +1170,15 @@ Metadata entries | <div align="right">0</div>
 <ul>
 <li><code>RegisterSchemas</code> — ➕ Added</li>
 </ul>"
+`;
+
+exports[`markdown comment & job summary > formats diff as markdown comment: compatible-1.txt 1`] = `
+"## ✅ API Diff Results - No breaking changes
+
+---
+
+📄 [View full apidiff report]()
+"
 `;
 
 exports[`markdown comment & job summary > formats diff as markdown comment: compatible-sub-module.txt 1`] = `
@@ -1831,6 +1894,23 @@ error</pre>
   ...func(*ModuleConfig)
 )
 (*module, error)</pre>
+
+---
+
+📄 [View full apidiff report]()
+"
+`;
+
+exports[`markdown comment & job summary > formats diff as markdown comment: incompatible-3.txt 1`] = `
+"## ⚠️ API Diff Results - Breaking changes detected
+
+### 📦 Module: \`incompatible-3\`
+
+#### 🔴 Breaking Changes (1)
+
+##### \`Client\` (1)
+
+- **\`RegisterSchemas\`** — ➕ Added
 
 ---
 
