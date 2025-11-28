@@ -1,7 +1,15 @@
 import * as core from "@actions/core";
+import * as github from "@actions/github";
 
-import { parseApidiffOutputs, installApidiff, runApidiff } from "./apidiff";
-import { setupWorktree, cleanupWorktrees } from "./git-worktree";
+import { join } from "path";
+
+import {
+  generateExportAtRef,
+  parseApidiffOutput,
+  installApidiff,
+  diffExports,
+} from "./apidiff";
+import { validateGitRepositoryRoot, getRepoTags } from "./git";
 import { getSummaryUrl, upsertPRComment } from "./github";
 import { CL_LOCAL_DEBUG, getInputs, getInvokeContext } from "./run-inputs";
 import {
@@ -9,47 +17,94 @@ import {
   formatApidiffJobSummary,
 } from "./string-processor";
 
+import { findLatestVersionFromTags, getGoModuleName } from "./util";
+
+import type { InvokeContext, RunInputs } from "./run-inputs";
 export async function run(): Promise<void> {
   try {
     // 1. Get inputs and context
     core.startGroup("Inputs and Context");
     const inputs = getInputs();
     const context = getInvokeContext();
+    const octokit = github.getOctokit(context.token);
+
+    await validateGitRepositoryRoot(inputs.repositoryRoot);
+
+    const qualifiedModuleDirectory = join(
+      inputs.repositoryRoot,
+      inputs.moduleDirectory,
+    );
+    core.info(`Qualified module directory: ${qualifiedModuleDirectory}`);
+    const moduleName = await getGoModuleName(qualifiedModuleDirectory);
+    core.info(`Module name: ${moduleName}`);
+
     core.endGroup();
 
-    // 2. Set up worktrees for comparing old (base) vs new (head) refs
-    const worktreeResult = await setupWorktree(
-      inputs.directory,
-      inputs.baseRef,
-      inputs.headRef,
-      context.repo, // Repository name from GitHub context
-    );
+    // 2. Install apidiff tool
+    core.startGroup("Installing apidiff");
+    await installApidiff(qualifiedModuleDirectory, inputs.apidiffVersion);
+    core.endGroup();
 
-    // 3. Run API diff between the two worktrees
-    await installApidiff(inputs.apidiffVersion);
-    const apidiffOutputs = await runApidiff(
-      worktreeResult.baseRepoPath, // Base directory (old version)
-      worktreeResult.headRepoPath, // Head directory (new version)
-      inputs.goModPaths, // Relative paths to go.mod files
+    // 3. Generate exports
+    core.startGroup("Generating Exports");
+    const headRef = inputs.headRefOverride || context.event.head;
+    const headExport = await generateExportAtRef(
+      qualifiedModuleDirectory,
+      headRef,
     );
+    core.info(`Generated head export at: ${headExport.path}`);
 
-    const parsedOutputs = parseApidiffOutputs(apidiffOutputs);
+    const baseRef = inputs.baseRefOverride || context.event.base;
+    const baseExport = await generateExportAtRef(
+      qualifiedModuleDirectory,
+      baseRef,
+    );
+    core.info(`Generated base export at: ${baseExport.path}`);
+    const latestExport = await generateExportForLatestVersion(
+      context,
+      inputs.repositoryRoot,
+      inputs.moduleDirectory,
+    );
+    if (latestExport) {
+      core.info(`Generated latest version export at: ${latestExport.path}`);
+    }
+    core.endGroup();
+
+    // 4. Diff and parse export
+    core.startGroup("Diff, Parse Exports");
+    core.info(`Diffing base (${baseExport.ref}) -> head (${headExport.ref})`);
+    const baseHeadDiff = await diffExports(baseExport, headExport);
+
+    // let latestHeadDiff = null;
+    // if (latestExport) {
+    //   core.info(
+    //     `Diffing latest (${latestExport.ref}) -> head (${headExport.ref})`,
+    //   );
+    //   latestHeadDiff = await diffExports(latestExport, headExport);
+    // }
+    core.endGroup();
+
+    // 5. Parse apidiff outputs
+    core.startGroup("Parsing apidiff Outputs");
+
+    const parsedResult = parseApidiffOutput(moduleName, baseHeadDiff);
     if (core.isDebug()) {
-      core.debug(JSON.stringify(parsedOutputs));
+      core.debug(JSON.stringify(parsedResult));
     }
 
     // 4. Format and output results
     core.startGroup("Formatting and Outputting Results");
-    formatApidiffJobSummary(parsedOutputs);
-    if (context.prNumber) {
+    formatApidiffJobSummary(parsedResult);
+
+    if (context.event.eventName === "pull_request") {
       const summaryUrl = await getSummaryUrl(
-        context.token,
+        octokit,
         context.owner,
         context.repo,
       );
 
       const markdownOutputIncompatibleOnly = formatApidiffMarkdown(
-        parsedOutputs,
+        [parsedResult],
         summaryUrl,
         false,
       );
@@ -61,17 +116,17 @@ export async function run(): Promise<void> {
 
       if (inputs.postComment) {
         await upsertPRComment(
-          context.token,
+          octokit,
           context.owner,
           context.repo,
-          context.prNumber,
+          context.event.prNumber,
           markdownOutputIncompatibleOnly,
         );
       }
     }
     core.endGroup();
 
-    const incompatibleCount = parsedOutputs.reduce(
+    const incompatibleCount = [parsedResult].reduce(
       (sum, diff) => sum + diff.incompatible.length,
       0,
     );
@@ -81,11 +136,28 @@ export async function run(): Promise<void> {
         `Incompatible API changes detected. See PR comment, or summary for details.`,
       );
     }
-
-    // Clean up worktrees when done
-    await cleanupWorktrees(worktreeResult);
   } catch (error) {
     core.endGroup();
     core.setFailed(`Action failed: ${error}`);
   }
+}
+
+async function generateExportForLatestVersion(
+  context: InvokeContext,
+  repositoryRoot: string,
+  moduleDirectory: string,
+) {
+  if (context.event.eventName !== "push") {
+    return null;
+  }
+  core.info("Push event detected. Diffing with latest tagged version.");
+  const tags = await getRepoTags(repositoryRoot);
+  const latest = findLatestVersionFromTags(moduleDirectory, tags);
+  if (!latest) {
+    core.info("Latest version not found. Skipping export generation.");
+    return null;
+  }
+
+  const qualifiedModuleDirectory = join(repositoryRoot, moduleDirectory);
+  return generateExportAtRef(qualifiedModuleDirectory, latest.tag);
 }

@@ -85,6 +85,11 @@ function splitFuncSignature(sig: string): {
   return { head, params, ret };
 }
 
+// Normalize away a trailing comma + optional whitespace when comparing segments.
+function normalizeTrailingComma(segment: string): string {
+  return segment.replace(/,\s*$/, "").trimEnd();
+}
+
 /** Renders compact, correct layout: params and return are diffed and printed separately in <pre>. */
 /** One-line-per-parameter; params and return diffed separately; inline <ins>/<del>. */
 export function renderFuncDiffCompactPre(
@@ -161,9 +166,36 @@ export function renderFuncDiffCompactPre(
       continue;
     }
 
-    // replace: if it's truly 1 ↔ 1, token-diff within the param; otherwise, expand
+    // replace: more nuanced handling
     const aList = op.a ?? [];
     const bList = op.b ?? [];
+
+    // Case 1: trailing-comma-only change on a single param (1 ↔ 1)
+    if (
+      aList.length === 1 &&
+      bList.length === 1 &&
+      normalizeTrailingComma(aList[0]) === normalizeTrailingComma(bList[0])
+    ) {
+      // Treat as unchanged; keep new text for display.
+      pushStable(bList[0]);
+      continue;
+    }
+
+    // Case 2: old single segment vs multiple new segments, where the first
+    // new segment only differs by a trailing comma (e.g. "string" → "string, ", "...ServerOpt").
+    if (
+      aList.length === 1 &&
+      bList.length > 1 &&
+      normalizeTrailingComma(aList[0]) === normalizeTrailingComma(bList[0])
+    ) {
+      // First segment is effectively unchanged, use the new one (with comma) as stable…
+      pushStable(bList[0]);
+      // …and treat the rest as added params.
+      for (const s of bList.slice(1)) pushAdd(s);
+      continue;
+    }
+
+    // Fallback: real replacement
     if (aList.length === 1 && bList.length === 1) {
       const a = aList[0],
         b = bList[0];
