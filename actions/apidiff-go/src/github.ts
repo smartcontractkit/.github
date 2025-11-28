@@ -3,15 +3,15 @@ import * as github from "@actions/github";
 
 const MARKDOWN_FINGERPRINT = "<!-- chainlink-apidiff-go -->";
 
+export type OctokitType = ReturnType<typeof github.getOctokit>;
+
 export async function upsertPRComment(
-  token: string,
+  octokit: OctokitType,
   owner: string,
   repo: string,
   pull_number: number,
   commentBody: string,
 ): Promise<void> {
-  const octokit = github.getOctokit(token);
-
   // 1. List all comments on the PR (issues API covers PR comments)
   const { data: comments } = await octokit.rest.issues.listComments({
     owner,
@@ -50,13 +50,11 @@ export async function upsertPRComment(
 }
 
 export async function getSummaryUrl(
-  token: string,
+  octokit: OctokitType,
   owner: string,
   repo: string,
 ): Promise<string> {
   const runId = github.context.runId;
-
-  const octokit = github.getOctokit(token);
   try {
     const { data } = await octokit.rest.actions.listJobsForWorkflowRun({
       owner,
@@ -78,3 +76,10 @@ export async function getSummaryUrl(
     return "";
   }
 }
+
+export async function getLatestReleaseForModule(
+  octokit: OctokitType,
+  owner: string,
+  repo: string,
+  modulePath: string,
+) {}

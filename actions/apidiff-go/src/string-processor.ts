@@ -197,63 +197,62 @@ export function formatApidiffMarkdown(
 /* ---------------------- GitHub ACTIONS JOB SUMMARY (HTML+) --------------------- */
 
 /**
- * Writes a Job Summary (Markdown + HTML allowed) using @actions/core.summary.
+ * Writes a Job Summary (Markdown + HTML allowed) using @actions/core.summary
+ * for a single ApiDiffResult.
  */
 export async function formatApidiffJobSummary(
-  diffs: ApiDiffResult[],
+  diff: ApiDiffResult,
 ): Promise<void> {
   const s = core.summary;
 
-  if (!diffs.length) {
-    s.addHeading("📊 API Diff Results", 2).addRaw(
-      "<blockquote>No modules to analyze</blockquote>",
+  const hasIncompat = diff.incompatible.length > 0;
+  const hasCompat = diff.compatible.length > 0;
+  const hasMeta = diff.meta.length > 0;
+
+  if (!hasIncompat && !hasCompat && !hasMeta) {
+    s.addHeading(`📊 API Diff Results – ${diff.moduleName}`, 2).addRaw(
+      "<blockquote>No changes detected for this module</blockquote>",
       true,
     );
     await s.write();
     return;
   }
 
-  const hasIncompat = diffs.some((d) => d.incompatible.length > 0);
-  const totalIncompat = diffs.reduce(
-    (sum, d) => sum + d.incompatible.length,
-    0,
-  );
-  const totalCompat = diffs.reduce((sum, d) => sum + d.compatible.length, 0);
-  const modulesWithChanges = diffs.filter(
-    (d) => d.incompatible.length || d.compatible.length,
-  ).length;
-
   const statusEmoji = hasIncompat ? "⚠️" : "✅";
   const statusText = hasIncompat
     ? "Breaking changes detected"
     : "No breaking changes";
 
-  s.addHeading(`${statusEmoji} API Diff Results – ${statusText}`, 2);
+  s.addHeading(
+    `${statusEmoji} API Diff Results – ${statusText} (${diff.moduleName})`,
+    2,
+  );
 
-  // Top summary table
+  // Top summary table for this module
   s.addTable([
     [
       { data: "Metric", header: true },
       { data: "Count", header: true },
     ],
     [
-      { data: "Modules analyzed" },
-      { data: `<div align="right">${modulesWithChanges}</div>` },
-    ],
-    [
       { data: "Breaking changes" },
-      { data: `<div align="right">${totalIncompat}</div>` },
+      {
+        data: `<div align="right">${diff.incompatible.length}</div>`,
+      },
     ],
     [
       { data: "Compatible changes" },
-      { data: `<div align="right">${totalCompat}</div>` },
+      {
+        data: `<div align="right">${diff.compatible.length}</div>`,
+      },
+    ],
+    [
+      { data: "Metadata entries" },
+      {
+        data: `<div align="right">${diff.meta.length}</div>`,
+      },
     ],
   ]);
-
-  const breaking = diffs.filter((d) => d.incompatible.length);
-  const compatOnly = diffs.filter(
-    (d) => !d.incompatible.length && d.compatible.length,
-  );
 
   const renderGrouped = (
     title: string,
@@ -278,59 +277,48 @@ export async function formatApidiffJobSummary(
         const isBlock = formatted.startsWith("\n<pre>");
         if (isBlock) {
           s.addRaw(
-            `<li><strong><code>${elementName}</code></strong> — Type changed:${formatted}</li>`,
+            `<li><code>${elementName}</code> — Type changed:${formatted}</li>`,
             true,
           );
         } else {
-          s.addRaw(
-            `<li><strong><code>${elementName}</code></strong> — ${formatted}</li>`,
-            true,
-          );
+          s.addRaw(`<li><code>${elementName}</code> — ${formatted}</li>`, true);
         }
       }
 
-      s.addRaw("</ul></details>", true);
+      s.addRaw("</ul>", true);
     }
   };
 
   // Breaking section
-  if (breaking.length) {
+  if (diff.incompatible.length) {
     s.addSeparator();
-    s.addHeading("⚠️ Modules with Breaking Changes", 2);
-    for (const d of breaking) {
-      s.addHeading(`📦 ${d.moduleName}`, 3);
-      renderGrouped("Breaking Changes", d.incompatible, true);
-
-      if (d.compatible.length) {
-        renderGrouped("Compatible Changes", d.compatible, false);
-      }
-
-      if (d.meta.length) {
-        s.addHeading(`📋 Metadata (${d.meta.length})`, 4);
-        s.addTable([
-          [
-            { data: "Header", header: true },
-            { data: "First", header: true },
-            { data: "Second", header: true },
-          ],
-          ...d.meta.map((m) => [
-            { data: `<code>${escapeHtml(m.header)}</code>` },
-            { data: escapeHtml(m.first) },
-            { data: escapeHtml(m.second) },
-          ]),
-        ]);
-      }
-    }
+    s.addHeading("⚠️ Breaking Changes", 2);
+    renderGrouped("Breaking Changes", diff.incompatible, true);
   }
 
-  // Compatible-only section
-  if (compatOnly.length) {
+  // Compatible section
+  if (diff.compatible.length) {
     s.addSeparator();
-    s.addHeading("✅ Modules with Only Compatible Changes", 2);
-    for (const d of compatOnly) {
-      s.addHeading(`📦 ${d.moduleName} (${d.compatible.length})`, 3);
-      renderGrouped("Compatible Changes", d.compatible, false);
-    }
+    s.addHeading("✅ Compatible Changes", 2);
+    renderGrouped("Compatible Changes", diff.compatible, false);
+  }
+
+  // Metadata section
+  if (diff.meta.length) {
+    s.addSeparator();
+    s.addHeading(`📋 Metadata (${diff.meta.length})`, 2);
+    s.addTable([
+      [
+        { data: "Header", header: true },
+        { data: "First", header: true },
+        { data: "Second", header: true },
+      ],
+      ...diff.meta.map((m) => [
+        { data: `<code>${escapeHtml(m.header)}</code>` },
+        { data: escapeHtml(m.first) },
+        { data: escapeHtml(m.second) },
+      ]),
+    ]);
   }
 
   await s.write();
