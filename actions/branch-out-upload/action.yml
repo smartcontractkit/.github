@@ -37,8 +37,8 @@ inputs:
     description: "The URL to the job run"
     required: true
     default:
-      ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}/attempts/{3}',
-      github.repository, github.run_id, job.check_run_id, github.run_attempt) }}
+      ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}',
+      github.repository, github.run_id, job.check_run_id) }}
 
   trunk-previous-step-outcome:
     description:
