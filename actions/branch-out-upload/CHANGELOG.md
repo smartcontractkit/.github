@@ -1,5 +1,13 @@
 # branch-out-upload
 
+## 1.3.2
+
+### Patch Changes
+
+- [#1356](https://github.com/smartcontractkit/.github/pull/1356)
+  [`bb7e5fd`](https://github.com/smartcontractkit/.github/commit/bb7e5fd96af9123b069f0d91990748cadd2916b0)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: job url
+
 ## 1.3.1
 
 ### Patch Changes
