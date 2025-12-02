@@ -1,5 +1,14 @@
 # guard-from-missing-changesets
 
+## 1.0.0
+
+### Major Changes
+
+- [#1352](https://github.com/smartcontractkit/.github/pull/1352)
+  [`c78f88c`](https://github.com/smartcontractkit/.github/commit/c78f88c5e004fdcf9cbba7bdd765ff79f06886b6)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: add back missing
+  `trunk-branch` input + first major release
+
 ## 0.1.4
 
 ### Patch Changes
