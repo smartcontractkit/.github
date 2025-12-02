@@ -28,9 +28,9 @@ runs:
         ARCH=$(uname -m)
         if [ "$OS" = "darwin" ]; then
           if [ "$ARCH" = "x86_64" ]; then
-            ASSET="mcms-tools_0.15.0_darwin_arm64.tar.gz"
+            ASSET="mcms-tools_darwin_arm64.tar.gz"
           elif [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then
-            ASSET="mcms-tools_0.15.0_darwin_arm64.tar.gz"
+            ASSET="mcms-tools_darwin_arm64.tar.gz"
           else
             echo "::error::Unsupported macOS architecture: $ARCH"
             exit 1
