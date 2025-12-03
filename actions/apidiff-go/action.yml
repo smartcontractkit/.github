@@ -9,26 +9,31 @@ runs:
 
 inputs:
   # path inputs
-  directory:
-    description: "Directory containing the Go repository"
+  repository-root:
+    description: "Root directory of the repository."
+    required: false
+    default: "${{ github.workspace }}"
+
+  module-directory:
+    description:
+      "Directory containing the Go module to analyze, relative to the repository
+      root."
     required: false
     default: "./"
-  go-mod-paths:
-    description: |
-      Relative paths to the go.mod file from the repository root.
-      If multiple modules are present, provide a comma-separated list of paths.
-    required: false
-    default: "."
 
   # ref inputs
-  base-ref:
-    description: "Base branch or commit to compare against"
+  base-ref-override:
+    description: |
+      Base branch or commit to compare against.
+      For pull_requests this defaults to the target branch of the PR.
+      For push events this defaults to the previous commit.
     required: false
-    default: "${{ github.event.pull_request.base.ref }}"
-  head-ref:
-    description: "Head branch or commit to compare against"
+  head-ref-override:
+    description: |
+      Head branch or commit to compare.
+      For pull_requests this defaults to the source branch of the PR.
+      For push events this defaults to the commit being pushed.
     required: false
-    default: "${{ github.event.pull_request.head.ref }}"
 
   # action behaviour inputs
   enforce-compatible:

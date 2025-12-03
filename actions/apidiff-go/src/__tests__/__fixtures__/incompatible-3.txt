@@ -1,0 +1,9 @@
+Incompatible changes:
+- Client.RegisterSchemas: added
+Compatible changes:
+- ./mocks.(*Client).RegisterSchemas: added
+- ./mocks.(*Client_Expecter).RegisterSchemas: added
+- ./mocks.Client_RegisterSchemas_Call: added
+- NoopClient: added
+- WithMeterProvider: added
+- WithTracerProvider: added

@@ -113,13 +113,22 @@ importers:
       execa:
         specifier: ^9.6.0
         version: 9.6.0
+      semver:
+        specifier: ^7.7.3
+        version: 7.7.3
     devDependencies:
       '@octokit/types':
         specifier: ^13.10.0
         version: 13.10.0
+      '@octokit/webhooks-types':
+        specifier: ^7.6.1
+        version: 7.6.1
       '@types/node':
         specifier: ^24.2.1
         version: 24.2.1
+      '@types/semver':
+        specifier: ^7.7.1
+        version: 7.7.1
       vitest:
         specifier: ^2.1.9
         version: 2.1.9(@types/node@24.2.1)(jsdom@24.1.0)
@@ -323,6 +332,8 @@ importers:
   actions/ecr-image-exists: {}
 
   actions/flakeguard-ai-analysis: {}
+
+  actions/free-disk-space: {}
 
   actions/get-latest-github-release: {}
 
@@ -3276,6 +3287,9 @@ packages:
   '@types/semver@7.7.0':
     resolution: {integrity: sha512-k107IF4+Xr7UHjwDc7Cfd6PRQfbdkiRabXGRjo07b4WyPahFBZCZ1sE+BNxYIJPPg73UkfOsVOLwqVc/6ETrIA==}
 
+  '@types/semver@7.7.1':
+    resolution: {integrity: sha512-FmgJfu+MOcQ370SD0ev7EI8TlCAfKYU+B4m5T3yXc1CiRN94g/SZPtsCkk506aUDtlMnFZvasDwHHUcZUEaYuA==}
+
   '@types/stack-utils@2.0.1':
     resolution: {integrity: sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==}
 
@@ -6189,6 +6203,11 @@ packages:
 
   semver@7.7.2:
     resolution: {integrity: sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==}
+    engines: {node: '>=10'}
+    hasBin: true
+
+  semver@7.7.3:
+    resolution: {integrity: sha512-SdsKMrI9TdgjdweUSR9MweHA4EJ8YxHn8DFaDisvhVlUOe4BF1tLD7GAj0lIqWVl+dPb/rExr0Btby5loQm20Q==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -10854,6 +10873,8 @@ snapshots:
 
   '@types/semver@7.7.0': {}
 
+  '@types/semver@7.7.1': {}
+
   '@types/stack-utils@2.0.1': {}
 
   '@types/unist@2.0.11': {}
@@ -14250,6 +14271,8 @@ snapshots:
   semver@7.6.2: {}
 
   semver@7.7.2: {}
+
+  semver@7.7.3: {}
 
   sentence-case@3.0.4:
     dependencies:

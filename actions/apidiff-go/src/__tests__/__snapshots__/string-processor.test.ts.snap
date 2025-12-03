@@ -1,0 +1,3444 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`markdown comment & job summary > formats diff as job summary: compatible-1.txt 1`] = `
+"# ✅ API Diff Results – No breaking changes (compatible-1)
+TABLE:
+Metric | Count
+Breaking changes | <div align="right">0</div>
+Compatible changes | <div align="right">2</div>
+Metadata entries | <div align="right">0</div>
+---
+# ✅ Compatible Changes
+# 🟢 Compatible Changes (2)
+# 📦 (root) (2)
+<ul>
+<li><code>WithMeterProvider</code> — ➕ Added</li>
+<li><code>WithTracerProvider</code> — ➕ Added</li>
+</ul>"
+`;
+
+exports[`markdown comment & job summary > formats diff as job summary: compatible-sub-module.txt 1`] = `
+"# ✅ API Diff Results – No breaking changes (compatible-sub-module)
+TABLE:
+Metric | Count
+Breaking changes | <div align="right">0</div>
+Compatible changes | <div align="right">2</div>
+Metadata entries | <div align="right">0</div>
+---
+# ✅ Compatible Changes
+# 🟢 Compatible Changes (2)
+# 📦 (root) (2)
+<ul>
+<li><code>WithMeterProvider</code> — ➕ Added</li>
+<li><code>WithTracerProvider</code> — ➕ Added</li>
+</ul>"
+`;
+
+exports[`markdown comment & job summary > formats diff as job summary: incompatible-1.txt 1`] = `
+"# ⚠️ API Diff Results – Breaking changes detected (incompatible-1)
+TABLE:
+Metric | Count
+Breaking changes | <div align="right">2</div>
+Compatible changes | <div align="right">24</div>
+Metadata entries | <div align="right">0</div>
+---
+# ⚠️ Breaking Changes
+# 🔴 Breaking Changes (2)
+# 📦 pkg/loop (2)
+<ul>
+<li><code>MustNewStartedServer</code> — Type changed:
+<pre>func(
+  string, 
+  + <ins>...ServerOpt</ins>
+)
+*Server</pre></li>
+<li><code>NewStartedServer</code> — Type changed:
+<pre>func(
+  string, 
+  + <ins>...ServerOpt</ins>
+)
+(*Server, error)</pre></li>
+</ul>
+---
+# ✅ Compatible Changes
+# 🟢 Compatible Changes (24)
+# 📦 pkg/capabilities/pb (11)
+<ul>
+<li><code>NewSettingsClient</code> — ➕ Added</li>
+<li><code>RegisterSettingsServer</code> — ➕ Added</li>
+<li><code>Settings_ServiceDesc</code> — ➕ Added</li>
+<li><code>Settings_Subscribe_FullMethodName</code> — ➕ Added</li>
+<li><code>Settings_SubscribeClient</code> — ➕ Added</li>
+<li><code>Settings_SubscribeServer</code> — ➕ Added</li>
+<li><code>SettingsClient</code> — ➕ Added</li>
+<li><code>SettingsServer</code> — ➕ Added</li>
+<li><code>SettingsUpdate</code> — ➕ Added</li>
+<li><code>UnimplementedSettingsServer</code> — ➕ Added</li>
+<li><code>UnsafeSettingsServer</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/pb.(*InitialiseRequest) (1)
+<ul>
+<li><code>GetCreSettingsId</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/pb.InitialiseRequest (1)
+<ul>
+<li><code>CreSettingsId</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/loop (6)
+<ul>
+<li><code>AtomicSettings</code> — ➕ Added</li>
+<li><code>NewAtomicSettings</code> — ➕ Added</li>
+<li><code>ServerConfig</code> — ➕ Added</li>
+<li><code>ServerOpt</code> — ➕ Added</li>
+<li><code>WithOtelViews</code> — ➕ Added</li>
+<li><code>WithSettingsGetter</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/timeutil (1)
+<ul>
+<li><code>Sleep</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/types/core (3)
+<ul>
+<li><code>SettingsBroadcaster</code> — ➕ Added</li>
+<li><code>SettingsBroadcasterLocal</code> — ➕ Added</li>
+<li><code>SettingsUpdate</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/types/core.StandardCapabilitiesDependencies (1)
+<ul>
+<li><code>CRESettings</code> — ➕ Added</li>
+</ul>"
+`;
+
+exports[`markdown comment & job summary > formats diff as job summary: incompatible-2.txt 1`] = `
+"# ⚠️ API Diff Results – Breaking changes detected (incompatible-2)
+TABLE:
+Metric | Count
+Breaking changes | <div align="right">56</div>
+Compatible changes | <div align="right">146</div>
+Metadata entries | <div align="right">0</div>
+---
+# ⚠️ Breaking Changes
+# 🔴 Breaking Changes (56)
+# 📦 io.Closer (1)
+<ul>
+<li><code>Close</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/beholder (2)
+<ul>
+<li><code>ChipIngressClient</code> — 🗑️ Removed</li>
+<li><code>NewChipIngressClient</code> — 🗑️ Removed</li>
+</ul>
+# 📦 pkg/beholder.BeholderClient (1)
+<ul>
+<li><code>Chip</code> — Type changed:
+<pre>
+  - <del>ChipIngressClient</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/chipingress.Client</ins>
+)</pre></li>
+</ul>
+# 📦 pkg/beholder.Client (1)
+<ul>
+<li><code>Chip</code> — Type changed:
+<pre>
+  - <del>ChipIngressClient</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/chipingress.Client</ins>
+)</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/actions/confidentialhttp (3)
+<ul>
+<li><code>Input</code> — 🗑️ Removed</li>
+<li><code>Output</code> — 🗑️ Removed</li>
+<li><code>OutputResponsesElem</code> — 🗑️ Removed</li>
+</ul>
+# 📦 pkg/capabilities/v2/actions/confidentialhttp.(*Request) (1)
+<ul>
+<li><code>GetPublicTemplateValues</code> — Type changed:
+<pre>func(
+)
+- <del>*google.golang.org/protobuf/types/known/structpb.Struct</del>
++ <ins>map[string]string</ins></pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/actions/confidentialhttp.Request (1)
+<ul>
+<li><code>PublicTemplateValues</code> — Type changed:
+<pre>
+  - <del>*google.golang.org/protobuf/types/known/structpb.Struct</del>
+  + <ins>map[string]string</ins>
+)</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/actions/confidentialhttp/server (1)
+<ul>
+<li><code>ClientID</code> — Value changed from "confidential-http-actions@1.0.0-alpha" to "confidential-http@1.0.0-alpha"</li>
+</ul>
+# 📦 pkg/capabilities/v2/actions/confidentialhttp/server.(*ClientServer) (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/actions/confidentialhttp/server.ClientCapability (2)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+<li><code>SendRequests</code> — Type changed:
+<pre>func(
+  context.Context, 
+  github.com/smartcontractkit/chainlink-common/pkg/capabilities.RequestMetadata, 
+  - *<del>github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.Input</del>
+  + *<ins>github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.EnclaveActionInput</ins>
+)
+- (*github.com/smartcontractkit/chainlink-common/pkg/capabilities.ResponseAndMetadata[*<del>github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.Output</del>], error)
++ (*github.com/smartcontractkit/chainlink-common/pkg/capabilities.ResponseAndMetadata[*<ins>github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.HTTPEnclaveResponseData</ins>], error)</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/actions/http/server.(*ClientServer) (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/actions/http/server.ClientCapability (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/chain-capabilities/evm/server.(*ClientServer) (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/chain-capabilities/evm/server.ClientCapability (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/consensus/server.(*ConsensusServer) (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/consensus/server.ConsensusCapability (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/protoc/pkg/test_capabilities/actionandtrigger/server.(*BasicServer) (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/protoc/pkg/test_capabilities/actionandtrigger/server.BasicCapability (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/protoc/pkg/test_capabilities/basicaction/server.(*BasicActionServer) (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/protoc/pkg/test_capabilities/basicaction/server.BasicActionCapability (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/protoc/pkg/test_capabilities/basictrigger/server.(*BasicServer) (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/protoc/pkg/test_capabilities/basictrigger/server.BasicCapability (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/protoc/pkg/test_capabilities/consensus/server.(*ConsensusServer) (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/protoc/pkg/test_capabilities/consensus/server.ConsensusCapability (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/protoc/pkg/test_capabilities/importclash/server.(*BasicActionServer) (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/protoc/pkg/test_capabilities/importclash/server.BasicActionCapability (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/protoc/pkg/test_capabilities/nodeaction/server.(*BasicActionServer) (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/protoc/pkg/test_capabilities/nodeaction/server.BasicActionCapability (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/triggers/cron/server.(*CronServer) (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/triggers/cron/server.CronCapability (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/triggers/http/server.(*HTTPServer) (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/capabilities/v2/triggers/http/server.HTTPCapability (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/chains/evm (1)
+<ul>
+<li><code>ConvertHashedValueComparatorsFromProto</code> — Type changed:
+<pre>func(
+  []*HashValueComparator
+)
+- []github.com/smartcontractkit/chainlink-common/pkg/types/query/primitives/evm.HashedValueComparator
++ <ins>(</ins>[]github.com/smartcontractkit/chainlink-common/pkg/types/query/primitives/evm.HashedValueComparator<ins>, error)</ins></pre></li>
+</ul>
+# 📦 pkg/chains/evm.EVMClient (1)
+<ul>
+<li><code>GetLatestLPBlock</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/loop (2)
+<ul>
+<li><code>MustNewStartedServer</code> — Type changed:
+<pre>func(
+  string, 
+  + <ins>...ServerOpt</ins>
+)
+*Server</pre></li>
+<li><code>NewStartedServer</code> — Type changed:
+<pre>func(
+  string, 
+  + <ins>...ServerOpt</ins>
+)
+(*Server, error)</pre></li>
+</ul>
+# 📦 pkg/loop.StandardCapabilities (1)
+<ul>
+<li><code>Initialise</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre></li>
+</ul>
+# 📦 pkg/settings/cresettings.Schema (3)
+<ul>
+<li><code>GatewayUnauthenticatedRequestRateLimit</code> — 🗑️ Removed</li>
+<li><code>GatewayUnauthenticatedRequestRateLimitPerIP</code> — 🗑️ Removed</li>
+<li><code>WorkflowRegistrationQueueLimit</code> — 🗑️ Removed</li>
+</ul>
+# 📦 pkg/settings/cresettings.Workflows (2)
+<ul>
+<li><code>TriggerLimit</code> — 🗑️ Removed</li>
+<li><code>WASMExecutionTimeout</code> — 🗑️ Removed</li>
+</ul>
+# 📦 pkg/settings/cresettings.chainWrite (1)
+<ul>
+<li><code>RateLimit</code> — 🗑️ Removed</li>
+</ul>
+# 📦 pkg/settings/cresettings.httpAction (1)
+<ul>
+<li><code>RateLimit</code> — 🗑️ Removed</li>
+</ul>
+# 📦 pkg/settings/cresettings.logTrigger (1)
+<ul>
+<li><code>RateLimit</code> — 🗑️ Removed</li>
+</ul>
+# 📦 pkg/types.CCIPProviderArgs (2)
+<ul>
+<li><code>OffRampAddress</code> — Type changed:
+<pre>
+  - <del>string</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/ccipocr3.UnknownAddress</ins>
+)</pre></li>
+<li><code>PluginType</code> — Type changed:
+<pre>
+  - <del>uint32</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/ccipocr3.PluginType</ins>
+)</pre></li>
+</ul>
+# 📦 pkg/types.EVMService (1)
+<ul>
+<li><code>GetLatestLPBlock</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/types/ccipocr3 (1)
+<ul>
+<li><code>ExtraDataCodec</code> — 🗑️ Removed</li>
+</ul>
+# 📦 pkg/types/ccipocr3.PriceReader (1)
+<ul>
+<li><code>GetFeeQuoterTokenUpdates</code> — Type changed:
+<pre>func(
+  context.Context, 
+  - <del>[]UnknownEncodedAddress, </del>
+  - <del>ChainSelector</del>
+  + <ins>[]UnknownAddress</ins>
+)
+(map[UnknownEncodedAddress]TimestampedUnixBig, error)</pre></li>
+</ul>
+# 📦 pkg/types/gateway.AuthorizedKey (1)
+<ul>
+<li><code>MarshalJSON</code> — 🗑️ Removed</li>
+</ul>
+# 📦 pkg/workflows/wasm/host (1)
+<ul>
+<li><code>NewModule</code> — Type changed:
+<pre>func(
+  + <ins>context.Context, </ins>
+  *ModuleConfig, 
+  []byte, 
+  ...func(*ModuleConfig)
+)
+(*module, error)</pre></li>
+</ul>
+---
+# ✅ Compatible Changes
+# 🟢 Compatible Changes (146)
+# 📦 package github (3)
+<ul>
+<li><code>com/smartcontractkit/chainlink-common/pkg/capabilities/v2/chain-capabilities/consensus/ocr3/types</code> — ➕ Added</li>
+<li><code>com/smartcontractkit/chainlink-common/pkg/services/orgresolver</code> — ➕ Added</li>
+<li><code>com/smartcontractkit/chainlink-common/pkg/workflows/events</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/beholder (7)
+<ul>
+<li><code>Auth</code> — ➕ Added</li>
+<li><code>HeaderProvider</code> — ➕ Added</li>
+<li><code>NewAuthHeaderV2</code> — ➕ Added</li>
+<li><code>NewRotatingAuth</code> — ➕ Added</li>
+<li><code>NewStaticAuth</code> — ➕ Added</li>
+<li><code>PerRPCCredentialsProvider</code> — ➕ Added</li>
+<li><code>Signer</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/beholder.(*ChipIngressEmitter) (1)
+<ul>
+<li><code>Close</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/beholder.(*Client) (2)
+<ul>
+<li><code>IsSignerSet</code> — ➕ Added</li>
+<li><code>SetSigner</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/beholder.(*DualSourceEmitter) (1)
+<ul>
+<li><code>Close</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/beholder.Config (3)
+<ul>
+<li><code>AuthHeadersTTL</code> — ➕ Added</li>
+<li><code>AuthKeySigner</code> — ➕ Added</li>
+<li><code>LogLevel</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/beholder.writerClientConfig (3)
+<ul>
+<li><code>AuthHeadersTTL</code> — ➕ Added</li>
+<li><code>AuthKeySigner</code> — ➕ Added</li>
+<li><code>LogLevel</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities (1)
+<ul>
+<li><code>ParseID</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities.(*RegistrationMetadata) (1)
+<ul>
+<li><code>ContextWithCRE</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities.(*RequestMetadata) (1)
+<ul>
+<li><code>ContextWithCRE</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities.CapabilityConfiguration (1)
+<ul>
+<li><code>LocalOnly</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities.RequestMetadata (3)
+<ul>
+<li><code>EngineVersion</code> — ➕ Added</li>
+<li><code>WorkflowRegistryAddress</code> — ➕ Added</li>
+<li><code>WorkflowRegistryChainSelector</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities.ResponseMetadata (1)
+<ul>
+<li><code>CapDON_N</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/actions/vault.(*ReportingPluginConfig) (3)
+<ul>
+<li><code>GetLimitsMaxKeyValueModifiedKeys</code> — ➕ Added</li>
+<li><code>GetLimitsMaxPerOracleUnexpiredBlobCount</code> — ➕ Added</li>
+<li><code>GetLimitsMaxPerOracleUnexpiredBlobCumulativePayloadBytes</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/actions/vault.ReportingPluginConfig (3)
+<ul>
+<li><code>LimitsMaxKeyValueModifiedKeys</code> — ➕ Added</li>
+<li><code>LimitsMaxPerOracleUnexpiredBlobCount</code> — ➕ Added</li>
+<li><code>LimitsMaxPerOracleUnexpiredBlobCumulativePayloadBytes</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/consensus/ocr3/types.(*ReportingPluginConfig) (1)
+<ul>
+<li><code>GetHistoricalOutcomeExpirySeqNrSpan</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/consensus/ocr3/types.ReportingPluginConfig (1)
+<ul>
+<li><code>HistoricalOutcomeExpirySeqNrSpan</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/consensus/requests.(*Store[T]) (4)
+<ul>
+<li><code>All</code> — ➕ Added</li>
+<li><code>All</code> — ➕ Added</li>
+<li><code>All</code> — ➕ Added</li>
+<li><code>All</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/pb (11)
+<ul>
+<li><code>NewSettingsClient</code> — ➕ Added</li>
+<li><code>RegisterSettingsServer</code> — ➕ Added</li>
+<li><code>Settings_ServiceDesc</code> — ➕ Added</li>
+<li><code>Settings_Subscribe_FullMethodName</code> — ➕ Added</li>
+<li><code>Settings_SubscribeClient</code> — ➕ Added</li>
+<li><code>Settings_SubscribeServer</code> — ➕ Added</li>
+<li><code>SettingsClient</code> — ➕ Added</li>
+<li><code>SettingsServer</code> — ➕ Added</li>
+<li><code>SettingsUpdate</code> — ➕ Added</li>
+<li><code>UnimplementedSettingsServer</code> — ➕ Added</li>
+<li><code>UnsafeSettingsServer</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/pb.(*CapabilityConfig) (1)
+<ul>
+<li><code>GetLocalOnly</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/pb.(*InitialiseRequest) (2)
+<ul>
+<li><code>GetCreSettingsId</code> — ➕ Added</li>
+<li><code>GetOrgResolverId</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/pb.(*RequestMetadata) (3)
+<ul>
+<li><code>GetEngineVersion</code> — ➕ Added</li>
+<li><code>GetWorkflowRegistryAddress</code> — ➕ Added</li>
+<li><code>GetWorkflowRegistryChainSelector</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/pb.(*ResponseMetadata) (1)
+<ul>
+<li><code>GetCapdonN</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/pb.CapabilityConfig (1)
+<ul>
+<li><code>LocalOnly</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/pb.InitialiseRequest (2)
+<ul>
+<li><code>CreSettingsId</code> — ➕ Added</li>
+<li><code>OrgResolverId</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/pb.RequestMetadata (3)
+<ul>
+<li><code>EngineVersion</code> — ➕ Added</li>
+<li><code>WorkflowRegistryAddress</code> — ➕ Added</li>
+<li><code>WorkflowRegistryChainSelector</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/pb.ResponseMetadata (1)
+<ul>
+<li><code>CapdonN</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/registry (1)
+<ul>
+<li><code>StateGetter</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/capabilities/v2/actions/confidentialhttp (4)
+<ul>
+<li><code>EnclaveActionInput</code> — ➕ Added</li>
+<li><code>HTTPEnclaveRequestData</code> — ➕ Added</li>
+<li><code>HTTPEnclaveResponseData</code> — ➕ Added</li>
+<li><code>ResponseTemplate</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/chains/evm (3)
+<ul>
+<li><code>EVM_GetLatestLPBlock_FullMethodName</code> — ➕ Added</li>
+<li><code>GetLatestLPBlockReply</code> — ➕ Added</li>
+<li><code>LPBlock</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/chains/evm.EVMServer (1)
+<ul>
+<li><code>GetLatestLPBlock</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/chains/evm.UnimplementedEVMServer (1)
+<ul>
+<li><code>GetLatestLPBlock</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/config (1)
+<ul>
+<li><code>SizeOf</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/logger (1)
+<ul>
+<li><code>NewCore</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/loop (9)
+<ul>
+<li><code>AtomicSettings</code> — ➕ Added</li>
+<li><code>MustNewStartedServerWithOtelViews</code> — ➕ Added</li>
+<li><code>NewAtomicSettings</code> — ➕ Added</li>
+<li><code>NewOtelLogger</code> — ➕ Added</li>
+<li><code>NewStartedServerWithOtelViews</code> — ➕ Added</li>
+<li><code>ServerConfig</code> — ➕ Added</li>
+<li><code>ServerOpt</code> — ➕ Added</li>
+<li><code>WithOtelViews</code> — ➕ Added</li>
+<li><code>WithSettingsGetter</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/loop.EnvConfig (7)
+<ul>
+<li><code>TelemetryAuthHeadersTTL</code> — ➕ Added</li>
+<li><code>TelemetryLogBatchProcessor</code> — ➕ Added</li>
+<li><code>TelemetryLogExportInterval</code> — ➕ Added</li>
+<li><code>TelemetryLogExportMaxBatchSize</code> — ➕ Added</li>
+<li><code>TelemetryLogExportTimeout</code> — ➕ Added</li>
+<li><code>TelemetryLogLevel</code> — ➕ Added</li>
+<li><code>TelemetryLogMaxQueueSize</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.CommitLoop, github.com/smartcontractkit/chainlink-common/pkg/types.ReportingPluginFactory]) (1)
+<ul>
+<li><code>Wait</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.ExecutionLoop, github.com/smartcontractkit/chainlink-common/pkg/types.ReportingPluginFactory]) (1)
+<ul>
+<li><code>Wait</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.GRPCPluginKeystore, github.com/smartcontractkit/chainlink-common/pkg/loop/internal/keystore.GRPCService]) (1)
+<ul>
+<li><code>Wait</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.GRPCPluginMedian, github.com/smartcontractkit/chainlink-common/pkg/types.ReportingPluginFactory]) (1)
+<ul>
+<li><code>Wait</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.GRPCPluginMercury, github.com/smartcontractkit/chainlink-common/pkg/types.MercuryPluginFactory]) (1)
+<ul>
+<li><code>Wait</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.GRPCPluginRelayer, github.com/smartcontractkit/chainlink-common/pkg/loop.Relayer]) (1)
+<ul>
+<li><code>Wait</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.StandardCapabilitiesLoop, github.com/smartcontractkit/chainlink-common/pkg/loop.StandardCapabilities]) (1)
+<ul>
+<li><code>Wait</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop/reportingplugins.GRPCService[github.com/smartcontractkit/chainlink-common/pkg/types.PluginProvider], github.com/smartcontractkit/chainlink-common/pkg/types.ReportingPluginFactory]) (1)
+<ul>
+<li><code>Wait</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop/reportingplugins.GRPCService[github.com/smartcontractkit/chainlink-common/pkg/types.PluginProvider], github.com/smartcontractkit/chainlink-common/pkg/types/core.ValidationService]) (1)
+<ul>
+<li><code>Wait</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop/reportingplugins/ocr3.GRPCService[github.com/smartcontractkit/chainlink-common/pkg/types.PluginProvider], github.com/smartcontractkit/chainlink-common/pkg/types/core.OCR3ReportingPluginFactory]) (1)
+<ul>
+<li><code>Wait</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/ratelimit.(*RateLimiter) (1)
+<ul>
+<li><code>SetConfig</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/settings/cresettings (1)
+<ul>
+<li><code>DefaultGetter</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/settings/cresettings.Owners (1)
+<ul>
+<li><code>WorkflowTriggerRateLimit</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/settings/cresettings.Schema (1)
+<ul>
+<li><code>WorkflowTriggerRateLimit</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/settings/cresettings.Workflows (5)
+<ul>
+<li><code>Consensus</code> — ➕ Added</li>
+<li><code>WASMCompressedBinarySizeLimit</code> — ➕ Added</li>
+<li><code>WASMConfigSizeLimit</code> — ➕ Added</li>
+<li><code>WASMResponseSizeLimit</code> — ➕ Added</li>
+<li><code>WASMSecretsSizeLimit</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/settings/cresettings.httpAction (1)
+<ul>
+<li><code>CallLimit</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/settings/cresettings.logTrigger (1)
+<ul>
+<li><code>EventSizeLimit</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/sqlutil (2)
+<ul>
+<li><code>Interval</code> — ➕ Added</li>
+<li><code>NewInterval</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/timeutil (1)
+<ul>
+<li><code>Sleep</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/types (1)
+<ul>
+<li><code>UnimplementedEVMService</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/types.CCIPProviderArgs (2)
+<ul>
+<li><code>ExtraDataCodecBundle</code> — ➕ Added</li>
+<li><code>TransmitterAddress</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/types/ccipocr3 (6)
+<ul>
+<li><code>ExtraDataCodecBundle</code> — ➕ Added</li>
+<li><code>ExtraDataCodecMap</code> — ➕ Added</li>
+<li><code>ExtraDataDecoded</code> — ➕ Added</li>
+<li><code>PluginType</code> — ➕ Added</li>
+<li><code>PluginTypeCCIPCommit</code> — ➕ Added</li>
+<li><code>PluginTypeCCIPExec</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/types/ccipocr3.Codec (1)
+<ul>
+<li><code>MessageHasher</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/types/ccipocr3.MessageHasher (1)
+<ul>
+<li><code>Hash</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/types/chains/evm (1)
+<ul>
+<li><code>LPBlock</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/types/core (4)
+<ul>
+<li><code>SettingsBroadcaster</code> — ➕ Added</li>
+<li><code>SettingsBroadcasterLocal</code> — ➕ Added</li>
+<li><code>SettingsUpdate</code> — ➕ Added</li>
+<li><code>StandardCapabilitiesDependencies</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/types/gateway.CacheSettings (1)
+<ul>
+<li><code>Store</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/types/gateway.OutboundHTTPRequest (1)
+<ul>
+<li><code>WorkflowOwner</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/types/gateway.OutboundHTTPResponse (1)
+<ul>
+<li><code>IsValidationError</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/types/mocks (1)
+<ul>
+<li><code>EVMService_GetLatestLPBlock_Call</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/types/mocks.(*EVMService) (1)
+<ul>
+<li><code>GetLatestLPBlock</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/types/mocks.(*EVMService_Expecter) (1)
+<ul>
+<li><code>GetLatestLPBlock</code> — ➕ Added</li>
+</ul>
+# 📦 pkg/workflows/wasm/host.ModuleConfig (7)
+<ul>
+<li><code>MaxCompressedBinaryLimiter</code> — ➕ Added</li>
+<li><code>MaxDecompressedBinaryLimiter</code> — ➕ Added</li>
+<li><code>MaxLogCountDONMode</code> — ➕ Added</li>
+<li><code>MaxLogCountNodeMode</code> — ➕ Added</li>
+<li><code>MaxLogLenBytes</code> — ➕ Added</li>
+<li><code>MaxResponseSizeLimiter</code> — ➕ Added</li>
+<li><code>MemoryLimiter</code> — ➕ Added</li>
+</ul>"
+`;
+
+exports[`markdown comment & job summary > formats diff as job summary: incompatible-3.txt 1`] = `
+"# ⚠️ API Diff Results – Breaking changes detected (incompatible-3)
+TABLE:
+Metric | Count
+Breaking changes | <div align="right">1</div>
+Compatible changes | <div align="right">6</div>
+Metadata entries | <div align="right">0</div>
+---
+# ⚠️ Breaking Changes
+# 🔴 Breaking Changes (1)
+# 📦 Client (1)
+<ul>
+<li><code>RegisterSchemas</code> — ➕ Added</li>
+</ul>
+---
+# ✅ Compatible Changes
+# 🟢 Compatible Changes (6)
+# 📦 (root) (3)
+<ul>
+<li><code>NoopClient</code> — ➕ Added</li>
+<li><code>WithMeterProvider</code> — ➕ Added</li>
+<li><code>WithTracerProvider</code> — ➕ Added</li>
+</ul>
+# 📦 mocks (1)
+<ul>
+<li><code>Client_RegisterSchemas_Call</code> — ➕ Added</li>
+</ul>
+# 📦 mocks.(*Client) (1)
+<ul>
+<li><code>RegisterSchemas</code> — ➕ Added</li>
+</ul>
+# 📦 mocks.(*Client_Expecter) (1)
+<ul>
+<li><code>RegisterSchemas</code> — ➕ Added</li>
+</ul>"
+`;
+
+exports[`markdown comment & job summary > formats diff as job summary: incompatible-sub-module.txt 1`] = `
+"# ⚠️ API Diff Results – Breaking changes detected (incompatible-sub-module)
+TABLE:
+Metric | Count
+Breaking changes | <div align="right">1</div>
+Compatible changes | <div align="right">6</div>
+Metadata entries | <div align="right">0</div>
+---
+# ⚠️ Breaking Changes
+# 🔴 Breaking Changes (1)
+# 📦 Client (1)
+<ul>
+<li><code>RegisterSchemas</code> — ➕ Added</li>
+</ul>
+---
+# ✅ Compatible Changes
+# 🟢 Compatible Changes (6)
+# 📦 (root) (3)
+<ul>
+<li><code>NoopClient</code> — ➕ Added</li>
+<li><code>WithMeterProvider</code> — ➕ Added</li>
+<li><code>WithTracerProvider</code> — ➕ Added</li>
+</ul>
+# 📦 mocks (1)
+<ul>
+<li><code>Client_RegisterSchemas_Call</code> — ➕ Added</li>
+</ul>
+# 📦 mocks.(*Client) (1)
+<ul>
+<li><code>RegisterSchemas</code> — ➕ Added</li>
+</ul>
+# 📦 mocks.(*Client_Expecter) (1)
+<ul>
+<li><code>RegisterSchemas</code> — ➕ Added</li>
+</ul>"
+`;
+
+exports[`markdown comment & job summary > formats diff as markdown comment: compatible-1.txt 1`] = `
+"## ✅ API Diff Results - No breaking changes
+
+---
+
+📄 [View full apidiff report]()
+"
+`;
+
+exports[`markdown comment & job summary > formats diff as markdown comment: compatible-sub-module.txt 1`] = `
+"## ✅ API Diff Results - No breaking changes
+
+---
+
+📄 [View full apidiff report]()
+"
+`;
+
+exports[`markdown comment & job summary > formats diff as markdown comment: incompatible-1.txt 1`] = `
+"## ⚠️ API Diff Results - Breaking changes detected
+
+### 📦 Module: \`incompatible-1\`
+
+#### 🔴 Breaking Changes (2)
+
+##### \`pkg/loop\` (2)
+
+- **\`MustNewStartedServer\`** — Type changed:
+
+<pre>func(
+  string, 
+  + <ins>...ServerOpt</ins>
+)
+*Server</pre>
+
+- **\`NewStartedServer\`** — Type changed:
+
+<pre>func(
+  string, 
+  + <ins>...ServerOpt</ins>
+)
+(*Server, error)</pre>
+
+---
+
+📄 [View full apidiff report]()
+"
+`;
+
+exports[`markdown comment & job summary > formats diff as markdown comment: incompatible-2.txt 1`] = `
+"## ⚠️ API Diff Results - Breaking changes detected
+
+### 📦 Module: \`incompatible-2\`
+
+#### 🔴 Breaking Changes (56)
+
+##### \`io.Closer\` (1)
+
+- **\`Close\`** — ➕ Added
+
+##### \`pkg/beholder\` (2)
+
+- **\`ChipIngressClient\`** — 🗑️ Removed
+
+- **\`NewChipIngressClient\`** — 🗑️ Removed
+
+##### \`pkg/beholder.BeholderClient\` (1)
+
+- **\`Chip\`** — Type changed:
+
+<pre>
+  - <del>ChipIngressClient</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/chipingress.Client</ins>
+)</pre>
+
+##### \`pkg/beholder.Client\` (1)
+
+- **\`Chip\`** — Type changed:
+
+<pre>
+  - <del>ChipIngressClient</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/chipingress.Client</ins>
+)</pre>
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp\` (3)
+
+- **\`Input\`** — 🗑️ Removed
+
+- **\`Output\`** — 🗑️ Removed
+
+- **\`OutputResponsesElem\`** — 🗑️ Removed
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp.(*Request)\` (1)
+
+- **\`GetPublicTemplateValues\`** — Type changed:
+
+<pre>func(
+)
+- <del>*google.golang.org/protobuf/types/known/structpb.Struct</del>
++ <ins>map[string]string</ins></pre>
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp.Request\` (1)
+
+- **\`PublicTemplateValues\`** — Type changed:
+
+<pre>
+  - <del>*google.golang.org/protobuf/types/known/structpb.Struct</del>
+  + <ins>map[string]string</ins>
+)</pre>
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp/server\` (1)
+
+- **\`ClientID\`** — Value changed from "confidential-http-actions@1.0.0-alpha" to "confidential-http@1.0.0-alpha"
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp/server.(*ClientServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp/server.ClientCapability\` (2)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+- **\`SendRequests\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  github.com/smartcontractkit/chainlink-common/pkg/capabilities.RequestMetadata, 
+  - *<del>github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.Input</del>
+  + *<ins>github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.EnclaveActionInput</ins>
+)
+- (*github.com/smartcontractkit/chainlink-common/pkg/capabilities.ResponseAndMetadata[*<del>github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.Output</del>], error)
++ (*github.com/smartcontractkit/chainlink-common/pkg/capabilities.ResponseAndMetadata[*<ins>github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.HTTPEnclaveResponseData</ins>], error)</pre>
+
+##### \`pkg/capabilities/v2/actions/http/server.(*ClientServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/actions/http/server.ClientCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/chain-capabilities/evm/server.(*ClientServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/chain-capabilities/evm/server.ClientCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/consensus/server.(*ConsensusServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/consensus/server.ConsensusCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/actionandtrigger/server.(*BasicServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/actionandtrigger/server.BasicCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/basicaction/server.(*BasicActionServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/basicaction/server.BasicActionCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/basictrigger/server.(*BasicServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/basictrigger/server.BasicCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/consensus/server.(*ConsensusServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/consensus/server.ConsensusCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/importclash/server.(*BasicActionServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/importclash/server.BasicActionCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/nodeaction/server.(*BasicActionServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/nodeaction/server.BasicActionCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/triggers/cron/server.(*CronServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/triggers/cron/server.CronCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/triggers/http/server.(*HTTPServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/triggers/http/server.HTTPCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/chains/evm\` (1)
+
+- **\`ConvertHashedValueComparatorsFromProto\`** — Type changed:
+
+<pre>func(
+  []*HashValueComparator
+)
+- []github.com/smartcontractkit/chainlink-common/pkg/types/query/primitives/evm.HashedValueComparator
++ <ins>(</ins>[]github.com/smartcontractkit/chainlink-common/pkg/types/query/primitives/evm.HashedValueComparator<ins>, error)</ins></pre>
+
+##### \`pkg/chains/evm.EVMClient\` (1)
+
+- **\`GetLatestLPBlock\`** — ➕ Added
+
+##### \`pkg/loop\` (2)
+
+- **\`MustNewStartedServer\`** — Type changed:
+
+<pre>func(
+  string, 
+  + <ins>...ServerOpt</ins>
+)
+*Server</pre>
+
+- **\`NewStartedServer\`** — Type changed:
+
+<pre>func(
+  string, 
+  + <ins>...ServerOpt</ins>
+)
+(*Server, error)</pre>
+
+##### \`pkg/loop.StandardCapabilities\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/settings/cresettings.Schema\` (3)
+
+- **\`GatewayUnauthenticatedRequestRateLimit\`** — 🗑️ Removed
+
+- **\`GatewayUnauthenticatedRequestRateLimitPerIP\`** — 🗑️ Removed
+
+- **\`WorkflowRegistrationQueueLimit\`** — 🗑️ Removed
+
+##### \`pkg/settings/cresettings.Workflows\` (2)
+
+- **\`TriggerLimit\`** — 🗑️ Removed
+
+- **\`WASMExecutionTimeout\`** — 🗑️ Removed
+
+##### \`pkg/settings/cresettings.chainWrite\` (1)
+
+- **\`RateLimit\`** — 🗑️ Removed
+
+##### \`pkg/settings/cresettings.httpAction\` (1)
+
+- **\`RateLimit\`** — 🗑️ Removed
+
+##### \`pkg/settings/cresettings.logTrigger\` (1)
+
+- **\`RateLimit\`** — 🗑️ Removed
+
+##### \`pkg/types.CCIPProviderArgs\` (2)
+
+- **\`OffRampAddress\`** — Type changed:
+
+<pre>
+  - <del>string</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/ccipocr3.UnknownAddress</ins>
+)</pre>
+
+- **\`PluginType\`** — Type changed:
+
+<pre>
+  - <del>uint32</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/ccipocr3.PluginType</ins>
+)</pre>
+
+##### \`pkg/types.EVMService\` (1)
+
+- **\`GetLatestLPBlock\`** — ➕ Added
+
+##### \`pkg/types/ccipocr3\` (1)
+
+- **\`ExtraDataCodec\`** — 🗑️ Removed
+
+##### \`pkg/types/ccipocr3.PriceReader\` (1)
+
+- **\`GetFeeQuoterTokenUpdates\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>[]UnknownEncodedAddress, </del>
+  - <del>ChainSelector</del>
+  + <ins>[]UnknownAddress</ins>
+)
+(map[UnknownEncodedAddress]TimestampedUnixBig, error)</pre>
+
+##### \`pkg/types/gateway.AuthorizedKey\` (1)
+
+- **\`MarshalJSON\`** — 🗑️ Removed
+
+##### \`pkg/workflows/wasm/host\` (1)
+
+- **\`NewModule\`** — Type changed:
+
+<pre>func(
+  + <ins>context.Context, </ins>
+  *ModuleConfig, 
+  []byte, 
+  ...func(*ModuleConfig)
+)
+(*module, error)</pre>
+
+---
+
+📄 [View full apidiff report]()
+"
+`;
+
+exports[`markdown comment & job summary > formats diff as markdown comment: incompatible-3.txt 1`] = `
+"## ⚠️ API Diff Results - Breaking changes detected
+
+### 📦 Module: \`incompatible-3\`
+
+#### 🔴 Breaking Changes (1)
+
+##### \`Client\` (1)
+
+- **\`RegisterSchemas\`** — ➕ Added
+
+---
+
+📄 [View full apidiff report]()
+"
+`;
+
+exports[`markdown comment & job summary > formats diff as markdown comment: incompatible-sub-module.txt 1`] = `
+"## ⚠️ API Diff Results - Breaking changes detected
+
+### 📦 Module: \`incompatible-sub-module\`
+
+#### 🔴 Breaking Changes (1)
+
+##### \`Client\` (1)
+
+- **\`RegisterSchemas\`** — ➕ Added
+
+---
+
+📄 [View full apidiff report]()
+"
+`;
+
+exports[`markdown comment > formats diff as job summary: compatible-sub-module.txt 1`] = `
+"<h2>✅ API Diff Results – No breaking changes (compatible-sub-module)</h2>
+<table><tr><th>Metric</th><th>Count</th></tr><tr><td>Breaking changes</td><td><div align="right">0</div></td></tr><tr><td>Compatible changes</td><td><div align="right">2</div></td></tr><tr><td>Metadata entries</td><td><div align="right">0</div></td></tr></table>
+<hr>
+<h2>✅ Compatible Changes</h2>
+<h3>🟢 Compatible Changes (2)</h3>
+<h4>📦 (root) (2)</h4>
+<ul>
+<li><code>WithMeterProvider</code> — ➕ Added</li>
+<li><code>WithTracerProvider</code> — ➕ Added</li>
+</ul>
+"
+`;
+
+exports[`markdown comment > forrmats diff as markdown comment: compatible-sub-module.txt 1`] = `
+"## ✅ API Diff Results - No breaking changes
+
+---
+
+📄 [View full apidiff report]()
+"
+`;
+
+exports[`markdown comment > forrmats diff as markdown comment: incompatible-1.txt 1`] = `
+"## ⚠️ API Diff Results - Breaking changes detected
+
+### 📦 Module: \`incompatible-1\`
+
+#### 🔴 Breaking Changes (2)
+
+##### \`pkg/loop\` (2)
+
+- **\`MustNewStartedServer\`** — Type changed:
+
+<pre>func(
+  string, 
+  + <ins>...ServerOpt</ins>
+)
+*Server</pre>
+
+- **\`NewStartedServer\`** — Type changed:
+
+<pre>func(
+  string, 
+  + <ins>...ServerOpt</ins>
+)
+(*Server, error)</pre>
+
+---
+
+📄 [View full apidiff report]()
+"
+`;
+
+exports[`markdown comment > forrmats diff as markdown comment: incompatible-2.txt 1`] = `
+"## ⚠️ API Diff Results - Breaking changes detected
+
+### 📦 Module: \`incompatible-2\`
+
+#### 🔴 Breaking Changes (56)
+
+##### \`io.Closer\` (1)
+
+- **\`Close\`** — ➕ Added
+
+##### \`pkg/beholder\` (2)
+
+- **\`ChipIngressClient\`** — 🗑️ Removed
+
+- **\`NewChipIngressClient\`** — 🗑️ Removed
+
+##### \`pkg/beholder.BeholderClient\` (1)
+
+- **\`Chip\`** — Type changed:
+
+<pre>
+  - <del>ChipIngressClient</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/chipingress.Client</ins>
+)</pre>
+
+##### \`pkg/beholder.Client\` (1)
+
+- **\`Chip\`** — Type changed:
+
+<pre>
+  - <del>ChipIngressClient</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/chipingress.Client</ins>
+)</pre>
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp\` (3)
+
+- **\`Input\`** — 🗑️ Removed
+
+- **\`Output\`** — 🗑️ Removed
+
+- **\`OutputResponsesElem\`** — 🗑️ Removed
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp.(*Request)\` (1)
+
+- **\`GetPublicTemplateValues\`** — Type changed:
+
+<pre>func(
+)
+- <del>*google.golang.org/protobuf/types/known/structpb.Struct</del>
++ <ins>map[string]string</ins></pre>
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp.Request\` (1)
+
+- **\`PublicTemplateValues\`** — Type changed:
+
+<pre>
+  - <del>*google.golang.org/protobuf/types/known/structpb.Struct</del>
+  + <ins>map[string]string</ins>
+)</pre>
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp/server\` (1)
+
+- **\`ClientID\`** — Value changed from "confidential-http-actions@1.0.0-alpha" to "confidential-http@1.0.0-alpha"
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp/server.(*ClientServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp/server.ClientCapability\` (2)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+- **\`SendRequests\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  github.com/smartcontractkit/chainlink-common/pkg/capabilities.RequestMetadata, 
+  - *<del>github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.Input</del>
+  + *<ins>github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.EnclaveActionInput</ins>
+)
+- (*github.com/smartcontractkit/chainlink-common/pkg/capabilities.ResponseAndMetadata[*<del>github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.Output</del>], error)
++ (*github.com/smartcontractkit/chainlink-common/pkg/capabilities.ResponseAndMetadata[*<ins>github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.HTTPEnclaveResponseData</ins>], error)</pre>
+
+##### \`pkg/capabilities/v2/actions/http/server.(*ClientServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/actions/http/server.ClientCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/chain-capabilities/evm/server.(*ClientServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/chain-capabilities/evm/server.ClientCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/consensus/server.(*ConsensusServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/consensus/server.ConsensusCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/actionandtrigger/server.(*BasicServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/actionandtrigger/server.BasicCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/basicaction/server.(*BasicActionServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/basicaction/server.BasicActionCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/basictrigger/server.(*BasicServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/basictrigger/server.BasicCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/consensus/server.(*ConsensusServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/consensus/server.ConsensusCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/importclash/server.(*BasicActionServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/importclash/server.BasicActionCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/nodeaction/server.(*BasicActionServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/nodeaction/server.BasicActionCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/triggers/cron/server.(*CronServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/triggers/cron/server.CronCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/triggers/http/server.(*HTTPServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/triggers/http/server.HTTPCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/chains/evm\` (1)
+
+- **\`ConvertHashedValueComparatorsFromProto\`** — Type changed:
+
+<pre>func(
+  []*HashValueComparator
+)
+- []github.com/smartcontractkit/chainlink-common/pkg/types/query/primitives/evm.HashedValueComparator
++ <ins>(</ins>[]github.com/smartcontractkit/chainlink-common/pkg/types/query/primitives/evm.HashedValueComparator<ins>, error)</ins></pre>
+
+##### \`pkg/chains/evm.EVMClient\` (1)
+
+- **\`GetLatestLPBlock\`** — ➕ Added
+
+##### \`pkg/loop\` (2)
+
+- **\`MustNewStartedServer\`** — Type changed:
+
+<pre>func(
+  string, 
+  + <ins>...ServerOpt</ins>
+)
+*Server</pre>
+
+- **\`NewStartedServer\`** — Type changed:
+
+<pre>func(
+  string, 
+  + <ins>...ServerOpt</ins>
+)
+(*Server, error)</pre>
+
+##### \`pkg/loop.StandardCapabilities\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/settings/cresettings.Schema\` (3)
+
+- **\`GatewayUnauthenticatedRequestRateLimit\`** — 🗑️ Removed
+
+- **\`GatewayUnauthenticatedRequestRateLimitPerIP\`** — 🗑️ Removed
+
+- **\`WorkflowRegistrationQueueLimit\`** — 🗑️ Removed
+
+##### \`pkg/settings/cresettings.Workflows\` (2)
+
+- **\`TriggerLimit\`** — 🗑️ Removed
+
+- **\`WASMExecutionTimeout\`** — 🗑️ Removed
+
+##### \`pkg/settings/cresettings.chainWrite\` (1)
+
+- **\`RateLimit\`** — 🗑️ Removed
+
+##### \`pkg/settings/cresettings.httpAction\` (1)
+
+- **\`RateLimit\`** — 🗑️ Removed
+
+##### \`pkg/settings/cresettings.logTrigger\` (1)
+
+- **\`RateLimit\`** — 🗑️ Removed
+
+##### \`pkg/types.CCIPProviderArgs\` (2)
+
+- **\`OffRampAddress\`** — Type changed:
+
+<pre>
+  - <del>string</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/ccipocr3.UnknownAddress</ins>
+)</pre>
+
+- **\`PluginType\`** — Type changed:
+
+<pre>
+  - <del>uint32</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/ccipocr3.PluginType</ins>
+)</pre>
+
+##### \`pkg/types.EVMService\` (1)
+
+- **\`GetLatestLPBlock\`** — ➕ Added
+
+##### \`pkg/types/ccipocr3\` (1)
+
+- **\`ExtraDataCodec\`** — 🗑️ Removed
+
+##### \`pkg/types/ccipocr3.PriceReader\` (1)
+
+- **\`GetFeeQuoterTokenUpdates\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>[]UnknownEncodedAddress, </del>
+  - <del>ChainSelector</del>
+  + <ins>[]UnknownAddress</ins>
+)
+(map[UnknownEncodedAddress]TimestampedUnixBig, error)</pre>
+
+##### \`pkg/types/gateway.AuthorizedKey\` (1)
+
+- **\`MarshalJSON\`** — 🗑️ Removed
+
+##### \`pkg/workflows/wasm/host\` (1)
+
+- **\`NewModule\`** — Type changed:
+
+<pre>func(
+  + <ins>context.Context, </ins>
+  *ModuleConfig, 
+  []byte, 
+  ...func(*ModuleConfig)
+)
+(*module, error)</pre>
+
+---
+
+📄 [View full apidiff report]()
+"
+`;
+
+exports[`markdown comment > forrmats diff as markdown comment: incompatible-sub-module.txt 1`] = `
+"## ⚠️ API Diff Results - Breaking changes detected
+
+### 📦 Module: \`incompatible-sub-module\`
+
+#### 🔴 Breaking Changes (1)
+
+##### \`Client\` (1)
+
+- **\`RegisterSchemas\`** — ➕ Added
+
+---
+
+📄 [View full apidiff report]()
+"
+`;
+
+exports[`parseApidiffOutput > formats diff as job summary: compatible-sub-module.txt 1`] = `
+"<h2>✅ API Diff Results – No breaking changes (compatible-sub-module)</h2>
+<table><tr><th>Metric</th><th>Count</th></tr><tr><td>Breaking changes</td><td><div align="right">0</div></td></tr><tr><td>Compatible changes</td><td><div align="right">2</div></td></tr><tr><td>Metadata entries</td><td><div align="right">0</div></td></tr></table>
+<hr>
+<h2>✅ Compatible Changes</h2>
+<h3>🟢 Compatible Changes (2)</h3>
+<h4>📦 (root) (2)</h4>
+<ul>
+<li><code>WithMeterProvider</code> — ➕ Added</li>
+<li><code>WithTracerProvider</code> — ➕ Added</li>
+</ul>
+"
+`;
+
+exports[`parseApidiffOutput > formats diff as job summary: incompatible-1.txt 1`] = `""`;
+
+exports[`parseApidiffOutput > formats diff as job summary: incompatible-2.txt 1`] = `""`;
+
+exports[`parseApidiffOutput > formats diff as job summary: incompatible-sub-module.txt 1`] = `""`;
+
+exports[`parseApidiffOutput > forrmats diff as markdown comment: compatible-sub-module.txt 1`] = `
+"## ✅ API Diff Results - No breaking changes
+
+---
+
+📄 [View full apidiff report]()
+"
+`;
+
+exports[`parseApidiffOutput > forrmats diff as markdown comment: incompatible-1.txt 1`] = `
+"## ⚠️ API Diff Results - Breaking changes detected
+
+### 📦 Module: \`incompatible-1\`
+
+#### 🔴 Breaking Changes (2)
+
+##### \`pkg/loop\` (2)
+
+- **\`MustNewStartedServer\`** — Type changed:
+
+<pre>func(
+  string, 
+  + <ins>...ServerOpt</ins>
+)
+*Server</pre>
+
+- **\`NewStartedServer\`** — Type changed:
+
+<pre>func(
+  string, 
+  + <ins>...ServerOpt</ins>
+)
+(*Server, error)</pre>
+
+---
+
+📄 [View full apidiff report]()
+"
+`;
+
+exports[`parseApidiffOutput > forrmats diff as markdown comment: incompatible-2.txt 1`] = `
+"## ⚠️ API Diff Results - Breaking changes detected
+
+### 📦 Module: \`incompatible-2\`
+
+#### 🔴 Breaking Changes (56)
+
+##### \`io.Closer\` (1)
+
+- **\`Close\`** — ➕ Added
+
+##### \`pkg/beholder\` (2)
+
+- **\`ChipIngressClient\`** — 🗑️ Removed
+
+- **\`NewChipIngressClient\`** — 🗑️ Removed
+
+##### \`pkg/beholder.BeholderClient\` (1)
+
+- **\`Chip\`** — Type changed:
+
+<pre>
+  - <del>ChipIngressClient</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/chipingress.Client</ins>
+)</pre>
+
+##### \`pkg/beholder.Client\` (1)
+
+- **\`Chip\`** — Type changed:
+
+<pre>
+  - <del>ChipIngressClient</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/chipingress.Client</ins>
+)</pre>
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp\` (3)
+
+- **\`Input\`** — 🗑️ Removed
+
+- **\`Output\`** — 🗑️ Removed
+
+- **\`OutputResponsesElem\`** — 🗑️ Removed
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp.(*Request)\` (1)
+
+- **\`GetPublicTemplateValues\`** — Type changed:
+
+<pre>func(
+)
+- <del>*google.golang.org/protobuf/types/known/structpb.Struct</del>
++ <ins>map[string]string</ins></pre>
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp.Request\` (1)
+
+- **\`PublicTemplateValues\`** — Type changed:
+
+<pre>
+  - <del>*google.golang.org/protobuf/types/known/structpb.Struct</del>
+  + <ins>map[string]string</ins>
+)</pre>
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp/server\` (1)
+
+- **\`ClientID\`** — Value changed from "confidential-http-actions@1.0.0-alpha" to "confidential-http@1.0.0-alpha"
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp/server.(*ClientServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp/server.ClientCapability\` (2)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+- **\`SendRequests\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  github.com/smartcontractkit/chainlink-common/pkg/capabilities.RequestMetadata, 
+  - *<del>github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.Input</del>
+  + *<ins>github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.EnclaveActionInput</ins>
+)
+- (*github.com/smartcontractkit/chainlink-common/pkg/capabilities.ResponseAndMetadata[*<del>github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.Output</del>], error)
++ (*github.com/smartcontractkit/chainlink-common/pkg/capabilities.ResponseAndMetadata[*<ins>github.com/smartcontractkit/chainlink-common/pkg/capabilities/v2/actions/confidentialhttp.HTTPEnclaveResponseData</ins>], error)</pre>
+
+##### \`pkg/capabilities/v2/actions/http/server.(*ClientServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/actions/http/server.ClientCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/chain-capabilities/evm/server.(*ClientServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/chain-capabilities/evm/server.ClientCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/consensus/server.(*ConsensusServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/consensus/server.ConsensusCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/actionandtrigger/server.(*BasicServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/actionandtrigger/server.BasicCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/basicaction/server.(*BasicActionServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/basicaction/server.BasicActionCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/basictrigger/server.(*BasicServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/basictrigger/server.BasicCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/consensus/server.(*ConsensusServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/consensus/server.ConsensusCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/importclash/server.(*BasicActionServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/importclash/server.BasicActionCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/nodeaction/server.(*BasicActionServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/nodeaction/server.BasicActionCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/triggers/cron/server.(*CronServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/triggers/cron/server.CronCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/triggers/http/server.(*HTTPServer)\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/capabilities/v2/triggers/http/server.HTTPCapability\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/chains/evm\` (1)
+
+- **\`ConvertHashedValueComparatorsFromProto\`** — Type changed:
+
+<pre>func(
+  []*HashValueComparator
+)
+- []github.com/smartcontractkit/chainlink-common/pkg/types/query/primitives/evm.HashedValueComparator
++ <ins>(</ins>[]github.com/smartcontractkit/chainlink-common/pkg/types/query/primitives/evm.HashedValueComparator<ins>, error)</ins></pre>
+
+##### \`pkg/chains/evm.EVMClient\` (1)
+
+- **\`GetLatestLPBlock\`** — ➕ Added
+
+##### \`pkg/loop\` (2)
+
+- **\`MustNewStartedServer\`** — Type changed:
+
+<pre>func(
+  string, 
+  + <ins>...ServerOpt</ins>
+)
+*Server</pre>
+
+- **\`NewStartedServer\`** — Type changed:
+
+<pre>func(
+  string, 
+  + <ins>...ServerOpt</ins>
+)
+(*Server, error)</pre>
+
+##### \`pkg/loop.StandardCapabilities\` (1)
+
+- **\`Initialise\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>string, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.TelemetryService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.KeyValueStore, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.CapabilitiesRegistry, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.ErrorLog, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.PipelineRunnerService, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.RelayerSet, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.OracleFactory, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.GatewayConnector, </del>
+  - <del>github.com/smartcontractkit/chainlink-common/pkg/types/core.Keystore</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/core.StandardCapabilitiesDependencies</ins>
+)
+error</pre>
+
+##### \`pkg/settings/cresettings.Schema\` (3)
+
+- **\`GatewayUnauthenticatedRequestRateLimit\`** — 🗑️ Removed
+
+- **\`GatewayUnauthenticatedRequestRateLimitPerIP\`** — 🗑️ Removed
+
+- **\`WorkflowRegistrationQueueLimit\`** — 🗑️ Removed
+
+##### \`pkg/settings/cresettings.Workflows\` (2)
+
+- **\`TriggerLimit\`** — 🗑️ Removed
+
+- **\`WASMExecutionTimeout\`** — 🗑️ Removed
+
+##### \`pkg/settings/cresettings.chainWrite\` (1)
+
+- **\`RateLimit\`** — 🗑️ Removed
+
+##### \`pkg/settings/cresettings.httpAction\` (1)
+
+- **\`RateLimit\`** — 🗑️ Removed
+
+##### \`pkg/settings/cresettings.logTrigger\` (1)
+
+- **\`RateLimit\`** — 🗑️ Removed
+
+##### \`pkg/types.CCIPProviderArgs\` (2)
+
+- **\`OffRampAddress\`** — Type changed:
+
+<pre>
+  - <del>string</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/ccipocr3.UnknownAddress</ins>
+)</pre>
+
+- **\`PluginType\`** — Type changed:
+
+<pre>
+  - <del>uint32</del>
+  + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/ccipocr3.PluginType</ins>
+)</pre>
+
+##### \`pkg/types.EVMService\` (1)
+
+- **\`GetLatestLPBlock\`** — ➕ Added
+
+##### \`pkg/types/ccipocr3\` (1)
+
+- **\`ExtraDataCodec\`** — 🗑️ Removed
+
+##### \`pkg/types/ccipocr3.PriceReader\` (1)
+
+- **\`GetFeeQuoterTokenUpdates\`** — Type changed:
+
+<pre>func(
+  context.Context, 
+  - <del>[]UnknownEncodedAddress, </del>
+  - <del>ChainSelector</del>
+  + <ins>[]UnknownAddress</ins>
+)
+(map[UnknownEncodedAddress]TimestampedUnixBig, error)</pre>
+
+##### \`pkg/types/gateway.AuthorizedKey\` (1)
+
+- **\`MarshalJSON\`** — 🗑️ Removed
+
+##### \`pkg/workflows/wasm/host\` (1)
+
+- **\`NewModule\`** — Type changed:
+
+<pre>func(
+  + <ins>context.Context, </ins>
+  *ModuleConfig, 
+  []byte, 
+  ...func(*ModuleConfig)
+)
+(*module, error)</pre>
+
+---
+
+📄 [View full apidiff report]()
+"
+`;
+
+exports[`parseApidiffOutput > forrmats diff as markdown comment: incompatible-sub-module.txt 1`] = `
+"## ⚠️ API Diff Results - Breaking changes detected
+
+### 📦 Module: \`incompatible-sub-module\`
+
+#### 🔴 Breaking Changes (1)
+
+##### \`Client\` (1)
+
+- **\`RegisterSchemas\`** — ➕ Added
+
+---
+
+📄 [View full apidiff report]()
+"
+`;
