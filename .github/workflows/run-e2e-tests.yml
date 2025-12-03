@@ -839,7 +839,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@fix/ctf-run-tests-quarantine
         continue-on-error: ${{ inputs.quarantine == 'true' }} # auto-quarantine will handle result
         env:
           DETACH_RUNNER: true
@@ -860,6 +860,7 @@ jobs:
             secrets.QA_AWS_REGION }}.amazonaws.com
           GITHUB_API_TOKEN: ${{ steps.setup-optional-gati-token.outputs.access-token || ''}}
         with:
+          quarantine: ${{ inputs.quarantine == 'true' }}
           test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command: cd $(dirname ${{ matrix.tests.path }}) && go mod download
@@ -1150,7 +1151,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@fix/ctf-run-tests-quarantine
         continue-on-error: ${{ inputs.quarantine == 'true' }} # auto-quarantine will handle result
         env:
           DETACH_RUNNER: true
@@ -1179,6 +1180,7 @@ jobs:
             '' }}
           DATABASE_URL: postgresql://postgres:node@localhost:5432/chainlink_test?sslmode=disable
         with:
+          quarantine: ${{ inputs.quarantine == 'true' }}
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command: make gomod
           test_secrets_override_base64: ${{ steps.aws-test-secrets.outputs.secret_value ||
@@ -1316,10 +1318,11 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@fix/ctf-run-tests-quarantine
         env:
           RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
         with:
+          quarantine: ${{ inputs.quarantine == 'true' }}
           test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command: cd $(dirname ${{ matrix.tests.path }}) && go mod download
