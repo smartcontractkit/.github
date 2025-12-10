@@ -10,7 +10,7 @@ import {
   diffExports,
 } from "./apidiff";
 import { validateGitRepositoryRoot, getRepoTags } from "./git";
-import { getSummaryUrl, upsertPRComment } from "./github";
+import { upsertPRComment } from "./github";
 import { CL_LOCAL_DEBUG, getInputs, getInvokeContext } from "./run-inputs";
 import {
   formatApidiffMarkdown,
@@ -100,16 +100,10 @@ export async function run(): Promise<void> {
     formatApidiffJobSummary(parsedResult);
 
     if (context.event.eventName === "pull_request") {
-      const summaryUrl = await getSummaryUrl(
-        octokit,
-        context.owner,
-        context.repo,
-      );
-
       const markdownOutputIncompatibleOnly = formatApidiffMarkdown(
-        [parsedResult],
-        summaryUrl,
-        false,
+        parsedResult,
+        inputs.summaryUrl,
+        true,
       );
 
       if (CL_LOCAL_DEBUG) {

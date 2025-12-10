@@ -13,6 +13,7 @@ export interface RunInputs {
   enforceCompatible: boolean;
   postComment: boolean;
   apidiffVersion: string;
+  summaryUrl: string;
 }
 
 export function getInputs(): RunInputs {
@@ -26,6 +27,7 @@ export function getInputs(): RunInputs {
     enforceCompatible: getRunInputBoolean("enforceCompatible"),
     postComment: getRunInputBoolean("postComment"),
     apidiffVersion: getRunInputString("apidiffVersion"),
+    summaryUrl: getRunInputString("summaryUrl"),
   };
 
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
@@ -100,6 +102,10 @@ const runInputsConfiguration: {
   apidiffVersion: {
     parameter: "apidiff-version",
     localParameter: "APIDIFF_VERSION",
+  },
+  summaryUrl: {
+    parameter: "summary-url",
+    localParameter: "SUMMARY_URL",
   },
 };
 

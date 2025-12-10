@@ -53,31 +53,3 @@ export async function upsertPRComment(
     core.warning(`Failed to upsert PR comment: ${error}`);
   }
 }
-
-export async function getSummaryUrl(
-  octokit: OctokitType,
-  owner: string,
-  repo: string,
-): Promise<string> {
-  const runId = github.context.runId;
-  try {
-    const { data } = await octokit.rest.actions.listJobsForWorkflowRun({
-      owner,
-      repo,
-      run_id: runId,
-    });
-
-    if (data.jobs.length !== 1) {
-      core.warning(
-        `Expected exactly one job in workflow run, found ${data.jobs.length}. Cannot determine summary URL.`,
-      );
-      return "";
-    }
-
-    // Example format: https://github.com/smartcontractkit/chainlink-common/actions/runs/16783814681#summary-47529227742
-    return `https://github.com/${owner}/${repo}/actions/runs/${runId}/#summary-${data.jobs[0].id}`;
-  } catch (error) {
-    core.warning(`Failed to get summary link: ${error}`);
-    return "";
-  }
-}

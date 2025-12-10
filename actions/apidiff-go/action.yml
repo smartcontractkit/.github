@@ -55,3 +55,13 @@ inputs:
       This should only be overridden if 'latest' is not suitable.
     required: false
     default: "latest"
+
+  # misc inputs - dont touch these
+  summary-url:
+    description:
+      "URL linking to the full apidiff report. This is included in the comment
+      posted to the pull request."
+    required: true
+    default:
+      ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}',
+      github.repository, github.run_id, job.check_run_id) }}

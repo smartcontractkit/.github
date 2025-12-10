@@ -17,6 +17,7 @@ export INPUT_HEAD_REF_OVERRIDE="pkg/chipingress/v0.0.8"
 export INPUT_ENFORCE_COMPATIBLE="true"
 export INPUT_POST_COMMENT="false"
 export INPUT_APIDIFF_VERSION="latest"
+export INPUT_SUMMARY_URL="https://github.com/smartcontractkit/.github"
 
 export CL_LOCAL_DEBUG="true"
 
