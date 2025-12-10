@@ -1,5 +1,14 @@
 # get-mcms-tools
 
+## 0.1.1
+
+### Patch Changes
+
+- [#1355](https://github.com/smartcontractkit/.github/pull/1355)
+  [`d999b5a`](https://github.com/smartcontractkit/.github/commit/d999b5a5c151ff7152d7b71ed52b97593831960b)
+  Thanks [@ecPablo](https://github.com/ecPablo)! - fix artifact names based on
+  the output artifacts
+
 ## 0.1.0
 
 ### Minor Changes
