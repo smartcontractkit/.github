@@ -21,27 +21,6 @@ exports[`parseApidiffOutput > parses API diff output fixture: compatible-1.txt 1
 }
 `;
 
-exports[`parseApidiffOutput > parses API diff output fixture: compatible-sub-module.txt 1`] = `
-{
-  "compatible": [
-    {
-      "change": "added",
-      "element": "WithMeterProvider",
-    },
-    {
-      "change": "added",
-      "element": "WithTracerProvider",
-    },
-  ],
-  "incompatible": [],
-  "meta": [],
-  "moduleName": "compatible-sub-module",
-  "rawOutput": "Compatible changes:
-- WithMeterProvider: added
-- WithTracerProvider: added",
-}
-`;
-
 exports[`parseApidiffOutput > parses API diff output fixture: incompatible-1.txt 1`] = `
 {
   "compatible": [
@@ -1254,53 +1233,5 @@ Compatible changes:
 - WithMeterProvider: added
 - WithTracerProvider: added
 ",
-}
-`;
-
-exports[`parseApidiffOutput > parses API diff output fixture: incompatible-sub-module.txt 1`] = `
-{
-  "compatible": [
-    {
-      "change": "added",
-      "element": "./mocks.(*Client).RegisterSchemas",
-    },
-    {
-      "change": "added",
-      "element": "./mocks.(*Client_Expecter).RegisterSchemas",
-    },
-    {
-      "change": "added",
-      "element": "./mocks.Client_RegisterSchemas_Call",
-    },
-    {
-      "change": "added",
-      "element": "NoopClient",
-    },
-    {
-      "change": "added",
-      "element": "WithMeterProvider",
-    },
-    {
-      "change": "added",
-      "element": "WithTracerProvider",
-    },
-  ],
-  "incompatible": [
-    {
-      "change": "added",
-      "element": "Client.RegisterSchemas",
-    },
-  ],
-  "meta": [],
-  "moduleName": "incompatible-sub-module",
-  "rawOutput": "Incompatible changes:
-- Client.RegisterSchemas: added
-Compatible changes:
-- ./mocks.(*Client).RegisterSchemas: added
-- ./mocks.(*Client_Expecter).RegisterSchemas: added
-- ./mocks.Client_RegisterSchemas_Call: added
-- NoopClient: added
-- WithMeterProvider: added
-- WithTracerProvider: added",
 }
 `;
