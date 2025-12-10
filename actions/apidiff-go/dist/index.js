@@ -4247,18 +4247,18 @@ var require_webidl = __commonJS({
     webidl.errors.exception = function(message) {
       return new TypeError(`${message.header}: ${message.message}`);
     };
-    webidl.errors.conversionFailed = function(context3) {
-      const plural = context3.types.length === 1 ? "" : " one of";
-      const message = `${context3.argument} could not be converted to${plural}: ${context3.types.join(", ")}.`;
+    webidl.errors.conversionFailed = function(context2) {
+      const plural = context2.types.length === 1 ? "" : " one of";
+      const message = `${context2.argument} could not be converted to${plural}: ${context2.types.join(", ")}.`;
       return webidl.errors.exception({
-        header: context3.prefix,
+        header: context2.prefix,
         message
       });
     };
-    webidl.errors.invalidArgument = function(context3) {
+    webidl.errors.invalidArgument = function(context2) {
       return webidl.errors.exception({
-        header: context3.prefix,
-        message: `"${context3.value}" is an invalid ${context3.type}.`
+        header: context2.prefix,
+        message: `"${context2.value}" is an invalid ${context2.type}.`
       });
     };
     webidl.brandCheck = function(V, I, opts = void 0) {
@@ -9590,15 +9590,15 @@ var require_api_request = __commonJS({
         }
         addSignal(this, signal);
       }
-      onConnect(abort, context3) {
+      onConnect(abort, context2) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context3;
+        this.context = context2;
       }
       onHeaders(statusCode, rawHeaders, resume, statusMessage) {
-        const { callback, opaque, abort, context: context3, responseHeaders, highWaterMark } = this;
+        const { callback, opaque, abort, context: context2, responseHeaders, highWaterMark } = this;
         const headers = responseHeaders === "raw" ? util.parseRawHeaders(rawHeaders) : util.parseHeaders(rawHeaders);
         if (statusCode < 200) {
           if (this.onInfo) {
@@ -9625,7 +9625,7 @@ var require_api_request = __commonJS({
               trailers: this.trailers,
               opaque,
               body,
-              context: context3
+              context: context2
             });
           }
         }
@@ -9745,15 +9745,15 @@ var require_api_stream = __commonJS({
         }
         addSignal(this, signal);
       }
-      onConnect(abort, context3) {
+      onConnect(abort, context2) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context3;
+        this.context = context2;
       }
       onHeaders(statusCode, rawHeaders, resume, statusMessage) {
-        const { factory, opaque, context: context3, callback, responseHeaders } = this;
+        const { factory, opaque, context: context2, callback, responseHeaders } = this;
         const headers = responseHeaders === "raw" ? util.parseRawHeaders(rawHeaders) : util.parseHeaders(rawHeaders);
         if (statusCode < 200) {
           if (this.onInfo) {
@@ -9781,7 +9781,7 @@ var require_api_stream = __commonJS({
             statusCode,
             headers,
             opaque,
-            context: context3
+            context: context2
           });
           if (!res || typeof res.write !== "function" || typeof res.end !== "function" || typeof res.on !== "function") {
             throw new InvalidReturnValueError("expected Writable");
@@ -9973,17 +9973,17 @@ var require_api_pipeline = __commonJS({
         this.res = null;
         addSignal(this, signal);
       }
-      onConnect(abort, context3) {
+      onConnect(abort, context2) {
         const { ret, res } = this;
         assert(!res, "pipeline cannot be retried");
         if (ret.destroyed) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context3;
+        this.context = context2;
       }
       onHeaders(statusCode, rawHeaders, resume) {
-        const { opaque, handler, context: context3 } = this;
+        const { opaque, handler, context: context2 } = this;
         if (statusCode < 200) {
           if (this.onInfo) {
             const headers = this.responseHeaders === "raw" ? util.parseRawHeaders(rawHeaders) : util.parseHeaders(rawHeaders);
@@ -10001,7 +10001,7 @@ var require_api_pipeline = __commonJS({
             headers,
             opaque,
             body: this.res,
-            context: context3
+            context: context2
           });
         } catch (err) {
           this.res.on("error", util.nop);
@@ -10085,7 +10085,7 @@ var require_api_upgrade = __commonJS({
         this.context = null;
         addSignal(this, signal);
       }
-      onConnect(abort, context3) {
+      onConnect(abort, context2) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
@@ -10096,7 +10096,7 @@ var require_api_upgrade = __commonJS({
         throw new SocketError("bad upgrade", null);
       }
       onUpgrade(statusCode, rawHeaders, socket) {
-        const { callback, opaque, context: context3 } = this;
+        const { callback, opaque, context: context2 } = this;
         assert.strictEqual(statusCode, 101);
         removeSignal(this);
         this.callback = null;
@@ -10105,7 +10105,7 @@ var require_api_upgrade = __commonJS({
           headers,
           socket,
           opaque,
-          context: context3
+          context: context2
         });
       }
       onError(err) {
@@ -10173,18 +10173,18 @@ var require_api_connect = __commonJS({
         this.abort = null;
         addSignal(this, signal);
       }
-      onConnect(abort, context3) {
+      onConnect(abort, context2) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context3;
+        this.context = context2;
       }
       onHeaders() {
         throw new SocketError("bad connect", null);
       }
       onUpgrade(statusCode, rawHeaders, socket) {
-        const { callback, opaque, context: context3 } = this;
+        const { callback, opaque, context: context2 } = this;
         removeSignal(this);
         this.callback = null;
         let headers = rawHeaders;
@@ -10196,7 +10196,7 @@ var require_api_connect = __commonJS({
           headers,
           socket,
           opaque,
-          context: context3
+          context: context2
         });
       }
       onError(err) {
@@ -20284,8 +20284,8 @@ var require_dist_node2 = __commonJS({
     function isKeyOperator(operator) {
       return operator === ";" || operator === "&" || operator === "?";
     }
-    function getValues(context3, operator, key, modifier) {
-      var value = context3[key], result = [];
+    function getValues(context2, operator, key, modifier) {
+      var value = context2[key], result = [];
       if (isDefined(value) && value !== "") {
         if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
           value = value.toString();
@@ -20349,7 +20349,7 @@ var require_dist_node2 = __commonJS({
         expand: expand.bind(null, template)
       };
     }
-    function expand(template, context3) {
+    function expand(template, context2) {
       var operators = ["+", "#", ".", "/", ";", "?", "&"];
       template = template.replace(
         /\{([^\{\}]+)\}|([^\{\}]+)/g,
@@ -20363,7 +20363,7 @@ var require_dist_node2 = __commonJS({
             }
             expression.split(/,/g).forEach(function(variable) {
               var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
-              values.push(getValues(context3, operator, tmp[1], tmp[2] || tmp[3]));
+              values.push(getValues(context2, operator, tmp[1], tmp[2] || tmp[3]));
             });
             if (operator && operator !== "+") {
               var separator = ",";
@@ -26296,7 +26296,7 @@ var require_semver2 = __commonJS({
 
 // actions/apidiff-go/src/run.ts
 var core7 = __toESM(require_core());
-var github4 = __toESM(require_github());
+var github3 = __toESM(require_github());
 var import_path3 = require("path");
 
 // actions/apidiff-go/src/apidiff.ts
@@ -27693,7 +27693,7 @@ var normalizeForceKillAfterDelay = (forceKillAfterDelay) => {
   return forceKillAfterDelay;
 };
 var DEFAULT_FORCE_KILL_TIMEOUT = 1e3 * 5;
-var subprocessKill = ({ kill, options: { forceKillAfterDelay, killSignal }, onInternalError, context: context3, controller }, signalOrError, errorArgument) => {
+var subprocessKill = ({ kill, options: { forceKillAfterDelay, killSignal }, onInternalError, context: context2, controller }, signalOrError, errorArgument) => {
   const { signal, error } = parseKillArguments(signalOrError, errorArgument, killSignal);
   emitKillError(error, onInternalError);
   const killResult = kill(signal);
@@ -27703,7 +27703,7 @@ var subprocessKill = ({ kill, options: { forceKillAfterDelay, killSignal }, onIn
     forceKillAfterDelay,
     killSignal,
     killResult,
-    context: context3,
+    context: context2,
     controller
   });
   return killResult;
@@ -27723,24 +27723,24 @@ var emitKillError = (error, onInternalError) => {
     onInternalError.reject(error);
   }
 };
-var setKillTimeout = async ({ kill, signal, forceKillAfterDelay, killSignal, killResult, context: context3, controller }) => {
+var setKillTimeout = async ({ kill, signal, forceKillAfterDelay, killSignal, killResult, context: context2, controller }) => {
   if (signal === killSignal && killResult) {
     killOnTimeout({
       kill,
       forceKillAfterDelay,
-      context: context3,
+      context: context2,
       controllerSignal: controller.signal
     });
   }
 };
-var killOnTimeout = async ({ kill, forceKillAfterDelay, context: context3, controllerSignal }) => {
+var killOnTimeout = async ({ kill, forceKillAfterDelay, context: context2, controllerSignal }) => {
   if (forceKillAfterDelay === false) {
     return;
   }
   try {
     await (0, import_promises.setTimeout)(forceKillAfterDelay, void 0, { signal: controllerSignal });
     if (kill("SIGKILL")) {
-      context3.isForcefullyTerminated ??= true;
+      context2.isForcefullyTerminated ??= true;
     }
   } catch {
   }
@@ -27760,10 +27760,10 @@ var validateCancelSignal = ({ cancelSignal }) => {
     throw new Error(`The \`cancelSignal\` option must be an AbortSignal: ${String(cancelSignal)}`);
   }
 };
-var throwOnCancel = ({ subprocess, cancelSignal, gracefulCancel, context: context3, controller }) => cancelSignal === void 0 || gracefulCancel ? [] : [terminateOnCancel(subprocess, cancelSignal, context3, controller)];
-var terminateOnCancel = async (subprocess, cancelSignal, context3, { signal }) => {
+var throwOnCancel = ({ subprocess, cancelSignal, gracefulCancel, context: context2, controller }) => cancelSignal === void 0 || gracefulCancel ? [] : [terminateOnCancel(subprocess, cancelSignal, context2, controller)];
+var terminateOnCancel = async (subprocess, cancelSignal, context2, { signal }) => {
   await onAbortedSignal(cancelSignal, signal);
-  context3.terminationReason ??= "cancel";
+  context2.terminationReason ??= "cancel";
   subprocess.kill();
   throw cancelSignal.reason;
 };
@@ -28319,26 +28319,26 @@ var throwOnGracefulCancel = ({
   cancelSignal,
   gracefulCancel,
   forceKillAfterDelay,
-  context: context3,
+  context: context2,
   controller
 }) => gracefulCancel ? [sendOnAbort({
   subprocess,
   cancelSignal,
   forceKillAfterDelay,
-  context: context3,
+  context: context2,
   controller
 })] : [];
-var sendOnAbort = async ({ subprocess, cancelSignal, forceKillAfterDelay, context: context3, controller: { signal } }) => {
+var sendOnAbort = async ({ subprocess, cancelSignal, forceKillAfterDelay, context: context2, controller: { signal } }) => {
   await onAbortedSignal(cancelSignal, signal);
   const reason = getReason(cancelSignal);
   await sendAbort(subprocess, reason);
   killOnTimeout({
     kill: subprocess.kill,
     forceKillAfterDelay,
-    context: context3,
+    context: context2,
     controllerSignal: signal
   });
-  context3.terminationReason ??= "gracefulCancel";
+  context2.terminationReason ??= "gracefulCancel";
   throw cancelSignal.reason;
 };
 var getReason = ({ reason }) => {
@@ -28362,10 +28362,10 @@ var validateTimeout = ({ timeout }) => {
     throw new TypeError(`Expected the \`timeout\` option to be a non-negative integer, got \`${timeout}\` (${typeof timeout})`);
   }
 };
-var throwOnTimeout = (subprocess, timeout, context3, controller) => timeout === 0 || timeout === void 0 ? [] : [killAfterTimeout(subprocess, timeout, context3, controller)];
-var killAfterTimeout = async (subprocess, timeout, context3, { signal }) => {
+var throwOnTimeout = (subprocess, timeout, context2, controller) => timeout === 0 || timeout === void 0 ? [] : [killAfterTimeout(subprocess, timeout, context2, controller)];
+var killAfterTimeout = async (subprocess, timeout, context2, { signal }) => {
   await (0, import_promises4.setTimeout)(timeout, void 0, { signal });
-  context3.terminationReason ??= "timeout";
+  context2.terminationReason ??= "timeout";
   subprocess.kill();
   throw new DiscardedError();
 };
@@ -30718,9 +30718,9 @@ var getAllSync = ([, stdout, stderr], options) => {
 
 // node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/resolve/exit-async.js
 var import_node_events7 = require("node:events");
-var waitForExit = async (subprocess, context3) => {
+var waitForExit = async (subprocess, context2) => {
   const [exitCode, signal] = await waitForExitOrError(subprocess);
-  context3.isForcefullyTerminated ??= false;
+  context2.isForcefullyTerminated ??= false;
   return [exitCode, signal];
 };
 var waitForExitOrError = async (subprocess) => {
@@ -32373,14 +32373,14 @@ var waitForSubprocessResult = async ({
     ipc,
     ipcInput
   },
-  context: context3,
+  context: context2,
   verboseInfo,
   fileDescriptors,
   originalStreams,
   onInternalError,
   controller
 }) => {
-  const exitPromise = waitForExit(subprocess, context3);
+  const exitPromise = waitForExit(subprocess, context2);
   const streamInfo = {
     originalStreams,
     fileDescriptors,
@@ -32433,12 +32433,12 @@ var waitForSubprocessResult = async ({
       ]),
       onInternalError,
       throwOnSubprocessError(subprocess, controller),
-      ...throwOnTimeout(subprocess, timeout, context3, controller),
+      ...throwOnTimeout(subprocess, timeout, context2, controller),
       ...throwOnCancel({
         subprocess,
         cancelSignal,
         gracefulCancel,
-        context: context3,
+        context: context2,
         controller
       }),
       ...throwOnGracefulCancel({
@@ -32446,12 +32446,12 @@ var waitForSubprocessResult = async ({
         cancelSignal,
         gracefulCancel,
         forceKillAfterDelay,
-        context: context3,
+        context: context2,
         controller
       })
     ]);
   } catch (error) {
-    context3.terminationReason ??= "other";
+    context2.terminationReason ??= "other";
     return Promise.all([
       { error },
       exitPromise,
@@ -32866,13 +32866,13 @@ var spawnSubprocessAsync = ({ file, commandArguments, options, startTime, verbos
   const originalStreams = [...subprocess.stdio];
   pipeOutputAsync(subprocess, fileDescriptors, controller);
   cleanupOnExit(subprocess, options, controller);
-  const context3 = {};
+  const context2 = {};
   const onInternalError = createDeferred();
   subprocess.kill = subprocessKill.bind(void 0, {
     kill: subprocess.kill.bind(subprocess),
     options,
     onInternalError,
-    context: context3,
+    context: context2,
     controller
   });
   subprocess.all = makeAllStream(subprocess, options);
@@ -32887,13 +32887,13 @@ var spawnSubprocessAsync = ({ file, commandArguments, options, startTime, verbos
     originalStreams,
     command,
     escapedCommand,
-    context: context3,
+    context: context2,
     onInternalError,
     controller
   });
   return { subprocess, promise };
 };
-var handlePromise = async ({ subprocess, options, startTime, verboseInfo, fileDescriptors, originalStreams, command, escapedCommand, context: context3, onInternalError, controller }) => {
+var handlePromise = async ({ subprocess, options, startTime, verboseInfo, fileDescriptors, originalStreams, command, escapedCommand, context: context2, onInternalError, controller }) => {
   const [
     errorInfo,
     [exitCode, signal],
@@ -32903,7 +32903,7 @@ var handlePromise = async ({ subprocess, options, startTime, verboseInfo, fileDe
   ] = await waitForSubprocessResult({
     subprocess,
     options,
-    context: context3,
+    context: context2,
     verboseInfo,
     fileDescriptors,
     originalStreams,
@@ -32921,7 +32921,7 @@ var handlePromise = async ({ subprocess, options, startTime, verboseInfo, fileDe
     stdio,
     all,
     ipcOutput,
-    context: context3,
+    context: context2,
     options,
     command,
     escapedCommand,
@@ -32929,15 +32929,15 @@ var handlePromise = async ({ subprocess, options, startTime, verboseInfo, fileDe
   });
   return handleResult(result, verboseInfo, options);
 };
-var getAsyncResult = ({ errorInfo, exitCode, signal, stdio, all, ipcOutput, context: context3, options, command, escapedCommand, startTime }) => "error" in errorInfo ? makeError({
+var getAsyncResult = ({ errorInfo, exitCode, signal, stdio, all, ipcOutput, context: context2, options, command, escapedCommand, startTime }) => "error" in errorInfo ? makeError({
   error: errorInfo.error,
   command,
   escapedCommand,
-  timedOut: context3.terminationReason === "timeout",
-  isCanceled: context3.terminationReason === "cancel" || context3.terminationReason === "gracefulCancel",
-  isGracefullyCanceled: context3.terminationReason === "gracefulCancel",
+  timedOut: context2.terminationReason === "timeout",
+  isCanceled: context2.terminationReason === "cancel" || context2.terminationReason === "gracefulCancel",
+  isGracefullyCanceled: context2.terminationReason === "gracefulCancel",
   isMaxBuffer: errorInfo.error instanceof MaxBufferError,
-  isForcefullyTerminated: context3.isForcefullyTerminated,
+  isForcefullyTerminated: context2.isForcefullyTerminated,
   exitCode,
   signal,
   stdio,
@@ -33127,10 +33127,10 @@ var github2 = __toESM(require_github());
 // actions/apidiff-go/src/event.ts
 var github = __toESM(require_github());
 function getEventData() {
-  const { context: context3 } = github;
-  switch (context3.eventName) {
+  const { context: context2 } = github;
+  switch (context2.eventName) {
     case "pull_request":
-      const { pull_request: prEvent } = context3.payload;
+      const { pull_request: prEvent } = context2.payload;
       if (!prEvent.number) {
         throw new Error("Pull request number not found in event payload.");
       }
@@ -33141,7 +33141,7 @@ function getEventData() {
         prNumber: prEvent.number
       };
     case "push":
-      const pushEvent = context3.payload;
+      const pushEvent = context2.payload;
       if (!pushEvent.before || !pushEvent.after) {
         throw new Error("Push event payload missing 'before' or 'after' SHAs.");
       }
@@ -33151,7 +33151,7 @@ function getEventData() {
         head: pushEvent.after
       };
     default:
-      throw new Error(`Unsupported event type: ${context3.eventName}`);
+      throw new Error(`Unsupported event type: ${context2.eventName}`);
   }
 }
 
@@ -33166,7 +33166,8 @@ function getInputs() {
     headRefOverride: getRunInputString("headRefOverride", false),
     enforceCompatible: getRunInputBoolean("enforceCompatible"),
     postComment: getRunInputBoolean("postComment"),
-    apidiffVersion: getRunInputString("apidiffVersion")
+    apidiffVersion: getRunInputString("apidiffVersion"),
+    summaryUrl: getRunInputString("summaryUrl")
   };
   core2.info(`Inputs: ${JSON.stringify(inputs)}`);
   return inputs;
@@ -33214,6 +33215,10 @@ var runInputsConfiguration = {
   apidiffVersion: {
     parameter: "apidiff-version",
     localParameter: "APIDIFF_VERSION"
+  },
+  summaryUrl: {
+    parameter: "summary-url",
+    localParameter: "SUMMARY_URL"
   }
 };
 function getRunInputString(input, required = true) {
@@ -33438,7 +33443,6 @@ function parseApidiffOutput(moduleName, output) {
 
 // actions/apidiff-go/src/github.ts
 var core5 = __toESM(require_core());
-var github3 = __toESM(require_github());
 function getMarkdownFingerprint(moduleName) {
   return `<!-- chainlink-apidiff-go ${moduleName} -->`;
 }
@@ -33474,26 +33478,6 @@ ${markdownFingerprint}`;
     }
   } catch (error) {
     core5.warning(`Failed to upsert PR comment: ${error}`);
-  }
-}
-async function getSummaryUrl(octokit, owner, repo) {
-  const runId = github3.context.runId;
-  try {
-    const { data } = await octokit.rest.actions.listJobsForWorkflowRun({
-      owner,
-      repo,
-      run_id: runId
-    });
-    if (data.jobs.length !== 1) {
-      core5.warning(
-        `Expected exactly one job in workflow run, found ${data.jobs.length}. Cannot determine summary URL.`
-      );
-      return "";
-    }
-    return `https://github.com/${owner}/${repo}/actions/runs/${runId}/#summary-${data.jobs[0].id}`;
-  } catch (error) {
-    core5.warning(`Failed to get summary link: ${error}`);
-    return "";
   }
 }
 
@@ -33924,24 +33908,21 @@ function formatTypeChangeJobSummary(change) {
 function escapeHtml2(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
-function formatApidiffMarkdown(diffs, summaryUrl, includeFullOutput = false) {
-  if (diffs.length === 0) {
+function formatApidiffMarkdown(diff, summaryUrl, includeFullOutput = false) {
+  const hasIncompat = diff.incompatible.length > 0;
+  const hasCompat = diff.compatible.length > 0;
+  const hasMeta = diff.meta.length > 0;
+  if (!hasMeta && !hasIncompat && !hasCompat) {
     return `## \u{1F4CA} API Diff Results
 
-> No modules to analyze
+> No changes detected for module \`${diff.moduleName}\`
 
 [View full report](${summaryUrl})`;
   }
-  const hasIncompat = diffs.some((d) => d.incompatible.length > 0);
-  const totalIncompat = diffs.reduce((s, d) => s + d.incompatible.length, 0);
-  const totalCompat = diffs.reduce((s, d) => s + d.compatible.length, 0);
-  const modulesWithChanges = diffs.filter(
-    (d) => d.incompatible.length || d.compatible.length
-  ).length;
   const statusEmoji = hasIncompat ? "\u26A0\uFE0F" : "\u2705";
   const statusText = hasIncompat ? "Breaking changes detected" : "No breaking changes";
   const lines = [
-    `## ${statusEmoji} API Diff Results - ${statusText}`,
+    `## ${statusEmoji} API Diff Results (${diff.moduleName}) - ${statusText}`,
     ``
   ];
   function apidiffShield(label, count2, color) {
@@ -33949,95 +33930,68 @@ function formatApidiffMarkdown(diffs, summaryUrl, includeFullOutput = false) {
     return `![${label}](https://img.shields.io/badge/${escapedLabel}-${count2}-${color})`;
   }
   if (includeFullOutput) {
-    const analyzedShield = apidiffShield(
-      "modules analyzed",
-      modulesWithChanges,
-      "blue"
-    );
     const breakingShield = apidiffShield(
       "breaking changes",
-      totalIncompat,
+      diff.incompatible.length,
       "red"
     );
     const compatibleShield = apidiffShield(
       "compatible changes",
-      totalCompat,
+      diff.compatible.length,
       "green"
     );
-    lines.push(
-      ``,
-      `${analyzedShield} ${breakingShield} ${compatibleShield}`,
-      ``
-    );
+    lines.push("", `${breakingShield} ${compatibleShield}`, "");
   }
-  function formatGroupedChanges(title, changes, isBreaking = false) {
+  function formatGroupedChanges(title, changes) {
     if (!changes.length) return [];
     const out = [];
-    const icon = isBreaking ? "\u{1F534}" : "\u{1F7E2}";
-    out.push(`#### ${icon} ${title} (${changes.length})`, ``);
+    out.push(`#### ${title} (${changes.length})`, "");
     const grouped = groupByPackage(changes);
     for (const packagePath of Array.from(grouped.keys()).sort()) {
       const packageChanges = grouped.get(packagePath);
       out.push(
         `##### \`${packagePath || "(root)"}\` (${packageChanges.length})`,
-        ``
+        ""
       );
       for (const change of packageChanges) {
         const { elementName } = parseElement(change.element);
         const formatted = formatTypeChangeMarkdown(change.change);
         const isBlock = formatted.startsWith("\n<pre>");
         if (isBlock) {
-          out.push(`- **\`${elementName}\`** \u2014 Type changed:`);
+          out.push(`- \`${elementName}\` \u2014 Type changed:`);
           out.push(formatted);
         } else {
-          out.push(`- **\`${elementName}\`** \u2014 ${formatted}`);
+          out.push(`- \`${elementName}\` \u2014 ${formatted}`);
         }
-        out.push(``);
+        out.push("");
       }
     }
     return out;
   }
-  const breaking = diffs.filter((d) => d.incompatible.length);
-  const compatOnly = diffs.filter(
-    (d) => !d.incompatible.length && d.compatible.length
-  );
-  if (breaking.length) {
-    if (includeFullOutput) {
-      lines.push(`---`, ``, `## \u26A0\uFE0F Modules with Breaking Changes`, ``);
-    }
-    for (const d of breaking) {
-      lines.push(`### \u{1F4E6} Module: \`${d.moduleName}\``, ``);
-      lines.push(
-        ...formatGroupedChanges("Breaking Changes", d.incompatible, true)
-      );
-      if (includeFullOutput && d.compatible.length) {
-        lines.push(
-          ...formatGroupedChanges("Compatible Changes", d.compatible, false)
-        );
-      }
-      if (includeFullOutput && d.meta.length) {
-        lines.push(`#### \u{1F4CB} Metadata (${d.meta.length})`, ``);
-        lines.push("```diff");
-        for (const m of d.meta) {
-          lines.push(`! ${m.header}`);
-          lines.push(`  first:  ${m.first}`);
-          lines.push(`  second: ${m.second}`);
-          lines.push("");
-        }
-        lines.push("```", ``);
-      }
-    }
+  if (diff.incompatible.length) {
+    lines.push(
+      ...formatGroupedChanges("\u26A0\uFE0F Breaking Changes", diff.incompatible)
+    );
   }
-  if (includeFullOutput && compatOnly.length) {
-    lines.push(`---`, ``, `## \u2705 Modules with Only Compatible Changes`, ``);
-    for (const d of compatOnly) {
-      lines.push(`### \u{1F4E6} ${d.moduleName} (${d.compatible.length})`, ``);
-      lines.push(
-        ...formatGroupedChanges("Compatible Changes", d.compatible, false)
-      );
-    }
+  if (includeFullOutput && diff.compatible.length) {
+    lines.push(
+      ...formatGroupedChanges("\u2705 Compatible Changes", diff.compatible)
+    );
   }
-  lines.push(`---`, ``, `\u{1F4C4} [View full apidiff report](${summaryUrl})`, ``);
+  if (includeFullOutput && diff.meta.length) {
+    lines.push(`---`, "", `## \u{1F4CB} Metadata (${diff.meta.length})`, "");
+    lines.push("<details>", "", "<summary>View metadata changes</summary>", "");
+    lines.push("```diff");
+    for (const m of diff.meta) {
+      lines.push(`! ${m.header}`);
+      lines.push(`  first:  ${m.first}`);
+      lines.push(`  second: ${m.second}`);
+      lines.push("");
+    }
+    lines.push("```", "");
+    lines.push("</details>", "");
+  }
+  lines.push(`---`, "", `\u{1F4C4} [View full apidiff report](${summaryUrl})`, "");
   return lines.join("\n");
 }
 async function formatApidiffJobSummary(diff) {
@@ -34143,8 +34097,8 @@ async function run() {
   try {
     core7.startGroup("Inputs and Context");
     const inputs = getInputs();
-    const context3 = getInvokeContext();
-    const octokit = github4.getOctokit(context3.token);
+    const context2 = getInvokeContext();
+    const octokit = github3.getOctokit(context2.token);
     await validateGitRepositoryRoot(inputs.repositoryRoot);
     const qualifiedModuleDirectory = (0, import_path3.join)(
       inputs.repositoryRoot,
@@ -34158,13 +34112,13 @@ async function run() {
     await installApidiff(qualifiedModuleDirectory, inputs.apidiffVersion);
     core7.endGroup();
     core7.startGroup("Generating Exports");
-    const headRef = inputs.headRefOverride || context3.event.head;
+    const headRef = inputs.headRefOverride || context2.event.head;
     const headExport = await generateExportAtRef(
       qualifiedModuleDirectory,
       headRef
     );
     core7.info(`Generated head export at: ${headExport.path}`);
-    const baseRef = inputs.baseRefOverride || context3.event.base;
+    const baseRef = inputs.baseRefOverride || context2.event.base;
     const baseExport = await generateExportAtRef(
       qualifiedModuleDirectory,
       baseRef
@@ -34182,16 +34136,11 @@ async function run() {
     }
     core7.startGroup("Formatting and Outputting Results");
     formatApidiffJobSummary(parsedResult);
-    if (context3.event.eventName === "pull_request") {
-      const summaryUrl = await getSummaryUrl(
-        octokit,
-        context3.owner,
-        context3.repo
-      );
+    if (context2.event.eventName === "pull_request") {
       const markdownOutputIncompatibleOnly = formatApidiffMarkdown(
-        [parsedResult],
-        summaryUrl,
-        false
+        parsedResult,
+        inputs.summaryUrl,
+        true
       );
       if (CL_LOCAL_DEBUG) {
         core7.info("Markdown Output (Incompatible Only):");
@@ -34200,9 +34149,9 @@ async function run() {
       if (inputs.postComment) {
         await upsertPRComment(
           octokit,
-          context3.owner,
-          context3.repo,
-          context3.event.prNumber,
+          context2.owner,
+          context2.repo,
+          context2.event.prNumber,
           markdownOutputIncompatibleOnly,
           moduleName
         );

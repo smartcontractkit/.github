@@ -1119,7 +1119,18 @@ Metadata entries | <div align="right">0</div>
 `;
 
 exports[`markdown comment & job summary > formats diff as markdown comment: compatible-1.txt 1`] = `
-"## ✅ API Diff Results - No breaking changes
+"## ✅ API Diff Results (compatible-1) - No breaking changes
+
+
+![breaking changes](https://img.shields.io/badge/breaking_changes-0-red) ![compatible changes](https://img.shields.io/badge/compatible_changes-2-green)
+
+#### ✅ Compatible Changes (2)
+
+##### \`(root)\` (2)
+
+- \`WithMeterProvider\` — ➕ Added
+
+- \`WithTracerProvider\` — ➕ Added
 
 ---
 
@@ -1128,15 +1139,16 @@ exports[`markdown comment & job summary > formats diff as markdown comment: comp
 `;
 
 exports[`markdown comment & job summary > formats diff as markdown comment: incompatible-1.txt 1`] = `
-"## ⚠️ API Diff Results - Breaking changes detected
+"## ⚠️ API Diff Results (incompatible-1) - Breaking changes detected
 
-### 📦 Module: \`incompatible-1\`
 
-#### 🔴 Breaking Changes (2)
+![breaking changes](https://img.shields.io/badge/breaking_changes-2-red) ![compatible changes](https://img.shields.io/badge/compatible_changes-24-green)
+
+#### ⚠️ Breaking Changes (2)
 
 ##### \`pkg/loop\` (2)
 
-- **\`MustNewStartedServer\`** — Type changed:
+- \`MustNewStartedServer\` — Type changed:
 
 <pre>func(
   string, 
@@ -1144,13 +1156,77 @@ exports[`markdown comment & job summary > formats diff as markdown comment: inco
 )
 *Server</pre>
 
-- **\`NewStartedServer\`** — Type changed:
+- \`NewStartedServer\` — Type changed:
 
 <pre>func(
   string, 
   + <ins>...ServerOpt</ins>
 )
 (*Server, error)</pre>
+
+#### ✅ Compatible Changes (24)
+
+##### \`pkg/capabilities/pb\` (11)
+
+- \`NewSettingsClient\` — ➕ Added
+
+- \`RegisterSettingsServer\` — ➕ Added
+
+- \`Settings_ServiceDesc\` — ➕ Added
+
+- \`Settings_Subscribe_FullMethodName\` — ➕ Added
+
+- \`Settings_SubscribeClient\` — ➕ Added
+
+- \`Settings_SubscribeServer\` — ➕ Added
+
+- \`SettingsClient\` — ➕ Added
+
+- \`SettingsServer\` — ➕ Added
+
+- \`SettingsUpdate\` — ➕ Added
+
+- \`UnimplementedSettingsServer\` — ➕ Added
+
+- \`UnsafeSettingsServer\` — ➕ Added
+
+##### \`pkg/capabilities/pb.(*InitialiseRequest)\` (1)
+
+- \`GetCreSettingsId\` — ➕ Added
+
+##### \`pkg/capabilities/pb.InitialiseRequest\` (1)
+
+- \`CreSettingsId\` — ➕ Added
+
+##### \`pkg/loop\` (6)
+
+- \`AtomicSettings\` — ➕ Added
+
+- \`NewAtomicSettings\` — ➕ Added
+
+- \`ServerConfig\` — ➕ Added
+
+- \`ServerOpt\` — ➕ Added
+
+- \`WithOtelViews\` — ➕ Added
+
+- \`WithSettingsGetter\` — ➕ Added
+
+##### \`pkg/timeutil\` (1)
+
+- \`Sleep\` — ➕ Added
+
+##### \`pkg/types/core\` (3)
+
+- \`SettingsBroadcaster\` — ➕ Added
+
+- \`SettingsBroadcasterLocal\` — ➕ Added
+
+- \`SettingsUpdate\` — ➕ Added
+
+##### \`pkg/types/core.StandardCapabilitiesDependencies\` (1)
+
+- \`CRESettings\` — ➕ Added
 
 ---
 
@@ -1159,25 +1235,26 @@ exports[`markdown comment & job summary > formats diff as markdown comment: inco
 `;
 
 exports[`markdown comment & job summary > formats diff as markdown comment: incompatible-2.txt 1`] = `
-"## ⚠️ API Diff Results - Breaking changes detected
+"## ⚠️ API Diff Results (incompatible-2) - Breaking changes detected
 
-### 📦 Module: \`incompatible-2\`
 
-#### 🔴 Breaking Changes (56)
+![breaking changes](https://img.shields.io/badge/breaking_changes-56-red) ![compatible changes](https://img.shields.io/badge/compatible_changes-146-green)
+
+#### ⚠️ Breaking Changes (56)
 
 ##### \`io.Closer\` (1)
 
-- **\`Close\`** — ➕ Added
+- \`Close\` — ➕ Added
 
 ##### \`pkg/beholder\` (2)
 
-- **\`ChipIngressClient\`** — 🗑️ Removed
+- \`ChipIngressClient\` — 🗑️ Removed
 
-- **\`NewChipIngressClient\`** — 🗑️ Removed
+- \`NewChipIngressClient\` — 🗑️ Removed
 
 ##### \`pkg/beholder.BeholderClient\` (1)
 
-- **\`Chip\`** — Type changed:
+- \`Chip\` — Type changed:
 
 <pre>
   - <del>ChipIngressClient</del>
@@ -1186,7 +1263,7 @@ exports[`markdown comment & job summary > formats diff as markdown comment: inco
 
 ##### \`pkg/beholder.Client\` (1)
 
-- **\`Chip\`** — Type changed:
+- \`Chip\` — Type changed:
 
 <pre>
   - <del>ChipIngressClient</del>
@@ -1195,15 +1272,15 @@ exports[`markdown comment & job summary > formats diff as markdown comment: inco
 
 ##### \`pkg/capabilities/v2/actions/confidentialhttp\` (3)
 
-- **\`Input\`** — 🗑️ Removed
+- \`Input\` — 🗑️ Removed
 
-- **\`Output\`** — 🗑️ Removed
+- \`Output\` — 🗑️ Removed
 
-- **\`OutputResponsesElem\`** — 🗑️ Removed
+- \`OutputResponsesElem\` — 🗑️ Removed
 
 ##### \`pkg/capabilities/v2/actions/confidentialhttp.(*Request)\` (1)
 
-- **\`GetPublicTemplateValues\`** — Type changed:
+- \`GetPublicTemplateValues\` — Type changed:
 
 <pre>func(
 )
@@ -1212,7 +1289,7 @@ exports[`markdown comment & job summary > formats diff as markdown comment: inco
 
 ##### \`pkg/capabilities/v2/actions/confidentialhttp.Request\` (1)
 
-- **\`PublicTemplateValues\`** — Type changed:
+- \`PublicTemplateValues\` — Type changed:
 
 <pre>
   - <del>*google.golang.org/protobuf/types/known/structpb.Struct</del>
@@ -1221,11 +1298,11 @@ exports[`markdown comment & job summary > formats diff as markdown comment: inco
 
 ##### \`pkg/capabilities/v2/actions/confidentialhttp/server\` (1)
 
-- **\`ClientID\`** — Value changed from "confidential-http-actions@1.0.0-alpha" to "confidential-http@1.0.0-alpha"
+- \`ClientID\` — Value changed from "confidential-http-actions@1.0.0-alpha" to "confidential-http@1.0.0-alpha"
 
 ##### \`pkg/capabilities/v2/actions/confidentialhttp/server.(*ClientServer)\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1245,7 +1322,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/actions/confidentialhttp/server.ClientCapability\` (2)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1262,7 +1339,7 @@ error</pre>
 )
 error</pre>
 
-- **\`SendRequests\`** — Type changed:
+- \`SendRequests\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1275,7 +1352,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/actions/http/server.(*ClientServer)\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1295,7 +1372,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/actions/http/server.ClientCapability\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1314,7 +1391,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/chain-capabilities/evm/server.(*ClientServer)\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1334,7 +1411,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/chain-capabilities/evm/server.ClientCapability\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1353,7 +1430,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/consensus/server.(*ConsensusServer)\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1373,7 +1450,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/consensus/server.ConsensusCapability\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1392,7 +1469,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/actionandtrigger/server.(*BasicServer)\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1412,7 +1489,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/actionandtrigger/server.BasicCapability\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1431,7 +1508,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/basicaction/server.(*BasicActionServer)\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1451,7 +1528,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/basicaction/server.BasicActionCapability\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1470,7 +1547,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/basictrigger/server.(*BasicServer)\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1490,7 +1567,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/basictrigger/server.BasicCapability\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1509,7 +1586,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/consensus/server.(*ConsensusServer)\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1529,7 +1606,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/consensus/server.ConsensusCapability\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1548,7 +1625,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/importclash/server.(*BasicActionServer)\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1568,7 +1645,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/importclash/server.BasicActionCapability\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1587,7 +1664,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/nodeaction/server.(*BasicActionServer)\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1607,7 +1684,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/protoc/pkg/test_capabilities/nodeaction/server.BasicActionCapability\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1626,7 +1703,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/triggers/cron/server.(*CronServer)\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1646,7 +1723,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/triggers/cron/server.CronCapability\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1665,7 +1742,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/triggers/http/server.(*HTTPServer)\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1685,7 +1762,7 @@ error</pre>
 
 ##### \`pkg/capabilities/v2/triggers/http/server.HTTPCapability\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1704,7 +1781,7 @@ error</pre>
 
 ##### \`pkg/chains/evm\` (1)
 
-- **\`ConvertHashedValueComparatorsFromProto\`** — Type changed:
+- \`ConvertHashedValueComparatorsFromProto\` — Type changed:
 
 <pre>func(
   []*HashValueComparator
@@ -1714,11 +1791,11 @@ error</pre>
 
 ##### \`pkg/chains/evm.EVMClient\` (1)
 
-- **\`GetLatestLPBlock\`** — ➕ Added
+- \`GetLatestLPBlock\` — ➕ Added
 
 ##### \`pkg/loop\` (2)
 
-- **\`MustNewStartedServer\`** — Type changed:
+- \`MustNewStartedServer\` — Type changed:
 
 <pre>func(
   string, 
@@ -1726,7 +1803,7 @@ error</pre>
 )
 *Server</pre>
 
-- **\`NewStartedServer\`** — Type changed:
+- \`NewStartedServer\` — Type changed:
 
 <pre>func(
   string, 
@@ -1736,7 +1813,7 @@ error</pre>
 
 ##### \`pkg/loop.StandardCapabilities\` (1)
 
-- **\`Initialise\`** — Type changed:
+- \`Initialise\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1756,40 +1833,40 @@ error</pre>
 
 ##### \`pkg/settings/cresettings.Schema\` (3)
 
-- **\`GatewayUnauthenticatedRequestRateLimit\`** — 🗑️ Removed
+- \`GatewayUnauthenticatedRequestRateLimit\` — 🗑️ Removed
 
-- **\`GatewayUnauthenticatedRequestRateLimitPerIP\`** — 🗑️ Removed
+- \`GatewayUnauthenticatedRequestRateLimitPerIP\` — 🗑️ Removed
 
-- **\`WorkflowRegistrationQueueLimit\`** — 🗑️ Removed
+- \`WorkflowRegistrationQueueLimit\` — 🗑️ Removed
 
 ##### \`pkg/settings/cresettings.Workflows\` (2)
 
-- **\`TriggerLimit\`** — 🗑️ Removed
+- \`TriggerLimit\` — 🗑️ Removed
 
-- **\`WASMExecutionTimeout\`** — 🗑️ Removed
+- \`WASMExecutionTimeout\` — 🗑️ Removed
 
 ##### \`pkg/settings/cresettings.chainWrite\` (1)
 
-- **\`RateLimit\`** — 🗑️ Removed
+- \`RateLimit\` — 🗑️ Removed
 
 ##### \`pkg/settings/cresettings.httpAction\` (1)
 
-- **\`RateLimit\`** — 🗑️ Removed
+- \`RateLimit\` — 🗑️ Removed
 
 ##### \`pkg/settings/cresettings.logTrigger\` (1)
 
-- **\`RateLimit\`** — 🗑️ Removed
+- \`RateLimit\` — 🗑️ Removed
 
 ##### \`pkg/types.CCIPProviderArgs\` (2)
 
-- **\`OffRampAddress\`** — Type changed:
+- \`OffRampAddress\` — Type changed:
 
 <pre>
   - <del>string</del>
   + <ins>github.com/smartcontractkit/chainlink-common/pkg/types/ccipocr3.UnknownAddress</ins>
 )</pre>
 
-- **\`PluginType\`** — Type changed:
+- \`PluginType\` — Type changed:
 
 <pre>
   - <del>uint32</del>
@@ -1798,15 +1875,15 @@ error</pre>
 
 ##### \`pkg/types.EVMService\` (1)
 
-- **\`GetLatestLPBlock\`** — ➕ Added
+- \`GetLatestLPBlock\` — ➕ Added
 
 ##### \`pkg/types/ccipocr3\` (1)
 
-- **\`ExtraDataCodec\`** — 🗑️ Removed
+- \`ExtraDataCodec\` — 🗑️ Removed
 
 ##### \`pkg/types/ccipocr3.PriceReader\` (1)
 
-- **\`GetFeeQuoterTokenUpdates\`** — Type changed:
+- \`GetFeeQuoterTokenUpdates\` — Type changed:
 
 <pre>func(
   context.Context, 
@@ -1818,11 +1895,11 @@ error</pre>
 
 ##### \`pkg/types/gateway.AuthorizedKey\` (1)
 
-- **\`MarshalJSON\`** — 🗑️ Removed
+- \`MarshalJSON\` — 🗑️ Removed
 
 ##### \`pkg/workflows/wasm/host\` (1)
 
-- **\`NewModule\`** — Type changed:
+- \`NewModule\` — Type changed:
 
 <pre>func(
   + <ins>context.Context, </ins>
@@ -1832,6 +1909,438 @@ error</pre>
 )
 (*module, error)</pre>
 
+#### ✅ Compatible Changes (146)
+
+##### \`package github\` (3)
+
+- \`com/smartcontractkit/chainlink-common/pkg/capabilities/v2/chain-capabilities/consensus/ocr3/types\` — ➕ Added
+
+- \`com/smartcontractkit/chainlink-common/pkg/services/orgresolver\` — ➕ Added
+
+- \`com/smartcontractkit/chainlink-common/pkg/workflows/events\` — ➕ Added
+
+##### \`pkg/beholder\` (7)
+
+- \`Auth\` — ➕ Added
+
+- \`HeaderProvider\` — ➕ Added
+
+- \`NewAuthHeaderV2\` — ➕ Added
+
+- \`NewRotatingAuth\` — ➕ Added
+
+- \`NewStaticAuth\` — ➕ Added
+
+- \`PerRPCCredentialsProvider\` — ➕ Added
+
+- \`Signer\` — ➕ Added
+
+##### \`pkg/beholder.(*ChipIngressEmitter)\` (1)
+
+- \`Close\` — ➕ Added
+
+##### \`pkg/beholder.(*Client)\` (2)
+
+- \`IsSignerSet\` — ➕ Added
+
+- \`SetSigner\` — ➕ Added
+
+##### \`pkg/beholder.(*DualSourceEmitter)\` (1)
+
+- \`Close\` — ➕ Added
+
+##### \`pkg/beholder.Config\` (3)
+
+- \`AuthHeadersTTL\` — ➕ Added
+
+- \`AuthKeySigner\` — ➕ Added
+
+- \`LogLevel\` — ➕ Added
+
+##### \`pkg/beholder.writerClientConfig\` (3)
+
+- \`AuthHeadersTTL\` — ➕ Added
+
+- \`AuthKeySigner\` — ➕ Added
+
+- \`LogLevel\` — ➕ Added
+
+##### \`pkg/capabilities\` (1)
+
+- \`ParseID\` — ➕ Added
+
+##### \`pkg/capabilities.(*RegistrationMetadata)\` (1)
+
+- \`ContextWithCRE\` — ➕ Added
+
+##### \`pkg/capabilities.(*RequestMetadata)\` (1)
+
+- \`ContextWithCRE\` — ➕ Added
+
+##### \`pkg/capabilities.CapabilityConfiguration\` (1)
+
+- \`LocalOnly\` — ➕ Added
+
+##### \`pkg/capabilities.RequestMetadata\` (3)
+
+- \`EngineVersion\` — ➕ Added
+
+- \`WorkflowRegistryAddress\` — ➕ Added
+
+- \`WorkflowRegistryChainSelector\` — ➕ Added
+
+##### \`pkg/capabilities.ResponseMetadata\` (1)
+
+- \`CapDON_N\` — ➕ Added
+
+##### \`pkg/capabilities/actions/vault.(*ReportingPluginConfig)\` (3)
+
+- \`GetLimitsMaxKeyValueModifiedKeys\` — ➕ Added
+
+- \`GetLimitsMaxPerOracleUnexpiredBlobCount\` — ➕ Added
+
+- \`GetLimitsMaxPerOracleUnexpiredBlobCumulativePayloadBytes\` — ➕ Added
+
+##### \`pkg/capabilities/actions/vault.ReportingPluginConfig\` (3)
+
+- \`LimitsMaxKeyValueModifiedKeys\` — ➕ Added
+
+- \`LimitsMaxPerOracleUnexpiredBlobCount\` — ➕ Added
+
+- \`LimitsMaxPerOracleUnexpiredBlobCumulativePayloadBytes\` — ➕ Added
+
+##### \`pkg/capabilities/consensus/ocr3/types.(*ReportingPluginConfig)\` (1)
+
+- \`GetHistoricalOutcomeExpirySeqNrSpan\` — ➕ Added
+
+##### \`pkg/capabilities/consensus/ocr3/types.ReportingPluginConfig\` (1)
+
+- \`HistoricalOutcomeExpirySeqNrSpan\` — ➕ Added
+
+##### \`pkg/capabilities/consensus/requests.(*Store[T])\` (4)
+
+- \`All\` — ➕ Added
+
+- \`All\` — ➕ Added
+
+- \`All\` — ➕ Added
+
+- \`All\` — ➕ Added
+
+##### \`pkg/capabilities/pb\` (11)
+
+- \`NewSettingsClient\` — ➕ Added
+
+- \`RegisterSettingsServer\` — ➕ Added
+
+- \`Settings_ServiceDesc\` — ➕ Added
+
+- \`Settings_Subscribe_FullMethodName\` — ➕ Added
+
+- \`Settings_SubscribeClient\` — ➕ Added
+
+- \`Settings_SubscribeServer\` — ➕ Added
+
+- \`SettingsClient\` — ➕ Added
+
+- \`SettingsServer\` — ➕ Added
+
+- \`SettingsUpdate\` — ➕ Added
+
+- \`UnimplementedSettingsServer\` — ➕ Added
+
+- \`UnsafeSettingsServer\` — ➕ Added
+
+##### \`pkg/capabilities/pb.(*CapabilityConfig)\` (1)
+
+- \`GetLocalOnly\` — ➕ Added
+
+##### \`pkg/capabilities/pb.(*InitialiseRequest)\` (2)
+
+- \`GetCreSettingsId\` — ➕ Added
+
+- \`GetOrgResolverId\` — ➕ Added
+
+##### \`pkg/capabilities/pb.(*RequestMetadata)\` (3)
+
+- \`GetEngineVersion\` — ➕ Added
+
+- \`GetWorkflowRegistryAddress\` — ➕ Added
+
+- \`GetWorkflowRegistryChainSelector\` — ➕ Added
+
+##### \`pkg/capabilities/pb.(*ResponseMetadata)\` (1)
+
+- \`GetCapdonN\` — ➕ Added
+
+##### \`pkg/capabilities/pb.CapabilityConfig\` (1)
+
+- \`LocalOnly\` — ➕ Added
+
+##### \`pkg/capabilities/pb.InitialiseRequest\` (2)
+
+- \`CreSettingsId\` — ➕ Added
+
+- \`OrgResolverId\` — ➕ Added
+
+##### \`pkg/capabilities/pb.RequestMetadata\` (3)
+
+- \`EngineVersion\` — ➕ Added
+
+- \`WorkflowRegistryAddress\` — ➕ Added
+
+- \`WorkflowRegistryChainSelector\` — ➕ Added
+
+##### \`pkg/capabilities/pb.ResponseMetadata\` (1)
+
+- \`CapdonN\` — ➕ Added
+
+##### \`pkg/capabilities/registry\` (1)
+
+- \`StateGetter\` — ➕ Added
+
+##### \`pkg/capabilities/v2/actions/confidentialhttp\` (4)
+
+- \`EnclaveActionInput\` — ➕ Added
+
+- \`HTTPEnclaveRequestData\` — ➕ Added
+
+- \`HTTPEnclaveResponseData\` — ➕ Added
+
+- \`ResponseTemplate\` — ➕ Added
+
+##### \`pkg/chains/evm\` (3)
+
+- \`EVM_GetLatestLPBlock_FullMethodName\` — ➕ Added
+
+- \`GetLatestLPBlockReply\` — ➕ Added
+
+- \`LPBlock\` — ➕ Added
+
+##### \`pkg/chains/evm.EVMServer\` (1)
+
+- \`GetLatestLPBlock\` — ➕ Added
+
+##### \`pkg/chains/evm.UnimplementedEVMServer\` (1)
+
+- \`GetLatestLPBlock\` — ➕ Added
+
+##### \`pkg/config\` (1)
+
+- \`SizeOf\` — ➕ Added
+
+##### \`pkg/logger\` (1)
+
+- \`NewCore\` — ➕ Added
+
+##### \`pkg/loop\` (9)
+
+- \`AtomicSettings\` — ➕ Added
+
+- \`MustNewStartedServerWithOtelViews\` — ➕ Added
+
+- \`NewAtomicSettings\` — ➕ Added
+
+- \`NewOtelLogger\` — ➕ Added
+
+- \`NewStartedServerWithOtelViews\` — ➕ Added
+
+- \`ServerConfig\` — ➕ Added
+
+- \`ServerOpt\` — ➕ Added
+
+- \`WithOtelViews\` — ➕ Added
+
+- \`WithSettingsGetter\` — ➕ Added
+
+##### \`pkg/loop.EnvConfig\` (7)
+
+- \`TelemetryAuthHeadersTTL\` — ➕ Added
+
+- \`TelemetryLogBatchProcessor\` — ➕ Added
+
+- \`TelemetryLogExportInterval\` — ➕ Added
+
+- \`TelemetryLogExportMaxBatchSize\` — ➕ Added
+
+- \`TelemetryLogExportTimeout\` — ➕ Added
+
+- \`TelemetryLogLevel\` — ➕ Added
+
+- \`TelemetryLogMaxQueueSize\` — ➕ Added
+
+##### \`pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.CommitLoop, github.com/smartcontractkit/chainlink-common/pkg/types.ReportingPluginFactory])\` (1)
+
+- \`Wait\` — ➕ Added
+
+##### \`pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.ExecutionLoop, github.com/smartcontractkit/chainlink-common/pkg/types.ReportingPluginFactory])\` (1)
+
+- \`Wait\` — ➕ Added
+
+##### \`pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.GRPCPluginKeystore, github.com/smartcontractkit/chainlink-common/pkg/loop/internal/keystore.GRPCService])\` (1)
+
+- \`Wait\` — ➕ Added
+
+##### \`pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.GRPCPluginMedian, github.com/smartcontractkit/chainlink-common/pkg/types.ReportingPluginFactory])\` (1)
+
+- \`Wait\` — ➕ Added
+
+##### \`pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.GRPCPluginMercury, github.com/smartcontractkit/chainlink-common/pkg/types.MercuryPluginFactory])\` (1)
+
+- \`Wait\` — ➕ Added
+
+##### \`pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.GRPCPluginRelayer, github.com/smartcontractkit/chainlink-common/pkg/loop.Relayer])\` (1)
+
+- \`Wait\` — ➕ Added
+
+##### \`pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop.StandardCapabilitiesLoop, github.com/smartcontractkit/chainlink-common/pkg/loop.StandardCapabilities])\` (1)
+
+- \`Wait\` — ➕ Added
+
+##### \`pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop/reportingplugins.GRPCService[github.com/smartcontractkit/chainlink-common/pkg/types.PluginProvider], github.com/smartcontractkit/chainlink-common/pkg/types.ReportingPluginFactory])\` (1)
+
+- \`Wait\` — ➕ Added
+
+##### \`pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop/reportingplugins.GRPCService[github.com/smartcontractkit/chainlink-common/pkg/types.PluginProvider], github.com/smartcontractkit/chainlink-common/pkg/types/core.ValidationService])\` (1)
+
+- \`Wait\` — ➕ Added
+
+##### \`pkg/loop/internal/goplugin.(*PluginService[*github.com/smartcontractkit/chainlink-common/pkg/loop/reportingplugins/ocr3.GRPCService[github.com/smartcontractkit/chainlink-common/pkg/types.PluginProvider], github.com/smartcontractkit/chainlink-common/pkg/types/core.OCR3ReportingPluginFactory])\` (1)
+
+- \`Wait\` — ➕ Added
+
+##### \`pkg/ratelimit.(*RateLimiter)\` (1)
+
+- \`SetConfig\` — ➕ Added
+
+##### \`pkg/settings/cresettings\` (1)
+
+- \`DefaultGetter\` — ➕ Added
+
+##### \`pkg/settings/cresettings.Owners\` (1)
+
+- \`WorkflowTriggerRateLimit\` — ➕ Added
+
+##### \`pkg/settings/cresettings.Schema\` (1)
+
+- \`WorkflowTriggerRateLimit\` — ➕ Added
+
+##### \`pkg/settings/cresettings.Workflows\` (5)
+
+- \`Consensus\` — ➕ Added
+
+- \`WASMCompressedBinarySizeLimit\` — ➕ Added
+
+- \`WASMConfigSizeLimit\` — ➕ Added
+
+- \`WASMResponseSizeLimit\` — ➕ Added
+
+- \`WASMSecretsSizeLimit\` — ➕ Added
+
+##### \`pkg/settings/cresettings.httpAction\` (1)
+
+- \`CallLimit\` — ➕ Added
+
+##### \`pkg/settings/cresettings.logTrigger\` (1)
+
+- \`EventSizeLimit\` — ➕ Added
+
+##### \`pkg/sqlutil\` (2)
+
+- \`Interval\` — ➕ Added
+
+- \`NewInterval\` — ➕ Added
+
+##### \`pkg/timeutil\` (1)
+
+- \`Sleep\` — ➕ Added
+
+##### \`pkg/types\` (1)
+
+- \`UnimplementedEVMService\` — ➕ Added
+
+##### \`pkg/types.CCIPProviderArgs\` (2)
+
+- \`ExtraDataCodecBundle\` — ➕ Added
+
+- \`TransmitterAddress\` — ➕ Added
+
+##### \`pkg/types/ccipocr3\` (6)
+
+- \`ExtraDataCodecBundle\` — ➕ Added
+
+- \`ExtraDataCodecMap\` — ➕ Added
+
+- \`ExtraDataDecoded\` — ➕ Added
+
+- \`PluginType\` — ➕ Added
+
+- \`PluginTypeCCIPCommit\` — ➕ Added
+
+- \`PluginTypeCCIPExec\` — ➕ Added
+
+##### \`pkg/types/ccipocr3.Codec\` (1)
+
+- \`MessageHasher\` — ➕ Added
+
+##### \`pkg/types/ccipocr3.MessageHasher\` (1)
+
+- \`Hash\` — ➕ Added
+
+##### \`pkg/types/chains/evm\` (1)
+
+- \`LPBlock\` — ➕ Added
+
+##### \`pkg/types/core\` (4)
+
+- \`SettingsBroadcaster\` — ➕ Added
+
+- \`SettingsBroadcasterLocal\` — ➕ Added
+
+- \`SettingsUpdate\` — ➕ Added
+
+- \`StandardCapabilitiesDependencies\` — ➕ Added
+
+##### \`pkg/types/gateway.CacheSettings\` (1)
+
+- \`Store\` — ➕ Added
+
+##### \`pkg/types/gateway.OutboundHTTPRequest\` (1)
+
+- \`WorkflowOwner\` — ➕ Added
+
+##### \`pkg/types/gateway.OutboundHTTPResponse\` (1)
+
+- \`IsValidationError\` — ➕ Added
+
+##### \`pkg/types/mocks\` (1)
+
+- \`EVMService_GetLatestLPBlock_Call\` — ➕ Added
+
+##### \`pkg/types/mocks.(*EVMService)\` (1)
+
+- \`GetLatestLPBlock\` — ➕ Added
+
+##### \`pkg/types/mocks.(*EVMService_Expecter)\` (1)
+
+- \`GetLatestLPBlock\` — ➕ Added
+
+##### \`pkg/workflows/wasm/host.ModuleConfig\` (7)
+
+- \`MaxCompressedBinaryLimiter\` — ➕ Added
+
+- \`MaxDecompressedBinaryLimiter\` — ➕ Added
+
+- \`MaxLogCountDONMode\` — ➕ Added
+
+- \`MaxLogCountNodeMode\` — ➕ Added
+
+- \`MaxLogLenBytes\` — ➕ Added
+
+- \`MaxResponseSizeLimiter\` — ➕ Added
+
+- \`MemoryLimiter\` — ➕ Added
+
 ---
 
 📄 [View full apidiff report]()
@@ -1839,15 +2348,38 @@ error</pre>
 `;
 
 exports[`markdown comment & job summary > formats diff as markdown comment: incompatible-3.txt 1`] = `
-"## ⚠️ API Diff Results - Breaking changes detected
+"## ⚠️ API Diff Results (incompatible-3) - Breaking changes detected
 
-### 📦 Module: \`incompatible-3\`
 
-#### 🔴 Breaking Changes (1)
+![breaking changes](https://img.shields.io/badge/breaking_changes-1-red) ![compatible changes](https://img.shields.io/badge/compatible_changes-6-green)
+
+#### ⚠️ Breaking Changes (1)
 
 ##### \`Client\` (1)
 
-- **\`RegisterSchemas\`** — ➕ Added
+- \`RegisterSchemas\` — ➕ Added
+
+#### ✅ Compatible Changes (6)
+
+##### \`(root)\` (3)
+
+- \`NoopClient\` — ➕ Added
+
+- \`WithMeterProvider\` — ➕ Added
+
+- \`WithTracerProvider\` — ➕ Added
+
+##### \`mocks\` (1)
+
+- \`Client_RegisterSchemas_Call\` — ➕ Added
+
+##### \`mocks.(*Client)\` (1)
+
+- \`RegisterSchemas\` — ➕ Added
+
+##### \`mocks.(*Client_Expecter)\` (1)
+
+- \`RegisterSchemas\` — ➕ Added
 
 ---
 

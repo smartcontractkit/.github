@@ -81,7 +81,7 @@ describe("markdown comment & job summary", () => {
     const apiDiffResult = parseApidiffOutput(moduleName, rawOutput);
 
     it(`formats diff as markdown comment: ${file}`, () => {
-      const comment = formatApidiffMarkdown([apiDiffResult], "", false);
+      const comment = formatApidiffMarkdown(apiDiffResult, "", true);
       expect(comment).toMatchSnapshot();
     });
 

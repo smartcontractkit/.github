@@ -55,20 +55,17 @@ function escapeHtml(s: string): string {
 /* -------------------------- GitHub COMMENT (Markdown) -------------------------- */
 
 export function formatApidiffMarkdown(
-  diffs: ApiDiffResult[],
+  diff: ApiDiffResult,
   summaryUrl: string,
   includeFullOutput = false,
 ): string {
-  if (diffs.length === 0) {
-    return `## 📊 API Diff Results\n\n> No modules to analyze\n\n[View full report](${summaryUrl})`;
-  }
+  const hasIncompat = diff.incompatible.length > 0;
+  const hasCompat = diff.compatible.length > 0;
+  const hasMeta = diff.meta.length > 0;
 
-  const hasIncompat = diffs.some((d) => d.incompatible.length > 0);
-  const totalIncompat = diffs.reduce((s, d) => s + d.incompatible.length, 0);
-  const totalCompat = diffs.reduce((s, d) => s + d.compatible.length, 0);
-  const modulesWithChanges = diffs.filter(
-    (d) => d.incompatible.length || d.compatible.length,
-  ).length;
+  if (!hasMeta && !hasIncompat && !hasCompat) {
+    return `## 📊 API Diff Results\n\n> No changes detected for module \`${diff.moduleName}\`\n\n[View full report](${summaryUrl})`;
+  }
 
   const statusEmoji = hasIncompat ? "⚠️" : "✅";
   const statusText = hasIncompat
@@ -76,7 +73,7 @@ export function formatApidiffMarkdown(
     : "No breaking changes";
 
   const lines: string[] = [
-    `## ${statusEmoji} API Diff Results - ${statusText}`,
+    `## ${statusEmoji} API Diff Results (${diff.moduleName}) - ${statusText}`,
     ``,
   ];
 
@@ -86,46 +83,31 @@ export function formatApidiffMarkdown(
   }
 
   if (includeFullOutput) {
-    const analyzedShield = apidiffShield(
-      "modules analyzed",
-      modulesWithChanges,
-      "blue",
-    );
     const breakingShield = apidiffShield(
       "breaking changes",
-      totalIncompat,
+      diff.incompatible.length,
       "red",
     );
     const compatibleShield = apidiffShield(
       "compatible changes",
-      totalCompat,
+      diff.compatible.length,
       "green",
     );
-    lines.push(
-      ``,
-      `${analyzedShield} ${breakingShield} ${compatibleShield}`,
-      ``,
-    );
+    lines.push("", `${breakingShield} ${compatibleShield}`, "");
   }
 
-  function formatGroupedChanges(
-    title: string,
-    changes: Change[],
-    isBreaking = false,
-  ): string[] {
+  function formatGroupedChanges(title: string, changes: Change[]): string[] {
     if (!changes.length) return [];
     const out: string[] = [];
-    const icon = isBreaking ? "🔴" : "🟢";
-    out.push(`#### ${icon} ${title} (${changes.length})`, ``);
+    out.push(`#### ${title} (${changes.length})`, "");
 
     const grouped = groupByPackage(changes);
     for (const packagePath of Array.from(grouped.keys()).sort()) {
       const packageChanges = grouped.get(packagePath)!;
 
-      // Plain header instead of collapsible
       out.push(
         `##### \`${packagePath || "(root)"}\` (${packageChanges.length})`,
-        ``,
+        "",
       );
 
       for (const change of packageChanges) {
@@ -133,64 +115,54 @@ export function formatApidiffMarkdown(
         const formatted = formatTypeChangeMarkdown(change.change);
         const isBlock = formatted.startsWith("\n<pre>");
         if (isBlock) {
-          out.push(`- **\`${elementName}\`** — Type changed:`);
+          out.push(`- \`${elementName}\` — Type changed:`);
           out.push(formatted);
         } else {
-          out.push(`- **\`${elementName}\`** — ${formatted}`);
+          out.push(`- \`${elementName}\` — ${formatted}`);
         }
-        out.push(``);
+        out.push("");
       }
     }
     return out;
   }
 
-  const breaking = diffs.filter((d) => d.incompatible.length);
-  const compatOnly = diffs.filter(
-    (d) => !d.incompatible.length && d.compatible.length,
-  );
-
-  if (breaking.length) {
-    if (includeFullOutput) {
-      lines.push(`---`, ``, `## ⚠️ Modules with Breaking Changes`, ``);
-    }
-
-    for (const d of breaking) {
-      lines.push(`### 📦 Module: \`${d.moduleName}\``, ``);
-      lines.push(
-        ...formatGroupedChanges("Breaking Changes", d.incompatible, true),
-      );
-
-      if (includeFullOutput && d.compatible.length) {
-        lines.push(
-          ...formatGroupedChanges("Compatible Changes", d.compatible, false),
-        );
-      }
-
-      if (includeFullOutput && d.meta.length) {
-        lines.push(`#### 📋 Metadata (${d.meta.length})`, ``);
-        lines.push("```diff");
-        for (const m of d.meta) {
-          lines.push(`! ${m.header}`);
-          lines.push(`  first:  ${m.first}`);
-          lines.push(`  second: ${m.second}`);
-          lines.push("");
-        }
-        lines.push("```", ``);
-      }
-    }
+  //
+  // BREAKING CHANGES
+  //
+  if (diff.incompatible.length) {
+    lines.push(
+      ...formatGroupedChanges("⚠️ Breaking Changes", diff.incompatible),
+    );
   }
 
-  if (includeFullOutput && compatOnly.length) {
-    lines.push(`---`, ``, `## ✅ Modules with Only Compatible Changes`, ``);
-    for (const d of compatOnly) {
-      lines.push(`### 📦 ${d.moduleName} (${d.compatible.length})`, ``);
-      lines.push(
-        ...formatGroupedChanges("Compatible Changes", d.compatible, false),
-      );
-    }
+  //
+  // COMPATIBLE CHANGES
+  //
+  if (includeFullOutput && diff.compatible.length) {
+    lines.push(
+      ...formatGroupedChanges("✅ Compatible Changes", diff.compatible),
+    );
   }
 
-  lines.push(`---`, ``, `📄 [View full apidiff report](${summaryUrl})`, ``);
+  //
+  // META CHANGES
+  //
+  if (includeFullOutput && diff.meta.length) {
+    lines.push(`---`, "", `## 📋 Metadata (${diff.meta.length})`, "");
+    lines.push("<details>", "", "<summary>View metadata changes</summary>", "");
+    lines.push("```diff");
+    for (const m of diff.meta) {
+      lines.push(`! ${m.header}`);
+      lines.push(`  first:  ${m.first}`);
+      lines.push(`  second: ${m.second}`);
+      lines.push("");
+    }
+    lines.push("```", "");
+    lines.push("</details>", "");
+  }
+
+  lines.push(`---`, "", `📄 [View full apidiff report](${summaryUrl})`, "");
+
   return lines.join("\n");
 }
 
