@@ -60,14 +60,16 @@ export async function run(): Promise<void> {
       baseRef,
     );
     core.info(`Generated base export at: ${baseExport.path}`);
-    const latestExport = await generateExportForLatestVersion(
-      context,
-      inputs.repositoryRoot,
-      inputs.moduleDirectory,
-    );
-    if (latestExport) {
-      core.info(`Generated latest version export at: ${latestExport.path}`);
-    }
+
+    // TODO: support comparing against latest tagged version (DX-2323)
+    // const latestExport = await generateExportForLatestVersion(
+    //   context,
+    //   inputs.repositoryRoot,
+    //   inputs.moduleDirectory,
+    // );
+    // if (latestExport) {
+    //   core.info(`Generated latest version export at: ${latestExport.path}`);
+    // }
     core.endGroup();
 
     // 4. Diff and parse export
@@ -75,6 +77,7 @@ export async function run(): Promise<void> {
     core.info(`Diffing base (${baseExport.ref}) -> head (${headExport.ref})`);
     const baseHeadDiff = await diffExports(baseExport, headExport);
 
+    // TODO: support comparing against latest tagged version (DX-2323)
     // let latestHeadDiff = null;
     // if (latestExport) {
     //   core.info(
@@ -121,6 +124,7 @@ export async function run(): Promise<void> {
           context.repo,
           context.event.prNumber,
           markdownOutputIncompatibleOnly,
+          moduleName,
         );
       }
     }
@@ -142,6 +146,7 @@ export async function run(): Promise<void> {
   }
 }
 
+// TODO: support comparing against latest tagged version (DX-2323)
 async function generateExportForLatestVersion(
   context: InvokeContext,
   repositoryRoot: string,

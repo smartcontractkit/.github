@@ -1,9 +1,11 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
-const MARKDOWN_FINGERPRINT = "<!-- chainlink-apidiff-go -->";
-
 export type OctokitType = ReturnType<typeof github.getOctokit>;
+
+function getMarkdownFingerprint(moduleName: string): string {
+  return `<!-- chainlink-apidiff-go ${moduleName} -->`;
+}
 
 export async function upsertPRComment(
   octokit: OctokitType,
@@ -11,6 +13,7 @@ export async function upsertPRComment(
   repo: string,
   pull_number: number,
   commentBody: string,
+  moduleName: string,
 ): Promise<void> {
   // 1. List all comments on the PR (issues API covers PR comments)
   const { data: comments } = await octokit.rest.issues.listComments({
@@ -20,11 +23,13 @@ export async function upsertPRComment(
     per_page: 100,
   });
 
+  const markdownFingerprint = getMarkdownFingerprint(moduleName);
+
   // 2. Look for a comment containing our identifier
   const existingComment = comments.find((c) =>
-    c.body?.includes(MARKDOWN_FINGERPRINT),
+    c.body?.includes(markdownFingerprint),
   );
-  const fingerprintedCommentBody = commentBody + `\n\n${MARKDOWN_FINGERPRINT}`;
+  const fingerprintedCommentBody = commentBody + `\n\n${markdownFingerprint}`;
 
   try {
     if (existingComment) {
@@ -76,10 +81,3 @@ export async function getSummaryUrl(
     return "";
   }
 }
-
-export async function getLatestReleaseForModule(
-  octokit: OctokitType,
-  owner: string,
-  repo: string,
-  modulePath: string,
-) {}

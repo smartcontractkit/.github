@@ -33084,33 +33084,6 @@ var core = __toESM(require_core());
 var semver = __toESM(require_semver2());
 var import_path = require("path");
 var import_fs = require("fs");
-function findLatestVersionFromTags(modulePath, tags) {
-  const prefix = `${modulePath}/v`;
-  core.info(
-    `Finding latest version with prefix '${prefix}' from ${tags.length} tags.`
-  );
-  if (tags.length === 0) {
-    core.info("No tags found.");
-    return null;
-  }
-  const filteredTags = tags.filter((tag) => tag.startsWith(prefix));
-  core.info(`Filtered to ${filteredTags.length} tags with prefix '${prefix}'.`);
-  core.debug(`Filtered tags: ${filteredTags.join(", ")}`);
-  const versions = filteredTags.map((tag) => tag.slice(prefix.length)).filter((v) => semver.valid(v) !== null);
-  core.info(`Found ${versions.length} valid semantic versions for module.`);
-  core.debug(`Versions found: ${versions.join(", ")}`);
-  if (versions.length === 0) {
-    core.info("No valid semantic versions found for module.");
-    return null;
-  }
-  const sorted = versions.sort(semver.rcompare);
-  const latestVersion = sorted[0];
-  core.info(`Latest version for module '${modulePath}' is: ${latestVersion}`);
-  return {
-    version: latestVersion,
-    tag: `${modulePath}/v${latestVersion}`
-  };
-}
 async function getGoModuleName(moduleDir) {
   try {
     const goModPath = (0, import_path.join)(moduleDir, "go.mod");
@@ -33327,11 +33300,6 @@ async function checkoutRef(repoDir, ref) {
     throw new Error(`Failed to checkout ref ${ref}: ${error}`);
   }
 }
-async function getRepoTags(repoDir) {
-  const { stdout: rawTags } = await execa("git", ["tag"], { cwd: repoDir });
-  const tags = rawTags.split("\n").map((t) => t.trim()).filter(Boolean);
-  return tags;
-}
 
 // actions/apidiff-go/src/apidiff.ts
 async function generateExportAtRef(modulePath, ref) {
@@ -33471,20 +33439,23 @@ function parseApidiffOutput(moduleName, output) {
 // actions/apidiff-go/src/github.ts
 var core5 = __toESM(require_core());
 var github3 = __toESM(require_github());
-var MARKDOWN_FINGERPRINT = "<!-- chainlink-apidiff-go -->";
-async function upsertPRComment(octokit, owner, repo, pull_number, commentBody) {
+function getMarkdownFingerprint(moduleName) {
+  return `<!-- chainlink-apidiff-go ${moduleName} -->`;
+}
+async function upsertPRComment(octokit, owner, repo, pull_number, commentBody, moduleName) {
   const { data: comments } = await octokit.rest.issues.listComments({
     owner,
     repo,
     issue_number: pull_number,
     per_page: 100
   });
+  const markdownFingerprint = getMarkdownFingerprint(moduleName);
   const existingComment = comments.find(
-    (c3) => c3.body?.includes(MARKDOWN_FINGERPRINT)
+    (c3) => c3.body?.includes(markdownFingerprint)
   );
   const fingerprintedCommentBody = commentBody + `
 
-${MARKDOWN_FINGERPRINT}`;
+${markdownFingerprint}`;
   try {
     if (existingComment) {
       await octokit.rest.issues.updateComment({
@@ -34199,14 +34170,6 @@ async function run() {
       baseRef
     );
     core7.info(`Generated base export at: ${baseExport.path}`);
-    const latestExport = await generateExportForLatestVersion(
-      context3,
-      inputs.repositoryRoot,
-      inputs.moduleDirectory
-    );
-    if (latestExport) {
-      core7.info(`Generated latest version export at: ${latestExport.path}`);
-    }
     core7.endGroup();
     core7.startGroup("Diff, Parse Exports");
     core7.info(`Diffing base (${baseExport.ref}) -> head (${headExport.ref})`);
@@ -34240,7 +34203,8 @@ async function run() {
           context3.owner,
           context3.repo,
           context3.event.prNumber,
-          markdownOutputIncompatibleOnly
+          markdownOutputIncompatibleOnly,
+          moduleName
         );
       }
     }
@@ -34259,20 +34223,6 @@ async function run() {
     core7.endGroup();
     core7.setFailed(`Action failed: ${error}`);
   }
-}
-async function generateExportForLatestVersion(context3, repositoryRoot, moduleDirectory) {
-  if (context3.event.eventName !== "push") {
-    return null;
-  }
-  core7.info("Push event detected. Diffing with latest tagged version.");
-  const tags = await getRepoTags(repositoryRoot);
-  const latest = findLatestVersionFromTags(moduleDirectory, tags);
-  if (!latest) {
-    core7.info("Latest version not found. Skipping export generation.");
-    return null;
-  }
-  const qualifiedModuleDirectory = (0, import_path3.join)(repositoryRoot, moduleDirectory);
-  return generateExportAtRef(qualifiedModuleDirectory, latest.tag);
 }
 
 // actions/apidiff-go/src/index.ts
