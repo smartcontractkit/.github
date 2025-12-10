@@ -33920,28 +33920,10 @@ function formatApidiffMarkdown(diff, summaryUrl, includeFullOutput = false) {
 [View full report](${summaryUrl})`;
   }
   const statusEmoji = hasIncompat ? "\u26A0\uFE0F" : "\u2705";
-  const statusText = hasIncompat ? "Breaking changes detected" : "No breaking changes";
   const lines = [
-    `## ${statusEmoji} API Diff Results (${diff.moduleName}) - ${statusText}`,
+    `## ${statusEmoji} API Diff Results - \`${diff.moduleName}\``,
     ``
   ];
-  function apidiffShield(label, count2, color) {
-    const escapedLabel = label.replace(/ /g, "_").replace(/-/g, "--");
-    return `![${label}](https://img.shields.io/badge/${escapedLabel}-${count2}-${color})`;
-  }
-  if (includeFullOutput) {
-    const breakingShield = apidiffShield(
-      "breaking changes",
-      diff.incompatible.length,
-      "red"
-    );
-    const compatibleShield = apidiffShield(
-      "compatible changes",
-      diff.compatible.length,
-      "green"
-    );
-    lines.push("", `${breakingShield} ${compatibleShield}`, "");
-  }
   function formatGroupedChanges(title, changes) {
     if (!changes.length) return [];
     const out = [];
@@ -33950,7 +33932,7 @@ function formatApidiffMarkdown(diff, summaryUrl, includeFullOutput = false) {
     for (const packagePath of Array.from(grouped.keys()).sort()) {
       const packageChanges = grouped.get(packagePath);
       out.push(
-        `##### \`${packagePath || "(root)"}\` (${packageChanges.length})`,
+        `##### \`${packagePath || "`./`"}\` (${packageChanges.length})`,
         ""
       );
       for (const change of packageChanges) {
@@ -34008,34 +33990,18 @@ async function formatApidiffJobSummary(diff) {
     return;
   }
   const statusEmoji = hasIncompat ? "\u26A0\uFE0F" : "\u2705";
-  const statusText = hasIncompat ? "Breaking changes detected" : "No breaking changes";
-  s.addHeading(
-    `${statusEmoji} API Diff Results \u2013 ${statusText} (${diff.moduleName})`,
-    2
-  );
+  s.addHeading(`${statusEmoji} API Diff Results \u2013 ${diff.moduleName}`, 2);
+  function simpleTableRow(title, content) {
+    return [{ data: title }, { data: `<div align="right">${content}</div>` }];
+  }
   s.addTable([
     [
       { data: "Metric", header: true },
       { data: "Count", header: true }
     ],
-    [
-      { data: "Breaking changes" },
-      {
-        data: `<div align="right">${diff.incompatible.length}</div>`
-      }
-    ],
-    [
-      { data: "Compatible changes" },
-      {
-        data: `<div align="right">${diff.compatible.length}</div>`
-      }
-    ],
-    [
-      { data: "Metadata entries" },
-      {
-        data: `<div align="right">${diff.meta.length}</div>`
-      }
-    ]
+    simpleTableRow("Breaking changes", diff.incompatible.length),
+    simpleTableRow("Compatible changes", diff.compatible.length),
+    simpleTableRow("Metadata entries", diff.meta.length)
   ]);
   const renderGrouped = (title, changes, isBreaking = false) => {
     if (!changes.length) return;
