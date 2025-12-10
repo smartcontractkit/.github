@@ -84,7 +84,7 @@ export function formatApidiffMarkdown(
       const packageChanges = grouped.get(packagePath)!;
 
       out.push(
-        `##### \`${packagePath || "\`./\`"}\` (${packageChanges.length})`,
+        `##### \`${packagePath || "`./`"}\` (${packageChanges.length})`,
         "",
       );
 
@@ -169,39 +169,23 @@ export async function formatApidiffJobSummary(
   }
 
   const statusEmoji = hasIncompat ? "⚠️" : "✅";
-  const statusText = hasIncompat
-    ? "Breaking changes detected"
-    : "No breaking changes";
-
-  s.addHeading(
-    `${statusEmoji} API Diff Results – ${statusText} (${diff.moduleName})`,
-    2,
-  );
+  s.addHeading(`${statusEmoji} API Diff Results – ${diff.moduleName}`, 2);
 
   // Top summary table for this module
+  function simpleTableRow(title: string, content: number): { data: string }[] {
+    return [
+      { data: title },
+      { data: `<div align="right">${content}</div>` },
+    ];
+  }
   s.addTable([
     [
       { data: "Metric", header: true },
       { data: "Count", header: true },
     ],
-    [
-      { data: "Breaking changes" },
-      {
-        data: `<div align="right">${diff.incompatible.length}</div>`,
-      },
-    ],
-    [
-      { data: "Compatible changes" },
-      {
-        data: `<div align="right">${diff.compatible.length}</div>`,
-      },
-    ],
-    [
-      { data: "Metadata entries" },
-      {
-        data: `<div align="right">${diff.meta.length}</div>`,
-      },
-    ],
+    simpleTableRow("Breaking changes", diff.incompatible.length),
+    simpleTableRow("Compatible changes", diff.compatible.length),
+    simpleTableRow("Metadata entries", diff.meta.length),
   ]);
 
   const renderGrouped = (

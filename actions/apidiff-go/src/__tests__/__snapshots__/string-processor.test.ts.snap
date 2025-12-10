@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`markdown comment & job summary > formats diff as job summary: compatible-1.txt 1`] = `
-"# ✅ API Diff Results – No breaking changes (compatible-1)
+"# ✅ API Diff Results – compatible-1
 TABLE:
 Metric | Count
 Breaking changes | <div align="right">0</div>
@@ -18,7 +18,7 @@ Metadata entries | <div align="right">0</div>
 `;
 
 exports[`markdown comment & job summary > formats diff as job summary: incompatible-1.txt 1`] = `
-"# ⚠️ API Diff Results – Breaking changes detected (incompatible-1)
+"# ⚠️ API Diff Results – incompatible-1
 TABLE:
 Metric | Count
 Breaking changes | <div align="right">2</div>
@@ -93,7 +93,7 @@ Metadata entries | <div align="right">0</div>
 `;
 
 exports[`markdown comment & job summary > formats diff as job summary: incompatible-2.txt 1`] = `
-"# ⚠️ API Diff Results – Breaking changes detected (incompatible-2)
+"# ⚠️ API Diff Results – incompatible-2
 TABLE:
 Metric | Count
 Breaking changes | <div align="right">56</div>
@@ -1082,7 +1082,7 @@ error</pre></li>
 `;
 
 exports[`markdown comment & job summary > formats diff as job summary: incompatible-3.txt 1`] = `
-"# ⚠️ API Diff Results – Breaking changes detected (incompatible-3)
+"# ⚠️ API Diff Results – incompatible-3
 TABLE:
 Metric | Count
 Breaking changes | <div align="right">1</div>
