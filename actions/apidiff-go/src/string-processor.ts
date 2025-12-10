@@ -173,10 +173,7 @@ export async function formatApidiffJobSummary(
 
   // Top summary table for this module
   function simpleTableRow(title: string, content: number): { data: string }[] {
-    return [
-      { data: title },
-      { data: `<div align="right">${content}</div>` },
-    ];
+    return [{ data: title }, { data: `<div align="right">${content}</div>` }];
   }
   s.addTable([
     [

@@ -62,6 +62,7 @@ inputs:
       "URL linking to the full apidiff report. This is included in the comment
       posted to the pull request."
     required: true
+    # Example format: https://github.com/smartcontractkit/chainlink-common/actions/runs/16783814681#summary-47529227742
     default:
-      ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}',
+      ${{ format('https://github.com/{0}/actions/runs/{1}#summary-{2}',
       github.repository, github.run_id, job.check_run_id) }}
