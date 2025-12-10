@@ -68,33 +68,11 @@ export function formatApidiffMarkdown(
   }
 
   const statusEmoji = hasIncompat ? "⚠️" : "✅";
-  const statusText = hasIncompat
-    ? "Breaking changes detected"
-    : "No breaking changes";
 
   const lines: string[] = [
-    `## ${statusEmoji} API Diff Results (${diff.moduleName}) - ${statusText}`,
+    `## ${statusEmoji} API Diff Results - \`${diff.moduleName}\``,
     ``,
   ];
-
-  function apidiffShield(label: string, count: number, color: string) {
-    const escapedLabel = label.replace(/ /g, "_").replace(/-/g, "--");
-    return `![${label}](https://img.shields.io/badge/${escapedLabel}-${count}-${color})`;
-  }
-
-  if (includeFullOutput) {
-    const breakingShield = apidiffShield(
-      "breaking changes",
-      diff.incompatible.length,
-      "red",
-    );
-    const compatibleShield = apidiffShield(
-      "compatible changes",
-      diff.compatible.length,
-      "green",
-    );
-    lines.push("", `${breakingShield} ${compatibleShield}`, "");
-  }
 
   function formatGroupedChanges(title: string, changes: Change[]): string[] {
     if (!changes.length) return [];
@@ -106,7 +84,7 @@ export function formatApidiffMarkdown(
       const packageChanges = grouped.get(packagePath)!;
 
       out.push(
-        `##### \`${packagePath || "(root)"}\` (${packageChanges.length})`,
+        `##### \`${packagePath || "\`./\`"}\` (${packageChanges.length})`,
         "",
       );
 

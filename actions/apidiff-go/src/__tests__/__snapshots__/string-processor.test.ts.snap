@@ -1119,14 +1119,11 @@ Metadata entries | <div align="right">0</div>
 `;
 
 exports[`markdown comment & job summary > formats diff as markdown comment: compatible-1.txt 1`] = `
-"## ✅ API Diff Results (compatible-1) - No breaking changes
-
-
-![breaking changes](https://img.shields.io/badge/breaking_changes-0-red) ![compatible changes](https://img.shields.io/badge/compatible_changes-2-green)
+"## ✅ API Diff Results - \`compatible-1\`
 
 #### ✅ Compatible Changes (2)
 
-##### \`(root)\` (2)
+##### \`\`./\`\` (2)
 
 - \`WithMeterProvider\` — ➕ Added
 
@@ -1139,10 +1136,7 @@ exports[`markdown comment & job summary > formats diff as markdown comment: comp
 `;
 
 exports[`markdown comment & job summary > formats diff as markdown comment: incompatible-1.txt 1`] = `
-"## ⚠️ API Diff Results (incompatible-1) - Breaking changes detected
-
-
-![breaking changes](https://img.shields.io/badge/breaking_changes-2-red) ![compatible changes](https://img.shields.io/badge/compatible_changes-24-green)
+"## ⚠️ API Diff Results - \`incompatible-1\`
 
 #### ⚠️ Breaking Changes (2)
 
@@ -1235,10 +1229,7 @@ exports[`markdown comment & job summary > formats diff as markdown comment: inco
 `;
 
 exports[`markdown comment & job summary > formats diff as markdown comment: incompatible-2.txt 1`] = `
-"## ⚠️ API Diff Results (incompatible-2) - Breaking changes detected
-
-
-![breaking changes](https://img.shields.io/badge/breaking_changes-56-red) ![compatible changes](https://img.shields.io/badge/compatible_changes-146-green)
+"## ⚠️ API Diff Results - \`incompatible-2\`
 
 #### ⚠️ Breaking Changes (56)
 
@@ -2348,10 +2339,7 @@ error</pre>
 `;
 
 exports[`markdown comment & job summary > formats diff as markdown comment: incompatible-3.txt 1`] = `
-"## ⚠️ API Diff Results (incompatible-3) - Breaking changes detected
-
-
-![breaking changes](https://img.shields.io/badge/breaking_changes-1-red) ![compatible changes](https://img.shields.io/badge/compatible_changes-6-green)
+"## ⚠️ API Diff Results - \`incompatible-3\`
 
 #### ⚠️ Breaking Changes (1)
 
@@ -2361,7 +2349,7 @@ exports[`markdown comment & job summary > formats diff as markdown comment: inco
 
 #### ✅ Compatible Changes (6)
 
-##### \`(root)\` (3)
+##### \`\`./\`\` (3)
 
 - \`NoopClient\` — ➕ Added
 
