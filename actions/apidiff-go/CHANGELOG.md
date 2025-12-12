@@ -1,5 +1,26 @@
 # apidiff-go
 
+## 2.0.0
+
+### Major Changes
+
+- [#1353](https://github.com/smartcontractkit/.github/pull/1353)
+  [`bfb2a4d`](https://github.com/smartcontractkit/.github/commit/bfb2a4d52ebe57a5c662ba06384228695c7116ae)
+  Thanks [@erikburt](https://github.com/erikburt)! - processing overhaul -
+  support processing only a single module
+
+### Patch Changes
+
+- [#1353](https://github.com/smartcontractkit/.github/pull/1353)
+  [`bfb2a4d`](https://github.com/smartcontractkit/.github/commit/bfb2a4d52ebe57a5c662ba06384228695c7116ae)
+  Thanks [@erikburt](https://github.com/erikburt)! - formatting changes - reduce
+  usage of bolded text
+
+- [#1353](https://github.com/smartcontractkit/.github/pull/1353)
+  [`bfb2a4d`](https://github.com/smartcontractkit/.github/commit/bfb2a4d52ebe57a5c662ba06384228695c7116ae)
+  Thanks [@erikburt](https://github.com/erikburt)! - formatting changes - fix
+  diff for parameters with new trailing commas
+
 ## 1.0.0
 
 ### Major Changes
