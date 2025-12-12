@@ -2,135 +2,81 @@ import * as core from "@actions/core";
 import { join, basename } from "path";
 import { execa } from "execa";
 import * as fs from "fs";
+
+import { normalizeRefForFilename } from "./util";
+
 import { CL_LOCAL_DEBUG } from "./run-inputs";
+import { checkoutRef } from "./git";
 
 // Rough type for execa result
 type ExecResult = Awaited<ReturnType<typeof execa>>;
-export async function runApidiff(
-  baseDir: string,
-  headDir: string,
-  goModPaths: string[],
-) {
-  core.startGroup("Running apidiff");
-  core.info(`Running apidiff between base and head directories`);
-  core.info(`Base directory: ${baseDir}`);
-  core.info(`Head directory: ${headDir}`);
-  core.info(`Go module paths: ${goModPaths.join(", ")}`);
 
-  const results: Record<string, string> = {};
-  for (const goModPath of goModPaths) {
-    // Get module name from go.mod for naming exports
-    const fullModulePathBase = join(baseDir, goModPath);
-    const fullModulePathHead = join(headDir, goModPath);
-    if (!fs.existsSync(fullModulePathBase)) {
-      core.warning(`Module not found: ${fullModulePathBase}`);
-      continue;
-    } else if (!fs.existsSync(fullModulePathHead)) {
-      core.warning(`Module not found: ${fullModulePathHead}`);
-      continue;
-    }
-    const moduleName = await getModuleName(fullModulePathBase);
+export type ExportFile = {
+  path: string;
+  normalizedRef: string;
+  ref: string;
+};
 
-    const baseExportFile = join(process.cwd(), `${moduleName}-base.export`);
-    const headExportFile = join(process.cwd(), `${moduleName}-head.export`);
-
-    try {
-      await Promise.all([
-        generateExport(fullModulePathBase, baseExportFile),
-        generateExport(fullModulePathHead, headExportFile),
-      ]);
-
-      core.info(`Comparing exports for module ${moduleName}`);
-      core.info(`Base export file: ${baseExportFile}`);
-      core.info(`Head export file: ${headExportFile}`);
-
-      // Run apidiff comparison
-      const { stdout, stderr, exitCode }: ExecResult = await execa(
-        "apidiff",
-        ["-m", baseExportFile, headExportFile],
-        { reject: false },
-      );
-
-      if (CL_LOCAL_DEBUG) {
-        // write output to file
-        await fs.promises.writeFile(`./apidiff-output.txt`, stdout);
-      }
-
-      if (stderr) {
-        core.warning(`apidiff stderr: ${stderr}`);
-      }
-      if (exitCode !== 0 && exitCode !== 1) {
-        throw new Error(`apidiff failed with exit code ${exitCode}: ${stderr}`);
-      }
-      results[moduleName] = stdout;
-    } catch (error) {
-      core.setFailed(
-        `Failed to generate exports for module ${moduleName}: ${error}`,
-      );
-      continue;
-    } finally {
-      try {
-        if (fs.existsSync(baseExportFile)) {
-          fs.unlinkSync(baseExportFile);
-        }
-        if (fs.existsSync(headExportFile)) {
-          fs.unlinkSync(headExportFile);
-        }
-      } catch (error) {
-        core.warning(`Failed to clean up export files: ${error}`);
-      }
-
-      core.endGroup();
-    }
-  }
-
-  return results;
-}
-
-async function generateExport(modulePath: string, outFile: string) {
+export async function generateExportAtRef(
+  modulePath: string,
+  ref: string,
+): Promise<ExportFile> {
+  const normalizedRef = normalizeRefForFilename(ref);
+  const outFile = `${normalizedRef}.export`;
   core.info(
-    `Generating export for module at ${modulePath}. Writing to ${outFile}`,
+    `Generating export (${outFile}) for module at ${modulePath}, at ref ${ref}.`,
   );
+
+  await checkoutRef(modulePath, ref);
   await execa("apidiff", ["-m", "-w", outFile, "."], {
     cwd: modulePath,
   });
+
+  return {
+    path: join(modulePath, outFile),
+    normalizedRef,
+    ref,
+  };
 }
 
-/**
- * Extracts the module name from go.mod file
- */
-async function getModuleName(goModDir: string): Promise<string> {
-  try {
-    const goModPath = join(goModDir, "go.mod");
+export async function diffExports(
+  baseExport: ExportFile,
+  headExport: ExportFile,
+) {
+  core.info(
+    `Comparing exports: base=${baseExport.path}, head=${headExport.path}`,
+  );
+  // Run apidiff comparison
+  const { stdout, stderr, exitCode }: ExecResult = await execa(
+    "apidiff",
+    ["-m", baseExport.path, headExport.path],
+    { reject: false },
+  );
 
-    if (!fs.existsSync(goModPath)) {
-      core.warning(`go.mod not found at ${goModPath}, using directory name`);
-      return basename(goModDir);
-    }
-
-    const goModContent = fs.readFileSync(goModPath, "utf8");
-    const moduleMatch = goModContent.match(/^module\s+(.+)$/m);
-
-    if (moduleMatch && moduleMatch[1]) {
-      const moduleName = moduleMatch[1].trim();
-      // Sanitize module name for filesystem use
-      return moduleName.replace(/[^a-zA-Z0-9\-_]/g, "-");
-    }
-
-    core.warning(
-      `Could not parse module name from ${goModPath}, using directory name`,
+  if (CL_LOCAL_DEBUG) {
+    await fs.promises.writeFile(
+      `./apidiff-${baseExport.normalizedRef}-${headExport.normalizedRef}.txt`,
+      stdout,
     );
-    return basename(goModDir);
-  } catch (error) {
-    core.warning(`Error reading go.mod: ${error}, using directory name`);
-    return basename(goModDir);
   }
+
+  if (stderr) {
+    core.warning(`apidiff stderr: ${stderr}`);
+  }
+  if (exitCode !== 0 && exitCode !== 1) {
+    throw new Error(`apidiff failed with exit code ${exitCode}: ${stderr}`);
+  }
+
+  return stdout;
 }
 
 /**
- * Installs apidiff via Go if not already available
+ * Installs apidiff via Go if not already available.
+ *
+ * Uses moduleDirectory as CWD to ensure Go environment is correct.
  */
 export async function installApidiff(
+  directory: string,
   apidiffVersion: string,
   forceInstall: boolean = false,
 ): Promise<void> {
@@ -138,17 +84,18 @@ export async function installApidiff(
   core.info(`Requested apidiff version: ${apidiffVersion}`);
   core.info(`Force install? ${forceInstall}`);
   try {
-    const isInstalled = await checkApidiffInstalled();
+    const isInstalled = await checkApidiffInstalled(directory);
     if (isInstalled && !forceInstall) {
       core.info("apidiff is already installed");
       return;
     }
 
     core.info("Installing apidiff...");
-    await execa("go", [
-      "install",
-      `golang.org/x/exp/cmd/apidiff@${apidiffVersion}`,
-    ]);
+    await execa(
+      "go",
+      ["install", `golang.org/x/exp/cmd/apidiff@${apidiffVersion}`],
+      { cwd: directory },
+    );
 
     const goPath = process.env.GOPATH || join(process.env.HOME || "", "go");
     const goBin = join(goPath, "bin");
@@ -165,9 +112,13 @@ export async function installApidiff(
   }
 }
 
-async function checkApidiffInstalled(): Promise<boolean> {
+async function checkApidiffInstalled(directory: string): Promise<boolean> {
   try {
-    await execa("which", ["apidiff"], { stderr: "ignore", stdout: "ignore" });
+    await execa("which", ["apidiff"], {
+      stderr: "ignore",
+      stdout: "ignore",
+      cwd: directory,
+    });
     core.warning(
       "apidiff is already installed and may not be the correct version",
     );
@@ -191,25 +142,20 @@ export interface ApiDiffResult {
   meta: MetaDiff[];
   incompatible: Change[];
   compatible: Change[];
+  rawOutput: string;
 }
 
-export function parseApidiffOutputs(
-  output: Record<string, string>,
-): ApiDiffResult[] {
-  const out: ApiDiffResult[] = [];
-  for (const [moduleName, moduleOutput] of Object.entries(output)) {
-    out.push(parseApidiffOutput(moduleName, moduleOutput));
-  }
-  return out;
-}
-
-function parseApidiffOutput(moduleName: string, output: string): ApiDiffResult {
+export function parseApidiffOutput(
+  moduleName: string,
+  output: string,
+): ApiDiffResult {
   const lines = output.split(/\r?\n/);
   const result: ApiDiffResult = {
     moduleName,
     meta: [],
     incompatible: [],
     compatible: [],
+    rawOutput: output,
   };
   let section: "meta" | "incompatible" | "compatible" | null = null;
   let currentMeta: MetaDiff | null = null;
