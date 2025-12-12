@@ -15,6 +15,7 @@ export INPUT_JOB_NAME_PREFIX="GolangCI Lint ("
 export INPUT_ASSERT_JOBS_EXIST="true"
 export INPUT_ASSERT_SUCCESSFUL="false"
 export INPUT_ASSERT_NO_FAILURES="false"
+export INPUT_ASSERT_NO_CANCELS="true"
 
 export CL_LOCAL_DEBUG="true"
 

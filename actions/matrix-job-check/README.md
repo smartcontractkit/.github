@@ -9,8 +9,9 @@ This action allows you to properly assert the result of matrix jobs.
 | `workflow-run-id`     | The workflow run id (not job). The default is probably all you should ever need.          | `${{ github.run_id }}` |
 | `job-name-prefix`     | The prefix of all the jobs you'd like to consider as part of the matrix                   | N/A - required         |
 | `assert-jobs-exist`   | Assert that jobs exist (ie. the matrix was actually created, and that prefix is accurate) | `true`                 |
-| `assert-successful`   | Assert that all jobs w/ matching prefix were successful                                   | `false`                |
-| `asssert-no-failures` | Assert that all jobs w/ matchign prefix did not fail (allows skips, etc.)                 | `true`                 |
+| `assert-successful`   | Assert that jobs w/ matching prefix were successful                                       | `false`                |
+| `asssert-no-failures` | Assert that jobs w/ matching prefix did not fail (allows skips, etc.)                     | `true`                 |
+| `assert-no-cancels`   | Assert that jobs w/ matching prefix were not cancelled                                    | `true`                 |
 
 ### Example Workflow
 

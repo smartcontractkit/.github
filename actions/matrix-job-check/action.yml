@@ -19,18 +19,23 @@ inputs:
     required: false
     default: "true"
 
-  assert-successful:
-    description:
-      "Whether to assert that all matrix jobs completed successfully. ie. No
-      failures, or skips."
-    required: false
-    default: "false"
-
   assert-no-failures:
     description:
       "Whether to assert that no matrix jobs failed. ie. Allows skips."
     required: false
     default: "true"
+
+  assert-no-cancels:
+    description: "Whether to assert that no matrix jobs were cancelled."
+    required: false
+    default: "true"
+
+  assert-successful:
+    description:
+      "Whether to assert that all matrix jobs completed successfully. ie. No
+      failures, skips, or cancellations."
+    required: false
+    default: "false"
 
 runs:
   using: node20

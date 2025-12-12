@@ -5,14 +5,11 @@ export const CL_LOCAL_DEBUG = process.env.CL_LOCAL_DEBUG === "true";
 export type InvokeContext = ReturnType<typeof getInvokeContext>;
 export interface RunInputs {
   workflowRunId: string;
-
   jobNamePrefix: string;
-
   assertJobsExist: boolean;
-
   assertSuccessful: boolean;
-
   assertNoFailures: boolean;
+  assertNoCancellations: boolean;
 }
 
 export function getInputs(): RunInputs {
@@ -24,6 +21,7 @@ export function getInputs(): RunInputs {
     assertJobsExist: getRunInputBoolean("assertJobsExist"),
     assertSuccessful: getRunInputBoolean("assertSuccessful"),
     assertNoFailures: getRunInputBoolean("assertNoFailures"),
+    assertNoCancellations: getRunInputBoolean("assertNoCancellations"),
   };
 
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
@@ -89,6 +87,10 @@ const runInputsConfiguration: {
   assertNoFailures: {
     parameter: "assert-no-failures",
     localParameter: "ASSERT_NO_FAILURES",
+  },
+  assertNoCancellations: {
+    parameter: "assert-no-cancels",
+    localParameter: "ASSERT_NO_CANCELS",
   },
 };
 

@@ -63,7 +63,7 @@ export async function run(): Promise<void> {
       );
       if (unsuccessfulJobs.length > 0) {
         const failedJobNames = unsuccessfulJobs
-          .map((job) => job.name)
+          .map((job) => `${job.name} (${job.conclusion})`)
           .join(", ");
         throw new Error(
           `The following jobs are not successful: ${failedJobNames}`,
@@ -82,6 +82,22 @@ export async function run(): Promise<void> {
         throw new Error(`The following jobs have failed: ${failedJobNames}`);
       }
       core.info("Assertion passed: No filtered jobs have failed.");
+    }
+
+    if (inputs.assertNoCancellations) {
+      core.info("Asserting that no filtered jobs were cancelled...");
+      const cancelledJobs = filteredJobs.filter(
+        (job) => job.conclusion === "cancelled",
+      );
+      if (cancelledJobs.length > 0) {
+        const cancelledJobNames = cancelledJobs
+          .map((job) => job.name)
+          .join(", ");
+        throw new Error(
+          `The following jobs were cancelled: ${cancelledJobNames}`,
+        );
+      }
+      core.info("Assertion passed: No filtered jobs were cancelled.");
     }
 
     core.endGroup();

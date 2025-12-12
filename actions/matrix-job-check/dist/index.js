@@ -24772,7 +24772,8 @@ function getInputs() {
     jobNamePrefix: getRunInputString("jobNamePrefix"),
     assertJobsExist: getRunInputBoolean("assertJobsExist"),
     assertSuccessful: getRunInputBoolean("assertSuccessful"),
-    assertNoFailures: getRunInputBoolean("assertNoFailures")
+    assertNoFailures: getRunInputBoolean("assertNoFailures"),
+    assertNoCancellations: getRunInputBoolean("assertNoCancellations")
   };
   core2.info(`Inputs: ${JSON.stringify(inputs)}`);
   return inputs;
@@ -24811,6 +24812,10 @@ var runInputsConfiguration = {
   assertNoFailures: {
     parameter: "assert-no-failures",
     localParameter: "ASSERT_NO_FAILURES"
+  },
+  assertNoCancellations: {
+    parameter: "assert-no-cancels",
+    localParameter: "ASSERT_NO_CANCELS"
   }
 };
 function getRunInputString(input, required = true) {
@@ -24885,7 +24890,7 @@ ${filteredJobs.map((job) => job.name).join("\n")}`
         (job) => job.conclusion !== "success"
       );
       if (unsuccessfulJobs.length > 0) {
-        const failedJobNames = unsuccessfulJobs.map((job) => job.name).join(", ");
+        const failedJobNames = unsuccessfulJobs.map((job) => `${job.name} (${job.conclusion})`).join(", ");
         throw new Error(
           `The following jobs are not successful: ${failedJobNames}`
         );
@@ -24902,6 +24907,19 @@ ${filteredJobs.map((job) => job.name).join("\n")}`
         throw new Error(`The following jobs have failed: ${failedJobNames}`);
       }
       core3.info("Assertion passed: No filtered jobs have failed.");
+    }
+    if (inputs.assertNoCancellations) {
+      core3.info("Asserting that no filtered jobs were cancelled...");
+      const cancelledJobs = filteredJobs.filter(
+        (job) => job.conclusion === "cancelled"
+      );
+      if (cancelledJobs.length > 0) {
+        const cancelledJobNames = cancelledJobs.map((job) => job.name).join(", ");
+        throw new Error(
+          `The following jobs were cancelled: ${cancelledJobNames}`
+        );
+      }
+      core3.info("Assertion passed: No filtered jobs were cancelled.");
     }
     core3.endGroup();
   } catch (error) {
