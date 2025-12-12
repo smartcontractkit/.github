@@ -1,5 +1,14 @@
 # ci-sonarqube-ts
 
+## 0.5.0
+
+### Minor Changes
+
+- [#1359](https://github.com/smartcontractkit/.github/pull/1359)
+  [`2d89ab7`](https://github.com/smartcontractkit/.github/commit/2d89ab742bab5f856166c1b8f205e8c4c1e9b486)
+  Thanks [@chudilka1](https://github.com/chudilka1)! - #chore Bump
+  ci-sonarqube-go/ts dependencies
+
 ## 0.4.0
 
 ### Minor Changes
