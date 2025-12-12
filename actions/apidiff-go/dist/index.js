@@ -418,18 +418,18 @@ var require_tunnel = __commonJS({
             res.statusCode
           );
           socket.destroy();
-          var error2 = new Error("tunneling socket could not be established, statusCode=" + res.statusCode);
-          error2.code = "ECONNRESET";
-          options.request.emit("error", error2);
+          var error = new Error("tunneling socket could not be established, statusCode=" + res.statusCode);
+          error.code = "ECONNRESET";
+          options.request.emit("error", error);
           self.removeSocket(placeholder);
           return;
         }
         if (head.length > 0) {
           debug3("got illegal response body from proxy");
           socket.destroy();
-          var error2 = new Error("got illegal response body from proxy");
-          error2.code = "ECONNRESET";
-          options.request.emit("error", error2);
+          var error = new Error("got illegal response body from proxy");
+          error.code = "ECONNRESET";
+          options.request.emit("error", error);
           self.removeSocket(placeholder);
           return;
         }
@@ -444,9 +444,9 @@ var require_tunnel = __commonJS({
           cause.message,
           cause.stack
         );
-        var error2 = new Error("tunneling socket could not be established, cause=" + cause.message);
-        error2.code = "ECONNRESET";
-        options.request.emit("error", error2);
+        var error = new Error("tunneling socket could not be established, cause=" + cause.message);
+        error.code = "ECONNRESET";
+        options.request.emit("error", error);
         self.removeSocket(placeholder);
       }
     };
@@ -4247,18 +4247,18 @@ var require_webidl = __commonJS({
     webidl.errors.exception = function(message) {
       return new TypeError(`${message.header}: ${message.message}`);
     };
-    webidl.errors.conversionFailed = function(context3) {
-      const plural = context3.types.length === 1 ? "" : " one of";
-      const message = `${context3.argument} could not be converted to${plural}: ${context3.types.join(", ")}.`;
+    webidl.errors.conversionFailed = function(context2) {
+      const plural = context2.types.length === 1 ? "" : " one of";
+      const message = `${context2.argument} could not be converted to${plural}: ${context2.types.join(", ")}.`;
       return webidl.errors.exception({
-        header: context3.prefix,
+        header: context2.prefix,
         message
       });
     };
-    webidl.errors.invalidArgument = function(context3) {
+    webidl.errors.invalidArgument = function(context2) {
       return webidl.errors.exception({
-        header: context3.prefix,
-        message: `"${context3.value}" is an invalid ${context3.type}.`
+        header: context2.prefix,
+        message: `"${context2.value}" is an invalid ${context2.type}.`
       });
     };
     webidl.brandCheck = function(V, I, opts = void 0) {
@@ -5561,7 +5561,7 @@ Content-Type: ${value.type || "application/octet-stream"}\r
         throw new TypeError("Body is unusable");
       }
       const promise = createDeferredPromise();
-      const errorSteps = (error2) => promise.reject(error2);
+      const errorSteps = (error) => promise.reject(error);
       const successSteps = (data) => {
         try {
           promise.resolve(convertBytesToJSValue(data));
@@ -5847,16 +5847,16 @@ var require_request = __commonJS({
           this.onError(err);
         }
       }
-      onError(error2) {
+      onError(error) {
         this.onFinally();
         if (channels.error.hasSubscribers) {
-          channels.error.publish({ request: this, error: error2 });
+          channels.error.publish({ request: this, error });
         }
         if (this.aborted) {
           return;
         }
         this.aborted = true;
-        return this[kHandler].onError(error2);
+        return this[kHandler].onError(error);
       }
       onFinally() {
         if (this.errorHandler) {
@@ -6719,8 +6719,8 @@ var require_RedirectHandler = __commonJS({
       onUpgrade(statusCode, headers, socket) {
         this.handler.onUpgrade(statusCode, headers, socket);
       }
-      onError(error2) {
-        this.handler.onError(error2);
+      onError(error) {
+        this.handler.onError(error);
       }
       onHeaders(statusCode, headers, resume, statusText) {
         this.location = this.history.length >= this.maxRedirections || util.isDisturbed(this.opts.body) ? null : parseLocation(statusCode, headers);
@@ -8864,7 +8864,7 @@ var require_pool = __commonJS({
         this[kOptions] = { ...util.deepClone(options), connect, allowH2 };
         this[kOptions].interceptors = options.interceptors ? { ...options.interceptors } : void 0;
         this[kFactory] = factory;
-        this.on("connectionError", (origin2, targets, error2) => {
+        this.on("connectionError", (origin2, targets, error) => {
           for (const target of targets) {
             const idx = this[kClients].indexOf(target);
             if (idx !== -1) {
@@ -9590,15 +9590,15 @@ var require_api_request = __commonJS({
         }
         addSignal(this, signal);
       }
-      onConnect(abort, context3) {
+      onConnect(abort, context2) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context3;
+        this.context = context2;
       }
       onHeaders(statusCode, rawHeaders, resume, statusMessage) {
-        const { callback, opaque, abort, context: context3, responseHeaders, highWaterMark } = this;
+        const { callback, opaque, abort, context: context2, responseHeaders, highWaterMark } = this;
         const headers = responseHeaders === "raw" ? util.parseRawHeaders(rawHeaders) : util.parseHeaders(rawHeaders);
         if (statusCode < 200) {
           if (this.onInfo) {
@@ -9625,7 +9625,7 @@ var require_api_request = __commonJS({
               trailers: this.trailers,
               opaque,
               body,
-              context: context3
+              context: context2
             });
           }
         }
@@ -9745,15 +9745,15 @@ var require_api_stream = __commonJS({
         }
         addSignal(this, signal);
       }
-      onConnect(abort, context3) {
+      onConnect(abort, context2) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context3;
+        this.context = context2;
       }
       onHeaders(statusCode, rawHeaders, resume, statusMessage) {
-        const { factory, opaque, context: context3, callback, responseHeaders } = this;
+        const { factory, opaque, context: context2, callback, responseHeaders } = this;
         const headers = responseHeaders === "raw" ? util.parseRawHeaders(rawHeaders) : util.parseHeaders(rawHeaders);
         if (statusCode < 200) {
           if (this.onInfo) {
@@ -9781,7 +9781,7 @@ var require_api_stream = __commonJS({
             statusCode,
             headers,
             opaque,
-            context: context3
+            context: context2
           });
           if (!res || typeof res.write !== "function" || typeof res.end !== "function" || typeof res.on !== "function") {
             throw new InvalidReturnValueError("expected Writable");
@@ -9973,17 +9973,17 @@ var require_api_pipeline = __commonJS({
         this.res = null;
         addSignal(this, signal);
       }
-      onConnect(abort, context3) {
+      onConnect(abort, context2) {
         const { ret, res } = this;
         assert(!res, "pipeline cannot be retried");
         if (ret.destroyed) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context3;
+        this.context = context2;
       }
       onHeaders(statusCode, rawHeaders, resume) {
-        const { opaque, handler, context: context3 } = this;
+        const { opaque, handler, context: context2 } = this;
         if (statusCode < 200) {
           if (this.onInfo) {
             const headers = this.responseHeaders === "raw" ? util.parseRawHeaders(rawHeaders) : util.parseHeaders(rawHeaders);
@@ -10001,7 +10001,7 @@ var require_api_pipeline = __commonJS({
             headers,
             opaque,
             body: this.res,
-            context: context3
+            context: context2
           });
         } catch (err) {
           this.res.on("error", util.nop);
@@ -10085,7 +10085,7 @@ var require_api_upgrade = __commonJS({
         this.context = null;
         addSignal(this, signal);
       }
-      onConnect(abort, context3) {
+      onConnect(abort, context2) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
@@ -10096,7 +10096,7 @@ var require_api_upgrade = __commonJS({
         throw new SocketError("bad upgrade", null);
       }
       onUpgrade(statusCode, rawHeaders, socket) {
-        const { callback, opaque, context: context3 } = this;
+        const { callback, opaque, context: context2 } = this;
         assert.strictEqual(statusCode, 101);
         removeSignal(this);
         this.callback = null;
@@ -10105,7 +10105,7 @@ var require_api_upgrade = __commonJS({
           headers,
           socket,
           opaque,
-          context: context3
+          context: context2
         });
       }
       onError(err) {
@@ -10173,18 +10173,18 @@ var require_api_connect = __commonJS({
         this.abort = null;
         addSignal(this, signal);
       }
-      onConnect(abort, context3) {
+      onConnect(abort, context2) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context3;
+        this.context = context2;
       }
       onHeaders() {
         throw new SocketError("bad connect", null);
       }
       onUpgrade(statusCode, rawHeaders, socket) {
-        const { callback, opaque, context: context3 } = this;
+        const { callback, opaque, context: context2 } = this;
         removeSignal(this);
         this.callback = null;
         let headers = rawHeaders;
@@ -10196,7 +10196,7 @@ var require_api_connect = __commonJS({
           headers,
           socket,
           opaque,
-          context: context3
+          context: context2
         });
       }
       onError(err) {
@@ -10475,13 +10475,13 @@ var require_mock_utils = __commonJS({
       if (mockDispatch2.data.callback) {
         mockDispatch2.data = { ...mockDispatch2.data, ...mockDispatch2.data.callback(opts) };
       }
-      const { data: { statusCode, data, headers, trailers, error: error2 }, delay, persist } = mockDispatch2;
+      const { data: { statusCode, data, headers, trailers, error }, delay, persist } = mockDispatch2;
       const { timesInvoked, times } = mockDispatch2;
       mockDispatch2.consumed = !persist && timesInvoked >= times;
       mockDispatch2.pending = timesInvoked < times;
-      if (error2 !== null) {
+      if (error !== null) {
         deleteMockDispatch(this[kDispatches], key);
-        handler.onError(error2);
+        handler.onError(error);
         return true;
       }
       if (typeof delay === "number" && delay > 0) {
@@ -10519,19 +10519,19 @@ var require_mock_utils = __commonJS({
         if (agent.isMockActive) {
           try {
             mockDispatch.call(this, opts, handler);
-          } catch (error2) {
-            if (error2 instanceof MockNotMatchedError) {
+          } catch (error) {
+            if (error instanceof MockNotMatchedError) {
               const netConnect = agent[kGetNetConnect]();
               if (netConnect === false) {
-                throw new MockNotMatchedError(`${error2.message}: subsequent request to origin ${origin} was not allowed (net.connect disabled)`);
+                throw new MockNotMatchedError(`${error.message}: subsequent request to origin ${origin} was not allowed (net.connect disabled)`);
               }
               if (checkNetConnect(netConnect, origin)) {
                 originalDispatch.call(this, opts, handler);
               } else {
-                throw new MockNotMatchedError(`${error2.message}: subsequent request to origin ${origin} was not allowed (net.connect is not enabled for this origin)`);
+                throw new MockNotMatchedError(`${error.message}: subsequent request to origin ${origin} was not allowed (net.connect is not enabled for this origin)`);
               }
             } else {
-              throw error2;
+              throw error;
             }
           }
         } else {
@@ -10694,11 +10694,11 @@ var require_mock_interceptor = __commonJS({
       /**
        * Mock an undici request with a defined error.
        */
-      replyWithError(error2) {
-        if (typeof error2 === "undefined") {
+      replyWithError(error) {
+        if (typeof error === "undefined") {
           throw new InvalidArgumentError("error must be defined");
         }
-        const newMockDispatch = addMockDispatch(this[kDispatches], this[kDispatchKey], { error: error2 });
+        const newMockDispatch = addMockDispatch(this[kDispatches], this[kDispatchKey], { error });
         return new MockScope(newMockDispatch);
       }
       /**
@@ -13026,17 +13026,17 @@ var require_fetch = __commonJS({
         this.emit("terminated", reason);
       }
       // https://fetch.spec.whatwg.org/#fetch-controller-abort
-      abort(error2) {
+      abort(error) {
         if (this.state !== "ongoing") {
           return;
         }
         this.state = "aborted";
-        if (!error2) {
-          error2 = new DOMException2("The operation was aborted.", "AbortError");
+        if (!error) {
+          error = new DOMException2("The operation was aborted.", "AbortError");
         }
-        this.serializedAbortReason = error2;
-        this.connection?.destroy(error2);
-        this.emit("terminated", error2);
+        this.serializedAbortReason = error;
+        this.connection?.destroy(error);
+        this.emit("terminated", error);
       }
     };
     function fetch(input, init = {}) {
@@ -13140,13 +13140,13 @@ var require_fetch = __commonJS({
         performance.markResourceTiming(timingInfo, originalURL.href, initiatorType, globalThis2, cacheState);
       }
     }
-    function abortFetch(p, request, responseObject, error2) {
-      if (!error2) {
-        error2 = new DOMException2("The operation was aborted.", "AbortError");
+    function abortFetch(p, request, responseObject, error) {
+      if (!error) {
+        error = new DOMException2("The operation was aborted.", "AbortError");
       }
-      p.reject(error2);
+      p.reject(error);
       if (request.body != null && isReadable(request.body?.stream)) {
-        request.body.stream.cancel(error2).catch((err) => {
+        request.body.stream.cancel(error).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
           }
@@ -13158,7 +13158,7 @@ var require_fetch = __commonJS({
       }
       const response = responseObject[kState];
       if (response.body != null && isReadable(response.body?.stream)) {
-        response.body.stream.cancel(error2).catch((err) => {
+        response.body.stream.cancel(error).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
           }
@@ -13938,13 +13938,13 @@ var require_fetch = __commonJS({
               fetchParams.controller.ended = true;
               this.body.push(null);
             },
-            onError(error2) {
+            onError(error) {
               if (this.abort) {
                 fetchParams.controller.off("terminated", this.abort);
               }
-              this.body?.destroy(error2);
-              fetchParams.controller.terminate(error2);
-              reject(error2);
+              this.body?.destroy(error);
+              fetchParams.controller.terminate(error);
+              reject(error);
             },
             onUpgrade(status, headersList, socket) {
               if (status !== 101) {
@@ -14410,8 +14410,8 @@ var require_util4 = __commonJS({
                   }
                   fr[kResult] = result;
                   fireAProgressEvent("load", fr);
-                } catch (error2) {
-                  fr[kError] = error2;
+                } catch (error) {
+                  fr[kError] = error;
                   fireAProgressEvent("error", fr);
                 }
                 if (fr[kState] !== "loading") {
@@ -14420,13 +14420,13 @@ var require_util4 = __commonJS({
               });
               break;
             }
-          } catch (error2) {
+          } catch (error) {
             if (fr[kAborted]) {
               return;
             }
             queueMicrotask(() => {
               fr[kState] = "done";
-              fr[kError] = error2;
+              fr[kError] = error;
               fireAProgressEvent("error", fr);
               if (fr[kState] !== "loading") {
                 fireAProgressEvent("loadend", fr);
@@ -16426,11 +16426,11 @@ var require_connection = __commonJS({
         });
       }
     }
-    function onSocketError(error2) {
+    function onSocketError(error) {
       const { ws } = this;
       ws[kReadyState] = states.CLOSING;
       if (channels.socketError.hasSubscribers) {
-        channels.socketError.publish(error2);
+        channels.socketError.publish(error);
       }
       this.destroy();
     }
@@ -17574,12 +17574,12 @@ var require_lib = __commonJS({
             throw new Error("Client has already been disposed.");
           }
           const parsedUrl = new URL(requestUrl);
-          let info5 = this._prepareRequest(verb, parsedUrl, headers);
+          let info6 = this._prepareRequest(verb, parsedUrl, headers);
           const maxTries = this._allowRetries && RetryableHttpVerbs.includes(verb) ? this._maxRetries + 1 : 1;
           let numTries = 0;
           let response;
           do {
-            response = yield this.requestRaw(info5, data);
+            response = yield this.requestRaw(info6, data);
             if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
               let authenticationHandler;
               for (const handler of this.handlers) {
@@ -17589,7 +17589,7 @@ var require_lib = __commonJS({
                 }
               }
               if (authenticationHandler) {
-                return authenticationHandler.handleAuthentication(this, info5, data);
+                return authenticationHandler.handleAuthentication(this, info6, data);
               } else {
                 return response;
               }
@@ -17612,8 +17612,8 @@ var require_lib = __commonJS({
                   }
                 }
               }
-              info5 = this._prepareRequest(verb, parsedRedirectUrl, headers);
-              response = yield this.requestRaw(info5, data);
+              info6 = this._prepareRequest(verb, parsedRedirectUrl, headers);
+              response = yield this.requestRaw(info6, data);
               redirectsRemaining--;
             }
             if (!response.message.statusCode || !HttpResponseRetryCodes.includes(response.message.statusCode)) {
@@ -17642,7 +17642,7 @@ var require_lib = __commonJS({
        * @param info
        * @param data
        */
-      requestRaw(info5, data) {
+      requestRaw(info6, data) {
         return __awaiter(this, void 0, void 0, function* () {
           return new Promise((resolve2, reject) => {
             function callbackForResult(err, res) {
@@ -17654,7 +17654,7 @@ var require_lib = __commonJS({
                 resolve2(res);
               }
             }
-            this.requestRawWithCallback(info5, data, callbackForResult);
+            this.requestRawWithCallback(info6, data, callbackForResult);
           });
         });
       }
@@ -17664,12 +17664,12 @@ var require_lib = __commonJS({
        * @param data
        * @param onResult
        */
-      requestRawWithCallback(info5, data, onResult) {
+      requestRawWithCallback(info6, data, onResult) {
         if (typeof data === "string") {
-          if (!info5.options.headers) {
-            info5.options.headers = {};
+          if (!info6.options.headers) {
+            info6.options.headers = {};
           }
-          info5.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
+          info6.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
         }
         let callbackCalled = false;
         function handleResult2(err, res) {
@@ -17678,7 +17678,7 @@ var require_lib = __commonJS({
             onResult(err, res);
           }
         }
-        const req = info5.httpModule.request(info5.options, (msg) => {
+        const req = info6.httpModule.request(info6.options, (msg) => {
           const res = new HttpClientResponse(msg);
           handleResult2(void 0, res);
         });
@@ -17690,7 +17690,7 @@ var require_lib = __commonJS({
           if (socket) {
             socket.end();
           }
-          handleResult2(new Error(`Request timeout: ${info5.options.path}`));
+          handleResult2(new Error(`Request timeout: ${info6.options.path}`));
         });
         req.on("error", function(err) {
           handleResult2(err);
@@ -17726,27 +17726,27 @@ var require_lib = __commonJS({
         return this._getProxyAgentDispatcher(parsedUrl, proxyUrl);
       }
       _prepareRequest(method, requestUrl, headers) {
-        const info5 = {};
-        info5.parsedUrl = requestUrl;
-        const usingSsl = info5.parsedUrl.protocol === "https:";
-        info5.httpModule = usingSsl ? https : http;
+        const info6 = {};
+        info6.parsedUrl = requestUrl;
+        const usingSsl = info6.parsedUrl.protocol === "https:";
+        info6.httpModule = usingSsl ? https : http;
         const defaultPort = usingSsl ? 443 : 80;
-        info5.options = {};
-        info5.options.host = info5.parsedUrl.hostname;
-        info5.options.port = info5.parsedUrl.port ? parseInt(info5.parsedUrl.port) : defaultPort;
-        info5.options.path = (info5.parsedUrl.pathname || "") + (info5.parsedUrl.search || "");
-        info5.options.method = method;
-        info5.options.headers = this._mergeHeaders(headers);
+        info6.options = {};
+        info6.options.host = info6.parsedUrl.hostname;
+        info6.options.port = info6.parsedUrl.port ? parseInt(info6.parsedUrl.port) : defaultPort;
+        info6.options.path = (info6.parsedUrl.pathname || "") + (info6.parsedUrl.search || "");
+        info6.options.method = method;
+        info6.options.headers = this._mergeHeaders(headers);
         if (this.userAgent != null) {
-          info5.options.headers["user-agent"] = this.userAgent;
+          info6.options.headers["user-agent"] = this.userAgent;
         }
-        info5.options.agent = this._getAgent(info5.parsedUrl);
+        info6.options.agent = this._getAgent(info6.parsedUrl);
         if (this.handlers) {
           for (const handler of this.handlers) {
-            handler.prepareRequest(info5.options);
+            handler.prepareRequest(info6.options);
           }
         }
-        return info5;
+        return info6;
       }
       _mergeHeaders(headers) {
         if (this.requestOptions && this.requestOptions.headers) {
@@ -18062,12 +18062,12 @@ var require_oidc_utils = __commonJS({
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
           const httpclient = _OidcClient.createHttpClient();
-          const res = yield httpclient.getJson(id_token_url).catch((error2) => {
+          const res = yield httpclient.getJson(id_token_url).catch((error) => {
             throw new Error(`Failed to get ID Token. 
  
-        Error Code : ${error2.statusCode}
+        Error Code : ${error.statusCode}
  
-        Error Message: ${error2.message}`);
+        Error Message: ${error.message}`);
           });
           const id_token = (_a = res.result) === null || _a === void 0 ? void 0 : _a.value;
           if (!id_token) {
@@ -18088,8 +18088,8 @@ var require_oidc_utils = __commonJS({
             const id_token = yield _OidcClient.getCall(id_token_url);
             (0, core_1.setSecret)(id_token);
             return id_token;
-          } catch (error2) {
-            throw new Error(`Error message: ${error2.message}`);
+          } catch (error) {
+            throw new Error(`Error message: ${error.message}`);
           }
         });
       }
@@ -19211,7 +19211,7 @@ var require_toolrunner = __commonJS({
               this._debug(`STDIO streams have closed for tool '${this.toolPath}'`);
               state.CheckComplete();
             });
-            state.on("done", (error2, exitCode) => {
+            state.on("done", (error, exitCode) => {
               if (stdbuffer.length > 0) {
                 this.emit("stdline", stdbuffer);
               }
@@ -19219,8 +19219,8 @@ var require_toolrunner = __commonJS({
                 this.emit("errline", errbuffer);
               }
               cp.removeAllListeners();
-              if (error2) {
-                reject(error2);
+              if (error) {
+                reject(error);
               } else {
                 resolve2(exitCode);
               }
@@ -19315,14 +19315,14 @@ var require_toolrunner = __commonJS({
         this.emit("debug", message);
       }
       _setResult() {
-        let error2;
+        let error;
         if (this.processExited) {
           if (this.processError) {
-            error2 = new Error(`There was an error when attempting to execute the process '${this.toolPath}'. This may indicate the process failed to start. Error: ${this.processError}`);
+            error = new Error(`There was an error when attempting to execute the process '${this.toolPath}'. This may indicate the process failed to start. Error: ${this.processError}`);
           } else if (this.processExitCode !== 0 && !this.options.ignoreReturnCode) {
-            error2 = new Error(`The process '${this.toolPath}' failed with exit code ${this.processExitCode}`);
+            error = new Error(`The process '${this.toolPath}' failed with exit code ${this.processExitCode}`);
           } else if (this.processStderr && this.options.failOnStdErr) {
-            error2 = new Error(`The process '${this.toolPath}' failed because one or more lines were written to the STDERR stream`);
+            error = new Error(`The process '${this.toolPath}' failed because one or more lines were written to the STDERR stream`);
           }
         }
         if (this.timeout) {
@@ -19330,7 +19330,7 @@ var require_toolrunner = __commonJS({
           this.timeout = null;
         }
         this.done = true;
-        this.emit("done", error2, this.processExitCode);
+        this.emit("done", error, this.processExitCode);
       }
       static HandleTimeout(state) {
         if (state.done) {
@@ -19711,11 +19711,11 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       (0, command_1.issue)("echo", enabled ? "on" : "off");
     }
     exports2.setCommandEcho = setCommandEcho;
-    function setFailed4(message) {
+    function setFailed3(message) {
       process.exitCode = ExitCode.Failure;
-      error2(message);
+      error(message);
     }
-    exports2.setFailed = setFailed4;
+    exports2.setFailed = setFailed3;
     function isDebug2() {
       return process.env["RUNNER_DEBUG"] === "1";
     }
@@ -19724,10 +19724,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       (0, command_1.issueCommand)("debug", {}, message);
     }
     exports2.debug = debug3;
-    function error2(message, properties = {}) {
+    function error(message, properties = {}) {
       (0, command_1.issueCommand)("error", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
-    exports2.error = error2;
+    exports2.error = error;
     function warning4(message, properties = {}) {
       (0, command_1.issueCommand)("warning", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
@@ -19736,26 +19736,26 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       (0, command_1.issueCommand)("notice", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
     exports2.notice = notice;
-    function info5(message) {
+    function info6(message) {
       process.stdout.write(message + os.EOL);
     }
-    exports2.info = info5;
-    function startGroup4(name) {
+    exports2.info = info6;
+    function startGroup3(name) {
       (0, command_1.issue)("group", name);
     }
-    exports2.startGroup = startGroup4;
-    function endGroup4() {
+    exports2.startGroup = startGroup3;
+    function endGroup3() {
       (0, command_1.issue)("endgroup");
     }
-    exports2.endGroup = endGroup4;
+    exports2.endGroup = endGroup3;
     function group(name, fn) {
       return __awaiter(this, void 0, void 0, function* () {
-        startGroup4(name);
+        startGroup3(name);
         let result;
         try {
           result = yield fn();
         } finally {
-          endGroup4();
+          endGroup3();
         }
         return result;
       });
@@ -19798,507 +19798,6 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       return path_utils_1.toPlatformPath;
     } });
     exports2.platform = __importStar(require_platform());
-  }
-});
-
-// node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/windows.js
-var require_windows = __commonJS({
-  "node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/windows.js"(exports2, module2) {
-    "use strict";
-    module2.exports = isexe;
-    isexe.sync = sync;
-    var fs3 = require("fs");
-    function checkPathExt(path7, options) {
-      var pathext = options.pathExt !== void 0 ? options.pathExt : process.env.PATHEXT;
-      if (!pathext) {
-        return true;
-      }
-      pathext = pathext.split(";");
-      if (pathext.indexOf("") !== -1) {
-        return true;
-      }
-      for (var i2 = 0; i2 < pathext.length; i2++) {
-        var p = pathext[i2].toLowerCase();
-        if (p && path7.substr(-p.length).toLowerCase() === p) {
-          return true;
-        }
-      }
-      return false;
-    }
-    function checkStat(stat, path7, options) {
-      if (!stat.isSymbolicLink() && !stat.isFile()) {
-        return false;
-      }
-      return checkPathExt(path7, options);
-    }
-    function isexe(path7, options, cb) {
-      fs3.stat(path7, function(er, stat) {
-        cb(er, er ? false : checkStat(stat, path7, options));
-      });
-    }
-    function sync(path7, options) {
-      return checkStat(fs3.statSync(path7), path7, options);
-    }
-  }
-});
-
-// node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/mode.js
-var require_mode = __commonJS({
-  "node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/mode.js"(exports2, module2) {
-    "use strict";
-    module2.exports = isexe;
-    isexe.sync = sync;
-    var fs3 = require("fs");
-    function isexe(path7, options, cb) {
-      fs3.stat(path7, function(er, stat) {
-        cb(er, er ? false : checkStat(stat, options));
-      });
-    }
-    function sync(path7, options) {
-      return checkStat(fs3.statSync(path7), options);
-    }
-    function checkStat(stat, options) {
-      return stat.isFile() && checkMode(stat, options);
-    }
-    function checkMode(stat, options) {
-      var mod = stat.mode;
-      var uid = stat.uid;
-      var gid = stat.gid;
-      var myUid = options.uid !== void 0 ? options.uid : process.getuid && process.getuid();
-      var myGid = options.gid !== void 0 ? options.gid : process.getgid && process.getgid();
-      var u2 = parseInt("100", 8);
-      var g = parseInt("010", 8);
-      var o2 = parseInt("001", 8);
-      var ug = u2 | g;
-      var ret = mod & o2 || mod & g && gid === myGid || mod & u2 && uid === myUid || mod & ug && myUid === 0;
-      return ret;
-    }
-  }
-});
-
-// node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js
-var require_isexe = __commonJS({
-  "node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js"(exports2, module2) {
-    "use strict";
-    var fs3 = require("fs");
-    var core7;
-    if (process.platform === "win32" || global.TESTING_WINDOWS) {
-      core7 = require_windows();
-    } else {
-      core7 = require_mode();
-    }
-    module2.exports = isexe;
-    isexe.sync = sync;
-    function isexe(path7, options, cb) {
-      if (typeof options === "function") {
-        cb = options;
-        options = {};
-      }
-      if (!cb) {
-        if (typeof Promise !== "function") {
-          throw new TypeError("callback not provided");
-        }
-        return new Promise(function(resolve2, reject) {
-          isexe(path7, options || {}, function(er, is) {
-            if (er) {
-              reject(er);
-            } else {
-              resolve2(is);
-            }
-          });
-        });
-      }
-      core7(path7, options || {}, function(er, is) {
-        if (er) {
-          if (er.code === "EACCES" || options && options.ignoreErrors) {
-            er = null;
-            is = false;
-          }
-        }
-        cb(er, is);
-      });
-    }
-    function sync(path7, options) {
-      try {
-        return core7.sync(path7, options || {});
-      } catch (er) {
-        if (options && options.ignoreErrors || er.code === "EACCES") {
-          return false;
-        } else {
-          throw er;
-        }
-      }
-    }
-  }
-});
-
-// node_modules/.pnpm/which@2.0.2/node_modules/which/which.js
-var require_which = __commonJS({
-  "node_modules/.pnpm/which@2.0.2/node_modules/which/which.js"(exports2, module2) {
-    "use strict";
-    var isWindows = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys";
-    var path7 = require("path");
-    var COLON = isWindows ? ";" : ":";
-    var isexe = require_isexe();
-    var getNotFoundError = (cmd) => Object.assign(new Error(`not found: ${cmd}`), { code: "ENOENT" });
-    var getPathInfo = (cmd, opt) => {
-      const colon = opt.colon || COLON;
-      const pathEnv = cmd.match(/\//) || isWindows && cmd.match(/\\/) ? [""] : [
-        // windows always checks the cwd first
-        ...isWindows ? [process.cwd()] : [],
-        ...(opt.path || process.env.PATH || /* istanbul ignore next: very unusual */
-        "").split(colon)
-      ];
-      const pathExtExe = isWindows ? opt.pathExt || process.env.PATHEXT || ".EXE;.CMD;.BAT;.COM" : "";
-      const pathExt = isWindows ? pathExtExe.split(colon) : [""];
-      if (isWindows) {
-        if (cmd.indexOf(".") !== -1 && pathExt[0] !== "")
-          pathExt.unshift("");
-      }
-      return {
-        pathEnv,
-        pathExt,
-        pathExtExe
-      };
-    };
-    var which = (cmd, opt, cb) => {
-      if (typeof opt === "function") {
-        cb = opt;
-        opt = {};
-      }
-      if (!opt)
-        opt = {};
-      const { pathEnv, pathExt, pathExtExe } = getPathInfo(cmd, opt);
-      const found = [];
-      const step = (i2) => new Promise((resolve2, reject) => {
-        if (i2 === pathEnv.length)
-          return opt.all && found.length ? resolve2(found) : reject(getNotFoundError(cmd));
-        const ppRaw = pathEnv[i2];
-        const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path7.join(pathPart, cmd);
-        const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
-        resolve2(subStep(p, i2, 0));
-      });
-      const subStep = (p, i2, ii) => new Promise((resolve2, reject) => {
-        if (ii === pathExt.length)
-          return resolve2(step(i2 + 1));
-        const ext = pathExt[ii];
-        isexe(p + ext, { pathExt: pathExtExe }, (er, is) => {
-          if (!er && is) {
-            if (opt.all)
-              found.push(p + ext);
-            else
-              return resolve2(p + ext);
-          }
-          return resolve2(subStep(p, i2, ii + 1));
-        });
-      });
-      return cb ? step(0).then((res) => cb(null, res), cb) : step(0);
-    };
-    var whichSync = (cmd, opt) => {
-      opt = opt || {};
-      const { pathEnv, pathExt, pathExtExe } = getPathInfo(cmd, opt);
-      const found = [];
-      for (let i2 = 0; i2 < pathEnv.length; i2++) {
-        const ppRaw = pathEnv[i2];
-        const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path7.join(pathPart, cmd);
-        const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
-        for (let j = 0; j < pathExt.length; j++) {
-          const cur = p + pathExt[j];
-          try {
-            const is = isexe.sync(cur, { pathExt: pathExtExe });
-            if (is) {
-              if (opt.all)
-                found.push(cur);
-              else
-                return cur;
-            }
-          } catch (ex) {
-          }
-        }
-      }
-      if (opt.all && found.length)
-        return found;
-      if (opt.nothrow)
-        return null;
-      throw getNotFoundError(cmd);
-    };
-    module2.exports = which;
-    which.sync = whichSync;
-  }
-});
-
-// node_modules/.pnpm/path-key@3.1.1/node_modules/path-key/index.js
-var require_path_key = __commonJS({
-  "node_modules/.pnpm/path-key@3.1.1/node_modules/path-key/index.js"(exports2, module2) {
-    "use strict";
-    var pathKey2 = (options = {}) => {
-      const environment = options.env || process.env;
-      const platform2 = options.platform || process.platform;
-      if (platform2 !== "win32") {
-        return "PATH";
-      }
-      return Object.keys(environment).reverse().find((key) => key.toUpperCase() === "PATH") || "Path";
-    };
-    module2.exports = pathKey2;
-    module2.exports.default = pathKey2;
-  }
-});
-
-// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js
-var require_resolveCommand = __commonJS({
-  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports2, module2) {
-    "use strict";
-    var path7 = require("path");
-    var which = require_which();
-    var getPathKey = require_path_key();
-    function resolveCommandAttempt(parsed, withoutPathExt) {
-      const env = parsed.options.env || process.env;
-      const cwd = process.cwd();
-      const hasCustomCwd = parsed.options.cwd != null;
-      const shouldSwitchCwd = hasCustomCwd && process.chdir !== void 0 && !process.chdir.disabled;
-      if (shouldSwitchCwd) {
-        try {
-          process.chdir(parsed.options.cwd);
-        } catch (err) {
-        }
-      }
-      let resolved;
-      try {
-        resolved = which.sync(parsed.command, {
-          path: env[getPathKey({ env })],
-          pathExt: withoutPathExt ? path7.delimiter : void 0
-        });
-      } catch (e) {
-      } finally {
-        if (shouldSwitchCwd) {
-          process.chdir(cwd);
-        }
-      }
-      if (resolved) {
-        resolved = path7.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
-      }
-      return resolved;
-    }
-    function resolveCommand(parsed) {
-      return resolveCommandAttempt(parsed) || resolveCommandAttempt(parsed, true);
-    }
-    module2.exports = resolveCommand;
-  }
-});
-
-// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js
-var require_escape = __commonJS({
-  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js"(exports2, module2) {
-    "use strict";
-    var metaCharsRegExp = /([()\][%!^"`<>&|;, *?])/g;
-    function escapeCommand(arg) {
-      arg = arg.replace(metaCharsRegExp, "^$1");
-      return arg;
-    }
-    function escapeArgument(arg, doubleEscapeMetaChars) {
-      arg = `${arg}`;
-      arg = arg.replace(/(?=(\\+?)?)\1"/g, '$1$1\\"');
-      arg = arg.replace(/(?=(\\+?)?)\1$/, "$1$1");
-      arg = `"${arg}"`;
-      arg = arg.replace(metaCharsRegExp, "^$1");
-      if (doubleEscapeMetaChars) {
-        arg = arg.replace(metaCharsRegExp, "^$1");
-      }
-      return arg;
-    }
-    module2.exports.command = escapeCommand;
-    module2.exports.argument = escapeArgument;
-  }
-});
-
-// node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js
-var require_shebang_regex = __commonJS({
-  "node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js"(exports2, module2) {
-    "use strict";
-    module2.exports = /^#!(.*)/;
-  }
-});
-
-// node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command/index.js
-var require_shebang_command = __commonJS({
-  "node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command/index.js"(exports2, module2) {
-    "use strict";
-    var shebangRegex = require_shebang_regex();
-    module2.exports = (string = "") => {
-      const match = string.match(shebangRegex);
-      if (!match) {
-        return null;
-      }
-      const [path7, argument] = match[0].replace(/#! ?/, "").split(" ");
-      const binary = path7.split("/").pop();
-      if (binary === "env") {
-        return argument;
-      }
-      return argument ? `${binary} ${argument}` : binary;
-    };
-  }
-});
-
-// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js
-var require_readShebang = __commonJS({
-  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js"(exports2, module2) {
-    "use strict";
-    var fs3 = require("fs");
-    var shebangCommand = require_shebang_command();
-    function readShebang(command) {
-      const size = 150;
-      const buffer = Buffer.alloc(size);
-      let fd;
-      try {
-        fd = fs3.openSync(command, "r");
-        fs3.readSync(fd, buffer, 0, size, 0);
-        fs3.closeSync(fd);
-      } catch (e) {
-      }
-      return shebangCommand(buffer.toString());
-    }
-    module2.exports = readShebang;
-  }
-});
-
-// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js
-var require_parse2 = __commonJS({
-  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js"(exports2, module2) {
-    "use strict";
-    var path7 = require("path");
-    var resolveCommand = require_resolveCommand();
-    var escape = require_escape();
-    var readShebang = require_readShebang();
-    var isWin = process.platform === "win32";
-    var isExecutableRegExp = /\.(?:com|exe)$/i;
-    var isCmdShimRegExp = /node_modules[\\/].bin[\\/][^\\/]+\.cmd$/i;
-    function detectShebang(parsed) {
-      parsed.file = resolveCommand(parsed);
-      const shebang = parsed.file && readShebang(parsed.file);
-      if (shebang) {
-        parsed.args.unshift(parsed.file);
-        parsed.command = shebang;
-        return resolveCommand(parsed);
-      }
-      return parsed.file;
-    }
-    function parseNonShell(parsed) {
-      if (!isWin) {
-        return parsed;
-      }
-      const commandFile = detectShebang(parsed);
-      const needsShell = !isExecutableRegExp.test(commandFile);
-      if (parsed.options.forceShell || needsShell) {
-        const needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
-        parsed.command = path7.normalize(parsed.command);
-        parsed.command = escape.command(parsed.command);
-        parsed.args = parsed.args.map((arg) => escape.argument(arg, needsDoubleEscapeMetaChars));
-        const shellCommand = [parsed.command].concat(parsed.args).join(" ");
-        parsed.args = ["/d", "/s", "/c", `"${shellCommand}"`];
-        parsed.command = process.env.comspec || "cmd.exe";
-        parsed.options.windowsVerbatimArguments = true;
-      }
-      return parsed;
-    }
-    function parse(command, args, options) {
-      if (args && !Array.isArray(args)) {
-        options = args;
-        args = null;
-      }
-      args = args ? args.slice(0) : [];
-      options = Object.assign({}, options);
-      const parsed = {
-        command,
-        args,
-        options,
-        file: void 0,
-        original: {
-          command,
-          args
-        }
-      };
-      return options.shell ? parsed : parseNonShell(parsed);
-    }
-    module2.exports = parse;
-  }
-});
-
-// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js
-var require_enoent = __commonJS({
-  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js"(exports2, module2) {
-    "use strict";
-    var isWin = process.platform === "win32";
-    function notFoundError(original, syscall) {
-      return Object.assign(new Error(`${syscall} ${original.command} ENOENT`), {
-        code: "ENOENT",
-        errno: "ENOENT",
-        syscall: `${syscall} ${original.command}`,
-        path: original.command,
-        spawnargs: original.args
-      });
-    }
-    function hookChildProcess(cp, parsed) {
-      if (!isWin) {
-        return;
-      }
-      const originalEmit = cp.emit;
-      cp.emit = function(name, arg1) {
-        if (name === "exit") {
-          const err = verifyENOENT(arg1, parsed);
-          if (err) {
-            return originalEmit.call(cp, "error", err);
-          }
-        }
-        return originalEmit.apply(cp, arguments);
-      };
-    }
-    function verifyENOENT(status, parsed) {
-      if (isWin && status === 1 && !parsed.file) {
-        return notFoundError(parsed.original, "spawn");
-      }
-      return null;
-    }
-    function verifyENOENTSync(status, parsed) {
-      if (isWin && status === 1 && !parsed.file) {
-        return notFoundError(parsed.original, "spawnSync");
-      }
-      return null;
-    }
-    module2.exports = {
-      hookChildProcess,
-      verifyENOENT,
-      verifyENOENTSync,
-      notFoundError
-    };
-  }
-});
-
-// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js
-var require_cross_spawn = __commonJS({
-  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js"(exports2, module2) {
-    "use strict";
-    var cp = require("child_process");
-    var parse = require_parse2();
-    var enoent = require_enoent();
-    function spawn2(command, args, options) {
-      const parsed = parse(command, args, options);
-      const spawned = cp.spawn(parsed.command, parsed.args, parsed.options);
-      enoent.hookChildProcess(spawned, parsed);
-      return spawned;
-    }
-    function spawnSync2(command, args, options) {
-      const parsed = parse(command, args, options);
-      const result = cp.spawnSync(parsed.command, parsed.args, parsed.options);
-      result.error = result.error || enoent.verifyENOENTSync(result.status, parsed);
-      return result;
-    }
-    module2.exports = spawn2;
-    module2.exports.spawn = spawn2;
-    module2.exports.sync = spawnSync2;
-    module2.exports._parse = parse;
-    module2.exports._enoent = enoent;
   }
 });
 
@@ -20532,8 +20031,8 @@ var require_add = __commonJS({
       }
       if (kind === "error") {
         hook = function(method, options) {
-          return Promise.resolve().then(method.bind(null, options)).catch(function(error2) {
-            return orig(error2, options);
+          return Promise.resolve().then(method.bind(null, options)).catch(function(error) {
+            return orig(error, options);
           });
         };
       }
@@ -20785,8 +20284,8 @@ var require_dist_node2 = __commonJS({
     function isKeyOperator(operator) {
       return operator === ";" || operator === "&" || operator === "?";
     }
-    function getValues(context3, operator, key, modifier) {
-      var value = context3[key], result = [];
+    function getValues(context2, operator, key, modifier) {
+      var value = context2[key], result = [];
       if (isDefined(value) && value !== "") {
         if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
           value = value.toString();
@@ -20850,7 +20349,7 @@ var require_dist_node2 = __commonJS({
         expand: expand.bind(null, template)
       };
     }
-    function expand(template, context3) {
+    function expand(template, context2) {
       var operators = ["+", "#", ".", "/", ";", "?", "&"];
       template = template.replace(
         /\{([^\{\}]+)\}|([^\{\}]+)/g,
@@ -20864,7 +20363,7 @@ var require_dist_node2 = __commonJS({
             }
             expression.split(/,/g).forEach(function(variable) {
               var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
-              values.push(getValues(context3, operator, tmp[1], tmp[2] || tmp[3]));
+              values.push(getValues(context2, operator, tmp[1], tmp[2] || tmp[3]));
             });
             if (operator && operator !== "+") {
               var separator = ",";
@@ -21269,7 +20768,7 @@ var require_dist_node5 = __commonJS({
         }
         if (status >= 400) {
           const data = await getResponseData(response);
-          const error2 = new import_request_error.RequestError(toErrorMessage(data), status, {
+          const error = new import_request_error.RequestError(toErrorMessage(data), status, {
             response: {
               url,
               status,
@@ -21278,7 +20777,7 @@ var require_dist_node5 = __commonJS({
             },
             request: requestOptions
           });
-          throw error2;
+          throw error;
         }
         return parseSuccessResponseBody ? await getResponseData(response) : response.body;
       }).then((data) => {
@@ -21288,17 +20787,17 @@ var require_dist_node5 = __commonJS({
           headers,
           data
         };
-      }).catch((error2) => {
-        if (error2 instanceof import_request_error.RequestError)
-          throw error2;
-        else if (error2.name === "AbortError")
-          throw error2;
-        let message = error2.message;
-        if (error2.name === "TypeError" && "cause" in error2) {
-          if (error2.cause instanceof Error) {
-            message = error2.cause.message;
-          } else if (typeof error2.cause === "string") {
-            message = error2.cause;
+      }).catch((error) => {
+        if (error instanceof import_request_error.RequestError)
+          throw error;
+        else if (error.name === "AbortError")
+          throw error;
+        let message = error.message;
+        if (error.name === "TypeError" && "cause" in error) {
+          if (error.cause instanceof Error) {
+            message = error.cause.message;
+          } else if (typeof error.cause === "string") {
+            message = error.cause;
           }
         }
         throw new import_request_error.RequestError(message, 500, {
@@ -23963,9 +23462,9 @@ var require_dist_node10 = __commonJS({
                 /<([^<>]+)>;\s*rel="next"/
               ) || [])[1];
               return { value: normalizedResponse };
-            } catch (error2) {
-              if (error2.status !== 409)
-                throw error2;
+            } catch (error) {
+              if (error.status !== 409)
+                throw error;
               url = "";
               return {
                 value: {
@@ -24370,12 +23869,2439 @@ var require_github = __commonJS({
   }
 });
 
+// node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/windows.js
+var require_windows = __commonJS({
+  "node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/windows.js"(exports2, module2) {
+    "use strict";
+    module2.exports = isexe;
+    isexe.sync = sync;
+    var fs3 = require("fs");
+    function checkPathExt(path7, options) {
+      var pathext = options.pathExt !== void 0 ? options.pathExt : process.env.PATHEXT;
+      if (!pathext) {
+        return true;
+      }
+      pathext = pathext.split(";");
+      if (pathext.indexOf("") !== -1) {
+        return true;
+      }
+      for (var i2 = 0; i2 < pathext.length; i2++) {
+        var p = pathext[i2].toLowerCase();
+        if (p && path7.substr(-p.length).toLowerCase() === p) {
+          return true;
+        }
+      }
+      return false;
+    }
+    function checkStat(stat, path7, options) {
+      if (!stat.isSymbolicLink() && !stat.isFile()) {
+        return false;
+      }
+      return checkPathExt(path7, options);
+    }
+    function isexe(path7, options, cb) {
+      fs3.stat(path7, function(er, stat) {
+        cb(er, er ? false : checkStat(stat, path7, options));
+      });
+    }
+    function sync(path7, options) {
+      return checkStat(fs3.statSync(path7), path7, options);
+    }
+  }
+});
+
+// node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/mode.js
+var require_mode = __commonJS({
+  "node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/mode.js"(exports2, module2) {
+    "use strict";
+    module2.exports = isexe;
+    isexe.sync = sync;
+    var fs3 = require("fs");
+    function isexe(path7, options, cb) {
+      fs3.stat(path7, function(er, stat) {
+        cb(er, er ? false : checkStat(stat, options));
+      });
+    }
+    function sync(path7, options) {
+      return checkStat(fs3.statSync(path7), options);
+    }
+    function checkStat(stat, options) {
+      return stat.isFile() && checkMode(stat, options);
+    }
+    function checkMode(stat, options) {
+      var mod = stat.mode;
+      var uid = stat.uid;
+      var gid = stat.gid;
+      var myUid = options.uid !== void 0 ? options.uid : process.getuid && process.getuid();
+      var myGid = options.gid !== void 0 ? options.gid : process.getgid && process.getgid();
+      var u2 = parseInt("100", 8);
+      var g = parseInt("010", 8);
+      var o2 = parseInt("001", 8);
+      var ug = u2 | g;
+      var ret = mod & o2 || mod & g && gid === myGid || mod & u2 && uid === myUid || mod & ug && myUid === 0;
+      return ret;
+    }
+  }
+});
+
+// node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js
+var require_isexe = __commonJS({
+  "node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js"(exports2, module2) {
+    "use strict";
+    var fs3 = require("fs");
+    var core8;
+    if (process.platform === "win32" || global.TESTING_WINDOWS) {
+      core8 = require_windows();
+    } else {
+      core8 = require_mode();
+    }
+    module2.exports = isexe;
+    isexe.sync = sync;
+    function isexe(path7, options, cb) {
+      if (typeof options === "function") {
+        cb = options;
+        options = {};
+      }
+      if (!cb) {
+        if (typeof Promise !== "function") {
+          throw new TypeError("callback not provided");
+        }
+        return new Promise(function(resolve2, reject) {
+          isexe(path7, options || {}, function(er, is) {
+            if (er) {
+              reject(er);
+            } else {
+              resolve2(is);
+            }
+          });
+        });
+      }
+      core8(path7, options || {}, function(er, is) {
+        if (er) {
+          if (er.code === "EACCES" || options && options.ignoreErrors) {
+            er = null;
+            is = false;
+          }
+        }
+        cb(er, is);
+      });
+    }
+    function sync(path7, options) {
+      try {
+        return core8.sync(path7, options || {});
+      } catch (er) {
+        if (options && options.ignoreErrors || er.code === "EACCES") {
+          return false;
+        } else {
+          throw er;
+        }
+      }
+    }
+  }
+});
+
+// node_modules/.pnpm/which@2.0.2/node_modules/which/which.js
+var require_which = __commonJS({
+  "node_modules/.pnpm/which@2.0.2/node_modules/which/which.js"(exports2, module2) {
+    "use strict";
+    var isWindows = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys";
+    var path7 = require("path");
+    var COLON = isWindows ? ";" : ":";
+    var isexe = require_isexe();
+    var getNotFoundError = (cmd) => Object.assign(new Error(`not found: ${cmd}`), { code: "ENOENT" });
+    var getPathInfo = (cmd, opt) => {
+      const colon = opt.colon || COLON;
+      const pathEnv = cmd.match(/\//) || isWindows && cmd.match(/\\/) ? [""] : [
+        // windows always checks the cwd first
+        ...isWindows ? [process.cwd()] : [],
+        ...(opt.path || process.env.PATH || /* istanbul ignore next: very unusual */
+        "").split(colon)
+      ];
+      const pathExtExe = isWindows ? opt.pathExt || process.env.PATHEXT || ".EXE;.CMD;.BAT;.COM" : "";
+      const pathExt = isWindows ? pathExtExe.split(colon) : [""];
+      if (isWindows) {
+        if (cmd.indexOf(".") !== -1 && pathExt[0] !== "")
+          pathExt.unshift("");
+      }
+      return {
+        pathEnv,
+        pathExt,
+        pathExtExe
+      };
+    };
+    var which = (cmd, opt, cb) => {
+      if (typeof opt === "function") {
+        cb = opt;
+        opt = {};
+      }
+      if (!opt)
+        opt = {};
+      const { pathEnv, pathExt, pathExtExe } = getPathInfo(cmd, opt);
+      const found = [];
+      const step = (i2) => new Promise((resolve2, reject) => {
+        if (i2 === pathEnv.length)
+          return opt.all && found.length ? resolve2(found) : reject(getNotFoundError(cmd));
+        const ppRaw = pathEnv[i2];
+        const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
+        const pCmd = path7.join(pathPart, cmd);
+        const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
+        resolve2(subStep(p, i2, 0));
+      });
+      const subStep = (p, i2, ii) => new Promise((resolve2, reject) => {
+        if (ii === pathExt.length)
+          return resolve2(step(i2 + 1));
+        const ext = pathExt[ii];
+        isexe(p + ext, { pathExt: pathExtExe }, (er, is) => {
+          if (!er && is) {
+            if (opt.all)
+              found.push(p + ext);
+            else
+              return resolve2(p + ext);
+          }
+          return resolve2(subStep(p, i2, ii + 1));
+        });
+      });
+      return cb ? step(0).then((res) => cb(null, res), cb) : step(0);
+    };
+    var whichSync = (cmd, opt) => {
+      opt = opt || {};
+      const { pathEnv, pathExt, pathExtExe } = getPathInfo(cmd, opt);
+      const found = [];
+      for (let i2 = 0; i2 < pathEnv.length; i2++) {
+        const ppRaw = pathEnv[i2];
+        const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
+        const pCmd = path7.join(pathPart, cmd);
+        const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
+        for (let j = 0; j < pathExt.length; j++) {
+          const cur = p + pathExt[j];
+          try {
+            const is = isexe.sync(cur, { pathExt: pathExtExe });
+            if (is) {
+              if (opt.all)
+                found.push(cur);
+              else
+                return cur;
+            }
+          } catch (ex) {
+          }
+        }
+      }
+      if (opt.all && found.length)
+        return found;
+      if (opt.nothrow)
+        return null;
+      throw getNotFoundError(cmd);
+    };
+    module2.exports = which;
+    which.sync = whichSync;
+  }
+});
+
+// node_modules/.pnpm/path-key@3.1.1/node_modules/path-key/index.js
+var require_path_key = __commonJS({
+  "node_modules/.pnpm/path-key@3.1.1/node_modules/path-key/index.js"(exports2, module2) {
+    "use strict";
+    var pathKey2 = (options = {}) => {
+      const environment = options.env || process.env;
+      const platform2 = options.platform || process.platform;
+      if (platform2 !== "win32") {
+        return "PATH";
+      }
+      return Object.keys(environment).reverse().find((key) => key.toUpperCase() === "PATH") || "Path";
+    };
+    module2.exports = pathKey2;
+    module2.exports.default = pathKey2;
+  }
+});
+
+// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js
+var require_resolveCommand = __commonJS({
+  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports2, module2) {
+    "use strict";
+    var path7 = require("path");
+    var which = require_which();
+    var getPathKey = require_path_key();
+    function resolveCommandAttempt(parsed, withoutPathExt) {
+      const env = parsed.options.env || process.env;
+      const cwd = process.cwd();
+      const hasCustomCwd = parsed.options.cwd != null;
+      const shouldSwitchCwd = hasCustomCwd && process.chdir !== void 0 && !process.chdir.disabled;
+      if (shouldSwitchCwd) {
+        try {
+          process.chdir(parsed.options.cwd);
+        } catch (err) {
+        }
+      }
+      let resolved;
+      try {
+        resolved = which.sync(parsed.command, {
+          path: env[getPathKey({ env })],
+          pathExt: withoutPathExt ? path7.delimiter : void 0
+        });
+      } catch (e) {
+      } finally {
+        if (shouldSwitchCwd) {
+          process.chdir(cwd);
+        }
+      }
+      if (resolved) {
+        resolved = path7.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
+      }
+      return resolved;
+    }
+    function resolveCommand(parsed) {
+      return resolveCommandAttempt(parsed) || resolveCommandAttempt(parsed, true);
+    }
+    module2.exports = resolveCommand;
+  }
+});
+
+// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js
+var require_escape = __commonJS({
+  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js"(exports2, module2) {
+    "use strict";
+    var metaCharsRegExp = /([()\][%!^"`<>&|;, *?])/g;
+    function escapeCommand(arg) {
+      arg = arg.replace(metaCharsRegExp, "^$1");
+      return arg;
+    }
+    function escapeArgument(arg, doubleEscapeMetaChars) {
+      arg = `${arg}`;
+      arg = arg.replace(/(?=(\\+?)?)\1"/g, '$1$1\\"');
+      arg = arg.replace(/(?=(\\+?)?)\1$/, "$1$1");
+      arg = `"${arg}"`;
+      arg = arg.replace(metaCharsRegExp, "^$1");
+      if (doubleEscapeMetaChars) {
+        arg = arg.replace(metaCharsRegExp, "^$1");
+      }
+      return arg;
+    }
+    module2.exports.command = escapeCommand;
+    module2.exports.argument = escapeArgument;
+  }
+});
+
+// node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js
+var require_shebang_regex = __commonJS({
+  "node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js"(exports2, module2) {
+    "use strict";
+    module2.exports = /^#!(.*)/;
+  }
+});
+
+// node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command/index.js
+var require_shebang_command = __commonJS({
+  "node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command/index.js"(exports2, module2) {
+    "use strict";
+    var shebangRegex = require_shebang_regex();
+    module2.exports = (string = "") => {
+      const match = string.match(shebangRegex);
+      if (!match) {
+        return null;
+      }
+      const [path7, argument] = match[0].replace(/#! ?/, "").split(" ");
+      const binary = path7.split("/").pop();
+      if (binary === "env") {
+        return argument;
+      }
+      return argument ? `${binary} ${argument}` : binary;
+    };
+  }
+});
+
+// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js
+var require_readShebang = __commonJS({
+  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js"(exports2, module2) {
+    "use strict";
+    var fs3 = require("fs");
+    var shebangCommand = require_shebang_command();
+    function readShebang(command) {
+      const size = 150;
+      const buffer = Buffer.alloc(size);
+      let fd;
+      try {
+        fd = fs3.openSync(command, "r");
+        fs3.readSync(fd, buffer, 0, size, 0);
+        fs3.closeSync(fd);
+      } catch (e) {
+      }
+      return shebangCommand(buffer.toString());
+    }
+    module2.exports = readShebang;
+  }
+});
+
+// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js
+var require_parse2 = __commonJS({
+  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js"(exports2, module2) {
+    "use strict";
+    var path7 = require("path");
+    var resolveCommand = require_resolveCommand();
+    var escape = require_escape();
+    var readShebang = require_readShebang();
+    var isWin = process.platform === "win32";
+    var isExecutableRegExp = /\.(?:com|exe)$/i;
+    var isCmdShimRegExp = /node_modules[\\/].bin[\\/][^\\/]+\.cmd$/i;
+    function detectShebang(parsed) {
+      parsed.file = resolveCommand(parsed);
+      const shebang = parsed.file && readShebang(parsed.file);
+      if (shebang) {
+        parsed.args.unshift(parsed.file);
+        parsed.command = shebang;
+        return resolveCommand(parsed);
+      }
+      return parsed.file;
+    }
+    function parseNonShell(parsed) {
+      if (!isWin) {
+        return parsed;
+      }
+      const commandFile = detectShebang(parsed);
+      const needsShell = !isExecutableRegExp.test(commandFile);
+      if (parsed.options.forceShell || needsShell) {
+        const needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
+        parsed.command = path7.normalize(parsed.command);
+        parsed.command = escape.command(parsed.command);
+        parsed.args = parsed.args.map((arg) => escape.argument(arg, needsDoubleEscapeMetaChars));
+        const shellCommand = [parsed.command].concat(parsed.args).join(" ");
+        parsed.args = ["/d", "/s", "/c", `"${shellCommand}"`];
+        parsed.command = process.env.comspec || "cmd.exe";
+        parsed.options.windowsVerbatimArguments = true;
+      }
+      return parsed;
+    }
+    function parse(command, args, options) {
+      if (args && !Array.isArray(args)) {
+        options = args;
+        args = null;
+      }
+      args = args ? args.slice(0) : [];
+      options = Object.assign({}, options);
+      const parsed = {
+        command,
+        args,
+        options,
+        file: void 0,
+        original: {
+          command,
+          args
+        }
+      };
+      return options.shell ? parsed : parseNonShell(parsed);
+    }
+    module2.exports = parse;
+  }
+});
+
+// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js
+var require_enoent = __commonJS({
+  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js"(exports2, module2) {
+    "use strict";
+    var isWin = process.platform === "win32";
+    function notFoundError(original, syscall) {
+      return Object.assign(new Error(`${syscall} ${original.command} ENOENT`), {
+        code: "ENOENT",
+        errno: "ENOENT",
+        syscall: `${syscall} ${original.command}`,
+        path: original.command,
+        spawnargs: original.args
+      });
+    }
+    function hookChildProcess(cp, parsed) {
+      if (!isWin) {
+        return;
+      }
+      const originalEmit = cp.emit;
+      cp.emit = function(name, arg1) {
+        if (name === "exit") {
+          const err = verifyENOENT(arg1, parsed);
+          if (err) {
+            return originalEmit.call(cp, "error", err);
+          }
+        }
+        return originalEmit.apply(cp, arguments);
+      };
+    }
+    function verifyENOENT(status, parsed) {
+      if (isWin && status === 1 && !parsed.file) {
+        return notFoundError(parsed.original, "spawn");
+      }
+      return null;
+    }
+    function verifyENOENTSync(status, parsed) {
+      if (isWin && status === 1 && !parsed.file) {
+        return notFoundError(parsed.original, "spawnSync");
+      }
+      return null;
+    }
+    module2.exports = {
+      hookChildProcess,
+      verifyENOENT,
+      verifyENOENTSync,
+      notFoundError
+    };
+  }
+});
+
+// node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js
+var require_cross_spawn = __commonJS({
+  "node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js"(exports2, module2) {
+    "use strict";
+    var cp = require("child_process");
+    var parse = require_parse2();
+    var enoent = require_enoent();
+    function spawn2(command, args, options) {
+      const parsed = parse(command, args, options);
+      const spawned = cp.spawn(parsed.command, parsed.args, parsed.options);
+      enoent.hookChildProcess(spawned, parsed);
+      return spawned;
+    }
+    function spawnSync2(command, args, options) {
+      const parsed = parse(command, args, options);
+      const result = cp.spawnSync(parsed.command, parsed.args, parsed.options);
+      result.error = result.error || enoent.verifyENOENTSync(result.status, parsed);
+      return result;
+    }
+    module2.exports = spawn2;
+    module2.exports.spawn = spawn2;
+    module2.exports.sync = spawnSync2;
+    module2.exports._parse = parse;
+    module2.exports._enoent = enoent;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/internal/constants.js
+var require_constants6 = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/internal/constants.js"(exports2, module2) {
+    "use strict";
+    var SEMVER_SPEC_VERSION = "2.0.0";
+    var MAX_LENGTH = 256;
+    var MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER || /* istanbul ignore next */
+    9007199254740991;
+    var MAX_SAFE_COMPONENT_LENGTH = 16;
+    var MAX_SAFE_BUILD_LENGTH = MAX_LENGTH - 6;
+    var RELEASE_TYPES = [
+      "major",
+      "premajor",
+      "minor",
+      "preminor",
+      "patch",
+      "prepatch",
+      "prerelease"
+    ];
+    module2.exports = {
+      MAX_LENGTH,
+      MAX_SAFE_COMPONENT_LENGTH,
+      MAX_SAFE_BUILD_LENGTH,
+      MAX_SAFE_INTEGER,
+      RELEASE_TYPES,
+      SEMVER_SPEC_VERSION,
+      FLAG_INCLUDE_PRERELEASE: 1,
+      FLAG_LOOSE: 2
+    };
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/internal/debug.js
+var require_debug = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/internal/debug.js"(exports2, module2) {
+    "use strict";
+    var debug3 = typeof process === "object" && process.env && process.env.NODE_DEBUG && /\bsemver\b/i.test(process.env.NODE_DEBUG) ? (...args) => console.error("SEMVER", ...args) : () => {
+    };
+    module2.exports = debug3;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/internal/re.js
+var require_re = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/internal/re.js"(exports2, module2) {
+    "use strict";
+    var {
+      MAX_SAFE_COMPONENT_LENGTH,
+      MAX_SAFE_BUILD_LENGTH,
+      MAX_LENGTH
+    } = require_constants6();
+    var debug3 = require_debug();
+    exports2 = module2.exports = {};
+    var re = exports2.re = [];
+    var safeRe = exports2.safeRe = [];
+    var src = exports2.src = [];
+    var safeSrc = exports2.safeSrc = [];
+    var t = exports2.t = {};
+    var R = 0;
+    var LETTERDASHNUMBER = "[a-zA-Z0-9-]";
+    var safeRegexReplacements = [
+      ["\\s", 1],
+      ["\\d", MAX_LENGTH],
+      [LETTERDASHNUMBER, MAX_SAFE_BUILD_LENGTH]
+    ];
+    var makeSafeRegex = (value) => {
+      for (const [token, max] of safeRegexReplacements) {
+        value = value.split(`${token}*`).join(`${token}{0,${max}}`).split(`${token}+`).join(`${token}{1,${max}}`);
+      }
+      return value;
+    };
+    var createToken = (name, value, isGlobal) => {
+      const safe = makeSafeRegex(value);
+      const index = R++;
+      debug3(name, index, value);
+      t[name] = index;
+      src[index] = value;
+      safeSrc[index] = safe;
+      re[index] = new RegExp(value, isGlobal ? "g" : void 0);
+      safeRe[index] = new RegExp(safe, isGlobal ? "g" : void 0);
+    };
+    createToken("NUMERICIDENTIFIER", "0|[1-9]\\d*");
+    createToken("NUMERICIDENTIFIERLOOSE", "\\d+");
+    createToken("NONNUMERICIDENTIFIER", `\\d*[a-zA-Z-]${LETTERDASHNUMBER}*`);
+    createToken("MAINVERSION", `(${src[t.NUMERICIDENTIFIER]})\\.(${src[t.NUMERICIDENTIFIER]})\\.(${src[t.NUMERICIDENTIFIER]})`);
+    createToken("MAINVERSIONLOOSE", `(${src[t.NUMERICIDENTIFIERLOOSE]})\\.(${src[t.NUMERICIDENTIFIERLOOSE]})\\.(${src[t.NUMERICIDENTIFIERLOOSE]})`);
+    createToken("PRERELEASEIDENTIFIER", `(?:${src[t.NONNUMERICIDENTIFIER]}|${src[t.NUMERICIDENTIFIER]})`);
+    createToken("PRERELEASEIDENTIFIERLOOSE", `(?:${src[t.NONNUMERICIDENTIFIER]}|${src[t.NUMERICIDENTIFIERLOOSE]})`);
+    createToken("PRERELEASE", `(?:-(${src[t.PRERELEASEIDENTIFIER]}(?:\\.${src[t.PRERELEASEIDENTIFIER]})*))`);
+    createToken("PRERELEASELOOSE", `(?:-?(${src[t.PRERELEASEIDENTIFIERLOOSE]}(?:\\.${src[t.PRERELEASEIDENTIFIERLOOSE]})*))`);
+    createToken("BUILDIDENTIFIER", `${LETTERDASHNUMBER}+`);
+    createToken("BUILD", `(?:\\+(${src[t.BUILDIDENTIFIER]}(?:\\.${src[t.BUILDIDENTIFIER]})*))`);
+    createToken("FULLPLAIN", `v?${src[t.MAINVERSION]}${src[t.PRERELEASE]}?${src[t.BUILD]}?`);
+    createToken("FULL", `^${src[t.FULLPLAIN]}$`);
+    createToken("LOOSEPLAIN", `[v=\\s]*${src[t.MAINVERSIONLOOSE]}${src[t.PRERELEASELOOSE]}?${src[t.BUILD]}?`);
+    createToken("LOOSE", `^${src[t.LOOSEPLAIN]}$`);
+    createToken("GTLT", "((?:<|>)?=?)");
+    createToken("XRANGEIDENTIFIERLOOSE", `${src[t.NUMERICIDENTIFIERLOOSE]}|x|X|\\*`);
+    createToken("XRANGEIDENTIFIER", `${src[t.NUMERICIDENTIFIER]}|x|X|\\*`);
+    createToken("XRANGEPLAIN", `[v=\\s]*(${src[t.XRANGEIDENTIFIER]})(?:\\.(${src[t.XRANGEIDENTIFIER]})(?:\\.(${src[t.XRANGEIDENTIFIER]})(?:${src[t.PRERELEASE]})?${src[t.BUILD]}?)?)?`);
+    createToken("XRANGEPLAINLOOSE", `[v=\\s]*(${src[t.XRANGEIDENTIFIERLOOSE]})(?:\\.(${src[t.XRANGEIDENTIFIERLOOSE]})(?:\\.(${src[t.XRANGEIDENTIFIERLOOSE]})(?:${src[t.PRERELEASELOOSE]})?${src[t.BUILD]}?)?)?`);
+    createToken("XRANGE", `^${src[t.GTLT]}\\s*${src[t.XRANGEPLAIN]}$`);
+    createToken("XRANGELOOSE", `^${src[t.GTLT]}\\s*${src[t.XRANGEPLAINLOOSE]}$`);
+    createToken("COERCEPLAIN", `${"(^|[^\\d])(\\d{1,"}${MAX_SAFE_COMPONENT_LENGTH}})(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?`);
+    createToken("COERCE", `${src[t.COERCEPLAIN]}(?:$|[^\\d])`);
+    createToken("COERCEFULL", src[t.COERCEPLAIN] + `(?:${src[t.PRERELEASE]})?(?:${src[t.BUILD]})?(?:$|[^\\d])`);
+    createToken("COERCERTL", src[t.COERCE], true);
+    createToken("COERCERTLFULL", src[t.COERCEFULL], true);
+    createToken("LONETILDE", "(?:~>?)");
+    createToken("TILDETRIM", `(\\s*)${src[t.LONETILDE]}\\s+`, true);
+    exports2.tildeTrimReplace = "$1~";
+    createToken("TILDE", `^${src[t.LONETILDE]}${src[t.XRANGEPLAIN]}$`);
+    createToken("TILDELOOSE", `^${src[t.LONETILDE]}${src[t.XRANGEPLAINLOOSE]}$`);
+    createToken("LONECARET", "(?:\\^)");
+    createToken("CARETTRIM", `(\\s*)${src[t.LONECARET]}\\s+`, true);
+    exports2.caretTrimReplace = "$1^";
+    createToken("CARET", `^${src[t.LONECARET]}${src[t.XRANGEPLAIN]}$`);
+    createToken("CARETLOOSE", `^${src[t.LONECARET]}${src[t.XRANGEPLAINLOOSE]}$`);
+    createToken("COMPARATORLOOSE", `^${src[t.GTLT]}\\s*(${src[t.LOOSEPLAIN]})$|^$`);
+    createToken("COMPARATOR", `^${src[t.GTLT]}\\s*(${src[t.FULLPLAIN]})$|^$`);
+    createToken("COMPARATORTRIM", `(\\s*)${src[t.GTLT]}\\s*(${src[t.LOOSEPLAIN]}|${src[t.XRANGEPLAIN]})`, true);
+    exports2.comparatorTrimReplace = "$1$2$3";
+    createToken("HYPHENRANGE", `^\\s*(${src[t.XRANGEPLAIN]})\\s+-\\s+(${src[t.XRANGEPLAIN]})\\s*$`);
+    createToken("HYPHENRANGELOOSE", `^\\s*(${src[t.XRANGEPLAINLOOSE]})\\s+-\\s+(${src[t.XRANGEPLAINLOOSE]})\\s*$`);
+    createToken("STAR", "(<|>)?=?\\s*\\*");
+    createToken("GTE0", "^\\s*>=\\s*0\\.0\\.0\\s*$");
+    createToken("GTE0PRE", "^\\s*>=\\s*0\\.0\\.0-0\\s*$");
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/internal/parse-options.js
+var require_parse_options = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/internal/parse-options.js"(exports2, module2) {
+    "use strict";
+    var looseOption = Object.freeze({ loose: true });
+    var emptyOpts = Object.freeze({});
+    var parseOptions = (options) => {
+      if (!options) {
+        return emptyOpts;
+      }
+      if (typeof options !== "object") {
+        return looseOption;
+      }
+      return options;
+    };
+    module2.exports = parseOptions;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/internal/identifiers.js
+var require_identifiers = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/internal/identifiers.js"(exports2, module2) {
+    "use strict";
+    var numeric = /^[0-9]+$/;
+    var compareIdentifiers = (a2, b) => {
+      if (typeof a2 === "number" && typeof b === "number") {
+        return a2 === b ? 0 : a2 < b ? -1 : 1;
+      }
+      const anum = numeric.test(a2);
+      const bnum = numeric.test(b);
+      if (anum && bnum) {
+        a2 = +a2;
+        b = +b;
+      }
+      return a2 === b ? 0 : anum && !bnum ? -1 : bnum && !anum ? 1 : a2 < b ? -1 : 1;
+    };
+    var rcompareIdentifiers = (a2, b) => compareIdentifiers(b, a2);
+    module2.exports = {
+      compareIdentifiers,
+      rcompareIdentifiers
+    };
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/classes/semver.js
+var require_semver = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/classes/semver.js"(exports2, module2) {
+    "use strict";
+    var debug3 = require_debug();
+    var { MAX_LENGTH, MAX_SAFE_INTEGER } = require_constants6();
+    var { safeRe: re, t } = require_re();
+    var parseOptions = require_parse_options();
+    var { compareIdentifiers } = require_identifiers();
+    var SemVer = class _SemVer {
+      constructor(version, options) {
+        options = parseOptions(options);
+        if (version instanceof _SemVer) {
+          if (version.loose === !!options.loose && version.includePrerelease === !!options.includePrerelease) {
+            return version;
+          } else {
+            version = version.version;
+          }
+        } else if (typeof version !== "string") {
+          throw new TypeError(`Invalid version. Must be a string. Got type "${typeof version}".`);
+        }
+        if (version.length > MAX_LENGTH) {
+          throw new TypeError(
+            `version is longer than ${MAX_LENGTH} characters`
+          );
+        }
+        debug3("SemVer", version, options);
+        this.options = options;
+        this.loose = !!options.loose;
+        this.includePrerelease = !!options.includePrerelease;
+        const m = version.trim().match(options.loose ? re[t.LOOSE] : re[t.FULL]);
+        if (!m) {
+          throw new TypeError(`Invalid Version: ${version}`);
+        }
+        this.raw = version;
+        this.major = +m[1];
+        this.minor = +m[2];
+        this.patch = +m[3];
+        if (this.major > MAX_SAFE_INTEGER || this.major < 0) {
+          throw new TypeError("Invalid major version");
+        }
+        if (this.minor > MAX_SAFE_INTEGER || this.minor < 0) {
+          throw new TypeError("Invalid minor version");
+        }
+        if (this.patch > MAX_SAFE_INTEGER || this.patch < 0) {
+          throw new TypeError("Invalid patch version");
+        }
+        if (!m[4]) {
+          this.prerelease = [];
+        } else {
+          this.prerelease = m[4].split(".").map((id) => {
+            if (/^[0-9]+$/.test(id)) {
+              const num = +id;
+              if (num >= 0 && num < MAX_SAFE_INTEGER) {
+                return num;
+              }
+            }
+            return id;
+          });
+        }
+        this.build = m[5] ? m[5].split(".") : [];
+        this.format();
+      }
+      format() {
+        this.version = `${this.major}.${this.minor}.${this.patch}`;
+        if (this.prerelease.length) {
+          this.version += `-${this.prerelease.join(".")}`;
+        }
+        return this.version;
+      }
+      toString() {
+        return this.version;
+      }
+      compare(other) {
+        debug3("SemVer.compare", this.version, this.options, other);
+        if (!(other instanceof _SemVer)) {
+          if (typeof other === "string" && other === this.version) {
+            return 0;
+          }
+          other = new _SemVer(other, this.options);
+        }
+        if (other.version === this.version) {
+          return 0;
+        }
+        return this.compareMain(other) || this.comparePre(other);
+      }
+      compareMain(other) {
+        if (!(other instanceof _SemVer)) {
+          other = new _SemVer(other, this.options);
+        }
+        if (this.major < other.major) {
+          return -1;
+        }
+        if (this.major > other.major) {
+          return 1;
+        }
+        if (this.minor < other.minor) {
+          return -1;
+        }
+        if (this.minor > other.minor) {
+          return 1;
+        }
+        if (this.patch < other.patch) {
+          return -1;
+        }
+        if (this.patch > other.patch) {
+          return 1;
+        }
+        return 0;
+      }
+      comparePre(other) {
+        if (!(other instanceof _SemVer)) {
+          other = new _SemVer(other, this.options);
+        }
+        if (this.prerelease.length && !other.prerelease.length) {
+          return -1;
+        } else if (!this.prerelease.length && other.prerelease.length) {
+          return 1;
+        } else if (!this.prerelease.length && !other.prerelease.length) {
+          return 0;
+        }
+        let i2 = 0;
+        do {
+          const a2 = this.prerelease[i2];
+          const b = other.prerelease[i2];
+          debug3("prerelease compare", i2, a2, b);
+          if (a2 === void 0 && b === void 0) {
+            return 0;
+          } else if (b === void 0) {
+            return 1;
+          } else if (a2 === void 0) {
+            return -1;
+          } else if (a2 === b) {
+            continue;
+          } else {
+            return compareIdentifiers(a2, b);
+          }
+        } while (++i2);
+      }
+      compareBuild(other) {
+        if (!(other instanceof _SemVer)) {
+          other = new _SemVer(other, this.options);
+        }
+        let i2 = 0;
+        do {
+          const a2 = this.build[i2];
+          const b = other.build[i2];
+          debug3("build compare", i2, a2, b);
+          if (a2 === void 0 && b === void 0) {
+            return 0;
+          } else if (b === void 0) {
+            return 1;
+          } else if (a2 === void 0) {
+            return -1;
+          } else if (a2 === b) {
+            continue;
+          } else {
+            return compareIdentifiers(a2, b);
+          }
+        } while (++i2);
+      }
+      // preminor will bump the version up to the next minor release, and immediately
+      // down to pre-release. premajor and prepatch work the same way.
+      inc(release, identifier, identifierBase) {
+        if (release.startsWith("pre")) {
+          if (!identifier && identifierBase === false) {
+            throw new Error("invalid increment argument: identifier is empty");
+          }
+          if (identifier) {
+            const match = `-${identifier}`.match(this.options.loose ? re[t.PRERELEASELOOSE] : re[t.PRERELEASE]);
+            if (!match || match[1] !== identifier) {
+              throw new Error(`invalid identifier: ${identifier}`);
+            }
+          }
+        }
+        switch (release) {
+          case "premajor":
+            this.prerelease.length = 0;
+            this.patch = 0;
+            this.minor = 0;
+            this.major++;
+            this.inc("pre", identifier, identifierBase);
+            break;
+          case "preminor":
+            this.prerelease.length = 0;
+            this.patch = 0;
+            this.minor++;
+            this.inc("pre", identifier, identifierBase);
+            break;
+          case "prepatch":
+            this.prerelease.length = 0;
+            this.inc("patch", identifier, identifierBase);
+            this.inc("pre", identifier, identifierBase);
+            break;
+          case "prerelease":
+            if (this.prerelease.length === 0) {
+              this.inc("patch", identifier, identifierBase);
+            }
+            this.inc("pre", identifier, identifierBase);
+            break;
+          case "release":
+            if (this.prerelease.length === 0) {
+              throw new Error(`version ${this.raw} is not a prerelease`);
+            }
+            this.prerelease.length = 0;
+            break;
+          case "major":
+            if (this.minor !== 0 || this.patch !== 0 || this.prerelease.length === 0) {
+              this.major++;
+            }
+            this.minor = 0;
+            this.patch = 0;
+            this.prerelease = [];
+            break;
+          case "minor":
+            if (this.patch !== 0 || this.prerelease.length === 0) {
+              this.minor++;
+            }
+            this.patch = 0;
+            this.prerelease = [];
+            break;
+          case "patch":
+            if (this.prerelease.length === 0) {
+              this.patch++;
+            }
+            this.prerelease = [];
+            break;
+          case "pre": {
+            const base = Number(identifierBase) ? 1 : 0;
+            if (this.prerelease.length === 0) {
+              this.prerelease = [base];
+            } else {
+              let i2 = this.prerelease.length;
+              while (--i2 >= 0) {
+                if (typeof this.prerelease[i2] === "number") {
+                  this.prerelease[i2]++;
+                  i2 = -2;
+                }
+              }
+              if (i2 === -1) {
+                if (identifier === this.prerelease.join(".") && identifierBase === false) {
+                  throw new Error("invalid increment argument: identifier already exists");
+                }
+                this.prerelease.push(base);
+              }
+            }
+            if (identifier) {
+              let prerelease = [identifier, base];
+              if (identifierBase === false) {
+                prerelease = [identifier];
+              }
+              if (compareIdentifiers(this.prerelease[0], identifier) === 0) {
+                if (isNaN(this.prerelease[1])) {
+                  this.prerelease = prerelease;
+                }
+              } else {
+                this.prerelease = prerelease;
+              }
+            }
+            break;
+          }
+          default:
+            throw new Error(`invalid increment argument: ${release}`);
+        }
+        this.raw = this.format();
+        if (this.build.length) {
+          this.raw += `+${this.build.join(".")}`;
+        }
+        return this;
+      }
+    };
+    module2.exports = SemVer;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/parse.js
+var require_parse3 = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/parse.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var parse = (version, options, throwErrors = false) => {
+      if (version instanceof SemVer) {
+        return version;
+      }
+      try {
+        return new SemVer(version, options);
+      } catch (er) {
+        if (!throwErrors) {
+          return null;
+        }
+        throw er;
+      }
+    };
+    module2.exports = parse;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/valid.js
+var require_valid = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/valid.js"(exports2, module2) {
+    "use strict";
+    var parse = require_parse3();
+    var valid2 = (version, options) => {
+      const v = parse(version, options);
+      return v ? v.version : null;
+    };
+    module2.exports = valid2;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/clean.js
+var require_clean = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/clean.js"(exports2, module2) {
+    "use strict";
+    var parse = require_parse3();
+    var clean = (version, options) => {
+      const s = parse(version.trim().replace(/^[=v]+/, ""), options);
+      return s ? s.version : null;
+    };
+    module2.exports = clean;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/inc.js
+var require_inc = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/inc.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var inc = (version, release, options, identifier, identifierBase) => {
+      if (typeof options === "string") {
+        identifierBase = identifier;
+        identifier = options;
+        options = void 0;
+      }
+      try {
+        return new SemVer(
+          version instanceof SemVer ? version.version : version,
+          options
+        ).inc(release, identifier, identifierBase).version;
+      } catch (er) {
+        return null;
+      }
+    };
+    module2.exports = inc;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/diff.js
+var require_diff = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/diff.js"(exports2, module2) {
+    "use strict";
+    var parse = require_parse3();
+    var diff = (version1, version2) => {
+      const v1 = parse(version1, null, true);
+      const v2 = parse(version2, null, true);
+      const comparison = v1.compare(v2);
+      if (comparison === 0) {
+        return null;
+      }
+      const v1Higher = comparison > 0;
+      const highVersion = v1Higher ? v1 : v2;
+      const lowVersion = v1Higher ? v2 : v1;
+      const highHasPre = !!highVersion.prerelease.length;
+      const lowHasPre = !!lowVersion.prerelease.length;
+      if (lowHasPre && !highHasPre) {
+        if (!lowVersion.patch && !lowVersion.minor) {
+          return "major";
+        }
+        if (lowVersion.compareMain(highVersion) === 0) {
+          if (lowVersion.minor && !lowVersion.patch) {
+            return "minor";
+          }
+          return "patch";
+        }
+      }
+      const prefix = highHasPre ? "pre" : "";
+      if (v1.major !== v2.major) {
+        return prefix + "major";
+      }
+      if (v1.minor !== v2.minor) {
+        return prefix + "minor";
+      }
+      if (v1.patch !== v2.patch) {
+        return prefix + "patch";
+      }
+      return "prerelease";
+    };
+    module2.exports = diff;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/major.js
+var require_major = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/major.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var major = (a2, loose) => new SemVer(a2, loose).major;
+    module2.exports = major;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/minor.js
+var require_minor = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/minor.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var minor = (a2, loose) => new SemVer(a2, loose).minor;
+    module2.exports = minor;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/patch.js
+var require_patch = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/patch.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var patch = (a2, loose) => new SemVer(a2, loose).patch;
+    module2.exports = patch;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/prerelease.js
+var require_prerelease = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/prerelease.js"(exports2, module2) {
+    "use strict";
+    var parse = require_parse3();
+    var prerelease = (version, options) => {
+      const parsed = parse(version, options);
+      return parsed && parsed.prerelease.length ? parsed.prerelease : null;
+    };
+    module2.exports = prerelease;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/compare.js
+var require_compare = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/compare.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var compare = (a2, b, loose) => new SemVer(a2, loose).compare(new SemVer(b, loose));
+    module2.exports = compare;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/rcompare.js
+var require_rcompare = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/rcompare.js"(exports2, module2) {
+    "use strict";
+    var compare = require_compare();
+    var rcompare2 = (a2, b, loose) => compare(b, a2, loose);
+    module2.exports = rcompare2;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/compare-loose.js
+var require_compare_loose = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/compare-loose.js"(exports2, module2) {
+    "use strict";
+    var compare = require_compare();
+    var compareLoose = (a2, b) => compare(a2, b, true);
+    module2.exports = compareLoose;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/compare-build.js
+var require_compare_build = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/compare-build.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var compareBuild = (a2, b, loose) => {
+      const versionA = new SemVer(a2, loose);
+      const versionB = new SemVer(b, loose);
+      return versionA.compare(versionB) || versionA.compareBuild(versionB);
+    };
+    module2.exports = compareBuild;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/sort.js
+var require_sort = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/sort.js"(exports2, module2) {
+    "use strict";
+    var compareBuild = require_compare_build();
+    var sort = (list, loose) => list.sort((a2, b) => compareBuild(a2, b, loose));
+    module2.exports = sort;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/rsort.js
+var require_rsort = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/rsort.js"(exports2, module2) {
+    "use strict";
+    var compareBuild = require_compare_build();
+    var rsort = (list, loose) => list.sort((a2, b) => compareBuild(b, a2, loose));
+    module2.exports = rsort;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/gt.js
+var require_gt = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/gt.js"(exports2, module2) {
+    "use strict";
+    var compare = require_compare();
+    var gt = (a2, b, loose) => compare(a2, b, loose) > 0;
+    module2.exports = gt;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/lt.js
+var require_lt = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/lt.js"(exports2, module2) {
+    "use strict";
+    var compare = require_compare();
+    var lt = (a2, b, loose) => compare(a2, b, loose) < 0;
+    module2.exports = lt;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/eq.js
+var require_eq = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/eq.js"(exports2, module2) {
+    "use strict";
+    var compare = require_compare();
+    var eq = (a2, b, loose) => compare(a2, b, loose) === 0;
+    module2.exports = eq;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/neq.js
+var require_neq = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/neq.js"(exports2, module2) {
+    "use strict";
+    var compare = require_compare();
+    var neq = (a2, b, loose) => compare(a2, b, loose) !== 0;
+    module2.exports = neq;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/gte.js
+var require_gte = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/gte.js"(exports2, module2) {
+    "use strict";
+    var compare = require_compare();
+    var gte = (a2, b, loose) => compare(a2, b, loose) >= 0;
+    module2.exports = gte;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/lte.js
+var require_lte = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/lte.js"(exports2, module2) {
+    "use strict";
+    var compare = require_compare();
+    var lte = (a2, b, loose) => compare(a2, b, loose) <= 0;
+    module2.exports = lte;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/cmp.js
+var require_cmp = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/cmp.js"(exports2, module2) {
+    "use strict";
+    var eq = require_eq();
+    var neq = require_neq();
+    var gt = require_gt();
+    var gte = require_gte();
+    var lt = require_lt();
+    var lte = require_lte();
+    var cmp = (a2, op, b, loose) => {
+      switch (op) {
+        case "===":
+          if (typeof a2 === "object") {
+            a2 = a2.version;
+          }
+          if (typeof b === "object") {
+            b = b.version;
+          }
+          return a2 === b;
+        case "!==":
+          if (typeof a2 === "object") {
+            a2 = a2.version;
+          }
+          if (typeof b === "object") {
+            b = b.version;
+          }
+          return a2 !== b;
+        case "":
+        case "=":
+        case "==":
+          return eq(a2, b, loose);
+        case "!=":
+          return neq(a2, b, loose);
+        case ">":
+          return gt(a2, b, loose);
+        case ">=":
+          return gte(a2, b, loose);
+        case "<":
+          return lt(a2, b, loose);
+        case "<=":
+          return lte(a2, b, loose);
+        default:
+          throw new TypeError(`Invalid operator: ${op}`);
+      }
+    };
+    module2.exports = cmp;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/coerce.js
+var require_coerce = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/coerce.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var parse = require_parse3();
+    var { safeRe: re, t } = require_re();
+    var coerce = (version, options) => {
+      if (version instanceof SemVer) {
+        return version;
+      }
+      if (typeof version === "number") {
+        version = String(version);
+      }
+      if (typeof version !== "string") {
+        return null;
+      }
+      options = options || {};
+      let match = null;
+      if (!options.rtl) {
+        match = version.match(options.includePrerelease ? re[t.COERCEFULL] : re[t.COERCE]);
+      } else {
+        const coerceRtlRegex = options.includePrerelease ? re[t.COERCERTLFULL] : re[t.COERCERTL];
+        let next;
+        while ((next = coerceRtlRegex.exec(version)) && (!match || match.index + match[0].length !== version.length)) {
+          if (!match || next.index + next[0].length !== match.index + match[0].length) {
+            match = next;
+          }
+          coerceRtlRegex.lastIndex = next.index + next[1].length + next[2].length;
+        }
+        coerceRtlRegex.lastIndex = -1;
+      }
+      if (match === null) {
+        return null;
+      }
+      const major = match[2];
+      const minor = match[3] || "0";
+      const patch = match[4] || "0";
+      const prerelease = options.includePrerelease && match[5] ? `-${match[5]}` : "";
+      const build = options.includePrerelease && match[6] ? `+${match[6]}` : "";
+      return parse(`${major}.${minor}.${patch}${prerelease}${build}`, options);
+    };
+    module2.exports = coerce;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/internal/lrucache.js
+var require_lrucache = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/internal/lrucache.js"(exports2, module2) {
+    "use strict";
+    var LRUCache = class {
+      constructor() {
+        this.max = 1e3;
+        this.map = /* @__PURE__ */ new Map();
+      }
+      get(key) {
+        const value = this.map.get(key);
+        if (value === void 0) {
+          return void 0;
+        } else {
+          this.map.delete(key);
+          this.map.set(key, value);
+          return value;
+        }
+      }
+      delete(key) {
+        return this.map.delete(key);
+      }
+      set(key, value) {
+        const deleted = this.delete(key);
+        if (!deleted && value !== void 0) {
+          if (this.map.size >= this.max) {
+            const firstKey = this.map.keys().next().value;
+            this.delete(firstKey);
+          }
+          this.map.set(key, value);
+        }
+        return this;
+      }
+    };
+    module2.exports = LRUCache;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/classes/range.js
+var require_range = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/classes/range.js"(exports2, module2) {
+    "use strict";
+    var SPACE_CHARACTERS = /\s+/g;
+    var Range = class _Range {
+      constructor(range, options) {
+        options = parseOptions(options);
+        if (range instanceof _Range) {
+          if (range.loose === !!options.loose && range.includePrerelease === !!options.includePrerelease) {
+            return range;
+          } else {
+            return new _Range(range.raw, options);
+          }
+        }
+        if (range instanceof Comparator) {
+          this.raw = range.value;
+          this.set = [[range]];
+          this.formatted = void 0;
+          return this;
+        }
+        this.options = options;
+        this.loose = !!options.loose;
+        this.includePrerelease = !!options.includePrerelease;
+        this.raw = range.trim().replace(SPACE_CHARACTERS, " ");
+        this.set = this.raw.split("||").map((r) => this.parseRange(r.trim())).filter((c3) => c3.length);
+        if (!this.set.length) {
+          throw new TypeError(`Invalid SemVer Range: ${this.raw}`);
+        }
+        if (this.set.length > 1) {
+          const first = this.set[0];
+          this.set = this.set.filter((c3) => !isNullSet(c3[0]));
+          if (this.set.length === 0) {
+            this.set = [first];
+          } else if (this.set.length > 1) {
+            for (const c3 of this.set) {
+              if (c3.length === 1 && isAny(c3[0])) {
+                this.set = [c3];
+                break;
+              }
+            }
+          }
+        }
+        this.formatted = void 0;
+      }
+      get range() {
+        if (this.formatted === void 0) {
+          this.formatted = "";
+          for (let i2 = 0; i2 < this.set.length; i2++) {
+            if (i2 > 0) {
+              this.formatted += "||";
+            }
+            const comps = this.set[i2];
+            for (let k = 0; k < comps.length; k++) {
+              if (k > 0) {
+                this.formatted += " ";
+              }
+              this.formatted += comps[k].toString().trim();
+            }
+          }
+        }
+        return this.formatted;
+      }
+      format() {
+        return this.range;
+      }
+      toString() {
+        return this.range;
+      }
+      parseRange(range) {
+        const memoOpts = (this.options.includePrerelease && FLAG_INCLUDE_PRERELEASE) | (this.options.loose && FLAG_LOOSE);
+        const memoKey = memoOpts + ":" + range;
+        const cached = cache.get(memoKey);
+        if (cached) {
+          return cached;
+        }
+        const loose = this.options.loose;
+        const hr = loose ? re[t.HYPHENRANGELOOSE] : re[t.HYPHENRANGE];
+        range = range.replace(hr, hyphenReplace(this.options.includePrerelease));
+        debug3("hyphen replace", range);
+        range = range.replace(re[t.COMPARATORTRIM], comparatorTrimReplace);
+        debug3("comparator trim", range);
+        range = range.replace(re[t.TILDETRIM], tildeTrimReplace);
+        debug3("tilde trim", range);
+        range = range.replace(re[t.CARETTRIM], caretTrimReplace);
+        debug3("caret trim", range);
+        let rangeList = range.split(" ").map((comp) => parseComparator(comp, this.options)).join(" ").split(/\s+/).map((comp) => replaceGTE0(comp, this.options));
+        if (loose) {
+          rangeList = rangeList.filter((comp) => {
+            debug3("loose invalid filter", comp, this.options);
+            return !!comp.match(re[t.COMPARATORLOOSE]);
+          });
+        }
+        debug3("range list", rangeList);
+        const rangeMap = /* @__PURE__ */ new Map();
+        const comparators = rangeList.map((comp) => new Comparator(comp, this.options));
+        for (const comp of comparators) {
+          if (isNullSet(comp)) {
+            return [comp];
+          }
+          rangeMap.set(comp.value, comp);
+        }
+        if (rangeMap.size > 1 && rangeMap.has("")) {
+          rangeMap.delete("");
+        }
+        const result = [...rangeMap.values()];
+        cache.set(memoKey, result);
+        return result;
+      }
+      intersects(range, options) {
+        if (!(range instanceof _Range)) {
+          throw new TypeError("a Range is required");
+        }
+        return this.set.some((thisComparators) => {
+          return isSatisfiable(thisComparators, options) && range.set.some((rangeComparators) => {
+            return isSatisfiable(rangeComparators, options) && thisComparators.every((thisComparator) => {
+              return rangeComparators.every((rangeComparator) => {
+                return thisComparator.intersects(rangeComparator, options);
+              });
+            });
+          });
+        });
+      }
+      // if ANY of the sets match ALL of its comparators, then pass
+      test(version) {
+        if (!version) {
+          return false;
+        }
+        if (typeof version === "string") {
+          try {
+            version = new SemVer(version, this.options);
+          } catch (er) {
+            return false;
+          }
+        }
+        for (let i2 = 0; i2 < this.set.length; i2++) {
+          if (testSet(this.set[i2], version, this.options)) {
+            return true;
+          }
+        }
+        return false;
+      }
+    };
+    module2.exports = Range;
+    var LRU = require_lrucache();
+    var cache = new LRU();
+    var parseOptions = require_parse_options();
+    var Comparator = require_comparator();
+    var debug3 = require_debug();
+    var SemVer = require_semver();
+    var {
+      safeRe: re,
+      t,
+      comparatorTrimReplace,
+      tildeTrimReplace,
+      caretTrimReplace
+    } = require_re();
+    var { FLAG_INCLUDE_PRERELEASE, FLAG_LOOSE } = require_constants6();
+    var isNullSet = (c3) => c3.value === "<0.0.0-0";
+    var isAny = (c3) => c3.value === "";
+    var isSatisfiable = (comparators, options) => {
+      let result = true;
+      const remainingComparators = comparators.slice();
+      let testComparator = remainingComparators.pop();
+      while (result && remainingComparators.length) {
+        result = remainingComparators.every((otherComparator) => {
+          return testComparator.intersects(otherComparator, options);
+        });
+        testComparator = remainingComparators.pop();
+      }
+      return result;
+    };
+    var parseComparator = (comp, options) => {
+      comp = comp.replace(re[t.BUILD], "");
+      debug3("comp", comp, options);
+      comp = replaceCarets(comp, options);
+      debug3("caret", comp);
+      comp = replaceTildes(comp, options);
+      debug3("tildes", comp);
+      comp = replaceXRanges(comp, options);
+      debug3("xrange", comp);
+      comp = replaceStars(comp, options);
+      debug3("stars", comp);
+      return comp;
+    };
+    var isX = (id) => !id || id.toLowerCase() === "x" || id === "*";
+    var replaceTildes = (comp, options) => {
+      return comp.trim().split(/\s+/).map((c3) => replaceTilde(c3, options)).join(" ");
+    };
+    var replaceTilde = (comp, options) => {
+      const r = options.loose ? re[t.TILDELOOSE] : re[t.TILDE];
+      return comp.replace(r, (_, M, m, p, pr) => {
+        debug3("tilde", comp, _, M, m, p, pr);
+        let ret;
+        if (isX(M)) {
+          ret = "";
+        } else if (isX(m)) {
+          ret = `>=${M}.0.0 <${+M + 1}.0.0-0`;
+        } else if (isX(p)) {
+          ret = `>=${M}.${m}.0 <${M}.${+m + 1}.0-0`;
+        } else if (pr) {
+          debug3("replaceTilde pr", pr);
+          ret = `>=${M}.${m}.${p}-${pr} <${M}.${+m + 1}.0-0`;
+        } else {
+          ret = `>=${M}.${m}.${p} <${M}.${+m + 1}.0-0`;
+        }
+        debug3("tilde return", ret);
+        return ret;
+      });
+    };
+    var replaceCarets = (comp, options) => {
+      return comp.trim().split(/\s+/).map((c3) => replaceCaret(c3, options)).join(" ");
+    };
+    var replaceCaret = (comp, options) => {
+      debug3("caret", comp, options);
+      const r = options.loose ? re[t.CARETLOOSE] : re[t.CARET];
+      const z = options.includePrerelease ? "-0" : "";
+      return comp.replace(r, (_, M, m, p, pr) => {
+        debug3("caret", comp, _, M, m, p, pr);
+        let ret;
+        if (isX(M)) {
+          ret = "";
+        } else if (isX(m)) {
+          ret = `>=${M}.0.0${z} <${+M + 1}.0.0-0`;
+        } else if (isX(p)) {
+          if (M === "0") {
+            ret = `>=${M}.${m}.0${z} <${M}.${+m + 1}.0-0`;
+          } else {
+            ret = `>=${M}.${m}.0${z} <${+M + 1}.0.0-0`;
+          }
+        } else if (pr) {
+          debug3("replaceCaret pr", pr);
+          if (M === "0") {
+            if (m === "0") {
+              ret = `>=${M}.${m}.${p}-${pr} <${M}.${m}.${+p + 1}-0`;
+            } else {
+              ret = `>=${M}.${m}.${p}-${pr} <${M}.${+m + 1}.0-0`;
+            }
+          } else {
+            ret = `>=${M}.${m}.${p}-${pr} <${+M + 1}.0.0-0`;
+          }
+        } else {
+          debug3("no pr");
+          if (M === "0") {
+            if (m === "0") {
+              ret = `>=${M}.${m}.${p}${z} <${M}.${m}.${+p + 1}-0`;
+            } else {
+              ret = `>=${M}.${m}.${p}${z} <${M}.${+m + 1}.0-0`;
+            }
+          } else {
+            ret = `>=${M}.${m}.${p} <${+M + 1}.0.0-0`;
+          }
+        }
+        debug3("caret return", ret);
+        return ret;
+      });
+    };
+    var replaceXRanges = (comp, options) => {
+      debug3("replaceXRanges", comp, options);
+      return comp.split(/\s+/).map((c3) => replaceXRange(c3, options)).join(" ");
+    };
+    var replaceXRange = (comp, options) => {
+      comp = comp.trim();
+      const r = options.loose ? re[t.XRANGELOOSE] : re[t.XRANGE];
+      return comp.replace(r, (ret, gtlt, M, m, p, pr) => {
+        debug3("xRange", comp, ret, gtlt, M, m, p, pr);
+        const xM = isX(M);
+        const xm = xM || isX(m);
+        const xp = xm || isX(p);
+        const anyX = xp;
+        if (gtlt === "=" && anyX) {
+          gtlt = "";
+        }
+        pr = options.includePrerelease ? "-0" : "";
+        if (xM) {
+          if (gtlt === ">" || gtlt === "<") {
+            ret = "<0.0.0-0";
+          } else {
+            ret = "*";
+          }
+        } else if (gtlt && anyX) {
+          if (xm) {
+            m = 0;
+          }
+          p = 0;
+          if (gtlt === ">") {
+            gtlt = ">=";
+            if (xm) {
+              M = +M + 1;
+              m = 0;
+              p = 0;
+            } else {
+              m = +m + 1;
+              p = 0;
+            }
+          } else if (gtlt === "<=") {
+            gtlt = "<";
+            if (xm) {
+              M = +M + 1;
+            } else {
+              m = +m + 1;
+            }
+          }
+          if (gtlt === "<") {
+            pr = "-0";
+          }
+          ret = `${gtlt + M}.${m}.${p}${pr}`;
+        } else if (xm) {
+          ret = `>=${M}.0.0${pr} <${+M + 1}.0.0-0`;
+        } else if (xp) {
+          ret = `>=${M}.${m}.0${pr} <${M}.${+m + 1}.0-0`;
+        }
+        debug3("xRange return", ret);
+        return ret;
+      });
+    };
+    var replaceStars = (comp, options) => {
+      debug3("replaceStars", comp, options);
+      return comp.trim().replace(re[t.STAR], "");
+    };
+    var replaceGTE0 = (comp, options) => {
+      debug3("replaceGTE0", comp, options);
+      return comp.trim().replace(re[options.includePrerelease ? t.GTE0PRE : t.GTE0], "");
+    };
+    var hyphenReplace = (incPr) => ($0, from, fM, fm, fp, fpr, fb, to, tM, tm, tp, tpr) => {
+      if (isX(fM)) {
+        from = "";
+      } else if (isX(fm)) {
+        from = `>=${fM}.0.0${incPr ? "-0" : ""}`;
+      } else if (isX(fp)) {
+        from = `>=${fM}.${fm}.0${incPr ? "-0" : ""}`;
+      } else if (fpr) {
+        from = `>=${from}`;
+      } else {
+        from = `>=${from}${incPr ? "-0" : ""}`;
+      }
+      if (isX(tM)) {
+        to = "";
+      } else if (isX(tm)) {
+        to = `<${+tM + 1}.0.0-0`;
+      } else if (isX(tp)) {
+        to = `<${tM}.${+tm + 1}.0-0`;
+      } else if (tpr) {
+        to = `<=${tM}.${tm}.${tp}-${tpr}`;
+      } else if (incPr) {
+        to = `<${tM}.${tm}.${+tp + 1}-0`;
+      } else {
+        to = `<=${to}`;
+      }
+      return `${from} ${to}`.trim();
+    };
+    var testSet = (set, version, options) => {
+      for (let i2 = 0; i2 < set.length; i2++) {
+        if (!set[i2].test(version)) {
+          return false;
+        }
+      }
+      if (version.prerelease.length && !options.includePrerelease) {
+        for (let i2 = 0; i2 < set.length; i2++) {
+          debug3(set[i2].semver);
+          if (set[i2].semver === Comparator.ANY) {
+            continue;
+          }
+          if (set[i2].semver.prerelease.length > 0) {
+            const allowed = set[i2].semver;
+            if (allowed.major === version.major && allowed.minor === version.minor && allowed.patch === version.patch) {
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+      return true;
+    };
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/classes/comparator.js
+var require_comparator = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/classes/comparator.js"(exports2, module2) {
+    "use strict";
+    var ANY = Symbol("SemVer ANY");
+    var Comparator = class _Comparator {
+      static get ANY() {
+        return ANY;
+      }
+      constructor(comp, options) {
+        options = parseOptions(options);
+        if (comp instanceof _Comparator) {
+          if (comp.loose === !!options.loose) {
+            return comp;
+          } else {
+            comp = comp.value;
+          }
+        }
+        comp = comp.trim().split(/\s+/).join(" ");
+        debug3("comparator", comp, options);
+        this.options = options;
+        this.loose = !!options.loose;
+        this.parse(comp);
+        if (this.semver === ANY) {
+          this.value = "";
+        } else {
+          this.value = this.operator + this.semver.version;
+        }
+        debug3("comp", this);
+      }
+      parse(comp) {
+        const r = this.options.loose ? re[t.COMPARATORLOOSE] : re[t.COMPARATOR];
+        const m = comp.match(r);
+        if (!m) {
+          throw new TypeError(`Invalid comparator: ${comp}`);
+        }
+        this.operator = m[1] !== void 0 ? m[1] : "";
+        if (this.operator === "=") {
+          this.operator = "";
+        }
+        if (!m[2]) {
+          this.semver = ANY;
+        } else {
+          this.semver = new SemVer(m[2], this.options.loose);
+        }
+      }
+      toString() {
+        return this.value;
+      }
+      test(version) {
+        debug3("Comparator.test", version, this.options.loose);
+        if (this.semver === ANY || version === ANY) {
+          return true;
+        }
+        if (typeof version === "string") {
+          try {
+            version = new SemVer(version, this.options);
+          } catch (er) {
+            return false;
+          }
+        }
+        return cmp(version, this.operator, this.semver, this.options);
+      }
+      intersects(comp, options) {
+        if (!(comp instanceof _Comparator)) {
+          throw new TypeError("a Comparator is required");
+        }
+        if (this.operator === "") {
+          if (this.value === "") {
+            return true;
+          }
+          return new Range(comp.value, options).test(this.value);
+        } else if (comp.operator === "") {
+          if (comp.value === "") {
+            return true;
+          }
+          return new Range(this.value, options).test(comp.semver);
+        }
+        options = parseOptions(options);
+        if (options.includePrerelease && (this.value === "<0.0.0-0" || comp.value === "<0.0.0-0")) {
+          return false;
+        }
+        if (!options.includePrerelease && (this.value.startsWith("<0.0.0") || comp.value.startsWith("<0.0.0"))) {
+          return false;
+        }
+        if (this.operator.startsWith(">") && comp.operator.startsWith(">")) {
+          return true;
+        }
+        if (this.operator.startsWith("<") && comp.operator.startsWith("<")) {
+          return true;
+        }
+        if (this.semver.version === comp.semver.version && this.operator.includes("=") && comp.operator.includes("=")) {
+          return true;
+        }
+        if (cmp(this.semver, "<", comp.semver, options) && this.operator.startsWith(">") && comp.operator.startsWith("<")) {
+          return true;
+        }
+        if (cmp(this.semver, ">", comp.semver, options) && this.operator.startsWith("<") && comp.operator.startsWith(">")) {
+          return true;
+        }
+        return false;
+      }
+    };
+    module2.exports = Comparator;
+    var parseOptions = require_parse_options();
+    var { safeRe: re, t } = require_re();
+    var cmp = require_cmp();
+    var debug3 = require_debug();
+    var SemVer = require_semver();
+    var Range = require_range();
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/satisfies.js
+var require_satisfies = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/functions/satisfies.js"(exports2, module2) {
+    "use strict";
+    var Range = require_range();
+    var satisfies = (version, range, options) => {
+      try {
+        range = new Range(range, options);
+      } catch (er) {
+        return false;
+      }
+      return range.test(version);
+    };
+    module2.exports = satisfies;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/to-comparators.js
+var require_to_comparators = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/to-comparators.js"(exports2, module2) {
+    "use strict";
+    var Range = require_range();
+    var toComparators = (range, options) => new Range(range, options).set.map((comp) => comp.map((c3) => c3.value).join(" ").trim().split(" "));
+    module2.exports = toComparators;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/max-satisfying.js
+var require_max_satisfying = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/max-satisfying.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var Range = require_range();
+    var maxSatisfying = (versions, range, options) => {
+      let max = null;
+      let maxSV = null;
+      let rangeObj = null;
+      try {
+        rangeObj = new Range(range, options);
+      } catch (er) {
+        return null;
+      }
+      versions.forEach((v) => {
+        if (rangeObj.test(v)) {
+          if (!max || maxSV.compare(v) === -1) {
+            max = v;
+            maxSV = new SemVer(max, options);
+          }
+        }
+      });
+      return max;
+    };
+    module2.exports = maxSatisfying;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/min-satisfying.js
+var require_min_satisfying = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/min-satisfying.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var Range = require_range();
+    var minSatisfying = (versions, range, options) => {
+      let min = null;
+      let minSV = null;
+      let rangeObj = null;
+      try {
+        rangeObj = new Range(range, options);
+      } catch (er) {
+        return null;
+      }
+      versions.forEach((v) => {
+        if (rangeObj.test(v)) {
+          if (!min || minSV.compare(v) === 1) {
+            min = v;
+            minSV = new SemVer(min, options);
+          }
+        }
+      });
+      return min;
+    };
+    module2.exports = minSatisfying;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/min-version.js
+var require_min_version = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/min-version.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var Range = require_range();
+    var gt = require_gt();
+    var minVersion = (range, loose) => {
+      range = new Range(range, loose);
+      let minver = new SemVer("0.0.0");
+      if (range.test(minver)) {
+        return minver;
+      }
+      minver = new SemVer("0.0.0-0");
+      if (range.test(minver)) {
+        return minver;
+      }
+      minver = null;
+      for (let i2 = 0; i2 < range.set.length; ++i2) {
+        const comparators = range.set[i2];
+        let setMin = null;
+        comparators.forEach((comparator) => {
+          const compver = new SemVer(comparator.semver.version);
+          switch (comparator.operator) {
+            case ">":
+              if (compver.prerelease.length === 0) {
+                compver.patch++;
+              } else {
+                compver.prerelease.push(0);
+              }
+              compver.raw = compver.format();
+            case "":
+            case ">=":
+              if (!setMin || gt(compver, setMin)) {
+                setMin = compver;
+              }
+              break;
+            case "<":
+            case "<=":
+              break;
+            default:
+              throw new Error(`Unexpected operation: ${comparator.operator}`);
+          }
+        });
+        if (setMin && (!minver || gt(minver, setMin))) {
+          minver = setMin;
+        }
+      }
+      if (minver && range.test(minver)) {
+        return minver;
+      }
+      return null;
+    };
+    module2.exports = minVersion;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/valid.js
+var require_valid2 = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/valid.js"(exports2, module2) {
+    "use strict";
+    var Range = require_range();
+    var validRange = (range, options) => {
+      try {
+        return new Range(range, options).range || "*";
+      } catch (er) {
+        return null;
+      }
+    };
+    module2.exports = validRange;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/outside.js
+var require_outside = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/outside.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var Comparator = require_comparator();
+    var { ANY } = Comparator;
+    var Range = require_range();
+    var satisfies = require_satisfies();
+    var gt = require_gt();
+    var lt = require_lt();
+    var lte = require_lte();
+    var gte = require_gte();
+    var outside = (version, range, hilo, options) => {
+      version = new SemVer(version, options);
+      range = new Range(range, options);
+      let gtfn, ltefn, ltfn, comp, ecomp;
+      switch (hilo) {
+        case ">":
+          gtfn = gt;
+          ltefn = lte;
+          ltfn = lt;
+          comp = ">";
+          ecomp = ">=";
+          break;
+        case "<":
+          gtfn = lt;
+          ltefn = gte;
+          ltfn = gt;
+          comp = "<";
+          ecomp = "<=";
+          break;
+        default:
+          throw new TypeError('Must provide a hilo val of "<" or ">"');
+      }
+      if (satisfies(version, range, options)) {
+        return false;
+      }
+      for (let i2 = 0; i2 < range.set.length; ++i2) {
+        const comparators = range.set[i2];
+        let high = null;
+        let low = null;
+        comparators.forEach((comparator) => {
+          if (comparator.semver === ANY) {
+            comparator = new Comparator(">=0.0.0");
+          }
+          high = high || comparator;
+          low = low || comparator;
+          if (gtfn(comparator.semver, high.semver, options)) {
+            high = comparator;
+          } else if (ltfn(comparator.semver, low.semver, options)) {
+            low = comparator;
+          }
+        });
+        if (high.operator === comp || high.operator === ecomp) {
+          return false;
+        }
+        if ((!low.operator || low.operator === comp) && ltefn(version, low.semver)) {
+          return false;
+        } else if (low.operator === ecomp && ltfn(version, low.semver)) {
+          return false;
+        }
+      }
+      return true;
+    };
+    module2.exports = outside;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/gtr.js
+var require_gtr = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/gtr.js"(exports2, module2) {
+    "use strict";
+    var outside = require_outside();
+    var gtr = (version, range, options) => outside(version, range, ">", options);
+    module2.exports = gtr;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/ltr.js
+var require_ltr = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/ltr.js"(exports2, module2) {
+    "use strict";
+    var outside = require_outside();
+    var ltr = (version, range, options) => outside(version, range, "<", options);
+    module2.exports = ltr;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/intersects.js
+var require_intersects = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/intersects.js"(exports2, module2) {
+    "use strict";
+    var Range = require_range();
+    var intersects = (r1, r2, options) => {
+      r1 = new Range(r1, options);
+      r2 = new Range(r2, options);
+      return r1.intersects(r2, options);
+    };
+    module2.exports = intersects;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/simplify.js
+var require_simplify = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/simplify.js"(exports2, module2) {
+    "use strict";
+    var satisfies = require_satisfies();
+    var compare = require_compare();
+    module2.exports = (versions, range, options) => {
+      const set = [];
+      let first = null;
+      let prev = null;
+      const v = versions.sort((a2, b) => compare(a2, b, options));
+      for (const version of v) {
+        const included = satisfies(version, range, options);
+        if (included) {
+          prev = version;
+          if (!first) {
+            first = version;
+          }
+        } else {
+          if (prev) {
+            set.push([first, prev]);
+          }
+          prev = null;
+          first = null;
+        }
+      }
+      if (first) {
+        set.push([first, null]);
+      }
+      const ranges = [];
+      for (const [min, max] of set) {
+        if (min === max) {
+          ranges.push(min);
+        } else if (!max && min === v[0]) {
+          ranges.push("*");
+        } else if (!max) {
+          ranges.push(`>=${min}`);
+        } else if (min === v[0]) {
+          ranges.push(`<=${max}`);
+        } else {
+          ranges.push(`${min} - ${max}`);
+        }
+      }
+      const simplified = ranges.join(" || ");
+      const original = typeof range.raw === "string" ? range.raw : String(range);
+      return simplified.length < original.length ? simplified : range;
+    };
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/subset.js
+var require_subset = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/ranges/subset.js"(exports2, module2) {
+    "use strict";
+    var Range = require_range();
+    var Comparator = require_comparator();
+    var { ANY } = Comparator;
+    var satisfies = require_satisfies();
+    var compare = require_compare();
+    var subset = (sub, dom, options = {}) => {
+      if (sub === dom) {
+        return true;
+      }
+      sub = new Range(sub, options);
+      dom = new Range(dom, options);
+      let sawNonNull = false;
+      OUTER: for (const simpleSub of sub.set) {
+        for (const simpleDom of dom.set) {
+          const isSub = simpleSubset(simpleSub, simpleDom, options);
+          sawNonNull = sawNonNull || isSub !== null;
+          if (isSub) {
+            continue OUTER;
+          }
+        }
+        if (sawNonNull) {
+          return false;
+        }
+      }
+      return true;
+    };
+    var minimumVersionWithPreRelease = [new Comparator(">=0.0.0-0")];
+    var minimumVersion = [new Comparator(">=0.0.0")];
+    var simpleSubset = (sub, dom, options) => {
+      if (sub === dom) {
+        return true;
+      }
+      if (sub.length === 1 && sub[0].semver === ANY) {
+        if (dom.length === 1 && dom[0].semver === ANY) {
+          return true;
+        } else if (options.includePrerelease) {
+          sub = minimumVersionWithPreRelease;
+        } else {
+          sub = minimumVersion;
+        }
+      }
+      if (dom.length === 1 && dom[0].semver === ANY) {
+        if (options.includePrerelease) {
+          return true;
+        } else {
+          dom = minimumVersion;
+        }
+      }
+      const eqSet = /* @__PURE__ */ new Set();
+      let gt, lt;
+      for (const c3 of sub) {
+        if (c3.operator === ">" || c3.operator === ">=") {
+          gt = higherGT(gt, c3, options);
+        } else if (c3.operator === "<" || c3.operator === "<=") {
+          lt = lowerLT(lt, c3, options);
+        } else {
+          eqSet.add(c3.semver);
+        }
+      }
+      if (eqSet.size > 1) {
+        return null;
+      }
+      let gtltComp;
+      if (gt && lt) {
+        gtltComp = compare(gt.semver, lt.semver, options);
+        if (gtltComp > 0) {
+          return null;
+        } else if (gtltComp === 0 && (gt.operator !== ">=" || lt.operator !== "<=")) {
+          return null;
+        }
+      }
+      for (const eq of eqSet) {
+        if (gt && !satisfies(eq, String(gt), options)) {
+          return null;
+        }
+        if (lt && !satisfies(eq, String(lt), options)) {
+          return null;
+        }
+        for (const c3 of dom) {
+          if (!satisfies(eq, String(c3), options)) {
+            return false;
+          }
+        }
+        return true;
+      }
+      let higher, lower;
+      let hasDomLT, hasDomGT;
+      let needDomLTPre = lt && !options.includePrerelease && lt.semver.prerelease.length ? lt.semver : false;
+      let needDomGTPre = gt && !options.includePrerelease && gt.semver.prerelease.length ? gt.semver : false;
+      if (needDomLTPre && needDomLTPre.prerelease.length === 1 && lt.operator === "<" && needDomLTPre.prerelease[0] === 0) {
+        needDomLTPre = false;
+      }
+      for (const c3 of dom) {
+        hasDomGT = hasDomGT || c3.operator === ">" || c3.operator === ">=";
+        hasDomLT = hasDomLT || c3.operator === "<" || c3.operator === "<=";
+        if (gt) {
+          if (needDomGTPre) {
+            if (c3.semver.prerelease && c3.semver.prerelease.length && c3.semver.major === needDomGTPre.major && c3.semver.minor === needDomGTPre.minor && c3.semver.patch === needDomGTPre.patch) {
+              needDomGTPre = false;
+            }
+          }
+          if (c3.operator === ">" || c3.operator === ">=") {
+            higher = higherGT(gt, c3, options);
+            if (higher === c3 && higher !== gt) {
+              return false;
+            }
+          } else if (gt.operator === ">=" && !satisfies(gt.semver, String(c3), options)) {
+            return false;
+          }
+        }
+        if (lt) {
+          if (needDomLTPre) {
+            if (c3.semver.prerelease && c3.semver.prerelease.length && c3.semver.major === needDomLTPre.major && c3.semver.minor === needDomLTPre.minor && c3.semver.patch === needDomLTPre.patch) {
+              needDomLTPre = false;
+            }
+          }
+          if (c3.operator === "<" || c3.operator === "<=") {
+            lower = lowerLT(lt, c3, options);
+            if (lower === c3 && lower !== lt) {
+              return false;
+            }
+          } else if (lt.operator === "<=" && !satisfies(lt.semver, String(c3), options)) {
+            return false;
+          }
+        }
+        if (!c3.operator && (lt || gt) && gtltComp !== 0) {
+          return false;
+        }
+      }
+      if (gt && hasDomLT && !lt && gtltComp !== 0) {
+        return false;
+      }
+      if (lt && hasDomGT && !gt && gtltComp !== 0) {
+        return false;
+      }
+      if (needDomGTPre || needDomLTPre) {
+        return false;
+      }
+      return true;
+    };
+    var higherGT = (a2, b, options) => {
+      if (!a2) {
+        return b;
+      }
+      const comp = compare(a2.semver, b.semver, options);
+      return comp > 0 ? a2 : comp < 0 ? b : b.operator === ">" && a2.operator === ">=" ? b : a2;
+    };
+    var lowerLT = (a2, b, options) => {
+      if (!a2) {
+        return b;
+      }
+      const comp = compare(a2.semver, b.semver, options);
+      return comp < 0 ? a2 : comp > 0 ? b : b.operator === "<" && a2.operator === "<=" ? b : a2;
+    };
+    module2.exports = subset;
+  }
+});
+
+// node_modules/.pnpm/semver@7.7.3/node_modules/semver/index.js
+var require_semver2 = __commonJS({
+  "node_modules/.pnpm/semver@7.7.3/node_modules/semver/index.js"(exports2, module2) {
+    "use strict";
+    var internalRe = require_re();
+    var constants4 = require_constants6();
+    var SemVer = require_semver();
+    var identifiers = require_identifiers();
+    var parse = require_parse3();
+    var valid2 = require_valid();
+    var clean = require_clean();
+    var inc = require_inc();
+    var diff = require_diff();
+    var major = require_major();
+    var minor = require_minor();
+    var patch = require_patch();
+    var prerelease = require_prerelease();
+    var compare = require_compare();
+    var rcompare2 = require_rcompare();
+    var compareLoose = require_compare_loose();
+    var compareBuild = require_compare_build();
+    var sort = require_sort();
+    var rsort = require_rsort();
+    var gt = require_gt();
+    var lt = require_lt();
+    var eq = require_eq();
+    var neq = require_neq();
+    var gte = require_gte();
+    var lte = require_lte();
+    var cmp = require_cmp();
+    var coerce = require_coerce();
+    var Comparator = require_comparator();
+    var Range = require_range();
+    var satisfies = require_satisfies();
+    var toComparators = require_to_comparators();
+    var maxSatisfying = require_max_satisfying();
+    var minSatisfying = require_min_satisfying();
+    var minVersion = require_min_version();
+    var validRange = require_valid2();
+    var outside = require_outside();
+    var gtr = require_gtr();
+    var ltr = require_ltr();
+    var intersects = require_intersects();
+    var simplifyRange = require_simplify();
+    var subset = require_subset();
+    module2.exports = {
+      parse,
+      valid: valid2,
+      clean,
+      inc,
+      diff,
+      major,
+      minor,
+      patch,
+      prerelease,
+      compare,
+      rcompare: rcompare2,
+      compareLoose,
+      compareBuild,
+      sort,
+      rsort,
+      gt,
+      lt,
+      eq,
+      neq,
+      gte,
+      lte,
+      cmp,
+      coerce,
+      Comparator,
+      Range,
+      satisfies,
+      toComparators,
+      maxSatisfying,
+      minSatisfying,
+      minVersion,
+      validRange,
+      outside,
+      gtr,
+      ltr,
+      intersects,
+      simplifyRange,
+      subset,
+      SemVer,
+      re: internalRe.re,
+      src: internalRe.src,
+      tokens: internalRe.t,
+      SEMVER_SPEC_VERSION: constants4.SEMVER_SPEC_VERSION,
+      RELEASE_TYPES: constants4.RELEASE_TYPES,
+      compareIdentifiers: identifiers.compareIdentifiers,
+      rcompareIdentifiers: identifiers.rcompareIdentifiers
+    };
+  }
+});
+
 // actions/apidiff-go/src/run.ts
-var core6 = __toESM(require_core());
+var core7 = __toESM(require_core());
+var github3 = __toESM(require_github());
+var import_path3 = require("path");
 
 // actions/apidiff-go/src/apidiff.ts
-var core2 = __toESM(require_core());
-var import_path = require("path");
+var core4 = __toESM(require_core());
+var import_path2 = require("path");
 
 // node_modules/.pnpm/is-plain-obj@4.1.0/node_modules/is-plain-obj/index.js
 function isPlainObject(value) {
@@ -25329,7 +27255,7 @@ var setErrorName = (ErrorClass, value) => {
     configurable: false
   });
 };
-var isExecaError = (error2) => isErrorInstance(error2) && execaErrorSymbol in error2;
+var isExecaError = (error) => isErrorInstance(error) && execaErrorSymbol in error;
 var execaErrorSymbol = Symbol("isExecaError");
 var isErrorInstance = (value) => Object.prototype.toString.call(value) === "[object Error]";
 var ExecaError = class extends Error {
@@ -25767,9 +27693,9 @@ var normalizeForceKillAfterDelay = (forceKillAfterDelay) => {
   return forceKillAfterDelay;
 };
 var DEFAULT_FORCE_KILL_TIMEOUT = 1e3 * 5;
-var subprocessKill = ({ kill, options: { forceKillAfterDelay, killSignal }, onInternalError, context: context3, controller }, signalOrError, errorArgument) => {
-  const { signal, error: error2 } = parseKillArguments(signalOrError, errorArgument, killSignal);
-  emitKillError(error2, onInternalError);
+var subprocessKill = ({ kill, options: { forceKillAfterDelay, killSignal }, onInternalError, context: context2, controller }, signalOrError, errorArgument) => {
+  const { signal, error } = parseKillArguments(signalOrError, errorArgument, killSignal);
+  emitKillError(error, onInternalError);
   const killResult = kill(signal);
   setKillTimeout({
     kill,
@@ -25777,44 +27703,44 @@ var subprocessKill = ({ kill, options: { forceKillAfterDelay, killSignal }, onIn
     forceKillAfterDelay,
     killSignal,
     killResult,
-    context: context3,
+    context: context2,
     controller
   });
   return killResult;
 };
 var parseKillArguments = (signalOrError, errorArgument, killSignal) => {
-  const [signal = killSignal, error2] = isErrorInstance(signalOrError) ? [void 0, signalOrError] : [signalOrError, errorArgument];
+  const [signal = killSignal, error] = isErrorInstance(signalOrError) ? [void 0, signalOrError] : [signalOrError, errorArgument];
   if (typeof signal !== "string" && !Number.isInteger(signal)) {
     throw new TypeError(`The first argument must be an error instance or a signal name string/integer: ${String(signal)}`);
   }
-  if (error2 !== void 0 && !isErrorInstance(error2)) {
-    throw new TypeError(`The second argument is optional. If specified, it must be an error instance: ${error2}`);
+  if (error !== void 0 && !isErrorInstance(error)) {
+    throw new TypeError(`The second argument is optional. If specified, it must be an error instance: ${error}`);
   }
-  return { signal: normalizeSignalArgument(signal), error: error2 };
+  return { signal: normalizeSignalArgument(signal), error };
 };
-var emitKillError = (error2, onInternalError) => {
-  if (error2 !== void 0) {
-    onInternalError.reject(error2);
+var emitKillError = (error, onInternalError) => {
+  if (error !== void 0) {
+    onInternalError.reject(error);
   }
 };
-var setKillTimeout = async ({ kill, signal, forceKillAfterDelay, killSignal, killResult, context: context3, controller }) => {
+var setKillTimeout = async ({ kill, signal, forceKillAfterDelay, killSignal, killResult, context: context2, controller }) => {
   if (signal === killSignal && killResult) {
     killOnTimeout({
       kill,
       forceKillAfterDelay,
-      context: context3,
+      context: context2,
       controllerSignal: controller.signal
     });
   }
 };
-var killOnTimeout = async ({ kill, forceKillAfterDelay, context: context3, controllerSignal }) => {
+var killOnTimeout = async ({ kill, forceKillAfterDelay, context: context2, controllerSignal }) => {
   if (forceKillAfterDelay === false) {
     return;
   }
   try {
     await (0, import_promises.setTimeout)(forceKillAfterDelay, void 0, { signal: controllerSignal });
     if (kill("SIGKILL")) {
-      context3.isForcefullyTerminated ??= true;
+      context2.isForcefullyTerminated ??= true;
     }
   } catch {
   }
@@ -25834,10 +27760,10 @@ var validateCancelSignal = ({ cancelSignal }) => {
     throw new Error(`The \`cancelSignal\` option must be an AbortSignal: ${String(cancelSignal)}`);
   }
 };
-var throwOnCancel = ({ subprocess, cancelSignal, gracefulCancel, context: context3, controller }) => cancelSignal === void 0 || gracefulCancel ? [] : [terminateOnCancel(subprocess, cancelSignal, context3, controller)];
-var terminateOnCancel = async (subprocess, cancelSignal, context3, { signal }) => {
+var throwOnCancel = ({ subprocess, cancelSignal, gracefulCancel, context: context2, controller }) => cancelSignal === void 0 || gracefulCancel ? [] : [terminateOnCancel(subprocess, cancelSignal, context2, controller)];
+var terminateOnCancel = async (subprocess, cancelSignal, context2, { signal }) => {
   await onAbortedSignal(cancelSignal, signal);
-  context3.terminationReason ??= "cancel";
+  context2.terminationReason ??= "cancel";
   subprocess.kill();
   throw cancelSignal.reason;
 };
@@ -25875,7 +27801,7 @@ const [receivedMessage] = await Promise.all([
 	${getMethodName("sendMessage", isSubprocess, "message, {strict: true}")},
 ]);`);
 };
-var getStrictResponseError = (error2, isSubprocess) => new Error(`${getMethodName("sendMessage", isSubprocess)} failed when sending an acknowledgment response to the ${getOtherProcessName(isSubprocess)}.`, { cause: error2 });
+var getStrictResponseError = (error, isSubprocess) => new Error(`${getMethodName("sendMessage", isSubprocess)} failed when sending an acknowledgment response to the ${getOtherProcessName(isSubprocess)}.`, { cause: error });
 var throwOnMissingStrict = (isSubprocess) => {
   throw new Error(`${getMethodName("sendMessage", isSubprocess)} failed: the ${getOtherProcessName(isSubprocess)} is not listening to incoming messages.`);
 };
@@ -25886,14 +27812,14 @@ var getAbortDisconnectError = () => new Error(`\`cancelSignal\` aborted: the ${g
 var throwOnMissingParent = () => {
   throw new Error("`getCancelSignal()` cannot be used without setting the `cancelSignal` subprocess option.");
 };
-var handleEpipeError = ({ error: error2, methodName, isSubprocess }) => {
-  if (error2.code === "EPIPE") {
-    throw new Error(`${getMethodName(methodName, isSubprocess)} cannot be used: the ${getOtherProcessName(isSubprocess)} is disconnecting.`, { cause: error2 });
+var handleEpipeError = ({ error, methodName, isSubprocess }) => {
+  if (error.code === "EPIPE") {
+    throw new Error(`${getMethodName(methodName, isSubprocess)} cannot be used: the ${getOtherProcessName(isSubprocess)} is disconnecting.`, { cause: error });
   }
 };
-var handleSerializationError = ({ error: error2, methodName, isSubprocess, message }) => {
-  if (isSerializationError(error2)) {
-    throw new Error(`${getMethodName(methodName, isSubprocess)}'s argument type is invalid: the message cannot be serialized: ${String(message)}.`, { cause: error2 });
+var handleSerializationError = ({ error, methodName, isSubprocess, message }) => {
+  if (isSerializationError(error)) {
+    throw new Error(`${getMethodName(methodName, isSubprocess)}'s argument type is invalid: the message cannot be serialized: ${String(message)}.`, { cause: error });
   }
 };
 var isSerializationError = ({ code, message }) => SERIALIZATION_ERROR_CODES.has(code) || SERIALIZATION_ERROR_MESSAGES.some((serializationErrorMessage) => message.includes(serializationErrorMessage));
@@ -26180,8 +28106,8 @@ var handleStrictRequest = async ({ wrappedMessage, anyProcess, channel, isSubpro
       isSubprocess,
       ipc: true
     }, response);
-  } catch (error2) {
-    ipcEmitter.emit("strict:error", error2);
+  } catch (error) {
+    ipcEmitter.emit("strict:error", error);
   }
   return message;
 };
@@ -26287,9 +28213,9 @@ var sendMessageAsync = async ({ anyProcess, channel, methodName, isSubprocess, m
       wrappedMessage,
       message
     });
-  } catch (error2) {
+  } catch (error) {
     disconnect(anyProcess);
-    throw error2;
+    throw error;
   } finally {
     endSendMessage(outgoingMessagesState);
   }
@@ -26301,15 +28227,15 @@ var sendOneMessage = async ({ anyProcess, methodName, isSubprocess, wrappedMessa
       waitForStrictResponse(wrappedMessage, anyProcess, isSubprocess),
       sendMethod(wrappedMessage)
     ]);
-  } catch (error2) {
-    handleEpipeError({ error: error2, methodName, isSubprocess });
+  } catch (error) {
+    handleEpipeError({ error, methodName, isSubprocess });
     handleSerializationError({
-      error: error2,
+      error,
       methodName,
       isSubprocess,
       message
     });
-    throw error2;
+    throw error;
   }
 };
 var getSendMethod = (anyProcess) => {
@@ -26393,40 +28319,40 @@ var throwOnGracefulCancel = ({
   cancelSignal,
   gracefulCancel,
   forceKillAfterDelay,
-  context: context3,
+  context: context2,
   controller
 }) => gracefulCancel ? [sendOnAbort({
   subprocess,
   cancelSignal,
   forceKillAfterDelay,
-  context: context3,
+  context: context2,
   controller
 })] : [];
-var sendOnAbort = async ({ subprocess, cancelSignal, forceKillAfterDelay, context: context3, controller: { signal } }) => {
+var sendOnAbort = async ({ subprocess, cancelSignal, forceKillAfterDelay, context: context2, controller: { signal } }) => {
   await onAbortedSignal(cancelSignal, signal);
   const reason = getReason(cancelSignal);
   await sendAbort(subprocess, reason);
   killOnTimeout({
     kill: subprocess.kill,
     forceKillAfterDelay,
-    context: context3,
+    context: context2,
     controllerSignal: signal
   });
-  context3.terminationReason ??= "gracefulCancel";
+  context2.terminationReason ??= "gracefulCancel";
   throw cancelSignal.reason;
 };
 var getReason = ({ reason }) => {
   if (!(reason instanceof DOMException)) {
     return reason;
   }
-  const error2 = new Error(reason.message);
-  Object.defineProperty(error2, "stack", {
+  const error = new Error(reason.message);
+  Object.defineProperty(error, "stack", {
     value: reason.stack,
     enumerable: false,
     configurable: true,
     writable: true
   });
-  return error2;
+  return error;
 };
 
 // node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/terminate/timeout.js
@@ -26436,10 +28362,10 @@ var validateTimeout = ({ timeout }) => {
     throw new TypeError(`Expected the \`timeout\` option to be a non-negative integer, got \`${timeout}\` (${typeof timeout})`);
   }
 };
-var throwOnTimeout = (subprocess, timeout, context3, controller) => timeout === 0 || timeout === void 0 ? [] : [killAfterTimeout(subprocess, timeout, context3, controller)];
-var killAfterTimeout = async (subprocess, timeout, context3, { signal }) => {
+var throwOnTimeout = (subprocess, timeout, context2, controller) => timeout === 0 || timeout === void 0 ? [] : [killAfterTimeout(subprocess, timeout, context2, controller)];
+var killAfterTimeout = async (subprocess, timeout, context2, { signal }) => {
   await (0, import_promises4.setTimeout)(timeout, void 0, { signal });
-  context3.terminationReason ??= "timeout";
+  context2.terminationReason ??= "timeout";
   subprocess.kill();
   throw new DiscardedError();
 };
@@ -26499,15 +28425,15 @@ var validateIpcInputOption = ({ ipcInput, ipc, serialization }) => {
 var validateAdvancedInput = (ipcInput) => {
   try {
     (0, import_node_v8.serialize)(ipcInput);
-  } catch (error2) {
-    throw new Error("The `ipcInput` option is not serializable with a structured clone.", { cause: error2 });
+  } catch (error) {
+    throw new Error("The `ipcInput` option is not serializable with a structured clone.", { cause: error });
   }
 };
 var validateJsonInput = (ipcInput) => {
   try {
     JSON.stringify(ipcInput);
-  } catch (error2) {
-    throw new Error("The `ipcInput` option is not serializable with JSON.", { cause: error2 });
+  } catch (error) {
+    throw new Error("The `ipcInput` option is not serializable with JSON.", { cause: error });
   }
 };
 var validateIpcInput = {
@@ -26574,10 +28500,10 @@ var normalizeCwd = (cwd = getDefaultCwd()) => {
 var getDefaultCwd = () => {
   try {
     return import_node_process7.default.cwd();
-  } catch (error2) {
-    error2.message = `The current directory does not exist.
-${error2.message}`;
-    throw error2;
+  } catch (error) {
+    error.message = `The current directory does not exist.
+${error.message}`;
+    throw error;
   }
 };
 var fixCwdError = (originalMessage, cwd) => {
@@ -26587,9 +28513,9 @@ var fixCwdError = (originalMessage, cwd) => {
   let cwdStat;
   try {
     cwdStat = (0, import_node_fs.statSync)(cwd);
-  } catch (error2) {
+  } catch (error) {
     return `The "cwd" option is invalid: ${cwd}.
-${error2.message}
+${error.message}
 ${originalMessage}`;
   }
   if (!cwdStat.isDirectory()) {
@@ -26821,11 +28747,11 @@ var getStreamIterable = async function* (stream) {
     for await (const [chunk] of nodeImports.on(stream, "data", { signal: controller.signal })) {
       yield chunk;
     }
-  } catch (error2) {
+  } catch (error) {
     if (state.error !== void 0) {
       throw state.error;
     } else if (!controller.signal.aborted) {
-      throw error2;
+      throw error;
     }
   } finally {
     stream.destroy();
@@ -26839,8 +28765,8 @@ var handleStreamEnd = async (stream, controller, state) => {
       writable: false,
       error: false
     });
-  } catch (error2) {
-    state.error = error2;
+  } catch (error) {
+    state.error = error;
   } finally {
     controller.abort();
   }
@@ -26875,8 +28801,8 @@ var getStreamContents = async (stream, { init, convertChunk, getSize, truncateCh
       maxBuffer
     });
     return finalize(state);
-  } catch (error2) {
-    const normalizedError = typeof error2 === "object" && error2 !== null ? error2 : new Error(error2);
+  } catch (error) {
+    const normalizedError = typeof error === "object" && error !== null ? error : new Error(error);
     normalizedError.bufferedData = finalize(state);
     throw normalizedError;
   }
@@ -27064,17 +28990,17 @@ var stringMethods = {
 Object.assign(nodeImports, { on: import_node_events6.on, finished: import_promises5.finished });
 
 // node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/io/max-buffer.js
-var handleMaxBuffer = ({ error: error2, stream, readableObjectMode, lines, encoding, fdNumber }) => {
-  if (!(error2 instanceof MaxBufferError)) {
-    throw error2;
+var handleMaxBuffer = ({ error, stream, readableObjectMode, lines, encoding, fdNumber }) => {
+  if (!(error instanceof MaxBufferError)) {
+    throw error;
   }
   if (fdNumber === "all") {
-    return error2;
+    return error;
   }
   const unit = getMaxBufferUnit(readableObjectMode, lines, encoding);
-  error2.maxBufferInfo = { fdNumber, unit };
+  error.maxBufferInfo = { fdNumber, unit };
   stream.destroy();
-  throw error2;
+  throw error;
 };
 var getMaxBufferUnit = (readableObjectMode, lines, encoding) => {
   if (readableObjectMode) {
@@ -27092,20 +29018,20 @@ var checkIpcMaxBuffer = (subprocess, ipcOutput, maxBuffer) => {
   if (ipcOutput.length !== maxBuffer) {
     return;
   }
-  const error2 = new MaxBufferError();
-  error2.maxBufferInfo = { fdNumber: "ipc" };
-  throw error2;
+  const error = new MaxBufferError();
+  error.maxBufferInfo = { fdNumber: "ipc" };
+  throw error;
 };
-var getMaxBufferMessage = (error2, maxBuffer) => {
-  const { streamName, threshold, unit } = getMaxBufferInfo(error2, maxBuffer);
+var getMaxBufferMessage = (error, maxBuffer) => {
+  const { streamName, threshold, unit } = getMaxBufferInfo(error, maxBuffer);
   return `Command's ${streamName} was larger than ${threshold} ${unit}`;
 };
-var getMaxBufferInfo = (error2, maxBuffer) => {
-  if (error2?.maxBufferInfo === void 0) {
+var getMaxBufferInfo = (error, maxBuffer) => {
+  if (error?.maxBufferInfo === void 0) {
     return { streamName: "output", threshold: maxBuffer[1], unit: "bytes" };
   }
-  const { maxBufferInfo: { fdNumber, unit } } = error2;
-  delete error2.maxBufferInfo;
+  const { maxBufferInfo: { fdNumber, unit } } = error;
+  delete error.maxBufferInfo;
   const threshold = getFdSpecificValue(maxBuffer, fdNumber);
   if (fdNumber === "ipc") {
     return { streamName: "IPC output", threshold, unit: "messages" };
@@ -27270,7 +29196,7 @@ var makeSuccessResult = ({
   pipedFrom: []
 });
 var makeEarlyError = ({
-  error: error2,
+  error,
   command,
   escapedCommand,
   fileDescriptors,
@@ -27278,7 +29204,7 @@ var makeEarlyError = ({
   startTime,
   isSync
 }) => makeError({
-  error: error2,
+  error,
   command,
   escapedCommand,
   startTime,
@@ -27338,9 +29264,9 @@ var makeError = ({
     timeout,
     cwd
   });
-  const error2 = getFinalError(originalError, message, isSync);
-  Object.assign(error2, getErrorProperties({
-    error: error2,
+  const error = getFinalError(originalError, message, isSync);
+  Object.assign(error, getErrorProperties({
+    error,
     command,
     escapedCommand,
     startTime,
@@ -27359,10 +29285,10 @@ var makeError = ({
     originalMessage,
     shortMessage
   }));
-  return error2;
+  return error;
 };
 var getErrorProperties = ({
-  error: error2,
+  error,
   command,
   escapedCommand,
   startTime,
@@ -27397,7 +29323,7 @@ var getErrorProperties = ({
   exitCode,
   signal,
   signalDescription,
-  code: error2.cause?.code,
+  code: error.cause?.code,
   stdout: stdio[1],
   stderr: stdio[2],
   all,
@@ -28206,9 +30132,9 @@ var getFinalFileDescriptors = ({ initialFileDescriptors, addProperties: addPrope
       }));
     }
     return fileDescriptors;
-  } catch (error2) {
+  } catch (error) {
     cleanupCustomStreams(fileDescriptors);
-    throw error2;
+    throw error;
   }
 };
 var getFinalFileDescriptor = ({
@@ -28492,13 +30418,13 @@ var generatorFinalChunks = async function* (final, index, generators) {
     yield* transformChunk(finalChunk, generators, index + 1);
   }
 };
-var destroyTransform = (0, import_node_util7.callbackify)(async ({ currentIterable }, error2) => {
+var destroyTransform = (0, import_node_util7.callbackify)(async ({ currentIterable }, error) => {
   if (currentIterable !== void 0) {
-    await (error2 ? currentIterable.throw(error2) : currentIterable.return());
+    await (error ? currentIterable.throw(error) : currentIterable.return());
     return;
   }
-  if (error2) {
-    throw error2;
+  if (error) {
+    throw error;
   }
 });
 var identityGenerator = function* (chunk) {
@@ -28512,8 +30438,8 @@ var pushChunksSync = (getChunksSync, getChunksArguments, transformStream, done) 
       transformStream.push(chunk);
     }
     done();
-  } catch (error2) {
-    done(error2);
+  } catch (error) {
+    done(error);
   }
 };
 var runTransformSync = (generators, chunks) => [
@@ -28713,16 +30639,16 @@ var transformOutputResultSync = ({ result, fileDescriptors, fdNumber, state, out
       writeToFiles(serializedResult, stdioItems, outputFiles);
     }
     return returnedResult;
-  } catch (error2) {
-    state.error = error2;
+  } catch (error) {
+    state.error = error;
     return returnedResult;
   }
 };
 var runOutputGeneratorsSync = (chunks, stdioItems, encoding, state) => {
   try {
     return runGeneratorsSync(chunks, stdioItems, encoding, false);
-  } catch (error2) {
-    state.error = error2;
+  } catch (error) {
+    state.error = error;
     return chunks;
   }
 };
@@ -28751,8 +30677,8 @@ var logOutputSync = ({ serializedResult, fdNumber, state, verboseInfo, encoding,
   const linesArray = splitLinesSync(serializedResult, false, objectMode);
   try {
     logLinesSync(linesArray, fdNumber, verboseInfo);
-  } catch (error2) {
-    state.error ??= error2;
+  } catch (error) {
+    state.error ??= error;
   }
 };
 var writeToFiles = (serializedResult, stdioItems, outputFiles) => {
@@ -28792,9 +30718,9 @@ var getAllSync = ([, stdout, stderr], options) => {
 
 // node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/resolve/exit-async.js
 var import_node_events7 = require("node:events");
-var waitForExit = async (subprocess, context3) => {
+var waitForExit = async (subprocess, context2) => {
   const [exitCode, signal] = await waitForExitOrError(subprocess);
-  context3.isForcefullyTerminated ??= false;
+  context2.isForcefullyTerminated ??= false;
   return [exitCode, signal];
 };
 var waitForExitOrError = async (subprocess) => {
@@ -28825,8 +30751,8 @@ var isSubprocessErrorExit = (exitCode, signal) => exitCode === void 0 && signal 
 var isFailedExit = (exitCode, signal) => exitCode !== 0 || signal !== null;
 
 // node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/resolve/exit-sync.js
-var getExitResultSync = ({ error: error2, status: exitCode, signal, output }, { maxBuffer }) => {
-  const resultError = getResultError(error2, exitCode, signal);
+var getExitResultSync = ({ error, status: exitCode, signal, output }, { maxBuffer }) => {
+  const resultError = getResultError(error, exitCode, signal);
   const timedOut = resultError?.code === "ETIMEDOUT";
   const isMaxBuffer = isMaxBufferSync(resultError, output, maxBuffer);
   return {
@@ -28837,9 +30763,9 @@ var getExitResultSync = ({ error: error2, status: exitCode, signal, output }, { 
     isMaxBuffer
   };
 };
-var getResultError = (error2, exitCode, signal) => {
-  if (error2 !== void 0) {
-    return error2;
+var getResultError = (error, exitCode, signal) => {
+  if (error !== void 0) {
+    return error;
   }
   return isFailedExit(exitCode, signal) ? new DiscardedError() : void 0;
 };
@@ -28908,7 +30834,7 @@ var spawnSubprocessSync = ({ file, commandArguments, options, command, escapedCo
     return syncResult;
   }
   const { resultError, exitCode, signal, timedOut, isMaxBuffer } = getExitResultSync(syncResult, options);
-  const { output, error: error2 = resultError } = transformOutputSync({
+  const { output, error = resultError } = transformOutputSync({
     fileDescriptors,
     syncResult,
     options,
@@ -28918,7 +30844,7 @@ var spawnSubprocessSync = ({ file, commandArguments, options, command, escapedCo
   const stdio = output.map((stdioOutput, fdNumber) => stripNewline(stdioOutput, options, fdNumber));
   const all = stripNewline(getAllSync(output, options), options, "all");
   return getSyncResult({
-    error: error2,
+    error,
     exitCode,
     signal,
     timedOut,
@@ -28936,9 +30862,9 @@ var runSubprocessSync = ({ file, commandArguments, options, command, escapedComm
     addInputOptionsSync(fileDescriptors, options);
     const normalizedOptions = normalizeSpawnSyncOptions(options);
     return (0, import_node_child_process3.spawnSync)(...concatenateShell(file, commandArguments, normalizedOptions));
-  } catch (error2) {
+  } catch (error) {
     return makeEarlyError({
-      error: error2,
+      error,
       command,
       escapedCommand,
       fileDescriptors,
@@ -28949,7 +30875,7 @@ var runSubprocessSync = ({ file, commandArguments, options, command, escapedComm
   }
 };
 var normalizeSpawnSyncOptions = ({ encoding, maxBuffer, ...options }) => ({ ...options, encoding: "buffer", maxBuffer: getMaxBufferSync(maxBuffer) });
-var getSyncResult = ({ error: error2, exitCode, signal, timedOut, isMaxBuffer, stdio, all, options, command, escapedCommand, startTime }) => error2 === void 0 ? makeSuccessResult({
+var getSyncResult = ({ error, exitCode, signal, timedOut, isMaxBuffer, stdio, all, options, command, escapedCommand, startTime }) => error === void 0 ? makeSuccessResult({
   command,
   escapedCommand,
   stdio,
@@ -28958,7 +30884,7 @@ var getSyncResult = ({ error: error2, exitCode, signal, timedOut, isMaxBuffer, s
   options,
   startTime
 }) : makeError({
-  error: error2,
+  error,
   command,
   escapedCommand,
   timedOut,
@@ -29010,9 +30936,9 @@ var getOneMessageAsync = async ({ anyProcess, channel, isSubprocess, filter, ref
       throwOnDisconnect2(ipcEmitter, isSubprocess, controller),
       throwOnStrictError(ipcEmitter, isSubprocess, controller)
     ]);
-  } catch (error2) {
+  } catch (error) {
     disconnect(anyProcess);
-    throw error2;
+    throw error;
   } finally {
     controller.abort();
     removeReference(channel, reference);
@@ -29034,8 +30960,8 @@ var throwOnDisconnect2 = async (ipcEmitter, isSubprocess, { signal }) => {
   throwOnEarlyDisconnect(isSubprocess);
 };
 var throwOnStrictError = async (ipcEmitter, isSubprocess, { signal }) => {
-  const [error2] = await (0, import_node_events8.once)(ipcEmitter, "strict:error", { signal });
-  throw getStrictResponseError(error2, isSubprocess);
+  const [error] = await (0, import_node_events8.once)(ipcEmitter, "strict:error", { signal });
+  throw getStrictResponseError(error, isSubprocess);
 };
 
 // node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/ipc/get-each.js
@@ -29086,8 +31012,8 @@ var stopOnDisconnect = async (anyProcess, ipcEmitter, controller) => {
 };
 var abortOnStrictError = async ({ ipcEmitter, isSubprocess, controller, state }) => {
   try {
-    const [error2] = await (0, import_node_events9.once)(ipcEmitter, "strict:error", { signal: controller.signal });
-    state.error = getStrictResponseError(error2, isSubprocess);
+    const [error] = await (0, import_node_events9.once)(ipcEmitter, "strict:error", { signal: controller.signal });
+    state.error = getStrictResponseError(error, isSubprocess);
     controller.abort();
   } catch {
   }
@@ -29111,9 +31037,9 @@ var iterateOnMessages = async function* ({ anyProcess, channel, ipcEmitter, isSu
     }
   }
 };
-var throwIfStrictError = ({ error: error2 }) => {
-  if (error2) {
-    throw error2;
+var throwIfStrictError = ({ error }) => {
+  if (error) {
+    throw error;
   }
 };
 
@@ -29159,13 +31085,13 @@ var getIpcMethods = (anyProcess, isSubprocess, ipc) => ({
 // node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/return/early-error.js
 var import_node_child_process4 = require("node:child_process");
 var import_node_stream2 = require("node:stream");
-var handleEarlyError = ({ error: error2, command, escapedCommand, fileDescriptors, options, startTime, verboseInfo }) => {
+var handleEarlyError = ({ error, command, escapedCommand, fileDescriptors, options, startTime, verboseInfo }) => {
   cleanupCustomStreams(fileDescriptors);
   const subprocess = new import_node_child_process4.ChildProcess();
   createDummyStreams(subprocess, fileDescriptors);
   Object.assign(subprocess, { readable, writable, duplex });
   const earlyError = makeEarlyError({
-    error: error2,
+    error,
     command,
     escapedCommand,
     fileDescriptors,
@@ -29203,7 +31129,7 @@ var writable = () => new import_node_stream2.Writable({ write() {
 var duplex = () => new import_node_stream2.Duplex({ read() {
 }, write() {
 } });
-var handleDummyPromise = async (error2, verboseInfo, options) => handleResult(error2, verboseInfo, options);
+var handleDummyPromise = async (error, verboseInfo, options) => handleResult(error, verboseInfo, options);
 
 // node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/stdio/handle-async.js
 var import_node_fs5 = require("node:fs");
@@ -29337,9 +31263,9 @@ var onMergedStreamFinished = async (passThroughStream, streams, unpipeEvent) => 
 var onMergedStreamEnd = async (passThroughStream, { signal }) => {
   try {
     await (0, import_promises6.finished)(passThroughStream, { signal, cleanup: true });
-  } catch (error2) {
-    errorOrAbortStream(passThroughStream, error2);
-    throw error2;
+  } catch (error) {
+    errorOrAbortStream(passThroughStream, error);
+    throw error;
   }
 };
 var onInputStreamsUnpipe = async (passThroughStream, streams, unpipeEvent, { signal }) => {
@@ -29395,9 +31321,9 @@ var afterMergedStreamFinished = async (onFinished, stream, { signal }) => {
     if (!signal.aborted) {
       abortStream(stream);
     }
-  } catch (error2) {
+  } catch (error) {
     if (!signal.aborted) {
-      errorOrAbortStream(stream, error2);
+      errorOrAbortStream(stream, error);
     }
   }
 };
@@ -29412,14 +31338,14 @@ var onInputStreamEnd = async ({ passThroughStream, stream, streams, ended, abort
     if (streams.has(stream)) {
       ended.add(stream);
     }
-  } catch (error2) {
+  } catch (error) {
     if (signal.aborted || !streams.has(stream)) {
       return;
     }
-    if (isAbortError(error2)) {
+    if (isAbortError(error)) {
       aborted2.add(stream);
     } else {
-      errorStream(passThroughStream, error2);
+      errorStream(passThroughStream, error);
     }
   }
 };
@@ -29437,23 +31363,23 @@ var endStream = (stream) => {
     stream.end();
   }
 };
-var errorOrAbortStream = (stream, error2) => {
-  if (isAbortError(error2)) {
+var errorOrAbortStream = (stream, error) => {
+  if (isAbortError(error)) {
     abortStream(stream);
   } else {
-    errorStream(stream, error2);
+    errorStream(stream, error);
   }
 };
-var isAbortError = (error2) => error2?.code === "ERR_STREAM_PREMATURE_CLOSE";
+var isAbortError = (error) => error?.code === "ERR_STREAM_PREMATURE_CLOSE";
 var abortStream = (stream) => {
   if (stream.readable || stream.writable) {
     stream.destroy();
   }
 };
-var errorStream = (stream, error2) => {
+var errorStream = (stream, error) => {
   if (!stream.destroyed) {
     stream.once("error", noop2);
-    stream.destroy(error2);
+    stream.destroy(error);
   }
 };
 var noop2 = () => {
@@ -29862,8 +31788,8 @@ var getDestinationStream = (boundOptions, createNested, pipeArguments) => {
       from,
       unpipeSignal
     };
-  } catch (error2) {
-    return { destinationError: error2 };
+  } catch (error) {
+    return { destinationError: error };
   }
 };
 var getDestination = (boundOptions, createNested, firstArgument, ...pipeArguments) => {
@@ -29892,8 +31818,8 @@ var getSourceStream = (source, from) => {
   try {
     const sourceStream = getFromStream(source, from);
     return { sourceStream };
-  } catch (error2) {
-    return { sourceError: error2 };
+  } catch (error) {
+    return { sourceError: error };
   }
 };
 
@@ -29907,15 +31833,15 @@ var handlePipeArgumentsError = ({
   sourceOptions,
   startTime
 }) => {
-  const error2 = getPipeArgumentsError({
+  const error = getPipeArgumentsError({
     sourceStream,
     sourceError,
     destinationStream,
     destinationError
   });
-  if (error2 !== void 0) {
+  if (error !== void 0) {
     throw createNonCommandError({
-      error: error2,
+      error,
       fileDescriptors,
       sourceOptions,
       startTime
@@ -29935,8 +31861,8 @@ var getPipeArgumentsError = ({ sourceStream, sourceError, destinationStream, des
     return sourceError;
   }
 };
-var createNonCommandError = ({ error: error2, fileDescriptors, sourceOptions, startTime }) => makeEarlyError({
-  error: error2,
+var createNonCommandError = ({ error, fileDescriptors, sourceOptions, startTime }) => makeEarlyError({
+  error,
   command: PIPE_COMMAND_MESSAGE,
   escapedCommand: PIPE_COMMAND_MESSAGE,
   fileDescriptors,
@@ -30001,9 +31927,9 @@ var unpipeOnAbort = (unpipeSignal, unpipeContext) => unpipeSignal === void 0 ? [
 var unpipeOnSignalAbort = async (unpipeSignal, { sourceStream, mergedStream, fileDescriptors, sourceOptions, startTime }) => {
   await (0, import_node_util8.aborted)(unpipeSignal, sourceStream);
   await mergedStream.remove(sourceStream);
-  const error2 = new Error("Pipe canceled by `unpipeSignal` option.");
+  const error = new Error("Pipe canceled by `unpipeSignal` option.");
   throw createNonCommandError({
-    error: error2,
+    error,
     fileDescriptors,
     sourceOptions,
     startTime
@@ -30152,9 +32078,9 @@ var iterateOnData = async function* ({ onStdoutChunk, controller, binary, should
     for await (const [chunk] of onStdoutChunk) {
       yield* transformChunkSync(chunk, generators, 0);
     }
-  } catch (error2) {
+  } catch (error) {
     if (!controller.signal.aborted) {
-      throw error2;
+      throw error;
     }
   } finally {
     yield* finalChunksSync(generators);
@@ -30236,9 +32162,9 @@ var getStreamContents2 = async ({ stream, stream: { readableObjectMode }, iterab
       return new Uint8Array(await getStreamAsArrayBuffer(iterable, { maxBuffer }));
     }
     return await getStreamAsString(iterable, { maxBuffer });
-  } catch (error2) {
+  } catch (error) {
     return handleBufferedData(handleMaxBuffer({
-      error: error2,
+      error,
       stream,
       readableObjectMode,
       lines,
@@ -30250,8 +32176,8 @@ var getStreamContents2 = async ({ stream, stream: { readableObjectMode }, iterab
 var getBufferedData = async (streamPromise) => {
   try {
     return await streamPromise;
-  } catch (error2) {
-    return handleBufferedData(error2);
+  } catch (error) {
+    return handleBufferedData(error);
   }
 };
 var handleBufferedData = ({ bufferedData }) => isArrayBuffer(bufferedData) ? new Uint8Array(bufferedData) : bufferedData;
@@ -30266,9 +32192,9 @@ var waitForStream = async (stream, fdNumber, streamInfo, { isSameDirection, stop
       ...stopOnExit ? [streamInfo.exitPromise] : [],
       (0, import_promises10.finished)(stream, { cleanup: true, signal: abortController.signal })
     ]);
-  } catch (error2) {
+  } catch (error) {
     if (!state.stdinCleanedUp) {
-      handleStreamError(error2, fdNumber, streamInfo, isSameDirection);
+      handleStreamError(error, fdNumber, streamInfo, isSameDirection);
     }
   } finally {
     abortController.abort();
@@ -30293,21 +32219,21 @@ var setStdinCleanedUp = ({ exitCode, signalCode }, state) => {
     state.stdinCleanedUp = true;
   }
 };
-var handleStreamError = (error2, fdNumber, streamInfo, isSameDirection) => {
-  if (!shouldIgnoreStreamError(error2, fdNumber, streamInfo, isSameDirection)) {
-    throw error2;
+var handleStreamError = (error, fdNumber, streamInfo, isSameDirection) => {
+  if (!shouldIgnoreStreamError(error, fdNumber, streamInfo, isSameDirection)) {
+    throw error;
   }
 };
-var shouldIgnoreStreamError = (error2, fdNumber, streamInfo, isSameDirection = true) => {
+var shouldIgnoreStreamError = (error, fdNumber, streamInfo, isSameDirection = true) => {
   if (streamInfo.propagating) {
-    return isStreamEpipe(error2) || isStreamAbort(error2);
+    return isStreamEpipe(error) || isStreamAbort(error);
   }
   streamInfo.propagating = true;
-  return isInputFileDescriptor(streamInfo, fdNumber) === isSameDirection ? isStreamEpipe(error2) : isStreamAbort(error2);
+  return isInputFileDescriptor(streamInfo, fdNumber) === isSameDirection ? isStreamEpipe(error) : isStreamAbort(error);
 };
 var isInputFileDescriptor = ({ fileDescriptors }, fdNumber) => fdNumber !== "all" && fileDescriptors[fdNumber].direction === "input";
-var isStreamAbort = (error2) => error2?.code === "ERR_STREAM_PREMATURE_CLOSE";
-var isStreamEpipe = (error2) => error2?.code === "EPIPE";
+var isStreamAbort = (error) => error?.code === "ERR_STREAM_PREMATURE_CLOSE";
+var isStreamEpipe = (error) => error?.code === "EPIPE";
 
 // node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/resolve/stdio.js
 var waitForStdioStreams = ({ subprocess, encoding, buffer, maxBuffer, lines, stripFinalNewline: stripFinalNewline2, verboseInfo, streamInfo }) => subprocess.stdio.map((stream, fdNumber) => waitForSubprocessStream({
@@ -30447,14 +32373,14 @@ var waitForSubprocessResult = async ({
     ipc,
     ipcInput
   },
-  context: context3,
+  context: context2,
   verboseInfo,
   fileDescriptors,
   originalStreams,
   onInternalError,
   controller
 }) => {
-  const exitPromise = waitForExit(subprocess, context3);
+  const exitPromise = waitForExit(subprocess, context2);
   const streamInfo = {
     originalStreams,
     fileDescriptors,
@@ -30507,12 +32433,12 @@ var waitForSubprocessResult = async ({
       ]),
       onInternalError,
       throwOnSubprocessError(subprocess, controller),
-      ...throwOnTimeout(subprocess, timeout, context3, controller),
+      ...throwOnTimeout(subprocess, timeout, context2, controller),
       ...throwOnCancel({
         subprocess,
         cancelSignal,
         gracefulCancel,
-        context: context3,
+        context: context2,
         controller
       }),
       ...throwOnGracefulCancel({
@@ -30520,14 +32446,14 @@ var waitForSubprocessResult = async ({
         cancelSignal,
         gracefulCancel,
         forceKillAfterDelay,
-        context: context3,
+        context: context2,
         controller
       })
     ]);
-  } catch (error2) {
-    context3.terminationReason ??= "other";
+  } catch (error) {
+    context2.terminationReason ??= "other";
     return Promise.all([
-      { error: error2 },
+      { error },
       exitPromise,
       Promise.all(stdioPromises.map((stdioPromise) => getBufferedData(stdioPromise))),
       getBufferedData(allPromise),
@@ -30543,8 +32469,8 @@ var waitForCustomStreamsEnd = (fileDescriptors, streamInfo) => fileDescriptors.f
   stopOnExit: type === "native"
 })));
 var throwOnSubprocessError = async (subprocess, { signal }) => {
-  const [error2] = await (0, import_node_events13.once)(subprocess, "error", { signal });
-  throw error2;
+  const [error] = await (0, import_node_events13.once)(subprocess, "error", { signal });
+  throw error;
 };
 
 // node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/convert/concurrent.js
@@ -30603,15 +32529,15 @@ var waitForSubprocessStdin = async (subprocessStdin) => {
 var waitForSubprocessStdout = async (subprocessStdout) => {
   await (0, import_promises11.finished)(subprocessStdout, { cleanup: true, readable: true, writable: false });
 };
-var waitForSubprocess = async (subprocess, error2) => {
+var waitForSubprocess = async (subprocess, error) => {
   await subprocess;
-  if (error2) {
-    throw error2;
+  if (error) {
+    throw error;
   }
 };
-var destroyOtherStream = (stream, isOpen, error2) => {
-  if (error2 && !isStreamAbort(error2)) {
-    stream.destroy(error2);
+var destroyOtherStream = (stream, isOpen, error) => {
+  if (error && !isStreamAbort(error)) {
+    stream.destroy(error);
   } else if (isOpen) {
     stream.destroy();
   }
@@ -30687,19 +32613,19 @@ var onStdoutFinished = async ({ subprocessStdout, onStdoutDataDone, readable: re
     if (readable2.readable) {
       readable2.push(null);
     }
-  } catch (error2) {
+  } catch (error) {
     await safeWaitForSubprocessStdin(subprocessStdin);
-    destroyOtherReadable(readable2, error2);
+    destroyOtherReadable(readable2, error);
   }
 };
-var onReadableDestroy = async ({ subprocessStdout, subprocess, waitReadableDestroy }, error2) => {
+var onReadableDestroy = async ({ subprocessStdout, subprocess, waitReadableDestroy }, error) => {
   if (await waitForConcurrentStreams(waitReadableDestroy, subprocess)) {
-    destroyOtherReadable(subprocessStdout, error2);
-    await waitForSubprocess(subprocess, error2);
+    destroyOtherReadable(subprocessStdout, error);
+    await waitForSubprocess(subprocess, error);
   }
 };
-var destroyOtherReadable = (stream, error2) => {
-  destroyOtherStream(stream, stream.readable, error2);
+var destroyOtherReadable = (stream, error) => {
+  destroyOtherStream(stream, stream.readable, error);
 };
 
 // node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/convert/writable.js
@@ -30752,20 +32678,20 @@ var onStdinFinished = async (subprocessStdin, writable2, subprocessStdout) => {
     if (writable2.writable) {
       writable2.end();
     }
-  } catch (error2) {
+  } catch (error) {
     await safeWaitForSubprocessStdout(subprocessStdout);
-    destroyOtherWritable(writable2, error2);
+    destroyOtherWritable(writable2, error);
   }
 };
-var onWritableDestroy = async ({ subprocessStdin, subprocess, waitWritableFinal, waitWritableDestroy }, error2) => {
+var onWritableDestroy = async ({ subprocessStdin, subprocess, waitWritableFinal, waitWritableDestroy }, error) => {
   await waitForConcurrentStreams(waitWritableFinal, subprocess);
   if (await waitForConcurrentStreams(waitWritableDestroy, subprocess)) {
-    destroyOtherWritable(subprocessStdin, error2);
-    await waitForSubprocess(subprocess, error2);
+    destroyOtherWritable(subprocessStdin, error);
+    await waitForSubprocess(subprocess, error);
   }
 };
-var destroyOtherWritable = (stream, error2) => {
-  destroyOtherStream(stream, stream.writable, error2);
+var destroyOtherWritable = (stream, error) => {
+  destroyOtherStream(stream, stream.writable, error);
 };
 
 // node_modules/.pnpm/execa@9.6.0/node_modules/execa/lib/convert/duplex.js
@@ -30810,15 +32736,15 @@ var createDuplex = ({ subprocess, concurrentStreams, encoding }, { from, to, bin
   onStdinFinished(subprocessStdin, duplex2, subprocessStdout);
   return duplex2;
 };
-var onDuplexDestroy = async ({ subprocessStdout, subprocessStdin, subprocess, waitReadableDestroy, waitWritableFinal, waitWritableDestroy }, error2) => {
+var onDuplexDestroy = async ({ subprocessStdout, subprocessStdin, subprocess, waitReadableDestroy, waitWritableFinal, waitWritableDestroy }, error) => {
   await Promise.all([
-    onReadableDestroy({ subprocessStdout, subprocess, waitReadableDestroy }, error2),
+    onReadableDestroy({ subprocessStdout, subprocess, waitReadableDestroy }, error),
     onWritableDestroy({
       subprocessStdin,
       subprocess,
       waitWritableFinal,
       waitWritableDestroy
-    }, error2)
+    }, error)
   ]);
 };
 
@@ -30924,9 +32850,9 @@ var spawnSubprocessAsync = ({ file, commandArguments, options, startTime, verbos
   let subprocess;
   try {
     subprocess = (0, import_node_child_process5.spawn)(...concatenateShell(file, commandArguments, options));
-  } catch (error2) {
+  } catch (error) {
     return handleEarlyError({
-      error: error2,
+      error,
       command,
       escapedCommand,
       fileDescriptors,
@@ -30940,13 +32866,13 @@ var spawnSubprocessAsync = ({ file, commandArguments, options, startTime, verbos
   const originalStreams = [...subprocess.stdio];
   pipeOutputAsync(subprocess, fileDescriptors, controller);
   cleanupOnExit(subprocess, options, controller);
-  const context3 = {};
+  const context2 = {};
   const onInternalError = createDeferred();
   subprocess.kill = subprocessKill.bind(void 0, {
     kill: subprocess.kill.bind(subprocess),
     options,
     onInternalError,
-    context: context3,
+    context: context2,
     controller
   });
   subprocess.all = makeAllStream(subprocess, options);
@@ -30961,13 +32887,13 @@ var spawnSubprocessAsync = ({ file, commandArguments, options, startTime, verbos
     originalStreams,
     command,
     escapedCommand,
-    context: context3,
+    context: context2,
     onInternalError,
     controller
   });
   return { subprocess, promise };
 };
-var handlePromise = async ({ subprocess, options, startTime, verboseInfo, fileDescriptors, originalStreams, command, escapedCommand, context: context3, onInternalError, controller }) => {
+var handlePromise = async ({ subprocess, options, startTime, verboseInfo, fileDescriptors, originalStreams, command, escapedCommand, context: context2, onInternalError, controller }) => {
   const [
     errorInfo,
     [exitCode, signal],
@@ -30977,7 +32903,7 @@ var handlePromise = async ({ subprocess, options, startTime, verboseInfo, fileDe
   ] = await waitForSubprocessResult({
     subprocess,
     options,
-    context: context3,
+    context: context2,
     verboseInfo,
     fileDescriptors,
     originalStreams,
@@ -30995,7 +32921,7 @@ var handlePromise = async ({ subprocess, options, startTime, verboseInfo, fileDe
     stdio,
     all,
     ipcOutput,
-    context: context3,
+    context: context2,
     options,
     command,
     escapedCommand,
@@ -31003,15 +32929,15 @@ var handlePromise = async ({ subprocess, options, startTime, verboseInfo, fileDe
   });
   return handleResult(result, verboseInfo, options);
 };
-var getAsyncResult = ({ errorInfo, exitCode, signal, stdio, all, ipcOutput, context: context3, options, command, escapedCommand, startTime }) => "error" in errorInfo ? makeError({
+var getAsyncResult = ({ errorInfo, exitCode, signal, stdio, all, ipcOutput, context: context2, options, command, escapedCommand, startTime }) => "error" in errorInfo ? makeError({
   error: errorInfo.error,
   command,
   escapedCommand,
-  timedOut: context3.terminationReason === "timeout",
-  isCanceled: context3.terminationReason === "cancel" || context3.terminationReason === "gracefulCancel",
-  isGracefullyCanceled: context3.terminationReason === "gracefulCancel",
+  timedOut: context2.terminationReason === "timeout",
+  isCanceled: context2.terminationReason === "cancel" || context2.terminationReason === "gracefulCancel",
+  isGracefullyCanceled: context2.terminationReason === "gracefulCancel",
   isMaxBuffer: errorInfo.error instanceof MaxBufferError,
-  isForcefullyTerminated: context3.isForcefullyTerminated,
+  isForcefullyTerminated: context2.isForcefullyTerminated,
   exitCode,
   signal,
   stdio,
@@ -31151,60 +33077,132 @@ var {
 } = getIpcExport();
 
 // actions/apidiff-go/src/apidiff.ts
-var fs = __toESM(require("fs"));
+var fs2 = __toESM(require("fs"));
+
+// actions/apidiff-go/src/util.ts
+var core = __toESM(require_core());
+var semver = __toESM(require_semver2());
+var import_path = require("path");
+var import_fs = require("fs");
+async function getGoModuleName(moduleDir) {
+  try {
+    const goModPath = (0, import_path.join)(moduleDir, "go.mod");
+    if (!(0, import_fs.existsSync)(goModPath)) {
+      core.warning(`go.mod not found at ${goModPath}, using directory name`);
+      return (0, import_path.basename)(moduleDir);
+    }
+    const goModContent = (0, import_fs.readFileSync)(goModPath, "utf8");
+    const moduleMatch = goModContent.match(/^module\s+(.+)$/m);
+    if (moduleMatch && moduleMatch[1]) {
+      return moduleMatch[1].trim();
+    }
+    core.warning(
+      `Could not parse module name from ${goModPath}, using directory name`
+    );
+    return (0, import_path.basename)(moduleDir);
+  } catch (error) {
+    core.warning(`Error reading go.mod: ${error}, using directory name`);
+    return (0, import_path.basename)(moduleDir);
+  }
+}
+function normalizeRefForFilename(ref) {
+  if (ref == null || ref.trim() === "") {
+    throw new Error("Cannot normalize empty or null ref");
+  }
+  let safe = ref.trim();
+  safe = safe.replace(/[\/\s]+/g, "_");
+  safe = safe.replace(/[^a-zA-Z0-9._-]/g, "");
+  safe = safe.replace(/_+/g, "_");
+  safe = safe.replace(/^\.+/, "");
+  if (safe === "") {
+    throw new Error(`Ref '${ref}' could not be normalized to a safe filename`);
+  }
+  return safe;
+}
 
 // actions/apidiff-go/src/run-inputs.ts
-var core = __toESM(require_core());
+var core2 = __toESM(require_core());
+var github2 = __toESM(require_github());
+
+// actions/apidiff-go/src/event.ts
 var github = __toESM(require_github());
+function getEventData() {
+  const { context: context2 } = github;
+  switch (context2.eventName) {
+    case "pull_request":
+      const { pull_request: prEvent } = context2.payload;
+      if (!prEvent.number) {
+        throw new Error("Pull request number not found in event payload.");
+      }
+      return {
+        eventName: "pull_request",
+        base: prEvent.base.sha,
+        head: prEvent.head.sha,
+        prNumber: prEvent.number
+      };
+    case "push":
+      const pushEvent = context2.payload;
+      if (!pushEvent.before || !pushEvent.after) {
+        throw new Error("Push event payload missing 'before' or 'after' SHAs.");
+      }
+      return {
+        eventName: "push",
+        base: pushEvent.before,
+        head: pushEvent.after
+      };
+    default:
+      throw new Error(`Unsupported event type: ${context2.eventName}`);
+  }
+}
+
+// actions/apidiff-go/src/run-inputs.ts
 var CL_LOCAL_DEBUG = process.env.CL_LOCAL_DEBUG === "true";
 function getInputs() {
-  core.info("Getting inputs for run.");
+  core2.info("Getting inputs for run.");
   const inputs = {
-    directory: getRunInputString("directory"),
-    goModPaths: getRunInputStringArray("goModPaths"),
-    baseRef: getRunInputString("baseRef"),
-    headRef: getRunInputString("headRef"),
+    repositoryRoot: getRunInputString("repositoryRoot"),
+    moduleDirectory: getRunInputString("moduleDirectory"),
+    baseRefOverride: getRunInputString("baseRefOverride", false),
+    headRefOverride: getRunInputString("headRefOverride", false),
     enforceCompatible: getRunInputBoolean("enforceCompatible"),
     postComment: getRunInputBoolean("postComment"),
-    apidiffVersion: getRunInputString("apidiffVersion")
+    apidiffVersion: getRunInputString("apidiffVersion"),
+    summaryUrl: getRunInputString("summaryUrl")
   };
-  core.info(`Inputs: ${JSON.stringify(inputs)}`);
+  core2.info(`Inputs: ${JSON.stringify(inputs)}`);
   return inputs;
 }
 function getInvokeContext() {
-  const token = process.env.GITHUB_TOKEN;
+  const { owner, repo } = github2.context.repo;
+  const token = process.env.GITHUB_TOKEN || core2.getInput("github-token", {
+    required: true
+  });
   if (!token) {
-    core.setFailed("GitHub token is not set.");
+    core2.setFailed("GitHub token is not set.");
     return process.exit(1);
   }
-  const { context: context3 } = github;
-  const { pull_request } = context3.payload;
-  const { owner, repo } = github.context.repo;
-  const base = pull_request?.base.sha;
-  const head = pull_request?.head.sha;
-  const prNumber = pull_request?.number;
-  core.info(`Event name: ${context3.eventName}`);
-  core.info(
-    `Owner: ${owner}, Repo: ${repo}, Base: ${base}, Head: ${head}, PR: ${prNumber ?? "N/A"}`
+  const event = getEventData();
+  core2.info(
+    `Invoke context: ${JSON.stringify({ token: "****", owner, repo, event }, null, 2)}`
   );
-  return { token, owner, repo, base, head, prNumber };
+  return { token, owner, repo, event };
 }
 var runInputsConfiguration = {
-  directory: {
-    parameter: "directory",
-    localParameter: "DIRECTORY"
+  repositoryRoot: {
+    parameter: "repository-root",
+    localParameter: "REPOSITORY_ROOT"
   },
-  goModPaths: {
-    parameter: "go-mod-paths",
-    localParameter: "GO_MOD_PATHS"
+  moduleDirectory: {
+    parameter: "module-directory",
+    localParameter: "MODULE_DIRECTORY"
   },
-  baseRef: {
-    parameter: "base-ref",
-    localParameter: "BASE_REF"
+  baseRefOverride: {
+    parameter: "base-ref-override",
+    localParameter: "BASE_REF_OVERRIDE"
   },
-  headRef: {
-    parameter: "head-ref",
-    localParameter: "HEAD_REF"
+  headRefOverride: {
+    parameter: "head-ref-override",
+    localParameter: "HEAD_REF_OVERRIDE"
   },
   enforceCompatible: {
     parameter: "enforce-compatible",
@@ -31217,27 +33215,21 @@ var runInputsConfiguration = {
   apidiffVersion: {
     parameter: "apidiff-version",
     localParameter: "APIDIFF_VERSION"
+  },
+  summaryUrl: {
+    parameter: "summary-url",
+    localParameter: "SUMMARY_URL"
   }
 };
-function getRunInputString(input) {
+function getRunInputString(input, required = true) {
   const inputKey = getInputKey(input);
-  return core.getInput(inputKey, {
-    required: true
+  return core2.getInput(inputKey, {
+    required
   });
-}
-function getRunInputStringArray(input) {
-  const inputKey = getInputKey(input);
-  const value = core.getInput(inputKey, {
-    required: true
-  }).trim();
-  if (value.includes(",")) {
-    return value.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
-  }
-  return [value];
 }
 function getRunInputBoolean(input) {
   const inputKey = getInputKey(input);
-  return core.getBooleanInput(inputKey, {
+  return core2.getBooleanInput(inputKey, {
     required: true
   });
 }
@@ -31251,131 +33243,144 @@ function getInputKey(input) {
   return inputKey;
 }
 
-// actions/apidiff-go/src/apidiff.ts
-async function runApidiff(baseDir, headDir, goModPaths) {
-  core2.startGroup("Running apidiff");
-  core2.info(`Running apidiff between base and head directories`);
-  core2.info(`Base directory: ${baseDir}`);
-  core2.info(`Head directory: ${headDir}`);
-  core2.info(`Go module paths: ${goModPaths.join(", ")}`);
-  const results = {};
-  for (const goModPath of goModPaths) {
-    const fullModulePathBase = (0, import_path.join)(baseDir, goModPath);
-    const fullModulePathHead = (0, import_path.join)(headDir, goModPath);
-    if (!fs.existsSync(fullModulePathBase)) {
-      core2.warning(`Module not found: ${fullModulePathBase}`);
-      continue;
-    } else if (!fs.existsSync(fullModulePathHead)) {
-      core2.warning(`Module not found: ${fullModulePathHead}`);
-      continue;
+// actions/apidiff-go/src/git.ts
+var core3 = __toESM(require_core());
+var fs = __toESM(require("fs"));
+var path6 = __toESM(require("path"));
+async function validateGitRepositoryRoot(directory) {
+  if (!fs.existsSync(directory)) {
+    throw new Error(`Directory does not exist: ${directory}`);
+  }
+  try {
+    const { stdout: gitDir } = await execa("git", ["rev-parse", "--git-dir"], {
+      cwd: directory
+    });
+    const resolvedGitDir = path6.resolve(directory, gitDir);
+    const expectedGitDir = path6.resolve(directory, ".git");
+    if (resolvedGitDir !== expectedGitDir) {
+      throw new Error(
+        `Directory is not the root of a Git repository: ${directory}. Git directory found at: ${gitDir}`
+      );
     }
-    const moduleName = await getModuleName(fullModulePathBase);
-    const baseExportFile = (0, import_path.join)(process.cwd(), `${moduleName}-base.export`);
-    const headExportFile = (0, import_path.join)(process.cwd(), `${moduleName}-head.export`);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("not the root of a Git repository")) {
+      throw error;
+    }
+    throw new Error(`Directory is not a Git repository: ${directory}`);
+  }
+}
+async function resolveRef(repoDir, ref) {
+  const candidates = [
+    ref,
+    `origin/${ref}`,
+    `refs/tags/${ref}`,
+    `refs/heads/${ref}`
+  ];
+  const tried = [];
+  for (const candidate of candidates) {
+    tried.push(candidate);
     try {
-      await Promise.all([
-        generateExport(fullModulePathBase, baseExportFile),
-        generateExport(fullModulePathHead, headExportFile)
-      ]);
-      core2.info(`Comparing exports for module ${moduleName}`);
-      core2.info(`Base export file: ${baseExportFile}`);
-      core2.info(`Head export file: ${headExportFile}`);
-      const { stdout, stderr, exitCode } = await execa(
-        "apidiff",
-        ["-m", baseExportFile, headExportFile],
-        { reject: false }
+      const { stdout } = await execa(
+        "git",
+        ["rev-parse", "--verify", `${candidate}^{commit}`],
+        { cwd: repoDir }
       );
-      if (CL_LOCAL_DEBUG) {
-        await fs.promises.writeFile(`./apidiff-output.txt`, stdout);
-      }
-      if (stderr) {
-        core2.warning(`apidiff stderr: ${stderr}`);
-      }
-      if (exitCode !== 0 && exitCode !== 1) {
-        throw new Error(`apidiff failed with exit code ${exitCode}: ${stderr}`);
-      }
-      results[moduleName] = stdout;
-    } catch (error2) {
-      core2.setFailed(
-        `Failed to generate exports for module ${moduleName}: ${error2}`
-      );
-      continue;
-    } finally {
-      try {
-        if (fs.existsSync(baseExportFile)) {
-          fs.unlinkSync(baseExportFile);
-        }
-        if (fs.existsSync(headExportFile)) {
-          fs.unlinkSync(headExportFile);
-        }
-      } catch (error2) {
-        core2.warning(`Failed to clean up export files: ${error2}`);
-      }
-      core2.endGroup();
+      const sha = stdout.trim();
+      core3.info(`Resolved ref '${ref}' to '${candidate}' (${sha})`);
+      return sha;
+    } catch {
     }
   }
-  return results;
-}
-async function generateExport(modulePath, outFile) {
-  core2.info(
-    `Generating export for module at ${modulePath}. Writing to ${outFile}`
+  throw new Error(
+    `Could not resolve ref '${ref}' to a commit. Tried: ${tried.join(", ")}`
   );
+}
+async function checkoutRef(repoDir, ref) {
+  core3.info(`Checking out ref: ${ref}`);
+  try {
+    const resolvedRef = await resolveRef(repoDir, ref);
+    await execa("git", ["checkout", resolvedRef], { cwd: repoDir });
+    core3.info(`Successfully checked out: ${resolvedRef}`);
+  } catch (error) {
+    throw new Error(`Failed to checkout ref ${ref}: ${error}`);
+  }
+}
+
+// actions/apidiff-go/src/apidiff.ts
+async function generateExportAtRef(modulePath, ref) {
+  const normalizedRef = normalizeRefForFilename(ref);
+  const outFile = `${normalizedRef}.export`;
+  core4.info(
+    `Generating export (${outFile}) for module at ${modulePath}, at ref ${ref}.`
+  );
+  await checkoutRef(modulePath, ref);
   await execa("apidiff", ["-m", "-w", outFile, "."], {
     cwd: modulePath
   });
+  return {
+    path: (0, import_path2.join)(modulePath, outFile),
+    normalizedRef,
+    ref
+  };
 }
-async function getModuleName(goModDir) {
-  try {
-    const goModPath = (0, import_path.join)(goModDir, "go.mod");
-    if (!fs.existsSync(goModPath)) {
-      core2.warning(`go.mod not found at ${goModPath}, using directory name`);
-      return (0, import_path.basename)(goModDir);
-    }
-    const goModContent = fs.readFileSync(goModPath, "utf8");
-    const moduleMatch = goModContent.match(/^module\s+(.+)$/m);
-    if (moduleMatch && moduleMatch[1]) {
-      const moduleName = moduleMatch[1].trim();
-      return moduleName.replace(/[^a-zA-Z0-9\-_]/g, "-");
-    }
-    core2.warning(
-      `Could not parse module name from ${goModPath}, using directory name`
+async function diffExports(baseExport, headExport) {
+  core4.info(
+    `Comparing exports: base=${baseExport.path}, head=${headExport.path}`
+  );
+  const { stdout, stderr, exitCode } = await execa(
+    "apidiff",
+    ["-m", baseExport.path, headExport.path],
+    { reject: false }
+  );
+  if (CL_LOCAL_DEBUG) {
+    await fs2.promises.writeFile(
+      `./apidiff-${baseExport.normalizedRef}-${headExport.normalizedRef}.txt`,
+      stdout
     );
-    return (0, import_path.basename)(goModDir);
-  } catch (error2) {
-    core2.warning(`Error reading go.mod: ${error2}, using directory name`);
-    return (0, import_path.basename)(goModDir);
   }
+  if (stderr) {
+    core4.warning(`apidiff stderr: ${stderr}`);
+  }
+  if (exitCode !== 0 && exitCode !== 1) {
+    throw new Error(`apidiff failed with exit code ${exitCode}: ${stderr}`);
+  }
+  return stdout;
 }
-async function installApidiff(apidiffVersion, forceInstall = false) {
-  core2.startGroup("Installing apidiff");
-  core2.info(`Requested apidiff version: ${apidiffVersion}`);
-  core2.info(`Force install? ${forceInstall}`);
+async function installApidiff(directory, apidiffVersion, forceInstall = false) {
+  core4.startGroup("Installing apidiff");
+  core4.info(`Requested apidiff version: ${apidiffVersion}`);
+  core4.info(`Force install? ${forceInstall}`);
   try {
-    const isInstalled = await checkApidiffInstalled();
+    const isInstalled = await checkApidiffInstalled(directory);
     if (isInstalled && !forceInstall) {
-      core2.info("apidiff is already installed");
+      core4.info("apidiff is already installed");
       return;
     }
-    core2.info("Installing apidiff...");
-    await execa("go", [
-      "install",
-      `golang.org/x/exp/cmd/apidiff@${apidiffVersion}`
-    ]);
-    const goPath = process.env.GOPATH || (0, import_path.join)(process.env.HOME || "", "go");
-    const goBin = (0, import_path.join)(goPath, "bin");
-    core2.addPath(goBin);
-    core2.info("apidiff installed successfully");
-  } catch (error2) {
-    const message = error2 && typeof error2 === "object" && "message" in error2 ? String(error2.message) : String(error2);
+    core4.info("Installing apidiff...");
+    await execa(
+      "go",
+      ["install", `golang.org/x/exp/cmd/apidiff@${apidiffVersion}`],
+      { cwd: directory }
+    );
+    const goPath = process.env.GOPATH || (0, import_path2.join)(process.env.HOME || "", "go");
+    const goBin = (0, import_path2.join)(goPath, "bin");
+    core4.addPath(goBin);
+    core4.info("apidiff installed successfully");
+  } catch (error) {
+    const message = error && typeof error === "object" && "message" in error ? String(error.message) : String(error);
     throw new Error(`Failed to install apidiff: ${message}`);
   } finally {
-    core2.endGroup();
+    core4.endGroup();
   }
 }
-async function checkApidiffInstalled() {
+async function checkApidiffInstalled(directory) {
   try {
-    await execa("which", ["apidiff"], { stderr: "ignore", stdout: "ignore" });
-    core2.warning(
+    await execa("which", ["apidiff"], {
+      stderr: "ignore",
+      stdout: "ignore",
+      cwd: directory
+    });
+    core4.warning(
       "apidiff is already installed and may not be the correct version"
     );
     return true;
@@ -31383,20 +33388,14 @@ async function checkApidiffInstalled() {
     return false;
   }
 }
-function parseApidiffOutputs(output) {
-  const out = [];
-  for (const [moduleName, moduleOutput] of Object.entries(output)) {
-    out.push(parseApidiffOutput(moduleName, moduleOutput));
-  }
-  return out;
-}
 function parseApidiffOutput(moduleName, output) {
   const lines = output.split(/\r?\n/);
   const result = {
     moduleName,
     meta: [],
     incompatible: [],
-    compatible: []
+    compatible: [],
+    rawOutput: output
   };
   let section = null;
   let currentMeta = null;
@@ -31442,265 +33441,25 @@ function parseApidiffOutput(moduleName, output) {
   return result;
 }
 
-// actions/apidiff-go/src/git-worktree.ts
-var core3 = __toESM(require_core());
-var fs2 = __toESM(require("fs"));
-var path6 = __toESM(require("path"));
-async function setupWorktree(directory, base, head, repoName) {
-  core3.startGroup("Setting up git worktree");
-  await validateGitRepositoryRoot(directory);
-  core3.info(`Setting up worktrees for repository: ${directory}`);
-  core3.info(`Head ref: ${head}`);
-  core3.info(`Base ref: ${base}`);
-  try {
-    const { stdout: currentHead } = await execa("git", ["rev-parse", "HEAD"], {
-      cwd: directory
-    });
-    const { stdout: currentBranch } = await execa(
-      "git",
-      ["rev-parse", "--abbrev-ref", "HEAD"],
-      { cwd: directory }
-    );
-    const { stdout: remotes } = await execa("git", ["remote", "-v"], {
-      cwd: directory
-    });
-    core3.info(`Current HEAD: ${currentHead.trim()}`);
-    core3.info(`Current branch: ${currentBranch.trim()}`);
-    core3.info(`Available remotes:
-${remotes}`);
-  } catch (error2) {
-    core3.warning(`Failed to get git debug info: ${error2}`);
-  }
-  let actualBaseRef = base;
-  const baseIsSha = await isCommitSha(directory, base);
-  const headIsSha = await isCommitSha(directory, head);
-  if (!baseIsSha && !headIsSha) {
-    actualBaseRef = await findMergeBase(directory, head, base);
-    core3.info(`Both refs are branches - using merge-base: ${actualBaseRef}`);
-    core3.info(`Will compare changes from ${actualBaseRef} to ${head}`);
-  } else {
-    core3.info(`Using direct ref comparison (at least one ref is a SHA)`);
-    core3.info(`Will compare changes from ${base} to ${head}`);
-  }
-  const worktreePath = createWorktreePath(directory, repoName, actualBaseRef);
-  try {
-    await checkoutRef(directory, head);
-    await cleanupExistingWorktree(directory, worktreePath);
-    await createWorktree(directory, worktreePath, actualBaseRef);
-    core3.info(`Successfully created worktree at: ${worktreePath}`);
-    return {
-      headRepoPath: directory,
-      baseRepoPath: worktreePath
-    };
-  } catch (error2) {
-    core3.error(`Failed to setup worktree: ${error2}`);
-    throw error2;
-  } finally {
-    core3.info(`Worktree setup completed for ${repoName}`);
-    core3.info(`Head worktree: ${directory}`);
-    core3.info(`Base worktree: ${worktreePath}`);
-    core3.endGroup();
-  }
-}
-async function validateGitRepositoryRoot(directory) {
-  if (!fs2.existsSync(directory)) {
-    throw new Error(`Directory does not exist: ${directory}`);
-  }
-  try {
-    const { stdout: gitDir } = await execa("git", ["rev-parse", "--git-dir"], {
-      cwd: directory
-    });
-    const resolvedGitDir = path6.resolve(directory, gitDir);
-    const expectedGitDir = path6.resolve(directory, ".git");
-    if (resolvedGitDir !== expectedGitDir) {
-      throw new Error(
-        `Directory is not the root of a Git repository: ${directory}. Git directory found at: ${gitDir}`
-      );
-    }
-  } catch (error2) {
-    if (error2 instanceof Error && error2.message.includes("not the root of a Git repository")) {
-      throw error2;
-    }
-    throw new Error(`Directory is not a Git repository: ${directory}`);
-  }
-}
-async function resolveRef(repoDir, ref) {
-  try {
-    await execa("git", ["rev-parse", "--verify", ref], { cwd: repoDir });
-    return ref;
-  } catch (error2) {
-    const remoteRef = `origin/${ref}`;
-    try {
-      await execa("git", ["rev-parse", "--verify", remoteRef], {
-        cwd: repoDir
-      });
-      core3.info(`Resolved ${ref} to ${remoteRef}`);
-      return remoteRef;
-    } catch (remoteError) {
-      throw new Error(
-        `Could not resolve ref: ${ref}. Tried both '${ref}' and '${remoteRef}'`
-      );
-    }
-  }
-}
-async function findMergeBase(repoDir, head, base) {
-  core3.info(`Finding merge-base between ${head} and ${base}`);
-  try {
-    const resolvedHead = await resolveRef(repoDir, head);
-    const resolvedBase = await resolveRef(repoDir, base);
-    core3.info(`Resolved refs: head=${resolvedHead}, base=${resolvedBase}`);
-    const { stdout: mergeBase } = await execa(
-      "git",
-      ["merge-base", resolvedHead, resolvedBase],
-      {
-        cwd: repoDir
-      }
-    );
-    const trimmedMergeBase = mergeBase.trim();
-    core3.info(`Found merge-base: ${trimmedMergeBase}`);
-    return trimmedMergeBase;
-  } catch (error2) {
-    throw new Error(
-      `Failed to find merge-base between ${head} and ${base}: ${error2}`
-    );
-  }
-}
-async function isCommitSha(repoDir, ref) {
-  const shaPattern = /^[a-f0-9]{40}$/i;
-  if (!shaPattern.test(ref)) {
-    return false;
-  }
-  try {
-    await execa("git", ["cat-file", "-e", ref], { cwd: repoDir });
-    return true;
-  } catch (error2) {
-    return false;
-  }
-}
-function createWorktreePath(repoDir, repoName, ref) {
-  const sanitizedRepoName = repoName.replace(/^.*\//, "").replace(/[^a-zA-Z0-9\-_]/g, "-");
-  const sanitizedRef = ref.replace(/[^a-zA-Z0-9\-_]/g, "-");
-  const worktreeName = `${sanitizedRepoName}-${sanitizedRef}`;
-  const parentDir = path6.dirname(repoDir);
-  return path6.join(parentDir, `worktree-${worktreeName}`);
-}
-async function checkoutRef(repoDir, ref) {
-  core3.info(`Checking out ref: ${ref}`);
-  try {
-    const resolvedRef = await resolveRef(repoDir, ref);
-    const { stdout: currentShaRef } = await execa(
-      "git",
-      ["rev-parse", "HEAD"],
-      {
-        cwd: repoDir
-      }
-    );
-    core3.info(`Current SHA Ref: ${currentShaRef}`);
-    const { stdout: currentBranch } = await execa(
-      "git",
-      ["rev-parse", "--abbrev-ref", "HEAD"],
-      {
-        cwd: repoDir
-      }
-    );
-    core3.info(`Current branch: ${currentBranch}`);
-    const { stdout: targetSha } = await execa(
-      "git",
-      ["rev-parse", resolvedRef],
-      {
-        cwd: repoDir
-      }
-    );
-    if (currentShaRef.trim() === targetSha.trim()) {
-      core3.info(
-        `Already at ref: ${ref} (${targetSha.trim()}) - skipping checkout`
-      );
-      return;
-    }
-    await execa("git", ["checkout", resolvedRef], { cwd: repoDir });
-    core3.info(`Successfully checked out: ${resolvedRef}`);
-  } catch (error2) {
-    throw new Error(`Failed to checkout ref ${ref}: ${error2}`);
-  }
-}
-async function cleanupExistingWorktree(repoDir, worktreePath) {
-  if (!fs2.existsSync(worktreePath)) {
-    return;
-  }
-  core3.info(`Cleaning up existing worktree: ${worktreePath}`);
-  try {
-    const worktreeName = path6.basename(worktreePath);
-    try {
-      await execa("git", ["worktree", "remove", worktreeName, "--force"], {
-        cwd: repoDir
-      });
-    } catch (error2) {
-      core3.debug(`Worktree not tracked by Git: ${error2}`);
-    }
-    if (fs2.existsSync(worktreePath)) {
-      fs2.rmSync(worktreePath, { recursive: true, force: true });
-    }
-  } catch (error2) {
-    core3.warning(`Failed to clean up existing worktree: ${error2}`);
-  }
-}
-async function createWorktree(repoDir, worktreePath, ref) {
-  core3.info(`Creating worktree for ref: ${ref} at ${worktreePath}`);
-  try {
-    await execa("git", ["worktree", "add", worktreePath, ref], {
-      cwd: repoDir
-    });
-    if (!fs2.existsSync(worktreePath)) {
-      throw new Error("Worktree directory was not created");
-    }
-    const { stdout: checkedOutRef } = await execa(
-      "git",
-      ["rev-parse", "HEAD"],
-      {
-        cwd: worktreePath
-      }
-    );
-    const { stdout: expectedRef } = await execa("git", ["rev-parse", ref], {
-      cwd: repoDir
-    });
-    if (checkedOutRef.trim() !== expectedRef.trim()) {
-      throw new Error(
-        `Worktree has wrong ref. Expected: ${expectedRef.trim()}, Got: ${checkedOutRef.trim()}`
-      );
-    }
-    core3.info(`Worktree created successfully at: ${worktreePath}`);
-  } catch (error2) {
-    throw new Error(`Failed to create worktree: ${error2}`);
-  }
-}
-async function cleanupWorktrees(result) {
-  core3.info(`Cleaning up worktree: ${result.baseRepoPath}`);
-  try {
-    await cleanupExistingWorktree(result.headRepoPath, result.baseRepoPath);
-    core3.info("Worktree cleanup completed");
-  } catch (error2) {
-    core3.warning(`Failed to cleanup worktree: ${error2}`);
-  }
-}
-
 // actions/apidiff-go/src/github.ts
-var core4 = __toESM(require_core());
-var github2 = __toESM(require_github());
-var MARKDOWN_FINGERPRINT = "<!-- chainlink-apidiff-go -->";
-async function upsertPRComment(token, owner, repo, pull_number, commentBody) {
-  const octokit = github2.getOctokit(token);
+var core5 = __toESM(require_core());
+function getMarkdownFingerprint(moduleName) {
+  return `<!-- chainlink-apidiff-go ${moduleName} -->`;
+}
+async function upsertPRComment(octokit, owner, repo, pull_number, commentBody, moduleName) {
   const { data: comments } = await octokit.rest.issues.listComments({
     owner,
     repo,
     issue_number: pull_number,
     per_page: 100
   });
+  const markdownFingerprint = getMarkdownFingerprint(moduleName);
   const existingComment = comments.find(
-    (c3) => c3.body?.includes(MARKDOWN_FINGERPRINT)
+    (c3) => c3.body?.includes(markdownFingerprint)
   );
   const fingerprintedCommentBody = commentBody + `
 
-${MARKDOWN_FINGERPRINT}`;
+${markdownFingerprint}`;
   try {
     if (existingComment) {
       await octokit.rest.issues.updateComment({
@@ -31717,34 +33476,13 @@ ${MARKDOWN_FINGERPRINT}`;
         body: fingerprintedCommentBody
       });
     }
-  } catch (error2) {
-    core4.warning(`Failed to upsert PR comment: ${error2}`);
-  }
-}
-async function getSummaryUrl(token, owner, repo) {
-  const runId = github2.context.runId;
-  const octokit = github2.getOctokit(token);
-  try {
-    const { data } = await octokit.rest.actions.listJobsForWorkflowRun({
-      owner,
-      repo,
-      run_id: runId
-    });
-    if (data.jobs.length !== 1) {
-      core4.warning(
-        `Expected exactly one job in workflow run, found ${data.jobs.length}. Cannot determine summary URL.`
-      );
-      return "";
-    }
-    return `https://github.com/${owner}/${repo}/actions/runs/${runId}/#summary-${data.jobs[0].id}`;
-  } catch (error2) {
-    core4.warning(`Failed to get summary link: ${error2}`);
-    return "";
+  } catch (error) {
+    core5.warning(`Failed to upsert PR comment: ${error}`);
   }
 }
 
 // actions/apidiff-go/src/string-processor.ts
-var core5 = __toESM(require_core());
+var core6 = __toESM(require_core());
 
 // node_modules/.pnpm/diff@8.0.2/node_modules/diff/libesm/diff/base.js
 var Diff = class {
@@ -32024,6 +33762,9 @@ function splitFuncSignature(sig) {
   const ret = after.trim();
   return { head, params, ret };
 }
+function normalizeTrailingComma(segment) {
+  return segment.replace(/,\s*$/, "").trimEnd();
+}
 function renderFuncDiffCompactPre(oldText, newText) {
   const oldParts = splitFuncSignature(oldText);
   const newParts = splitFuncSignature(newText);
@@ -32074,6 +33815,15 @@ function renderFuncDiffCompactPre(oldText, newText) {
     }
     const aList = op.a ?? [];
     const bList = op.b ?? [];
+    if (aList.length === 1 && bList.length === 1 && normalizeTrailingComma(aList[0]) === normalizeTrailingComma(bList[0])) {
+      pushStable(bList[0]);
+      continue;
+    }
+    if (aList.length === 1 && bList.length > 1 && normalizeTrailingComma(aList[0]) === normalizeTrailingComma(bList[0])) {
+      pushStable(bList[0]);
+      for (const s of bList.slice(1)) pushAdd(s);
+      continue;
+    }
     if (aList.length === 1 && bList.length === 1) {
       const a2 = aList[0], b = bList[0];
       const inner = diffTokenized(a2, b);
@@ -32158,166 +33908,101 @@ function formatTypeChangeJobSummary(change) {
 function escapeHtml2(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
-function formatApidiffMarkdown(diffs, summaryUrl, includeFullOutput = false) {
-  if (diffs.length === 0) {
+function formatApidiffMarkdown(diff, summaryUrl, includeFullOutput = false) {
+  const hasIncompat = diff.incompatible.length > 0;
+  const hasCompat = diff.compatible.length > 0;
+  const hasMeta = diff.meta.length > 0;
+  if (!hasMeta && !hasIncompat && !hasCompat) {
     return `## \u{1F4CA} API Diff Results
 
-> No modules to analyze
+> No changes detected for module \`${diff.moduleName}\`
 
 [View full report](${summaryUrl})`;
   }
-  const hasIncompat = diffs.some((d) => d.incompatible.length > 0);
-  const totalIncompat = diffs.reduce((s, d) => s + d.incompatible.length, 0);
-  const totalCompat = diffs.reduce((s, d) => s + d.compatible.length, 0);
-  const modulesWithChanges = diffs.filter(
-    (d) => d.incompatible.length || d.compatible.length
-  ).length;
   const statusEmoji = hasIncompat ? "\u26A0\uFE0F" : "\u2705";
-  const statusText = hasIncompat ? "Breaking changes detected" : "No breaking changes";
   const lines = [
-    `## ${statusEmoji} API Diff Results - ${statusText}`,
+    `## ${statusEmoji} API Diff Results - \`${diff.moduleName}\``,
     ``
   ];
-  function apidiffShield(label, count2, color) {
-    const escapedLabel = label.replace(/ /g, "_").replace(/-/g, "--");
-    return `![${label}](https://img.shields.io/badge/${escapedLabel}-${count2}-${color})`;
-  }
-  if (includeFullOutput) {
-    const analyzedShield = apidiffShield(
-      "modules analyzed",
-      modulesWithChanges,
-      "blue"
-    );
-    const breakingShield = apidiffShield(
-      "breaking changes",
-      totalIncompat,
-      "red"
-    );
-    const compatibleShield = apidiffShield(
-      "compatible changes",
-      totalCompat,
-      "green"
-    );
-    lines.push(
-      ``,
-      `${analyzedShield} ${breakingShield} ${compatibleShield}`,
-      ``
-    );
-  }
-  function formatGroupedChanges(title, changes, isBreaking = false) {
+  function formatGroupedChanges(title, changes) {
     if (!changes.length) return [];
     const out = [];
-    const icon = isBreaking ? "\u{1F534}" : "\u{1F7E2}";
-    out.push(`#### ${icon} ${title} (${changes.length})`, ``);
+    out.push(`#### ${title} (${changes.length})`, "");
     const grouped = groupByPackage(changes);
     for (const packagePath of Array.from(grouped.keys()).sort()) {
       const packageChanges = grouped.get(packagePath);
       out.push(
-        `##### \`${packagePath || "(root)"}\` (${packageChanges.length})`,
-        ``
+        `##### \`${packagePath || "`./`"}\` (${packageChanges.length})`,
+        ""
       );
       for (const change of packageChanges) {
         const { elementName } = parseElement(change.element);
         const formatted = formatTypeChangeMarkdown(change.change);
         const isBlock = formatted.startsWith("\n<pre>");
         if (isBlock) {
-          out.push(`- **\`${elementName}\`** \u2014 Type changed:`);
+          out.push(`- \`${elementName}\` \u2014 Type changed:`);
           out.push(formatted);
         } else {
-          out.push(`- **\`${elementName}\`** \u2014 ${formatted}`);
+          out.push(`- \`${elementName}\` \u2014 ${formatted}`);
         }
-        out.push(``);
+        out.push("");
       }
     }
     return out;
   }
-  const breaking = diffs.filter((d) => d.incompatible.length);
-  const compatOnly = diffs.filter(
-    (d) => !d.incompatible.length && d.compatible.length
-  );
-  if (breaking.length) {
-    if (includeFullOutput) {
-      lines.push(`---`, ``, `## \u26A0\uFE0F Modules with Breaking Changes`, ``);
-    }
-    for (const d of breaking) {
-      lines.push(`### \u{1F4E6} Module: \`${d.moduleName}\``, ``);
-      lines.push(
-        ...formatGroupedChanges("Breaking Changes", d.incompatible, true)
-      );
-      if (includeFullOutput && d.compatible.length) {
-        lines.push(
-          ...formatGroupedChanges("Compatible Changes", d.compatible, false)
-        );
-      }
-      if (includeFullOutput && d.meta.length) {
-        lines.push(`#### \u{1F4CB} Metadata (${d.meta.length})`, ``);
-        lines.push("```diff");
-        for (const m of d.meta) {
-          lines.push(`! ${m.header}`);
-          lines.push(`  first:  ${m.first}`);
-          lines.push(`  second: ${m.second}`);
-          lines.push("");
-        }
-        lines.push("```", ``);
-      }
-    }
+  if (diff.incompatible.length) {
+    lines.push(
+      ...formatGroupedChanges("\u26A0\uFE0F Breaking Changes", diff.incompatible)
+    );
   }
-  if (includeFullOutput && compatOnly.length) {
-    lines.push(`---`, ``, `## \u2705 Modules with Only Compatible Changes`, ``);
-    for (const d of compatOnly) {
-      lines.push(`### \u{1F4E6} ${d.moduleName} (${d.compatible.length})`, ``);
-      lines.push(
-        ...formatGroupedChanges("Compatible Changes", d.compatible, false)
-      );
-    }
+  if (includeFullOutput && diff.compatible.length) {
+    lines.push(
+      ...formatGroupedChanges("\u2705 Compatible Changes", diff.compatible)
+    );
   }
-  lines.push(`---`, ``, `\u{1F4C4} [View full apidiff report](${summaryUrl})`, ``);
+  if (includeFullOutput && diff.meta.length) {
+    lines.push(`---`, "", `## \u{1F4CB} Metadata (${diff.meta.length})`, "");
+    lines.push("<details>", "", "<summary>View metadata changes</summary>", "");
+    lines.push("```diff");
+    for (const m of diff.meta) {
+      lines.push(`! ${m.header}`);
+      lines.push(`  first:  ${m.first}`);
+      lines.push(`  second: ${m.second}`);
+      lines.push("");
+    }
+    lines.push("```", "");
+    lines.push("</details>", "");
+  }
+  lines.push(`---`, "", `\u{1F4C4} [View full apidiff report](${summaryUrl})`, "");
   return lines.join("\n");
 }
-async function formatApidiffJobSummary(diffs) {
-  const s = core5.summary;
-  if (!diffs.length) {
-    s.addHeading("\u{1F4CA} API Diff Results", 2).addRaw(
-      "<blockquote>No modules to analyze</blockquote>",
+async function formatApidiffJobSummary(diff) {
+  const s = core6.summary;
+  const hasIncompat = diff.incompatible.length > 0;
+  const hasCompat = diff.compatible.length > 0;
+  const hasMeta = diff.meta.length > 0;
+  if (!hasIncompat && !hasCompat && !hasMeta) {
+    s.addHeading(`\u{1F4CA} API Diff Results \u2013 ${diff.moduleName}`, 2).addRaw(
+      "<blockquote>No changes detected for this module</blockquote>",
       true
     );
     await s.write();
     return;
   }
-  const hasIncompat = diffs.some((d) => d.incompatible.length > 0);
-  const totalIncompat = diffs.reduce(
-    (sum, d) => sum + d.incompatible.length,
-    0
-  );
-  const totalCompat = diffs.reduce((sum, d) => sum + d.compatible.length, 0);
-  const modulesWithChanges = diffs.filter(
-    (d) => d.incompatible.length || d.compatible.length
-  ).length;
   const statusEmoji = hasIncompat ? "\u26A0\uFE0F" : "\u2705";
-  const statusText = hasIncompat ? "Breaking changes detected" : "No breaking changes";
-  s.addHeading(`${statusEmoji} API Diff Results \u2013 ${statusText}`, 2);
+  s.addHeading(`${statusEmoji} API Diff Results \u2013 ${diff.moduleName}`, 2);
+  function simpleTableRow(title, content) {
+    return [{ data: title }, { data: `<div align="right">${content}</div>` }];
+  }
   s.addTable([
     [
       { data: "Metric", header: true },
       { data: "Count", header: true }
     ],
-    [
-      { data: "Modules analyzed" },
-      { data: `<div align="right">${modulesWithChanges}</div>` }
-    ],
-    [
-      { data: "Breaking changes" },
-      { data: `<div align="right">${totalIncompat}</div>` }
-    ],
-    [
-      { data: "Compatible changes" },
-      { data: `<div align="right">${totalCompat}</div>` }
-    ]
+    simpleTableRow("Breaking changes", diff.incompatible.length),
+    simpleTableRow("Compatible changes", diff.compatible.length),
+    simpleTableRow("Metadata entries", diff.meta.length)
   ]);
-  const breaking = diffs.filter((d) => d.incompatible.length);
-  const compatOnly = diffs.filter(
-    (d) => !d.incompatible.length && d.compatible.length
-  );
   const renderGrouped = (title, changes, isBreaking = false) => {
     if (!changes.length) return;
     const icon = isBreaking ? "\u{1F534}" : "\u{1F7E2}";
@@ -32334,52 +34019,41 @@ async function formatApidiffJobSummary(diffs) {
         const isBlock = formatted.startsWith("\n<pre>");
         if (isBlock) {
           s.addRaw(
-            `<li><strong><code>${elementName}</code></strong> \u2014 Type changed:${formatted}</li>`,
+            `<li><code>${elementName}</code> \u2014 Type changed:${formatted}</li>`,
             true
           );
         } else {
-          s.addRaw(
-            `<li><strong><code>${elementName}</code></strong> \u2014 ${formatted}</li>`,
-            true
-          );
+          s.addRaw(`<li><code>${elementName}</code> \u2014 ${formatted}</li>`, true);
         }
       }
-      s.addRaw("</ul></details>", true);
+      s.addRaw("</ul>", true);
     }
   };
-  if (breaking.length) {
+  if (diff.incompatible.length) {
     s.addSeparator();
-    s.addHeading("\u26A0\uFE0F Modules with Breaking Changes", 2);
-    for (const d of breaking) {
-      s.addHeading(`\u{1F4E6} ${d.moduleName}`, 3);
-      renderGrouped("Breaking Changes", d.incompatible, true);
-      if (d.compatible.length) {
-        renderGrouped("Compatible Changes", d.compatible, false);
-      }
-      if (d.meta.length) {
-        s.addHeading(`\u{1F4CB} Metadata (${d.meta.length})`, 4);
-        s.addTable([
-          [
-            { data: "Header", header: true },
-            { data: "First", header: true },
-            { data: "Second", header: true }
-          ],
-          ...d.meta.map((m) => [
-            { data: `<code>${escapeHtml2(m.header)}</code>` },
-            { data: escapeHtml2(m.first) },
-            { data: escapeHtml2(m.second) }
-          ])
-        ]);
-      }
-    }
+    s.addHeading("\u26A0\uFE0F Breaking Changes", 2);
+    renderGrouped("Breaking Changes", diff.incompatible, true);
   }
-  if (compatOnly.length) {
+  if (diff.compatible.length) {
     s.addSeparator();
-    s.addHeading("\u2705 Modules with Only Compatible Changes", 2);
-    for (const d of compatOnly) {
-      s.addHeading(`\u{1F4E6} ${d.moduleName} (${d.compatible.length})`, 3);
-      renderGrouped("Compatible Changes", d.compatible, false);
-    }
+    s.addHeading("\u2705 Compatible Changes", 2);
+    renderGrouped("Compatible Changes", diff.compatible, false);
+  }
+  if (diff.meta.length) {
+    s.addSeparator();
+    s.addHeading(`\u{1F4CB} Metadata (${diff.meta.length})`, 2);
+    s.addTable([
+      [
+        { data: "Header", header: true },
+        { data: "First", header: true },
+        { data: "Second", header: true }
+      ],
+      ...diff.meta.map((m) => [
+        { data: `<code>${escapeHtml2(m.header)}</code>` },
+        { data: escapeHtml2(m.first) },
+        { data: escapeHtml2(m.second) }
+      ])
+    ]);
   }
   await s.write();
 }
@@ -32387,72 +34061,82 @@ async function formatApidiffJobSummary(diffs) {
 // actions/apidiff-go/src/run.ts
 async function run() {
   try {
-    core6.startGroup("Inputs and Context");
+    core7.startGroup("Inputs and Context");
     const inputs = getInputs();
-    const context3 = getInvokeContext();
-    core6.endGroup();
-    const worktreeResult = await setupWorktree(
-      inputs.directory,
-      inputs.baseRef,
-      inputs.headRef,
-      context3.repo
-      // Repository name from GitHub context
+    const context2 = getInvokeContext();
+    const octokit = github3.getOctokit(context2.token);
+    await validateGitRepositoryRoot(inputs.repositoryRoot);
+    const qualifiedModuleDirectory = (0, import_path3.join)(
+      inputs.repositoryRoot,
+      inputs.moduleDirectory
     );
-    await installApidiff(inputs.apidiffVersion);
-    const apidiffOutputs = await runApidiff(
-      worktreeResult.baseRepoPath,
-      // Base directory (old version)
-      worktreeResult.headRepoPath,
-      // Head directory (new version)
-      inputs.goModPaths
-      // Relative paths to go.mod files
+    core7.info(`Qualified module directory: ${qualifiedModuleDirectory}`);
+    const moduleName = await getGoModuleName(qualifiedModuleDirectory);
+    core7.info(`Module name: ${moduleName}`);
+    core7.endGroup();
+    core7.startGroup("Installing apidiff");
+    await installApidiff(qualifiedModuleDirectory, inputs.apidiffVersion);
+    core7.endGroup();
+    core7.startGroup("Generating Exports");
+    const headRef = inputs.headRefOverride || context2.event.head;
+    const headExport = await generateExportAtRef(
+      qualifiedModuleDirectory,
+      headRef
     );
-    const parsedOutputs = parseApidiffOutputs(apidiffOutputs);
-    if (core6.isDebug()) {
-      core6.debug(JSON.stringify(parsedOutputs));
+    core7.info(`Generated head export at: ${headExport.path}`);
+    const baseRef = inputs.baseRefOverride || context2.event.base;
+    const baseExport = await generateExportAtRef(
+      qualifiedModuleDirectory,
+      baseRef
+    );
+    core7.info(`Generated base export at: ${baseExport.path}`);
+    core7.endGroup();
+    core7.startGroup("Diff, Parse Exports");
+    core7.info(`Diffing base (${baseExport.ref}) -> head (${headExport.ref})`);
+    const baseHeadDiff = await diffExports(baseExport, headExport);
+    core7.endGroup();
+    core7.startGroup("Parsing apidiff Outputs");
+    const parsedResult = parseApidiffOutput(moduleName, baseHeadDiff);
+    if (core7.isDebug()) {
+      core7.debug(JSON.stringify(parsedResult));
     }
-    core6.startGroup("Formatting and Outputting Results");
-    formatApidiffJobSummary(parsedOutputs);
-    if (context3.prNumber) {
-      const summaryUrl = await getSummaryUrl(
-        context3.token,
-        context3.owner,
-        context3.repo
-      );
+    core7.startGroup("Formatting and Outputting Results");
+    formatApidiffJobSummary(parsedResult);
+    if (context2.event.eventName === "pull_request") {
       const markdownOutputIncompatibleOnly = formatApidiffMarkdown(
-        parsedOutputs,
-        summaryUrl,
-        false
+        parsedResult,
+        inputs.summaryUrl,
+        true
       );
       if (CL_LOCAL_DEBUG) {
-        core6.info("Markdown Output (Incompatible Only):");
-        core6.info(markdownOutputIncompatibleOnly);
+        core7.info("Markdown Output (Incompatible Only):");
+        core7.info(markdownOutputIncompatibleOnly);
       }
       if (inputs.postComment) {
         await upsertPRComment(
-          context3.token,
-          context3.owner,
-          context3.repo,
-          context3.prNumber,
-          markdownOutputIncompatibleOnly
+          octokit,
+          context2.owner,
+          context2.repo,
+          context2.event.prNumber,
+          markdownOutputIncompatibleOnly,
+          moduleName
         );
       }
     }
-    core6.endGroup();
-    const incompatibleCount = parsedOutputs.reduce(
+    core7.endGroup();
+    const incompatibleCount = [parsedResult].reduce(
       (sum, diff) => sum + diff.incompatible.length,
       0
     );
-    core6.info(`Total incompatible changes: ${incompatibleCount}`);
+    core7.info(`Total incompatible changes: ${incompatibleCount}`);
     if (inputs.enforceCompatible && incompatibleCount > 0) {
-      core6.setFailed(
+      core7.setFailed(
         `Incompatible API changes detected. See PR comment, or summary for details.`
       );
     }
-    await cleanupWorktrees(worktreeResult);
-  } catch (error2) {
-    core6.endGroup();
-    core6.setFailed(`Action failed: ${error2}`);
+  } catch (error) {
+    core7.endGroup();
+    core7.setFailed(`Action failed: ${error}`);
   }
 }
 

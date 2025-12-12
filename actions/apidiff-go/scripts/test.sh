@@ -10,17 +10,19 @@ export GITHUB_EVENT_PATH="actions/apidiff-go/scripts/payload.json"
 tmp_file=$(mktemp)
 export GITHUB_STEP_SUMMARY="$tmp_file"
 
-export INPUT_DIRECTORY="/Users/erik/Documents/repos/chainlink-common"
-export INPUT_GO_MOD_PATHS="./"
-export INPUT_HEAD_REF="PRIV-192"
-export INPUT_BASE_REF="main"
+export INPUT_REPOSITORY_ROOT="/Users/erik/Documents/repos/chainlink-common"
+export INPUT_MODULE_DIRECTORY="./pkg/chipingress"
+export INPUT_BASE_REF_OVERRIDE="pkg/chipingress/v0.0.7"
+export INPUT_HEAD_REF_OVERRIDE="pkg/chipingress/v0.0.8"
 export INPUT_ENFORCE_COMPATIBLE="true"
 export INPUT_POST_COMMENT="false"
 export INPUT_APIDIFF_VERSION="latest"
+export INPUT_SUMMARY_URL="https://github.com/smartcontractkit/.github"
 
 export CL_LOCAL_DEBUG="true"
 
 node actions/apidiff-go/dist/index.js
 
 echo "Writing to summary.md"
+echo "$tmp_file"
 cat "$tmp_file" > actions/apidiff-go/summary.md

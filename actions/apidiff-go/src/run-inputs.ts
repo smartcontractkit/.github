@@ -1,29 +1,33 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
-export const CL_LOCAL_DEBUG = process.env.CL_LOCAL_DEBUG === "true";
+import { getEventData } from "./event";
 
+export const CL_LOCAL_DEBUG = process.env.CL_LOCAL_DEBUG === "true";
+export type InvokeContext = ReturnType<typeof getInvokeContext>;
 export interface RunInputs {
-  directory: string;
-  goModPaths: string[];
-  baseRef: string;
-  headRef: string;
+  repositoryRoot: string;
+  moduleDirectory: string;
+  baseRefOverride: string;
+  headRefOverride: string;
   enforceCompatible: boolean;
   postComment: boolean;
   apidiffVersion: string;
+  summaryUrl: string;
 }
 
 export function getInputs(): RunInputs {
   core.info("Getting inputs for run.");
 
   const inputs: RunInputs = {
-    directory: getRunInputString("directory"),
-    goModPaths: getRunInputStringArray("goModPaths"),
-    baseRef: getRunInputString("baseRef"),
-    headRef: getRunInputString("headRef"),
+    repositoryRoot: getRunInputString("repositoryRoot"),
+    moduleDirectory: getRunInputString("moduleDirectory"),
+    baseRefOverride: getRunInputString("baseRefOverride", false),
+    headRefOverride: getRunInputString("headRefOverride", false),
     enforceCompatible: getRunInputBoolean("enforceCompatible"),
     postComment: getRunInputBoolean("postComment"),
     apidiffVersion: getRunInputString("apidiffVersion"),
+    summaryUrl: getRunInputString("summaryUrl"),
   };
 
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
@@ -35,29 +39,24 @@ export function getInputs(): RunInputs {
  * @returns The invoke context
  */
 export function getInvokeContext() {
-  const token = process.env.GITHUB_TOKEN;
+  const { owner, repo } = github.context.repo;
 
+  const token =
+    process.env.GITHUB_TOKEN ||
+    core.getInput("github-token", {
+      required: true,
+    });
   if (!token) {
     core.setFailed("GitHub token is not set.");
     return process.exit(1);
   }
 
-  const { context } = github;
-  const { pull_request } = context.payload;
-  const { owner, repo } = github.context.repo;
-
-  const base: string | undefined = pull_request?.base.sha;
-  const head: string | undefined = pull_request?.head.sha;
-  const prNumber: number | undefined = pull_request?.number;
-
-  core.info(`Event name: ${context.eventName}`);
+  const event = getEventData();
   core.info(
-    `Owner: ${owner}, Repo: ${repo}, Base: ${base}, Head: ${head}, PR: ${
-      prNumber ?? "N/A"
-    }`,
+    `Invoke context: ${JSON.stringify({ token: "****", owner, repo, event }, null, 2)}`,
   );
 
-  return { token, owner, repo, base, head, prNumber };
+  return { token, owner, repo, event };
 }
 
 interface RunInputConfiguration {
@@ -76,21 +75,21 @@ interface RunInputConfiguration {
 const runInputsConfiguration: {
   [K in keyof RunInputs]: RunInputConfiguration;
 } = {
-  directory: {
-    parameter: "directory",
-    localParameter: "DIRECTORY",
+  repositoryRoot: {
+    parameter: "repository-root",
+    localParameter: "REPOSITORY_ROOT",
   },
-  goModPaths: {
-    parameter: "go-mod-paths",
-    localParameter: "GO_MOD_PATHS",
+  moduleDirectory: {
+    parameter: "module-directory",
+    localParameter: "MODULE_DIRECTORY",
   },
-  baseRef: {
-    parameter: "base-ref",
-    localParameter: "BASE_REF",
+  baseRefOverride: {
+    parameter: "base-ref-override",
+    localParameter: "BASE_REF_OVERRIDE",
   },
-  headRef: {
-    parameter: "head-ref",
-    localParameter: "HEAD_REF",
+  headRefOverride: {
+    parameter: "head-ref-override",
+    localParameter: "HEAD_REF_OVERRIDE",
   },
   enforceCompatible: {
     parameter: "enforce-compatible",
@@ -104,12 +103,16 @@ const runInputsConfiguration: {
     parameter: "apidiff-version",
     localParameter: "APIDIFF_VERSION",
   },
+  summaryUrl: {
+    parameter: "summary-url",
+    localParameter: "SUMMARY_URL",
+  },
 };
 
-function getRunInputString(input: keyof RunInputs) {
+function getRunInputString(input: keyof RunInputs, required: boolean = true) {
   const inputKey = getInputKey(input);
   return core.getInput(inputKey, {
-    required: true,
+    required,
   });
 }
 

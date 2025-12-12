@@ -1,0 +1,28 @@
+Incompatible changes:
+- ./pkg/loop.MustNewStartedServer: changed from func(string) *Server to func(string, ...ServerOpt) *Server
+- ./pkg/loop.NewStartedServer: changed from func(string) (*Server, error) to func(string, ...ServerOpt) (*Server, error)
+Compatible changes:
+- ./pkg/types/core.SettingsBroadcaster: added
+- ./pkg/types/core.SettingsBroadcasterLocal: added
+- ./pkg/types/core.SettingsUpdate: added
+- ./pkg/types/core.StandardCapabilitiesDependencies.CRESettings: added
+- ./pkg/timeutil.Sleep: added
+- ./pkg/capabilities/pb.(*InitialiseRequest).GetCreSettingsId: added
+- ./pkg/capabilities/pb.InitialiseRequest.CreSettingsId: added
+- ./pkg/capabilities/pb.NewSettingsClient: added
+- ./pkg/capabilities/pb.RegisterSettingsServer: added
+- ./pkg/capabilities/pb.SettingsClient: added
+- ./pkg/capabilities/pb.SettingsServer: added
+- ./pkg/capabilities/pb.SettingsUpdate: added
+- ./pkg/capabilities/pb.Settings_ServiceDesc: added
+- ./pkg/capabilities/pb.Settings_SubscribeClient: added
+- ./pkg/capabilities/pb.Settings_SubscribeServer: added
+- ./pkg/capabilities/pb.Settings_Subscribe_FullMethodName: added
+- ./pkg/capabilities/pb.UnimplementedSettingsServer: added
+- ./pkg/capabilities/pb.UnsafeSettingsServer: added
+- ./pkg/loop.AtomicSettings: added
+- ./pkg/loop.NewAtomicSettings: added
+- ./pkg/loop.ServerConfig: added
+- ./pkg/loop.ServerOpt: added
+- ./pkg/loop.WithOtelViews: added
+- ./pkg/loop.WithSettingsGetter: added

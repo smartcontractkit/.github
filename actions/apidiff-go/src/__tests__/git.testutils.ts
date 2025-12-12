@@ -94,8 +94,27 @@ export async function setupRepository(
   );
   await execa("git", ["push", "origin", "main"], { cwd: tempCloneDir });
 
-  // Push the advanced main branch
-  await execa("git", ["push", "origin", "main"], { cwd: tempCloneDir });
+  // Get the initial (root) commit SHA for lightweight tag
+  const { stdout: rootSha } = await execa(
+    "git",
+    ["rev-list", "--max-parents=0", "HEAD"],
+    { cwd: tempCloneDir },
+  );
+
+  // Lightweight tag on initial commit
+  await execa("git", ["tag", "lightweight-tag", rootSha.trim()], {
+    cwd: tempCloneDir,
+  });
+
+  // Annotated tag on current main HEAD
+  await execa(
+    "git",
+    ["tag", "-a", "annotated-tag", "-m", "annotated tag", "HEAD"],
+    { cwd: tempCloneDir },
+  );
+
+  // Push all tags
+  await execa("git", ["push", "origin", "--tags"], { cwd: tempCloneDir });
 
   // Cleanup temp clone
   await fs.promises.rm(tempCloneDir, { recursive: true, force: true });
