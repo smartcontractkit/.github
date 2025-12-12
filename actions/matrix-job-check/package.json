@@ -1,0 +1,21 @@
+{
+  "name": "matrix-job-check",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^2.0.1",
+    "@actions/github": "^6.0.1"
+  },
+  "repository": "https://github.com/smartcontractkit/.github",
+  "devDependencies": {
+    "@octokit/types": "^16.0.0",
+    "@types/node-fetch": "^2.6.13",
+    "nock": "^14.0.10",
+    "node-fetch": "^2.7.0",
+    "vitest": "^2.1.9"
+  }
+}
