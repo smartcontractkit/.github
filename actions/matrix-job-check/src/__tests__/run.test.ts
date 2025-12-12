@@ -275,6 +275,50 @@ describe("run()", () => {
       nockDone();
     },
   );
+
+  it(
+    "should fail if the workflow has >100 jobs (pagination not implemented)",
+    { sequential: true, timeout: 10_000 },
+    async () => {
+      mockCore({
+        // https://github.com/smartcontractkit/chainlink/actions/runs/20170717518
+        "workflow-run-id": "20170717518",
+        "job-name-prefix": "doesnt matter",
+        "assert-jobs-exist": true,
+        "assert-successful": false,
+        "assert-no-failures": true,
+        "assert-no-cancels": true,
+      });
+
+      const { nockDone } = await nockBack("e2e-too-many-jobs.json");
+      const mocktokit = getTestOctokit(nockBack.currentMode);
+
+      vi.doMock("@actions/github", async () => {
+        const actual =
+          await vi.importActual<typeof GithubImport>("@actions/github");
+
+        return {
+          ...actual,
+          context: getContext(),
+          getOctokit: () => {
+            return mocktokit;
+          },
+        };
+      });
+
+      // Import after mocks are set up
+      const { run } = await import("../run");
+
+      const promise = run();
+      await expect(promise).resolves.not.toThrow();
+
+      expect(coreMocks.setFailed).toHaveBeenCalledWith(
+        "Action failed: Error: Workflow run has more than 100 jobs (175) and pagination not implemented. Failling to avoid incomplete results.",
+      );
+
+      nockDone();
+    },
+  );
 });
 
 function getContext() {

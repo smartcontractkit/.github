@@ -24758,6 +24758,11 @@ async function getWorkflowJobs(octokit, owner, repo, workflowRunId) {
     run_id: parseInt(workflowRunId, 10),
     per_page: 100
   });
+  if (data.total_count > 100) {
+    throw new Error(
+      `Workflow run has more than 100 jobs (${data.total_count}) and pagination not implemented. Failling to avoid incomplete results.`
+    );
+  }
   return data.jobs;
 }
 
