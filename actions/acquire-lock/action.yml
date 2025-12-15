@@ -71,7 +71,7 @@ runs:
               -f status="completed" \
               -f conclusion="success" \
               -f output[title]="✅ Lock already held" \
-              -f output[summary]="This PR (#${CURRENT_PR}) already holds the global deployment lock and can deploy."
+              -f output[summary]="This PR (#${CURRENT_PR}) already holds the global deployment lock."
 
             echo "lock_acquired=true" >> $GITHUB_OUTPUT
             exit 0
