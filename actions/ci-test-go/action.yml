@@ -171,6 +171,10 @@ runs:
       with:
         name: ${{ inputs.artifact-name }}-results
         path: |
+          ./cover.out
+          ./coverage.out
+          ./output.out
+          ./cover.txt
           ./coverage.txt
           ./output.txt
 
