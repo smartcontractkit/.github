@@ -40,10 +40,6 @@ inputs:
     description: "Golangci-lint report name with extension"
     requried: false
     default: "golangci-lint-report.xml"
-  include-lint:
-    description: "enable linting"
-    required: false
-    default: "false"
 
 runs:
   using: composite

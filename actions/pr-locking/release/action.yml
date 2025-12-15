@@ -1,0 +1,121 @@
+name: release
+description: |
+  Releases a deployment lock by deleting the lock branch in the repository.
+  Only the pull request that holds the lock can release it.
+  Optionally, it can also clean up any "Deploy blocked" comments from other PRs.
+
+# --------------------------------------
+# Inputs
+# --------------------------------------
+inputs:
+  lock:
+    required: true
+    description: "The name of the lock to release"
+  pr:
+    required: false
+    description: "The pull request number to use for the lock branch"
+  cleanup_comments:
+    required: false
+    description:
+      "Whether to delete lock-related comments from other PRs (true/false)"
+    default: "true"
+  message_action:
+    required: false
+    description:
+      "The message action to use when creating status checks (default:
+      'Deployment')"
+    default: "Deployment"
+
+# --------------------------------------
+# Action implementation
+# --------------------------------------
+runs:
+  using: composite
+  steps:
+    - name: Release Lock
+      env:
+        LOCK_NAME: ${{ inputs.lock }}
+        CURRENT_PR: ${{ inputs.pr || github.event.pull_request.number }}
+        PR_MERGED: ${{ github.event.pull_request.merged }}
+      shell: bash
+      id: delete_lock
+      run: |
+        set -e
+
+        echo "PR #$CURRENT_PR closed. merged=$PR_MERGED"
+
+        # Check if the lock branch exists on remote
+        if ! git ls-remote --heads origin "$LOCK_NAME" | grep -q "refs/heads/$LOCK_NAME"; then
+          echo "Lock branch '$LOCK_NAME' does not exist. Nothing to delete."
+          echo "lock_was_owned=false" | tee -a "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        echo "Fetching lock branch '$LOCK_NAME'..."
+        git fetch origin "$LOCK_NAME":"$LOCK_NAME"
+
+        holder_pr=""
+        if git show "$LOCK_NAME:LOCK_PR" > /dev/null 2>&1; then
+          holder_pr=$(git show "$LOCK_NAME:LOCK_PR" || echo "")
+        fi
+
+        echo "Lock currently held by PR: ${holder_pr:-unknown}"
+
+        if [[ "$holder_pr" != "$CURRENT_PR" ]]; then
+          echo "This PR does NOT own the lock. Not deleting lock branch."
+          echo "lock_was_owned=false" | tee -a "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        echo "This PR owns the lock. Deleting lock branch '$LOCK_NAME'."
+        git push origin ":$LOCK_NAME"
+
+        echo "lock_was_owned=true" | tee -a "$GITHUB_OUTPUT"
+    - name: Cleanup Lock Comments
+      if:
+        ${{ inputs.cleanup_comments == 'true' &&
+        steps.delete_lock.outputs.lock_was_owned == 'true' }}
+      env:
+        CURRENT_PR: ${{ inputs.pr || github.event.pull_request.number }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        MESSAGE_ACTION: ${{ inputs.message_action }}
+      shell: bash
+      run: |
+        set -e
+
+        echo "Cleaning up '${MESSAGE_ACTION} blocked' comments referring to PR #$CURRENT_PR"
+
+        # List all open PRs (including this one is fine, though it's closed now)
+        open_prs=$(gh pr list \
+          --repo "$GITHUB_REPOSITORY" \
+          --state open \
+          --json number \
+          --jq '.[].number')
+
+        # Also include the just-closed PR, in case it ever got a blocked comment
+        all_prs="$open_prs $CURRENT_PR"
+
+        for pr in $all_prs; do
+          echo "Checking comments on PR #$pr"
+
+          # Find comments that contain BOTH the generic marker and this PR number
+          comment_ids=$(gh api \
+            repos/$GITHUB_REPOSITORY/issues/$pr/comments \
+            --jq '.[] | select(.body | contains("🚫 **'"${MESSAGE_ACTION}"' blocked**") and contains("#'"$CURRENT_PR"'")) | .id' \
+            || echo "")
+
+          if [[ -z "$comment_ids" ]]; then
+            echo "  No matching comments on PR #$pr"
+            continue
+          fi
+
+          for cid in $comment_ids; do
+            echo "  Deleting comment $cid on PR #$pr"
+            gh api \
+              --method DELETE \
+              repos/$GITHUB_REPOSITORY/issues/comments/$cid \
+              || echo "    Failed to delete comment $cid (ignored)"
+          done
+        done
+
+        echo "Done cleaning lock-related comments."
