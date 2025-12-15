@@ -1,6 +1,5 @@
 ---
-"acquire-lock": major
-"release-lock": major
+"pr-locking": major
 ---
 
-init version
+Initial version of PR Locking actions

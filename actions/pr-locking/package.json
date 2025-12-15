@@ -1,5 +1,5 @@
 {
-  "name": "acquire-lock",
+  "name": "pr-locking",
   "version": "0.0.0",
   "description": "",
   "private": true,

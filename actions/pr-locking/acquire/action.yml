@@ -1,4 +1,4 @@
-name: acquire-lock
+name: acquire
 description: |
   Acquires a deployment lock by creating a lock branch in the repository.
   If the lock branch already exists, the action checks who holds the lock
@@ -17,7 +17,8 @@ inputs:
   message_action:
     required: false
     description:
-      "The message action to use when creating status checks (default: 'Deployment')"
+      "The message action to use when creating status checks (default:
+      'Deployment')"
     default: "Deployment"
 
 outputs:
@@ -27,7 +28,6 @@ outputs:
   lock_owner:
     description: "The owner of the lock, the PR number"
     value: ${{ steps.acquire-lock.outputs.lock_owner }}
-    
 
 # --------------------------------------
 # Action implementation

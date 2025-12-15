@@ -1,4 +1,4 @@
-name: release-lock
+name: release
 description: |
   Releases a deployment lock by deleting the lock branch in the repository.
   Only the pull request that holds the lock can release it.
@@ -22,7 +22,8 @@ inputs:
   message_action:
     required: false
     description:
-      "The message action to use when creating status checks (default: 'Deployment')"
+      "The message action to use when creating status checks (default:
+      'Deployment')"
     default: "Deployment"
 
 # --------------------------------------
