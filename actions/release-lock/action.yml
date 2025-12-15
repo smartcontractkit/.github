@@ -55,7 +55,7 @@ runs:
 
         echo "Lock currently held by PR: ${holder_pr:-unknown}"
 
-        if [ "$holder_pr" != "$CURRENT_PR" ]; then
+        if [[ "$holder_pr" != "$CURRENT_PR" ]]; then
           echo "This PR does NOT own the lock. Not deleting lock branch."
           echo "lock_was_owned=false" | tee -a "$GITHUB_OUTPUT"
           exit 0
@@ -97,7 +97,7 @@ runs:
             --jq '.[] | select(.body | contains("🚫 **Deploy blocked**") and contains("#'"$CURRENT_PR"'")) | .id' \
             || echo "")
 
-          if [ -z "$comment_ids" ]; then
+          if [[ -z "$comment_ids" ]]; then
             echo "  No matching comments on PR #$pr"
             continue
           fi

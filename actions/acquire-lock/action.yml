@@ -58,7 +58,7 @@ runs:
           echo "lock_owner=${holder_pr}" | tee -a "$GITHUB_OUTPUT"
 
           # Re-entrant: if the same PR reruns, let it proceed
-          if [ "$holder_pr" = "$CURRENT_PR" ]; then
+          if [[ "$holder_pr" = "$CURRENT_PR" ]]; then
             echo "Current PR #$CURRENT_PR already holds the lock. Proceeding."
 
             # Create SUCCESS check run
@@ -92,7 +92,7 @@ runs:
             --jq '.[] | select(.body | contains("🚫 **Deploy blocked**")) | .id' \
             || echo "")
 
-          if [ -n "$existing_comment_id" ]; then
+          if [[ -n "$existing_comment_id" ]]; then
             echo "Updating existing lock comment ($existing_comment_id)"
             gh api \
               --method PATCH \
