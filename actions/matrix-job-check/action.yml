@@ -1,0 +1,42 @@
+name: matrix-job-check
+description:
+  "Checks/Aggregates the status of completed matrix jobs in a GitHub Actions
+  workflow."
+
+inputs:
+  workflow-run-id:
+    description:
+      "The ID of the workflow run containing the matrix jobs to check."
+    required: true
+    default: ${{ github.run_id }}
+
+  job-name-prefix:
+    description: "The prefix of the matrix job names to check."
+    required: true
+
+  assert-jobs-exist:
+    description: "Whether to allow zero matrix jobs to be found."
+    required: false
+    default: "true"
+
+  assert-no-failures:
+    description:
+      "Whether to assert that no matrix jobs failed. ie. Allows skips."
+    required: false
+    default: "true"
+
+  assert-no-cancels:
+    description: "Whether to assert that no matrix jobs were cancelled."
+    required: false
+    default: "true"
+
+  assert-successful:
+    description:
+      "Whether to assert that all matrix jobs completed successfully. ie. No
+      failures, skips, or cancellations."
+    required: false
+    default: "false"
+
+runs:
+  using: node20
+  main: "dist/index.js"
