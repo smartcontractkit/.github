@@ -1,5 +1,13 @@
 # gha-workflow-validator
 
+## 0.5.4
+
+### Patch Changes
+
+- [#1367](https://github.com/smartcontractkit/.github/pull/1367)
+  [`d8e63b5`](https://github.com/smartcontractkit/.github/commit/d8e63b56c4214dab558c7ec6af6e589d8c00a701)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: rebuild dist
+
 ## 0.5.3
 
 ### Patch Changes
