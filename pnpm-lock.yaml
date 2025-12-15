@@ -430,6 +430,8 @@ importers:
 
   actions/policy-bot-config-validator: {}
 
+  actions/pr-locking: {}
+
   actions/pr-quality-check: {}
 
   actions/pr-slack-alert: {}
