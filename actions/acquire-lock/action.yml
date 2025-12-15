@@ -1,0 +1,151 @@
+name: acquire-lock
+description: |
+  Acquires a deployment lock by creating a lock branch in the repository.
+  If the lock branch already exists, the action checks who holds the lock
+  and prevents further deployment actions until the lock is released.
+
+# --------------------------------------
+# Inputs and Outputs
+# --------------------------------------
+inputs:
+  lock:
+    required: true
+    description: "The name of the lock to acquire"
+  pr:
+    required: false
+    description: "The pull request number to use for the lock branch"
+
+outputs:
+  lock_acquired:
+    description: "Returns 'true' if the lock was acquired, else 'false'"
+    value: ${{ steps.acquire-lock.outputs.lock_acquired }}
+  lock_owner:
+    description: "The owner of the lock, the PR number"
+    value: ${{ steps.acquire-lock.outputs.lock_owner }}
+
+# --------------------------------------
+# Action implementation
+# --------------------------------------
+runs:
+  using: composite
+  steps:
+    - name: Check & acquire lock
+      id: lock
+      env:
+        LOCK_NAME: ${{ inputs.lock }}
+        CURRENT_PR: ${{ inputs.pr || github.event.pull_request.number }}
+        GITHUB_SHA: ${{ github.sha }}
+        GITHUB_REPOSITORY: $GITHUB_REPOSITORY
+      shell: bash
+      run: |
+        set -e
+
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        echo "Checking if lock branch '$LOCK_NAME' exists..."
+
+        if git ls-remote --heads origin "$LOCK_NAME" | grep -q "refs/heads/$LOCK_NAME"; then
+          echo "Lock branch exists. Fetching it..."
+          git fetch origin "$LOCK_NAME":"$LOCK_NAME"
+
+          holder_pr=""
+          if git show "$LOCK_NAME:LOCK_PR" > /dev/null 2>&1; then
+            holder_pr=$(git show "$LOCK_NAME:LOCK_PR" || echo "")
+          fi
+
+          echo "Lock branch is held by PR: ${holder_pr:-unknown}"
+          echo "lock_owner=${holder_pr}" >> $GITHUB_OUTPUT
+
+          # Re-entrant: if the same PR reruns, let it proceed
+          if [ "$holder_pr" = "$CURRENT_PR" ]; then
+            echo "Current PR #$CURRENT_PR already holds the lock. Proceeding."
+
+            # Create SUCCESS check run
+            gh api \
+              repos/$GITHUB_REPOSITORY/check-runs \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              -f name="Deploy Lock Status" \
+              -f head_sha="${GITHUB_SHA}" \
+              -f status="completed" \
+              -f conclusion="success" \
+              -f output[title]="✅ Lock already held" \
+              -f output[summary]="This PR (#${CURRENT_PR}) already holds the global deployment lock and can deploy."
+
+            echo "lock_acquired=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Another PR (#$holder_pr) currently holds the lock. Blocking this deploy."
+          echo "lock_acquired=false" >> $GITHUB_OUTPUT
+
+          # -------------------------------
+          # PR comment about being blocked
+          # -------------------------------
+          COMMENT_BODY="🚫 **Deploy blocked**  
+          Another PR (#${holder_pr}) currently holds the global deployment lock.  
+          This PR cannot deploy until that PR is merged or closed."
+
+          existing_comment_id=$(gh api \
+            repos/$GITHUB_REPOSITORY/issues/${CURRENT_PR}/comments \
+            --jq '.[] | select(.body | contains("🚫 **Deploy blocked**")) | .id' \
+            || echo "")
+
+          if [ -n "$existing_comment_id" ]; then
+            echo "Updating existing lock comment ($existing_comment_id)"
+            gh api \
+              --method PATCH \
+              -H "Accept: application/vnd.github+json" \
+              repos/$GITHUB_REPOSITORY/issues/comments/$existing_comment_id \
+              -f body="$COMMENT_BODY"
+          else
+            echo "Creating new lock comment"
+            gh api \
+              repos/$GITHUB_REPOSITORY/issues/${CURRENT_PR}/comments \
+              -f body="$COMMENT_BODY"
+          fi
+
+          # -------------------------------
+          # FAILED status check (Check Run)
+          # -------------------------------
+          gh api \
+            repos/$GITHUB_REPOSITORY/check-runs \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -f name="Deploy Lock Status" \
+            -f head_sha="${GITHUB_SHA}" \
+            -f status="completed" \
+            -f conclusion="failure" \
+            -f output[title]="🚫 Deployment blocked" \
+            -f output[summary]="Another PR (#${holder_pr}) currently holds the global deployment lock. Re-run this workflow when that PR is merged or closed."
+
+          exit 1
+        fi
+
+        echo "Lock is free. Creating lock branch '$LOCK_NAME' for PR #$CURRENT_PR."
+
+        # Create lock branch from current HEAD
+        git checkout -b "$LOCK_NAME"
+
+        # Write owning PR number into LOCK_PR
+        echo "$CURRENT_PR" > LOCK_PR
+        git add LOCK_PR
+        git commit -m "Lock held by PR #$CURRENT_PR"
+        git push origin "$LOCK_NAME"
+
+        echo "Lock branch '$LOCK_NAME' created for PR #$CURRENT_PR."
+        echo "lock_owner=$CURRENT_PR" >> $GITHUB_OUTPUT
+        echo "lock_acquired=true" >> $GITHUB_OUTPUT
+
+        # SUCCESS status check
+        gh api \
+          repos/$GITHUB_REPOSITORY/check-runs \
+          --method POST \
+          -H "Accept: application/vnd.github+json" \
+          -f name="Deploy Lock Status" \
+          -f head_sha="${GITHUB_SHA}" \
+          -f status="completed" \
+          -f conclusion="success" \
+          -f output[title]="✅ Lock acquired" \
+          -f output[summary]="This PR (#${CURRENT_PR}) now holds the global deployment lock and can deploy safely."
