@@ -29007,7 +29007,9 @@ function getEventData() {
     case "merge_group":
       const mgEvent = github.context.payload;
       if (!mgEvent.merge_group.base_sha || !mgEvent.merge_group.head_sha) {
-        throw new Error("Merge group event payload missing 'base_sha' or 'head_sha'.");
+        throw new Error(
+          "Merge group event payload missing 'base_sha' or 'head_sha'."
+        );
       }
       return {
         eventName: "merge_group",

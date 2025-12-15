@@ -20268,9 +20268,9 @@ var require_dist_node7 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@octokit+core@5.2.0/node_modules/@octokit/core/dist-node/index.js
+// node_modules/.pnpm/@octokit+core@5.2.1/node_modules/@octokit/core/dist-node/index.js
 var require_dist_node8 = __commonJS({
-  "node_modules/.pnpm/@octokit+core@5.2.0/node_modules/@octokit/core/dist-node/index.js"(exports2, module2) {
+  "node_modules/.pnpm/@octokit+core@5.2.1/node_modules/@octokit/core/dist-node/index.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -20289,17 +20289,17 @@ var require_dist_node8 = __commonJS({
       return to;
     };
     var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
-    var dist_src_exports = {};
-    __export2(dist_src_exports, {
+    var index_exports = {};
+    __export2(index_exports, {
       Octokit: () => Octokit3
     });
-    module2.exports = __toCommonJS2(dist_src_exports);
+    module2.exports = __toCommonJS2(index_exports);
     var import_universal_user_agent = require_dist_node();
     var import_before_after_hook = require_before_after_hook();
     var import_request = require_dist_node5();
     var import_graphql = require_dist_node6();
     var import_auth_token = require_dist_node7();
-    var VERSION = "5.2.0";
+    var VERSION = "5.2.1";
     var noop = () => {
     };
     var consoleWarn = console.warn.bind(console);
@@ -20427,9 +20427,9 @@ var require_dist_node8 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@octokit+plugin-rest-endpoint-methods@10.1.2_@octokit+core@5.2.0/node_modules/@octokit/plugin-rest-endpoint-methods/dist-node/index.js
+// node_modules/.pnpm/@octokit+plugin-rest-endpoint-methods@10.1.2_@octokit+core@5.2.1/node_modules/@octokit/plugin-rest-endpoint-methods/dist-node/index.js
 var require_dist_node9 = __commonJS({
-  "node_modules/.pnpm/@octokit+plugin-rest-endpoint-methods@10.1.2_@octokit+core@5.2.0/node_modules/@octokit/plugin-rest-endpoint-methods/dist-node/index.js"(exports2, module2) {
+  "node_modules/.pnpm/@octokit+plugin-rest-endpoint-methods@10.1.2_@octokit+core@5.2.1/node_modules/@octokit/plugin-rest-endpoint-methods/dist-node/index.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -22524,9 +22524,9 @@ var require_dist_node9 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@octokit+plugin-paginate-rest@9.1.2_@octokit+core@5.2.0/node_modules/@octokit/plugin-paginate-rest/dist-node/index.js
+// node_modules/.pnpm/@octokit+plugin-paginate-rest@9.1.2_@octokit+core@5.2.1/node_modules/@octokit/plugin-paginate-rest/dist-node/index.js
 var require_dist_node10 = __commonJS({
-  "node_modules/.pnpm/@octokit+plugin-paginate-rest@9.1.2_@octokit+core@5.2.0/node_modules/@octokit/plugin-paginate-rest/dist-node/index.js"(exports2, module2) {
+  "node_modules/.pnpm/@octokit+plugin-paginate-rest@9.1.2_@octokit+core@5.2.1/node_modules/@octokit/plugin-paginate-rest/dist-node/index.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;

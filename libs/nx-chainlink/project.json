@@ -4,7 +4,7 @@
   "sourceRoot": "libs/nx-chainlink/src",
   "projectType": "library",
   "targets": {
-    "build": {
+    "build-generator": {
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
