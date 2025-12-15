@@ -4,6 +4,11 @@ description:
   workflow."
 
 inputs:
+  github-token:
+    description: "GitHub token with actions:read permissions."
+    required: true
+    default: ${{ github.token }}
+
   workflow-run-id:
     description:
       "The ID of the workflow run containing the matrix jobs to check."
