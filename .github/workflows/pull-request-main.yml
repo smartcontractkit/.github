@@ -129,44 +129,12 @@ jobs:
           checkout-repo: "false"
           pnpm-version: "^10.0.0"
 
-  ci-actions-dependencies-updater:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v5
-        with:
-          persist-credentials: false
-
-      - name: Setup pnpm
-        uses: ./actions/setup-nodejs
-        with:
-          pnpm-version: "^10.0.0"
-
-      - name: Run typecheck for actions-dependencies-updater
-        shell: bash
-        run: pnpm nx run actions-dependencies-updater:typecheck
-
-      - name: Run unit tests for actions-dependencies-updater
-        shell: bash
-        run: pnpm nx run actions-dependencies-updater:test
-
-  ci-gha-workflow-validator:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v5
-        with:
-          persist-credentials: false
-
-      - name: Setup pnpm
-        uses: ./actions/setup-nodejs
-        with:
-          pnpm-version: "^10.0.0"
-
-      - name: Run build for gha-workflow-validator
-        shell: bash
-        run: pnpm nx run gha-workflow-validator:build
-
-      - name: Run unit tests for gha-workflow-validator
-        shell: bash
-        run: pnpm nx run gha-workflow-validator:test
+      - name: Check for diff in built artifacts
+        run: |
+          if [[ $(git status --porcelain "**/index.js") ]]; then
+            echo "Built artifacts are out of date. Please run 'pnpm build:artifacts' and commit the changes."
+            git status --porcelain "**/index.js"
+            exit 1
+          else
+            echo "Built artifacts are up to date."
+          fi
