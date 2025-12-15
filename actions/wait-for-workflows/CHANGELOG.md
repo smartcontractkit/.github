@@ -1,5 +1,19 @@
 # wait-for-workflows
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1363](https://github.com/smartcontractkit/.github/pull/1363)
+  [`eccb5a8`](https://github.com/smartcontractkit/.github/commit/eccb5a86e24e839a9b90a51e32941146c40d28ed)
+  Thanks [@chudilka1](https://github.com/chudilka1)! - #fix: Update default
+  waiting time before the wait-for-workflow scrip starts.
+
+- [#1365](https://github.com/smartcontractkit/.github/pull/1365)
+  [`bbd0fc6`](https://github.com/smartcontractkit/.github/commit/bbd0fc6ecd4d7ecc6dec2ad96bf0c24402f36b79)
+  Thanks [@chudilka1](https://github.com/chudilka1)! - #fix: increase default
+  waiting time in wait-for-workflows before starting an action
+
 ## 1.0.0
 
 ### Major Changes
