@@ -80,6 +80,11 @@ runs:
             return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
           }
 
+          // warm-up time for other workflows to start and get registered in GH
+          const DEFAULT_WARMUP_TIME = 15
+          console.log(`Waiting for ${DEFAULT_WARMUP_TIME} seconds before start (to ensure other workflows run)`)
+          await sleep(DEFAULT_WARMUP_TIME)
+
           const { DEBUG } = process.env
 
           if (DEBUG) {
@@ -103,9 +108,6 @@ runs:
             console.log(`EXCLUDE_WORKFLOW_IDS: ${EXCLUDE_WORKFLOW_IDS}`)
             console.log(`EXCLUDE_WORKFLOW_RUN_IDS: ${EXCLUDE_WORKFLOW_RUN_IDS}`)
           }
-
-          // warm-up time for other workflows to start and get registered in GH
-          await sleep(10)
 
           let timer = 0
           console.log(`Waiting time ${timer}s out of ${MAX_TIMEOUT}s with polling interval ${POLLING_INTERVAL}s`);
