@@ -55,7 +55,7 @@ runs:
           fi
 
           echo "Lock branch is held by PR: ${holder_pr:-unknown}"
-          echo "lock_owner=${holder_pr}" >> $GITHUB_OUTPUT
+          echo "lock_owner=${holder_pr}" | tee -a "$GITHUB_OUTPUT"
 
           # Re-entrant: if the same PR reruns, let it proceed
           if [ "$holder_pr" = "$CURRENT_PR" ]; then
