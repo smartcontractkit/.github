@@ -239,21 +239,9 @@ export async function getActionFile(
   const ymlPath = join(repoPath, "action.yml");
   const yamlPath = join(repoPath, "action.yaml");
 
-  let actionFile = await getFile(
-    ctx,
-    owner,
-    repo,
-    ymlPath,
-    ref,
-  );
+  let actionFile = await getFile(ctx, owner, repo, ymlPath, ref);
   if (!actionFile) {
-    actionFile = await getFile(
-      ctx,
-      owner,
-      repo,
-      yamlPath,
-      ref,
-    );
+    actionFile = await getFile(ctx, owner, repo, yamlPath, ref);
   }
   return actionFile;
 }

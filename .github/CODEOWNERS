@@ -1,6 +1,16 @@
 * @smartcontractkit/devex-cicd
 
-# Chainlink Testing Framework (CTF)
-/actions/ctf-*/** @smartcontractkit/devex-tooling
+/.github/workflows/reusable-docker-build-publish.yml @smartcontractkit/devex-cicd
+/actions/dependency-review/ @smartcontractkit/devex-cicd
+/actions/helm-version-bump-receiver/ @smartcontractkit/devex-cicd
+/actions/helm-version-bump-sender/ @smartcontractkit/devex-cicd
+/actions/oci-image-bump/ @smartcontractkit/devex-cicd
+/actions/setup-github-token/ @smartcontractkit/devex-cicd
+/actions/pr-quality-check/ @smartcontractkit/data-analytics
+
+# CRIB and devenv
 /actions/crib-*/** @smartcontractkit/cl-orchestration
-.github/workflows/run-e2e-tests.yml @smartcontractkit/devex-tooling
+/actions/devenv-*/** @smartcontractkit/cl-orchestration
+
+# data-applications
+/actions/chip-schema-registration/ @smartcontractkit/data-tooling

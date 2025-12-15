@@ -92,6 +92,10 @@ inputs:
     description: ""
     required: false
     default: "."
+  artifact-name:
+    description: "prefix for artifact name"
+    required: false
+    default: "go-test"
 
 runs:
   using: composite
@@ -104,7 +108,7 @@ runs:
 
     - name: Assume aws gati role
       if: inputs.use-gati == 'true'
-      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+      uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
       with:
         role-to-assume: ${{ inputs.aws-role-arn-gati }}
         role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
@@ -165,8 +169,12 @@ runs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: go-test-results
+        name: ${{ inputs.artifact-name }}-results
         path: |
+          ./cover.out
+          ./coverage.out
+          ./output.out
+          ./cover.txt
           ./coverage.txt
           ./output.txt
 
@@ -174,5 +182,5 @@ runs:
       if: ${{ inputs.enable-go-test-race == 'true' }}
       uses: actions/upload-artifact@v4
       with:
-        name: go-test-race-results
+        name: ${{ inputs.artifact-name }}-race-results
         path: race/*.txt

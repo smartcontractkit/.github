@@ -1,5 +1,14 @@
 # ci-test-sol
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1022](https://github.com/smartcontractkit/.github/pull/1022)
+  [`e663727`](https://github.com/smartcontractkit/.github/commit/e6637277f985dc4e37a7dd4edcc7e4519d96afcb)
+  Thanks [@chainchad](https://github.com/chainchad)! - Bump default version of
+  pnpm to 10
+
 ## 1.0.0
 
 ### Major Changes

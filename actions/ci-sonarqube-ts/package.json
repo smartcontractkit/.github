@@ -1,6 +1,6 @@
 {
   "name": "ci-sonarqube-ts",
-  "version": "0.3.1",
+  "version": "0.5.0",
   "description": "Add SonarQube for Typescript to CI",
   "private": true,
   "scripts": {},

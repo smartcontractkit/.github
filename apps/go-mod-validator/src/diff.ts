@@ -8,13 +8,12 @@ export type GithubFiles = CompareResponse["data"]["files"];
 
 export async function getChangedGoModFiles(
   gh: Octokit,
-  base: string,
-  head: string,
+  prNumber: number,
   owner: string,
   repo: string,
   depPrefix: string,
 ): Promise<ParsedFile[]> {
-  const files = await getComparison(gh, owner, repo, base, head);
+  const files = await getChangedFilesForPR(gh, owner, repo, prNumber);
   const relevantFiles = filterForRelevantChanges(files);
   return parseAllAdditions(relevantFiles, depPrefix);
 }
@@ -23,23 +22,22 @@ function filterForRelevantChanges(files: GithubFiles): GithubFiles {
   return files?.filter(({ filename }) => filename.endsWith("go.mod"));
 }
 
-async function getComparison(
+export async function getChangedFilesForPR(
   octokit: Octokit,
   owner: string,
   repo: string,
-  base: string,
-  head: string,
+  prNumber: number,
 ): Promise<GithubFiles> {
-  core.debug(`Comparing ${owner}/${repo} commits ${base}...${head}`);
+  core.debug(`Comparing ${owner}/${repo} for PR ${prNumber}`);
 
-  const diff = await octokit.rest.repos.compareCommitsWithBasehead({
+  const prFiles = await octokit.paginate(octokit.rest.pulls.listFiles, {
     owner,
     repo,
-    basehead: `${base}...${head}`,
-    // <before>...<after> or <earlier>...<later>
+    pull_number: prNumber,
+    per_page: 100,
   });
 
-  return diff.data.files;
+  return prFiles;
 }
 
 // Taken from https://github.com/smartcontractkit/.github/blob/dc8b1a0b478151119d86ac1bf121ea7eb3c1c88c/actions/gha-workflow-validator/src/utils.ts#L59C1-L97C2

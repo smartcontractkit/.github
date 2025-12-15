@@ -322,8 +322,9 @@ async function parseActionFile(
       : [];
 
   log.debug(
-    `${identifier} is a ${isLocal ? "local" : "remote"} ${action?.runs
-      ?.using} action, with ${stepUsages.length} direct dependencies.`,
+    `${identifier} is a ${isLocal ? "local" : "remote"} ${
+      action?.runs?.using
+    } action, with ${stepUsages.length} direct dependencies.`,
   );
 
   return {

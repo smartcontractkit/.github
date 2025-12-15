@@ -1,5 +1,32 @@
 # dependency-review
 
+## 2.1.0
+
+### Minor Changes
+
+- [#1327](https://github.com/smartcontractkit/.github/pull/1327)
+  [`c7e7006`](https://github.com/smartcontractkit/.github/commit/c7e7006f0e90e5de5407afced137b804f2ba2099)
+  Thanks [@chainchad](https://github.com/chainchad)! - Remove CC0-1.0 license
+  from dependency-review deny list
+
+## 2.0.1
+
+### Patch Changes
+
+- [#1131](https://github.com/smartcontractkit/.github/pull/1131)
+  [`81f3777`](https://github.com/smartcontractkit/.github/commit/81f3777351465b9743a8b6d7d7984a631c248645)
+  Thanks [@chainchad](https://github.com/chainchad)! - Add support for the
+  show-openssf-scorecard input
+
+## 2.0.0
+
+### Major Changes
+
+- [#1028](https://github.com/smartcontractkit/.github/pull/1028)
+  [`7acedba`](https://github.com/smartcontractkit/.github/commit/7acedbabc9e24ac6cb95fbaef1d0c132820bdbac)
+  Thanks [@chainchad](https://github.com/chainchad)! - Create new vuln/license
+  config and rename others
+
 ## 1.0.0
 
 ### Major Changes

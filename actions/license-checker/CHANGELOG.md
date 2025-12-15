@@ -1,5 +1,14 @@
 # license-checker
 
+## 0.2.0
+
+### Minor Changes
+
+- [#1327](https://github.com/smartcontractkit/.github/pull/1327)
+  [`c7e7006`](https://github.com/smartcontractkit/.github/commit/c7e7006f0e90e5de5407afced137b804f2ba2099)
+  Thanks [@chainchad](https://github.com/chainchad)! - Remove CC0-1.0 license
+  from license-checker deny list
+
 ## 0.1.3
 
 ### Patch Changes

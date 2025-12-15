@@ -40,32 +40,28 @@ inputs:
     description: "Golangci-lint report name with extension"
     requried: false
     default: "golangci-lint-report.xml"
-  include-lint:
-    description: "enable linting"
-    required: false
-    default: "false"
 
 runs:
   using: composite
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
     - name: Download all reports (no test-report-workflow)
       id: all
       if: inputs.test-report-workflow == ''
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v6
 
     - name: Download all reports (no lint-report-workflow)
       if: steps.all.outcome != 'success' && inputs.lint-report-workflow == ''
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v6
 
     - name: Download test-report artifact using workflow file name
       if: inputs.test-report-workflow != ''
-      uses: dawidd6/action-download-artifact@bf251b5aa9c2f7eeb574a96ee720e24f801b7c11 # v6
+      uses: dawidd6/action-download-artifact@ac66b43f0e6a346234dd65d4d0c8fbb31cb316e5 # v11
       with:
         workflow: ${{ inputs.test-report-workflow }}
         name: ${{ inputs.test-report-artifact }}
@@ -75,7 +71,7 @@ runs:
 
     - name: Download lint-report artifact using workflow file name
       if: inputs.lint-report-workflow != ''
-      uses: dawidd6/action-download-artifact@bf251b5aa9c2f7eeb574a96ee720e24f801b7c11 # v6
+      uses: dawidd6/action-download-artifact@ac66b43f0e6a346234dd65d4d0c8fbb31cb316e5 # v11
       with:
         workflow: ${{ inputs.lint-report-workflow }}
         name: ${{ inputs.lint-report-artifact }}
@@ -94,7 +90,7 @@ runs:
         echo "SONARQUBE_ARGS=$ARGS" >> $GITHUB_ENV
 
     - name: SonarQube Scan
-      uses: sonarsource/sonarqube-scan-action@0c0f3958d90fc466625f1d1af1f47bddd4cc6bd1 # v3.0.0
+      uses: sonarsource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9 # v7.0.0
       with:
         args: ${{ env.SONARQUBE_ARGS }}
       env:

@@ -1,5 +1,22 @@
 # ctf-setup-run-tests-environment
 
+## 0.8.0
+
+### Minor Changes
+
+- [#1257](https://github.com/smartcontractkit/.github/pull/1257)
+  [`584505d`](https://github.com/smartcontractkit/.github/commit/584505d577e68c2d1cb4783fe2a0917931ba23c6)
+  Thanks [@friedemannf](https://github.com/friedemannf)! - Add Sui CLI support
+
+## 0.7.0
+
+### Minor Changes
+
+- [#1060](https://github.com/smartcontractkit/.github/pull/1060)
+  [`4d01a53`](https://github.com/smartcontractkit/.github/commit/4d01a53f9c70df0040ef0b454021004890064c5f)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: add setup_db
+  parameter, to setup the pg database
+
 ## 0.6.0
 
 ### Minor Changes

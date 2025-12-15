@@ -1,5 +1,17 @@
 # ci-publish-npm
 
+## 1.0.0
+
+### Major Changes
+
+- [#1251](https://github.com/smartcontractkit/.github/pull/1251)
+  [`c553106`](https://github.com/smartcontractkit/.github/commit/c553106d71a362997357eca13b894ac83f1845bc)
+  Thanks [@chainchad](https://github.com/chainchad)! - Remove NPM token from
+  Publish NPM Composite Action.
+
+  Will be moving to
+  [trusted publishing](https://docs.npmjs.com/trusted-publishers).
+
 ## 0.4.0
 
 ### Minor Changes

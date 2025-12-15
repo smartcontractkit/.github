@@ -1,5 +1,14 @@
 # flakeguard-ai-analysis
 
+## 1.2.1
+
+### Patch Changes
+
+- [#1040](https://github.com/smartcontractkit/.github/pull/1040)
+  [`a6c900e`](https://github.com/smartcontractkit/.github/commit/a6c900ed9dbd0e1174cddfc64a6bc949b9d4cd57)
+  Thanks [@dependabot](https://github.com/apps/dependabot)! - Update h11
+  dependency
+
 ## 1.2.0
 
 ### Minor Changes

@@ -7,6 +7,7 @@ vi.setConfig({
   testTimeout: 60000,
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 vi.mock("@actions/core", async (importOriginal: any) => ({
   ...(await importOriginal(typeof import("@actions/core"))),
   setFailed: (msg: string) => {

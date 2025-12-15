@@ -1,0 +1,31 @@
+{
+  "name": "apidiff-go",
+  "main": "dist/index.js",
+  "version": "2.0.0",
+  "description": "",
+  "private": true,
+  "engines": {
+    "node": ">= 20"
+  },
+  "scripts": {
+    "test": "vitest"
+  },
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "repository": "https://github.com/smartcontractkit/.github",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1",
+    "@actions/glob": "^0.4.0",
+    "diff": "^8.0.2",
+    "execa": "^9.6.0",
+    "semver": "^7.7.3"
+  },
+  "devDependencies": {
+    "@octokit/types": "^13.10.0",
+    "@octokit/webhooks-types": "^7.6.1",
+    "@types/node": "^24.2.1",
+    "@types/semver": "^7.7.1",
+    "vitest": "^2.1.9"
+  }
+}

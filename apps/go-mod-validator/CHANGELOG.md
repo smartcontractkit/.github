@@ -1,5 +1,57 @@
 # go-mod-validator
 
+## 1.2.0
+
+### Minor Changes
+
+- [#1314](https://github.com/smartcontractkit/.github/pull/1314)
+  [`f5ba535`](https://github.com/smartcontractkit/.github/commit/f5ba535f15fa1174336b612262e43dcf89c31663)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: add
+  github-pr-read-token input, to better support validating private dependencies
+
+## 1.1.0
+
+### Minor Changes
+
+- [#1312](https://github.com/smartcontractkit/.github/pull/1312)
+  [`f2ee0d3`](https://github.com/smartcontractkit/.github/commit/f2ee0d34a68615aca6fddf366e7830d84ad17c75)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: changed files endpoint
+  bug
+
+## 1.0.0
+
+### Major Changes
+
+- [#1250](https://github.com/smartcontractkit/.github/pull/1250)
+  [`db46e40`](https://github.com/smartcontractkit/.github/commit/db46e40e236e0ed4cafb6601d21f6a92b79e4fc8)
+  Thanks [@erikburt](https://github.com/erikburt)! - initial 1.0 release, fix
+  parsing logic related to sub-module git tags
+
+### Patch Changes
+
+- [#1249](https://github.com/smartcontractkit/.github/pull/1249)
+  [`68d1f0a`](https://github.com/smartcontractkit/.github/commit/68d1f0acc43b056f976ad6f472799ebf4e8d35d5)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix typings, and adjust
+  input resolution
+
+## 0.5.4
+
+### Patch Changes
+
+- [#1157](https://github.com/smartcontractkit/.github/pull/1157)
+  [`521bc44`](https://github.com/smartcontractkit/.github/commit/521bc449ab3e07be22d841146de0e75a81c7ee38)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump depedency
+  @octokit/plugin-throttling
+
+## 0.5.3
+
+### Patch Changes
+
+- [#1042](https://github.com/smartcontractkit/.github/pull/1042)
+  [`29c7cf2`](https://github.com/smartcontractkit/.github/commit/29c7cf2f07b2280c7ca2e04883b2b32b5d0d9972)
+  Thanks [@chainchad](https://github.com/chainchad)! - Update to patched version
+  of vitest
+
 ## 0.5.2
 
 ### Patch Changes

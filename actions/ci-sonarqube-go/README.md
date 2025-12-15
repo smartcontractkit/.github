@@ -12,7 +12,7 @@ sonarqube:
   if: always()
   steps:
     - name: SonarQube Scan
-      uses: smartcontractkit/.github/actions/ci-sonarqube-go@dca9ab89d734e82738b8aa52bd25d09b205ec6ee # v0.1.1
+      uses: smartcontractkit/.github/actions/ci-sonarqube-go@<latest commit> # v0.2.0
       with:
         # sonarqube inputs
         include-lint: "true"

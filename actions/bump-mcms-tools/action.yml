@@ -1,0 +1,70 @@
+name: "Bump mcms-tools version"
+description: "Detect latest mcms-tools release and update workflow inputs"
+
+inputs:
+  github_token:
+    description: "Token for GitHub API (gh cli)"
+    required: true
+  mcms_repo:
+    description: "Repo to read releases from (owner/name)"
+    required: false
+    default: "smartcontractkit/mcms-tools"
+  workflows_regex:
+    description:
+      "Regex pattern to match workflow files to update (can live under any
+      directory)"
+    required: false
+    default: ".*/\\.github/workflows/.*\\.(yml|yaml)$"
+  action_uses_pattern:
+    description: "String to match the composite action step (prefix of uses:)"
+    required: false
+    default: "smartcontractkit/.github/actions/get-mcms-tools@"
+  version_input_path:
+    description: "The YAML path to the input (relative to the step) to set"
+    required: false
+    default: "with.version"
+
+outputs:
+  latest_tag:
+    description: "Latest mcms-tools release tag"
+    value: ${{ steps.latest.outputs.tag }}
+  changed:
+    description: "true if any file changed, false otherwise"
+    value: ${{ steps.update.outputs.changed }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check out
+      uses: actions/checkout@v4
+
+    - name: Resolve latest tag
+      id: latest
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        MCMS_REPO: ${{ inputs.mcms_repo }}
+      run: |
+        set -euo pipefail
+
+        echo "Fetching most recent non-draft release from $MCMS_REPO"
+        TAG=$(gh api "repos/$MCMS_REPO/releases" --paginate \
+          --jq '[.[] | select(.draft==false)][0].tag_name')
+
+        if [[ -z "${TAG:-}" || "${TAG}" == "null" ]]; then
+          echo "No non-draft releases found in $MCMS_REPO" >&2
+          exit 1
+        fi
+
+        echo "Latest tag discovered: $TAG"
+        echo "tag=$TAG" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Update workflow files
+      id: update
+      shell: bash
+      env:
+        LATEST: ${{ steps.latest.outputs.tag }}
+        PATTERN: ${{ inputs.action_uses_pattern }} # e.g. smartcontractkit/.github/actions/get-mcms-tools@
+        WORKFLOWS_REGEX: ${{ inputs.workflows_regex }}
+      run: "${GITHUB_ACTION_PATH}/scripts/update-workflow-files.sh"

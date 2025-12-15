@@ -1,5 +1,33 @@
 # ci-lint-go
 
+## 3.1.0
+
+### Minor Changes
+
+- [#1293](https://github.com/smartcontractkit/.github/pull/1293) [`31f7a92`](https://github.com/smartcontractkit/.github/commit/31f7a923a25f7672641b5099cbb85ce4a984fc05) Thanks [@chainchad](https://github.com/chainchad)! - Add golangci-lint output for stdout
+
+## 3.0.1
+
+### Patch Changes
+
+- [#1202](https://github.com/smartcontractkit/.github/pull/1202) [`2b6a2fa`](https://github.com/smartcontractkit/.github/commit/2b6a2fa519ea0a54ec96ecf90f18f8c69366dcda) Thanks [@erikburt](https://github.com/erikburt)! - bump aws-actions/configure-aws-credentials to v5.0.0
+
+## 3.0.0
+
+### Major Changes
+
+- [#1194](https://github.com/smartcontractkit/.github/pull/1194) [`837367d`](https://github.com/smartcontractkit/.github/commit/837367d07e99983161fddb2d4b112725d819561d) Thanks [@chainchad](https://github.com/chainchad)! - Support default config file for golangci-lint
+
+## 2.0.0
+
+### Major Changes
+
+- [#1064](https://github.com/smartcontractkit/.github/pull/1064)
+  [`5ef875a`](https://github.com/smartcontractkit/.github/commit/5ef875a78da521085ad768ecf2ed5e25009496f7)
+  Thanks [@chainchad](https://github.com/chainchad)! - Use latest version of
+  golangci-lint action to fix GHA cache issue.
+  - Note: requires golangci-lint version >= `v2.1.0`
+
 ## 1.0.0
 
 ### Major Changes

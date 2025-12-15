@@ -1,0 +1,7 @@
+{
+  "name": "parse-and-mask-test-secrets",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "actions/parse-and-mask-test-secrets",
+  "targets": {}
+}

@@ -1,5 +1,68 @@
 # build-push-docker
 
+## 1.0.1
+
+### Patch Changes
+
+- [#1269](https://github.com/smartcontractkit/.github/pull/1269)
+  [`dbc2003`](https://github.com/smartcontractkit/.github/commit/dbc20033889046b15a5b683987be85f123dfa5a3)
+  Thanks [@chainchad](https://github.com/chainchad)! - Fix reference to
+  Dockerfile in ECR parse script
+
+## 1.0.0
+
+### Major Changes
+
+- [#1264](https://github.com/smartcontractkit/.github/pull/1264)
+  [`06009aa`](https://github.com/smartcontractkit/.github/commit/06009aa8b59da942971f2b05c3fb2fc6f9029689)
+  Thanks [@chainchad](https://github.com/chainchad)! - Allow ECR login for
+  private ECR base images
+
+## 0.9.0
+
+### Minor Changes
+
+- [#1213](https://github.com/smartcontractkit/.github/pull/1213)
+  [`9a871e1`](https://github.com/smartcontractkit/.github/commit/9a871e121bc47b4c68ddfeec7106bc203f68ca6e)
+  Thanks [@Atrax1](https://github.com/Atrax1)! - handle build-contexts
+
+## 0.8.1
+
+### Patch Changes
+
+- [#1202](https://github.com/smartcontractkit/.github/pull/1202)
+  [`2b6a2fa`](https://github.com/smartcontractkit/.github/commit/2b6a2fa519ea0a54ec96ecf90f18f8c69366dcda)
+  Thanks [@erikburt](https://github.com/erikburt)! - bump
+  aws-actions/configure-aws-credentials to v5.0.0
+
+## 0.8.0
+
+### Minor Changes
+
+- [#1154](https://github.com/smartcontractkit/.github/pull/1154)
+  [`a9213e5`](https://github.com/smartcontractkit/.github/commit/a9213e52c37357810fd6e3612a31d98733c22785)
+  Thanks [@chainchad](https://github.com/chainchad)! - Support optional inputs
+  when not pushing to ECR
+
+## 0.7.1
+
+### Patch Changes
+
+- [#1101](https://github.com/smartcontractkit/.github/pull/1101)
+  [`655ec9a`](https://github.com/smartcontractkit/.github/commit/655ec9a0c2199787efbe964a9a10d960fcebbaf6)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: optional input to
+  disable attestations
+
+## 0.7.0
+
+### Minor Changes
+
+- [#1076](https://github.com/smartcontractkit/.github/pull/1076)
+  [`507bb3d`](https://github.com/smartcontractkit/.github/commit/507bb3de1440721a364bc734b6f2b45fcdaf8ec5)
+  Thanks [@erikburt](https://github.com/erikburt)! - remove
+  docker-build-cache-disabled input parameter in lieu of docker-restore-cache,
+  docker-save-cache parameters
+
 ## 0.6.1
 
 ### Patch Changes

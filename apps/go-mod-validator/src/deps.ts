@@ -49,6 +49,7 @@ interface GoMod {
   Retracted: string[];
   Deprecated: string;
   Error: ModuleError | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Origin: any;
   Reuse: boolean;
 }
@@ -293,7 +294,7 @@ export function goModsToGoModules(
     .filter((d) => !d.Main && d.Path.startsWith(depPrefix))
     .map((d: GoMod): GoModule => {
       // repo format github.com/smartcontractkit/chainlink
-      const [, owner, repo] = d.Path.split("/");
+      const [_, owner, repo, ...subModulePathElements] = d.Path.split("/");
       const baseModule: BaseGoModule = {
         owner,
         repo,
@@ -316,9 +317,18 @@ export function goModsToGoModules(
           commitSha: versionType.commitSha,
         };
       } else {
+        // sub-modules can only use git tags prefixed with their sub-module path (this is a Go requirement)
+        // the go list output is deceiving because it shows the version as the tag without the sub-module path prefix
+        // e.g. the dependency: github.com/smartcontractkit/chainlink-protos/cre/go v1.0.0-beta
+        //   - this will show "Version" as "v1.0.0-beta"
+        //   - but the actual tag in git is cre/go/v1.0.0-beta
+        const subModulePath = subModulePathElements.join("/");
+        const gitTag = subModulePath
+          ? `${subModulePath}/${versionType.tag}`
+          : versionType.tag;
         return {
           ...baseModule,
-          tag: versionType.tag,
+          tag: gitTag,
         };
       }
     });
@@ -338,20 +348,20 @@ export function goModsToGoModules(
  *
  */
 export function getVersionType(versionString: string) {
-  // matches real versions like v0.1.0
-  const versionRegex = /^(v\d+\.\d+\.\d+)$/;
-
   if (isPseudoVersion(versionString)) {
     return {
       commitSha: pseudoVersionRev(versionString),
       tag: undefined,
     };
   }
-  const versionMatch = versionString.match(versionRegex);
+
+  // matches real versions like v0.1.0, v1.0.0-beta, v3.0.0-rc.6
+  const semverTagRe = /^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?$/;
+  const versionMatch = versionString.match(semverTagRe);
   if (versionMatch) {
     return {
       commitSha: undefined,
-      tag: versionMatch?.[1],
+      tag: versionString,
     };
   }
 

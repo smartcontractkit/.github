@@ -21,6 +21,11 @@ inputs:
     description: Set this to cache bust
     required: false
     default: "1"
+  skip-cache-save:
+    description:
+      Set to 'true' to skip saving the cache while still allowing restores
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -62,30 +67,62 @@ runs:
         echo "gomodcache=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
         echo "gobuildcache=$(go env GOCACHE)" >> $GITHUB_OUTPUT
 
-    - uses: actions/cache@v4
-      name: Cache Go Modules
+    - uses: actions/cache/restore@v4
+      if: ${{ inputs.skip-cache-save == 'true' }}
+      name: Restore Go Modules Cache
+      id: cache-gomod-restore
       with:
         path: |
           ${{ steps.go-cache-dir.outputs.gomodcache }}
-        # The lifetime of go modules is much higher than the build outputs, so we increase cache efficiency
-        # here by not having the primary key contain the branch name
         key:
           ${{ runner.os }}-gomod-${{ inputs.cache-version }}-${{
-          hashFiles('./go.sum') }}
+          hashFiles(inputs.go-cache-dep-path) }}
         restore-keys: |
           ${{ runner.os }}-gomod-${{ inputs.cache-version }}-
 
     - uses: actions/cache@v4
-      if: ${{ inputs.only-modules == 'false' }}
-      name: Cache Go Build Outputs
+      if: ${{ inputs.skip-cache-save != 'true' }}
+      name: Cache Go Modules
+      id: cache-gomod
+      with:
+        path: |
+          ${{ steps.go-cache-dir.outputs.gomodcache }}
+        key:
+          ${{ runner.os }}-gomod-${{ inputs.cache-version }}-${{
+          hashFiles(inputs.go-cache-dep-path) }}
+        restore-keys: |
+          ${{ runner.os }}-gomod-${{ inputs.cache-version }}-
+
+    - uses: actions/cache/restore@v4
+      if:
+        ${{ inputs.only-modules == 'false' && inputs.skip-cache-save == 'true'
+        }}
+      name: Restore Go Build Cache
+      id: cache-gobuild-restore
       with:
         path: |
           ${{ steps.go-cache-dir.outputs.gobuildcache }}
-        # The lifetime of go build outputs is pretty short, so we make our primary cache key be the branch name
         key:
           ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{
-          hashFiles('./go.sum') }}-${{ steps.branch-name.outputs.current_branch
-          }}
+          hashFiles(inputs.go-cache-dep-path) }}-${{
+          steps.branch-name.outputs.current_branch }}
         restore-keys: |
-          ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{ hashFiles('./go.sum') }}-
+          ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{ hashFiles(inputs.go-cache-dep-path) }}-
+          ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-
+
+    - uses: actions/cache@v4
+      if:
+        ${{ inputs.only-modules == 'false' && inputs.skip-cache-save != 'true'
+        }}
+      name: Cache Go Build Outputs
+      id: cache-gobuild
+      with:
+        path: |
+          ${{ steps.go-cache-dir.outputs.gobuildcache }}
+        key:
+          ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{
+          hashFiles(inputs.go-cache-dep-path) }}-${{
+          steps.branch-name.outputs.current_branch }}
+        restore-keys: |
+          ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{ hashFiles(inputs.go-cache-dep-path) }}-
           ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-

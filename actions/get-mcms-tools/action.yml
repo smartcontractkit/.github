@@ -1,0 +1,96 @@
+name: Get MCMS Tools (Prebuilt)
+description:
+  Downloads and extracts the prebuilt mcms-tools CLI binary from the latest (or
+  specified) GitHub release, exposing the binary path as an output.
+
+inputs:
+  github_token:
+    description: GitHub token with access to the mcms-tools repository.
+    required: true
+  version:
+    description: "Release version (e.g., v0.3.0). required."
+    required: false
+    default: ""
+
+outputs:
+  binary_path:
+    description: "Path to the mcms binary"
+    value: ${{ steps.set_path.outputs.binary_path }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up platform and asset name
+      id: platform
+      shell: bash
+      run: |
+        OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+        ARCH=$(uname -m)
+        if [ "$OS" = "darwin" ]; then
+          if [ "$ARCH" = "x86_64" ]; then
+            ASSET="mcms-tools_darwin_arm64.tar.gz"
+          elif [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then
+            ASSET="mcms-tools_darwin_arm64.tar.gz"
+          else
+            echo "::error::Unsupported macOS architecture: $ARCH"
+            exit 1
+          fi
+        elif [ "$OS" = "linux" ]; then
+          if [ "$ARCH" = "x86_64" ]; then
+            ASSET="mcms-tools_linux_amd64.tar.gz"
+          else
+            echo "::error::Unsupported Linux architecture: $ARCH"
+            exit 1
+          fi
+        else
+          echo "::error::Unsupported OS: $OS"
+          exit 1
+        fi
+        echo "asset_name=$ASSET" | tee -a $GITHUB_OUTPUT
+
+    - name: Download mcms-tools Release Asset
+      id: download
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        INPUT_VERSION: ${{ inputs.version }}
+        REPO: "smartcontractkit/mcms-tools"
+        ASSET_NAME: ${{ steps.platform.outputs.asset_name }}
+      run: |
+        set -e
+        VERSION="$INPUT_VERSION"
+
+        if [ -z "$VERSION" ]; then
+          # Get the latest release tag
+          VERSION=$(gh release list -R "$REPO" --limit 1 --json tagName --jq '.[0].tagName')
+        fi
+
+        echo "Using release: $VERSION"
+
+        gh release download "$VERSION" \
+          -R "$REPO" \
+          -p "$ASSET_NAME" \
+          -D "$GITHUB_WORKSPACE/mcms-tools"
+        echo "Downloaded asset to $GITHUB_WORKSPACE/mcms-tools/$ASSET_NAME"
+
+    - name: Extract mcms binary
+      id: extract
+      shell: bash
+      env:
+        ASSET: ${{ steps.platform.outputs.asset_name }}
+        OUT_DIR: ${{ github.workspace }}/mcms-tools/bin
+      run: |
+        mkdir -p "$OUT_DIR"
+        tar -xzf "$GITHUB_WORKSPACE/mcms-tools/$ASSET" -C "$OUT_DIR"
+        # Find the mcms binary
+        MCMS_PATH=$(find "$OUT_DIR" -type f -name mcms | head -n1)
+        chmod +x "$MCMS_PATH"
+        echo "mcms_path=$MCMS_PATH" | tee -a $GITHUB_OUTPUT
+
+    - name: Set output path
+      id: set_path
+      shell: bash
+      env:
+        MCMS_PATH: ${{ steps.extract.outputs.mcms_path }}
+      run: |
+        echo "binary_path=$MCMS_PATH" | tee -a $GITHUB_OUTPUT

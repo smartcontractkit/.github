@@ -56,6 +56,15 @@ inputs:
 
       Example:
        sha256:abc123,sha256:def456
+  docker-image-availability-check:
+    required: false
+    description: |
+      Enable checking if source images are available before creating manifest.
+      If enabled, will retry checking image availability instead of just sleeping.
+      If disabled, will use a fixed 30-second sleep.
+
+      Note: Requires read permissions on the registry. Some IAM roles may only have write permissions.
+    default: "true"
   github-workflow-repository:
     required: false
     description: |
@@ -68,6 +77,49 @@ inputs:
       Example:
         smartcontractkit/chainlink
     default: ${{ github.repository }}
+  manifest-additional-tags:
+    description: |
+      Multi-line string of additional tags to apply to the Docker manifest.
+      Each line should contain a single tag name.
+
+      These tags will be created as aliases pointing to the same manifest as the primary tag.
+      All tags are created atomically in a single operation and will have the same annotations.
+
+      Useful for creating stable tags like "latest", "qa-latest", or environment-specific
+      tags that should point to a specific build.
+
+      Tags will be validated to ensure they follow Docker tag naming conventions.
+
+      Example:
+        manifest-additional-tags: |
+          latest
+          qa-latest
+          stable
+    required: false
+  manifest-annotations:
+    description: |
+      Multi-line string of annotations to add to the Docker manifest.
+      Each line should be in the format: key=value
+
+      Uses OCI standard annotation keys. Common examples:
+        org.opencontainers.image.source=https://github.com/owner/repo
+        org.opencontainers.image.version=1.0.0
+        org.opencontainers.image.revision=abc123
+        org.opencontainers.image.title=my-app
+        org.opencontainers.image.description=Description of the application
+        org.opencontainers.image.licenses=MIT
+        org.opencontainers.image.url=https://github.com/owner/repo
+        org.opencontainers.image.ref.name=ubuntu
+
+      NOTE: org.opencontainers.image.created will be automatically added with current timestamp.
+
+      Example:
+        manifest-annotations: |
+          org.opencontainers.image.source=https://github.com/smartcontractkit/chainlink
+          org.opencontainers.image.version=2.26.0
+          org.opencontainers.image.revision=fd6445cf2b8177f7230a56e8f72f6d11e3caa03d
+          org.opencontainers.image.title=chainlink
+    required: false
   # aws inputs
   aws-region:
     description: "AWS region for ECR. For public images, use: us-east-1"
@@ -102,6 +154,20 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Generate docker manifest name
+      id: manifest-name
+      shell: bash
+      env:
+        DOCKER_REGISTRY_URL: ${{ inputs.docker-registry-url }}
+        DOCKER_REPOSITORY_NAME: ${{ inputs.docker-repository-name }}
+      run: |
+        echo "name=${DOCKER_REGISTRY_URL}/${DOCKER_REPOSITORY_NAME}" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+      with:
+        version: v0.27.0
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
       with:
@@ -122,22 +188,144 @@ runs:
           }}
         registries: ${{ inputs.aws-account-number }}
 
+    - name: Generate manifest annotations
+      id: generate-annotations
+      shell: bash
+      env:
+        MANIFEST_ANNOTATIONS: ${{ inputs.manifest-annotations }}
+      run: |
+        # Build annotation flags for manifest
+        ANNOTATION_FLAGS=()
+
+        # Early exit if no annotations provided
+        if [[ -z "${MANIFEST_ANNOTATIONS:-}" ]]; then
+          echo "No manifest annotations provided, skipping annotation processing..."
+        else
+          echo "Generating manifest annotations..."
+          while IFS= read -r line; do
+            # Skip empty lines and lines starting with #
+            if [[ -n "$line" && ! "$line" =~ ^[[:space:]]*# ]]; then
+              # Validate line format (key=value)
+              if [[ "$line" =~ ^[^=]+=[^=]*$ ]]; then
+                ANNOTATION_FLAGS+=("--annotation" "index:$line")
+                echo "  Adding annotation: index:$line"
+              else
+                echo "  WARNING: Skipping invalid annotation format: $line"
+              fi
+            fi
+          done <<< "$MANIFEST_ANNOTATIONS"
+        fi
+
+        # Convert array to space-separated string for output.
+        ANNOTATION_FLAGS_STRING="${ANNOTATION_FLAGS[*]}"
+        echo "annotation-flags=${ANNOTATION_FLAGS_STRING}" | tee -a "${GITHUB_OUTPUT}"
+
+    - name: Process additional tags
+      if: inputs.manifest-additional-tags != ''
+      id: process-additional-tags
+      shell: bash
+      env:
+        ADDITIONAL_TAGS: ${{ inputs.manifest-additional-tags }}
+        DOCKER_MANIFEST_NAME: ${{ steps.manifest-name.outputs.name }}
+      run: |
+        # Build tag flags for manifest
+        TAG_FLAGS=()
+
+        echo "Processing additional tags..."
+        while IFS= read -r tag; do
+          # Skip empty lines and comments
+          if [[ -z "$tag" || "$tag" =~ ^[[:space:]]*# ]]; then
+            continue
+          fi
+
+          # Trim whitespace
+          tag=$(echo "$tag" | xargs)
+
+          # Validate tag format (Docker tag naming rules)
+          if ! [[ "$tag" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+            echo "::error::Invalid Docker tag format: '$tag'. Tags must start with a letter, number, or underscore and can only contain alphanumeric characters, underscores, periods, and hyphens (max 128 chars)."
+            exit 1
+          fi
+
+          TAG_FLAGS+=("--tag" "${DOCKER_MANIFEST_NAME}:${tag}")
+          echo "  Adding tag: ${tag}"
+        done <<< "$ADDITIONAL_TAGS"
+
+        # Convert array to space-separated string for output.
+        TAG_FLAGS_STRING="${TAG_FLAGS[*]}"
+        echo "tag-flags=${TAG_FLAGS_STRING}" | tee -a "${GITHUB_OUTPUT}"
+
+    - name: Wait for source images to be available
+      shell: bash
+      env:
+        DOCKER_MANIFEST_NAME: ${{ steps.manifest-name.outputs.name }}
+        DOCKER_IMAGE_NAME_DIGESTS: ${{ inputs.docker-image-name-digests }}
+        DOCKER_IMAGE_AVAILABILITY_CHECK:
+          ${{ inputs.docker-image-availability-check }}
+      run: |
+        # Convert comma-separated list into array
+        IFS=',' read -ra DIGESTS <<< "$DOCKER_IMAGE_NAME_DIGESTS"
+
+        if [[ "${DOCKER_IMAGE_AVAILABILITY_CHECK}" == "true" ]]; then
+          echo "Checking image availability before creating manifest..."
+
+          MAX_RETRIES=5
+          RETRY_DELAY=10
+          ALL_AVAILABLE=false
+
+          for attempt in $(seq 1 $MAX_RETRIES); do
+            echo "Attempt ${attempt}/${MAX_RETRIES}: Checking image availability..."
+            MISSING_IMAGES=()
+
+            for digest in "${DIGESTS[@]}"; do
+              # Trim whitespace from digest
+              digest=$(echo "$digest" | xargs)
+              IMAGE_WITH_DIGEST="${DOCKER_MANIFEST_NAME}@${digest}"
+
+              if docker buildx imagetools inspect "${IMAGE_WITH_DIGEST}" >/dev/null 2>&1; then
+                echo "  ✓ ${digest} is available"
+              else
+                echo "  ⏳ ${digest} not yet available"
+                MISSING_IMAGES+=("${digest}")
+              fi
+            done
+
+            if [[ ${#MISSING_IMAGES[@]} -eq 0 ]]; then
+              echo "✅ All images are available!"
+              ALL_AVAILABLE=true
+              break
+            else
+              echo "❌ ${#MISSING_IMAGES[@]} image(s) still missing: ${MISSING_IMAGES[*]}"
+              if [[ $attempt -lt $MAX_RETRIES ]]; then
+                echo "Waiting ${RETRY_DELAY} seconds before next attempt..."
+                sleep $RETRY_DELAY
+              fi
+            fi
+          done
+
+          if [[ "$ALL_AVAILABLE" != "true" ]]; then
+            echo "::error::Failed to verify image availability after ${MAX_RETRIES} attempts"
+            echo "::error::Missing images: ${MISSING_IMAGES[*]}"
+            exit 1
+          fi
+        else
+          echo "Image availability check disabled, using fixed delay..."
+          echo "Waiting 30 seconds for source images to be fully available..."
+          sleep 30
+        fi
+
     - name: Create and push Docker manifest
       id: create-push-docker-manifest
       shell: bash
       env:
-        DOCKER_MANIFEST_NAME: >-
-          ${{
-            format(
-              '{0}/{1}',
-              inputs.docker-registry-url,
-              inputs.docker-repository-name
-            )
-          }}
+        DOCKER_MANIFEST_NAME: ${{ steps.manifest-name.outputs.name }}
         DOCKER_MANIFEST_TAG: ${{ inputs.docker-manifest-tag }}
         DOCKER_REGISTRY_URL: ${{ inputs.docker-registry-url }}
         DOCKER_REPOSITORY_NAME: ${{ inputs.docker-repository-name }}
         DOCKER_IMAGE_NAME_DIGESTS: ${{ inputs.docker-image-name-digests }}
+        ANNOTATION_FLAGS:
+          ${{ steps.generate-annotations.outputs.annotation-flags }}
+        TAG_FLAGS: ${{ steps.process-additional-tags.outputs.tag-flags }}
       run: |
         DOCKER_MANIFEST_NAME_WITH_TAG="${DOCKER_MANIFEST_NAME}:${DOCKER_MANIFEST_TAG}"
         # Convert comma-separated list into array and pass as separate arguments
@@ -147,7 +335,33 @@ runs:
         for digest in "${DIGESTS[@]}"; do
           PREFIXED_DIGESTS+=("${DOCKER_MANIFEST_NAME}@${digest}")
         done
-        docker buildx imagetools create --tag "${DOCKER_MANIFEST_NAME_WITH_TAG}" "${PREFIXED_DIGESTS[@]}"
+
+        # Create Docker manifest
+        echo "Creating Docker manifest with tag: ${DOCKER_MANIFEST_TAG}"
+
+        # Build the complete command with all flags
+        CMD_ARGS=("--tag" "${DOCKER_MANIFEST_NAME_WITH_TAG}")
+
+        # Add additional tag flags if present
+        if [[ -n "${TAG_FLAGS}" ]]; then
+          echo "Adding additional tags to manifest..."
+          read -ra TAG_ARRAY <<< "${TAG_FLAGS}"
+          CMD_ARGS+=("${TAG_ARRAY[@]}")
+        fi
+
+        # Add annotation flags if present
+        if [[ -n "${ANNOTATION_FLAGS}" ]]; then
+          echo "Adding annotations to manifest..."
+          read -ra ANNOTATION_ARRAY <<< "${ANNOTATION_FLAGS}"
+          CMD_ARGS+=("${ANNOTATION_ARRAY[@]}")
+        fi
+
+        # Add the source images (target images to tag).
+        CMD_ARGS+=("${PREFIXED_DIGESTS[@]}")
+        echo "::debug::Final docker buildx imagetools command arguments: ${CMD_ARGS[*]}"
+
+        # Execute the command
+        docker buildx imagetools create "${CMD_ARGS[@]}"
 
         # Get manifest digest (format: sha256:hash)
         MANIFEST_DIGEST=$(docker buildx imagetools inspect "${DOCKER_MANIFEST_NAME_WITH_TAG}" | grep -m1 'Digest:' | awk '{print $2}')
@@ -195,6 +409,9 @@ runs:
       env:
         DOCKER_MANIFEST_SIGNED: ${{ inputs.docker-manifest-sign }}
         GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
+        MANIFEST_ADDITIONAL_TAGS:
+          ${{ steps.create-push-docker-manifest.outputs.manifest-additional-tags
+          }}
         MANIFEST_DIGEST:
           ${{ steps.create-push-docker-manifest.outputs.manifest-digest }}
         MANIFEST_NAME:
@@ -216,6 +433,7 @@ runs:
         echo "Manifest digest: \`${MANIFEST_DIGEST}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
         echo "Manifest name: \`${MANIFEST_NAME}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
         echo "Manifest tag: \`${MANIFEST_TAG}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
+        echo "Manifest additional tags: \`${MANIFEST_ADDITIONAL_TAGS:-None}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
         echo "Manifest name with tag: \`${MANIFEST_NAME_WITH_TAG}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
         echo "Manifest name with digest: \`${MANIFEST_NAME_WITH_DIGEST}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
         if [[ "${DOCKER_MANIFEST_SIGNED}" == 'true' ]]; then
