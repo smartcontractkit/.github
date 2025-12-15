@@ -14,6 +14,11 @@ inputs:
   pr:
     required: false
     description: "The pull request number to use for the lock branch"
+  message_action:
+    required: false
+    description:
+      "The message action to use when creating status checks (default: 'Deployment')"
+    default: "Deployment"
 
 outputs:
   lock_acquired:
@@ -22,6 +27,7 @@ outputs:
   lock_owner:
     description: "The owner of the lock, the PR number"
     value: ${{ steps.acquire-lock.outputs.lock_owner }}
+    
 
 # --------------------------------------
 # Action implementation
@@ -35,6 +41,7 @@ runs:
         LOCK_NAME: ${{ inputs.lock }}
         CURRENT_PR: ${{ inputs.pr || github.event.pull_request.number }}
         GITHUB_SHA: ${{ github.sha }}
+        MESSAGE_ACTION: ${{ inputs.message_action }}
         GITHUB_REPOSITORY: $GITHUB_REPOSITORY
       shell: bash
       run: |
@@ -66,30 +73,30 @@ runs:
               repos/$GITHUB_REPOSITORY/check-runs \
               --method POST \
               -H "Accept: application/vnd.github+json" \
-              -f name="Deploy Lock Status" \
+              -f name="Lock Status" \
               -f head_sha="${GITHUB_SHA}" \
               -f status="completed" \
               -f conclusion="success" \
               -f output[title]="✅ Lock already held" \
-              -f output[summary]="This PR (#${CURRENT_PR}) already holds the global deployment lock."
+              -f output[summary]="This PR (#${CURRENT_PR}) already holds the global lock."
 
             echo "lock_acquired=true" | tee -a "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          echo "Another PR (#$holder_pr) currently holds the lock. Blocking this deploy."
+          echo "Another PR (#$holder_pr) currently holds the lock. Blocking this ${MESSAGE_ACTION}."
           echo "lock_acquired=false" | tee -a "$GITHUB_OUTPUT"
 
           # -------------------------------
           # PR comment about being blocked
           # -------------------------------
-          COMMENT_BODY="🚫 **Deploy blocked**  
-          Another PR (#${holder_pr}) currently holds the global deployment lock.  
-          This PR cannot deploy until that PR is merged or closed."
+          COMMENT_BODY="🚫 **${MESSAGE_ACTION} blocked**  
+          Another PR (#${holder_pr}) currently holds the global lock.  
+          This PR cannot proceed the ${MESSAGE_ACTION}, until that PR is merged or closed."
 
           existing_comment_id=$(gh api \
             repos/$GITHUB_REPOSITORY/issues/${CURRENT_PR}/comments \
-            --jq '.[] | select(.body | contains("🚫 **Deploy blocked**")) | .id' \
+            --jq '.[] | select(.body | contains("🚫 **'"${MESSAGE_ACTION}"' blocked**")) | .id' \
             || echo "")
 
           if [[ -n "$existing_comment_id" ]]; then
@@ -113,12 +120,12 @@ runs:
             repos/$GITHUB_REPOSITORY/check-runs \
             --method POST \
             -H "Accept: application/vnd.github+json" \
-            -f name="Deploy Lock Status" \
+            -f name="Lock Status" \
             -f head_sha="${GITHUB_SHA}" \
             -f status="completed" \
             -f conclusion="failure" \
-            -f output[title]="🚫 Deployment blocked" \
-            -f output[summary]="Another PR (#${holder_pr}) currently holds the global deployment lock. Re-run this workflow when that PR is merged or closed."
+            -f output[title]="🚫 ${MESSAGE_ACTION} blocked" \
+            -f output[summary]="Another PR (#${holder_pr}) currently holds the global lock. Re-run this workflow when that PR is merged or closed."
 
           exit 1
         fi
@@ -143,9 +150,9 @@ runs:
           repos/$GITHUB_REPOSITORY/check-runs \
           --method POST \
           -H "Accept: application/vnd.github+json" \
-          -f name="Deploy Lock Status" \
+          -f name="Lock Status" \
           -f head_sha="${GITHUB_SHA}" \
           -f status="completed" \
           -f conclusion="success" \
           -f output[title]="✅ Lock acquired" \
-          -f output[summary]="This PR (#${CURRENT_PR}) now holds the global deployment lock and can deploy safely."
+          -f output[summary]="This PR (#${CURRENT_PR}) now holds the global lock and can proceed safely."

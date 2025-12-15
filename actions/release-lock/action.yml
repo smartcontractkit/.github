@@ -19,6 +19,11 @@ inputs:
     description:
       "Whether to delete lock-related comments from other PRs (true/false)"
     default: "true"
+  message_action:
+    required: false
+    description:
+      "The message action to use when creating status checks (default: 'Deployment')"
+    default: "Deployment"
 
 # --------------------------------------
 # Action implementation
@@ -72,11 +77,12 @@ runs:
       env:
         CURRENT_PR: ${{ inputs.pr || github.event.pull_request.number }}
         GITHUB_REPOSITORY: ${{ github.repository }}
+        MESSAGE_ACTION: ${{ inputs.message_action }}
       shell: bash
       run: |
         set -e
 
-        echo "Cleaning up 'Deploy blocked' comments referring to PR #$CURRENT_PR"
+        echo "Cleaning up '${MESSAGE_ACTION} blocked' comments referring to PR #$CURRENT_PR"
 
         # List all open PRs (including this one is fine, though it's closed now)
         open_prs=$(gh pr list \
@@ -94,7 +100,7 @@ runs:
           # Find comments that contain BOTH the generic marker and this PR number
           comment_ids=$(gh api \
             repos/$GITHUB_REPOSITORY/issues/$pr/comments \
-            --jq '.[] | select(.body | contains("🚫 **Deploy blocked**") and contains("#'"$CURRENT_PR"'")) | .id' \
+            --jq '.[] | select(.body | contains("🚫 **'"${MESSAGE_ACTION}"' blocked**") and contains("#'"$CURRENT_PR"'")) | .id' \
             || echo "")
 
           if [[ -z "$comment_ids" ]]; then
