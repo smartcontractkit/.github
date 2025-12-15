@@ -73,12 +73,12 @@ runs:
               -f output[title]="✅ Lock already held" \
               -f output[summary]="This PR (#${CURRENT_PR}) already holds the global deployment lock."
 
-            echo "lock_acquired=true" >> $GITHUB_OUTPUT
+            echo "lock_acquired=true" | tee -a "$GITHUB_OUTPUT"
             exit 0
           fi
 
           echo "Another PR (#$holder_pr) currently holds the lock. Blocking this deploy."
-          echo "lock_acquired=false" >> $GITHUB_OUTPUT
+          echo "lock_acquired=false" | tee -a "$GITHUB_OUTPUT"
 
           # -------------------------------
           # PR comment about being blocked
@@ -135,8 +135,8 @@ runs:
         git push origin "$LOCK_NAME"
 
         echo "Lock branch '$LOCK_NAME' created for PR #$CURRENT_PR."
-        echo "lock_owner=$CURRENT_PR" >> $GITHUB_OUTPUT
-        echo "lock_acquired=true" >> $GITHUB_OUTPUT
+        echo "lock_owner=$CURRENT_PR" | tee -a "$GITHUB_OUTPUT"
+        echo "lock_acquired=true" | tee -a "$GITHUB_OUTPUT"
 
         # SUCCESS status check
         gh api \

@@ -41,7 +41,7 @@ runs:
         # Check if the lock branch exists on remote
         if ! git ls-remote --heads origin "$LOCK_NAME" | grep -q "refs/heads/$LOCK_NAME"; then
           echo "Lock branch '$LOCK_NAME' does not exist. Nothing to delete."
-          echo "lock_was_owned=false" >> $GITHUB_OUTPUT
+          echo "lock_was_owned=false" | tee -a "$GITHUB_OUTPUT"
           exit 0
         fi
 
@@ -57,14 +57,14 @@ runs:
 
         if [ "$holder_pr" != "$CURRENT_PR" ]; then
           echo "This PR does NOT own the lock. Not deleting lock branch."
-          echo "lock_was_owned=false" >> $GITHUB_OUTPUT
+          echo "lock_was_owned=false" | tee -a "$GITHUB_OUTPUT"
           exit 0
         fi
 
         echo "This PR owns the lock. Deleting lock branch '$LOCK_NAME'."
         git push origin ":$LOCK_NAME"
 
-        echo "lock_was_owned=true" >> $GITHUB_OUTPUT
+        echo "lock_was_owned=true" | tee -a "$GITHUB_OUTPUT"
     - name: Cleanup Lock Comments
       if:
         ${{ inputs.cleanup_comments == 'true' &&
