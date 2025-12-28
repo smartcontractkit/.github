@@ -61,7 +61,7 @@ runs:
         docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-cli:qa-latest chip-cli
 
     - name: Connect to Tailscale
-      uses: tailscale/github-action@84a3f23bb4d843bcf4da6cf824ec1be473daf4de
+      uses: tailscale/github-action@53acf823325fe9ca47f4cdaa951f90b4b0de5bb9
       with:
         oauth-client-id: ${{ inputs.ts-ouath-client-id }}
         oauth-secret: ${{ inputs.ts-ouath-secret }}
