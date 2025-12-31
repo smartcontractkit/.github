@@ -102,7 +102,7 @@ runs:
 
     - name: Upload Test Results to Trunk.io
       id: upload-to-trunk
-      uses: trunk-io/analytics-uploader@f2631c653f9675d391e6e68cc877370db927c64c # v2.0.0
+      uses: trunk-io/analytics-uploader@ef9d94ea43662c5cce70142afa7eb2833e66a75f # v2.0.5
       continue-on-error: ${{ inputs.trunk-upload-only == 'true' }}
       env:
         TRUNK_TELEMETRY: "off"
