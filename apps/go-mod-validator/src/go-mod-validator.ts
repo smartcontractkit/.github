@@ -4,12 +4,15 @@ import { throttling } from "@octokit/plugin-throttling";
 
 import { getDeps, BaseGoModule, lineForDependencyPathFinder } from "./deps";
 import { getChangedGoModFiles } from "./diff";
-import { getDefaultBranch, isGoModReferencingDefaultBranch } from "./github";
+import { getDefaultBranch, isGoModReferencingBranch } from "./github";
 import { getInputs } from "./run-inputs";
 import { FIXING_ERRORS } from "./strings";
 
-function getContext() {
-  const { goModDir, githubToken, githubPrReadToken, depPrefix } = getInputs();
+import type { Octokit } from "./github";
+import type { GoModule } from "./deps";
+import type { RunInputs } from "./run-inputs";
+
+function getOctokits(inputs: RunInputs) {
 
   type ThrottlingOptions = Parameters<typeof throttling>[1];
   interface IRequestRateLimitOptions {
@@ -50,33 +53,39 @@ function getContext() {
   };
 
   const octokit = github.getOctokit(
-    githubToken,
+    inputs.githubToken,
     options,
     // @ts-expect-error @actions/github uses octokit/core ^5.0.1 whereas @octokit/plugin-throttling uses octokit/core ^7.0.5
     throttling,
   );
 
   const prReadOctokit = github.getOctokit(
-    githubPrReadToken,
+    inputs.githubPrReadToken,
     options,
     // @ts-expect-error @actions/github uses octokit/core ^5.0.1 whereas @octokit/plugin-throttling uses octokit/core ^7.0.5
     throttling,
   );
 
-  const isPullRequest = !!github.context.payload.pull_request;
 
-  return { goModDir, octokit, prReadOctokit, depPrefix, isPullRequest };
+  return { octokit, prReadOctokit };
 }
 
-export async function run(): Promise<string> {
-  const { goModDir, octokit, prReadOctokit, depPrefix, isPullRequest } =
-    getContext();
+type Invalidation = {
+  type: "error" | "warning";
+  msg: string;
+};
 
-  core.debug(`Go module directory: ${goModDir}`);
-  core.debug(`Dependency prefix filter: ${depPrefix || "none"}`);
+export async function run(): Promise<string> {
+  const inputs = getInputs();
+  const { octokit, prReadOctokit} = getOctokits(inputs);
+  const isPullRequest = !!github.context.payload.pull_request;
+
+
+  core.debug(`Go module directory: ${inputs.goModDir}`);
+  core.debug(`Dependency prefix filter: ${inputs.depPrefix || "none"}`);
   core.debug(`Pull request mode: ${isPullRequest}`);
 
-  let depsToValidate = await getDeps(goModDir, depPrefix);
+  let depsToValidate = await getDeps(inputs.goModDir, inputs.depPrefix);
   if (isPullRequest) {
     core.info(
       "Running in pull request mode, filtering dependencies to validate based on changed files and only checking for pseudo-versions.",
@@ -92,7 +101,7 @@ export async function run(): Promise<string> {
       pr.number,
       owner,
       repo,
-      depPrefix,
+      inputs.depPrefix,
     );
 
     core.debug(
@@ -116,67 +125,15 @@ export async function run(): Promise<string> {
     );
   }
 
-  const invalidations: Map<
-    BaseGoModule,
-    {
-      type: "error" | "warning";
-      msg: string;
-    }
-  > = new Map();
-  const validating = depsToValidate.map(async (d) => {
-    // Bit of a code smell, but I wanted to avoid adding the defaultBranchGetter to deps.ts to keep it separate from
-    // the GitHub API client.
-    // And we want the default branch available in this scope for context.
-    const defaultBranch = await getDefaultBranch(octokit, d);
-    const result = await isGoModReferencingDefaultBranch(
-      octokit,
-      d,
-      defaultBranch,
-    );
-    const { commitSha, isInDefault } = result;
-
-    const repoUrl = `https://github.com/${d.owner}/${d.repo}`;
-    let detailString = "";
-    if ("tag" in d) {
-      detailString = `Version(tag): ${d.tag}
-Tree: ${repoUrl}/tree/${d.tag}
-Commit: ${repoUrl}/commit/${commitSha}`;
-    }
-    if ("commitSha" in d) {
-      detailString = `Version(commit): ${d.commitSha}
-Tree: ${repoUrl}/tree/${d.commitSha}
-Commit: ${repoUrl}/commit/${d.commitSha} `;
-    }
-
-    switch (isInDefault) {
-      case true:
-        break;
-      case false: {
-        const msg = `[${d.goModFilePath}] dependency ${d.name} not on default branch (${defaultBranch}).
-${detailString}`;
-
-        invalidations.set(d, { msg, type: "error" });
-        break;
-      }
-      case "unknown": {
-        const msg = `[${d.goModFilePath}] dependency ${d.name} not found in default branch (${defaultBranch}).
-Reason: ${result.reason}
-${detailString}`;
-
-        invalidations.set(d, { msg, type: "warning" });
-        break;
-      }
-      default:
-        {
-          // exhaustive check
-          const isNever = (isInDefault: never) => isInDefault;
-          isNever(isInDefault);
-        }
-        break;
+  const invalidations: Map<BaseGoModule, Invalidation> = new Map();
+  const validationPromises = depsToValidate.map(async (d) => {
+    const invalidation = await validateDependency(octokit, d, inputs);
+    if (invalidation) {
+      invalidations.set(d, invalidation);
     }
   });
 
-  await Promise.all(validating);
+  await Promise.all(validationPromises);
 
   if (invalidations.size > 0) {
     core.info(`Found ${invalidations.size} invalid dependencies.`);
@@ -219,4 +176,52 @@ ${detailString}`;
     core.info(msg);
     return msg;
   }
+}
+
+async function validateDependency(octokit: Octokit, dep: GoModule, inputs: RunInputs): Promise<Invalidation | null> {
+  const defaultBranch = await getDefaultBranch(octokit, dep);
+  const result = await isGoModReferencingBranch(octokit, dep, defaultBranch);
+  const { commitSha, isInDefault } = result;
+  const detailString = formatDetailString(dep, commitSha);
+
+  switch (isInDefault) {
+    case true:
+      return null;
+    case false: {
+      const msg = `[${dep.goModFilePath}] dependency ${dep.name} not on default branch (${defaultBranch}).
+${detailString}`;
+      return { msg, type: "error" } as Invalidation;
+    }
+    case "unknown": {
+      const msg = `[${dep.goModFilePath}] dependency ${dep.name} not found in default branch (${defaultBranch}).
+Reason: ${result.reason}
+${detailString}`;
+      return { msg, type: "warning" } as Invalidation;
+    }
+    default:
+      {
+        // exhaustive check
+        const isNever = (isInDefault: never) => isInDefault;
+        isNever(isInDefault);
+      }
+      return null;
+  }
+}
+
+function formatDetailString(dep: GoModule, commitSha: string) {
+  const repoUrl = `https://github.com/${dep.owner}/${dep.repo}`;
+
+  if ("tag" in dep) {
+    return `Version(tag): ${dep.tag}
+Tree: ${repoUrl}/tree/${dep.tag}
+Commit: ${repoUrl}/commit/${commitSha}`;
+  }
+
+  if ("commitSha" in dep) {
+    return `Version(commit): ${dep.commitSha}
+Tree: ${repoUrl}/tree/${dep.commitSha}
+Commit: ${repoUrl}/commit/${dep.commitSha} `;
+  }
+
+  return "";
 }
