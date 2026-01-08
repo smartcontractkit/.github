@@ -83,7 +83,7 @@ describe("isGoModReferencingBranch", () => {
 
       expect(mockOctokit.rest.git.getRef).not.toHaveBeenCalled();
       expect(mockOctokit.rest.git.getTag).not.toHaveBeenCalled();
-      expect(result).toEqual({ isInDefault: true, commitSha });
+      expect(result).toEqual({ isInBranch: true, commitSha });
     });
 
     it("should throw an error if the compare commits request fails", async () => {
@@ -147,7 +147,7 @@ describe("isGoModReferencingBranch", () => {
       );
 
       expect(result).toEqual({
-        isInDefault: true,
+        isInBranch: true,
         commitSha,
       });
     });
@@ -156,14 +156,9 @@ describe("isGoModReferencingBranch", () => {
       const errMsg = "not found";
       mockOctokit.rest.git.getRef.mockRejectedValue(errMsg);
 
-      const result = isGoModReferencingBranch(
-        mockOctokit,
-        goMod,
-        "main",
-        {},
-      );
+      const result = isGoModReferencingBranch(mockOctokit, goMod, "main", {});
       expect(result).resolves.toEqual({
-        isInDefault: "unknown",
+        isInBranch: "unknown",
         commitSha: "",
         reason: errMsg,
       });

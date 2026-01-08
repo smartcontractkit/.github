@@ -13,7 +13,7 @@ async function isCommitInBranch(
   gh: Octokit,
   defaultBranch: string,
   { repo, owner, commitSha }: GoModuleWithCommitSha,
-): Promise<GoModDefaultBranchLookupResult> {
+): Promise<GoModBranchLookupResult> {
   const {
     data: { status },
   } = await gh.rest.repos.compareCommits({
@@ -23,9 +23,9 @@ async function isCommitInBranch(
     head: commitSha,
   });
 
-  const isInDefault = status === "identical" || status === "behind";
+  const isInBranch = status === "identical" || status === "behind";
   return {
-    isInDefault,
+    isInBranch,
     commitSha,
   };
 }
@@ -34,7 +34,7 @@ async function isTagInBranch(
   gh: Octokit,
   branch: string,
   mod: GoModuleWithTag,
-): Promise<GoModDefaultBranchLookupResult> {
+): Promise<GoModBranchLookupResult> {
   let commitSha = "";
   try {
     const tag = await gh.rest.git.getRef({
@@ -69,33 +69,33 @@ async function isTagInBranch(
     }
 
     return {
-      isInDefault: "unknown",
+      isInBranch: "unknown",
       commitSha,
       reason: eStr,
     };
   }
 }
 
-interface GoModDefaultBranchKnownLookupResult {
-  isInDefault: boolean;
+interface GoModBranchKnownLookupResult {
+  isInBranch: boolean;
   commitSha: string;
 }
 
-interface GoModDefaultBranchUnknownResult {
-  isInDefault: "unknown";
+interface GoModBranchUnknownResult {
+  isInBranch: "unknown";
   /**
-   * Additional information when "isInDefault" is "unknown"
+   * Additional information when "isInBranch" is "unknown"
    */
   reason: string;
   commitSha: string;
 }
 
-export type GoModDefaultBranchLookupResult =
-  | GoModDefaultBranchKnownLookupResult
-  | GoModDefaultBranchUnknownResult;
+export type GoModBranchLookupResult =
+  | GoModBranchKnownLookupResult
+  | GoModBranchUnknownResult;
 
 // Create a singleton cache for storing promises
-const cache: { [key: string]: Promise<GoModDefaultBranchLookupResult> } = {};
+const cache: { [key: string]: Promise<GoModBranchLookupResult> } = {};
 
 /**
  * Checks if a given Go module in its respective GitHub repository's default branch.
@@ -104,7 +104,7 @@ const cache: { [key: string]: Promise<GoModDefaultBranchLookupResult> } = {};
  *
  * @param gh - The Octokit client used to make API requests to GitHub.
  * @param mod - The Go module to validate.
- * @param branch - The default branch of the repository.
+ * @param branch - A branch of the repository.
  *
  * @returns A boolean indicating whether the version exists in the repository.
  */
@@ -113,7 +113,7 @@ export async function isGoModReferencingBranch(
   mod: GoModule,
   branch: string,
   c = cache,
-): Promise<GoModDefaultBranchLookupResult> {
+): Promise<GoModBranchLookupResult> {
   const cacheKey = `${mod.path}:${mod.version}:${branch}`;
 
   // Check if the result is already in the cache
@@ -134,7 +134,7 @@ export async function isGoModReferencingBranch(
     } else {
       core.warning(`Unable to parse commit sha nor tag for module ${mod.name}`);
       return {
-        isInDefault: false,
+        isInBranch: false,
         commitSha: "",
       };
     }

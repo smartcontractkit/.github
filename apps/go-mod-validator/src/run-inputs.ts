@@ -20,7 +20,9 @@ export function getInputs(): RunInputs {
     githubPrReadToken: getRunInputString("githubPrReadToken", githubToken),
     goModDir: getRunInputString("goModDir"),
     depPrefix: getRunInputString("depPrefix"),
-    repoBranchExceptions: getRunInputRepoBranchExceptions("repoBranchExceptions"),
+    repoBranchExceptions: getRunInputRepoBranchExceptions(
+      "repoBranchExceptions",
+    ),
   };
 
   core.info(`Inputs: ${JSON.stringify(inputs)}`);
@@ -140,18 +142,16 @@ function parseRepoBranchLine(line: string): [string, string[]] {
 }
 
 function splitAndTrim(s: string, separator: string): string[] {
-  return s.split(separator).map((part) => part.trim()).filter((part) => part.length > 0);
+  return s
+    .split(separator)
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
 }
 
-function addOrAppendMapValue<K, V>(
-  map: Map<K, V[]>,
-  key: K,
-  value: V[],
-) {
+function addOrAppendMapValue<K, V>(map: Map<K, V[]>, key: K, value: V[]) {
   if (map.has(key)) {
     map.get(key)!.push(...value);
-  }
-  else {
+  } else {
     map.set(key, value);
   }
 }
