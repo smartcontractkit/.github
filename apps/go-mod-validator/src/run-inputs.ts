@@ -98,11 +98,10 @@ function getInputKey(input: keyof RunInputs) {
  */
 export function getRunInputRepoBranchExceptions(
   input: keyof RunInputs,
-  required: boolean = false,
 ): Map<string, string[]> {
   const inputKey = getInputKey(input);
   const inputValue = core.getInput(inputKey, {
-    required,
+    required: false,
   });
   if (!inputValue) {
     return new Map();
