@@ -28797,8 +28797,22 @@ function getInputs() {
       "repoBranchExceptions"
     )
   };
-  core4.info(`Inputs: ${JSON.stringify(inputs)}`);
+  logInputs(inputs);
   return inputs;
+}
+function logInputs(inputs) {
+  core4.info("Run Inputs:");
+  core4.info(`  githubToken: [REDACTED] (non-empty: ${!!inputs.githubToken})`);
+  core4.info(
+    `  githubPrReadToken: [REDACTED] (non-empty: ${!!inputs.githubPrReadToken})`
+  );
+  core4.info(`  goModDir: ${inputs.goModDir}`);
+  core4.info(`  depPrefix: ${inputs.depPrefix}`);
+  core4.info(
+    `  repoBranchExceptions: ${JSON.stringify(
+      Array.from(inputs.repoBranchExceptions.entries())
+    )}`
+  );
 }
 var runInputsConfiguration = {
   githubToken: {

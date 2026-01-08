@@ -25,8 +25,23 @@ export function getInputs(): RunInputs {
     ),
   };
 
-  core.info(`Inputs: ${JSON.stringify(inputs)}`);
+  logInputs(inputs);
   return inputs;
+}
+
+function logInputs(inputs: RunInputs) {
+  core.info("Run Inputs:");
+  core.info(`  githubToken: [REDACTED] (non-empty: ${!!inputs.githubToken})`);
+  core.info(
+    `  githubPrReadToken: [REDACTED] (non-empty: ${!!inputs.githubPrReadToken})`,
+  );
+  core.info(`  goModDir: ${inputs.goModDir}`);
+  core.info(`  depPrefix: ${inputs.depPrefix}`);
+  core.info(
+    `  repoBranchExceptions: ${JSON.stringify(
+      Array.from(inputs.repoBranchExceptions.entries()),
+    )}`,
+  );
 }
 
 interface RunInputConfiguration {
