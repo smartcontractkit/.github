@@ -19,6 +19,15 @@ inputs:
   dep-prefix:
     description: "Prefix to filter dependencies by"
     default: "github.com/smartcontractkit"
+  repo-branch-exceptions:
+    description: |
+      Each line should contain a repository and a comma separated list of branches.
+      Format: <owner>/<repo>:<branch1>,<branch2>,...
+      Can include the same repo multiple times to append more branches.
+      Example:
+        smartcontractkit/chainlink:main,release/2.30.1
+        smartcontractkit/chainlink-ccip:develop
+    default: ""
 
 runs:
   using: "node20"
