@@ -1,5 +1,15 @@
 # go-mod-validator
 
+## 1.3.0
+
+### Minor Changes
+
+- [#1382](https://github.com/smartcontractkit/.github/pull/1382)
+  [`ffec11e`](https://github.com/smartcontractkit/.github/commit/ffec11e49f56dd9332d4f41bab388777ae2d3c50)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: add
+  repo-branch-exceptions input allowing exceptions for explicit repo+branch
+  combinations
+
 ## 1.2.0
 
 ### Minor Changes
