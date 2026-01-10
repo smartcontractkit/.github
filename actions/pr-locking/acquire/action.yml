@@ -24,10 +24,10 @@ inputs:
 outputs:
   lock_acquired:
     description: "Returns 'true' if the lock was acquired, else 'false'"
-    value: ${{ steps.acquire-lock.outputs.lock_acquired }}
+    value: ${{ steps.lock.outputs.lock_acquired }}
   lock_owner:
     description: "The owner of the lock, the PR number"
-    value: ${{ steps.acquire-lock.outputs.lock_owner }}
+    value: ${{ steps.lock.outputs.lock_owner }}
 
 # --------------------------------------
 # Action implementation
