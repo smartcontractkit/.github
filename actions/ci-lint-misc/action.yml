@@ -11,6 +11,10 @@ inputs:
     description: "number of commits to fetch"
     required: false
     default: "0"
+  shellcheck-scandir:
+    description: "directory to scan for shell scripts"
+    required: false
+    default: "./tools/scripts"
 
 runs:
   using: composite
@@ -22,9 +26,9 @@ runs:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
     - name: Run actionlint
-      uses: reviewdog/action-actionlint@4f8f9963ca57a41e5fd5b538dd79dbfbd3e0b38a # v1.54.0
+      uses: reviewdog/action-actionlint@83e4ed25b168066ad8f62f5afbb29ebd8641d982 # v1.69.1
 
     - name: Run shellcheck
       uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # v2.0.0
       with:
-        scandir: "./tools/scripts"
+        scandir: ${{ inputs.shellcheck-scandir }}
