@@ -1,5 +1,14 @@
 # ci-lint-misc
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1384](https://github.com/smartcontractkit/.github/pull/1384)
+  [`9c12618`](https://github.com/smartcontractkit/.github/commit/9c126184294ba79f50eb6c29406590c149f8609c)
+  Thanks [@chainchad](https://github.com/chainchad)! - Make scan dir for
+  shellcheck configurable
+
 ## 1.0.0
 
 ### Major Changes
