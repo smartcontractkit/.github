@@ -1,5 +1,14 @@
 # go-mod-validator
 
+## 1.4.0
+
+### Minor Changes
+
+- [#1389](https://github.com/smartcontractkit/.github/pull/1389)
+  [`fd7aa29`](https://github.com/smartcontractkit/.github/commit/fd7aa295d5dcb26c40fb24404e51adcf705fd49f)
+  Thanks [@pavel-raykov](https://github.com/pavel-raykov)! - Tolerate errors on
+  the go list output
+
 ## 1.3.0
 
 ### Minor Changes
