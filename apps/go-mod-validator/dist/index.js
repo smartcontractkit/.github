@@ -28519,7 +28519,7 @@ async function getDeps(rootDir, depPrefix) {
     core.info(`Finding dependencies in ${goModFilePath}`);
     try {
       const dir = (0, import_path.dirname)(goModFilePath);
-      const output = (0, import_child_process.execSync)("go list -json -m all", {
+      const output = (0, import_child_process.execSync)("go list -json -e -m all", {
         encoding: "utf-8",
         cwd: dir
       });
