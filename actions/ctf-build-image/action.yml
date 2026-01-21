@@ -163,6 +163,9 @@ runs:
         cat go.mod
         echo "::endgroup::"
 
+    - name: Free up disk space (to avoid 'no space left on device' errors)
+      uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
+
     - name: Build push docker image
       id: build-image
       uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/v1

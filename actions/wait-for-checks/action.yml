@@ -1,0 +1,40 @@
+name: "wait-for-checks"
+description: |
+  Waits for specified GitHub check runs to complete on a given commit SHA.
+
+# ----------------------------------------------------------
+# Inputs
+# ----------------------------------------------------------
+inputs:
+  check-patterns:
+    description:
+      "Comma or newline separated list of regex patterns for check run names"
+    required: true
+  timeout-seconds:
+    description: "Maximum time to wait in seconds"
+    required: false
+    default: "300"
+  interval-seconds:
+    description: "Polling interval in seconds"
+    required: false
+    default: "15"
+  ref:
+    description: "Git ref (SHA) to inspect. Defaults to current commit SHA."
+    required: false
+  skip-handling:
+    description: "'ignore' | 'treat-as-success' | 'treat-as-failure'"
+    required: false
+
+# ----------------------------------------------------------
+# Runs
+# ----------------------------------------------------------
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  env:
+    INPUT_CHECK_PATTERNS: ${{ inputs.check-patterns }}
+    INPUT_TIMEOUT_SECONDS: ${{ inputs.timeout-seconds }}
+    INPUT_INTERVAL_SECONDS: ${{ inputs.interval-seconds }}
+    INPUT_REF: ${{ inputs.ref }}
+    INPUT_SKIP_HANDLING: ${{ inputs.skip-handling }}
+    GITHUB_TOKEN: ${{ github.token }}

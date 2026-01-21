@@ -1,10 +1,11 @@
 {
-  "name": "ctf-build-image",
-  "version": "1.4.0",
+  "name": "wait-for-checks",
+  "version": "1.0.0",
   "description": "",
   "private": true,
   "scripts": {},
   "author": "@smartcontractkit",
+  "orginal-author": "@smartcontractkit",
   "license": "MIT",
   "dependencies": {},
   "repository": "https://github.com/smartcontractkit/.github"
