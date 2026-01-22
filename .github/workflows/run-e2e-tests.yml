@@ -189,6 +189,10 @@ on:
         description: "Test results from all executed tests"
         value: ${{ jobs.after_tests.outputs.test_results }}
     secrets:
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_PASSWORD:
+        required: false
       TEST_SECRETS_OVERRIDE_BASE64:
         required: false
       QA_AWS_REGION:
@@ -401,7 +405,7 @@ jobs:
           echo "latest_version=${latest_version}" >> "$GITHUB_OUTPUT"
           # Check if latest_version is empty
           if [ -z "$latest_version" ]; then
-          echo "Error: The latest_version is empty. The migration tests need a verison to run."
+          echo "Error: The latest_version is empty. The migration tests need a version to run."
           exit 1
           fi
 
@@ -882,6 +886,8 @@ jobs:
             ./system-tests/tests/smoke/cre/logs/
             ./integration-tests/smoke/ccip/db_dumps/
             /tmp/gotest.log
+          dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
           publish_check_name: ${{ env.TEST_ID }}
           token: ${{ secrets.GH_TOKEN }}
           cache_key_id: e2e-tests
