@@ -74,10 +74,11 @@ runs:
         BUILD_COMMAND: ${{ inputs.build-command }}
       run: $BUILD_COMMAND
 
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v4
+    - name: Upload pages artifact
+      uses: actions/upload-pages-artifact@v4.0.0
       with:
-        github_token: ${{ inputs.github-token }}
-        publish_dir: >-
+        path: >-
           ${{ inputs.docs-directory }}/${{ inputs.build-output-directory }}
-        publish_branch: ${{ inputs.deployment-branch }}
+
+    - name: Deploy to GitHub Pages
+      uses: actions/deploy-pages@v4.0.5
