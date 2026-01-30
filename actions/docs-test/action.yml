@@ -57,4 +57,6 @@ runs:
     - name: Build documentation
       shell: bash
       working-directory: ${{ inputs.docs-directory }}
-      run: ${{ inputs.build-command }}
+      env:
+        BUILD_COMMAND: ${{ inputs.build-command }}
+      run: $BUILD_COMMAND
