@@ -100,7 +100,7 @@ jobs:
           fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
       - name: Setup nodejs
-        uses: smartcontractkit/.github/actions/setup-nodejs@main
+        uses: smartcontractkit/.github/actions/setup-nodejs@43fe7fdc5d678b962d777a4af76719792f9a4354 # setup-nodejs@0.2.3
         with:
           node-version-file: ${{ inputs.node-version-file }}
           pnpm-version: ${{ inputs.pnpm-version }}
@@ -136,7 +136,7 @@ jobs:
           fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
       - name: Setup nodejs
-        uses: smartcontractkit/.github/actions/setup-nodejs@main
+        uses: smartcontractkit/.github/actions/setup-nodejs@43fe7fdc5d678b962d777a4af76719792f9a4354 # setup-nodejs@0.2.3
         with:
           node-version-file: ${{ inputs.node-version-file }}
           pnpm-version: ${{ inputs.pnpm-version }}
