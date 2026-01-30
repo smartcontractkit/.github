@@ -29,6 +29,10 @@ inputs:
     description: "command to build the documentation"
     required: false
     default: "pnpm run build"
+  test-command:
+    description: "command to test the documentation"
+    required: false
+    default: ""
   package-json-directory:
     description:
       "the sub-directory of the package.json, if not at the root of the
@@ -61,3 +65,11 @@ runs:
       env:
         BUILD_COMMAND: ${{ inputs.build-command }}
       run: $BUILD_COMMAND
+
+    - name: Test documentation
+      if: inputs.test-command != ''
+      shell: bash
+      working-directory: ${{ inputs.docs-directory }}
+      env:
+        TEST_COMMAND: ${{ inputs.test-command }}
+      run: $TEST_COMMAND
