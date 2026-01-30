@@ -31,8 +31,8 @@ inputs:
     default: "pnpm run build"
   package-json-directory:
     description:
-      "the sub-directory of the package.json, if not at the root of
-      the repository"
+      "the sub-directory of the package.json, if not at the root of the
+      repository"
     required: false
     default: "."
 
