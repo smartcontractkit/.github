@@ -1,25 +1,27 @@
-name: Reusable Docs Deploy
+name: Reusable Docusaurus
 
 ##
-# Build and deploy Docusaurus documentation to GitHub Pages.
+# Build and test, and build and deploy Docusaurus documentation.
 #
 # This workflow is reusable and can be called from other workflows.
+# It runs two jobs: docs-test (build + test) and docs-deploy (build + deploy to
+# GitHub Pages). The deploy job runs after the test job succeeds.
 #
 # Example usage from a calling workflow:
 #
 #   jobs:
-#     docs-deploy:
+#     docusaurus:
 #       permissions:
 #         contents: read
 #         pages: write
 #         id-token: write
-#       uses: smartcontractkit/.github/.github/workflows/reusable-docs-deploy.yml@<git-sha>
+#       uses: smartcontractkit/.github/.github/workflows/reusable-docusaurus.yml@<git-sha>
 #       with:
 #         docs-directory: docs
 #         build-command: pnpm run build
+#         test-command: pnpm run test
 #         build-output-directory: build
 #         package-json-directory: .
-#         deployment-branch: gh-pages
 # ##
 
 on:
@@ -58,6 +60,11 @@ on:
         required: false
         type: string
         default: "pnpm run build"
+      test-command:
+        description: "command to test the documentation"
+        required: false
+        type: string
+        default: ""
       build-output-directory:
         description: "directory where the built documentation is output"
         required: false
@@ -82,8 +89,44 @@ permissions:
   id-token: write
 
 jobs:
+  docs-test:
+    name: Build and Test Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        if: inputs.checkout-repo == 'true'
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+      - name: Setup nodejs
+        uses: smartcontractkit/.github/actions/setup-nodejs@main
+        with:
+          node-version-file: ${{ inputs.node-version-file }}
+          pnpm-version: ${{ inputs.pnpm-version }}
+          use-cache: "true"
+          run-install: "true"
+          package-json-directory: ${{ inputs.package-json-directory }}
+        continue-on-error: true
+
+      - name: Build documentation
+        shell: bash
+        working-directory: ${{ inputs.docs-directory }}
+        env:
+          BUILD_COMMAND: ${{ inputs.build-command }}
+        run: $BUILD_COMMAND
+
+      - name: Test documentation
+        if: inputs.test-command != ''
+        shell: bash
+        working-directory: ${{ inputs.docs-directory }}
+        env:
+          TEST_COMMAND: ${{ inputs.test-command }}
+        run: $TEST_COMMAND
+
   docs-deploy:
     name: Build and Deploy Documentation
+    needs: docs-test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
