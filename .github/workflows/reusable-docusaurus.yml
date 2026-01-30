@@ -90,7 +90,9 @@ jobs:
     name: Build, Test and Deploy Documentation
     runs-on: ubuntu-latest
     permissions:
-    ...
+      contents: read
+      pages: write
+      id-token: write
     steps:
       - name: Checkout repo
         if: inputs.checkout-repo == 'true'
