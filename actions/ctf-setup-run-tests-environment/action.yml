@@ -138,7 +138,7 @@ runs:
     # Go setup and caching
     - name: Setup Go
       if: inputs.go_necessary == 'true'
-      uses: smartcontractkit/.github/actions/ctf-setup-go@c83a1867f404a79db873b55f1a5fd30b42569bbb # ctf-setup-go@0.2.0
+      uses: smartcontractkit/.github/actions/ctf-setup-go@8fb84214197a54beaf10afd4fdb258f74b41de1a # ctf-setup-go@0.2.0
       with:
         go_version: ${{ inputs.go_version }}
         go_mod_path: ${{ inputs.go_mod_path }}
@@ -203,7 +203,7 @@ runs:
         mask-aws-account-id: true
 
     - name: Configure local GAP proxy for accessing (Kubernetes) services
-      uses: smartcontractkit/.github/actions/setup-gap@858d6785a9cce58359f5d6f9481902f2d0a331ac # setup-gap@4.0.1
+      uses: smartcontractkit/.github/actions/setup-gap@8fb84214197a54beaf10afd4fdb258f74b41de1a # setup-gap@4.0.1
       if: inputs.enable-gap == 'true'
       with:
         aws-region: ${{ inputs.QA_AWS_REGION }}

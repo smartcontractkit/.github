@@ -192,7 +192,7 @@ runs:
         echo "websockets-services=${websockets_services}" | tee -a "$GITHUB_OUTPUT"
 
     - name: Setup GAP
-      uses: smartcontractkit/.github/actions/setup-gap@f2d17705e345db78d68662e6fb3afcfc0a313a47 # setup-gap@4.2.0
+      uses: smartcontractkit/.github/actions/setup-gap@8fb84214197a54beaf10afd4fdb258f74b41de1a # setup-gap@4.2.0
       env:
         WEBSOCKETS_SERVICES:
           "${{ steps.set-websockets-services.outputs.websockets-services }}"
@@ -244,7 +244,7 @@ runs:
         cache-dependency-path: "${{ github.workspace }}/crib/**/*.sum"
 
     - name: Setup Nix
-      uses: smartcontractkit/.github/actions/setup-nix@4df907a307d91761c15cdff65e508145bdbcfca3 # setup-nix@0.3.0
+      uses: smartcontractkit/.github/actions/setup-nix@8fb84214197a54beaf10afd4fdb258f74b41de1a # setup-nix@0.3.0
       with:
         cache-pubkey: ${{ inputs.cache-pubkey }}
         enable-aws: true

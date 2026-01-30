@@ -391,7 +391,7 @@ runs:
 
     - name: cleanup
       if: always()
-      uses: smartcontractkit/.github/actions/ctf-cleanup@d7bff995d180bd94443e68d5a54496e674232836 # ctf-cleanup@0.0.0
+      uses: smartcontractkit/.github/actions/ctf-cleanup@8fb84214197a54beaf10afd4fdb258f74b41de1a # ctf-cleanup@0.0.0
       with:
         triggered_by: ${{ inputs.triggered_by }}
         should_cleanup: ${{ inputs.should_cleanup }}
