@@ -329,6 +329,10 @@ importers:
 
   actions/docker-image-patch: {}
 
+  actions/docs-deploy: {}
+
+  actions/docs-test: {}
+
   actions/ecr-image-exists: {}
 
   actions/flakeguard-ai-analysis: {}
@@ -570,6 +574,8 @@ importers:
   actions/update-actions: {}
 
   actions/validate-solidity-artifacts: {}
+
+  actions/wait-for-checks: {}
 
   actions/wait-for-workflow-job: {}
 

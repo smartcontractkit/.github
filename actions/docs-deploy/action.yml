@@ -1,0 +1,84 @@
+name: docs-deploy
+description: "Build and deploy Docusaurus documentation"
+
+inputs:
+  # general inputs
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+  # nodejs inputs
+  node-version-file:
+    description: "path to .tool-versions file for node version"
+    required: false
+    default: ".tool-versions"
+  pnpm-version:
+    description: "the pnpm version to use"
+    required: false
+    default: "^10.0.0"
+  # docs-specific inputs
+  docs-directory:
+    description: "directory containing the Docusaurus documentation"
+    required: false
+    default: "."
+  build-command:
+    description: "command to build the documentation"
+    required: false
+    default: "pnpm run build"
+  build-output-directory:
+    description: "directory where the built documentation is output"
+    required: false
+    default: "build"
+  package-json-directory:
+    description:
+      the sub-directory of the package.json, if not at the root of the
+      repository
+    required: false
+    default: "."
+  # deployment inputs
+  github-token:
+    description: "GitHub token for deployment"
+    required: true
+  deployment-branch:
+    description: "branch to deploy to (e.g., gh-pages)"
+    required: false
+    default: "gh-pages"
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+
+    - name: Setup nodejs
+      uses: smartcontractkit/.github/actions/setup-nodejs@main
+      with:
+        node-version-file: ${{ inputs.node-version-file }}
+        pnpm-version: ${{ inputs.pnpm-version }}
+        use-cache: "true"
+        run-install: "true"
+        package-json-directory: ${{ inputs.package-json-directory }}
+      continue-on-error: true
+
+    - name: Build documentation
+      shell: bash
+      working-directory: ${{ inputs.docs-directory }}
+      env:
+        BUILD_COMMAND: ${{ inputs.build-command }}
+      run: $BUILD_COMMAND
+
+    - name: Upload pages artifact
+      uses: actions/upload-pages-artifact@v4.0.0
+      with:
+        path: >-
+          ${{ inputs.docs-directory }}/${{ inputs.build-output-directory }}
+
+    - name: Deploy to GitHub Pages
+      uses: actions/deploy-pages@v4.0.5
