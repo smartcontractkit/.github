@@ -89,6 +89,8 @@ jobs:
   docusaurus:
     name: Build, Test and Deploy Documentation
     runs-on: ubuntu-latest
+    permissions:
+    ...
     steps:
       - name: Checkout repo
         if: inputs.checkout-repo == 'true'
