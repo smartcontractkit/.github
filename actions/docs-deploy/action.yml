@@ -35,7 +35,8 @@ inputs:
     default: "build"
   package-json-directory:
     description:
-      "the sub-directory of the package.json, if not at the root of the repository"
+      "the sub-directory of the package.json, if not at the root of
+      the repository"
     required: false
     default: "."
   # deployment inputs
@@ -77,5 +78,6 @@ runs:
       uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ inputs.github-token }}
-        publish_dir: ${{ inputs.docs-directory }}/${{ inputs.build-output-directory }}
+        publish_dir: >-
+          ${{ inputs.docs-directory }}/${{ inputs.build-output-directory }}
         publish_branch: ${{ inputs.deployment-branch }}
