@@ -1,11 +1,11 @@
 name: Reusable Docusaurus
 
 ##
-# Build and test, and build and deploy Docusaurus documentation.
+# Build, test, and deploy Docusaurus documentation to GitHub Pages.
 #
 # This workflow is reusable and can be called from other workflows.
-# It runs two jobs: docs-test (build + test) and docs-deploy (build + deploy to
-# GitHub Pages). The deploy job runs after the test job succeeds.
+# It runs one job: checkout, setup Node.js, build, (optional) test, upload
+# pages artifact, and deploy.
 #
 # Example usage from a calling workflow:
 #
@@ -86,8 +86,8 @@ on:
 permissions: {}
 
 jobs:
-  docs-test:
-    name: Build and Test Documentation
+  docusaurus:
+    name: Build, Test and Deploy Documentation
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -120,34 +120,6 @@ jobs:
         env:
           TEST_COMMAND: ${{ inputs.test-command }}
         run: $TEST_COMMAND
-
-  docs-deploy:
-    name: Build and Deploy Documentation
-    needs: docs-test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        if: inputs.checkout-repo == 'true'
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
-
-      - name: Setup nodejs
-        uses: smartcontractkit/.github/actions/setup-nodejs@43fe7fdc5d678b962d777a4af76719792f9a4354 # setup-nodejs@0.2.3
-        with:
-          node-version-file: ${{ inputs.node-version-file }}
-          pnpm-version: ${{ inputs.pnpm-version }}
-          use-cache: "true"
-          run-install: "true"
-          package-json-directory: ${{ inputs.package-json-directory }}
-        continue-on-error: true
-
-      - name: Build documentation
-        shell: bash
-        working-directory: ${{ inputs.docs-directory }}
-        env:
-          BUILD_COMMAND: ${{ inputs.build-command }}
-        run: $BUILD_COMMAND
 
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v4.0.0
