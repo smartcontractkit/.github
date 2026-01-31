@@ -27,17 +27,6 @@ name: Reusable Docusaurus
 on:
   workflow_call:
     inputs:
-      # general inputs
-      checkout-repo:
-        description: "enable git checkout repo"
-        required: false
-        type: string
-        default: "true"
-      checkout-repo-fetch-depth:
-        description: "number of commits to fetch"
-        required: false
-        type: string
-        default: "0"
       # nodejs inputs
       node-version-file:
         description: "path to .tool-versions file for node version"
@@ -71,8 +60,7 @@ on:
         type: string
         default: "build"
       package-json-directory:
-        description: "the sub-directory of the package.json, if not at the root of the
-          repository"
+        description: "the sub-directory of the package.json, if not at the root of the repository"
         required: false
         type: string
         default: "."
@@ -94,14 +82,10 @@ jobs:
       pages: write
       id-token: write
     steps:
-      - name: Checkout repo
-        if: inputs.checkout-repo == 'true'
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
+      - uses: actions/checkout@v6
 
       - name: Setup nodejs
-        uses: smartcontractkit/.github/actions/setup-nodejs@43fe7fdc5d678b962d777a4af76719792f9a4354 # setup-nodejs@0.2.3
+        uses: smartcontractkit/.github/actions/setup-nodejs@setup-nodejs/v1
         with:
           node-version-file: ${{ inputs.node-version-file }}
           pnpm-version: ${{ inputs.pnpm-version }}
