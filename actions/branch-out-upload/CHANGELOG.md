@@ -1,5 +1,14 @@
 # branch-out-upload
 
+## 1.4.0
+
+### Minor Changes
+
+- [#1399](https://github.com/smartcontractkit/.github/pull/1399)
+  [`1c838e9`](https://github.com/smartcontractkit/.github/commit/1c838e9cff3b39f8ee5df85cc1946c0a5441327b)
+  Thanks [@kalverra](https://github.com/kalverra)! - Updates
+  trunk-io/analytics-uploader for cache and retry support
+
 ## 1.3.2
 
 ### Patch Changes
