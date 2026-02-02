@@ -36,8 +36,7 @@ inputs:
   trunk-job-url:
     description: "The URL to the job run"
     required: true
-    default:
-      ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}',
+    default: ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}',
       github.repository, github.run_id, job.check_run_id) }}
 
   trunk-previous-step-outcome:
@@ -102,7 +101,7 @@ runs:
 
     - name: Upload Test Results to Trunk.io
       id: upload-to-trunk
-      uses: trunk-io/analytics-uploader@f2631c653f9675d391e6e68cc877370db927c64c # v2.0.0
+      uses: trunk-io/analytics-uploader@293e9b144a101ef4b8fe3485a5afd0224fc48255 # v2.0.7
       continue-on-error: ${{ inputs.trunk-upload-only == 'true' }}
       env:
         TRUNK_TELEMETRY: "off"
