@@ -124,13 +124,10 @@ runs:
         GO_TEST_ARGS: ${{ inputs.go-test-args }}
         JUNIT_FILE_PATH: ${{ inputs.junit-file-path }}
       run: |
-        echo "::group::Run Go tests"
-        if [[ " $GO_TEST_ARGS " != *" -json "* ]]; then
-          GO_TEST_ARGS="-json ${GO_TEST_ARGS}"
-        fi
         set -o pipefail
-        gotestsum --format github-actions --junitfile "${JUNIT_FILE_PATH}" -- "${GO_TEST_ARGS}" 
-        echo "::endgroup::"
+        COMMAND="gotestsum --format github-actions --junitfile "${JUNIT_FILE_PATH}" -- "${GO_TEST_ARGS}""
+        echo "Running command: $COMMAND"
+        $COMMAND
 
     - name: Install JUnit Enhancer (go)
       if: ${{ steps.inputs-ext.outputs.run-enhancer == 'true' }}
