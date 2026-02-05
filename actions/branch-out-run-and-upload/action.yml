@@ -39,12 +39,6 @@ inputs:
     default: ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}',
       github.repository, github.run_id, job.check_run_id) }}
 
-  trunk-previous-step-outcome:
-    description:
-      "The outcome of the testing step. Used to determine failure status of this
-      action."
-    required: true
-
   trunk-variant:
     description: |
       The variant of the test. Used to differentiate between the same test suite
@@ -60,6 +54,7 @@ runs:
         go install gotest.tools/gotestsum@latest
     - name: Run tests
       shell: bash
+      id: run-tests
       run: |
         gotestsum --junitfile ./junit.xml -- ${{ inputs.go-test-args }}
     - name: branch-out-upload
@@ -68,7 +63,7 @@ runs:
         junit-file-path: ./junit.xml
         trunk-org-slug: ${{ inputs.trunk-org-slug }}
         trunk-token: ${{ inputs.trunk-token }}
-        trunk-previous-step-outcome: ${{ inputs.trunk-previous-step-outcome }}
+        trunk-previous-step-outcome: ${{ steps.run-tests.outcome }}
         trunk-job-url: ${{ inputs.trunk-job-url }}
         trunk-upload-only: ${{ inputs.trunk-upload-only }}
         trunk-variant: ${{ inputs.trunk-variant }}

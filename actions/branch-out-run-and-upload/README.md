@@ -5,11 +5,14 @@ This action is an extension of [branch-out-upload](../branch-out-upload/) that a
 ## Usage
 
 ```yaml
+steps:
+- uses: actions/checkout@v6
+- uses: actions/setup-go@v6
+
 - name: Run and Upload Test Results
   uses: smartcontractkit/.github/actions/branch-out-run-and-upload@<tag>
   with:
     go-test-args: "./... -cover -coverprofile=coverage.txt"
     trunk-org-slug: "your-org"
-    trunk-token: ${{ secrets.TRUNK_TOKEN }}
-    trunk-previous-step-outcome: ${{ steps.test.outcome }}
+    trunk-token: ${{ secrets.TRUNK_API_KEY }}
 ```
