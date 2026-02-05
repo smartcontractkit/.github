@@ -1,5 +1,13 @@
 # branch-out-upload
 
+## 1.6.0
+
+### Minor Changes
+
+- [#1404](https://github.com/smartcontractkit/.github/pull/1404)
+  [`93712a0`](https://github.com/smartcontractkit/.github/commit/93712a0845047573088a3d2ac2b213517d5165c2)
+  Thanks [@kalverra](https://github.com/kalverra)! - A better UX tweak
+
 ## 1.5.0
 
 ### Minor Changes
