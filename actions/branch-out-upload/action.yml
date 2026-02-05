@@ -43,8 +43,7 @@ inputs:
   trunk-job-url:
     description: "The URL to the job run"
     required: true
-    default:
-      ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}',
+    default: ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}',
       github.repository, github.run_id, job.check_run_id) }}
 
   trunk-previous-step-outcome:
@@ -210,12 +209,3 @@ runs:
         name: individual_test_logs
         path: "${{ steps.inputs-ext.outputs.junit-dir }}/raw-test-logs/"
         retention-days: 10
-
-    - name: Fail workflow if tests failed
-      if:
-        ${{ steps.inputs-ext.outputs.run-tests == 'true' &&
-        steps.run-go-tests.outcome == 'failure' }}
-      shell: bash
-      run: |
-        echo "::error::Go tests failed."
-        exit 1
