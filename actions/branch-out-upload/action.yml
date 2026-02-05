@@ -43,8 +43,7 @@ inputs:
   trunk-job-url:
     description: "The URL to the job run"
     required: true
-    default:
-      ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}',
+    default: ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}',
       github.repository, github.run_id, job.check_run_id) }}
 
   trunk-previous-step-outcome:
@@ -125,7 +124,7 @@ runs:
         JUNIT_FILE_PATH: ${{ inputs.junit-file-path }}
       run: |
         set -o pipefail
-        COMMAND="gotestsum --format github-actions --junitfile "${JUNIT_FILE_PATH}" -- "${GO_TEST_ARGS}""
+        COMMAND="gotestsum --format='standard-quiet' --hide-summary=skipped --junitfile "${JUNIT_FILE_PATH}" -- "${GO_TEST_ARGS}""
         echo "Running command: $COMMAND"
         $COMMAND
 
