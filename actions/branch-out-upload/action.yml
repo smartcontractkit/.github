@@ -125,7 +125,7 @@ runs:
         JUNIT_FILE_PATH: ${{ inputs.junit-file-path }}
       run: |
         set -o pipefail
-        COMMAND="gotestsum --format github-actions --junitfile "${JUNIT_FILE_PATH}" -- "${GO_TEST_ARGS}""
+        COMMAND="gotestsum --format='standard-quiet' --hide-summary=skipped --junitfile "${JUNIT_FILE_PATH}" -- "${GO_TEST_ARGS}""
         echo "Running command: $COMMAND"
         $COMMAND
 
