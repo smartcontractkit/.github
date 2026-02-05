@@ -1,0 +1,74 @@
+name: branch-out-run-and-upload
+description: "Run go tests with flake detection from branch-out"
+
+inputs:
+  test-suite-language:
+    description: "The programming language of the test suite"
+    required: true
+    default: "go"
+
+  junit-enhancer-version:
+    description: "The version of the action"
+    default: "latest"
+    required: false
+
+  go-test-args:
+    description: "Arguments to pass to the go test command"
+    required: false
+    default: ""
+
+  # trunk inputs
+  trunk-org-slug:
+    description: "The organization slug for Trunk.io"
+    required: true
+
+  trunk-token:
+    description: "The token for Trunk.io"
+    required: true
+
+  trunk-upload-only:
+    description: |
+      Whether to only upload to Trunk.io, and not let Trunk.io fail the job.
+      Useful when onboarding a repository, and letting Trunk gather data.
+    required: false
+    default: "false"
+
+  trunk-job-url:
+    description: "The URL to the job run"
+    required: true
+    default: ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}',
+      github.repository, github.run_id, job.check_run_id) }}
+
+  trunk-previous-step-outcome:
+    description:
+      "The outcome of the testing step. Used to determine failure status of this
+      action."
+    required: true
+
+  trunk-variant:
+    description: |
+      The variant of the test. Used to differentiate between the same test suite
+      run in different environments (e.g., OSes, browsers, DON topologies).
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Install gotestsum
+      shell: bash
+      run: |
+        go install gotest.tools/gotestsum@latest
+    - name: Run tests
+      shell: bash
+      run: |
+        gotestsum --junitfile ./junit.xml -- ${{ inputs.go-test-args }}
+    - name: branch-out-upload
+      uses: smartcontractkit/.github/actions/branch-out-upload@main
+      with:
+        junit-file-path: ./junit.xml
+        trunk-org-slug: ${{ inputs.trunk-org-slug }}
+        trunk-token: ${{ inputs.trunk-token }}
+        trunk-previous-step-outcome: ${{ inputs.trunk-previous-step-outcome }}
+        trunk-job-url: ${{ inputs.trunk-job-url }}
+        trunk-upload-only: ${{ inputs.trunk-upload-only }}
+        trunk-variant: ${{ inputs.trunk-variant }}
