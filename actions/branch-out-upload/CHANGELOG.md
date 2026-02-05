@@ -1,5 +1,14 @@
 # branch-out-upload
 
+## 1.5.0
+
+### Minor Changes
+
+- [#1402](https://github.com/smartcontractkit/.github/pull/1402)
+  [`aaa5054`](https://github.com/smartcontractkit/.github/commit/aaa50542096fe7beb6f9675f711a7d62c931fff3)
+  Thanks [@kalverra](https://github.com/kalverra)! - Adds optional, more
+  condensed flow to also run tests before uploading results.
+
 ## 1.4.0
 
 ### Minor Changes
