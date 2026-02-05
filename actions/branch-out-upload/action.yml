@@ -43,8 +43,7 @@ inputs:
   trunk-job-url:
     description: "The URL to the job run"
     required: true
-    default:
-      ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}',
+    default: ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}',
       github.repository, github.run_id, job.check_run_id) }}
 
   trunk-previous-step-outcome:
@@ -124,13 +123,10 @@ runs:
         GO_TEST_ARGS: ${{ inputs.go-test-args }}
         JUNIT_FILE_PATH: ${{ inputs.junit-file-path }}
       run: |
-        echo "::group::Run Go tests"
-        if [[ " $GO_TEST_ARGS " != *" -json "* ]]; then
-          GO_TEST_ARGS="-json ${GO_TEST_ARGS}"
-        fi
         set -o pipefail
-        gotestsum --format github-actions --junitfile "${JUNIT_FILE_PATH}" -- "${GO_TEST_ARGS}" 
-        echo "::endgroup::"
+        COMMAND="gotestsum --format github-actions --junitfile "${JUNIT_FILE_PATH}" -- "${GO_TEST_ARGS}""
+        echo "Running command: $COMMAND"
+        $COMMAND
 
     - name: Install JUnit Enhancer (go)
       if: ${{ steps.inputs-ext.outputs.run-enhancer == 'true' }}
@@ -180,9 +176,7 @@ runs:
         junit-paths: ${{ steps.inputs-ext.outputs.junit-path-to-upload }}
         org-slug: ${{ inputs.trunk-org-slug }}
         token: ${{ inputs.trunk-token }}
-        previous-step-outcome:
-          ${{ steps.resolve-previous-step-outcome.outputs.previous-step-outcome
-          }}
+        previous-step-outcome: ${{ steps.resolve-previous-step-outcome.outputs.previous-step-outcome }}
         variant: ${{ inputs.trunk-variant }}
 
     - name: Check junit-enhancer outcomes
