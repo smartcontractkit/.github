@@ -1,5 +1,13 @@
 # branch-out-upload
 
+## 1.8.0
+
+### Minor Changes
+
+- [#1409](https://github.com/smartcontractkit/.github/pull/1409)
+  [`9b849ca`](https://github.com/smartcontractkit/.github/commit/9b849ca416921b492270a3711b9eb94d3cd50fa3)
+  Thanks [@kalverra](https://github.com/kalverra)! - Fixes formatting bug
+
 ## 1.7.0
 
 ### Minor Changes
