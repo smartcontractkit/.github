@@ -5,7 +5,7 @@ name: Reusable Docusaurus
 #
 # This workflow is reusable and can be called from other workflows.
 # It runs one job: checkout, setup Node.js, build (which validates the docs),
-# upload pages artifact, and deploy.
+# upload pages artifact, and conditionally deploy (only on push to main).
 #
 # Example usage from a calling workflow:
 #
@@ -20,6 +20,8 @@ name: Reusable Docusaurus
 #         build-command: pnpm -C ./docs run build
 #         build-output-directory: build
 #         package-json-directory: ./docs
+#         github-event-name: ${{ github.event_name }}
+#         github-ref: ${{ github.ref }}
 # ##
 
 on:
@@ -53,6 +55,16 @@ on:
         type: string
         default: "."
       # deployment inputs
+      github-event-name:
+        description: "the GitHub event name that triggered the calling workflow (e.g., push, pull_request, merge_group)"
+        required: false
+        type: string
+        default: "workflow_call"
+      github-ref:
+        description: "the GitHub ref that triggered the calling workflow (e.g., refs/heads/main)"
+        required: false
+        type: string
+        default: ""
       deployment-branch:
         description: "branch to deploy to (e.g., gh-pages)"
         required: false
@@ -95,4 +107,5 @@ jobs:
             ${{ inputs.package-json-directory }}/${{ inputs.build-output-directory }}
 
       - name: Deploy to GitHub Pages
+        if: inputs.github-event-name == 'push' && inputs.github-ref == 'refs/heads/main'
         uses: actions/deploy-pages@v4.0.5
