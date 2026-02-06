@@ -17,11 +17,9 @@ name: Reusable Docusaurus
 #         id-token: write
 #       uses: smartcontractkit/.github/.github/workflows/reusable-docusaurus.yml@<git-sha>
 #       with:
-#         docs-directory: docs
-#         build-command: pnpm run build
-#         test-command: pnpm run test
+#         build-command: pnpm -C ./docs run build
 #         build-output-directory: build
-#         package-json-directory: .
+#         package-json-directory: ./docs
 # ##
 
 on:
@@ -39,16 +37,11 @@ on:
         type: string
         default: "^10.0.0"
       # docs-specific inputs
-      docs-directory:
-        description: "directory containing the Docusaurus documentation"
-        required: false
-        type: string
-        default: "."
       build-command:
-        description: "command to build the documentation"
+        description: "command to build the documentation (run from repository root, use pnpm -C to specify directory)"
         required: false
         type: string
-        default: "pnpm run build"
+        default: "pnpm -C ./docs run build"
       test-command:
         description: "command to test the documentation"
         required: false
@@ -96,7 +89,6 @@ jobs:
 
       - name: Build documentation
         shell: bash
-        working-directory: ${{ inputs.docs-directory }}
         env:
           BUILD_COMMAND: ${{ inputs.build-command }}
         run: $BUILD_COMMAND
@@ -113,7 +105,7 @@ jobs:
         uses: actions/upload-pages-artifact@v4.0.0
         with:
           path: >-
-            ${{ inputs.docs-directory }}/${{ inputs.build-output-directory }}
+            ${{ inputs.package-json-directory }}/${{ inputs.build-output-directory }}
 
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4.0.5
