@@ -125,9 +125,17 @@ runs:
         JUNIT_FILE_PATH: ${{ inputs.junit-file-path }}
       run: |
         set -o pipefail
-        COMMAND="gotestsum --format='standard-quiet' --hide-summary=skipped --junitfile "${JUNIT_FILE_PATH}" -- "${GO_TEST_ARGS}""
-        echo "Running command: $COMMAND"
-        $COMMAND
+        read -r -a GO_TEST_ARGS_ARRAY <<< "${GO_TEST_ARGS}"
+        COMMAND=(  
+          gotestsum  
+          --format standard-quiet  
+          --hide-summary skipped  
+          --junitfile "$JUNIT_FILE_PATH"  
+          --  
+          "${GO_TEST_ARGS_ARRAY[@]}"  
+        )  
+        echo "Running command: ${COMMAND[*]}"  
+        "${COMMAND[@]}"
 
     - name: Install JUnit Enhancer (go)
       if: ${{ steps.inputs-ext.outputs.run-enhancer == 'true' }}
