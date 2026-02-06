@@ -1,11 +1,11 @@
 name: Reusable Docusaurus
 
 ##
-# Build, test, and deploy Docusaurus documentation to GitHub Pages.
+# Build and deploy Docusaurus documentation to GitHub Pages.
 #
 # This workflow is reusable and can be called from other workflows.
-# It runs one job: checkout, setup Node.js, build, (optional) test, upload
-# pages artifact, and deploy.
+# It runs one job: checkout, setup Node.js, build (which validates the docs),
+# upload pages artifact, and deploy.
 #
 # Example usage from a calling workflow:
 #
@@ -42,11 +42,6 @@ on:
         required: false
         type: string
         default: "pnpm -C ./docs run build"
-      test-command:
-        description: "command to test the documentation"
-        required: false
-        type: string
-        default: ""
       build-output-directory:
         description: "directory where the built documentation is output"
         required: false
@@ -68,7 +63,7 @@ permissions: {}
 
 jobs:
   docusaurus:
-    name: Build, Test and Deploy Documentation
+    name: Build and Deploy Documentation
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -92,14 +87,6 @@ jobs:
         env:
           BUILD_COMMAND: ${{ inputs.build-command }}
         run: $BUILD_COMMAND
-
-      - name: Test documentation
-        if: inputs.test-command != ''
-        shell: bash
-        working-directory: ${{ inputs.docs-directory }}
-        env:
-          TEST_COMMAND: ${{ inputs.test-command }}
-        run: $TEST_COMMAND
 
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v4.0.0
