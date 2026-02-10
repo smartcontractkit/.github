@@ -1,5 +1,15 @@
 # dependency-review
 
+## 2.1.1
+
+### Patch Changes
+
+- [#1413](https://github.com/smartcontractkit/.github/pull/1413)
+  [`06c37ae`](https://github.com/smartcontractkit/.github/commit/06c37aea6174dcc0ce72be17bfa00a95547d7aa6)
+  Thanks [@erikburt](https://github.com/erikburt)! - custom preset allowing
+  excluded licenses for dependencies chainlink/contracts and
+  arbitrum/nitro-contracts
+
 ## 2.1.0
 
 ### Minor Changes
