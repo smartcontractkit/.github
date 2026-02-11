@@ -1,11 +1,11 @@
-FROM golang:1.24-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 COPY main.go .
 RUN go mod init github.com/auth-service && \
     go build -o auth-service .
 
-FROM alpine:3.21
+FROM alpine:3.23
 
 RUN apk --no-cache add ca-certificates
 WORKDIR /app
