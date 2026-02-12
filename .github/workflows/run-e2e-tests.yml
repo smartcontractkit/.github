@@ -426,7 +426,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5.0.2
         with:
-          go-version: "1.24.0"
+          go-version: "1.25"
           check-latest: true
           cache: false # disable caching as this job doesn't benefit from it
 
@@ -725,7 +725,6 @@ jobs:
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
 
       - name: Free Disk Space
-        if: ${{ matrix.tests.free_disk_space }}
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
@@ -1085,7 +1084,6 @@ jobs:
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
 
       - name: Free Disk Space
-        if: ${{ matrix.tests.free_disk_space }}
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
@@ -1282,7 +1280,6 @@ jobs:
         uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 # v2.0.0
 
       - name: Free Disk Space
-        if: ${{ matrix.tests.free_disk_space }}
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
