@@ -141,7 +141,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout the caller repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.3.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -207,7 +207,7 @@ jobs:
     needs: [gather-basic-info]
     steps:
       - name: Checkout the caller repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ env.head_ref }}
           persist-credentials: false
@@ -226,14 +226,14 @@ jobs:
           mkdir -p code-coverage
 
       - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@8f1998e9878d786675189ef566a2e4bf24869773 # v1.2.0
+        uses: foundry-rs/foundry-toolchain@8789b3e21e6c11b2697f5eb56eddae542f746c10 # v1.7.0
         with:
           version: ${{ inputs.foundry_version }}
 
       # required for code coverage report generation
       - name: Setup LCOV
         if: ${{ inputs.generate_code_coverage == true }}
-        uses: hrishikesh-kadam/setup-lcov@f5da1b26b0dcf5d893077a3c4f29cf78079c841d # v1.0.0
+        uses: hrishikesh-kadam/setup-lcov@6c1aa0cc9e1c02f9f58f01ac599f1064ccc83470 # v1.1.0
 
       - name: Run Forge build for product contracts
         run: |
@@ -308,14 +308,14 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout caller repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4.3.1
         with:
           fetch-depth: 0
           ref: ${{ env.head_ref }}
           persist-credentials: false
 
       - name: Checkout .github repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4.3.1
         with:
           repository: smartcontractkit/.github
           ref: 65249c7eae628aad6e70a0c0850d981cd0074bf9
@@ -329,7 +329,7 @@ jobs:
           pnpm-version: ^10.0.0
 
       - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@8f1998e9878d786675189ef566a2e4bf24869773 # v1.2.0
+        uses: foundry-rs/foundry-toolchain@8789b3e21e6c11b2697f5eb56eddae542f746c10 # v1.7.0
         with:
           version: ${{ inputs.foundry_version }}
 
@@ -342,7 +342,7 @@ jobs:
         if: ${{ inputs.generate_slither_reports == true }}
         uses: actions/setup-python@v5.6.0
         with:
-          python-version: "3.8"
+          python-version: "3.14"
 
       - name: Install solc-select and solc
         if: ${{ inputs.generate_slither_reports == true }}
@@ -472,14 +472,14 @@ jobs:
 
       - name: Checkout caller repository
         if: ${{ inputs.link_with_jira == true }}
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ env.head_ref }}
           persist-credentials: false
 
       - name: Checkout chainlink-github-actions repository
         if: ${{ inputs.link_with_jira == true }}
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.3.1
         with:
           repository: smartcontractkit/.github
           ref: 65249c7eae628aad6e70a0c0850d981cd0074bf9
