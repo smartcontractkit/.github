@@ -369,7 +369,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
       - name: Install citool
@@ -419,14 +419,14 @@ jobs:
       workflow_id: ${{ steps.gen_id.outputs.workflow_id }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
 
       - name: Setup Go
-        uses: actions/setup-go@v5.0.2
+        uses: actions/setup-go@v5.6.0
         with:
-          go-version: "1.24.0"
+          go-version: "1.26.0"
           check-latest: true
           cache: false # disable caching as this job doesn't benefit from it
 
@@ -625,7 +625,7 @@ jobs:
 
       - name: Checkout the repo
         if: ${{ steps.check-image-exists.outputs.exists != 'true' }}
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -666,7 +666,7 @@ jobs:
           }}
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -729,7 +729,7 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -941,13 +941,13 @@ jobs:
       - name: Upload trace data as artifact
         if: inputs.enable_otel_traces_for_ocr2_plugins &&
           matrix.tests.test_env_vars.ENABLE_OTEL_TRACES == 'true'
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: trace-data
           path: ./integration-tests/smoke/traces/trace-data.json
 
       - name: Upload test log as artifact
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         if: failure()
         with:
           name: test_log_${{ env.TEST_ID }}
@@ -957,7 +957,7 @@ jobs:
 
       - name: Upload cl node coverage data as artifact
         if: inputs.upload_cl_node_coverage_artifact
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         timeout-minutes: 2
         continue-on-error: true
         with:
@@ -974,7 +974,7 @@ jobs:
 
       - name: Upload test result as artifact
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: test_result_${{ needs.load-test-configurations.outputs.workflow_id
             }}_${{ env.TEST_ID }}
@@ -983,7 +983,7 @@ jobs:
 
       - name: Upload custom test artifacts
         if: failure() && matrix.tests.test_artifacts_on_failure != ''
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: custom_test_artifacts_${{ env.TEST_ID }}_${{
             needs.load-test-configurations.outputs.workflow_id }}
@@ -1016,7 +1016,7 @@ jobs:
         }}.amazonaws.com/chainlink-tests
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
       - name: Build Test Runner Image
@@ -1089,7 +1089,7 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
 
@@ -1234,7 +1234,7 @@ jobs:
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
 
       - name: Upload test log as artifact
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         if: failure()
         with:
           name: test_log_${{ env.TEST_ID }}
@@ -1244,7 +1244,7 @@ jobs:
 
       - name: Upload custom test artifacts
         if: failure() && matrix.tests.test_artifacts_on_failure != ''
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: ${{ format('custom_test_artifacts_{0}_{1}', env.TEST_ID, needs.load-test-configurations.outputs.workflow_id) }}
           path: ${{ matrix.tests.test_artifacts_on_failure }}
@@ -1286,7 +1286,7 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
 
@@ -1356,7 +1356,7 @@ jobs:
       test_results: ${{ steps.set_test_results.outputs.results }}
     steps:
       - name: Download all test result artifacts
-        uses: actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@v4.3.0
         with:
           path: test_results
           pattern: test_result_${{ needs.load-test-configurations.outputs.workflow_id
@@ -1407,7 +1407,7 @@ jobs:
           { echo "cl_ref=$cl_ref"; echo "cl_short_ref=$cl_short_ref"; echo "cl_ref_path=$cl_ref_path"; } >> "$GITHUB_OUTPUT"
 
       - name: Send Slack notification
-        uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # v1.25.0
+        uses: slackapi/slack-github-action@fcfb566f8b0aab22203f066d80ca1d7e4b5d05b3 # v1.27.1
         if: ${{ inputs.slack_notification_after_tests == 'true' ||
           inputs.slack_notification_after_tests == 'always' ||
           (inputs.slack_notification_after_tests == 'on_failure' &&
@@ -1448,7 +1448,7 @@ jobs:
           contains(join(needs.*.result, ','), 'failure') &&
           inputs.slack_notification_after_tests_notify_user_id_on_failure != ''
           }}
-        uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # v1.25.0
+        uses: slackapi/slack-github-action@fcfb566f8b0aab22203f066d80ca1d7e4b5d05b3 # v1.27.1
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         with:

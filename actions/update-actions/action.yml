@@ -42,7 +42,7 @@ runs:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
     - name: Assume role capable of getting token from gati
-      uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
+      uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
         role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
@@ -56,7 +56,7 @@ runs:
         url: ${{ inputs.aws-lambda-url }}
 
     - name: Assume role capable of getting token from gati for updater
-      uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
+      uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
       with:
         role-to-assume: ${{ inputs.aws-role-arn-updater }}
         role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
