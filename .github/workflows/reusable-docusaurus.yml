@@ -18,7 +18,7 @@ name: Reusable Docusaurus
 #       uses: smartcontractkit/.github/.github/workflows/reusable-docusaurus.yml@<git-sha>
 #       with:
 #         build-command: pnpm -C ./docs run build
-#         build-output-directory: build
+#         build-output-directory: ./docs/build
 #         package-json-directory: ./docs
 # ##
 
@@ -43,7 +43,7 @@ on:
         type: string
         default: "pnpm -C ./docs run build"
       build-output-directory:
-        description: "directory where the built documentation is output"
+        description: "directory where the built documentation is output (relative to repository root or absolute path)"
         required: false
         type: string
         default: "build"
@@ -85,8 +85,7 @@ jobs:
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v4.0.0
         with:
-          path: >-
-            ${{ inputs.package-json-directory }}/${{ inputs.build-output-directory }}
+          path: ${{ inputs.build-output-directory }}
 
       - name: Deploy to GitHub Pages
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
