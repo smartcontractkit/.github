@@ -20,8 +20,6 @@ name: Reusable Docusaurus
 #         build-command: pnpm -C ./docs run build
 #         build-output-directory: build
 #         package-json-directory: ./docs
-#         github-event-name: ${{ github.event_name }}
-#         github-ref: ${{ github.ref }}
 # ##
 
 on:
@@ -54,17 +52,6 @@ on:
         required: false
         type: string
         default: "."
-      # deployment inputs
-      github-event-name:
-        description: "the GitHub event name that triggered the calling workflow (e.g., push, pull_request, merge_group)"
-        required: false
-        type: string
-        default: "workflow_call"
-      github-ref:
-        description: "the GitHub ref that triggered the calling workflow (e.g., refs/heads/main)"
-        required: false
-        type: string
-        default: ""
 
 permissions: {}
 
@@ -102,5 +89,5 @@ jobs:
             ${{ inputs.package-json-directory }}/${{ inputs.build-output-directory }}
 
       - name: Deploy to GitHub Pages
-        if: inputs.github-event-name == 'push' && inputs.github-ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/deploy-pages@v4.0.5
