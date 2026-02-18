@@ -9,10 +9,48 @@ RESULTS_JSON="/tmp/promotion-results/promotion-results.json"
 echo "# Image Promotion Results" > "$RESULTS_FILE"
 echo "" >> "$RESULTS_FILE"
 echo "**Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> "$RESULTS_FILE"
+echo "**Copy Tool:** $(if [[ "$COPY_SIGNATURES" == "true" ]]; then echo "cosign"; else echo "skopeo"; fi)" >> "$RESULTS_FILE"
 echo "" >> "$RESULTS_FILE"
 
 # Initialize JSON results
 echo '{"promotions": []}' > "$RESULTS_JSON"
+
+# Function to copy image using the selected tool
+copy_image() {
+  local src="$1"
+  local dst="$2"
+  
+  if [[ "$COPY_SIGNATURES" == "true" ]]; then
+    # Use cosign with multi-arch support
+    # cosign uses docker config for authentication
+    export DOCKER_CONFIG=/tmp/.docker
+    mkdir -p "$DOCKER_CONFIG"
+    
+    # Create docker config for source registry
+    cat > "$DOCKER_CONFIG/config.json" <<EOF
+{
+  "auths": {
+    "${SOURCE_REGISTRY}": {
+      "auth": "$(echo -n "AWS:${SRC_PASS}" | base64 -w0)"
+    },
+    "${DESTINATION_REGISTRY}": {
+      "auth": "$(echo -n "AWS:${DST_PASS}" | base64 -w0)"
+    }
+  }
+}
+EOF
+    # cosign copy includes signatures and attestations by default
+    cosign copy "${src}" "${dst}"
+  else
+    # Use skopeo with basic auth
+    skopeo copy \
+      $SKOPEO_ARGS \
+      --src-creds "AWS:${SRC_PASS}" \
+      --dest-creds "AWS:${DST_PASS}" \
+      "${src}" \
+      "${dst}"
+  fi
+}
 
 # Check if images matrix is provided
 if [[ -n "$IMAGES_JSON" ]]; then
@@ -38,12 +76,7 @@ if [[ -n "$IMAGES_JSON" ]]; then
     echo "    TO: ${DST}"
     
     START_TIME=$(date +%s)
-    if skopeo copy \
-      $SKOPEO_ARGS \
-      --src-creds "AWS:${SRC_PASS}" \
-      --dest-creds "AWS:${DST_PASS}" \
-      "${SRC}" \
-      "${DST}"; then
+    if copy_image "${SRC}" "${DST}"; then
       END_TIME=$(date +%s)
       DURATION=$((END_TIME - START_TIME))
       
@@ -113,12 +146,7 @@ else
   # Notes:
   # - username for ECR basic auth is always "AWS"
   # - add "--all" if you want to copy multi-arch manifests too
-  if skopeo copy \
-    $SKOPEO_ARGS \
-    --src-creds "AWS:${SRC_PASS}" \
-    --dest-creds "AWS:${DST_PASS}" \
-    "${SRC}" \
-    "${DST}"; then
+  if copy_image "${SRC}" "${DST}"; then
     END_TIME=$(date +%s)
     DURATION=$((END_TIME - START_TIME))
     

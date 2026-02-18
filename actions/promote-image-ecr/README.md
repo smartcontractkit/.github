@@ -1,18 +1,21 @@
 # Promote Image Action
 
 Promote Docker images from one Amazon ECR registry to another using
+[cosign](https://github.com/sigstore/cosign) (default) or
 [skopeo](https://github.com/containers/skopeo). The action assumes the provided
 IAM roles to access both source and destination registries.
 
 ## Features
 
 - Copy images between ECR registries in the same or different AWS regions
+- **Copy signatures and attestations using cosign** (default)
 - Support for single image promotion
 - Support for multiple images using matrix configuration
-- Multi-arch manifest support with `--all` flag
+- Multi-arch manifest support (automatically included with cosign)
 - Secure credential handling via AWS role assumption
 - Automatic promotion summary on GitHub Actions summary page
 - Artifact upload with detailed promotion results (Markdown and JSON)
+- Optional fallback to skopeo for compatibility
 
 ## Prerequisites
 
@@ -34,18 +37,19 @@ IAM roles to access both source and destination registries.
 | `destination_role_arn`   | IAM Role ARN to assume in DEST account (needs ECR write permissions)                                                | Yes      |
 
 \*At least one of `aws_region`, `source_aws_region`, or `destination_aws_region`
-must be provided. | `source_registry` | Source registry host, e.g.
-`111111111111.dkr.ecr.eu-west-1.amazonaws.com` | Yes | | `destination_registry`
-| Destination registry host, e.g. `222222222222.dkr.ecr.eu-west-1.amazonaws.com`
-| Yes | | `source_repository` | Source repository name, e.g. `my-app` (not
-required if using `images` matrix) | No | | `destination_repository` |
-Destination repository name, e.g. `my-app` (not required if using `images`
-matrix) | No | | `source_tag` | Source tag (or digest if you use `@sha256:...`)
-(not required if using `images` matrix) | No | | `destination_tag` | Destination
-tag (not required if using `images` matrix) | No | | `images` | JSON array of
-images to promote. Takes precedence over individual inputs. See examples below.
-| No | | `skopeo_additional_args` | Extra args for skopeo copy (e.g. `"--all"`
-to copy multi-arch lists) | No |
+must be provided.
+
+| Input                    | Description                                                                                                     | Required |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------- | -------- |
+| `source_registry`        | Source registry host, e.g. `111111111111.dkr.ecr.eu-west-1.amazonaws.com`                                       | Yes      |
+| `destination_registry`   | Destination registry host, e.g. `222222222222.dkr.ecr.eu-west-1.amazonaws.com`                                  | Yes      |
+| `source_repository`      | Source repository name, e.g. `my-app` (not required if using `images` matrix)                                   | No       |
+| `destination_repository` | Destination repository name, e.g. `my-app` (not required if using `images` matrix)                              | No       |
+| `source_tag`             | Source tag (or digest if you use `@sha256:...`) (not required if using `images` matrix)                         | No       |
+| `destination_tag`        | Destination tag (not required if using `images` matrix)                                                         | No       |
+| `images`                 | JSON array of images to promote. Takes precedence over individual inputs. See examples below.                   | No       |
+| `use_cosign`             | Use cosign to copy images (includes signatures and attestations). Set to `'false'` to use skopeo instead.       | No       |
+| `skopeo_additional_args` | Extra args for skopeo copy (e.g. `"--all"` to copy multi-arch lists). Only used when `use_cosign` is `'false'`. | No       |
 
 ## Usage
 
@@ -169,23 +173,63 @@ jobs:
           destination_tag: ${{ matrix.image.tag }}
 ```
 
-## Multi-Architecture Support
+## Copy Tool: Cosign vs Skopeo
 
-To copy multi-architecture manifests (e.g., amd64, arm64), use the `--all` flag:
+### Cosign
+
+By default, the action uses [cosign](https://github.com/sigstore/cosign) to copy
+images. This provides:
+
+- **Signature and attestation copying**: Automatically includes all signatures
+  and attestations
+- **Multi-architecture support**: Copies all architectures by default
+- **Better compatibility**: Works with modern signing workflows (Sigstore,
+  cosign)
+
+### Skopeo (Fallback)
+
+You can use [skopeo](https://github.com/containers/skopeo) instead by setting
+`use_cosign: 'false'`:
 
 ```yaml
-- uses: ./.github/actions/promote-image
+- uses: ./.github/actions/promote-image-ecr
   with:
     # ... other inputs ...
+    use_cosign: "false"
+    skopeo_additional_args: "--all" # For multi-arch support
+```
+
+Use skopeo when:
+
+- You need specific skopeo features or arguments
+- You want to use sigstore attachments with skopeo
+- Compatibility with older workflows
+
+## Multi-Architecture Support
+
+**With cosign (default)**: Multi-architecture manifests are automatically copied
+with all architectures included.
+
+**With skopeo**: Add the `--all` flag via `skopeo_additional_args`:
+
+```yaml
+- uses: ./.github/actions/promote-image-ecr
+  with:
+    # ... other inputs ...
+    use_cosign: "false"
     skopeo_additional_args: "--all"
 ```
 
 ## How It Works
 
-1. Installs `skopeo` and `jq` on the runner
+1. Installs `cosign`, `skopeo`, and `jq` on the runner
 2. Assumes the source IAM role and retrieves ECR credentials
 3. Assumes the destination IAM role and retrieves ECR credentials
-4. Uses `skopeo copy` to transfer the image(s) between registries
+4. Uses `cosign copy` (default) or `skopeo copy` to transfer the image(s)
+   between registries
+   - **cosign**: Copies image, all architectures, signatures, and attestations
+   - **skopeo**: Copies image with optional flags for multi-arch and sigstore
+     attachments
 5. For matrix mode, iterates through all images sequentially
 6. Generates a promotion summary with detailed results
 7. Displays the summary on the GitHub Actions summary page

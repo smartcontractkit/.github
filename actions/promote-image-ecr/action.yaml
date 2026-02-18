@@ -1,6 +1,6 @@
 name: Promote image between ECR registries
 description: |
-  Promote an image from one ECR registry to another, using skopeo under the hood.
+  Promote an image from one ECR registry to another, using cosign (default) or skopeo.
   The action will assume the provided IAM roles to access the source and destination registries.
 
 inputs:
@@ -62,9 +62,15 @@ inputs:
     default: ""
   skopeo_additional_args:
     description:
-      Extra args for skopeo copy (e.g. "--all" to copy multi-arch lists)
+      "Extra args for skopeo copy (default: --all to copy multi-arch lists)."
     required: false
-    default: ""
+    default: "--all"
+  copy_signatures:
+    description:
+      Use cosign to copy images (includes signatures and attestations). Set to
+      'false' to use skopeo instead.
+    required: false
+    default: "true"
 
 runs:
   using: "composite"
@@ -74,6 +80,11 @@ runs:
       run: |
         sudo apt-get update
         sudo apt-get install -y skopeo jq
+
+    - name: Install cosign
+      uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
+      with:
+        cosign-release: "v3.0.2"
 
     - name: Configure AWS credentials (SOURCE)
       uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6
@@ -125,6 +136,7 @@ runs:
           ${{ inputs.destination_aws_region || inputs.aws_region }}
         SRC_PASS: ${{ steps.src.outputs.password }}
         DST_PASS: ${{ steps.dst.outputs.password }}
+        COPY_SIGNATURES: ${{ inputs.copy_signatures }}
         ACTION_PATH: ${{ github.action_path }}
       run: |
         "${ACTION_PATH}/scripts/promote-images.sh"
