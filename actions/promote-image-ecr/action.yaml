@@ -5,34 +5,50 @@ description: |
 
 inputs:
   aws_region:
-    description: "AWS region for BOTH registries. Use source_aws_region and destination_aws_region instead."
+    description:
+      "AWS region for BOTH registries. Use source_aws_region and
+      destination_aws_region instead."
     required: false
   source_aws_region:
-    description: "AWS region for source registry. Example: eu-west-1. Falls back to aws_region if not provided."
+    description:
+      "AWS region for source registry. Example: eu-west-1. Falls back to
+      aws_region if not provided."
     required: false
   destination_aws_region:
-    description: "AWS region for destination registry. Example: us-east-1. Falls back to aws_region if not provided."
+    description:
+      "AWS region for destination registry. Example: us-east-1. Falls back to
+      aws_region if not provided."
     required: false
   source_role_arn:
-    description: "IAM Role ARN to assume in SOURCE account (needs ECR read permissions)"
+    description:
+      "IAM Role ARN to assume in SOURCE account (needs ECR read permissions)"
     required: true
   destination_role_arn:
-    description: IAM Role ARN to assume in DEST account (needs ECR write permissions)
+    description:
+      IAM Role ARN to assume in DEST account (needs ECR write permissions)
     required: true
   source_registry:
-    description: Source registry host, e.g. 111111111111.dkr.ecr.eu-west-1.amazonaws.com
+    description:
+      Source registry host, e.g. 111111111111.dkr.ecr.eu-west-1.amazonaws.com
     required: true
   destination_registry:
-    description: Destination registry host, e.g. 222222222222.dkr.ecr.eu-west-1.amazonaws.com
+    description:
+      Destination registry host, e.g.
+      222222222222.dkr.ecr.eu-west-1.amazonaws.com
     required: true
   source_repository:
-    description: Source repository name, e.g. my-app (not required if using images matrix)
+    description:
+      Source repository name, e.g. my-app (not required if using images matrix)
     required: false
   destination_repository:
-    description: Destination repository name, e.g. my-app (not required if using images matrix)
+    description:
+      Destination repository name, e.g. my-app (not required if using images
+      matrix)
     required: false
   source_tag:
-    description: Source tag (or digest if you use @sha256:... in advanced mode) (not required if using images matrix)
+    description:
+      Source tag (or digest if you use @sha256:... in advanced mode) (not
+      required if using images matrix)
     required: false
   destination_tag:
     description: Destination tag (not required if using images matrix)
@@ -45,7 +61,8 @@ inputs:
     required: false
     default: ""
   skopeo_additional_args:
-    description: Extra args for skopeo copy (e.g. "--all" to copy multi-arch lists)
+    description:
+      Extra args for skopeo copy (e.g. "--all" to copy multi-arch lists)
     required: false
     default: ""
 
@@ -67,9 +84,10 @@ runs:
     - name: Get SOURCE ECR login password
       id: src
       shell: bash
+      env:
+        REGION: ${{ inputs.source_aws_region || inputs.aws_region }}
       run: |
         set -euo pipefail
-        REGION="${{ inputs.source_aws_region || inputs.aws_region }}"
         PASS=$(aws ecr get-login-password)
         echo "::add-mask::$PASS"
         echo "password=$PASS" >> "$GITHUB_OUTPUT"
@@ -79,13 +97,14 @@ runs:
       with:
         role-to-assume: ${{ inputs.destination_role_arn }}
         aws-region: ${{ inputs.destination_aws_region || inputs.aws_region }}
-      
+
     - name: Get DESTINATION ECR login password
       id: dst
       shell: bash
+      env:
+        REGION: ${{ inputs.destination_aws_region || inputs.aws_region }}
       run: |
         set -euo pipefail
-        REGION="${{ inputs.destination_aws_region || inputs.aws_region }}"
         PASS=$(aws ecr get-login-password)
         echo "::add-mask::$PASS"
         echo "password=$PASS" >> "$GITHUB_OUTPUT"
@@ -93,171 +112,22 @@ runs:
     - name: Copy image with skopeo
       shell: bash
       env:
+        SOURCE_REGISTRY: ${{ inputs.source_registry }}
+        DESTINATION_REGISTRY: ${{ inputs.destination_registry }}
+        SOURCE_REPOSITORY: ${{ inputs.source_repository }}
+        DESTINATION_REPOSITORY: ${{ inputs.destination_repository }}
+        SOURCE_TAG: ${{ inputs.source_tag }}
+        DESTINATION_TAG: ${{ inputs.destination_tag }}
+        IMAGES_JSON: ${{ inputs.images }}
+        SKOPEO_ARGS: ${{ inputs.skopeo_additional_args }}
+        SOURCE_AWS_REGION: ${{ inputs.source_aws_region || inputs.aws_region }}
+        DESTINATION_AWS_REGION:
+          ${{ inputs.destination_aws_region || inputs.aws_region }}
         SRC_PASS: ${{ steps.src.outputs.password }}
         DST_PASS: ${{ steps.dst.outputs.password }}
+        ACTION_PATH: ${{ github.action_path }}
       run: |
-        set -euo pipefail
-
-        # Create results directory and file
-        mkdir -p /tmp/promotion-results
-        RESULTS_FILE="/tmp/promotion-results/promotion-summary.md"
-        RESULTS_JSON="/tmp/promotion-results/promotion-results.json"
-        
-        echo "# Image Promotion Results" > "$RESULTS_FILE"
-        echo "" >> "$RESULTS_FILE"
-        echo "**Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> "$RESULTS_FILE"
-        echo "" >> "$RESULTS_FILE"
-        
-        # Initialize JSON results
-        echo '{"promotions": []}' > "$RESULTS_JSON"
-
-        # Check if images matrix is provided
-        if [[ -n "${{ inputs.images }}" ]]; then
-          # Process multiple images
-          echo "Processing multiple images from matrix..."
-          echo "" >> "$RESULTS_FILE"
-          echo "## Promoted Images" >> "$RESULTS_FILE"
-          echo "" >> "$RESULTS_FILE"
-          
-          IMAGE_COUNT=0
-          echo '${{ inputs.images }}' | jq -c '.[]' | while read -r image; do
-            SRC_REPO=$(echo "$image" | jq -r '.source_repository')
-            DST_REPO=$(echo "$image" | jq -r '.destination_repository')
-            SRC_TAG=$(echo "$image" | jq -r '.source_tag')
-            DST_TAG=$(echo "$image" | jq -r '.destination_tag')
-
-            SRC="docker://${{ inputs.source_registry }}/${SRC_REPO}:${SRC_TAG}"
-            DST="docker://${{ inputs.destination_registry }}/${DST_REPO}:${DST_TAG}"
-
-            echo "----------------------------------------"
-            echo "Copying:"
-            echo "  FROM: ${SRC}"
-            echo "    TO: ${DST}"
-            
-            START_TIME=$(date +%s)
-            if skopeo copy \
-              ${{ inputs.skopeo_additional_args }} \
-              --src-creds "AWS:${SRC_PASS}" \
-              --dest-creds "AWS:${DST_PASS}" \
-              "${SRC}" \
-              "${DST}"; then
-              END_TIME=$(date +%s)
-              DURATION=$((END_TIME - START_TIME))
-              
-              echo "✓ Successfully copied ${SRC_REPO}:${SRC_TAG} (took ${DURATION}s)"
-              
-              # Append to markdown
-              echo "### ✅ ${SRC_REPO}" >> "$RESULTS_FILE"
-              echo "" >> "$RESULTS_FILE"
-              echo "- **Source:** \`${SRC_REPO}:${SRC_TAG}\`" >> "$RESULTS_FILE"
-              echo "- **Destination:** \`${DST_REPO}:${DST_TAG}\`" >> "$RESULTS_FILE"
-              echo "- **Source Region:** \`${{ inputs.source_aws_region || inputs.aws_region }}\`" >> "$RESULTS_FILE"
-              echo "- **Destination Region:** \`${{ inputs.destination_aws_region || inputs.aws_region }}\`" >> "$RESULTS_FILE"
-              echo "- **Duration:** ${DURATION}s" >> "$RESULTS_FILE"
-              echo "- **Status:** Success" >> "$RESULTS_FILE"
-              echo "" >> "$RESULTS_FILE"
-              
-              # Append to JSON
-              jq --arg src_repo "$SRC_REPO" \
-                 --arg src_tag "$SRC_TAG" \
-                 --arg dst_repo "$DST_REPO" \
-                 --arg dst_tag "$DST_TAG" \
-                 --arg duration "$DURATION" \
-                 --arg status "success" \
-                 '.promotions += [{
-                   "source_repository": $src_repo,
-                   "source_tag": $src_tag,
-                   "destination_repository": $dst_repo,
-                   "destination_tag": $dst_tag,
-                   "duration_seconds": $duration,
-                   "status": $status
-                 }]' "$RESULTS_JSON" > "${RESULTS_JSON}.tmp" && mv "${RESULTS_JSON}.tmp" "$RESULTS_JSON"
-              
-              IMAGE_COUNT=$((IMAGE_COUNT + 1))
-            else
-              echo "✗ Failed to copy ${SRC_REPO}:${SRC_TAG}"
-              
-              # Append failure to markdown
-              echo "### ❌ ${SRC_REPO}" >> "$RESULTS_FILE"
-              echo "" >> "$RESULTS_FILE"
-              echo "- **Source:** \`${SRC_REPO}:${SRC_TAG}\`" >> "$RESULTS_FILE"
-              echo "- **Destination:** \`${DST_REPO}:${DST_TAG}\`" >> "$RESULTS_FILE"
-              echo "- **Status:** Failed" >> "$RESULTS_FILE"
-              echo "" >> "$RESULTS_FILE"
-              
-              exit 1
-            fi
-          done
-          echo "----------------------------------------"
-          echo "All ${IMAGE_COUNT} images copied successfully!"
-          
-          # Add summary at the top
-          sed -i "3i\\** Total Images Promoted:** ${IMAGE_COUNT}" "$RESULTS_FILE"
-          sed -i "4i\\" "$RESULTS_FILE"
-        else
-          # Process single image (backward compatibility)
-          SRC="docker://${{ inputs.source_registry }}/${{ inputs.source_repository }}:${{ inputs.source_tag }}"
-          DST="docker://${{ inputs.destination_registry }}/${{ inputs.destination_repository }}:${{ inputs.destination_tag }}"
-
-          echo "Copying:"
-          echo "  FROM: ${SRC}"
-          echo "    TO: ${DST}"
-
-          echo "## Promoted Image" >> "$RESULTS_FILE"
-          echo "" >> "$RESULTS_FILE"
-          
-          START_TIME=$(date +%s)
-          # Notes:
-          # - username for ECR basic auth is always "AWS"
-          # - add "--all" if you want to copy multi-arch manifests too
-          if skopeo copy \
-            ${{ inputs.skopeo_additional_args }} \
-            --src-creds "AWS:${SRC_PASS}" \
-            --dest-creds "AWS:${DST_PASS}" \
-            "${SRC}" \
-            "${DST}"; then
-            END_TIME=$(date +%s)
-            DURATION=$((END_TIME - START_TIME))
-            
-            echo "✓ Successfully copied ${{ inputs.source_repository }}:${{ inputs.source_tag }} (took ${DURATION}s)"
-            
-            # Write to markdown
-            echo "### ✅ ${{ inputs.source_repository }}" >> "$RESULTS_FILE"
-            echo "" >> "$RESULTS_FILE"
-            echo "- **Source:** \`${{ inputs.source_repository }}:${{ inputs.source_tag }}\`" >> "$RESULTS_FILE"
-            echo "- **Destination:** \`${{ inputs.destination_repository }}:${{ inputs.destination_tag }}\`" >> "$RESULTS_FILE"
-            echo "- **Source Region:** \`${{ inputs.source_aws_region || inputs.aws_region }}\`" >> "$RESULTS_FILE"
-            echo "- **Destination Region:** \`${{ inputs.destination_aws_region || inputs.aws_region }}\`" >> "$RESULTS_FILE"
-            echo "- **Duration:** ${DURATION}s" >> "$RESULTS_FILE"
-            echo "- **Status:** Success" >> "$RESULTS_FILE"
-            
-            # Write to JSON
-            jq --arg src_repo "${{ inputs.source_repository }}" \
-               --arg src_tag "${{ inputs.source_tag }}" \
-               --arg dst_repo "${{ inputs.destination_repository }}" \
-               --arg dst_tag "${{ inputs.destination_tag }}" \
-               --arg duration "$DURATION" \
-               --arg status "success" \
-               '.promotions += [{
-                 "source_repository": $src_repo,
-                 "source_tag": $src_tag,
-                 "destination_repository": $dst_repo,
-                 "destination_tag": $dst_tag,
-                 "duration_seconds": $duration,
-                 "status": $status
-               }]' "$RESULTS_JSON" > "${RESULTS_JSON}.tmp" && mv "${RESULTS_JSON}.tmp" "$RESULTS_JSON"
-          else
-            echo "✗ Failed to copy ${{ inputs.source_repository }}:${{ inputs.source_tag }}"
-            
-            echo "### ❌ ${{ inputs.source_repository }}" >> "$RESULTS_FILE"
-            echo "" >> "$RESULTS_FILE"
-            echo "- **Source:** \`${{ inputs.source_repository }}:${{ inputs.source_tag }}\`" >> "$RESULTS_FILE"
-            echo "- **Destination:** \`${{ inputs.destination_repository }}:${{ inputs.destination_tag }}\`" >> "$RESULTS_FILE"
-            echo "- **Status:** Failed" >> "$RESULTS_FILE"
-            
-            exit 1
-          fi
-        fi
+        "${ACTION_PATH}/scripts/promote-images.sh"
 
     - name: Generate Job Summary
       if: always()
