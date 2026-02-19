@@ -27,6 +27,7 @@ inputs:
       Example:
         smartcontractkit/chainlink:main,release/2.30.1
         smartcontractkit/chainlink-ccip:develop
+        smartcontractkit/chainlink-sui:2.31.0-cherry-picked
     default: ""
 
 runs:
