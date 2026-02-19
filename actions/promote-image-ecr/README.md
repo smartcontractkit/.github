@@ -1,21 +1,20 @@
-# Promote Image Action
+# Promote Image ECR Action
 
 Promote Docker images from one Amazon ECR registry to another using
-[cosign](https://github.com/sigstore/cosign) (default) or
-[skopeo](https://github.com/containers/skopeo). The action assumes the provided
-IAM roles to access both source and destination registries.
+[cosign](https://github.com/sigstore/cosign). The action assumes the provided
+IAM roles to access both source and destination registries. Cosign is used for
+image promotion and signature/attestation copying.
 
 ## Features
 
 - Copy images between ECR registries in the same or different AWS regions
-- **Copy signatures and attestations using cosign** (default)
+- **Copy signatures and attestations using cosign**
 - Support for single image promotion
 - Support for multiple images using matrix configuration
 - Multi-arch manifest support (automatically included with cosign)
 - Secure credential handling via AWS role assumption
 - Automatic promotion summary on GitHub Actions summary page
 - Artifact upload with detailed promotion results (Markdown and JSON)
-- Optional fallback to skopeo for compatibility
 
 ## Prerequisites
 
@@ -30,26 +29,30 @@ IAM roles to access both source and destination registries.
 
 | Input                    | Description                                                                                                         | Required |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------- | -------- |
-| `aws_region`             | AWS region for both registries. Use `source_aws_region` and `destination_aws_region` for different regions instead. | No       |
-| `source_aws_region`      | AWS region for source registry. Example: `eu-west-1`. Falls back to `aws_region` if not provided.                   | No\*     |
-| `destination_aws_region` | AWS region for destination registry. Example: `us-east-1`. Falls back to `aws_region` if not provided.              | No\*     |
-| `source_role_arn`        | IAM Role ARN to assume in SOURCE account (needs ECR read permissions)                                               | Yes      |
-| `destination_role_arn`   | IAM Role ARN to assume in DEST account (needs ECR write permissions)                                                | Yes      |
+| `aws-region`             | AWS region for both registries. Use `source-aws-region` and `destination-aws-region` for different regions instead. | No       |
+| `source-aws-region`      | AWS region for source registry. Example: `eu-west-1`. Falls back to `aws-region` if not provided.                   | No\*     |
+| `destination-aws-region` | AWS region for destination registry. Example: `us-east-1`. Falls back to `aws-region` if not provided.              | No\*     |
+| `source-role-arn`        | IAM Role ARN to assume in SOURCE account (needs ECR read permissions)                                               | Yes      |
+| `destination-role-arn`   | IAM Role ARN to assume in DEST account (needs ECR write permissions)                                                | Yes      |
 
-\*At least one of `aws_region`, `source_aws_region`, or `destination_aws_region`
+\*At least one of `aws-region`, `source-aws-region`, or `destination-aws-region`
 must be provided.
 
-| Input                    | Description                                                                                                     | Required |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------- | -------- |
-| `source_registry`        | Source registry host, e.g. `111111111111.dkr.ecr.eu-west-1.amazonaws.com`                                       | Yes      |
-| `destination_registry`   | Destination registry host, e.g. `222222222222.dkr.ecr.eu-west-1.amazonaws.com`                                  | Yes      |
-| `source_repository`      | Source repository name, e.g. `my-app` (not required if using `images` matrix)                                   | No       |
-| `destination_repository` | Destination repository name, e.g. `my-app` (not required if using `images` matrix)                              | No       |
-| `source_tag`             | Source tag (or digest if you use `@sha256:...`) (not required if using `images` matrix)                         | No       |
-| `destination_tag`        | Destination tag (not required if using `images` matrix)                                                         | No       |
-| `images`                 | JSON array of images to promote. Takes precedence over individual inputs. See examples below.                   | No       |
-| `use_cosign`             | Use cosign to copy images (includes signatures and attestations). Set to `'false'` to use skopeo instead.       | No       |
-| `skopeo_additional_args` | Extra args for skopeo copy (e.g. `"--all"` to copy multi-arch lists). Only used when `use_cosign` is `'false'`. | No       |
+| Input                    | Description                                                                                   | Required |
+| ------------------------ | --------------------------------------------------------------------------------------------- | -------- |
+| `source-registry`        | Source registry host, e.g. `111111111111.dkr.ecr.eu-west-1.amazonaws.com`                     | Yes      |
+| `destination-registry`   | Destination registry host, e.g. `222222222222.dkr.ecr.eu-west-1.amazonaws.com`                | Yes      |
+| `source-repository`      | Source repository name, e.g. `my-app` (not required if using `images` matrix)                 | No       |
+| `destination-repository` | Destination repository name, e.g. `my-app` (not required if using `images` matrix)            | No       |
+| `source-tag`             | Source tag (or digest if you use `@sha256:...`) (not required if using `images` matrix)       | No       |
+| `destination-tag`        | Destination tag (not required if using `images` matrix)                                       | No       |
+| `images`                 | JSON array of images to promote. Takes precedence over individual inputs. See examples below. | No       |
+
+## Outputs
+
+| Output            | Description                                                                                                                                                                                                                                                                               |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `promoted-images` | JSON array of promoted images with their source and destination details, promotion duration, and status. Example: `[{"source_repository": "app1", "source_tag": "v1.0.0", "destination_repository": "app1", "destination_tag": "v1.0.0", "duration_seconds": "12", "status": "success"}]` |
 
 ## Usage
 
@@ -82,7 +85,6 @@ jobs:
           destination_repository: my-app
           source_tag: v1.0.0
           destination_tag: v1.0.0
-          skopeo_additional_args: "--all"
 ```
 
 ### Multiple Images Promotion (Matrix)
@@ -131,7 +133,6 @@ jobs:
                 "destination_tag": "production"
               }
             ]
-          skopeo_additional_args: "--all"
 ```
 
 ### Using with GitHub Matrix Strategy
@@ -173,63 +174,24 @@ jobs:
           destination_tag: ${{ matrix.image.tag }}
 ```
 
-## Copy Tool: Cosign vs Skopeo
+## Copy Tool
 
-### Cosign
-
-By default, the action uses [cosign](https://github.com/sigstore/cosign) to copy
-images. This provides:
+This action uses [cosign](https://github.com/sigstore/cosign) exclusively to
+copy images. This provides:
 
 - **Signature and attestation copying**: Automatically includes all signatures
   and attestations
 - **Multi-architecture support**: Copies all architectures by default
-- **Better compatibility**: Works with modern signing workflows (Sigstore,
+- **Modern compatibility**: Works with modern signing workflows (Sigstore,
   cosign)
-
-### Skopeo (Fallback)
-
-You can use [skopeo](https://github.com/containers/skopeo) instead by setting
-`use_cosign: 'false'`:
-
-```yaml
-- uses: ./.github/actions/promote-image-ecr
-  with:
-    # ... other inputs ...
-    use_cosign: "false"
-    skopeo_additional_args: "--all" # For multi-arch support
-```
-
-Use skopeo when:
-
-- You need specific skopeo features or arguments
-- You want to use sigstore attachments with skopeo
-- Compatibility with older workflows
-
-## Multi-Architecture Support
-
-**With cosign (default)**: Multi-architecture manifests are automatically copied
-with all architectures included.
-
-**With skopeo**: Add the `--all` flag via `skopeo_additional_args`:
-
-```yaml
-- uses: ./.github/actions/promote-image-ecr
-  with:
-    # ... other inputs ...
-    use_cosign: "false"
-    skopeo_additional_args: "--all"
-```
 
 ## How It Works
 
-1. Installs `cosign`, `skopeo`, and `jq` on the runner
+1. Installs `cosign` in the runner environment
 2. Assumes the source IAM role and retrieves ECR credentials
 3. Assumes the destination IAM role and retrieves ECR credentials
-4. Uses `cosign copy` (default) or `skopeo copy` to transfer the image(s)
-   between registries
-   - **cosign**: Copies image, all architectures, signatures, and attestations
-   - **skopeo**: Copies image with optional flags for multi-arch and sigstore
-     attachments
+4. Uses `cosign copy` to transfer the image(s) between registries, including all
+   architectures, signatures, and attestations
 5. For matrix mode, iterates through all images sequentially
 6. Generates a promotion summary with detailed results
 7. Displays the summary on the GitHub Actions summary page
@@ -285,6 +247,8 @@ integration with other tools.
   repository/tag inputs
 - Promotion results are always uploaded as artifacts, even if the action fails
   (use `if: always()` in the upload step)
+- The script is implemented with reusable functions for both JSON and Markdown
+  output, ensuring maintainability and clarity.
 
 ## Troubleshooting
 
@@ -295,5 +259,6 @@ in the source registry.
 
 ### Multi-Arch Issues
 
-If you're seeing issues with multi-architecture images, ensure you're using the
-`--all` flag in `skopeo_additional_args`.
+If you're seeing issues with multi-architecture images, ensure your source
+images are properly built as multi-arch manifests. Cosign will copy all
+architectures by default.
