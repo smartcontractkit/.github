@@ -96,7 +96,7 @@ runs:
 
     - name: Bump helm chart version
       id: bump-helm-chart-version
-      uses: mikefarah/yq@f15500b20a1c991c8729870ba60a4dc3524b6a94 # v4.44.2
+      uses: mikefarah/yq@2be0094729a1006f61e8339ce9934bfb3cbb549f # v4.52.2
       env:
         AWS_SECRET_ACCESS_KEY: ""
         AWS_ACCESS_KEY_ID: ""
@@ -110,7 +110,7 @@ runs:
     - name: Update helm chart repo
       if: inputs.helm-chart-repo-update == 'true'
       id: update-helm-chart-repo
-      uses: mikefarah/yq@f15500b20a1c991c8729870ba60a4dc3524b6a94 # v4.44.2
+      uses: mikefarah/yq@2be0094729a1006f61e8339ce9934bfb3cbb549f # v4.52.2
       env:
         AWS_SECRET_ACCESS_KEY: ""
         AWS_ACCESS_KEY_ID: ""
