@@ -189,7 +189,7 @@ export async function getDeps(
     core.info(`Finding dependencies in ${goModFilePath}`);
     try {
       const dir = dirname(goModFilePath);
-      const output = execSync("go list -json -m all", {
+      const output = execSync("go list -json -e -m all", {
         encoding: "utf-8",
         cwd: dir,
       });

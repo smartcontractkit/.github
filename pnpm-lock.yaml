@@ -571,6 +571,8 @@ importers:
 
   actions/validate-solidity-artifacts: {}
 
+  actions/wait-for-checks: {}
+
   actions/wait-for-workflow-job: {}
 
   actions/wait-for-workflows: {}

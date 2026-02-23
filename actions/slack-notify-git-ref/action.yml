@@ -28,15 +28,26 @@ inputs:
     required: true
   docker-image-name:
     description: |
-      optional docker image name with tag
+      Deprecated: use docker-image-names instead.
+      Optional docker image name with tag (single image).
 
       Example: `public.ecr.aws/smartcontractkit/chainlink:v1.2.3`
     required: false
   docker-image-digest:
     description: |
-      optional docker image with digest
+      Deprecated: use docker-image-names instead.
+      Optional docker image digest (single image).
 
-      Example: `public.ecr.aws/smartcontractkit/chainlink@sha256:1234567890abcdef`
+      Example: `sha256:1234567890abcdef`
+    required: false
+  docker-image-names:
+    description: |
+      Optional multi-line string of docker image names with their digests.
+      Each line should be in the format: `image_name|digest`
+
+      Example:
+        public.ecr.aws/chainlink/ccip:2.34.1-ccip-beta.3|sha256:5f218f...
+        public.ecr.aws/chainlink/chainlink:2.34.1-beta.3|sha256:b48d5b...
     required: false
   changelog-url:
     description: "URL for CHANGELOG to include in Slack message"
@@ -66,6 +77,7 @@ runs:
       env:
         DOCKER_IMAGE_NAME: ${{ inputs.docker-image-name }}
         DOCKER_IMAGE_DIGEST: ${{ inputs.docker-image-digest }}
+        DOCKER_IMAGE_NAMES: ${{ inputs.docker-image-names }}
         CHANGELOG_URL: ${{ github.inputs.changelog-url }}
         GIT_REF_NAME: ${{ inputs.git-ref }}
         GITHUB_RUN_URL: >-
@@ -80,16 +92,36 @@ runs:
       run: |
         envsubst < "${PATH_TO_PAYLOAD}" | tee payload_temp.json
 
-        if [[ -n "${DOCKER_IMAGE_NAME:-}" ]]; then
-          jq --arg name "\`${DOCKER_IMAGE_NAME}\`" \
-            '.attachments[0].fields += [{"title": "Docker Image Name", "value": $name, "short": false}]' \
-            payload_temp.json > payload_temp2.json
-          mv payload_temp2.json payload_temp.json
+        # Build the docker images field value.
+        # Supports multi-line docker-image-names input and falls back
+        # to the legacy single docker-image-name / docker-image-digest inputs.
+        docker_lines=""
+
+        if [[ -n "${DOCKER_IMAGE_NAMES:-}" ]]; then
+          while IFS= read -r line; do
+            # skip empty lines
+            [[ -z "${line}" ]] && continue
+            img_name="${line%%|*}"
+            img_digest="${line#*|}"
+            if [[ -n "${img_digest}" && "${img_digest}" != "${img_name}" ]]; then
+              docker_lines+="\`${img_name}\` (\`${img_digest}\`)\n"
+            else
+              docker_lines+="\`${img_name}\`\n"
+            fi
+          done <<< "${DOCKER_IMAGE_NAMES}"
+        elif [[ -n "${DOCKER_IMAGE_NAME:-}" ]]; then
+          if [[ -n "${DOCKER_IMAGE_DIGEST:-}" ]]; then
+            docker_lines="\`${DOCKER_IMAGE_NAME}\` (\`${DOCKER_IMAGE_DIGEST}\`)"
+          else
+            docker_lines="\`${DOCKER_IMAGE_NAME}\`"
+          fi
         fi
 
-        if [[ -n "${DOCKER_IMAGE_DIGEST:-}" ]]; then
-          jq --arg digest "\`${DOCKER_IMAGE_DIGEST}\`" \
-            '.attachments[0].fields += [{"title": "Docker Image Digest", "value": $digest, "short": false}]' \
+        if [[ -n "${docker_lines}" ]]; then
+          # Remove any trailing newline
+          docker_lines="$(echo -e "${docker_lines}" | sed '/^$/d')"
+          jq --arg images "${docker_lines}" \
+            '.attachments[0].fields += [{"title": "Docker Image Names", "value": $images, "short": false}]' \
             payload_temp.json > payload_temp2.json
           mv payload_temp2.json payload_temp.json
         fi

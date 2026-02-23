@@ -1,13 +1,31 @@
 name: free-disk-space
 description: "Delete specific directories or files to free disk space"
 
-inputs: {}
+inputs:
+  debug:
+    description: "Enable debug logging"
+    required: false
+    default: "${{ runner.debug }}"
 
 runs:
   using: composite
   steps:
+    - name: Show disk space (before)
+      if: ${{ inputs.debug == '1' || inputs.debug == 'true' }}
+      shell: bash
+      run: |
+        echo "::group::Disk space before cleanup"
+        echo "Disk space (df -h):"
+        df -h
+        echo " "
+        echo "Disk space (df -i):"
+        df -i
+        echo "::endgroup::"
+
     - name: Free Disk Space (parallel)
       shell: bash
+      env:
+        DEBUG_ENABLED: ${{ inputs.debug == '1' || inputs.debug == 'true' }}
       run: |
         set -Eeuo pipefail
         shopt -s nullglob dotglob
@@ -27,6 +45,24 @@ runs:
 
         # Use nproc to limit parallelism sensibly (prevents I/O overload)
         printf '%s\0' "${TARGETS[@]}" \
-          | xargs -0 -r -P "$(nproc)" -I{} bash -c 'sudo rm -rf -- "{}" 2>/dev/null || true'
+          | xargs -0 -r -P "$(nproc)" -I{} bash -c '
+              if [[ "${DEBUG_ENABLED}" == "true" ]]; then
+                sudo rm -rf -- "{}" || true
+              else
+                sudo rm -rf -- "{}" 2>/dev/null || true
+              fi
+            '
 
         echo "Disk cleanup complete."
+
+    - name: Show disk space (after)
+      if: ${{ inputs.debug == '1' || inputs.debug == 'true' }}
+      shell: bash
+      run: |
+        echo "::group::Disk space after cleanup"
+        echo "Disk space (df -h):"
+        df -h
+        echo " "
+        echo "Disk space (df -i):"
+        df -i
+        echo "::endgroup::"

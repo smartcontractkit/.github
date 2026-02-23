@@ -1,6 +1,6 @@
 {
-  "name": "pr-locking",
-  "version": "1.0.1",
+  "name": "wait-for-checks",
+  "version": "1.0.0",
   "description": "",
   "private": true,
   "scripts": {},

@@ -1,5 +1,47 @@
 # branch-out-upload
 
+## 1.8.0
+
+### Minor Changes
+
+- [#1409](https://github.com/smartcontractkit/.github/pull/1409)
+  [`9b849ca`](https://github.com/smartcontractkit/.github/commit/9b849ca416921b492270a3711b9eb94d3cd50fa3)
+  Thanks [@kalverra](https://github.com/kalverra)! - Fixes formatting bug
+
+## 1.7.0
+
+### Minor Changes
+
+- [#1406](https://github.com/smartcontractkit/.github/pull/1406)
+  [`daac8b3`](https://github.com/smartcontractkit/.github/commit/daac8b366246b51844de11cb2f770865dea89f58)
+  Thanks [@kalverra](https://github.com/kalverra)! - More compact formatting
+
+## 1.6.0
+
+### Minor Changes
+
+- [#1404](https://github.com/smartcontractkit/.github/pull/1404)
+  [`93712a0`](https://github.com/smartcontractkit/.github/commit/93712a0845047573088a3d2ac2b213517d5165c2)
+  Thanks [@kalverra](https://github.com/kalverra)! - A better UX tweak
+
+## 1.5.0
+
+### Minor Changes
+
+- [#1402](https://github.com/smartcontractkit/.github/pull/1402)
+  [`aaa5054`](https://github.com/smartcontractkit/.github/commit/aaa50542096fe7beb6f9675f711a7d62c931fff3)
+  Thanks [@kalverra](https://github.com/kalverra)! - Adds optional, more
+  condensed flow to also run tests before uploading results.
+
+## 1.4.0
+
+### Minor Changes
+
+- [#1399](https://github.com/smartcontractkit/.github/pull/1399)
+  [`1c838e9`](https://github.com/smartcontractkit/.github/commit/1c838e9cff3b39f8ee5df85cc1946c0a5441327b)
+  Thanks [@kalverra](https://github.com/kalverra)! - Updates
+  trunk-io/analytics-uploader for cache and retry support
+
 ## 1.3.2
 
 ### Patch Changes

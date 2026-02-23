@@ -321,6 +321,14 @@ on:
         required: false
         type: number
         default: 30
+      free-disk-space:
+        description: |
+          Whether the workflow should attempt to free up disk space
+          on the GitHub runner before building the Docker image.
+          Default is false.
+        required: false
+        type: string
+        default: "false"
 
     outputs:
       docker-image-sha-digest-amd64:
@@ -482,6 +490,10 @@ jobs:
       docker-image-sha-digest-arm64: ${{ steps.build.outputs.docker-image-sha-digest-arm64 }}
       docker-manifest-tag: ${{ steps.set-docker-image-tags.outputs.docker-manifest-tag }}
     steps:
+      - name: Free up disk space
+        if: ${{ inputs.free-disk-space == 'true' }}
+        uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
+
       - uses: actions/checkout@v4
         id: checkout
         with:

@@ -17,6 +17,13 @@ inputs:
     default: "latest"
     required: false
 
+  go-test-args:
+    description:
+      "Arguments to pass to the go test command. When set, this action runs the
+      tests."
+    required: false
+    default: ""
+
   # trunk inputs
   trunk-org-slug:
     description: "The organization slug for Trunk.io"
@@ -43,8 +50,9 @@ inputs:
   trunk-previous-step-outcome:
     description:
       "The outcome of the testing step. Used to determine failure status of this
-      action."
-    required: true
+      action. Required when go-test-args is not set."
+    required: false
+    default: ""
 
   trunk-variant:
     description: |
@@ -61,12 +69,33 @@ runs:
       env:
         TEST_SUITE_LANGUAGE: ${{ inputs.test-suite-language }}
         JUNIT_FILE_PATH: ${{ inputs.junit-file-path }}
+        GO_TEST_ARGS: ${{ inputs.go-test-args }}
+        TRUNK_PREVIOUS_STEP_OUTCOME: ${{ inputs.trunk-previous-step-outcome }}
       run: |
         echo "Test suite language: $TEST_SUITE_LANGUAGE"
         JUNIT_DIR=$(dirname $JUNIT_FILE_PATH)
         echo "junit-dir=${JUNIT_DIR}" | tee -a "$GITHUB_OUTPUT"
         echo "JUnit directory: $JUNIT_DIR"
         echo "JUnit file path: $JUNIT_FILE_PATH"
+
+        RUN_TESTS=false
+        if [[ -n "$GO_TEST_ARGS" ]]; then
+          RUN_TESTS=true
+          echo "go-test-args provided; will run tests in this action."
+        else
+          echo "go-test-args not provided; will only upload results."
+        fi
+        echo "run-tests=${RUN_TESTS}" | tee -a "$GITHUB_OUTPUT"
+
+        if [[ "${RUN_TESTS}" == "true" && "$TEST_SUITE_LANGUAGE" != "go" ]]; then
+          echo "::error::go-test-args is only supported for Go test suites."
+          exit 1
+        fi
+
+        if [[ "${RUN_TESTS}" == "false" && -z "${TRUNK_PREVIOUS_STEP_OUTCOME}" ]]; then
+          echo "::error::trunk-previous-step-outcome is required when go-test-args is not set."
+          exit 1
+        fi
 
         if [[ "$TEST_SUITE_LANGUAGE" == "go" ]]; then
           echo "Go test suite detected, will run JUnit Enhancer."
@@ -77,6 +106,36 @@ runs:
           echo "run-enhancer=false" | tee -a "$GITHUB_OUTPUT"
           echo "junit-path-to-upload=$JUNIT_FILE_PATH" | tee -a "$GITHUB_OUTPUT"
         fi
+
+    - name: Install gotestsum
+      if: ${{ steps.inputs-ext.outputs.run-tests == 'true' }}
+      shell: bash
+      run: |
+        echo "::group::Install gotestsum"
+        go install gotest.tools/gotestsum@latest
+        echo "::endgroup::"
+
+    - name: Run Go tests
+      id: run-go-tests
+      if: ${{ steps.inputs-ext.outputs.run-tests == 'true' }}
+      continue-on-error: true
+      shell: bash
+      env:
+        GO_TEST_ARGS: ${{ inputs.go-test-args }}
+        JUNIT_FILE_PATH: ${{ inputs.junit-file-path }}
+      run: |
+        set -o pipefail
+        read -r -a GO_TEST_ARGS_ARRAY <<< "${GO_TEST_ARGS}"
+        COMMAND=(  
+          gotestsum  
+          --format standard-quiet  
+          --hide-summary skipped  
+          --junitfile "$JUNIT_FILE_PATH"  
+          --  
+          "${GO_TEST_ARGS_ARRAY[@]}"  
+        )  
+        echo "Running command: ${COMMAND[*]}"  
+        "${COMMAND[@]}"
 
     - name: Install JUnit Enhancer (go)
       if: ${{ steps.inputs-ext.outputs.run-enhancer == 'true' }}
@@ -100,9 +159,24 @@ runs:
       run: |
         junit-enhancer -input ${JUNIT_INPUT_PATH} -output ${JUNIT_OUTPUT_PATH} -verbose
 
+    - name: Resolve previous step outcome
+      id: resolve-previous-step-outcome
+      if: ${{ always() }}
+      shell: bash
+      env:
+        RUN_TESTS: ${{ steps.inputs-ext.outputs.run-tests }}
+        TEST_OUTCOME: ${{ steps.run-go-tests.outcome }}
+        TRUNK_PREVIOUS_STEP_OUTCOME: ${{ inputs.trunk-previous-step-outcome }}
+      run: |
+        if [[ "${RUN_TESTS}" == "true" ]]; then
+          echo "previous-step-outcome=${TEST_OUTCOME}" | tee -a "$GITHUB_OUTPUT"
+        else
+          echo "previous-step-outcome=${TRUNK_PREVIOUS_STEP_OUTCOME}" | tee -a "$GITHUB_OUTPUT"
+        fi
+
     - name: Upload Test Results to Trunk.io
       id: upload-to-trunk
-      uses: trunk-io/analytics-uploader@f2631c653f9675d391e6e68cc877370db927c64c # v2.0.0
+      uses: trunk-io/analytics-uploader@293e9b144a101ef4b8fe3485a5afd0224fc48255 # v2.0.7
       continue-on-error: ${{ inputs.trunk-upload-only == 'true' }}
       env:
         TRUNK_TELEMETRY: "off"
@@ -111,7 +185,9 @@ runs:
         junit-paths: ${{ steps.inputs-ext.outputs.junit-path-to-upload }}
         org-slug: ${{ inputs.trunk-org-slug }}
         token: ${{ inputs.trunk-token }}
-        previous-step-outcome: ${{ inputs.trunk-previous-step-outcome }}
+        previous-step-outcome:
+          ${{ steps.resolve-previous-step-outcome.outputs.previous-step-outcome
+          }}
         variant: ${{ inputs.trunk-variant }}
 
     - name: Check junit-enhancer outcomes

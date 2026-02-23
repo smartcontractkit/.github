@@ -1,0 +1,92 @@
+name: Reusable Docusaurus
+
+##
+# Build and deploy Docusaurus documentation to GitHub Pages.
+#
+# This workflow is reusable and can be called from other workflows.
+# It runs one job: checkout, setup Node.js, build (which validates the docs),
+# upload pages artifact, and conditionally deploy (only on push to main).
+#
+# Example usage from a calling workflow:
+#
+#   jobs:
+#     docusaurus:
+#       permissions:
+#         contents: read
+#         pages: write
+#         id-token: write
+#       uses: smartcontractkit/.github/.github/workflows/reusable-docusaurus.yml@<git-sha>
+#       with:
+#         build-command: pnpm -C ./docs run build
+#         build-output-directory: ./docs/build
+#         package-json-directory: ./docs
+# ##
+
+on:
+  workflow_call:
+    inputs:
+      # nodejs inputs
+      node-version-file:
+        description: "path to .tool-versions file for node version"
+        required: false
+        type: string
+        default: ".tool-versions"
+      pnpm-version:
+        description: "the pnpm version to use"
+        required: false
+        type: string
+        default: "^10.0.0"
+      # docs-specific inputs
+      build-command:
+        description: "command to build the documentation (run from repository root, use pnpm -C to specify directory)"
+        required: false
+        type: string
+        default: "pnpm -C ./docs run build"
+      build-output-directory:
+        description: "directory where the built documentation is output (relative to repository root or absolute path)"
+        required: false
+        type: string
+        default: "build"
+      package-json-directory:
+        description: "the sub-directory of the package.json, if not at the root of the repository"
+        required: false
+        type: string
+        default: "."
+
+permissions: {}
+
+jobs:
+  docusaurus:
+    name: Build and Deploy Documentation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup nodejs
+        uses: smartcontractkit/.github/actions/setup-nodejs@setup-nodejs/v1
+        with:
+          node-version-file: ${{ inputs.node-version-file }}
+          pnpm-version: ${{ inputs.pnpm-version }}
+          use-cache: "true"
+          run-install: "true"
+          package-json-directory: ${{ inputs.package-json-directory }}
+        continue-on-error: true
+
+      - name: Build documentation
+        shell: bash
+        env:
+          BUILD_COMMAND: ${{ inputs.build-command }}
+        run: $BUILD_COMMAND
+
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v4.0.0
+        with:
+          path: ${{ inputs.build-output-directory }}
+
+      - name: Deploy to GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/deploy-pages@v4.0.5

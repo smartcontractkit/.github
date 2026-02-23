@@ -1,5 +1,15 @@
 # ctf-build-image
 
+## 1.4.0
+
+### Minor Changes
+
+- [#1376](https://github.com/smartcontractkit/.github/pull/1376)
+  [`b7be49d`](https://github.com/smartcontractkit/.github/commit/b7be49d6f54ce0990354931ee1e4c8624f3f406e)
+  Thanks [@chudilka1](https://github.com/chudilka1)! - #chore: Add freeing up
+  space in the ctf-build-image action to avoid 'no space left on a device'
+  errors
+
 ## 1.3.0
 
 ### Minor Changes

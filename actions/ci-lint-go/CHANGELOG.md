@@ -1,5 +1,11 @@
 # ci-lint-go
 
+## 4.0.0
+
+### Major Changes
+
+- [#1387](https://github.com/smartcontractkit/.github/pull/1387) [`40efd29`](https://github.com/smartcontractkit/.github/commit/40efd295996e3f0b778a6fc31b7796a33ce4cc0e) Thanks [@chainchad](https://github.com/chainchad)! - Upgraded underlying golangci-lint action from v8 to v9.2.0
+
 ## 3.1.0
 
 ### Minor Changes

@@ -21,6 +21,11 @@ Requirements:
   `${{ github.workspace }}`
 - `dep-prefix`: Prefix to filter dependencies to check. By default, we use
   `github.com/smartcontractkit`
+- `repo-branch-exceptions` - Input allowing exceptions for non-default branches
+  on certain repositories.
+  - The input is newline delimited, in the format of:
+    - `<owner>/<repo>:<branch-1>,<optional branches>`
+    - Example: `smartcontractkit/.github:develop`
 
 ## Outputs
 

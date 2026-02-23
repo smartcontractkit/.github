@@ -1,5 +1,14 @@
 # slack-notify-git-ref
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1419](https://github.com/smartcontractkit/.github/pull/1419)
+  [`78abf67`](https://github.com/smartcontractkit/.github/commit/78abf67faa8e78599ddce46f5330420f19f51aff)
+  Thanks [@chainchad](https://github.com/chainchad)! - Support one message with
+  multiple OCI images
+
 ## 1.0.0
 
 ### Major Changes

@@ -23804,10 +23804,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       (0, command_1.issueCommand)("error", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
     exports2.error = error2;
-    function warning4(message, properties = {}) {
+    function warning5(message, properties = {}) {
       (0, command_1.issueCommand)("warning", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
-    exports2.warning = warning4;
+    exports2.warning = warning5;
     function notice(message, properties = {}) {
       (0, command_1.issueCommand)("notice", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
@@ -28519,7 +28519,7 @@ async function getDeps(rootDir, depPrefix) {
     core.info(`Finding dependencies in ${goModFilePath}`);
     try {
       const dir = (0, import_path.dirname)(goModFilePath);
-      const output = (0, import_child_process.execSync)("go list -json -m all", {
+      const output = (0, import_child_process.execSync)("go list -json -e -m all", {
         encoding: "utf-8",
         cwd: dir
       });
@@ -28688,7 +28688,7 @@ function isGoModule(line, depPrefix) {
 
 // apps/go-mod-validator/src/github.ts
 var core3 = __toESM(require_core());
-async function isCommitInDefaultBranch(gh, defaultBranch, { repo, owner, commitSha }) {
+async function isCommitInBranch(gh, defaultBranch, { repo, owner, commitSha }) {
   const {
     data: { status }
   } = await gh.rest.repos.compareCommits({
@@ -28697,13 +28697,13 @@ async function isCommitInDefaultBranch(gh, defaultBranch, { repo, owner, commitS
     base: defaultBranch,
     head: commitSha
   });
-  const isInDefault = status === "identical" || status === "behind";
+  const isInBranch = status === "identical" || status === "behind";
   return {
-    isInDefault,
+    isInBranch,
     commitSha
   };
 }
-async function isTagInDefaultBranch(gh, defaultBranch, mod) {
+async function isTagInBranch(gh, branch, mod) {
   let commitSha = "";
   try {
     const tag = await gh.rest.git.getRef({
@@ -28722,7 +28722,7 @@ async function isTagInDefaultBranch(gh, defaultBranch, mod) {
     } else {
       commitSha = tag.data.object.sha;
     }
-    return isCommitInDefaultBranch(gh, defaultBranch, {
+    return isCommitInBranch(gh, branch, {
       ...mod,
       commitSha
     });
@@ -28734,15 +28734,15 @@ async function isTagInDefaultBranch(gh, defaultBranch, mod) {
       eStr = e;
     }
     return {
-      isInDefault: "unknown",
+      isInBranch: "unknown",
       commitSha,
       reason: eStr
     };
   }
 }
 var cache = {};
-async function isGoModReferencingDefaultBranch(gh, mod, defaultBranch, c = cache) {
-  const cacheKey = `${mod.path}:${mod.version}:${defaultBranch}`;
+async function isGoModReferencingBranch(gh, mod, branch, c = cache) {
+  const cacheKey = `${mod.path}:${mod.version}:${branch}`;
   if (cacheKey in c) {
     return c[cacheKey];
   }
@@ -28751,13 +28751,13 @@ async function isGoModReferencingDefaultBranch(gh, mod, defaultBranch, c = cache
       `Processing module: ${mod.name} ${mod.path} ${mod.version} ${mod.goModFilePath}`
     );
     if ("commitSha" in mod) {
-      return isCommitInDefaultBranch(gh, defaultBranch, mod);
+      return isCommitInBranch(gh, branch, mod);
     } else if ("tag" in mod) {
-      return isTagInDefaultBranch(gh, defaultBranch, mod);
+      return isTagInBranch(gh, branch, mod);
     } else {
       core3.warning(`Unable to parse commit sha nor tag for module ${mod.name}`);
       return {
-        isInDefault: false,
+        isInBranch: false,
         commitSha: ""
       };
     }
@@ -28792,10 +28792,27 @@ function getInputs() {
     githubToken,
     githubPrReadToken: getRunInputString("githubPrReadToken", githubToken),
     goModDir: getRunInputString("goModDir"),
-    depPrefix: getRunInputString("depPrefix")
+    depPrefix: getRunInputString("depPrefix"),
+    repoBranchExceptions: getRunInputRepoBranchExceptions(
+      "repoBranchExceptions"
+    )
   };
-  core4.info(`Inputs: ${JSON.stringify(inputs)}`);
+  logInputs(inputs);
   return inputs;
+}
+function logInputs(inputs) {
+  core4.info("Run Inputs:");
+  core4.info(`  githubToken: [REDACTED] (non-empty: ${!!inputs.githubToken})`);
+  core4.info(
+    `  githubPrReadToken: [REDACTED] (non-empty: ${!!inputs.githubPrReadToken})`
+  );
+  core4.info(`  goModDir: ${inputs.goModDir}`);
+  core4.info(`  depPrefix: ${inputs.depPrefix}`);
+  core4.info(
+    `  repoBranchExceptions: ${JSON.stringify(
+      Array.from(inputs.repoBranchExceptions.entries())
+    )}`
+  );
 }
 var runInputsConfiguration = {
   githubToken: {
@@ -28813,6 +28830,10 @@ var runInputsConfiguration = {
   depPrefix: {
     parameter: "dep-prefix",
     localParameter: "DEP_PREFIX"
+  },
+  repoBranchExceptions: {
+    parameter: "repo-branch-exceptions",
+    localParameter: "REPO_BRANCH_EXCEPTIONS"
   }
 };
 function getRunInputString(input, defaultValue = "") {
@@ -28833,6 +28854,53 @@ function getInputKey(input) {
   }
   const inputKey = CL_LOCAL_DEBUG ? config.localParameter : config.parameter;
   return inputKey;
+}
+function getRunInputRepoBranchExceptions(input) {
+  const inputKey = getInputKey(input);
+  const inputValue = core4.getInput(inputKey, {
+    required: false
+  });
+  if (!inputValue) {
+    return /* @__PURE__ */ new Map();
+  }
+  const lines = splitAndTrim(inputValue, "\n");
+  if (lines.length === 0) {
+    return /* @__PURE__ */ new Map();
+  }
+  const repoBranchMap = /* @__PURE__ */ new Map();
+  for (const line of lines) {
+    const [repo, branches] = parseRepoBranchLine(line);
+    if (branches.length === 0) {
+      core4.warning(`No valid branches found in line: ${line}`);
+      continue;
+    }
+    addOrAppendMapValue(repoBranchMap, repo, branches);
+  }
+  return repoBranchMap;
+}
+function parseRepoBranchLine(line) {
+  const [repo, ...rest] = line.split(":").map((s) => s.trim());
+  if (!repo) {
+    throw new Error(`Invalid repo in line: ${line}`);
+  }
+  if (rest.length === 0) {
+    throw new Error(`No branch in line: ${line}`);
+  }
+  if (rest.length > 1) {
+    throw new Error(`Multiple colons found in line: ${line}`);
+  }
+  const branches = splitAndTrim(rest[0], ",");
+  return [repo, branches];
+}
+function splitAndTrim(s, separator) {
+  return s.split(separator).map((part) => part.trim()).filter((part) => part.length > 0);
+}
+function addOrAppendMapValue(map, key, value) {
+  if (map.has(key)) {
+    map.get(key).push(...value);
+  } else {
+    map.set(key, value);
+  }
 }
 
 // apps/go-mod-validator/src/strings.ts
@@ -28858,8 +28926,7 @@ e.g.,
 `;
 
 // apps/go-mod-validator/src/go-mod-validator.ts
-function getContext() {
-  const { goModDir, githubToken, githubPrReadToken, depPrefix } = getInputs();
+function getOctokits(inputs) {
   const options = {
     throttle: {
       onRateLimit: (retryAfter, options2, octokit2, retryCount) => {
@@ -28879,26 +28946,27 @@ function getContext() {
     }
   };
   const octokit = github.getOctokit(
-    githubToken,
+    inputs.githubToken,
     options,
     // @ts-expect-error @actions/github uses octokit/core ^5.0.1 whereas @octokit/plugin-throttling uses octokit/core ^7.0.5
     throttling
   );
   const prReadOctokit = github.getOctokit(
-    githubPrReadToken,
+    inputs.githubPrReadToken,
     options,
     // @ts-expect-error @actions/github uses octokit/core ^5.0.1 whereas @octokit/plugin-throttling uses octokit/core ^7.0.5
     throttling
   );
-  const isPullRequest = !!github.context.payload.pull_request;
-  return { goModDir, octokit, prReadOctokit, depPrefix, isPullRequest };
+  return { octokit, prReadOctokit };
 }
 async function run() {
-  const { goModDir, octokit, prReadOctokit, depPrefix, isPullRequest } = getContext();
-  core5.debug(`Go module directory: ${goModDir}`);
-  core5.debug(`Dependency prefix filter: ${depPrefix || "none"}`);
+  const inputs = getInputs();
+  const { octokit, prReadOctokit } = getOctokits(inputs);
+  const isPullRequest = !!github.context.payload.pull_request;
+  core5.debug(`Go module directory: ${inputs.goModDir}`);
+  core5.debug(`Dependency prefix filter: ${inputs.depPrefix || "none"}`);
   core5.debug(`Pull request mode: ${isPullRequest}`);
-  let depsToValidate = await getDeps(goModDir, depPrefix);
+  let depsToValidate = await getDeps(inputs.goModDir, inputs.depPrefix);
   if (isPullRequest) {
     core5.info(
       "Running in pull request mode, filtering dependencies to validate based on changed files and only checking for pseudo-versions."
@@ -28913,7 +28981,7 @@ async function run() {
       pr.number,
       owner,
       repo,
-      depPrefix
+      inputs.depPrefix
     );
     core5.debug(
       `Filtered changed files: ${JSON.stringify(changedFiles.map((f) => f.filename))}`
@@ -28933,51 +29001,13 @@ async function run() {
     );
   }
   const invalidations = /* @__PURE__ */ new Map();
-  const validating = depsToValidate.map(async (d) => {
-    const defaultBranch = await getDefaultBranch(octokit, d);
-    const result = await isGoModReferencingDefaultBranch(
-      octokit,
-      d,
-      defaultBranch
-    );
-    const { commitSha, isInDefault } = result;
-    const repoUrl = `https://github.com/${d.owner}/${d.repo}`;
-    let detailString = "";
-    if ("tag" in d) {
-      detailString = `Version(tag): ${d.tag}
-Tree: ${repoUrl}/tree/${d.tag}
-Commit: ${repoUrl}/commit/${commitSha}`;
-    }
-    if ("commitSha" in d) {
-      detailString = `Version(commit): ${d.commitSha}
-Tree: ${repoUrl}/tree/${d.commitSha}
-Commit: ${repoUrl}/commit/${d.commitSha} `;
-    }
-    switch (isInDefault) {
-      case true:
-        break;
-      case false: {
-        const msg = `[${d.goModFilePath}] dependency ${d.name} not on default branch (${defaultBranch}).
-${detailString}`;
-        invalidations.set(d, { msg, type: "error" });
-        break;
-      }
-      case "unknown": {
-        const msg = `[${d.goModFilePath}] dependency ${d.name} not found in default branch (${defaultBranch}).
-Reason: ${result.reason}
-${detailString}`;
-        invalidations.set(d, { msg, type: "warning" });
-        break;
-      }
-      default:
-        {
-          const isNever = (isInDefault2) => isInDefault2;
-          isNever(isInDefault);
-        }
-        break;
+  const validationPromises = depsToValidate.map(async (dep) => {
+    const invalidation = await validateDependency(octokit, dep, inputs);
+    if (invalidation) {
+      invalidations.set(dep, invalidation);
     }
   });
-  await Promise.all(validating);
+  await Promise.all(validationPromises);
   if (invalidations.size > 0) {
     core5.info(`Found ${invalidations.size} invalid dependencies.`);
     const depLineFinder = lineForDependencyPathFinder();
@@ -29012,6 +29042,72 @@ ${detailString}`;
     core5.info(msg);
     return msg;
   }
+}
+async function validateDependency(octokit, dep, inputs) {
+  core5.info(`Validating dependency: ${dep.owner}/${dep.repo}@${dep.version}`);
+  const defaultBranch = await getDefaultBranch(octokit, dep);
+  const exceptions = inputs.repoBranchExceptions.get(`${dep.owner}/${dep.repo}`) || [];
+  core5.debug(`Default branch for ${dep.owner}/${dep.repo} is ${defaultBranch}`);
+  core5.debug(
+    `Exception branches for ${dep.owner}/${dep.repo} are ${exceptions.join(", ")}`
+  );
+  let branchResult = defaultBranch;
+  let result = await isGoModReferencingBranch(octokit, dep, defaultBranch);
+  if (exceptions.length > 0 && !result.isInBranch) {
+    for (const branch of exceptions) {
+      const exceptionResult = await isGoModReferencingBranch(
+        octokit,
+        dep,
+        branch
+      );
+      if (exceptionResult.isInBranch) {
+        branchResult = branch;
+        result = exceptionResult;
+        break;
+      }
+    }
+  }
+  const { isInBranch, commitSha } = result;
+  const detailString = formatDetailString(dep, commitSha);
+  const allowedBranches = [defaultBranch, ...exceptions];
+  switch (isInBranch) {
+    case true:
+      core5.debug(`Dependency ${dep.name} found in branch ${branchResult}`);
+      return null;
+    case false: {
+      const msg = `[${dep.goModFilePath}] dependency ${dep.name} not found in (${allowedBranches.join(", ")}).
+${detailString}`;
+      return { msg, type: "error" };
+    }
+    case "unknown": {
+      const msg = `[${dep.goModFilePath}] dependency ${dep.name} not found in (${allowedBranches.join(", ")}).
+Reason: ${result.reason}
+${detailString}`;
+      return { msg, type: "warning" };
+    }
+    default:
+      {
+        const assertNever = (x) => {
+          throw new Error(`Unhandled case: ${String(x)}`);
+        };
+        assertNever(isInBranch);
+      }
+      return null;
+  }
+}
+function formatDetailString(dep, commitSha) {
+  const repoUrl = `https://github.com/${dep.owner}/${dep.repo}`;
+  if ("tag" in dep) {
+    return `Version(tag): ${dep.tag}
+Tree: ${repoUrl}/tree/${dep.tag}
+Commit: ${repoUrl}/commit/${commitSha}`;
+  }
+  if ("commitSha" in dep) {
+    return `Version(commit): ${dep.commitSha}
+Tree: ${repoUrl}/tree/${dep.commitSha}
+Commit: ${repoUrl}/commit/${dep.commitSha} `;
+  }
+  return "";
 }
 
 // apps/go-mod-validator/src/index.ts

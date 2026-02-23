@@ -108,13 +108,11 @@ jobs:
       - uses: actions/stale@v9
         env:
           CLOSE_PR_MESSAGE: |
-            This PR has been automatically closed because it had been stale for > ${{ env.DAYS_BEFORE_PR_STALE }} days.
+            This PR has been automatically closed because it had been stale for > ${{ inputs.days-before-pr-stale }} days.
             If you wish to continue working on this PR, please reopen it to make any necessary changes.
-          DAYS_BEFORE_PR_CLOSE: ${{ inputs.days-before-pr-close }}
-          DAYS_BEFORE_PR_STALE: ${{ inputs.days-before-pr-stale}}
           STALE_PR_MESSAGE: |
-            This PR is stale because it has been open ${{ env.DAYS_BEFORE_PR_STALE }} days with no activity.
-            Remove the `stale` label, comment, or update this PR to prevent this PR from being closed in ${{ env.DAYS_BEFORE_PR_CLOSE }} days.
+            This PR is stale because it has been open ${{ inputs.days-before-pr-stale }} days with no activity.
+            Remove the `stale` label, comment, or update this PR to prevent this PR from being closed in ${{ inputs.days-before-pr-close }} days.
         with:
           repo-token: ${{ secrets.GH_TOKEN }}
           close-pr-message: ${{ inputs.close-pr-message || env.CLOSE_PR_MESSAGE }}
