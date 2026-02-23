@@ -43,14 +43,6 @@
         "color": true,
         "command": "tsc --noEmit --pretty"
       }
-    },
-    "test": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "{projectRoot}",
-        "color": true,
-        "command": "vitest run"
-      }
     }
   }
 }
