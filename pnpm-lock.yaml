@@ -345,34 +345,6 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  actions/delete-deployments/actions/delete-deployments/dist/actions/delete-deployments:
-    dependencies:
-      '@actions/core':
-        specifier: ^3.0.0
-        version: 3.0.0
-      '@actions/github':
-        specifier: ^9.0.0
-        version: 9.0.0
-      '@octokit/plugin-retry':
-        specifier: ^8.1.0
-        version: 8.1.0(@octokit/core@7.0.6)
-      '@octokit/plugin-throttling':
-        specifier: ^11.0.3
-        version: 11.0.3(@octokit/core@7.0.6)
-    devDependencies:
-      '@octokit/types':
-        specifier: ^16.0.0
-        version: 16.0.0
-      '@octokit/webhooks-types':
-        specifier: ^7.6.1
-        version: 7.6.1
-      '@types/node':
-        specifier: ^25.3.0
-        version: 25.3.0
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-
   actions/dependency-review: {}
 
   actions/devenv-k8s-purge-ns: {}
@@ -906,9 +878,6 @@ packages:
 
   '@actions/github@8.0.1':
     resolution: {integrity: sha512-cue7mS+kx1/2Dnc/094pitRUm+0uPXVXYVaqOdZwD15BsXATWYHW3idJDYOlyBc5gJlzAQ/w5YLU4LR8D7hjVg==}
-
-  '@actions/github@9.0.0':
-    resolution: {integrity: sha512-yJ0RoswsAaKcvkmpCE4XxBRiy/whH2SdTBHWzs0gi4wkqTDhXMChjSdqBz/F4AeiDlP28rQqL33iHb+kjAMX6w==}
 
   '@actions/glob@0.1.2':
     resolution: {integrity: sha512-SclLR7Ia5sEqjkJTPs7Sd86maMDw43p769YxBOxvPvEWuPEhpAnBsQfENOpXjFYMmhCqd127bmf+YdvJqVqR4A==}
@@ -7353,16 +7322,6 @@ snapshots:
       undici: 5.29.0
 
   '@actions/github@8.0.1':
-    dependencies:
-      '@actions/http-client': 3.0.2
-      '@octokit/core': 7.0.6
-      '@octokit/plugin-paginate-rest': 14.0.0(@octokit/core@7.0.6)
-      '@octokit/plugin-rest-endpoint-methods': 17.0.0(@octokit/core@7.0.6)
-      '@octokit/request': 10.0.8
-      '@octokit/request-error': 7.1.0
-      undici: 6.23.0
-
-  '@actions/github@9.0.0':
     dependencies:
       '@actions/http-client': 3.0.2
       '@octokit/core': 7.0.6
