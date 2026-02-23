@@ -17,12 +17,12 @@ export async function run(): Promise<void> {
     core.startGroup("Inputs and Context");
     const context = getInvokeContext();
     core.info(
-      `Extracted Context: ${JSON.stringify({ context, ...{ token: "<redacted>" } }, null, 2)}`,
+      `Extracted Context: ${JSON.stringify({ ...context, token: "<redacted>" }, null, 2)}`,
     );
 
     const inputs = getInputs();
     if (inputs.numOfPages === "all" && inputs.startingPage != null) {
-      throw new Error(`Cannot use STARTING_PAGE with NUM_OF_PAGES=all`);
+      throw new Error(`Cannot use  starting-page when num-of-pages=all`);
     }
     core.info(`Extracted Inputs: ${JSON.stringify(inputs, null, 2)}`);
 
@@ -32,7 +32,14 @@ export async function run(): Promise<void> {
     // 2. Get deployments
     core.startGroup("Getting deployments");
 
-    const [owner, repo, ..._] = inputs.repository.split("/");
+    const parts = inputs.repository.split("/");
+    if (parts.length !== 2) {
+      throw new Error(
+        `Invalid repository format: ${inputs.repository}. Expected format is 'owner/repo'.`,
+      );
+    }
+
+    const [owner, repo] = parts;
     const deployments = await listDeployments(
       octokit,
       owner,
@@ -68,7 +75,7 @@ async function deleteDeployments(
 ) {
   core.info(`Deleting deployments (${deploymentIds.length})`);
 
-  const deleteDeployments = deploymentIds.map(async (id) => {
+  const deletionResults = deploymentIds.map(async (id) => {
     if (dryRun) {
       core.info(`[Dry Run] Would delete deployment with id ${id}`);
       return;
@@ -92,7 +99,7 @@ async function deleteDeployments(
     return false;
   });
 
-  const processed = await Promise.all(deleteDeployments);
+  const processed = await Promise.all(deletionResults);
   const succeeded = processed.filter((p) => !!p);
   core.info(
     `Successfully deleted ${succeeded.length}/${processed.length} deployments`,

@@ -25895,7 +25895,7 @@ var runInputsConfiguration = {
   startingPage: {
     parameter: "starting-page",
     localParameter: "STARTING_PAGE",
-    validator: (value) => validateNumberGreaterThanOrEqual(value, 0)
+    validator: (value) => validateNumberGreaterThanOrEqual(value, 1)
   }
 };
 function getRunInputString(input, required = true) {
@@ -25934,6 +25934,9 @@ function getRunInputNumber(input, required = true) {
   const inputValue = getInput(inputKey, {
     required
   });
+  if (!inputValue && !required) {
+    return void 0;
+  }
   const parsedValue = parseInt(inputValue);
   if (isNaN(parsedValue)) {
     throw new Error(`Input ${inputKey} is not a valid number: ${inputValue}`);
@@ -25983,17 +25986,23 @@ async function run() {
     startGroup("Inputs and Context");
     const context2 = getInvokeContext();
     info(
-      `Extracted Context: ${JSON.stringify({ context: context2, ...{ token: "<redacted>" } }, null, 2)}`
+      `Extracted Context: ${JSON.stringify({ ...context2, token: "<redacted>" }, null, 2)}`
     );
     const inputs = getInputs();
     if (inputs.numOfPages === "all" && inputs.startingPage != null) {
-      throw new Error(`Cannot use STARTING_PAGE with NUM_OF_PAGES=all`);
+      throw new Error(`Cannot use  starting-page when num-of-pages=all`);
     }
     info(`Extracted Inputs: ${JSON.stringify(inputs, null, 2)}`);
     const octokit = getOctokit2(context2.token);
     endGroup();
     startGroup("Getting deployments");
-    const [owner, repo, ..._] = inputs.repository.split("/");
+    const parts = inputs.repository.split("/");
+    if (parts.length !== 2) {
+      throw new Error(
+        `Invalid repository format: ${inputs.repository}. Expected format is 'owner/repo'.`
+      );
+    }
+    const [owner, repo] = parts;
     const deployments = await listDeployments(
       octokit,
       owner,
@@ -26018,7 +26027,7 @@ async function run() {
 }
 async function deleteDeployments(octokit, owner, repo, deploymentIds, dryRun) {
   info(`Deleting deployments (${deploymentIds.length})`);
-  const deleteDeployments2 = deploymentIds.map(async (id) => {
+  const deletionResults = deploymentIds.map(async (id) => {
     if (dryRun) {
       info(`[Dry Run] Would delete deployment with id ${id}`);
       return;
@@ -26038,7 +26047,7 @@ async function deleteDeployments(octokit, owner, repo, deploymentIds, dryRun) {
     }
     return false;
   });
-  const processed = await Promise.all(deleteDeployments2);
+  const processed = await Promise.all(deletionResults);
   const succeeded = processed.filter((p) => !!p);
   info(
     `Successfully deleted ${succeeded.length}/${processed.length} deployments`

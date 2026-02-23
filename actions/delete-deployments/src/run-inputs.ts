@@ -97,7 +97,7 @@ const runInputsConfiguration: {
   startingPage: {
     parameter: "starting-page",
     localParameter: "STARTING_PAGE",
-    validator: (value) => validateNumberGreaterThanOrEqual(value, 0),
+    validator: (value) => validateNumberGreaterThanOrEqual(value, 1),
   },
 };
 
@@ -152,6 +152,10 @@ function getRunInputNumber(input: keyof RunInputs, required: boolean = true) {
   const inputValue = core.getInput(inputKey, {
     required,
   });
+
+  if (!inputValue && !required) {
+    return undefined;
+  }
 
   const parsedValue = parseInt(inputValue);
   if (isNaN(parsedValue)) {
