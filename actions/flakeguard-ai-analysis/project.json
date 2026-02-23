@@ -1,7 +1,0 @@
-{
-  "name": "flakeguard-ai-analysis",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "projectType": "application",
-  "sourceRoot": "actions/flakeguard-ai-analysis",
-  "targets": {}
-}
