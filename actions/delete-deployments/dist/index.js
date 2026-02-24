@@ -25764,7 +25764,7 @@ function getOctokit2(token) {
   };
   return github.getOctokit(token, options, throttling, retry);
 }
-async function listDeployments(octokit, owner, repo, environment, ref, paginateOptions) {
+async function listDeployments(octokit, owner, repo, environment, paginateOptions, ref) {
   info(
     `Listing deployments for environment ${environment} and ref ${ref} in repository ${owner}/${repo}`
   );
@@ -25846,10 +25846,10 @@ var github2 = __toESM(require_github());
 function getInputs() {
   info("Getting inputs for run.");
   const inputs = {
-    ref: getRunInputString("ref", true),
+    ref: getRunInputString("ref", false),
     dryRun: getRunInputBool("dryRun", false),
-    repository: getRunInputStringOrEnv("repository", true),
-    environment: getRunInputStringOrEnv("environment", true),
+    repository: getRunInputString("repository", true),
+    environment: getRunInputString("environment", true),
     numOfPages: getNumOfPagesInput("numOfPages", false),
     startingPage: getRunInputNumber("startingPage", false)
   };
@@ -25900,27 +25900,11 @@ var runInputsConfiguration = {
 };
 function getRunInputString(input, required = true) {
   const inputKey = getInputKey(input);
-  const inputValue = getInput(inputKey, {
-    required
-  });
+  const inputValue = getInput(inputKey, { required });
+  if (inputValue === "" && !required) {
+    return void 0;
+  }
   return inputValue;
-}
-function getRunInputStringOrEnv(input, required = true) {
-  const inputKey = getInputKey(input);
-  const inputValue = getInput(inputKey, {
-    required: false
-  });
-  if (inputValue) {
-    return inputValue;
-  }
-  const localParameter = runInputsConfiguration[input]?.localParameter;
-  if (localParameter && process.env[localParameter]) {
-    return process.env[localParameter];
-  }
-  if (required) {
-    throw new Error(`Input ${inputKey} is required but not set.`);
-  }
-  return "";
 }
 function getRunInputBool(input, required = true) {
   const inputKey = getInputKey(input);
@@ -26008,11 +25992,11 @@ async function run() {
       owner,
       repo,
       inputs.environment,
-      inputs.ref,
       {
         numOfPages: inputs.numOfPages,
         startingPage: inputs.startingPage
-      }
+      },
+      inputs.ref
     );
     const deploymentIds = deployments.map((d) => d.id);
     info(`Found ${deploymentIds.length} deployments to delete.`);
