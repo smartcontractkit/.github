@@ -1,5 +1,13 @@
 # changed-modules-go
 
+## 1.0.2
+
+### Patch Changes
+
+- [#1425](https://github.com/smartcontractkit/.github/pull/1425)
+  [`82a65b6`](https://github.com/smartcontractkit/.github/commit/82a65b6a6f4f82214d5b6470097bc3a9ca711446)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: context logging
+
 ## 1.0.1
 
 ### Patch Changes
