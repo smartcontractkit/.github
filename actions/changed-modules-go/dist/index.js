@@ -36074,7 +36074,7 @@ async function run() {
     core5.startGroup("Inputs and Context");
     const context3 = getInvokeContext();
     core5.info(
-      `Extracted Context: ${JSON.stringify({ context: context3, ...{ token: "<redacted>" } }, null, 2)}`
+      `Extracted Context: ${JSON.stringify({ ...context3, token: "<redacted>" }, null, 2)}`
     );
     const inputs = getInputs();
     core5.info(`Extracted Inputs: ${JSON.stringify(inputs, null, 2)}`);

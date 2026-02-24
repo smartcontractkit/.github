@@ -30,7 +30,7 @@ export async function run(): Promise<void> {
     core.startGroup("Inputs and Context");
     const context = getInvokeContext();
     core.info(
-      `Extracted Context: ${JSON.stringify({ context, ...{ token: "<redacted>" } }, null, 2)}`,
+      `Extracted Context: ${JSON.stringify({ ...context, token: "<redacted>" }, null, 2)}`,
     );
 
     const inputs = getInputs();
