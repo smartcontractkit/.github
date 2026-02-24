@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 export interface RunInputs {
-  ref: string;
+  ref?: string;
   dryRun: boolean;
   repository: string;
   environment: string;
@@ -16,10 +16,10 @@ export function getInputs(): RunInputs {
   core.info("Getting inputs for run.");
 
   const inputs: RunInputs = {
-    ref: getRunInputString("ref", true),
+    ref: getRunInputString("ref", false),
     dryRun: getRunInputBool("dryRun", false),
-    repository: getRunInputStringOrEnv("repository", true),
-    environment: getRunInputStringOrEnv("environment", true),
+    repository: getRunInputString("repository", true),
+    environment: getRunInputString("environment", true),
     numOfPages: getNumOfPagesInput("numOfPages", false),
     startingPage: getRunInputNumber("startingPage", false),
   };
@@ -101,41 +101,24 @@ const runInputsConfiguration: {
   },
 };
 
-function getRunInputString(input: keyof RunInputs, required: boolean = true) {
-  const inputKey = getInputKey(input);
-  const inputValue = core.getInput(inputKey, {
-    required,
-  });
-
-  return inputValue;
-}
-
-/**
- * Usage of this function is for backwards compatibility.
- */
-function getRunInputStringOrEnv(
+function getRunInputString(input: keyof RunInputs): string;
+function getRunInputString(input: keyof RunInputs, required: true): string;
+function getRunInputString(
+  input: keyof RunInputs,
+  required: false,
+): string | undefined;
+function getRunInputString(
   input: keyof RunInputs,
   required: boolean = true,
-) {
+): string | undefined {
   const inputKey = getInputKey(input);
-  const inputValue = core.getInput(inputKey, {
-    required: false,
-  });
+  const inputValue = core.getInput(inputKey, { required });
 
-  if (inputValue) {
-    return inputValue;
-  }
-  const localParameter = runInputsConfiguration[input]?.localParameter;
-
-  if (localParameter && process.env[localParameter]) {
-    return process.env[localParameter] as string;
+  if (inputValue === "" && !required) {
+    return undefined;
   }
 
-  if (required) {
-    throw new Error(`Input ${inputKey} is required but not set.`);
-  }
-
-  return "";
+  return inputValue;
 }
 
 function getRunInputBool(input: keyof RunInputs, required: boolean = true) {

@@ -45,11 +45,11 @@ export async function run(): Promise<void> {
       owner,
       repo,
       inputs.environment,
-      inputs.ref,
       {
         numOfPages: inputs.numOfPages,
         startingPage: inputs.startingPage,
       },
+      inputs.ref,
     );
 
     const deploymentIds = deployments.map((d) => d.id);
