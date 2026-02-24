@@ -1,0 +1,11 @@
+# See: https://codeql.github.com/docs/codeql-language-guides/customizing-library-models-for-actions/#example-extend-the-trusted-actions-publishers-for-the-actions-unpinned-tag-query
+# I believe the default configuration is here: https://github.com/github/codeql/blob/main/actions/ql/lib/ext/config/trusted_actions_owner.yml
+extensions:
+  - addsTo:
+      pack: codeql/actions-all
+      extensible: trustedActionsOwnerDataModel
+    data:
+      - ["smartcontractkit"]
+      - ["actions"]
+      - ["github"]
+      - ["advanced-security"]

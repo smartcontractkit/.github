@@ -51,3 +51,6 @@ bin/
 
 # other caches
 **/.cache/**
+
+# codeql
+**/.codeql/**
