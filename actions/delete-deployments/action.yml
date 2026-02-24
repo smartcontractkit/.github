@@ -1,0 +1,44 @@
+name: delete-deployments
+description: "Deletes the spammy deployment notifications added to PRs"
+
+inputs:
+  github-token:
+    description: "GitHub token to use for authentication"
+    default: ${{ github.token }}
+    required: true
+
+  environment:
+    description: The environment to filter deployments by
+    required: false
+
+  ref:
+    required: true
+    description: The ref to filter deployments by
+
+  dry-run:
+    required: false
+    description: Whether to actually delete deployments or not
+
+  num-of-pages:
+    required: false
+    description:
+      The number of pages (of 100 per page) to fetch deployments from, set to
+      'all' to fetch all deployments
+    default: "all"
+
+  starting-page:
+    required: false
+    description:
+      The page to start fetching deployments from, only valid if num-of-pages is
+      set to a number
+
+  repository:
+    required: false
+    description:
+      The owner and repository name to delete deployments from, defaults to the
+      current repository, ex. 'smartcontractkit/chainlink'
+    default: ${{ github.repository }}
+
+runs:
+  using: "node20"
+  main: "dist/index.js"

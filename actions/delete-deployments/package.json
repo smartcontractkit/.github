@@ -1,0 +1,22 @@
+{
+  "name": "delete-deployments",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "repository": "https://github.com/smartcontractkit/.github",
+  "devDependencies": {
+    "@octokit/types": "^16.0.0",
+    "@octokit/webhooks-types": "^7.6.1",
+    "@types/node": "^25.3.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@actions/core": "^3.0.0",
+    "@actions/github": "^8.0.0",
+    "@octokit/plugin-retry": "^8.1.0",
+    "@octokit/plugin-throttling": "^11.0.3"
+  }
+}

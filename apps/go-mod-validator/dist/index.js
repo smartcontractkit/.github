@@ -28211,7 +28211,7 @@ var require_dist = __commonJS({
 var github = __toESM(require_github());
 var core5 = __toESM(require_core());
 
-// node_modules/.pnpm/@octokit+plugin-throttling@11.0.1_@octokit+core@7.0.3/node_modules/@octokit/plugin-throttling/dist-bundle/index.js
+// node_modules/.pnpm/@octokit+plugin-throttling@11.0.1_@octokit+core@7.0.6/node_modules/@octokit/plugin-throttling/dist-bundle/index.js
 var import_light = __toESM(require_light(), 1);
 var VERSION = "0.0.0-development";
 var noop = () => Promise.resolve();

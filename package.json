@@ -19,7 +19,8 @@
     "package": "pnpm nx run-many --target=package --verbose",
     "package:affected": "pnpm nx affected --target=package --verbose",
     "ci:changeset:publish": "pnpm changeset publish",
-    "ci:changeset:version": "pnpm changeset version"
+    "ci:changeset:version": "pnpm changeset version",
+    "clean:deps": "rm -rf node_modules && pnpm -r exec rm -rf node_modules"
   },
   "private": true,
   "devDependencies": {
