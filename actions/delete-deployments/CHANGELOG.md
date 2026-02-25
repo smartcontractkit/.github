@@ -1,5 +1,13 @@
 # delete-deployments
 
+## 1.0.2
+
+### Patch Changes
+
+- [#1430](https://github.com/smartcontractkit/.github/pull/1430)
+  [`6efc62a`](https://github.com/smartcontractkit/.github/commit/6efc62a4fa6b99eee63d5b2e087accfcc87cc5ce)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: default dry-run input
+
 ## 1.0.1
 
 ### Patch Changes
