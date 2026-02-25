@@ -7,8 +7,8 @@
 | Name            | Description                                                                                                                                | Required | Default                    |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------- | -------------------------- |
 | `github-token`  | GitHub token to use for authentication                                                                                                     | Yes      | `${{ github.token }}`      |
-| `environment`   | The environment to filter deployments by                                                                                                   | No       | —                          |
-| `ref`           | The ref to filter deployments by                                                                                                           | Yes      | —                          |
+| `environment`   | The environment to filter deployments by                                                                                                   | Yes      | —                          |
+| `ref`           | The ref to filter deployments by                                                                                                           | No       | —                          |
 | `dry-run`       | Whether to actually delete deployments or not                                                                                              | No       | —                          |
 | `num-of-pages`  | Number of pages (100 per page) to fetch deployments from. Set to `all` to fetch all deployments. Must be "all" or a number greater than 0. | No       | `all`                      |
 | `starting-page` | Page to start fetching deployments from. Only valid if `num-of-pages` is set to a number. Must be greater than or equal to 0.              | No       | —                          |

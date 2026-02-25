@@ -8,11 +8,13 @@ inputs:
     required: true
 
   environment:
-    description: The environment to filter deployments by
-    required: false
+    description: |
+      The environment to filter deployments by.
+      Required to ensure deletions are properly scoped.
+    required: true
 
   ref:
-    required: true
+    required: false
     description: The ref to filter deployments by
 
   dry-run:
