@@ -63,8 +63,8 @@ export async function listDeployments(
   owner: string,
   repo: string,
   environment: string,
-  ref: string,
   paginateOptions: PaginateOptions,
+  ref?: string,
 ): Promise<ListDeploymentsResponse> {
   core.info(
     `Listing deployments for environment ${environment} and ref ${ref} in repository ${owner}/${repo}`,
