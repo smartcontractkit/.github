@@ -19,6 +19,7 @@ inputs:
 
   dry-run:
     required: false
+    default: "false"
     description: Whether to actually delete deployments or not
 
   num-of-pages:
