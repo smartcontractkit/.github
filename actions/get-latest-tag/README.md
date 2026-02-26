@@ -15,6 +15,12 @@ Given a `tag-prefix`, this action:
   - the parsed version (e.g. `1.2.3`)
   - a JSON blob with the next major/minor/patch tag+version values
 
+### Limitations
+
+This is really only built to support basic version like
+`<major>.<minor>.<patch>`. It doesn't really support pre-release versions with
+suffixes like `-beta.1`, `alpha.2+build1234`, etc.A
+
 ## Inputs
 
 | Name           | Required | Default               | Description                                                                                   |
