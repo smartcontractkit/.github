@@ -1,0 +1,22 @@
+name: get-latest-tag
+description: ""
+
+inputs:
+  # general inputs
+  checkout-repo:
+    description: "enable git checkout repo"
+    required: false
+    default: "true"
+  checkout-repo-fetch-depth:
+    description: "number of commits to fetch"
+    required: false
+    default: "0"
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repo
+      if: inputs.checkout-repo == 'true'
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
