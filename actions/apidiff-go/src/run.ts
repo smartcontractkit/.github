@@ -30,6 +30,16 @@ export async function run(): Promise<void> {
 
     await validateGitRepositoryRoot(inputs.repositoryRoot);
 
+    if (context.event.eventName === "workflow_dispatch") {
+      if (!inputs.headRefOverride) {
+        core.error("head-ref-override input is required for workflow_dispatch events.");
+      }
+      if (!inputs.baseRefOverride) {
+        core.error("base-ref-override input is required for workflow_dispatch events.");
+      }
+      throw new Error("Missing required inputs for workflow_dispatch event.");
+    };
+
     const qualifiedModuleDirectory = join(
       inputs.repositoryRoot,
       inputs.moduleDirectory,

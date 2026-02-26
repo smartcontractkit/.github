@@ -1,7 +1,7 @@
 import * as github from "@actions/github";
 import { PushEvent, PullRequestEvent } from "@octokit/webhooks-types";
 
-export type EventData = PullRequestEventData | PushEventData;
+export type EventData = PullRequestEventData | PushEventData | WorkflowDispatchEventData;
 
 export interface PullRequestEventData {
   eventName: "pull_request";
@@ -14,6 +14,10 @@ export interface PushEventData {
   eventName: "push";
   base: string;
   head: string;
+}
+
+export interface WorkflowDispatchEventData {
+  eventName: "workflow_dispatch";
 }
 
 /**
@@ -44,6 +48,11 @@ export function getEventData(): EventData {
         eventName: "push",
         base: pushEvent.before,
         head: pushEvent.after,
+      };
+
+    case "workflow_dispatch":
+      return {
+        eventName: "workflow_dispatch",
       };
 
     default:
