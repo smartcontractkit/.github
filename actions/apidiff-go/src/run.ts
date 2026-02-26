@@ -82,7 +82,16 @@ export async function run(): Promise<void> {
 
     // 4. Format and output results
     core.startGroup("Formatting and Outputting Results");
-    formatApidiffJobSummary(parsedResult, `${baseRef} (${baseExport.resolvedRef})`, `${headRef} (${headExport.resolvedRef})`);
+
+    const formattedBaseRef =
+      baseRef === baseExport.resolvedRef
+        ? baseRef
+        : `${baseRef} (${baseExport.resolvedRef})`;
+    const formattedHeadRef =
+      headRef === headExport.resolvedRef
+        ? headRef
+        : `${headRef} (${headExport.resolvedRef})`;
+    formatApidiffJobSummary(parsedResult, formattedBaseRef, formattedHeadRef);
 
     if (context.event.eventName === "pull_request") {
       const markdownOutputIncompatibleOnly = formatApidiffMarkdown(
@@ -125,13 +134,18 @@ export async function run(): Promise<void> {
   }
 }
 
-
-function determineRef(property: "head" | "base", context: ReturnType<typeof getInvokeContext>, override?: string) {
+function determineRef(
+  property: "head" | "base",
+  context: ReturnType<typeof getInvokeContext>,
+  override?: string,
+) {
   if (override) {
     return override;
   }
   if (context.event.eventName === "workflow_dispatch") {
-    throw new Error(`Missing required ${property}-ref-override input for workflow_dispatch event.`);
+    throw new Error(
+      `Missing required ${property}-ref-override input for workflow_dispatch event.`,
+    );
   }
   return context.event[property];
 }

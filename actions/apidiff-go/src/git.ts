@@ -105,7 +105,10 @@ async function isCommitSha(repoDir: string, ref: string): Promise<boolean> {
 /**
  * Checks out the specified ref in the repository
  */
-export async function checkoutRef(repoDir: string, ref: string): Promise<string> {
+export async function checkoutRef(
+  repoDir: string,
+  ref: string,
+): Promise<string> {
   core.info(`Checking out ref: ${ref}`);
 
   try {
