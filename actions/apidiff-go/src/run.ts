@@ -30,16 +30,6 @@ export async function run(): Promise<void> {
 
     await validateGitRepositoryRoot(inputs.repositoryRoot);
 
-    if (context.event.eventName === "workflow_dispatch") {
-      if (!inputs.headRefOverride) {
-        core.error("head-ref-override input is required for workflow_dispatch events.");
-      }
-      if (!inputs.baseRefOverride) {
-        core.error("base-ref-override input is required for workflow_dispatch events.");
-      }
-      throw new Error("Missing required inputs for workflow_dispatch event.");
-    };
-
     const qualifiedModuleDirectory = join(
       inputs.repositoryRoot,
       inputs.moduleDirectory,
@@ -47,6 +37,10 @@ export async function run(): Promise<void> {
     core.info(`Qualified module directory: ${qualifiedModuleDirectory}`);
     const moduleName = await getGoModuleName(qualifiedModuleDirectory);
     core.info(`Module name: ${moduleName}`);
+
+    const headRef = determineRef("head", context, inputs.headRefOverride);
+    const baseRef = determineRef("base", context, inputs.baseRefOverride);
+    core.info(`Head ref: ${headRef}, Base ref: ${baseRef}`);
 
     core.endGroup();
 
@@ -57,14 +51,13 @@ export async function run(): Promise<void> {
 
     // 3. Generate exports
     core.startGroup("Generating Exports");
-    const headRef = inputs.headRefOverride || context.event.head;
+
     const headExport = await generateExportAtRef(
       qualifiedModuleDirectory,
       headRef,
     );
     core.info(`Generated head export at: ${headExport.path}`);
 
-    const baseRef = inputs.baseRefOverride || context.event.base;
     const baseExport = await generateExportAtRef(
       qualifiedModuleDirectory,
       baseRef,
@@ -150,23 +143,13 @@ export async function run(): Promise<void> {
   }
 }
 
-// TODO: support comparing against latest tagged version (DX-2323)
-async function generateExportForLatestVersion(
-  context: InvokeContext,
-  repositoryRoot: string,
-  moduleDirectory: string,
-) {
-  if (context.event.eventName !== "push") {
-    return null;
-  }
-  core.info("Push event detected. Diffing with latest tagged version.");
-  const tags = await getRepoTags(repositoryRoot);
-  const latest = findLatestVersionFromTags(moduleDirectory, tags);
-  if (!latest) {
-    core.info("Latest version not found. Skipping export generation.");
-    return null;
-  }
 
-  const qualifiedModuleDirectory = join(repositoryRoot, moduleDirectory);
-  return generateExportAtRef(qualifiedModuleDirectory, latest.tag);
+function determineRef(property: "head" | "base", context: ReturnType<typeof getInvokeContext>, override?: string) {
+  if (override) {
+    return override;
+  }
+  if (context.event.eventName === "workflow_dispatch") {
+    throw new Error(`Missing required ${property}-ref-override input for workflow_dispatch event.`);
+  }
+  return context.event[property];
 }
