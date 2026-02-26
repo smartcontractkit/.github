@@ -107,7 +107,7 @@ export async function run(): Promise<void> {
 
     // 4. Format and output results
     core.startGroup("Formatting and Outputting Results");
-    formatApidiffJobSummary(parsedResult);
+    formatApidiffJobSummary(parsedResult, `${baseRef} (${baseExport.resolvedRef})`, `${headRef} (${headExport.resolvedRef})`);
 
     if (context.event.eventName === "pull_request") {
       const markdownOutputIncompatibleOnly = formatApidiffMarkdown(
