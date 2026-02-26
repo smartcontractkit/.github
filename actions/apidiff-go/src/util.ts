@@ -62,7 +62,9 @@ export function normalizeRefForFilename(ref: string): string {
 export function copySummaryOutputFile(destination: string) {
   const filePath = process.env["GITHUB_STEP_SUMMARY"];
   if (!filePath) {
-    core.warning("GITHUB_STEP_SUMMARY environment variable is not set. Cannot copy summary output.");
+    core.warning(
+      "GITHUB_STEP_SUMMARY environment variable is not set. Cannot copy summary output.",
+    );
     return;
   }
 
@@ -71,5 +73,19 @@ export function copySummaryOutputFile(destination: string) {
     copyFileSync(filePath, destination);
   } catch (error) {
     core.warning(`Failed to copy summary output: ${error}`);
+  }
+}
+
+export function recommendVersionBump(diff: {
+  incompatible: any[];
+  compatible: any[];
+}): "patch" | "minor" | "major" {
+  // Simple heuristic based on gorelease: https://pkg.go.dev/golang.org/x/exp/cmd/gorelease
+  if (diff.incompatible.length > 0) {
+    return "major";
+  } else if (diff.compatible.length > 0) {
+    return "minor";
+  } else {
+    return "patch";
   }
 }

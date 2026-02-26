@@ -8,6 +8,10 @@ runs:
   main: "dist/index.js"
 
 outputs:
+  version-recommendation:
+    description: |
+      A recommendation for the next version number based on the detected API
+      changes. Possible values are 'patch', 'minor', 'major'.
 
   summary-path:
     description: |

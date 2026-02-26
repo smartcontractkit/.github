@@ -130,10 +130,18 @@ export async function run(): Promise<void> {
     }
     core.endGroup();
 
-    const incompatibleCount = [parsedResult].reduce(
-      (sum, diff) => sum + diff.incompatible.length,
-      0,
+    const compatibleCount = parsedResult.compatible.length;
+    const incompatibleCount = parsedResult.incompatible.length;
+    const metaCount = parsedResult.meta.length;
+    core.info(
+      `Detected ${compatibleCount} compatible, ${incompatibleCount} incompatible, and ${metaCount} metadata changes.`,
     );
+
+    core.setOutput(
+      "version-recommendation",
+      recommendVersionBump(parsedResult),
+    );
+
     core.info(`Total incompatible changes: ${incompatibleCount}`);
     if (inputs.enforceCompatible && incompatibleCount > 0) {
       core.setFailed(
