@@ -3,41 +3,6 @@ import * as semver from "semver";
 import { basename, join } from "path";
 import { readFileSync, existsSync } from "fs";
 
-export function findLatestVersionFromTags(modulePath: string, tags: string[]) {
-  const prefix = `${modulePath}/v`;
-  core.info(
-    `Finding latest version with prefix '${prefix}' from ${tags.length} tags.`,
-  );
-  if (tags.length === 0) {
-    core.info("No tags found.");
-    return null;
-  }
-
-  const filteredTags = tags.filter((tag) => tag.startsWith(prefix));
-  core.info(`Filtered to ${filteredTags.length} tags with prefix '${prefix}'.`);
-  core.debug(`Filtered tags: ${filteredTags.join(", ")}`);
-
-  const versions = filteredTags
-    .map((tag) => tag.slice(prefix.length))
-    .filter((v: string) => semver.valid(v) !== null);
-  core.info(`Found ${versions.length} valid semantic versions for module.`);
-  core.debug(`Versions found: ${versions.join(", ")}`);
-
-  if (versions.length === 0) {
-    core.info("No valid semantic versions found for module.");
-    return null;
-  }
-
-  const sorted = versions.sort(semver.rcompare);
-  const latestVersion = sorted[0];
-  core.info(`Latest version for module '${modulePath}' is: ${latestVersion}`);
-
-  return {
-    version: latestVersion,
-    tag: `${modulePath}/v${latestVersion}`,
-  };
-}
-
 /**
  * Extracts the module name from go.mod file
  */

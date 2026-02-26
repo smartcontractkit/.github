@@ -8,8 +8,9 @@ import {
   parseApidiffOutput,
   installApidiff,
   diffExports,
+  ApiDiffResult,
 } from "./apidiff";
-import { validateGitRepositoryRoot, getRepoTags } from "./git";
+import { validateGitRepositoryRoot } from "./git";
 import { upsertPRComment } from "./github";
 import { CL_LOCAL_DEBUG, getInputs, getInvokeContext } from "./run-inputs";
 import {
@@ -17,9 +18,8 @@ import {
   formatApidiffJobSummary,
 } from "./string-processor";
 
-import { findLatestVersionFromTags, getGoModuleName } from "./util";
+import { getGoModuleName } from "./util";
 
-import type { InvokeContext, RunInputs } from "./run-inputs";
 export async function run(): Promise<void> {
   try {
     // 1. Get inputs and context
@@ -63,16 +63,6 @@ export async function run(): Promise<void> {
       baseRef,
     );
     core.info(`Generated base export at: ${baseExport.path}`);
-
-    // TODO: support comparing against latest tagged version (DX-2323)
-    // const latestExport = await generateExportForLatestVersion(
-    //   context,
-    //   inputs.repositoryRoot,
-    //   inputs.moduleDirectory,
-    // );
-    // if (latestExport) {
-    //   core.info(`Generated latest version export at: ${latestExport.path}`);
-    // }
     core.endGroup();
 
     // 4. Diff and parse export
@@ -80,14 +70,6 @@ export async function run(): Promise<void> {
     core.info(`Diffing base (${baseExport.ref}) -> head (${headExport.ref})`);
     const baseHeadDiff = await diffExports(baseExport, headExport);
 
-    // TODO: support comparing against latest tagged version (DX-2323)
-    // let latestHeadDiff = null;
-    // if (latestExport) {
-    //   core.info(
-    //     `Diffing latest (${latestExport.ref}) -> head (${headExport.ref})`,
-    //   );
-    //   latestHeadDiff = await diffExports(latestExport, headExport);
-    // }
     core.endGroup();
 
     // 5. Parse apidiff outputs
