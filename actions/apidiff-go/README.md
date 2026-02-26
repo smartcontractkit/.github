@@ -36,6 +36,16 @@ Github event triggered the invocation.
   [event payload](https://docs.github.com/en/webhooks/webhook-events-and-payloads?actionType=synchronize#pull_request).
 - `push` - uses the `before`/`after` from the
   [event payload](https://docs.github.com/en/webhooks/webhook-events-and-payloads#push)
+- `workflow_dispatch` events require `base-ref-override` and `head-ref-override`
+  inputs.
+
+#### Outputs
+
+1. `version-recommendation` - based on the changes, this will output `patch`,
+   `minor`, or `major`
+2. `summary-path` - a copy of the summary, written to disk. To be used for
+   release notes if needed
+   - This should be written to a `summary.md` at the root of the module
 
 ### Example Workflow
 
