@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import * as semver from "semver";
 import { basename, join } from "path";
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync, copyFileSync } from "fs";
 
 /**
  * Extracts the module name from go.mod file
@@ -57,4 +57,19 @@ export function normalizeRefForFilename(ref: string): string {
   }
 
   return safe;
+}
+
+export function copySummaryOutputFile(destination: string) {
+  const filePath = process.env["GITHUB_STEP_SUMMARY"];
+  if (!filePath) {
+    core.warning("GITHUB_STEP_SUMMARY environment variable is not set. Cannot copy summary output.");
+    return;
+  }
+
+  try {
+    core.info(`Copying summary output from ${filePath} to ${destination}`);
+    copyFileSync(filePath, destination);
+  } catch (error) {
+    core.warning(`Failed to copy summary output: ${error}`);
+  }
 }

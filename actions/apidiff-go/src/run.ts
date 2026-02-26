@@ -8,7 +8,6 @@ import {
   parseApidiffOutput,
   installApidiff,
   diffExports,
-  ApiDiffResult,
 } from "./apidiff";
 import { validateGitRepositoryRoot } from "./git";
 import { upsertPRComment } from "./github";
@@ -18,7 +17,11 @@ import {
   formatApidiffJobSummary,
 } from "./string-processor";
 
-import { getGoModuleName } from "./util";
+import {
+  getGoModuleName,
+  copySummaryOutputFile,
+  recommendVersionBump,
+} from "./util";
 
 export async function run(): Promise<void> {
   try {
@@ -83,15 +86,24 @@ export async function run(): Promise<void> {
     // 4. Format and output results
     core.startGroup("Formatting and Outputting Results");
 
-    const formattedBaseRef =
-      baseRef === baseExport.resolvedRef
-        ? baseRef
-        : `${baseRef} (${baseExport.resolvedRef})`;
-    const formattedHeadRef =
-      headRef === headExport.resolvedRef
-        ? headRef
-        : `${headRef} (${headExport.resolvedRef})`;
-    formatApidiffJobSummary(parsedResult, formattedBaseRef, formattedHeadRef);
+    const formatRef = (ref: string, resolvedRef: string) =>
+      ref === resolvedRef ? ref : `${ref} (${resolvedRef})`;
+
+    const formattedBaseRef = formatRef(baseRef, baseExport.resolvedRef);
+    const formattedHeadRef = formatRef(headRef, headExport.resolvedRef);
+    // await so when we copy the file, we know the summary has been written
+    const summaryPath = join(
+      inputs.repositoryRoot,
+      inputs.moduleDirectory,
+      "summary.md",
+    );
+    await formatApidiffJobSummary(
+      parsedResult,
+      formattedBaseRef,
+      formattedHeadRef,
+    );
+    copySummaryOutputFile(summaryPath);
+    core.setOutput("summary-path", summaryPath);
 
     if (context.event.eventName === "pull_request") {
       const markdownOutputIncompatibleOnly = formatApidiffMarkdown(
