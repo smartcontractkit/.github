@@ -152,6 +152,8 @@ export function formatApidiffMarkdown(
  */
 export async function formatApidiffJobSummary(
   diff: ApiDiffResult,
+  baseRef: string,
+  headRef: string,
 ): Promise<void> {
   const s = core.summary;
 
@@ -164,12 +166,29 @@ export async function formatApidiffJobSummary(
       "<blockquote>No changes detected for this module</blockquote>",
       true,
     );
+    s.addTable([
+      [
+        { data: "Ref", header: true },
+        { data: "Value", header: true },
+      ],
+      [{ data: "Base" }, { data: `<code>${escapeHtml(baseRef)}</code>` }],
+      [{ data: "Head" }, { data: `<code>${escapeHtml(headRef)}</code>` }],
+    ]);
     await s.write();
     return;
   }
 
   const statusEmoji = hasIncompat ? "⚠️" : "✅";
   s.addHeading(`${statusEmoji} API Diff Results – ${diff.moduleName}`, 2);
+
+  s.addTable([
+    [
+      { data: "Ref", header: true },
+      { data: "Value", header: true },
+    ],
+    [{ data: "Base" }, { data: `<code>${escapeHtml(baseRef)}</code>` }],
+    [{ data: "Head" }, { data: `<code>${escapeHtml(headRef)}</code>` }],
+  ]);
 
   // Top summary table for this module
   function simpleTableRow(title: string, content: number): { data: string }[] {

@@ -15,6 +15,7 @@ export type ExportFile = {
   path: string;
   normalizedRef: string;
   ref: string;
+  resolvedRef: string;
 };
 
 export async function generateExportAtRef(
@@ -27,7 +28,7 @@ export async function generateExportAtRef(
     `Generating export (${outFile}) for module at ${modulePath}, at ref ${ref}.`,
   );
 
-  await checkoutRef(modulePath, ref);
+  const resolvedRef = await checkoutRef(modulePath, ref);
   await execa("apidiff", ["-m", "-w", outFile, "."], {
     cwd: modulePath,
   });
@@ -36,6 +37,7 @@ export async function generateExportAtRef(
     path: join(modulePath, outFile),
     normalizedRef,
     ref,
+    resolvedRef,
   };
 }
 
