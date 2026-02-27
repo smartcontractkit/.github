@@ -1,5 +1,31 @@
 # apidiff-go
 
+## 2.1.0
+
+### Minor Changes
+
+- [#1433](https://github.com/smartcontractkit/.github/pull/1433)
+  [`1a97217`](https://github.com/smartcontractkit/.github/commit/1a9721728c82bea00e8a13ce0284204bc4b6d949)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: support
+  workflow_dispatch events, forcing base/head ref override inputs
+
+- [#1433](https://github.com/smartcontractkit/.github/pull/1433)
+  [`1a97217`](https://github.com/smartcontractkit/.github/commit/1a9721728c82bea00e8a13ce0284204bc4b6d949)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: add version
+  recommendations (patch/minor/major) based on api changes
+
+- [#1433](https://github.com/smartcontractkit/.github/pull/1433)
+  [`1a97217`](https://github.com/smartcontractkit/.github/commit/1a9721728c82bea00e8a13ce0284204bc4b6d949)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: copy github step
+  summary file, and add summary-path as an action output
+
+### Patch Changes
+
+- [#1433](https://github.com/smartcontractkit/.github/pull/1433)
+  [`1a97217`](https://github.com/smartcontractkit/.github/commit/1a9721728c82bea00e8a13ce0284204bc4b6d949)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: add ref, and resolved
+  ref to summary output
+
 ## 2.0.0
 
 ### Major Changes
