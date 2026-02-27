@@ -39,7 +39,7 @@ function setOutputs(mostRecentTag?: ParsedMatchingTag) {
       `No suitable tags found. Setting all outputs to empty strings.`,
     );
   } else {
-    outputObj.latestTag = mostRecentTag.strippedTag;
+    outputObj.latestTag = mostRecentTag.strippedRef;
     outputObj.latestTagRaw = mostRecentTag.rawRef;
     outputObj.latestVersion = mostRecentTag.semver.version;
     outputObj.newVersions = generateNewVersionInfo(mostRecentTag);
@@ -80,7 +80,7 @@ export async function run() {
 
     parsedTags.forEach((parsedTag) => {
       core.info(
-        `Parsed tag ${parsedTag.rawRef}: stripped to ${parsedTag.strippedTag}, version ${parsedTag.semver.version}`,
+        `Parsed tag ${parsedTag.rawRef}: stripped to ${parsedTag.strippedRef}, version ${parsedTag.semver.version}`,
       );
     });
     core.endGroup();
