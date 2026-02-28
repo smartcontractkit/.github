@@ -50,7 +50,7 @@ runs:
   steps:
     # Setup Tools and libraries
     - name: Setup Go
-      uses: smartcontractkit/.github/actions/ctf-setup-go@b0d756c57fcdbcff187e74166562a029fdd5d1b9 # ctf-setup-go@0.0.0
+      uses: smartcontractkit/.github/actions/ctf-setup-go@8fb84214197a54beaf10afd4fdb258f74b41de1a # ctf-setup-go@0.0.0
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
