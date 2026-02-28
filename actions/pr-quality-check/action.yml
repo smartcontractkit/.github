@@ -104,7 +104,7 @@ runs:
       if: env.SHOULD_RUN == 'true' && github.event.action != 'closed'
       uses: actions/setup-python@v5
       with:
-        python-version: "3.11"
+        python-version: "3.14"
 
     - name: Install dependencies
       if: env.SHOULD_RUN == 'true' && github.event.action != 'closed'
@@ -302,7 +302,7 @@ runs:
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
-      uses: actions/setup-node@v4.0.3
+      uses: actions/setup-node@v4.4.0
       with:
         node-version: "22"
 
@@ -326,7 +326,7 @@ runs:
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
-      uses: google-github-actions/auth@55bd3a7c6e2ae7cf1877fd1ccb9d54c0503c457c #v2.1.2
+      uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2.1.13
       with:
         credentials_json: ${{ inputs.claude-code-gcp-service-account-key }}
         create_credentials_file: true
