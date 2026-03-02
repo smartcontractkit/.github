@@ -86,7 +86,7 @@ describe("markdown comment & job summary", () => {
     });
 
     it(`formats diff as job summary: ${file}`, async () => {
-      await formatApidiffJobSummary(apiDiffResult);
+      await formatApidiffJobSummary(apiDiffResult, "head-ref", "base-ref");
 
       // Join the collected summary parts into a single markdown string
       const content = summaryBuffer.join("\n");

@@ -105,14 +105,17 @@ async function isCommitSha(repoDir: string, ref: string): Promise<boolean> {
 /**
  * Checks out the specified ref in the repository
  */
-export async function checkoutRef(repoDir: string, ref: string): Promise<void> {
+export async function checkoutRef(
+  repoDir: string,
+  ref: string,
+): Promise<string> {
   core.info(`Checking out ref: ${ref}`);
 
   try {
     const resolvedRef = await resolveRef(repoDir, ref);
     await execa("git", ["checkout", resolvedRef], { cwd: repoDir });
-
     core.info(`Successfully checked out: ${resolvedRef}`);
+    return resolvedRef;
   } catch (error) {
     throw new Error(`Failed to checkout ref ${ref}: ${error}`);
   }
