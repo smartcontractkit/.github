@@ -1,0 +1,56 @@
+name: get-latest-tag
+description: "Gets the latest git tag that matches the specified prefix."
+
+inputs:
+  github-token:
+    description: "GitHub token to use for authentication"
+    default: ${{ github.token }}
+    required: true
+
+  tag-prefix:
+    description: |
+      The prefix to filter tags by. For example:
+        - 'v' to match tags like 'v1.0.0' (default)
+        - 'module/v' to match tags like 'module/v1.0.0'
+    required: true
+    default: "v"
+
+outputs:
+  latest-tag:
+    description:
+      "The latest tag that matches the specified prefix. (Without /refs/tags/)"
+
+  latest-tag-raw:
+    description:
+      "The latest tag that matches the specified prefix, including the full ref
+      (e.g. refs/tags/v1.0.0)."
+
+  latest-version:
+    description:
+      "The version of the latest tag that matches the specified prefix. For
+      example, if the latest tag is 'module/v1.2.3', this output will be
+      '1.2.3'."
+
+  new-versions-json:
+    description: |
+      A JSON string containing the tag and version to use, based off a major, minor, or patch update to the latest version.
+      ```json
+      {
+        major: {
+          tag: 'module/v2.0.0',
+          version: '2.0.0'
+        },
+        minor: {
+          tag: 'module/v1.3.0',
+          version: '1.3.0'
+        },
+        patch: {
+          tag: 'module/v1.2.4',
+          version: '1.2.4'
+        },
+      }
+      ```
+
+runs:
+  using: node20
+  main: "dist/index.js"

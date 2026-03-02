@@ -1,0 +1,56 @@
+{
+  "name": "get-latest-tag",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "actions/get-latest-tag",
+  "targets": {
+    "build": {
+      "dependsOn": ["build:internal"],
+      "command": "rimraf dist/package.json"
+    },
+    "build:internal": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "format": ["cjs"],
+        "thirdParty": true,
+        "outputPath": "actions/get-latest-tag/dist/",
+        "main": "actions/get-latest-tag/src/index.ts",
+        "assets": [],
+        "outputFileName": "index.js",
+        "esbuildOptions": {
+          "outExtension": {
+            ".js": ".js"
+          }
+        },
+        "tsConfig": "tsconfig.json",
+        "platform": "node"
+      },
+      "configurations": {
+        "development": {
+          "minify": false
+        },
+        "production": {
+          "minify": false
+        }
+      }
+    },
+    "check-types": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "color": true,
+        "command": "tsc --noEmit --pretty"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "color": true,
+        "command": "vitest run"
+      }
+    }
+  }
+}
