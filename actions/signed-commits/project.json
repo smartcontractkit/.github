@@ -41,6 +41,13 @@
           "minify": false
         }
       }
+    },
+    "update-snapshots": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest --update run",
+        "cwd": "{projectRoot}"
+      }
     }
   }
 }
