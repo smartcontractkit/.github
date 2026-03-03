@@ -1,0 +1,50 @@
+# This configuration is here to prevent false positive alerts for fixtures and tests.
+
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directories:
+      - "/"
+      - "/actions/*"
+      - "/libs/*"
+      - "/app/*"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+    exclude-paths:
+      - "**/__fixtures__/**"
+      - "**/__tests__/**"
+      - "**/dist/index.js"
+
+  - package-ecosystem: "github-actions"
+    directories:
+      - "/"
+      - "/actions/*"
+      - "/app/*"
+      - "/.github/workflows/*"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+
+  - package-ecosystem: "gomod"
+    directories:
+      - "/"
+      - "/actions/*"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+    exclude-paths:
+      - "**/vendor/**"
+      - "**/__tests__/**"
+      - "**/__fixtures__/**"
+
+  - package-ecosystem: "pip"
+    directories:
+      - "/"
+      - "/actions/*"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+    exclude-paths:
+      - "**/__tests__/**"
+      - "**/__fixtures__/**"
