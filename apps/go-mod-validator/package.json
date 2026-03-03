@@ -30,7 +30,7 @@
     "@octokit/plugin-throttling": "^11.0.1",
     "@octokit/types": "^13.5.0",
     "@snyk/go-semver": "^1.4.0",
-    "vitest": "^2.1.9"
+    "vitest": "^4.0.18"
   },
   "author": "@smartcontractkit",
   "license": "MIT",
