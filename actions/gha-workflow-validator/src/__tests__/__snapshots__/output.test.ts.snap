@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`setSummary > should set summary with multiple files 1`] = `
-[MockFunction spy] {
+[MockFunction] {
   "calls": [
     [
       [
@@ -102,7 +102,7 @@ exports[`setSummary > should set summary with multiple files 1`] = `
     {
       "type": "return",
       "value": {
-        "addRaw": [MockFunction spy] {
+        "addRaw": [MockFunction] {
           "calls": [
             [
               "
@@ -213,7 +213,7 @@ uses: org/action@sha # v1.0.0-node16 ghv-ignore!
             },
           ],
         },
-        "addSeparator": [MockFunction spy] {
+        "addSeparator": [MockFunction] {
           "calls": [
             [],
           ],
@@ -224,7 +224,7 @@ uses: org/action@sha # v1.0.0-node16 ghv-ignore!
             },
           ],
         },
-        "addTable": [MockFunction spy] {
+        "addTable": [MockFunction] {
           "calls": [
             [
               [
@@ -321,14 +321,9 @@ uses: org/action@sha # v1.0.0-node16 ghv-ignore!
               ],
             ],
           ],
-          "results": [
-            {
-              "type": "return",
-              "value": [Circular],
-            },
-          ],
+          "results": [Circular],
         },
-        "write": [MockFunction spy] {
+        "write": [MockFunction] {
           "calls": [
             [],
           ],
@@ -346,7 +341,7 @@ uses: org/action@sha # v1.0.0-node16 ghv-ignore!
 `;
 
 exports[`setSummary > should set summary with no errors  1`] = `
-[MockFunction spy] {
+[MockFunction] {
   "calls": [
     [
       [
@@ -379,7 +374,7 @@ exports[`setSummary > should set summary with no errors  1`] = `
     {
       "type": "return",
       "value": {
-        "addRaw": [MockFunction spy] {
+        "addRaw": [MockFunction] {
           "calls": [
             [
               "
@@ -490,7 +485,7 @@ uses: org/action@sha # v1.0.0-node16 ghv-ignore!
             },
           ],
         },
-        "addSeparator": [MockFunction spy] {
+        "addSeparator": [MockFunction] {
           "calls": [
             [],
           ],
@@ -501,7 +496,7 @@ uses: org/action@sha # v1.0.0-node16 ghv-ignore!
             },
           ],
         },
-        "addTable": [MockFunction spy] {
+        "addTable": [MockFunction] {
           "calls": [
             [
               [
@@ -530,14 +525,9 @@ uses: org/action@sha # v1.0.0-node16 ghv-ignore!
               ],
             ],
           ],
-          "results": [
-            {
-              "type": "return",
-              "value": [Circular],
-            },
-          ],
+          "results": [Circular],
         },
-        "write": [MockFunction spy] {
+        "write": [MockFunction] {
           "calls": [
             [],
           ],
@@ -555,7 +545,7 @@ uses: org/action@sha # v1.0.0-node16 ghv-ignore!
 `;
 
 exports[`setSummary > should set summary with no input 1`] = `
-[MockFunction spy] {
+[MockFunction] {
   "calls": [
     [
       [
@@ -588,7 +578,7 @@ exports[`setSummary > should set summary with no input 1`] = `
     {
       "type": "return",
       "value": {
-        "addRaw": [MockFunction spy] {
+        "addRaw": [MockFunction] {
           "calls": [
             [
               "
@@ -699,7 +689,7 @@ uses: org/action@sha # v1.0.0-node16 ghv-ignore!
             },
           ],
         },
-        "addSeparator": [MockFunction spy] {
+        "addSeparator": [MockFunction] {
           "calls": [
             [],
           ],
@@ -710,7 +700,7 @@ uses: org/action@sha # v1.0.0-node16 ghv-ignore!
             },
           ],
         },
-        "addTable": [MockFunction spy] {
+        "addTable": [MockFunction] {
           "calls": [
             [
               [
@@ -739,14 +729,9 @@ uses: org/action@sha # v1.0.0-node16 ghv-ignore!
               ],
             ],
           ],
-          "results": [
-            {
-              "type": "return",
-              "value": [Circular],
-            },
-          ],
+          "results": [Circular],
         },
-        "write": [MockFunction spy] {
+        "write": [MockFunction] {
           "calls": [
             [],
           ],
@@ -764,7 +749,7 @@ uses: org/action@sha # v1.0.0-node16 ghv-ignore!
 `;
 
 exports[`setSummary > should set summary with single file 1`] = `
-[MockFunction spy] {
+[MockFunction] {
   "calls": [
     [
       [
@@ -831,7 +816,7 @@ exports[`setSummary > should set summary with single file 1`] = `
     {
       "type": "return",
       "value": {
-        "addRaw": [MockFunction spy] {
+        "addRaw": [MockFunction] {
           "calls": [
             [
               "
@@ -942,7 +927,7 @@ uses: org/action@sha # v1.0.0-node16 ghv-ignore!
             },
           ],
         },
-        "addSeparator": [MockFunction spy] {
+        "addSeparator": [MockFunction] {
           "calls": [
             [],
           ],
@@ -953,7 +938,7 @@ uses: org/action@sha # v1.0.0-node16 ghv-ignore!
             },
           ],
         },
-        "addTable": [MockFunction spy] {
+        "addTable": [MockFunction] {
           "calls": [
             [
               [
@@ -1016,14 +1001,9 @@ uses: org/action@sha # v1.0.0-node16 ghv-ignore!
               ],
             ],
           ],
-          "results": [
-            {
-              "type": "return",
-              "value": [Circular],
-            },
-          ],
+          "results": [Circular],
         },
-        "write": [MockFunction spy] {
+        "write": [MockFunction] {
           "calls": [
             [],
           ],
