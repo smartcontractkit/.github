@@ -5,9 +5,13 @@ on:
     branches:
       - main
 
+permissions: {}
+
 jobs:
   ci-lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v5
@@ -21,6 +25,8 @@ jobs:
 
   ci-prettier:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v5
@@ -36,6 +42,8 @@ jobs:
 
   ci-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v5

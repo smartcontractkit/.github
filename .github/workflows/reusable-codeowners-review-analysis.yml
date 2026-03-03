@@ -43,6 +43,8 @@ on:
         description: "AWS Lambda URL for GATI."
         required: false
 
+permissions: {}
+
 jobs:
   codeowners-review-analysis:
     runs-on: ubuntu-latest

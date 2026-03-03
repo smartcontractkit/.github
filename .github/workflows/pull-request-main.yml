@@ -6,9 +6,13 @@ on:
     branches:
       - main
 
+permissions: {}
+
 jobs:
   ci-lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v5
@@ -24,6 +28,8 @@ jobs:
 
   ci-prettier:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v5
@@ -39,6 +45,8 @@ jobs:
 
   ci-lint-misc:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v5
@@ -56,6 +64,9 @@ jobs:
     #  1. More generalizable for all workspaces requiring build artifacts
     #  2. Have better attribution for the commits generated from this workflow
     if: false
+    permissions:
+      contents: write
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
@@ -85,6 +96,8 @@ jobs:
 
   ci-signed-commits:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v5
@@ -101,6 +114,8 @@ jobs:
 
   ci-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v5
@@ -116,6 +131,8 @@ jobs:
 
   ci-build-artifacts:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
         uses: actions/checkout@v5

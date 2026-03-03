@@ -3,7 +3,9 @@ name: Manage stale PRs
 on:
   schedule:
     - cron: "30 0 * * *" # will be triggered daily at 00:30 UTC.
+
 permissions: {}
+
 jobs:
   stale-prs:
     permissions:
