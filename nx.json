@@ -42,5 +42,13 @@
     }
   },
   "parallel": 10,
-  "useInferencePlugins": false
+  "useInferencePlugins": false,
+  "plugins": [
+    {
+      "plugin": "@nx/eslint/plugin",
+      "options": {
+        "targetName": "lint"
+      }
+    }
+  ]
 }
