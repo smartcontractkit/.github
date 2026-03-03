@@ -28,3 +28,5 @@ yarn.lock
 
 # GQL generated type files
 **/src/generated/graphql.ts
+
+/.nx/workspace-data
