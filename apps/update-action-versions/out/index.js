@@ -34237,9 +34237,9 @@ var require_balanced_match = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/brace-expansion@2.0.1/node_modules/brace-expansion/index.js
+// ../../node_modules/.pnpm/brace-expansion@2.0.2/node_modules/brace-expansion/index.js
 var require_brace_expansion = __commonJS({
-  "../../node_modules/.pnpm/brace-expansion@2.0.1/node_modules/brace-expansion/index.js"(exports2, module2) {
+  "../../node_modules/.pnpm/brace-expansion@2.0.2/node_modules/brace-expansion/index.js"(exports2, module2) {
     "use strict";
     var balanced = require_balanced_match();
     module2.exports = expandTop;
@@ -34314,7 +34314,7 @@ var require_brace_expansion = __commonJS({
         var isSequence = isNumericSequence || isAlphaSequence;
         var isOptions = m.body.indexOf(",") >= 0;
         if (!isSequence && !isOptions) {
-          if (m.post.match(/,.*\}/)) {
+          if (m.post.match(/,(?!,).*\}/)) {
             str = m.pre + "{" + m.body + escClose + m.post;
             return expand(str);
           }
