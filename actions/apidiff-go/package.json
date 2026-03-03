@@ -26,6 +26,6 @@
     "@octokit/webhooks-types": "^7.6.1",
     "@types/node": "^24.2.1",
     "@types/semver": "^7.7.1",
-    "vitest": "^2.1.9"
+    "vitest": "^4.0.18"
   }
 }
