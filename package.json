@@ -57,7 +57,8 @@
   "pnpm": {
     "overrides": {
       "form-data": "4.0.4",
-      "minimatch": "^10.2.4"
+      "minimatch": "^10.2.4",
+      "immutable": "^4.3.8"
     }
   }
 }
