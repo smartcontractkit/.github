@@ -16,7 +16,7 @@ jobs:
       actions: read
     steps:
       - name: golangci-lint
-        uses: smartcontractkit/.github/actions/ci-lint-go@5f5ebd52cb13f4b8530cd3005ec7ec3180840219 # v0.2.5
+        uses: smartcontractkit/.github/actions/ci-lint-go@ci-lint-go/v4
         with:
           go-version-file: go.mod
 ```
