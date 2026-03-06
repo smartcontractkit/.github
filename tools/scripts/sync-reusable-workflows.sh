@@ -4,11 +4,6 @@ set -euo pipefail
 SRC_ROOT="workflows"
 DST_ROOT=".github/workflows"
 
-HEADER="# GENERATED FILE - DO NOT EDIT DIRECTLY.
-# Source: %s
-# Edit the source under workflows/, then regenerate.
-"
-
 usage() {
   echo "Usage: $0 check|fix [staged_files...]"
 }
@@ -107,8 +102,16 @@ for src in "${SOURCES[@]}"; do
   dst="$DST_ROOT/$name.$ext"
 
   tmp="$(mktemp)"
-  printf "$HEADER" "$src" > "$tmp"
-  cat "$src" >> "$tmp"
+
+  {
+    cat <<EOF
+# GENERATED FILE - DO NOT EDIT DIRECTLY.
+# Source: $src
+# Edit the source under workflows/, then regenerate.
+
+EOF
+    cat "$src"
+  } > "$tmp"
 
   needs_update=0
   if [[ ! -f "$dst" ]] || ! cmp -s "$tmp" "$dst"; then
