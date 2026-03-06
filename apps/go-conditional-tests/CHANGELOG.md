@@ -1,5 +1,13 @@
 # go-conditional-tests
 
+## 0.3.0
+
+### Minor Changes
+
+- [#1437](https://github.com/smartcontractkit/.github/pull/1437)
+  [`0247926`](https://github.com/smartcontractkit/.github/commit/0247926a96770acb5aed886b350eebc7430a8d44)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: update deps
+
 ## 0.2.2
 
 ### Patch Changes
