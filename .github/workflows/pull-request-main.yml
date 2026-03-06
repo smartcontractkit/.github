@@ -155,3 +155,16 @@ jobs:
           else
             echo "Built artifacts are up to date."
           fi
+
+  ci-check-reusable-workflows:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repo (needed to reference local action)
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Check reusable workflows
+        run: ./tools/scripts/sync-reusable-workflows.sh check
