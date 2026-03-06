@@ -1,6 +1,7 @@
 # GENERATED FILE - DO NOT EDIT DIRECTLY.
 # Source: workflows/reusable-docker-build-publish/reusable-docker-build-publish.yml
 # Edit the source under workflows/, then regenerate.
+
 name: Reusable Docker Build and Publish
 ##
 # Build and publish Docker images to AWS ECR.
