@@ -116,7 +116,7 @@ runs:
 
     - name: Run github-action-benchmark for PRs
       if: ${{ env.IS_PR == 'true' }}
-      uses: benchmark-action/github-action-benchmark@4de1bed97a47495fc4c5404952da0499e31f5c29 # v1.20.3
+      uses: benchmark-action/github-action-benchmark@4bdcce38c94cec68da58d012ac24b7b1155efe8b # v1.20.7
       with:
         tool: "go"
         output-file-path: output.txt
@@ -129,7 +129,7 @@ runs:
 
     - name: Run github-action-benchmark for Merges
       if: ${{ env.IS_MERGE == 'true' }}
-      uses: benchmark-action/github-action-benchmark@4de1bed97a47495fc4c5404952da0499e31f5c29 # v1.20.3
+      uses: benchmark-action/github-action-benchmark@4bdcce38c94cec68da58d012ac24b7b1155efe8b # v1.20.7
       with:
         tool: "go"
         output-file-path: output.txt

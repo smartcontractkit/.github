@@ -117,7 +117,7 @@ runs:
 
     - name: Assume aws gati role
       if: inputs.use-gati == 'true'
-      uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
+      uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
       with:
         role-to-assume: ${{ inputs.aws-role-arn-gati }}
         role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
@@ -148,15 +148,15 @@ runs:
 
     - name: Setup zig
       if: inputs.use-zig == 'true'
-      uses: goto-bus-stop/setup-zig@7ab2955eb728f5440978d5824358023be3a2802d # v2.2.0
+      uses: goto-bus-stop/setup-zig@abea47f85e598557f500fa1fd2ab7464fcb39406 # v2.2.1
       with:
         version: ${{ inputs.zig-version }}
 
     - name: Setup docker buildx
-      uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
+      uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
     - name: Set up qemu
-      uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
+      uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
 
     - name: Process params
       shell: bash
@@ -177,7 +177,7 @@ runs:
         fi
 
     - name: Configure aws creds
-      uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
+      uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
       if: inputs.publish == 'true' && inputs.docker-registry == 'aws'
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
@@ -193,14 +193,14 @@ runs:
 
     - name: Update tag
       if: inputs.update-git-tag == 'true'
-      uses: richardsimko/update-tag@e173a8ef8f54ab526a91dad6139a25efed62424c # v1.0.11
+      uses: richardsimko/update-tag@aab2434e9a5040687874aa39d1c6377ec0cb0d94 # v1.1.6
       with:
         tag_name: v0.0.0-devel
       env:
         GITHUB_TOKEN: ${{ github.token }} # ${{ steps.get-gh-token.outputs.access-token }}
 
     - name: Run goreleaser release
-      uses: goreleaser/goreleaser-action@90a3faa9d0182683851fbfa97ca1a2cb983bfca3 # v6.2.1
+      uses: goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a # v6.4.0
       with:
         version: ${{ inputs.goreleaser-version }}
         distribution: ${{ inputs.goreleaser-dist }}
