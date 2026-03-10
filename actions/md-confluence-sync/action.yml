@@ -44,7 +44,7 @@ runs:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
     - name: Lint MD files using Prettier
-      uses: smartcontractkit/.github/actions/ci-prettier@a738d4cfa4826d6f44dbebcc3724385f6de58d42 # ci-prettier@0.1.1
+      uses: smartcontractkit/.github/actions/ci-prettier@b6b1b68e52b1ddf359ceefcd93c5760a4201f21d # ci-prettier@0.1.1
       with:
         checkout-repo: "false"
         prettier-command: pnpm prettier --check ${{ inputs.files }}
