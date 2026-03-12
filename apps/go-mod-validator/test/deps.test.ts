@@ -1,6 +1,6 @@
 import { execSync } from "child_process";
 import { getDeps, getVersionType } from "../src/deps";
-import { describe, expect, it, vi, MockedObject } from "vitest";
+import { describe, expect, it, vi, MockedObject, beforeEach } from "vitest";
 import * as glob from "@actions/glob";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,13 +23,24 @@ vi.mock("@actions/core", async (importOriginal: any) => ({
   },
 }));
 
+vi.mock("node:child_process", () => ({ execSync: vi.fn() }));
+vi.mock("@actions/glob", () => ({ create: vi.fn() }));
+
 const mockedExecSync = vi.mocked(execSync);
-vi.mock("child_process");
-const mockedGlob = vi.mocked(glob);
-vi.mock("@actions/glob");
+const mockedCreate = vi.mocked(glob.create);
+
+let getDeps: typeof import("../src/deps").getDeps;
 type MockedGlob = MockedObject<Awaited<ReturnType<typeof glob.create>>>;
 
 describe("getDependenciesMap", () => {
+  beforeEach(async () => {
+    vi.resetModules(); // <- key: clears module-level caching
+    vi.clearAllMocks();
+
+    // re-import AFTER resetModules so module-level singletons re-run
+    ({ getDeps } = await import("../src/deps"));
+  });
+
   it("should return a map of <go.mod files: dependencies in json>", async () => {
     const paths = ["/path/to/first/go.mod", "/path/to/second/go.mod"];
     const goList1 =
@@ -39,7 +50,7 @@ describe("getDependenciesMap", () => {
     const goList3 =
       '{"Path": "github.com/smartcontractkit/chainlink-protos/cre/go", "Version": "v1.0.0-beta"}';
 
-    mockedGlob.create.mockResolvedValueOnce({
+    mockedCreate.mockResolvedValueOnce({
       glob: vi.fn().mockResolvedValue(paths),
     } as MockedGlob);
 
@@ -47,6 +58,9 @@ describe("getDependenciesMap", () => {
     mockedExecSync.mockImplementationOnce(() => goList2 + "\n" + goList3);
 
     const result = await getDeps("", "github.com/smartcontractkit");
+
+    expect(mockedExecSync).toHaveBeenCalledTimes(2);
+
     expect(result).toMatchInlineSnapshot(`
       [
         {
@@ -80,10 +94,48 @@ describe("getDependenciesMap", () => {
     `);
   });
 
+  it("should skip dependencies with errors", async () => {
+    const paths = ["/path/to/first/go.mod"];
+    const goList1 =
+      '{"Path": "github.com/smartcontractkit/go-plugin", "Version": "v0.0.0-20240208201424-b3b91517de16"}';
+    const goList2: string = `
+{
+  "Path": "github.com/smartcontractkit/private-dep",
+  "Version": "v0.0.0-20260224170222-a43bd3ff9dd5",
+  "Error": {
+    "Err": "github.com/smartcontractkit/private-dep@v0.0.0-20260224170222-a43bd3ff9dd5: invalid version: git ls-remote -q --end-of-options https://github.com/smartcontractkit/private-dep in /go/pkg/mod/cache/vcs/94d9727765b1ab36ed05d10c5d35ca726794e132cb25bee11cb34a7d6107b004: exit status 128:\\n\\tfatal: could not read Username for 'https://github.com': terminal prompts disabled\\nConfirm the import path was entered correctly.\\nIf this is a private repository, see https://golang.org/doc/faq#git_https for additional information."
+  }
+}`;
+
+    mockedCreate.mockResolvedValueOnce({
+      glob: vi.fn().mockResolvedValue(paths),
+    } as MockedGlob);
+
+    mockedExecSync.mockImplementationOnce(() => goList1 + "\n" + goList2);
+
+    const result = await getDeps("", "github.com/smartcontractkit");
+
+    expect(mockedExecSync).toHaveBeenCalledTimes(1);
+
+    expect(result).toMatchInlineSnapshot(`
+      [
+        {
+          "commitSha": "b3b91517de16",
+          "goModFilePath": "/path/to/first/go.mod",
+          "name": "github.com/smartcontractkit/go-plugin@v0.0.0-20240208201424-b3b91517de16",
+          "owner": "smartcontractkit",
+          "path": "github.com/smartcontractkit/go-plugin",
+          "repo": "go-plugin",
+          "version": "v0.0.0-20240208201424-b3b91517de16",
+        },
+      ]
+    `);
+  });
+
   it("should handle no go.mod files found", async () => {
     const paths: string[] = [];
 
-    mockedGlob.create.mockResolvedValue({
+    mockedCreate.mockResolvedValue({
       glob: vi.fn().mockResolvedValue(paths),
     } as MockedGlob);
 
@@ -91,7 +143,7 @@ describe("getDependenciesMap", () => {
   });
 
   it("should handle glob search failure", async () => {
-    mockedGlob.create.mockRejectedValue(new Error("Glob error"));
+    mockedCreate.mockRejectedValue(new Error("Glob error"));
     await expect(getDeps("", "")).rejects.toThrow("Glob error");
   });
 });

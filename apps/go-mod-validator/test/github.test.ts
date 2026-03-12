@@ -156,8 +156,13 @@ describe("isGoModReferencingBranch", () => {
       const errMsg = "not found";
       mockOctokit.rest.git.getRef.mockRejectedValue(errMsg);
 
-      const result = isGoModReferencingBranch(mockOctokit, goMod, "main", {});
-      expect(result).resolves.toEqual({
+      const result = await isGoModReferencingBranch(
+        mockOctokit,
+        goMod,
+        "main",
+        {},
+      );
+      expect(result).toEqual({
         isInBranch: "unknown",
         commitSha: "",
         reason: errMsg,

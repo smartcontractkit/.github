@@ -292,6 +292,16 @@ export function goModsToGoModules(
     // `go list -m -json all` also lists the main package, avoid parsing it.
     // and only validate dependencies belonging to our org
     .filter((d) => !d.Main && d.Path.startsWith(depPrefix))
+    // filter any modules that may have errored because they are private
+    .filter((d) => {
+      if (d.Error && d.Error.Err) {
+        core.warning(
+          `Error loading module ${d.Path}: ${d.Error.Err}. This module will be skipped.`,
+        );
+        return false;
+      }
+      return true;
+    })
     .map((d: GoMod): GoModule => {
       // repo format github.com/smartcontractkit/chainlink
       const [_, owner, repo, ...subModulePathElements] = d.Path.split("/");
