@@ -98,7 +98,7 @@ describe("getDependenciesMap", () => {
     const paths = ["/path/to/first/go.mod"];
     const goList1 =
       '{"Path": "github.com/smartcontractkit/go-plugin", "Version": "v0.0.0-20240208201424-b3b91517de16"}';
-    const goList2: string = `
+    const goList2 = `
 {
   "Path": "github.com/smartcontractkit/private-dep",
   "Version": "v0.0.0-20260224170222-a43bd3ff9dd5",
