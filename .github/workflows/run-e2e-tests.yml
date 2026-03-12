@@ -1275,6 +1275,7 @@ jobs:
       contents: read
     env:
       TEST_ID: ${{ matrix.tests.id_sanitized || matrix.tests.id }}
+      QUARANTINE: ${{ inputs.quarantine }}
     steps:
       - name: Enable S3 Cache for Self-Hosted Runners
         # these env vars are set (and exposed) when it is a self-hosted runner with extras=s3-cache
@@ -1321,6 +1322,8 @@ jobs:
         id: run_tests
         timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
         uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        # jankiness because: github.com/actions/runner/issues/1492 + github.com/actions/runner/issues/2418
+        continue-on-error: ${{ fromJSON(env.QUARANTINE) }}
         env:
           RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
         with:
@@ -1348,6 +1351,32 @@ jobs:
           aptos_cli_version: ${{ matrix.tests.aptos_cli_version }}
           sui_cli_version: ${{ matrix.tests.sui_cli_version }}
           setup_db: "true"
+
+      - name: Enforce /tmp/junit.xml exists (quarantine only)
+        id: check-junit
+        # This fails the job if there is no junit report and the test step did not succeed.
+        # If there is no report then the branch-out-upload step will not be able to properly
+        # determine the test result, so we need to fail the job here instead.
+        if: ${{ !cancelled() && inputs.quarantine == 'true' }}
+        shell: bash
+        env:
+          RESULT: ${{ steps.run_tests.outcome }}
+        run: |
+          if [ ! -f /tmp/junit.xml ]; then
+            echo "::error::Junit report not found, and run_tests outcome is $RESULT. Failing the job."
+            exit 1
+          fi
+
+      - name: Run branch-out-upload (quarantine only)
+        if: ${{ !cancelled() && inputs.quarantine == 'true' }}
+        uses: smartcontractkit/.github/actions/branch-out-upload@branch-out-upload/0.1.0
+        with:
+          junit-file-path: "/tmp/junit.xml"
+          trunk-org-slug: chainlink
+          trunk-token: ${{ secrets.TRUNK_API_KEY }}
+          trunk-previous-step-outcome: ${{ steps.run_tests.outcome }}
+          trunk-job-url: ${{ format('https://github.com/{0}/actions/runs/{1}/job/{2}/attempts/{3}', github.repository, github.run_id, job.check_run_id, github.run_attempt) }}
+          trunk-upload-only: "false"
 
   after_tests:
     needs: [load-test-configurations, run-docker-tests, run-k8s-runner-tests, run-in-memory-tests]
