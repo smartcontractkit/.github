@@ -91,7 +91,7 @@ runs:
 
     - name: Setup pnpm cache
       if: inputs.use-cache == 'true' && inputs.restore-cache-only == 'false'
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -100,7 +100,7 @@ runs:
 
     - name: Restore pnpm cache
       if: inputs.use-cache == 'true' && inputs.restore-cache-only == 'true'
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}

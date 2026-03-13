@@ -67,7 +67,7 @@ runs:
         echo "gomodcache=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
         echo "gobuildcache=$(go env GOCACHE)" >> $GITHUB_OUTPUT
 
-    - uses: actions/cache/restore@v4
+    - uses: actions/cache/restore@v5
       if: ${{ inputs.skip-cache-save == 'true' }}
       name: Restore Go Modules Cache
       id: cache-gomod-restore
@@ -80,7 +80,7 @@ runs:
         restore-keys: |
           ${{ runner.os }}-gomod-${{ inputs.cache-version }}-
 
-    - uses: actions/cache@v4
+    - uses: actions/cache@v5
       if: ${{ inputs.skip-cache-save != 'true' }}
       name: Cache Go Modules
       id: cache-gomod
@@ -93,7 +93,7 @@ runs:
         restore-keys: |
           ${{ runner.os }}-gomod-${{ inputs.cache-version }}-
 
-    - uses: actions/cache/restore@v4
+    - uses: actions/cache/restore@v5
       if:
         ${{ inputs.only-modules == 'false' && inputs.skip-cache-save == 'true'
         }}
@@ -110,7 +110,7 @@ runs:
           ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-${{ hashFiles(inputs.go-cache-dep-path) }}-
           ${{ runner.os }}-gobuild-${{ inputs.cache-version }}-
 
-    - uses: actions/cache@v4
+    - uses: actions/cache@v5
       if:
         ${{ inputs.only-modules == 'false' && inputs.skip-cache-save != 'true'
         }}
