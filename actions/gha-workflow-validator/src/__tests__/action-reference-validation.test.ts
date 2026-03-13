@@ -86,7 +86,7 @@ describe(ActionRefValidation.name, () => {
     expect(messages).toEqual([]);
   });
 
-  it("should validate action sha reference (trusted smartcontractkit/*)", async () => {
+  it("should invalidate action sha reference (trusted smartcontractkit/*)", async () => {
     const octokit = getTestOctokit(nockBack.currentMode);
     const subject = new ActionRefValidation(octokit, {
       validateNodeVersion: false,
@@ -103,8 +103,9 @@ describe(ActionRefValidation.name, () => {
     const messages = await subject.validateLine(smartcontractKitLineBadRef);
     expect(messages).toEqual([
       {
-        message: "Trusted actions should use a major version tag, if available.",
-        severity: "error",
+        message:
+          "Trusted actions should use a major version tag, if available.",
+        severity: "warning",
         type: "trusted-tag-ref",
       },
     ]);

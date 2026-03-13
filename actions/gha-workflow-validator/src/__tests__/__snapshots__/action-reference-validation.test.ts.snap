@@ -4,7 +4,7 @@ exports[`ActionRefValidation > should invalidate action reference (sha-ref / no 
 [
   {
     "message": "Trusted actions should use a major version tag, if available.",
-    "severity": "error",
+    "severity": "warning",
     "type": "trusted-tag-ref",
   },
 ]
@@ -64,7 +64,7 @@ exports[`ActionRefValidation > should invalidate single action reference (node16
 [
   {
     "message": "Trusted actions should use a major version tag, if available.",
-    "severity": "error",
+    "severity": "warning",
     "type": "trusted-tag-ref",
   },
   {
@@ -79,7 +79,7 @@ exports[`ActionRefValidation > should validate single action reference (node24) 
 [
   {
     "message": "Trusted actions should use a major version tag, if available.",
-    "severity": "error",
+    "severity": "warning",
     "type": "trusted-tag-ref",
   },
 ]

@@ -29275,13 +29275,13 @@ function validateTrustedActionTagRef(actionReference) {
     return;
   }
   const sha1Regex = /^[0-9a-f]{40}$/;
-  if (sha1Regex.test(actionReference.ref)) return;
   const sha256Regex = /^[0-9a-f]{256}$/;
-  if (sha256Regex.test(actionReference.ref)) return;
+  const isUsingShaRef = sha1Regex.test(actionReference.ref) || sha256Regex.test(actionReference.ref);
+  if (!isUsingShaRef) return;
   return {
-    message: `Trusted actions should use a major version, if available.`,
+    message: `Trusted actions should use a major version tag, if available.`,
     type: "trusted-tag-ref" /* TRUSTED_TAG_REF */,
-    severity: "error"
+    severity: "warning"
   };
 }
 function validateShaRef(actionReference) {

@@ -118,13 +118,15 @@ function validateTrustedActionTagRef(
   const sha1Regex = /^[0-9a-f]{40}$/;
   const sha256Regex = /^[0-9a-f]{256}$/;
 
-  const isUsingShaRef = sha1Regex.test(actionReference.ref) || sha256Regex.test(actionReference.ref);
+  const isUsingShaRef =
+    sha1Regex.test(actionReference.ref) ||
+    sha256Regex.test(actionReference.ref);
   if (!isUsingShaRef) return;
 
   return {
     message: `Trusted actions should use a major version tag, if available.`,
     type: ValidationType.TRUSTED_TAG_REF,
-    severity: "error",
+    severity: "warning",
   };
 }
 
