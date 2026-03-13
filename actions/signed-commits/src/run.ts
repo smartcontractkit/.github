@@ -212,6 +212,9 @@ export async function runPublish({
             "This is probably a bug in the action, please open an issue",
         );
       }
+      core.debug(
+        `Tag ${tag.name} corresponds to package ${pkg.packageJson.name} (${pkg.dir})`,
+      );
       releasedPackages.push([pkg, tag]);
     }
 

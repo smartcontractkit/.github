@@ -61282,8 +61282,10 @@ var createRelease = async (octokit, { pkg, tagName }) => {
         `Could not find changelog entry for ${pkg.packageJson.name}@${pkg.packageJson.version}`
       );
     }
-    core4.debug(`Creating release with tag ${tagName} and changelog entry:
-${changelogEntry.content}`);
+    core4.debug(
+      `Creating release with tag ${tagName} and changelog entry:
+${changelogEntry.content}`
+    );
     await octokit.rest.repos.createRelease({
       name: tagName,
       tag_name: tagName,
@@ -61357,9 +61359,14 @@ async function runPublish({
           `Package "${pkgName}" not found.This is probably a bug in the action, please open an issue`
         );
       }
+      core4.debug(
+        `Tag ${tag.name} corresponds to package ${pkg.packageJson.name} (${pkg.dir})`
+      );
       releasedPackages.push([pkg, tag]);
     }
-    core4.info(`Released packages found: ${JSON.stringify(releasedPackages.map(([p]) => p.packageJson.name))}`);
+    core4.info(
+      `Released packages found: ${JSON.stringify(releasedPackages.map(([p]) => p.packageJson.name))}`
+    );
     if (createGithubReleases) {
       await Promise.all(
         releasedPackages.map(([pkg, tag]) => {
@@ -61383,7 +61390,10 @@ async function runPublish({
     for (let line of changesetPublishOutput.stdout.split("\n")) {
       let match = line.match(newTagRegex);
       if (match) {
-        releasedPackages.push([pkg, { name: `v${pkg.packageJson.version}`, ref: "" }]);
+        releasedPackages.push([
+          pkg,
+          { name: `v${pkg.packageJson.version}`, ref: "" }
+        ]);
         if (createGithubReleases) {
           await createRelease(octokit, {
             pkg,
