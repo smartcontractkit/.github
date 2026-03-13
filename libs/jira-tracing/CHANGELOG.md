@@ -1,5 +1,14 @@
 # jira-tracing
 
+## 0.3.2
+
+### Patch Changes
+
+- [#1444](https://github.com/smartcontractkit/.github/pull/1444)
+  [`e52297b`](https://github.com/smartcontractkit/.github/commit/e52297b804a27506ab409e4a57f50cc69718cd15)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump axios dep to
+  1.13.6
+
 ## 0.3.1
 
 ### Patch Changes
