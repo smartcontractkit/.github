@@ -124,7 +124,7 @@ describe(validate.name, () => {
             messages: [
               {
                 message:
-                  "This version (v2) of actions/cache is being deprecated. Please update to v4.",
+                  "This version (v2) of actions/cache is being deprecated. Please update to v5",
                 type: ValidationType.ACTIONS_CACHE,
                 severity: "error",
               },

@@ -3,9 +3,9 @@
 exports[`ActionRefValidation > should invalidate action reference (sha-ref / no comment) 1`] = `
 [
   {
-    "message": "No version comment found",
-    "severity": "warning",
-    "type": "version-comment",
+    "message": "Trusted actions should use a major version tag, if available.",
+    "severity": "error",
+    "type": "trusted-tag-ref",
   },
 ]
 `;
@@ -23,7 +23,7 @@ exports[`ActionRefValidation > should invalidate single action reference (all er
     "type": "version-comment",
   },
   {
-    "message": "Action is using node16",
+    "message": "Action is using node16. Versions older than node24 are being deprecated. Use a newer version of the action if possible.",
     "severity": "warning",
     "type": "node-version",
   },
@@ -37,6 +37,11 @@ exports[`ActionRefValidation > should invalidate single action reference (bad sh
     "severity": "error",
     "type": "sha-ref",
   },
+  {
+    "message": "Action is using node20. Versions older than node24 are being deprecated. Use a newer version of the action if possible.",
+    "severity": "warning",
+    "type": "node-version",
+  },
 ]
 `;
 
@@ -47,17 +52,35 @@ exports[`ActionRefValidation > should invalidate single action reference (no ver
     "severity": "warning",
     "type": "version-comment",
   },
-]
-`;
-
-exports[`ActionRefValidation > should invalidate single action reference (node16) 1`] = `
-[
   {
-    "message": "Action is using node16",
+    "message": "Action is using node20. Versions older than node24 are being deprecated. Use a newer version of the action if possible.",
     "severity": "warning",
     "type": "node-version",
   },
 ]
 `;
 
-exports[`ActionRefValidation > should validate single action reference (node24) 1`] = `[]`;
+exports[`ActionRefValidation > should invalidate single action reference (node16) 1`] = `
+[
+  {
+    "message": "Trusted actions should use a major version tag, if available.",
+    "severity": "error",
+    "type": "trusted-tag-ref",
+  },
+  {
+    "message": "Action is using node16. Versions older than node24 are being deprecated. Use a newer version of the action if possible.",
+    "severity": "warning",
+    "type": "node-version",
+  },
+]
+`;
+
+exports[`ActionRefValidation > should validate single action reference (node24) 1`] = `
+[
+  {
+    "message": "Trusted actions should use a major version tag, if available.",
+    "severity": "error",
+    "type": "trusted-tag-ref",
+  },
+]
+`;

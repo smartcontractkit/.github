@@ -18,6 +18,7 @@ export interface ValidationMessage {
 }
 
 export enum ValidationType {
+  TRUSTED_TAG_REF = "trusted-tag-ref",
   SHA_REF = "sha-ref",
   VERSION_COMMENT = "version-comment",
   NODE_VERSION = "node-version",

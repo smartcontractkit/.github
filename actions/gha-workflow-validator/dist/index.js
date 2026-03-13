@@ -28773,9 +28773,9 @@ It currently validates: Actions References, Actions Runner Types
 <details>
 <summary>Action References (sha-ref, version-comment, node-version) </summary>
 
-This validation is required to ensure that the action references use immutable SHAs, have a version comment, and are not using node16 or earlier.
+This validation is required to ensure that 3rd-party action references use immutable SHAs, have a version comment, and are using node24.
 
-The proper format for referencing a Github Action external to the repository is as follows:
+The proper format for referencing a 3rd-party Github Action as follows:
 
 \`<owner>/<repo>/<optional path>@<commit SHA> # <version tag relating to the SHA>\`
 
@@ -28788,6 +28788,14 @@ organization/action@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
 organization/monorepo/path/to/directory@5874ff7211cf5a5a2670bb010fbff914eaaae138 # v2.3.12
 \`\`\`
 </details>
+
+
+#### Trusted actions should use a major version, if available.
+
+* This means the action is owned by github, actions, or smartcontractkit, and if available you should use the major version tag instead of a SHA reference.
+* For example:
+    * \`actions/checkout@v5\` instead of \`actions/checkout@<sha> # v5.0.0\`
+    * \`smartcontractkit/.github/actions/setup-golang@setup-golang/v1\` instead of \`smartcontractkit/.github/actions/setup-golang@<sha> # setup-golang/v1\`
 
 ##### <ref> is not a valid SHA
 
@@ -28802,7 +28810,7 @@ organization/monorepo/path/to/directory@5874ff7211cf5a5a2670bb010fbff914eaaae138
 
 ##### Action is using node...
 
-* The action added is supposed to be run using a version that is not \`node20\`. This might create issues due to Github deprecating actions using \`node16\` and earlier.
+* The action added is supposed to be run using a version that is not \`node24\`. This might create issues due to Github deprecating actions using \`node20\` and earlier.
 
 </details>
 
@@ -29203,7 +29211,7 @@ var core7 = __toESM(require_core());
 
 // actions/gha-workflow-validator/src/validations/action-reference-validations.ts
 var core5 = __toESM(require_core());
-var OLDEST_ALLOWABLE_NODE_VERSION = 20;
+var OLDEST_ALLOWABLE_NODE_VERSION = 24;
 var ActionRefValidation = class {
   constructor(octokit, options) {
     this.octokit = octokit;
@@ -29232,9 +29240,16 @@ async function validateActionReference(octokit, options, actionRef) {
     return [];
   }
   const validationErrors = [];
+  const trustedActionTagRefValidation = validateTrustedActionTagRef(actionRef);
   const shaRefValidation = validateShaRef(actionRef);
   const versionCommentValidation = validateVersionCommentExists(actionRef);
-  const node20ActionValidation = options.validateNodeVersion ? await validateNodeActionVersion(octokit, actionRef) : void 0;
+  const node24ActionValidation = options.validateNodeVersion ? await validateNodeActionVersion(octokit, actionRef) : void 0;
+  if (trustedActionTagRefValidation) {
+    core5.debug(
+      `Trusted Tag Ref Validation failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref}`
+    );
+    validationErrors.push(trustedActionTagRefValidation);
+  }
   if (!actionRef.trusted && shaRefValidation) {
     core5.debug(
       `SHA Ref Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${shaRefValidation.message}`
@@ -29247,15 +29262,30 @@ async function validateActionReference(octokit, options, actionRef) {
     );
     validationErrors.push(versionCommentValidation);
   }
-  if (node20ActionValidation) {
+  if (node24ActionValidation) {
     core5.debug(
-      `Node 20 Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${node20ActionValidation.message}`
+      `Node 24 Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${node24ActionValidation.message}`
     );
-    validationErrors.push(node20ActionValidation);
+    validationErrors.push(node24ActionValidation);
   }
   return validationErrors;
 }
+function validateTrustedActionTagRef(actionReference) {
+  if (!actionReference.trusted) {
+    return;
+  }
+  const sha1Regex = /^[0-9a-f]{40}$/;
+  if (sha1Regex.test(actionReference.ref)) return;
+  const sha256Regex = /^[0-9a-f]{256}$/;
+  if (sha256Regex.test(actionReference.ref)) return;
+  return {
+    message: `Trusted actions should use a major version, if available.`,
+    type: "trusted-tag-ref" /* TRUSTED_TAG_REF */,
+    severity: "error"
+  };
+}
 function validateShaRef(actionReference) {
+  if (actionReference.trusted) return;
   const sha1Regex = /^[0-9a-f]{40}$/;
   if (sha1Regex.test(actionReference.ref)) return;
   const sha256Regex = /^[0-9a-f]{256}$/;
@@ -29267,7 +29297,7 @@ function validateShaRef(actionReference) {
   };
 }
 function validateVersionCommentExists(actionReference) {
-  if (actionReference.comment) return;
+  if (actionReference.trusted || actionReference.comment) return;
   return {
     message: `No version comment found`,
     type: "version-comment" /* VERSION_COMMENT */,
@@ -29296,7 +29326,7 @@ async function validateNodeActionVersion(octokit, actionRef) {
   const nodeVersionParsed = parseInt(matches[1], 10);
   if (nodeVersionParsed < OLDEST_ALLOWABLE_NODE_VERSION) {
     return {
-      message: `Action is using node${nodeVersionParsed}`,
+      message: `Action is using node${nodeVersionParsed}. Versions older than node${OLDEST_ALLOWABLE_NODE_VERSION} are being deprecated. Use a newer version of the action if possible.`,
       type: "node-version" /* NODE_VERSION */,
       severity: "warning"
     };
@@ -29548,7 +29578,7 @@ var ActionsCacheVersionValidation = class {
     if (!ref) {
       return [];
     }
-    const isRefUpToDate = ref === "v4" || ref === "v3" || ref === "v4.2.0" || ref === "v3.4.0";
+    const isRefUpToDate = ref.startsWith("v5");
     if (isRefUpToDate) {
       return [];
     }
@@ -29556,7 +29586,7 @@ var ActionsCacheVersionValidation = class {
       {
         type: "actions-cache" /* ACTIONS_CACHE */,
         severity: line.operation === "add" ? "error" : "warning",
-        message: `This version (${ref}) of actions/cache is being deprecated. Please update to v4.`
+        message: `This version (${ref}) of actions/cache is being deprecated. Please update to v5`
       }
     ];
   }

@@ -9,7 +9,7 @@ import {
   ValidationType,
 } from "./validation-check.js";
 
-const OLDEST_ALLOWABLE_NODE_VERSION = 20;
+const OLDEST_ALLOWABLE_NODE_VERSION = 24;
 
 interface FileLineActionRef extends FileLine {
   actionReference?: ActionReference;
@@ -53,33 +53,6 @@ export class ActionRefValidation implements ValidationCheck {
   }
 }
 
-async function validateActionReferences(
-  octokit: Octokit,
-  filename: string,
-  options: ActionRefValidationOptions,
-  lines: FileLineActionRef[],
-): Promise<LineValidationResult[]> {
-  const lineValidationResults: LineValidationResult[] = [];
-
-  for (const line of lines) {
-    const validationErrors = await validateActionReference(
-      octokit,
-      options,
-      line.actionReference,
-    );
-
-    if (validationErrors.length > 0) {
-      lineValidationResults.push({
-        filename,
-        line,
-        messages: validationErrors,
-      });
-    }
-  }
-
-  return lineValidationResults;
-}
-
 async function validateActionReference(
   octokit: Octokit,
   options: ActionRefValidationOptions,
@@ -98,12 +71,19 @@ async function validateActionReference(
 
   const validationErrors: ValidationMessage[] = [];
 
+  const trustedActionTagRefValidation = validateTrustedActionTagRef(actionRef);
   const shaRefValidation = validateShaRef(actionRef);
   const versionCommentValidation = validateVersionCommentExists(actionRef);
-  const node20ActionValidation = options.validateNodeVersion
+  const node24ActionValidation = options.validateNodeVersion
     ? await validateNodeActionVersion(octokit, actionRef)
     : undefined;
 
+  if (trustedActionTagRefValidation) {
+    core.debug(
+      `Trusted Tag Ref Validation failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref}`,
+    );
+    validationErrors.push(trustedActionTagRefValidation);
+  }
   if (!actionRef.trusted && shaRefValidation) {
     core.debug(
       `SHA Ref Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${shaRefValidation.message}`,
@@ -117,19 +97,43 @@ async function validateActionReference(
     );
     validationErrors.push(versionCommentValidation);
   }
-  if (node20ActionValidation) {
+  if (node24ActionValidation) {
     core.debug(
-      `Node 20 Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${node20ActionValidation.message}`,
+      `Node 24 Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${node24ActionValidation.message}`,
     );
-    validationErrors.push(node20ActionValidation);
+    validationErrors.push(node24ActionValidation);
   }
 
   return validationErrors;
 }
 
+function validateTrustedActionTagRef(
+  actionReference: ActionReference,
+): ValidationMessage | undefined {
+  // If the action is not from a trusted source, we don't require it to use a tag reference, so return early with no error.
+  if (!actionReference.trusted) {
+    return;
+  }
+
+  const sha1Regex = /^[0-9a-f]{40}$/;
+  const sha256Regex = /^[0-9a-f]{256}$/;
+
+  const isUsingShaRef = sha1Regex.test(actionReference.ref) || sha256Regex.test(actionReference.ref);
+  if (!isUsingShaRef) return;
+
+  return {
+    message: `Trusted actions should use a major version tag, if available.`,
+    type: ValidationType.TRUSTED_TAG_REF,
+    severity: "error",
+  };
+}
+
 function validateShaRef(
   actionReference: ActionReference,
 ): ValidationMessage | undefined {
+  // If the action is from a trusted source, we don't require it to use a SHA reference, so return early with no error.
+  if (actionReference.trusted) return;
+
   const sha1Regex = /^[0-9a-f]{40}$/;
   if (sha1Regex.test(actionReference.ref)) return;
 
@@ -146,7 +150,7 @@ function validateShaRef(
 function validateVersionCommentExists(
   actionReference: ActionReference,
 ): ValidationMessage | undefined {
-  if (actionReference.comment) return;
+  if (actionReference.trusted || actionReference.comment) return;
 
   return {
     message: `No version comment found`,
@@ -183,7 +187,7 @@ async function validateNodeActionVersion(
   const nodeVersionParsed = parseInt(matches[1], 10);
   if (nodeVersionParsed < OLDEST_ALLOWABLE_NODE_VERSION) {
     return {
-      message: `Action is using node${nodeVersionParsed}`,
+      message: `Action is using node${nodeVersionParsed}. Versions older than node${OLDEST_ALLOWABLE_NODE_VERSION} are being deprecated. Use a newer version of the action if possible.`,
       type: ValidationType.NODE_VERSION,
       severity: "warning",
     };
