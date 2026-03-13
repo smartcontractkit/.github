@@ -71,7 +71,7 @@ const createRelease = async (
 ) => {
   try {
     core.debug(
-      `Creating release for ${pkg.packageJson.name}@${pkg.packageJson.version}`,
+      `Creating release for ${pkg.packageJson.name}@${pkg.packageJson.version} (tag: ${tagName})`,
     );
     let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
 
@@ -90,7 +90,7 @@ const createRelease = async (
       `Creating release with tag ${tagName} and changelog entry:\n${changelogEntry.content}`,
     );
 
-    await octokit.rest.repos.createRelease({
+    return await octokit.rest.repos.createRelease({
       name: tagName,
       tag_name: tagName,
       body: changelogEntry.content,
@@ -99,6 +99,11 @@ const createRelease = async (
       repo: github.context.repo.repo,
     });
   } catch (err) {
+    core.warning(
+      `Failed to create release for ${pkg.packageJson.name}@${pkg.packageJson.version} with tag ${tagName}: ${
+        err instanceof Error ? err.message : String(err)
+      }`,
+    );
     // if we can't find a changelog, the user has probably disabled changelogs
     if (
       err &&

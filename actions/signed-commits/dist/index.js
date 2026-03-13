@@ -61272,7 +61272,7 @@ var setupOctokit = (githubToken) => {
 var createRelease = async (octokit, { pkg, tagName }) => {
   try {
     core4.debug(
-      `Creating release for ${pkg.packageJson.name}@${pkg.packageJson.version}`
+      `Creating release for ${pkg.packageJson.name}@${pkg.packageJson.version} (tag: ${tagName})`
     );
     let changelogFileName = import_path5.default.join(pkg.dir, "CHANGELOG.md");
     let changelog = await import_fs_extra2.default.readFile(changelogFileName, "utf8");
@@ -61286,7 +61286,7 @@ var createRelease = async (octokit, { pkg, tagName }) => {
       `Creating release with tag ${tagName} and changelog entry:
 ${changelogEntry.content}`
     );
-    await octokit.rest.repos.createRelease({
+    return await octokit.rest.repos.createRelease({
       name: tagName,
       tag_name: tagName,
       body: changelogEntry.content,
@@ -61295,6 +61295,9 @@ ${changelogEntry.content}`
       repo: github.context.repo.repo
     });
   } catch (err) {
+    core4.warning(
+      `Failed to create release for ${pkg.packageJson.name}@${pkg.packageJson.version} with tag ${tagName}: ${err instanceof Error ? err.message : String(err)}`
+    );
     if (err && typeof err === "object" && "code" in err && err.code !== "ENOENT") {
       throw err;
     }
