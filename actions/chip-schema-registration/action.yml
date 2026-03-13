@@ -44,7 +44,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Login to ECR
       uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
