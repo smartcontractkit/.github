@@ -18,6 +18,7 @@ import * as githubGitUtils from "./git/github-git";
 import readChangesetState from "./read-changeset-state";
 import resolveFrom from "resolve-from";
 import { throttling } from "@octokit/plugin-throttling";
+import { GitTag } from "./git/github-git/repo-tags";
 
 // GitHub Issues/PRs messages have a max size limit on the
 // message body payload.
@@ -85,12 +86,17 @@ const createRelease = async (
       );
     }
 
+    core.debug(
+      `Creating release with tag ${tagName} and changelog entry:\n${changelogEntry.content}`,
+    );
+
     await octokit.rest.repos.createRelease({
       name: tagName,
       tag_name: tagName,
       body: changelogEntry.content,
       prerelease: pkg.packageJson.version.includes("-"),
-      ...github.context.repo,
+      owner: github.context.repo.owner,
+      repo: github.context.repo.repo,
     });
   } catch (err) {
     // if we can't find a changelog, the user has probably disabled changelogs
@@ -176,48 +182,52 @@ export async function runPublish({
     { cwd },
   );
 
-  await githubGitUtils.pushTags(
+  const tags = await githubGitUtils.pushTags(
     tagSeparator,
     createMajorVersionTags,
     cwd,
     rootPackageInfo,
   );
 
+  core.debug(`Tags pushed: ${JSON.stringify(tags.map((tag) => tag.name))}`);
+
+  const nonMajorTags = tags.filter((tag) => !tag.majorVersion);
+
   let { packages, tool } = await getPackages(cwd);
-  let releasedPackages: Package[] = [];
+  let releasedPackages: [Package, GitTag][] = [];
 
   // if we are in a monorepo, then publish multiple packages
   // a "root" tool is a single package repo
   // https://github.com/Thinkmill/manypkg/blob/main/packages/tools/src/RootTool.ts#L17C4-L17C64
   if (tool.type !== "root") {
-    let newTagRegex = /New tag:\s+(@[^/]+\/[^@]+|[^/]+)@([^\s]+)/;
     let packagesByName = new Map(packages.map((x) => [x.packageJson.name, x]));
 
-    for (let line of changesetPublishOutput.stdout.split("\n")) {
-      let match = line.match(newTagRegex);
-      if (match === null) {
-        continue;
-      }
-      let pkgName = match[1];
-      let pkg = packagesByName.get(pkgName);
+    for (let tag of nonMajorTags) {
+      const [pkgName, _version] = tag.name.split(tagSeparator);
+      const pkg = packagesByName.get(pkgName);
+
       if (pkg === undefined) {
         throw new Error(
           `Package "${pkgName}" not found.` +
             "This is probably a bug in the action, please open an issue",
         );
       }
-      releasedPackages.push(pkg);
+      releasedPackages.push([pkg, tag]);
     }
+
+    core.info(
+      `Released packages found: ${JSON.stringify(releasedPackages.map(([p]) => p.packageJson.name))}`,
+    );
 
     if (createGithubReleases) {
       await Promise.all(
-        releasedPackages.map((pkg) => {
+        releasedPackages.map(([pkg, tag]) => {
           // Use simplified v<version> tag for root packages, otherwise use standard format
           const isRootPackage =
             rootPackageInfo && pkg.packageJson.name === rootPackageInfo.name;
           const tagName = isRootPackage
             ? `v${pkg.packageJson.version}`
-            : `${pkg.packageJson.name}${tagSeparator}${pkg.packageJson.version}`;
+            : tag.name;
 
           return createRelease(octokit, {
             pkg,
@@ -240,7 +250,10 @@ export async function runPublish({
       let match = line.match(newTagRegex);
 
       if (match) {
-        releasedPackages.push(pkg);
+        releasedPackages.push([
+          pkg,
+          { name: `v${pkg.packageJson.version}`, ref: "" },
+        ]);
         if (createGithubReleases) {
           await createRelease(octokit, {
             pkg,
@@ -255,7 +268,7 @@ export async function runPublish({
   if (releasedPackages.length) {
     return {
       published: true,
-      publishedPackages: releasedPackages.map((pkg) => ({
+      publishedPackages: releasedPackages.map(([pkg, _tag]) => ({
         name: pkg.packageJson.name,
         version: pkg.packageJson.version,
       })),

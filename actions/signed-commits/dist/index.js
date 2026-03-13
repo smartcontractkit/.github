@@ -60510,11 +60510,13 @@ async function pushTags(tagSeparator, createMajorVersionTags, cwd, rootPackageIn
   const rewrittenTags = replaceTagSeparator(newTags, tagSeparator);
   const finalTags = rootPackageInfo ? rewriteRootPackageTags(rewrittenTags, tagSeparator, rootPackageInfo) : rewrittenTags;
   core2.debug(
-    `Final tags to push: ${finalTags.map((tag) => tag.name).join(", ")}`
+    `Candidate tags to push: ${JSON.stringify(finalTags.map((tag) => tag.name))}`
   );
   const filteredRewrittenTags = computeTagDiff(finalTags, remoteTagNames);
   core2.debug(
-    `Filtered rewritten tags to push: ${filteredRewrittenTags.map((tag) => tag.name).join(", ")}`
+    `Filtered rewritten tags to push: ${JSON.stringify(
+      filteredRewrittenTags.map((tag) => tag.name)
+    )}`
   );
   const createdTags = await createLightweightTags(filteredRewrittenTags, cwd);
   await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
@@ -61280,12 +61282,15 @@ var createRelease = async (octokit, { pkg, tagName }) => {
         `Could not find changelog entry for ${pkg.packageJson.name}@${pkg.packageJson.version}`
       );
     }
+    core4.debug(`Creating release with tag ${tagName} and changelog entry:
+${changelogEntry.content}`);
     await octokit.rest.repos.createRelease({
       name: tagName,
       tag_name: tagName,
       body: changelogEntry.content,
       prerelease: pkg.packageJson.version.includes("-"),
-      ...github.context.repo
+      owner: github.context.repo.owner,
+      repo: github.context.repo.repo
     });
   } catch (err) {
     if (err && typeof err === "object" && "code" in err && err.code !== "ENOENT") {
@@ -61332,36 +61337,34 @@ async function runPublish({
     publishArgs,
     { cwd }
   );
-  await pushTags(
+  const tags = await pushTags(
     tagSeparator,
     createMajorVersionTags,
     cwd,
     rootPackageInfo
   );
+  core4.debug(`Tags pushed: ${JSON.stringify(tags.map((tag) => tag.name))}`);
+  const nonMajorTags = tags.filter((tag) => !tag.majorVersion);
   let { packages, tool } = await (0, import_get_packages4.getPackages)(cwd);
   let releasedPackages = [];
   if (tool.type !== "root") {
-    let newTagRegex = /New tag:\s+(@[^/]+\/[^@]+|[^/]+)@([^\s]+)/;
     let packagesByName = new Map(packages.map((x) => [x.packageJson.name, x]));
-    for (let line of changesetPublishOutput.stdout.split("\n")) {
-      let match = line.match(newTagRegex);
-      if (match === null) {
-        continue;
-      }
-      let pkgName = match[1];
-      let pkg = packagesByName.get(pkgName);
+    for (let tag of nonMajorTags) {
+      const [pkgName, _version] = tag.name.split(tagSeparator);
+      const pkg = packagesByName.get(pkgName);
       if (pkg === void 0) {
         throw new Error(
           `Package "${pkgName}" not found.This is probably a bug in the action, please open an issue`
         );
       }
-      releasedPackages.push(pkg);
+      releasedPackages.push([pkg, tag]);
     }
+    core4.info(`Released packages found: ${JSON.stringify(releasedPackages.map(([p]) => p.packageJson.name))}`);
     if (createGithubReleases) {
       await Promise.all(
-        releasedPackages.map((pkg) => {
+        releasedPackages.map(([pkg, tag]) => {
           const isRootPackage = rootPackageInfo && pkg.packageJson.name === rootPackageInfo.name;
-          const tagName = isRootPackage ? `v${pkg.packageJson.version}` : `${pkg.packageJson.name}${tagSeparator}${pkg.packageJson.version}`;
+          const tagName = isRootPackage ? `v${pkg.packageJson.version}` : tag.name;
           return createRelease(octokit, {
             pkg,
             tagName
@@ -61380,7 +61383,7 @@ async function runPublish({
     for (let line of changesetPublishOutput.stdout.split("\n")) {
       let match = line.match(newTagRegex);
       if (match) {
-        releasedPackages.push(pkg);
+        releasedPackages.push([pkg, { name: `v${pkg.packageJson.version}`, ref: "" }]);
         if (createGithubReleases) {
           await createRelease(octokit, {
             pkg,
@@ -61394,7 +61397,7 @@ async function runPublish({
   if (releasedPackages.length) {
     return {
       published: true,
-      publishedPackages: releasedPackages.map((pkg) => ({
+      publishedPackages: releasedPackages.map(([pkg, _tag]) => ({
         name: pkg.packageJson.name,
         version: pkg.packageJson.version
       }))
