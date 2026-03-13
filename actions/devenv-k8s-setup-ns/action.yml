@@ -109,7 +109,7 @@ runs:
         echo "workflow-run-number=${WORKFLOW_RUN_NUMBER}" | tee -a "$GITHUB_OUTPUT"
 
     - name: Checkout devenv repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: "smartcontractkit/devenv"
         ref: ${{ inputs.devenv-repo-ref }}

@@ -39,7 +39,7 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
@@ -50,7 +50,7 @@ runs:
         prettier-command: pnpm prettier --check ${{ inputs.files }}
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
 
     - name: Setup tools
       shell: bash
@@ -59,7 +59,7 @@ runs:
 
     - name: Get default branch
       id: get_default_branch
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         script: |
           const repo = await github.rest.repos.get({

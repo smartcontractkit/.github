@@ -102,13 +102,13 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
     - name: Assume aws gati role
       if: inputs.use-gati == 'true'
-      uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
+      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
       with:
         role-to-assume: ${{ inputs.aws-role-arn-gati }}
         role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
@@ -167,7 +167,7 @@ runs:
 
     - name: Store test report artifacts
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.artifact-name }}-results
         path: |
@@ -180,7 +180,7 @@ runs:
 
     - name: Store race coverage report
       if: ${{ inputs.enable-go-test-race == 'true' }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.artifact-name }}-race-results
         path: race/*.txt
