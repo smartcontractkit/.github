@@ -41,7 +41,7 @@ runs:
   using: composite
   steps:
     - name: Install node
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version-file: ${{ inputs.node-version-file }}
         registry-url: ${{ inputs.registry-url }}
