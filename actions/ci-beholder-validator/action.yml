@@ -62,7 +62,7 @@ runs:
         docker compose -f "${{ env.ACTIONS_PATH }}/docker-compose.yml" up -d redpanda-console
 
     - name: Configure aws creds
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
         role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
