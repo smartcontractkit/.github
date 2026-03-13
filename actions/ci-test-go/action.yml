@@ -167,7 +167,7 @@ runs:
 
     - name: Store test report artifacts
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.artifact-name }}-results
         path: |
@@ -180,7 +180,7 @@ runs:
 
     - name: Store race coverage report
       if: ${{ inputs.enable-go-test-race == 'true' }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.artifact-name }}-race-results
         path: race/*.txt

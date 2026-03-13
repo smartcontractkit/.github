@@ -154,7 +154,7 @@ runs:
 
     - name: Store lint report artifact
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.artifact-name }}
         path: ${{ inputs.go-directory }}/golangci-lint-report.xml
