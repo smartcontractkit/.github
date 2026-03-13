@@ -1,0 +1,11 @@
+{
+  "name": "reusable-docker-build-publish",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.29.3"
+}

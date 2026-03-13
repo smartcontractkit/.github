@@ -3,3 +3,4 @@ packages:
   - "!actions/signed-commits/__fixtures__/**"
   - libs/**
   - apps/**
+  - workflows/**
