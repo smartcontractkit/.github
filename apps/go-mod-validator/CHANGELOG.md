@@ -1,5 +1,14 @@
 # go-mod-validator
 
+## 1.5.0
+
+### Minor Changes
+
+- [#1452](https://github.com/smartcontractkit/.github/pull/1452)
+  [`fcdc05f`](https://github.com/smartcontractkit/.github/commit/fcdc05ffa0e8415acabbdbdcb3af1e7352df427b)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: filter out errored
+  dependenies
+
 ## 1.4.0
 
 ### Minor Changes
