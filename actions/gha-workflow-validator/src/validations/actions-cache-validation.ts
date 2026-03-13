@@ -25,8 +25,7 @@ export class ActionsCacheVersionValidation implements ValidationCheck {
       return [];
     }
 
-    const isRefUpToDate =
-      ref === "v4" || ref === "v3" || ref === "v4.2.0" || ref === "v3.4.0";
+    const isRefUpToDate = ref.startsWith("v5");
     if (isRefUpToDate) {
       return [];
     }
@@ -35,7 +34,7 @@ export class ActionsCacheVersionValidation implements ValidationCheck {
       {
         type: ValidationType.ACTIONS_CACHE,
         severity: line.operation === "add" ? "error" : "warning",
-        message: `This version (${ref}) of actions/cache is being deprecated. Please update to v4.`,
+        message: `This version (${ref}) of actions/cache is being deprecated. Please update to v5`,
       },
     ];
   }
