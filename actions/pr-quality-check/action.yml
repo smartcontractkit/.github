@@ -302,7 +302,7 @@ runs:
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
-      uses: actions/setup-node@v4.0.3
+      uses: actions/setup-node@v6
       with:
         node-version: "22"
 
@@ -565,7 +565,7 @@ runs:
           const openPRNumbers = new Set(allOpenPRs.map(pr => pr.number));
 
           // Filter for auto-fix PRs (branch starts with 'auto-fix/pr-')
-          const autoFixPRs = allOpenPRs.filter(pr => 
+          const autoFixPRs = allOpenPRs.filter(pr =>
             pr.head.ref?.startsWith('auto-fix/pr-')
           );
 
@@ -579,13 +579,13 @@ runs:
               console.log(`⚠️ Could not parse PR number from branch: ${autoFixPR.head.ref}`);
               continue;
             }
-            
+
             const originalPRNumber = parseInt(match[1], 10);
-            
+
             // Check if the original PR is still open
             if (!openPRNumbers.has(originalPRNumber)) {
               console.log(`🗑️ Closing orphaned auto-fix PR #${autoFixPR.number} (original PR #${originalPRNumber} is closed)`);
-              
+
               // Post a comment explaining why we're closing
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -593,7 +593,7 @@ runs:
                 issue_number: autoFixPR.number,
                 body: `🤖 Automatically closing this auto-fix PR because the original PR #${originalPRNumber} has been closed or merged.`
               });
-              
+
               // Close the auto-fix PR
               await github.rest.pulls.update({
                 owner: context.repo.owner,
