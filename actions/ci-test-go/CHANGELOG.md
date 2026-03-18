@@ -1,5 +1,14 @@
 # ci-test-go
 
+## 1.1.1
+
+### Patch Changes
+
+- [#1459](https://github.com/smartcontractkit/.github/pull/1459)
+  [`5ec5884`](https://github.com/smartcontractkit/.github/commit/5ec58846b2ca360e04463f64eb54230eb953bf54)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: use major version
+  tags for smartcontractkit/.github/\* actions
+
 ## 1.1.0
 
 ### Minor Changes
