@@ -128,7 +128,7 @@ runs:
     - name: Setup GitHub token using GATI
       if: inputs.gati-role-arn != '' && inputs.gati-lambda-url != ''
       id: github-token
-      uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/1.0.0
+      uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
       with:
         aws-role-arn: ${{ inputs.gati-role-arn }}
         aws-lambda-url: ${{ inputs.gati-lambda-url }}
