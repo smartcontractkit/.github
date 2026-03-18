@@ -117,9 +117,9 @@ It currently validates: Actions References, Actions Runner Types
 <details>
 <summary>Action References (sha-ref, version-comment, node-version) </summary>
 
-This validation is required to ensure that the action references use immutable SHAs, have a version comment, and are not using node16 or earlier.
+This validation is required to ensure that 3rd-party action references use immutable SHAs, have a version comment, and are using node24.
 
-The proper format for referencing a Github Action external to the repository is as follows:
+The proper format for referencing a 3rd-party Github Action as follows:
 
 \`<owner>/<repo>/<optional path>@<commit SHA> # <version tag relating to the SHA>\`
 
@@ -132,6 +132,14 @@ organization/action@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
 organization/monorepo/path/to/directory@5874ff7211cf5a5a2670bb010fbff914eaaae138 # v2.3.12
 \`\`\`
 </details>
+
+
+#### Trusted actions should use a major version, if available.
+
+* This means the action is owned by github, actions, or smartcontractkit, and if available you should use the major version tag instead of a SHA reference.
+* For example:
+    * \`actions/checkout@v5\` instead of \`actions/checkout@<sha> # v5.0.0\`
+    * \`smartcontractkit/.github/actions/setup-golang@setup-golang/v1\` instead of \`smartcontractkit/.github/actions/setup-golang@<sha> # setup-golang/v1\`
 
 ##### <ref> is not a valid SHA
 
@@ -146,7 +154,7 @@ organization/monorepo/path/to/directory@5874ff7211cf5a5a2670bb010fbff914eaaae138
 
 ##### Action is using node...
 
-* The action added is supposed to be run using a version that is not \`node20\`. This might create issues due to Github deprecating actions using \`node16\` and earlier.
+* The action added is supposed to be run using a version that is not \`node24\`. This might create issues due to Github deprecating actions using \`node20\` and earlier.
 
 </details>
 
@@ -389,9 +397,9 @@ It currently validates: Actions References, Actions Runner Types
 <details>
 <summary>Action References (sha-ref, version-comment, node-version) </summary>
 
-This validation is required to ensure that the action references use immutable SHAs, have a version comment, and are not using node16 or earlier.
+This validation is required to ensure that 3rd-party action references use immutable SHAs, have a version comment, and are using node24.
 
-The proper format for referencing a Github Action external to the repository is as follows:
+The proper format for referencing a 3rd-party Github Action as follows:
 
 \`<owner>/<repo>/<optional path>@<commit SHA> # <version tag relating to the SHA>\`
 
@@ -404,6 +412,14 @@ organization/action@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
 organization/monorepo/path/to/directory@5874ff7211cf5a5a2670bb010fbff914eaaae138 # v2.3.12
 \`\`\`
 </details>
+
+
+#### Trusted actions should use a major version, if available.
+
+* This means the action is owned by github, actions, or smartcontractkit, and if available you should use the major version tag instead of a SHA reference.
+* For example:
+    * \`actions/checkout@v5\` instead of \`actions/checkout@<sha> # v5.0.0\`
+    * \`smartcontractkit/.github/actions/setup-golang@setup-golang/v1\` instead of \`smartcontractkit/.github/actions/setup-golang@<sha> # setup-golang/v1\`
 
 ##### <ref> is not a valid SHA
 
@@ -418,7 +434,7 @@ organization/monorepo/path/to/directory@5874ff7211cf5a5a2670bb010fbff914eaaae138
 
 ##### Action is using node...
 
-* The action added is supposed to be run using a version that is not \`node20\`. This might create issues due to Github deprecating actions using \`node16\` and earlier.
+* The action added is supposed to be run using a version that is not \`node24\`. This might create issues due to Github deprecating actions using \`node20\` and earlier.
 
 </details>
 
@@ -593,9 +609,9 @@ It currently validates: Actions References, Actions Runner Types
 <details>
 <summary>Action References (sha-ref, version-comment, node-version) </summary>
 
-This validation is required to ensure that the action references use immutable SHAs, have a version comment, and are not using node16 or earlier.
+This validation is required to ensure that 3rd-party action references use immutable SHAs, have a version comment, and are using node24.
 
-The proper format for referencing a Github Action external to the repository is as follows:
+The proper format for referencing a 3rd-party Github Action as follows:
 
 \`<owner>/<repo>/<optional path>@<commit SHA> # <version tag relating to the SHA>\`
 
@@ -608,6 +624,14 @@ organization/action@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
 organization/monorepo/path/to/directory@5874ff7211cf5a5a2670bb010fbff914eaaae138 # v2.3.12
 \`\`\`
 </details>
+
+
+#### Trusted actions should use a major version, if available.
+
+* This means the action is owned by github, actions, or smartcontractkit, and if available you should use the major version tag instead of a SHA reference.
+* For example:
+    * \`actions/checkout@v5\` instead of \`actions/checkout@<sha> # v5.0.0\`
+    * \`smartcontractkit/.github/actions/setup-golang@setup-golang/v1\` instead of \`smartcontractkit/.github/actions/setup-golang@<sha> # setup-golang/v1\`
 
 ##### <ref> is not a valid SHA
 
@@ -622,7 +646,7 @@ organization/monorepo/path/to/directory@5874ff7211cf5a5a2670bb010fbff914eaaae138
 
 ##### Action is using node...
 
-* The action added is supposed to be run using a version that is not \`node20\`. This might create issues due to Github deprecating actions using \`node16\` and earlier.
+* The action added is supposed to be run using a version that is not \`node24\`. This might create issues due to Github deprecating actions using \`node20\` and earlier.
 
 </details>
 
@@ -831,9 +855,9 @@ It currently validates: Actions References, Actions Runner Types
 <details>
 <summary>Action References (sha-ref, version-comment, node-version) </summary>
 
-This validation is required to ensure that the action references use immutable SHAs, have a version comment, and are not using node16 or earlier.
+This validation is required to ensure that 3rd-party action references use immutable SHAs, have a version comment, and are using node24.
 
-The proper format for referencing a Github Action external to the repository is as follows:
+The proper format for referencing a 3rd-party Github Action as follows:
 
 \`<owner>/<repo>/<optional path>@<commit SHA> # <version tag relating to the SHA>\`
 
@@ -846,6 +870,14 @@ organization/action@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
 organization/monorepo/path/to/directory@5874ff7211cf5a5a2670bb010fbff914eaaae138 # v2.3.12
 \`\`\`
 </details>
+
+
+#### Trusted actions should use a major version, if available.
+
+* This means the action is owned by github, actions, or smartcontractkit, and if available you should use the major version tag instead of a SHA reference.
+* For example:
+    * \`actions/checkout@v5\` instead of \`actions/checkout@<sha> # v5.0.0\`
+    * \`smartcontractkit/.github/actions/setup-golang@setup-golang/v1\` instead of \`smartcontractkit/.github/actions/setup-golang@<sha> # setup-golang/v1\`
 
 ##### <ref> is not a valid SHA
 
@@ -860,7 +892,7 @@ organization/monorepo/path/to/directory@5874ff7211cf5a5a2670bb010fbff914eaaae138
 
 ##### Action is using node...
 
-* The action added is supposed to be run using a version that is not \`node20\`. This might create issues due to Github deprecating actions using \`node16\` and earlier.
+* The action added is supposed to be run using a version that is not \`node24\`. This might create issues due to Github deprecating actions using \`node20\` and earlier.
 
 </details>
 
