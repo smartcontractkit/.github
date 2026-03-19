@@ -1,6 +1,6 @@
 {
   "name": "go-conditional-tests",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "description": "",
   "engines": {
@@ -20,7 +20,7 @@
     "fs-extra": "^11.2.0",
     "nock": "^13.5.4",
     "node-fetch": "^2.7.0",
-    "simple-git": "^3.26.0",
+    "simple-git": "^3.33.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   },

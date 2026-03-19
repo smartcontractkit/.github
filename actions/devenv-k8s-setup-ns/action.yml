@@ -173,7 +173,7 @@ runs:
         echo "Kubernetes namespace [${DEVENV_NAMESPACE}] successfully labeled:"
         kubectl get namespace "${DEVENV_NAMESPACE}" --show-labels
 
-    - uses: smartcontractkit/.github/actions/setup-golang@setup-golang/1.1.0
+    - uses: smartcontractkit/.github/actions/setup-golang@setup-golang/v1
       with:
         go-version-file: "${{ github.workspace }}/devenv/go.mod"
         go-cache-dep-path: "${{ github.workspace }}/devenv/**/*.sum"

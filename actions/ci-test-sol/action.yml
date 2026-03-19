@@ -60,7 +60,7 @@ runs:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
     - name: Setup nodejs
-      uses: smartcontractkit/.github/actions/setup-nodejs@main
+      uses: smartcontractkit/.github/actions/setup-nodejs@setup-nodejs/v1
       with:
         node-version-file: ${{ inputs.node-version-file }}
         pnpm-version: ${{ inputs.pnpm-version }}

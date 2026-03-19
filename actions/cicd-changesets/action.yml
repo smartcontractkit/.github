@@ -133,7 +133,7 @@ runs:
         git config user.name "${{ inputs.git-user }}"
 
     - name: Setup nodejs
-      uses: smartcontractkit/.github/actions/setup-nodejs@main
+      uses: smartcontractkit/.github/actions/setup-nodejs@setup-nodejs/v1
       with:
         node-version-file: ${{ inputs.node-version-file }}
         pnpm-version: ${{ inputs.pnpm-version }}
@@ -142,7 +142,7 @@ runs:
 
     - name: Run changesets
       id: changesets
-      uses: smartcontractkit/.github/actions/signed-commits@changesets-signed-commits/1.7.0
+      uses: smartcontractkit/.github/actions/signed-commits@changesets-signed-commits/v1
       env:
         GITHUB_TOKEN: ${{ steps.get-gh-token.outputs.access-token }}
       with:
