@@ -85,11 +85,11 @@ runs:
 
     - name: Set up qemu
       if: inputs.setup-qemu == 'true'
-      uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
+      uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
 
     - name: Setup foundry
       if: inputs.setup-foundry == 'true'
-      uses: foundry-rs/foundry-toolchain@8f1998e9878d786675189ef566a2e4bf24869773 # v1.2.0
+      uses: foundry-rs/foundry-toolchain@8789b3e21e6c11b2697f5eb56eddae542f746c10 # v1.7.0
       with:
         version: ${{ inputs.foundry-version }}
 
@@ -108,7 +108,7 @@ runs:
 
     - name: Upload artifacts to release
       if: inputs.publish-release == 'true'
-      uses: svenstaro/upload-release-action@04733e069f2d7f7f0b4aebc4fbdbce8613b03ccd # 2.9.0
+      uses: svenstaro/upload-release-action@6b7fa9f267e90b50a19fef07b3596790bb941741 # 2.11.3
       with:
         repo_token: ${{ github.token }}
         file: ${{ inputs.release-assets }}
@@ -118,7 +118,7 @@ runs:
 
     - name: Upload artifacts to monorepo release
       if: inputs.publish-monorepo-release == 'true'
-      uses: svenstaro/upload-release-action@04733e069f2d7f7f0b4aebc4fbdbce8613b03ccd # 2.9.0
+      uses: svenstaro/upload-release-action@6b7fa9f267e90b50a19fef07b3596790bb941741 # 2.11.3
       with:
         repo_token: ${{ github.token }}
         file:

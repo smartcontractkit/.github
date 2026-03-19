@@ -141,7 +141,7 @@ runs:
         } >> $GITHUB_ENV
 
     - name: Notify slack
-      uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+      uses: slackapi/slack-github-action@fcfb566f8b0aab22203f066d80ca1d7e4b5d05b3 # v1.27.1
       with:
         payload: ${{ env.payload }}
         channel-id: ${{ inputs.slack-channel-id }}
