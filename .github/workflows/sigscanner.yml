@@ -1,4 +1,4 @@
-name: 'SigScanner Check'
+name: "SigScanner Check"
 
 on:
   merge_group:
