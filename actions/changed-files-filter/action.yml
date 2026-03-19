@@ -1,0 +1,39 @@
+name: changed-files-filter
+description:
+  "Filters changed files for a GitHub event according to named glob filter
+  patterns, with clear negation semantics"
+
+inputs:
+  github-token:
+    description: "GitHub token to use for authentication"
+    default: ${{ github.token }}
+    required: false
+
+  repository-root:
+    description: |
+      The root directory of the repository. Used for git-based changed file detection on push
+      and merge_group events. Defaults to the GitHub Actions workspace.
+    default: ${{ github.workspace }}
+    required: false
+
+  filters:
+    description: |
+      A YAML string defining named filters and their glob pattern lists.
+      Each filter is a key mapping to a list of glob patterns.
+      Patterns starting with ! are exclusion patterns applied before positive matching.
+      See the README for full semantics and examples.
+    required: true
+
+outputs:
+  filters-matched:
+    description: "Comma-separated list of filter names that matched"
+  filters-not-matched:
+    description: "Comma-separated list of filter names that did not match"
+  filters-matched-json:
+    description: "JSON array of filter names that matched"
+  filters-not-matched-json:
+    description: "JSON array of filter names that did not match"
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
