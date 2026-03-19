@@ -1,0 +1,48 @@
+name: 'SigScanner Check'
+
+on:
+  merge_group:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  sigscanner-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "SigScanner checking ${{ github.sha }} by ${{ github.actor }}"
+        env:
+          API_TOKEN: ${{ secrets.SIGSCANNER_API_TOKEN }}
+          API_URL: ${{ secrets.SIGSCANNER_API_URL }}
+          COMMIT_SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+          REPOSITORY: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          echo "🔎 Checking commit $COMMIT_SHA by $ACTOR in $REPOSITORY - $EVENT_NAME"
+
+          payload=$(printf '{"commit":"%s","repository":"%s","author":"%s"}' \
+            "$COMMIT_SHA" "$REPOSITORY" "$ACTOR")
+          CODE=$(curl \
+            --silent \
+            --output /dev/null \
+            --write-out '%{http_code}' \
+            --max-time 20 \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: $API_TOKEN" \
+            --url "$API_URL" \
+            --data "$payload")
+
+          echo "Received $CODE"
+          if [[ "$CODE" == "200" ]]; then
+            echo "✅ Commit is verified"
+            exit 0
+          elif [[ "$CODE" == "400" ]]; then
+            echo "❌ Bad request"
+          elif [[ "$CODE" == "403" ]]; then
+            echo "❌ Commit is NOT verified"
+          else
+            echo "❌ Server error or unexpected response"
+          fi
+          exit 1
