@@ -369,7 +369,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
       - name: Install citool
@@ -419,7 +419,7 @@ jobs:
       workflow_id: ${{ steps.gen_id.outputs.workflow_id }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
 
@@ -625,7 +625,7 @@ jobs:
 
       - name: Checkout the repo
         if: ${{ steps.check-image-exists.outputs.exists != 'true' }}
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -666,7 +666,7 @@ jobs:
           }}
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -730,7 +730,7 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -1018,7 +1018,7 @@ jobs:
         }}.amazonaws.com/chainlink-tests
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
       - name: Build Test Runner Image
@@ -1092,7 +1092,7 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
 
@@ -1291,7 +1291,7 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
 
