@@ -69,7 +69,27 @@ export async function run(): Promise<void> {
     );
     core.endGroup();
 
-    // 3. Determine changed files for file-change events.
+    // 3. Short-circuit if force-all is set.
+    if (inputs.forceAll === "true") {
+      core.startGroup("force-all override");
+      core.info(
+        "force-all is true — skipping file matching, all triggers set to matched.",
+      );
+      const triggerResults = triggers.map((t) => ({
+        name: t.name,
+        matched: true,
+        candidateCount: 0,
+        matchedFiles: [],
+      }));
+      core.endGroup();
+      core.startGroup("Setting outputs");
+      setOutputs({ triggerResults });
+      core.endGroup();
+      return;
+    }
+
+    // 4. Determine changed files for file-change events.
+
     core.startGroup("Determining changed files");
     core.info(`Event type: ${context.event.eventName}`);
     let changedFiles: string[] | null = null;
@@ -91,7 +111,7 @@ export async function run(): Promise<void> {
     }
     core.endGroup();
 
-    // 4. Apply each trigger.
+    // 5. Apply each trigger.
     core.startGroup("Applying triggers");
     const triggerResults: TriggerResult[] = [];
     for (const trigger of triggers) {
@@ -127,7 +147,7 @@ export async function run(): Promise<void> {
     }
     core.endGroup();
 
-    // 5. Set outputs.
+    // 6. Set outputs.
     core.startGroup("Setting outputs");
     setOutputs({ triggerResults });
     core.endGroup();
