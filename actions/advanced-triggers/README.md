@@ -1,4 +1,4 @@
-# changed-files-filter
+# advanced-triggers
 
 A GitHub Action for fine-grained, per-job run control in GitHub Actions
 workflows. It answers the question: _"should this job run given what just
@@ -290,7 +290,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - id: filter
-        uses: smartcontractkit/.github/actions/changed-files-filter@main
+        uses: smartcontractkit/.github/actions/advanced-triggers@main
         with:
           file-sets: |
             go-files:
@@ -332,12 +332,12 @@ A local test script is provided at `scripts/test.sh`. It simulates a
 
 ```bash
 cd /path/to/.github
-bash actions/changed-files-filter/scripts/test.sh
+bash actions/advanced-triggers/scripts/test.sh
 ```
 
 The script:
 
-- Builds the action via `pnpm nx build changed-files-filter`
+- Builds the action via `pnpm nx build advanced-triggers`
 - Sets `CL_LOCAL_DEBUG=true`, which switches input resolution to read from
   `INPUT_<LOCALPARAMETER>` env vars instead of the action.yml parameter names
 - Reads triggers from `scripts/filters.yml` (override with `INPUT_TRIGGERS`)

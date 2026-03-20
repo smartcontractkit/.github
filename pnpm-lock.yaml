@@ -98,6 +98,37 @@ importers:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@20.14.13)(jiti@2.6.1)(jsdom@24.1.0)(tsx@4.19.1)(yaml@2.8.2)
 
+  actions/advanced-triggers:
+    dependencies:
+      '@actions/core':
+        specifier: ^3.0.0
+        version: 3.0.0
+      '@actions/github':
+        specifier: ^9.0.0
+        version: 9.0.0
+      micromatch:
+        specifier: ^4.0.8
+        version: 4.0.8
+      yaml:
+        specifier: ^2.8.0
+        version: 2.8.2
+    devDependencies:
+      '@octokit/types':
+        specifier: ^16.0.0
+        version: 16.0.0
+      '@octokit/webhooks-types':
+        specifier: ^7.6.1
+        version: 7.6.1
+      '@types/micromatch':
+        specifier: ^4.0.10
+        version: 4.0.10
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.5.0
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@types/node@25.5.0)(jiti@2.6.1)(jsdom@24.1.0)(tsx@4.19.1)(yaml@2.8.2)
+
   actions/apidiff-go:
     dependencies:
       '@actions/core':
@@ -146,37 +177,6 @@ importers:
   actions/build-push-docker-manifest: {}
 
   actions/bump-mcms-tools: {}
-
-  actions/changed-files-filter:
-    dependencies:
-      '@actions/core':
-        specifier: ^3.0.0
-        version: 3.0.0
-      '@actions/github':
-        specifier: ^9.0.0
-        version: 9.0.0
-      micromatch:
-        specifier: ^4.0.8
-        version: 4.0.8
-      yaml:
-        specifier: ^2.8.0
-        version: 2.8.2
-    devDependencies:
-      '@octokit/types':
-        specifier: ^16.0.0
-        version: 16.0.0
-      '@octokit/webhooks-types':
-        specifier: ^7.6.1
-        version: 7.6.1
-      '@types/micromatch':
-        specifier: ^4.0.10
-        version: 4.0.10
-      '@types/node':
-        specifier: ^25.5.0
-        version: 25.5.0
-      vitest:
-        specifier: ^4.0.18
-        version: 4.0.18(@types/node@25.5.0)(jiti@2.6.1)(jsdom@24.1.0)(tsx@4.19.1)(yaml@2.8.2)
 
   actions/changed-modules-go:
     dependencies:
@@ -10928,7 +10928,7 @@ snapshots:
       '@octokit/auth-oauth-app': 7.1.0
       '@octokit/auth-oauth-user': 4.1.0
       '@octokit/request': 8.4.1
-      '@octokit/request-error': 5.1.0
+      '@octokit/request-error': 5.1.1
       '@octokit/types': 13.10.0
       deprecation: 2.3.1
       lru-cache: 10.4.3
@@ -10967,7 +10967,7 @@ snapshots:
 
   '@octokit/auth-unauthenticated@5.0.1':
     dependencies:
-      '@octokit/request-error': 5.1.0
+      '@octokit/request-error': 5.1.1
       '@octokit/types': 12.6.0
 
   '@octokit/core@5.2.1':
@@ -11055,7 +11055,7 @@ snapshots:
     dependencies:
       '@octokit/oauth-authorization-url': 6.0.2
       '@octokit/request': 8.4.1
-      '@octokit/request-error': 5.1.0
+      '@octokit/request-error': 5.1.1
       '@octokit/types': 13.10.0
       btoa-lite: 1.0.0
 
@@ -11236,7 +11236,7 @@ snapshots:
 
   '@octokit/webhooks@12.2.0':
     dependencies:
-      '@octokit/request-error': 5.1.0
+      '@octokit/request-error': 5.1.1
       '@octokit/webhooks-methods': 4.1.0
       '@octokit/webhooks-types': 7.4.0
       aggregate-error: 3.1.0
@@ -11982,6 +11982,70 @@ snapshots:
       magic-string: 0.30.21
     optionalDependencies:
       vite: 7.3.1(@types/node@20.14.13)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2)
+
+  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@20.14.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.4.5))':
+    dependencies:
+      '@vitest/spy': 4.0.18
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      vite: 7.3.1(@types/node@20.14.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.4.5)
+
+  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@20.14.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))':
+    dependencies:
+      '@vitest/spy': 4.0.18
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      vite: 7.3.1(@types/node@20.14.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2)
+
+  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@20.17.57)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))':
+    dependencies:
+      '@vitest/spy': 4.0.18
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      vite: 7.3.1(@types/node@20.17.57)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2)
+
+  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@20.19.35)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))':
+    dependencies:
+      '@vitest/spy': 4.0.18
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      vite: 7.3.1(@types/node@20.19.35)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2)
+
+  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@24.2.1)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))':
+    dependencies:
+      '@vitest/spy': 4.0.18
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      vite: 7.3.1(@types/node@24.2.1)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2)
+
+  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@24.3.0)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))':
+    dependencies:
+      '@vitest/spy': 4.0.18
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      vite: 7.3.1(@types/node@24.3.0)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2)
+
+  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@24.3.1)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))':
+    dependencies:
+      '@vitest/spy': 4.0.18
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      vite: 7.3.1(@types/node@24.3.1)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2)
+
+  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@25.5.0)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))':
+    dependencies:
+      '@vitest/spy': 4.0.18
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      vite: 7.3.1(@types/node@25.5.0)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2)
 
   '@vitest/pretty-format@4.0.18':
     dependencies:
@@ -16121,7 +16185,7 @@ snapshots:
   vitest@4.0.18(@types/node@20.14.9)(jiti@2.6.1)(jsdom@24.1.0)(tsx@4.19.1)(yaml@2.4.5):
     dependencies:
       '@vitest/expect': 4.0.18
-      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@20.14.13)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))
+      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@20.14.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.4.5))
       '@vitest/pretty-format': 4.0.18
       '@vitest/runner': 4.0.18
       '@vitest/snapshot': 4.0.18
@@ -16159,7 +16223,7 @@ snapshots:
   vitest@4.0.18(@types/node@20.14.9)(jiti@2.6.1)(jsdom@24.1.0)(tsx@4.19.1)(yaml@2.8.2):
     dependencies:
       '@vitest/expect': 4.0.18
-      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@20.14.13)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))
+      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@20.14.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))
       '@vitest/pretty-format': 4.0.18
       '@vitest/runner': 4.0.18
       '@vitest/snapshot': 4.0.18
@@ -16197,7 +16261,7 @@ snapshots:
   vitest@4.0.18(@types/node@20.17.57)(jiti@2.6.1)(jsdom@24.1.0)(tsx@4.19.1)(yaml@2.8.2):
     dependencies:
       '@vitest/expect': 4.0.18
-      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@20.14.13)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))
+      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@20.17.57)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))
       '@vitest/pretty-format': 4.0.18
       '@vitest/runner': 4.0.18
       '@vitest/snapshot': 4.0.18
@@ -16235,7 +16299,7 @@ snapshots:
   vitest@4.0.18(@types/node@20.19.35)(jiti@2.6.1)(jsdom@24.1.0)(tsx@4.19.1)(yaml@2.8.2):
     dependencies:
       '@vitest/expect': 4.0.18
-      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@20.14.13)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))
+      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@20.19.35)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))
       '@vitest/pretty-format': 4.0.18
       '@vitest/runner': 4.0.18
       '@vitest/snapshot': 4.0.18
@@ -16273,7 +16337,7 @@ snapshots:
   vitest@4.0.18(@types/node@24.2.1)(jiti@2.6.1)(jsdom@24.1.0)(tsx@4.19.1)(yaml@2.8.2):
     dependencies:
       '@vitest/expect': 4.0.18
-      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@20.14.13)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))
+      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@24.2.1)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))
       '@vitest/pretty-format': 4.0.18
       '@vitest/runner': 4.0.18
       '@vitest/snapshot': 4.0.18
@@ -16311,7 +16375,7 @@ snapshots:
   vitest@4.0.18(@types/node@24.3.0)(jiti@2.6.1)(jsdom@24.1.0)(tsx@4.19.1)(yaml@2.8.2):
     dependencies:
       '@vitest/expect': 4.0.18
-      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@20.14.13)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))
+      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@24.3.0)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))
       '@vitest/pretty-format': 4.0.18
       '@vitest/runner': 4.0.18
       '@vitest/snapshot': 4.0.18
@@ -16349,7 +16413,7 @@ snapshots:
   vitest@4.0.18(@types/node@24.3.1)(jiti@2.6.1)(jsdom@24.1.0)(tsx@4.19.1)(yaml@2.8.2):
     dependencies:
       '@vitest/expect': 4.0.18
-      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@20.14.13)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))
+      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@24.3.1)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))
       '@vitest/pretty-format': 4.0.18
       '@vitest/runner': 4.0.18
       '@vitest/snapshot': 4.0.18
@@ -16387,7 +16451,7 @@ snapshots:
   vitest@4.0.18(@types/node@25.5.0)(jiti@2.6.1)(jsdom@24.1.0)(tsx@4.19.1)(yaml@2.8.2):
     dependencies:
       '@vitest/expect': 4.0.18
-      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@20.14.13)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))
+      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@25.5.0)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.2))
       '@vitest/pretty-format': 4.0.18
       '@vitest/runner': 4.0.18
       '@vitest/snapshot': 4.0.18

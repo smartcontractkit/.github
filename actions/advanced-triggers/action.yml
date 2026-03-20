@@ -1,4 +1,4 @@
-name: changed-files-filter
+name: advanced-triggers
 description:
   "Filters changed files for a GitHub event according to named glob trigger
   patterns, with clear negation semantics and support for always-on event types"

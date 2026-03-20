@@ -33624,7 +33624,7 @@ function getOctokit(token, options, ...additionalPlugins) {
   return new GitHubWithPlugins(getOctokitOptions(token, options));
 }
 
-// actions/changed-files-filter/src/event.ts
+// actions/advanced-triggers/src/event.ts
 function getEventData() {
   const { context: context3 } = github_exports;
   switch (context3.eventName) {
@@ -33680,7 +33680,7 @@ function getEventData() {
   }
 }
 
-// actions/changed-files-filter/src/run-inputs.ts
+// actions/advanced-triggers/src/run-inputs.ts
 function getInputs() {
   info("Getting inputs for run.");
   const inputs = {
@@ -33744,7 +33744,7 @@ function getInputKey(input) {
   return inputKey;
 }
 
-// actions/changed-files-filter/src/filters.ts
+// actions/advanced-triggers/src/filters.ts
 var import_yaml = __toESM(require_dist());
 var import_micromatch = __toESM(require_micromatch());
 var DEFAULT_ALWAYS_TRIGGER_ON = ["schedule", "workflow_dispatch"];
@@ -33971,7 +33971,7 @@ function applyTrigger(changedFiles, trigger) {
   };
 }
 
-// actions/changed-files-filter/src/git.ts
+// actions/advanced-triggers/src/git.ts
 var import_child_process = require("child_process");
 var import_util = require("util");
 var execFileAsync = (0, import_util.promisify)(import_child_process.execFile);
@@ -34029,7 +34029,7 @@ async function gitPull(directory) {
   }
 }
 
-// actions/changed-files-filter/src/github.ts
+// actions/advanced-triggers/src/github.ts
 async function getChangedFilesForPR(octokit, owner, repo, prNumber) {
   debug(`Fetching changed files for ${owner}/${repo} PR #${prNumber}`);
   const prFiles = await octokit.paginate(octokit.rest.pulls.listFiles, {
@@ -34041,7 +34041,7 @@ async function getChangedFilesForPR(octokit, owner, repo, prNumber) {
   return prFiles;
 }
 
-// actions/changed-files-filter/src/run.ts
+// actions/advanced-triggers/src/run.ts
 function setOutputs(outputs) {
   const { triggerResults } = outputs;
   const matched = triggerResults.filter((r) => r.matched).map((r) => r.name);
@@ -34188,7 +34188,7 @@ async function getChangedFilesForPRWithFallback(octokit, owner, repo, prNumber, 
   return apiFiles;
 }
 
-// actions/changed-files-filter/src/index.ts
+// actions/advanced-triggers/src/index.ts
 run();
 /*! Bundled license information:
 

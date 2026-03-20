@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Local test script for changed-files-filter.
+# Local test script for advanced-triggers.
 #
 # Usage:
 #   cd /path/to/.github
-#   bash actions/changed-files-filter/scripts/test.sh
+#   bash actions/advanced-triggers/scripts/test.sh
 #
 # Requires:
 #   - gh CLI authenticated (for GITHUB_TOKEN)
-#   - pnpm nx build changed-files-filter (or run pnpm nx build changed-files-filter first)
+#   - pnpm nx build advanced-triggers (or run pnpm nx build advanced-triggers first)
 #
 # The script simulates a push event against a real repository so you can
 # verify the trigger outputs without running in GitHub Actions.
@@ -23,7 +23,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(dirname "$0")"
 
-pnpm nx build changed-files-filter
+pnpm nx build advanced-triggers
 
 GITHUB_TOKEN=$(gh auth token)
 export GITHUB_TOKEN
@@ -33,7 +33,7 @@ export GITHUB_ACTOR
 export GITHUB_REPOSITORY="smartcontractkit/chainlink"
 
 export GITHUB_EVENT_NAME="${GITHUB_EVENT_NAME:-push}"
-export GITHUB_EVENT_PATH="actions/changed-files-filter/scripts/payload.json"
+export GITHUB_EVENT_PATH="actions/advanced-triggers/scripts/payload.json"
 
 tmp_file=$(mktemp)
 export GITHUB_STEP_SUMMARY="$tmp_file"
@@ -56,7 +56,7 @@ export INPUT_TRIGGERS="${INPUT_TRIGGERS:-$(cat "$SCRIPT_DIR/triggers.yml")}"
 echo "Event: $GITHUB_EVENT_NAME"
 echo ""
 
-node actions/changed-files-filter/dist/index.js
+node actions/advanced-triggers/dist/index.js
 
 echo ""
 echo "--- GITHUB_OUTPUT ---"
