@@ -362,7 +362,7 @@ jobs:
       docker-restore-cache: ${{ steps.should-cache.outputs.docker-restore-cache }}
       docker-save-cache: ${{ steps.should-cache.outputs.docker-save-cache }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
           fetch-depth: 1
@@ -494,7 +494,7 @@ jobs:
         if: ${{ inputs.free-disk-space == 'true' }}
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         id: checkout
         with:
           persist-credentials: false

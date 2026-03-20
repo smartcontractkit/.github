@@ -15,7 +15,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
@@ -32,7 +32,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
@@ -49,7 +49,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           # Commit back any changes based on the commit that triggered this action
           # rather than merge commit of main into the PR branch
@@ -100,7 +100,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
@@ -118,7 +118,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
@@ -135,7 +135,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
