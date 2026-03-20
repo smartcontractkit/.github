@@ -2,25 +2,33 @@ import * as core from "@actions/core";
 import { parse as parseYaml } from "yaml";
 import micromatch from "micromatch";
 
-export interface FilterConfig {
+export interface TriggerConfig {
   name: string;
   /** Glob patterns (with leading `!` stripped) used to exclude files from the candidate set. */
   negatedPatterns: string[];
-  /** Glob patterns that a remaining candidate file must match for this filter to be true. */
+  /** Glob patterns that a remaining candidate file must match for this trigger to be true. */
   positivePatterns: string[];
+  /**
+   * Event names (e.g. "schedule", "workflow_dispatch") for which this trigger
+   * always outputs true, bypassing file-change matching entirely.
+   * Defaults to ["schedule", "workflow_dispatch"] when not specified.
+   */
+  alwaysTriggerOn: string[];
 }
 
-export interface FilterResult {
+export interface TriggerResult {
   name: string;
   matched: boolean;
   candidateCount: number;
   matchedFiles: string[];
 }
 
-// A map of category name → flat list of glob patterns (may include negated patterns).
-export type Categories = Record<string, string[]>;
+// A map of file-set name → flat list of glob patterns (may include negated patterns).
+export type FileSets = Record<string, string[]>;
 
-// Parses the categories input into a Categories map.
+const DEFAULT_ALWAYS_TRIGGER_ON = ["schedule", "workflow_dispatch"];
+
+// Parses the file-sets input into a FileSets map.
 //
 // Expected YAML format:
 //   go-files:
@@ -29,40 +37,40 @@ export type Categories = Record<string, string[]>;
 //   ignored-paths:
 //     - "!system-tests/**"
 //
-// Returns an empty map if categoriesYaml is empty.
+// Returns an empty map if fileSetsYaml is empty.
 // Throws on malformed input.
-export function parseCategories(categoriesYaml: string): Categories {
-  if (!categoriesYaml.trim()) return {};
+export function parseFileSets(fileSetsYaml: string): FileSets {
+  if (!fileSetsYaml.trim()) return {};
 
   let parsed: unknown;
   try {
-    parsed = parseYaml(categoriesYaml);
+    parsed = parseYaml(fileSetsYaml);
   } catch (e) {
-    throw new Error(`Failed to parse categories YAML: ${e}`);
+    throw new Error(`Failed to parse file-sets YAML: ${e}`);
   }
 
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
     throw new Error(
-      "categories input must be a YAML mapping of category names to pattern lists.",
+      "file-sets input must be a YAML mapping of file-set names to pattern lists.",
     );
   }
 
-  const categories: Categories = {};
+  const fileSets: FileSets = {};
 
   for (const [name, rawPatterns] of Object.entries(
     parsed as Record<string, unknown>,
   )) {
     if (!Array.isArray(rawPatterns)) {
       throw new Error(
-        `Category "${name}" must be a list of glob patterns, got: ${typeof rawPatterns}`,
+        `File-set "${name}" must be a list of glob patterns, got: ${typeof rawPatterns}`,
       );
     }
 
-    categories[name] = rawPatterns
+    fileSets[name] = rawPatterns
       .map((p, i) => {
         if (typeof p !== "string") {
           throw new Error(
-            `Category "${name}": pattern at index ${i} must be a string, got: ${typeof p}`,
+            `File-set "${name}": pattern at index ${i} must be a string, got: ${typeof p}`,
           );
         }
         return p.trim();
@@ -70,47 +78,53 @@ export function parseCategories(categoriesYaml: string): Categories {
       .filter((p) => p.length > 0);
   }
 
-  return categories;
+  return fileSets;
 }
 
-// Parses the filters input into a list of FilterConfig objects, resolving any
-// category references against the provided categories map.
+// Parses the triggers input into a list of TriggerConfig objects, resolving any
+// file-set references against the provided file-sets map.
 //
 // Expected YAML format:
-//   core-tests:
-//     categories: [ignored-paths, go-files]
+//   deployment-tests:
+//     file-sets: [ignored-paths, go-files]
 //     paths:
-//       - "tools/bin/go_core_tests"
+//       - "deployment/**"
+//     always-trigger-on:
+//       - schedule
+//       - workflow_dispatch
 //
-// Both `categories` and `paths` are optional, but each filter must have at
+// Both `file-sets` and `paths` are optional, but each trigger must have at
 // least one of them, and the combined set of patterns must include at least one
 // positive (non-negated) pattern.
 //
-// Throws on malformed input or unresolved category references.
-export function parseFilters(
-  filtersYaml: string,
-  categories: Categories = {},
-): FilterConfig[] {
+// `always-trigger-on` is optional and defaults to ["schedule", "workflow_dispatch"].
+// Patterns starting with ! are exclusion patterns applied before positive matching.
+//
+// Throws on malformed input or unresolved file-set references.
+export function parseTriggers(
+  triggersYaml: string,
+  fileSets: FileSets = {},
+): TriggerConfig[] {
   let parsed: unknown;
   try {
-    parsed = parseYaml(filtersYaml);
+    parsed = parseYaml(triggersYaml);
   } catch (e) {
-    throw new Error(`Failed to parse filters YAML: ${e}`);
+    throw new Error(`Failed to parse triggers YAML: ${e}`);
   }
 
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
     throw new Error(
-      "filters input must be a YAML mapping of filter names to their configuration.",
+      "triggers input must be a YAML mapping of trigger names to their configuration.",
     );
   }
 
-  const filters: FilterConfig[] = [];
+  const triggers: TriggerConfig[] = [];
 
   for (const [name, rawConfig] of Object.entries(
     parsed as Record<string, unknown>,
   )) {
     if (typeof name !== "string" || name.trim() === "") {
-      throw new Error("Filter names must be non-empty strings.");
+      throw new Error("Trigger names must be non-empty strings.");
     }
 
     if (
@@ -119,46 +133,44 @@ export function parseFilters(
       Array.isArray(rawConfig)
     ) {
       throw new Error(
-        `Filter "${name}" must be a mapping with "paths" and/or "categories" keys, got: ${typeof rawConfig}`,
+        `Trigger "${name}" must be a mapping with "paths" and/or "file-sets" keys, got: ${typeof rawConfig}`,
       );
     }
 
     const config = rawConfig as Record<string, unknown>;
 
     for (const key of Object.keys(config)) {
-      if (key !== "paths" && key !== "categories") {
+      if (
+        key !== "paths" &&
+        key !== "file-sets" &&
+        key !== "always-trigger-on"
+      ) {
         throw new Error(
-          `Filter "${name}" has unknown key "${key}". Only "paths" and "categories" are allowed.`,
+          `Trigger "${name}" has unknown key "${key}". Only "paths", "file-sets", and "always-trigger-on" are allowed.`,
         );
       }
     }
 
-    if (config.paths === undefined && config.categories === undefined) {
-      throw new Error(
-        `Filter "${name}" must have at least one of "paths" or "categories".`,
-      );
-    }
-
-    // Resolve category references into patterns.
-    const categoryPatterns: string[] = [];
-    if (config.categories !== undefined) {
-      if (!Array.isArray(config.categories)) {
+    // Resolve file-set references into patterns.
+    const fileSetPatterns: string[] = [];
+    if (config["file-sets"] !== undefined) {
+      if (!Array.isArray(config["file-sets"])) {
         throw new Error(
-          `Filter "${name}".categories must be a list of category names, got: ${typeof config.categories}`,
+          `Trigger "${name}"."file-sets" must be a list of file-set names, got: ${typeof config["file-sets"]}`,
         );
       }
-      for (const catName of config.categories) {
-        if (typeof catName !== "string") {
+      for (const setName of config["file-sets"]) {
+        if (typeof setName !== "string") {
           throw new Error(
-            `Filter "${name}".categories entries must be strings, got: ${typeof catName}`,
+            `Trigger "${name}"."file-sets" entries must be strings, got: ${typeof setName}`,
           );
         }
-        if (!(catName in categories)) {
+        if (!(setName in fileSets)) {
           throw new Error(
-            `Filter "${name}" references unknown category "${catName}".`,
+            `Trigger "${name}" references unknown file-set "${setName}".`,
           );
         }
-        categoryPatterns.push(...categories[catName]);
+        fileSetPatterns.push(...fileSets[setName]);
       }
     }
 
@@ -167,14 +179,14 @@ export function parseFilters(
     if (config.paths !== undefined) {
       if (!Array.isArray(config.paths)) {
         throw new Error(
-          `Filter "${name}".paths must be a list of glob patterns, got: ${typeof config.paths}`,
+          `Trigger "${name}".paths must be a list of glob patterns, got: ${typeof config.paths}`,
         );
       }
       for (let i = 0; i < config.paths.length; i++) {
         const p = config.paths[i];
         if (typeof p !== "string") {
           throw new Error(
-            `Filter "${name}".paths[${i}] must be a string, got: ${typeof p}`,
+            `Trigger "${name}".paths[${i}] must be a string, got: ${typeof p}`,
           );
         }
         const trimmed = p.trim();
@@ -182,8 +194,29 @@ export function parseFilters(
       }
     }
 
-    // Categories first, then explicit paths.
-    const allPatterns = [...categoryPatterns, ...pathPatterns];
+    // Parse always-trigger-on, defaulting to schedule + workflow_dispatch.
+    let alwaysTriggerOn: string[] = DEFAULT_ALWAYS_TRIGGER_ON;
+    if (config["always-trigger-on"] !== undefined) {
+      if (!Array.isArray(config["always-trigger-on"])) {
+        throw new Error(
+          `Trigger "${name}"."always-trigger-on" must be a list of event names, got: ${typeof config["always-trigger-on"]}`,
+        );
+      }
+      alwaysTriggerOn = [];
+      for (let i = 0; i < config["always-trigger-on"].length; i++) {
+        const ev = config["always-trigger-on"][i];
+        if (typeof ev !== "string") {
+          throw new Error(
+            `Trigger "${name}"."always-trigger-on"[${i}] must be a string, got: ${typeof ev}`,
+          );
+        }
+        const trimmed = ev.trim();
+        if (trimmed.length > 0) alwaysTriggerOn.push(trimmed);
+      }
+    }
+
+    // File-sets first, then explicit paths.
+    const allPatterns = [...fileSetPatterns, ...pathPatterns];
 
     const negatedPatterns = allPatterns
       .filter((p) => p.startsWith("!"))
@@ -191,25 +224,38 @@ export function parseFilters(
 
     const positivePatterns = allPatterns.filter((p) => !p.startsWith("!"));
 
-    if (positivePatterns.length === 0) {
+    // If patterns were provided but are all negated, that's always a mistake —
+    // negated patterns alone can never produce a match for file-change events.
+    if (allPatterns.length > 0 && positivePatterns.length === 0) {
       throw new Error(
-        `Filter "${name}" has no positive patterns. At least one non-negated pattern is required.` +
-          ` (Negated patterns alone cannot produce a match.)`,
+        `Trigger "${name}" has only negated patterns. At least one non-negated pattern is required` +
+          ` for file-change matching. To skip file matching entirely, omit "paths" and "file-sets"` +
+          ` and rely solely on "always-trigger-on".`,
       );
     }
 
-    filters.push({ name, negatedPatterns, positivePatterns });
+    // A trigger with no patterns and an empty always-trigger-on can never output
+    // true, which is always a configuration mistake.
+    if (allPatterns.length === 0 && alwaysTriggerOn.length === 0) {
+      throw new Error(
+        `Trigger "${name}" has no patterns and an empty "always-trigger-on". ` +
+          `It can never output true. Add "paths"/"file-sets" for file-change matching, ` +
+          `or add event names to "always-trigger-on".`,
+      );
+    }
+
+    triggers.push({ name, negatedPatterns, positivePatterns, alwaysTriggerOn });
   }
 
-  if (filters.length === 0) {
-    throw new Error("No filters defined in the filters input.");
+  if (triggers.length === 0) {
+    throw new Error("No triggers defined in the triggers input.");
   }
 
-  return filters;
+  return triggers;
 }
 
 /**
- * Applies a single filter to the full set of changed files.
+ * Applies a single trigger to the full set of changed files.
  *
  * Semantics:
  * 1. Start with all changed files.
@@ -217,27 +263,27 @@ export function parseFilters(
  * 3. Check if any remaining file matches any positive pattern.
  * 4. Return matched=true if at least one file matched.
  */
-export function applyFilter(
+export function applyTrigger(
   changedFiles: string[],
-  filter: FilterConfig,
-): FilterResult {
+  trigger: TriggerConfig,
+): TriggerResult {
   core.info(
-    `[filter: ${filter.name}] negated patterns: ${JSON.stringify(filter.negatedPatterns)}`,
+    `[trigger: ${trigger.name}] negated patterns: ${JSON.stringify(trigger.negatedPatterns)}`,
   );
   core.info(
-    `[filter: ${filter.name}] positive patterns: ${JSON.stringify(filter.positivePatterns)}`,
+    `[trigger: ${trigger.name}] positive patterns: ${JSON.stringify(trigger.positivePatterns)}`,
   );
 
   // Step 1: Exclusion pass — remove files matching any negated pattern.
   let candidates = changedFiles;
-  if (filter.negatedPatterns.length > 0) {
+  if (trigger.negatedPatterns.length > 0) {
     candidates = changedFiles.filter((f) => {
-      const match = micromatch.isMatch(f, filter.negatedPatterns, {
+      const match = micromatch.isMatch(f, trigger.negatedPatterns, {
         dot: true,
       });
       if (match) {
         core.debug(
-          `[filter: ${filter.name}] excluding file "${f}" due to negated patterns`,
+          `[trigger: ${trigger.name}] excluding file "${f}" due to negated patterns`,
         );
         return false;
       }
@@ -246,28 +292,28 @@ export function applyFilter(
     });
     const excluded = changedFiles.length - candidates.length;
     core.info(
-      `[filter: ${filter.name}] exclusion pass: ${excluded} file(s) removed, ${candidates.length} remain`,
+      `[trigger: ${trigger.name}] exclusion pass: ${excluded} file(s) removed, ${candidates.length} remain`,
     );
   }
 
   // Step 2: Positive match pass — check remaining candidates against positive patterns.
-  const matchedFiles = micromatch(candidates, filter.positivePatterns, {
+  const matchedFiles = micromatch(candidates, trigger.positivePatterns, {
     dot: true,
   });
   const matched = matchedFiles.length > 0;
 
   core.info(
-    `[filter: ${filter.name}] ${matched ? "MATCHED" : "no match"} ` +
+    `[trigger: ${trigger.name}] ${matched ? "MATCHED" : "no match"} ` +
       `(${candidates.length} candidates, ${matchedFiles.length} matched)`,
   );
   if (matchedFiles.length > 0) {
     core.debug(
-      `[filter: ${filter.name}] matched files: ${JSON.stringify(matchedFiles)}`,
+      `[trigger: ${trigger.name}] matched files: ${JSON.stringify(matchedFiles)}`,
     );
   }
 
   return {
-    name: filter.name,
+    name: trigger.name,
     matched,
     candidateCount: candidates.length,
     matchedFiles,

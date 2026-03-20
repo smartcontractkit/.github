@@ -1,0 +1,38 @@
+# Trigger using a single file-set.
+# always-trigger-on defaults to [schedule, workflow_dispatch].
+ccip:
+  file-sets: [ccip-files]
+
+# Trigger combining multiple file-sets AND inline paths.
+# The patterns from all file-sets are merged with the inline paths before
+# the two-phase negation/positive evaluation runs.
+ccip-with-extras:
+  file-sets: [ccip-files]
+  paths:
+    - ".github/workflows/ccip-*.yml"
+    - "contracts/src/v0.8/ccip/**"
+
+# Trigger using only inline paths with always-trigger-on explicitly overridden
+# to also include workflow_call (in addition to the defaults).
+ci-config:
+  paths:
+    - ".github/workflows/**"
+    - ".github/actions/**"
+  always-trigger-on:
+    - schedule
+    - workflow_dispatch
+    - workflow_call
+
+# Trigger that only fires on file changes — always-trigger-on disabled entirely.
+docs:
+  paths:
+    - "docs/**"
+    - "*.md"
+  always-trigger-on: []
+
+# Trigger with no file patterns — only fires on the listed events.
+# Useful for jobs that should run on manual/scheduled triggers but never on PRs.
+nightly-only:
+  always-trigger-on:
+    - schedule
+    - workflow_dispatch

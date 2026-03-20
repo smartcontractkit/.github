@@ -1,12 +1,15 @@
 import * as github from "@actions/github";
 import { PushEvent, MergeGroupEvent } from "@octokit/webhooks-types";
 
-export type EventData =
+export type FileChangeEventData =
   | PullRequestEventData
   | PushEventData
   | MergeGroupEventData;
 
+export type EventData = FileChangeEventData | PassthroughEventData;
+
 export interface PullRequestEventData {
+  kind: "file-change";
   eventName: "pull_request";
   prNumber: number;
   /** Base branch SHA — used as fallback for git diff if the API is unavailable or truncated. */
@@ -16,20 +19,36 @@ export interface PullRequestEventData {
 }
 
 export interface PushEventData {
+  kind: "file-change";
   eventName: "push";
   base: string;
   head: string;
 }
 
 export interface MergeGroupEventData {
+  kind: "file-change";
   eventName: "merge_group";
   base: string;
   head: string;
 }
 
 /**
+ * Events that don't carry changed-file information (e.g. schedule,
+ * workflow_dispatch). Triggers may opt in to always run on these via
+ * always-trigger-on.
+ */
+export interface PassthroughEventData {
+  kind: "passthrough";
+  eventName: string;
+}
+
+/**
  * Parses the relevant event data from the GitHub Actions event payload.
- * Only pull_request, push, and merge_group are supported.
+ *
+ * For pull_request, push, and merge_group the changed-file SHAs are extracted
+ * so file matching can run. For all other event types a PassthroughEventData is
+ * returned — no error is thrown. The caller is responsible for deciding whether
+ * a trigger should fire for passthrough events via always-trigger-on.
  */
 export function getEventData(): EventData {
   const { context } = github;
@@ -51,6 +70,7 @@ export function getEventData(): EventData {
         );
       }
       return {
+        kind: "file-change",
         eventName: "pull_request",
         prNumber: pr.number,
         base: pr.base.sha,
@@ -64,6 +84,7 @@ export function getEventData(): EventData {
         throw new Error("Push event payload missing 'before' or 'after' SHAs.");
       }
       return {
+        kind: "file-change",
         eventName: "push",
         base: pushEvent.before,
         head: pushEvent.after,
@@ -78,6 +99,7 @@ export function getEventData(): EventData {
         );
       }
       return {
+        kind: "file-change",
         eventName: "merge_group",
         base: mgEvent.merge_group.base_sha,
         head: mgEvent.merge_group.head_sha,
@@ -85,8 +107,9 @@ export function getEventData(): EventData {
     }
 
     default:
-      throw new Error(
-        `Unsupported event type: "${context.eventName}". This action supports: pull_request, push, merge_group.`,
-      );
+      return {
+        kind: "passthrough",
+        eventName: context.eventName,
+      };
   }
 }

@@ -1,14 +1,68 @@
 # changed-files-filter
 
-A GitHub Action that detects changed files for the current GitHub Actions event
-and filters them using named glob filter patterns. Each filter produces a
-boolean output indicating whether any changed file matched that filter.
+A GitHub Action for fine-grained, per-job run control in GitHub Actions
+workflows. It answers the question: _"should this job run given what just
+happened?"_ — and produces one boolean output per named trigger so downstream
+jobs can gate themselves with a simple `if:` condition.
+
+## The problem it solves
+
+GitHub Actions workflows are commonly triggered by many different event types
+(`pull_request`, `push`, `merge_group`, `schedule`, `workflow_dispatch`, etc.).
+Within a single workflow run, only a subset of jobs typically need to execute —
+and which subset depends on both _what changed_ and _how the workflow was
+triggered_.
+
+The naive approach is to duplicate that logic in every job:
+
+```yaml
+if: |
+  contains(github.event.pull_request.labels.*.name, 'run-integration') ||
+  steps.filter.outputs.integration == 'true' ||
+  github.event_name == 'schedule' ||
+  github.event_name == 'workflow_dispatch'
+```
+
+This pattern is verbose, easy to get wrong, and has to be repeated for every job
+that shares the same conditions. It also requires understanding and remembering
+which events carry file-change information and which do not.
+
+This action centralises all of that logic into a single step. You define named
+**triggers** — each describing the file paths that are relevant to a job and the
+non-file-change event types that should unconditionally run it — and the action
+produces a boolean output per trigger. Downstream jobs just check one output:
+
+```yaml
+if: needs.detect-changes.outputs.integration == 'true'
+```
+
+### Two axes of control
+
+Each trigger independently evaluates two things:
+
+1. **File changes** — on `pull_request`, `push`, and `merge_group` events, the
+   action fetches the changed file list and tests it against the trigger's glob
+   patterns. The trigger matches if any file (after exclusions) matches any
+   positive pattern.
+
+2. **Event type** — on events that do not carry changed-file information (e.g.
+   `schedule`, `workflow_dispatch`), file matching is skipped entirely. Instead,
+   each trigger has an `always-trigger-on` list (defaulting to
+   `[schedule, workflow_dispatch]`). If the current event is in that list, the
+   trigger outputs `true` unconditionally. If it is not, a warning is logged and
+   the trigger outputs `false`.
+
+This makes it straightforward to express rules like _"run integration tests when
+relevant files change on a PR, but always run them on a scheduled nightly
+build"_ without any extra workflow logic.
 
 This action is intended to replace usages of
 [dorny/paths-filter](https://github.com/dorny/paths-filter) where negated
-pattern behavior was ambiguous or unintuitive.
+pattern behavior was ambiguous or unintuitive, and to consolidate the common
+pattern of also gating jobs on event type (e.g. `schedule`,
+`workflow_dispatch`).
 
-## The key difference from dorny/paths-filter
+#### The key difference for path filtering from dorny/paths-filter
 
 **Negated patterns are exclusion filters over the changed file set, not part of
 a combined match expression.**
@@ -17,13 +71,13 @@ In dorny/paths-filter, a pattern like `!**/ignored/**` participates in the same
 match evaluation as positive patterns, leading to surprising results depending
 on pattern order and combination.
 
-In this action, the evaluation for each named filter is strictly two-phase:
+In this action, the evaluation for each named trigger is strictly two-phase:
 
 1. **Exclusion pass:** All negated patterns (those beginning with `!`) are
    applied first. Any changed file that matches a negated pattern is removed
-   from the candidate set for this filter.
+   from the candidate set for this trigger.
 2. **Positive match pass:** The remaining candidate files are tested against the
-   positive patterns. If any candidate matches any positive pattern, the filter
+   positive patterns. If any candidate matches any positive pattern, the trigger
    output is `true`.
 
 This means negated patterns never "block" a positive match — they _remove files
@@ -31,13 +85,14 @@ from consideration_ before any positive matching occurs.
 
 ## Supported events
 
-| Event          | Changed file source                                                   |
-| -------------- | --------------------------------------------------------------------- |
-| `pull_request` | GitHub API (`pulls.listFiles`) (falls back to `git diff --name-only`) |
-| `push`         | `git diff --name-only`                                                |
-| `merge_group`  | `git diff --name-only`                                                |
-
-All other event types cause the action to fail with a clear error.
+| Event               | Behavior                                                                  |
+| ------------------- | ------------------------------------------------------------------------- |
+| `pull_request`      | GitHub API (`pulls.listFiles`) (falls back to `git diff --name-only`)     |
+| `push`              | `git diff --name-only`                                                    |
+| `merge_group`       | `git diff --name-only`                                                    |
+| `schedule`          | All triggers output `true` (default `always-trigger-on`)                  |
+| `workflow_dispatch` | All triggers output `true` (default `always-trigger-on`)                  |
+| other               | Warning logged, all triggers output `false` unless in `always-trigger-on` |
 
 ## Inputs
 
@@ -45,26 +100,27 @@ All other event types cause the action to fail with a clear error.
 | ----------------- | -------- | ------------------------- | ---------------------------------------------------------------- |
 | `github-token`    | yes      | `${{ github.token }}`     | GitHub token for API access                                      |
 | `repository-root` | no       | `${{ github.workspace }}` | Repo root directory, used for git-based diff on push/merge_group |
-| `filters`         | yes      | —                         | YAML string of named filters (see below)                         |
+| `file-sets`       | no       | —                         | YAML string of named file-set pattern groups (see below)         |
+| `triggers`        | yes      | —                         | YAML string of named triggers (see below)                        |
 
 ## Outputs
 
 ### Static outputs
 
-| Output                     | Description                                             |
-| -------------------------- | ------------------------------------------------------- |
-| `filters-matched`          | Comma-separated list of filter names that matched       |
-| `filters-not-matched`      | Comma-separated list of filter names that did not match |
-| `filters-matched-json`     | JSON array of filter names that matched                 |
-| `filters-not-matched-json` | JSON array of filter names that did not match           |
+| Output                      | Description                                              |
+| --------------------------- | -------------------------------------------------------- |
+| `triggers-matched`          | Comma-separated list of trigger names that matched       |
+| `triggers-not-matched`      | Comma-separated list of trigger names that did not match |
+| `triggers-matched-json`     | JSON array of trigger names that matched                 |
+| `triggers-not-matched-json` | JSON array of trigger names that did not match           |
 
 ### Dynamic outputs
 
-For each named filter defined in `filters`, the action sets a dynamic output
-with the filter's name. The value is `"true"` if the filter matched, `"false"`
+For each named trigger defined in `triggers`, the action sets a dynamic output
+with the trigger's name. The value is `"true"` if the trigger matched, `"false"`
 otherwise.
 
-For example, with filters named `core` and `docs`, the action sets:
+For example, with triggers named `core` and `docs`, the action sets:
 
 ```
 core = "true" or "false"
@@ -73,26 +129,91 @@ docs = "true" or "false"
 
 These outputs are not listed in `action.yml` (since their names depend on user
 input), but they are set via `core.setOutput` and are accessible in your
-workflow as `steps.<step-id>.outputs.<filter-name>`.
+workflow as `steps.<step-id>.outputs.<trigger-name>`.
 
-## Filters input format
+## Triggers input format
 
-The `filters` input is a YAML string. Each top-level key is a filter name; its
-value is a list of glob patterns:
+The `triggers` input is a YAML string. Each top-level key is a trigger name.
+Each trigger is a mapping with the following keys:
+
+| Key                 | Required | Default                         | Description                                          |
+| ------------------- | -------- | ------------------------------- | ---------------------------------------------------- |
+| `file-sets`         | no\*     | —                               | List of file-set names to include                    |
+| `paths`             | no\*     | —                               | List of additional glob patterns                     |
+| `always-trigger-on` | no       | `[schedule, workflow_dispatch]` | Event names that always output true for this trigger |
+
+\* At least one of `file-sets` or `paths` is required per trigger.
+
+### Example
 
 ```yaml
-filters: |
-  core:
-    - !**/ignored-1/**
-    - !**/ignored-2/**
-    - **/*.go
-    - **/go.mod
-    - **/go.sum
-    - testdata/**/*.txtar
-  github_ci_changes:
-    - .github/workflows/*.yml
-    - .github/workflows/*.yaml
+triggers: |
+  deployment-tests:
+    file-sets: [ignored-paths, go-files]
+    paths:
+      - "deployment/**"
+    # always-trigger-on defaults to [schedule, workflow_dispatch]
+
+  docs:
+    paths:
+      - "docs/**"
+      - "*.md"
+    # override to never auto-trigger on schedule/workflow_dispatch
+    always-trigger-on: []
 ```
+
+### `always-trigger-on` semantics
+
+On events listed in `always-trigger-on` (defaulting to `schedule` and
+`workflow_dispatch`), the trigger outputs `true` without inspecting changed
+files at all. This replaces patterns like:
+
+```yaml
+# Before: manual GHA logic needed
+should-run: >-
+  ${{
+    steps.filter.outputs.deployment == 'true' ||
+    github.event_name == 'schedule' ||
+    github.event_name == 'workflow_dispatch'
+  }}
+
+# After: handled automatically by always-trigger-on default
+should-run: ${{ steps.filter.outputs.deployment }}
+```
+
+For any other non-file-change event not listed in `always-trigger-on`, a warning
+is logged and the trigger outputs `false`.
+
+## `file-sets` input format
+
+`file-sets` is an optional YAML string defining reusable named groups of glob
+patterns that multiple triggers can reference. This avoids repeating the same
+patterns across triggers.
+
+```yaml
+file-sets: |
+  go-files:
+    - "**/*.go"
+    - "**/go.mod"
+    - "**/go.sum"
+  ignored-paths:
+    - "!system-tests/**"
+    - "!docs/**"
+```
+
+Triggers then reference file-sets by name:
+
+```yaml
+triggers: |
+  core-tests:
+    file-sets: [ignored-paths, go-files]
+    paths:
+      - "tools/bin/go_core_tests"
+```
+
+The patterns from each referenced file-set are prepended to any explicit
+`paths`, then the full combined set is split into negated/positive patterns for
+the two-phase evaluation.
 
 ### Negation semantics
 
@@ -100,7 +221,7 @@ Patterns that begin with `!` are **exclusion patterns**. They are evaluated as a
 separate pre-pass:
 
 1. All files matching any `!pattern` are removed from the candidate set for that
-   filter.
+   trigger.
 2. Positive patterns are then evaluated against the remaining candidates.
 
 **Example:**
@@ -109,23 +230,29 @@ Changed files:
 
 ```
 core/foo.go
-ignored-1/bar.go
+ignored-paths/bar.go
 docs/index.md
 ```
 
-Filter `core` with patterns `!**/ignored-1/**`, `**/*.go`:
+Trigger `core-tests` with patterns `!**/ignored-paths/**`, `**/*.go`:
 
-- Exclusion pass: `ignored-1/bar.go` is removed.
+- Exclusion pass: `ignored-paths/bar.go` is removed.
 - Positive pass: `core/foo.go` matches `**/*.go`.
-- Result: `core = "true"`.
+- Result: `core-tests = "true"`.
 
-Note that `ignored-1/bar.go` is excluded _before_ the `**/*.go` check, so it
+Note that `ignored-paths/bar.go` is excluded _before_ the `**/*.go` check, so it
 never has a chance to match.
 
 ### Rules
 
-- At least one positive pattern is required per filter. A filter with only
-  negated patterns is invalid and will cause the action to fail.
+- A trigger must have at least one way to ever output `true`: either at least
+  one positive pattern (via `paths`/`file-sets`) for file-change matching, or at
+  least one entry in `always-trigger-on`. A trigger with neither will be
+  rejected.
+- If `paths` or `file-sets` is specified, the combined set must include at least
+  one positive (non-negated) pattern. All-negated patterns can never produce a
+  file match and will be rejected. To skip file matching entirely, omit
+  `paths`/`file-sets` and rely solely on `always-trigger-on`.
 - Blank lines in the pattern list are ignored.
 - Patterns are matched against repo-relative POSIX paths (e.g.
   `src/foo/bar.ts`).
@@ -142,19 +269,26 @@ jobs:
       core: ${{ steps.filter.outputs.core }}
       docs: ${{ steps.filter.outputs.docs }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - id: filter
-        uses: smartcontractkit/.github/actions/changed-files-filter@changed-files-filter/v1
+        uses: smartcontractkit/.github/actions/changed-files-filter@main
         with:
-          filters: |
+          file-sets: |
+            go-files:
+              - "**/*.go"
+              - "**/go.mod"
+              - "**/go.sum"
+            ignored-paths:
+              - "!**/vendor/**"
+          triggers: |
             core:
-              - !**/vendor/**
-              - **/*.go
-              - **/go.mod
-              - **/go.sum
+              file-sets: [ignored-paths, go-files]
+              # schedule and workflow_dispatch always trigger (default)
             docs:
-              - docs/**
-              - '*.md'
+              paths:
+                - docs/**
+                - "*.md"
+              always-trigger-on: []  # only run on file changes
 
   build-core:
     needs: detect-changes
@@ -186,7 +320,7 @@ The script:
 - Builds the action via `pnpm nx build changed-files-filter`
 - Sets `CL_LOCAL_DEBUG=true`, which switches input resolution to read from
   `INPUT_<LOCALPARAMETER>` env vars instead of the action.yml parameter names
-- Reads filters from `scripts/filters.yml` (override with `INPUT_FILTERS`)
+- Reads triggers from `scripts/filters.yml` (override with `INPUT_TRIGGERS`)
 - Points at a real PR on `smartcontractkit/.github`
 
 To test against a different repo or PR, set `GITHUB_REPOSITORY` and update
@@ -196,12 +330,3 @@ To test against a local repository with push-style changed files (git diff), set
 `INPUT_REPOSITORY_ROOT` to point at your local checkout and change
 `GITHUB_EVENT_NAME` to `push` with appropriate `before`/`after` SHAs in the
 payload.
-
-## Limitations
-
-- Only `pull_request`, `push`, and `merge_group` events are supported. The
-  action will fail for other event types.
-- Filters must have at least one positive pattern. Filters with only negated
-  patterns are rejected.
-- On `push` and `merge_group` events, the repository must be checked out (the
-  default `actions/checkout` behavior) for `git diff` to work.

@@ -1,7 +1,7 @@
 name: changed-files-filter
 description:
-  "Filters changed files for a GitHub event according to named glob filter
-  patterns, with clear negation semantics"
+  "Filters changed files for a GitHub event according to named glob trigger
+  patterns, with clear negation semantics and support for always-on event types"
 
 inputs:
   github-token:
@@ -16,33 +16,35 @@ inputs:
     default: ${{ github.workspace }}
     required: false
 
-  categories:
+  file-sets:
     description: |
-      An optional YAML string defining named pattern groups that filters can reference.
-      Each category is a key mapping to a list of glob patterns (which may include
-      negated patterns starting with !). Categories are resolved by name when
-      building a filter's effective pattern set.
+      An optional YAML string defining named pattern groups that triggers can reference.
+      Each file-set is a key mapping to a list of glob patterns (which may include
+      negated patterns starting with !). File-sets are resolved by name when
+      building a trigger's effective pattern set.
     required: false
 
-  filters:
+  triggers:
     description: |
-      A YAML string defining named filters. Each filter is a mapping with optional
-      "categories" (a list of category names to include) and "paths" (a list of
-      additional glob patterns). At least one of "categories" or "paths" is required
-      per filter, and the combined pattern set must include at least one positive pattern.
-      Patterns starting with ! are exclusion patterns applied before positive matching.
-      See the README for full semantics and examples.
+      A YAML string defining named triggers. Each trigger is a mapping with optional
+      "file-sets" (a list of file-set names to include), "paths" (a list of additional
+      glob patterns), and "always-trigger-on" (a list of event names that always produce
+      a true output, bypassing file matching). "always-trigger-on" defaults to
+      ["schedule", "workflow_dispatch"]. A trigger must have at least one way to output
+      true: either at least one positive pattern (via "paths"/"file-sets") or at least
+      one entry in "always-trigger-on". Patterns starting with ! are exclusion patterns
+      applied before positive matching. See the README for full semantics and examples.
     required: true
 
 outputs:
-  filters-matched:
-    description: "Comma-separated list of filter names that matched"
-  filters-not-matched:
-    description: "Comma-separated list of filter names that did not match"
-  filters-matched-json:
-    description: "JSON array of filter names that matched"
-  filters-not-matched-json:
-    description: "JSON array of filter names that did not match"
+  triggers-matched:
+    description: "Comma-separated list of trigger names that matched"
+  triggers-not-matched:
+    description: "Comma-separated list of trigger names that did not match"
+  triggers-matched-json:
+    description: "JSON array of trigger names that matched"
+  triggers-not-matched-json:
+    description: "JSON array of trigger names that did not match"
 
 runs:
   using: "node20"

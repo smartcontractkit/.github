@@ -1,4 +1,4 @@
-ccip:
+ccip-files:
   - "!system-tests/**"
   - "!core/scripts/cre/**"
   - "!devenv/**"

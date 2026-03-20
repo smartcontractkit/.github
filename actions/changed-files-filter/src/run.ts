@@ -2,26 +2,33 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 import { getInvokeContext, getInputs } from "./run-inputs";
-import { parseCategories, parseFilters, applyFilter, FilterResult } from "./filters";
+import {
+  parseFileSets,
+  parseTriggers,
+  applyTrigger,
+  TriggerResult,
+} from "./filters";
 import { getChangedFilesGit } from "./git";
 import { getChangedFilesForPR } from "./github";
 import type { OctokitType } from "./github";
-import type { InvokeContext } from "./run-inputs";
+import type { FileChangeEventData } from "./event";
 
 interface Outputs {
-  filterResults: FilterResult[];
+  triggerResults: TriggerResult[];
 }
 
 function setOutputs(outputs: Outputs) {
-  const { filterResults } = outputs;
+  const { triggerResults } = outputs;
 
-  const matched = filterResults.filter((r) => r.matched).map((r) => r.name);
-  const notMatched = filterResults.filter((r) => !r.matched).map((r) => r.name);
+  const matched = triggerResults.filter((r) => r.matched).map((r) => r.name);
+  const notMatched = triggerResults
+    .filter((r) => !r.matched)
+    .map((r) => r.name);
 
   const any = matched.length > 0;
 
-  // Dynamic per-filter outputs.
-  for (const result of filterResults) {
+  // Dynamic per-trigger outputs.
+  for (const result of triggerResults) {
     const value = result.matched ? "true" : "false";
     core.info(`(output) ${result.name}: ${value}`);
     core.setOutput(result.name, value);
@@ -31,21 +38,21 @@ function setOutputs(outputs: Outputs) {
   core.info(`(output) any: ${any}`);
   core.setOutput("any", String(any));
 
-  const filtersMatchedCsv = matched.join(",");
-  core.info(`(output) filters-matched: ${filtersMatchedCsv}`);
-  core.setOutput("filters-matched", filtersMatchedCsv);
+  const triggersMatchedCsv = matched.join(",");
+  core.info(`(output) triggers-matched: ${triggersMatchedCsv}`);
+  core.setOutput("triggers-matched", triggersMatchedCsv);
 
-  const filtersNotMatchedCsv = notMatched.join(",");
-  core.info(`(output) filters-not-matched: ${filtersNotMatchedCsv}`);
-  core.setOutput("filters-not-matched", filtersNotMatchedCsv);
+  const triggersNotMatchedCsv = notMatched.join(",");
+  core.info(`(output) triggers-not-matched: ${triggersNotMatchedCsv}`);
+  core.setOutput("triggers-not-matched", triggersNotMatchedCsv);
 
-  const filtersMatchedJson = JSON.stringify(matched);
-  core.info(`(output) filters-matched-json: ${filtersMatchedJson}`);
-  core.setOutput("filters-matched-json", filtersMatchedJson);
+  const triggersMatchedJson = JSON.stringify(matched);
+  core.info(`(output) triggers-matched-json: ${triggersMatchedJson}`);
+  core.setOutput("triggers-matched-json", triggersMatchedJson);
 
-  const filtersNotMatchedJson = JSON.stringify(notMatched);
-  core.info(`(output) filters-not-matched-json: ${filtersNotMatchedJson}`);
-  core.setOutput("filters-not-matched-json", filtersNotMatchedJson);
+  const triggersNotMatchedJson = JSON.stringify(notMatched);
+  core.info(`(output) triggers-not-matched-json: ${triggersNotMatchedJson}`);
+  core.setOutput("triggers-not-matched-json", triggersNotMatchedJson);
 }
 
 export async function run(): Promise<void> {
@@ -57,41 +64,75 @@ export async function run(): Promise<void> {
     const octokit = github.getOctokit(context.token);
     core.endGroup();
 
-    // 2. Parse categories and filters.
-    core.startGroup("Parsing filters");
-    const categories = parseCategories(inputs.categories);
-    const filters = parseFilters(inputs.filters, categories);
+    // 2. Parse file-sets and triggers.
+    core.startGroup("Parsing triggers");
+    const fileSets = parseFileSets(inputs.fileSets);
+    const triggers = parseTriggers(inputs.triggers, fileSets);
     core.info(
-      `Parsed ${filters.length} filter(s): ${filters.map((f) => f.name).join(", ")}`,
+      `Parsed ${triggers.length} trigger(s): ${triggers.map((t) => t.name).join(", ")}`,
     );
     core.endGroup();
 
-    // 3. Determine changed files for the current event.
+    // 3. Determine changed files for file-change events.
     core.startGroup("Determining changed files");
     core.info(`Event type: ${context.event.eventName}`);
-    const changedFiles = await getChangedFiles(
-      octokit,
-      context,
-      inputs.repositoryRoot,
-    );
-    core.info(`Changed files count: ${changedFiles.length}`);
-    if (core.isDebug()) {
-      core.debug(`Changed files: ${JSON.stringify(changedFiles, null, 2)}`);
+    let changedFiles: string[] | null = null;
+    if (context.event.kind === "file-change") {
+      changedFiles = await getChangedFiles(
+        octokit,
+        { owner: context.owner, repo: context.repo },
+        context.event,
+        inputs.repositoryRoot,
+      );
+      core.info(`Changed files count: ${changedFiles.length}`);
+      if (core.isDebug()) {
+        core.debug(`Changed files: ${JSON.stringify(changedFiles, null, 2)}`);
+      }
+    } else {
+      core.info(
+        `Event "${context.event.eventName}" is not a file-change event — skipping changed file detection.`,
+      );
     }
     core.endGroup();
 
-    // 4. Apply each filter.
-    core.startGroup("Applying filters");
-    const filterResults: FilterResult[] = [];
-    for (const filter of filters) {
-      const result = applyFilter(changedFiles, filter);
-      filterResults.push(result);
+    // 4. Apply each trigger.
+    core.startGroup("Applying triggers");
+    const triggerResults: TriggerResult[] = [];
+    for (const trigger of triggers) {
+      let result: TriggerResult;
+
+      if (context.event.kind === "file-change") {
+        result = applyTrigger(changedFiles!, trigger);
+      } else if (trigger.alwaysTriggerOn.includes(context.event.eventName)) {
+        core.info(
+          `[trigger: ${trigger.name}] event "${context.event.eventName}" is in always-trigger-on → MATCHED`,
+        );
+        result = {
+          name: trigger.name,
+          matched: true,
+          candidateCount: 0,
+          matchedFiles: [],
+        };
+      } else {
+        core.warning(
+          `[trigger: ${trigger.name}] event "${context.event.eventName}" is not a file-change event ` +
+            `and is not listed in always-trigger-on [${trigger.alwaysTriggerOn.join(", ")}]. Defaulting to false.`,
+        );
+        result = {
+          name: trigger.name,
+          matched: false,
+          candidateCount: 0,
+          matchedFiles: [],
+        };
+      }
+
+      triggerResults.push(result);
     }
     core.endGroup();
 
     // 5. Set outputs.
     core.startGroup("Setting outputs");
-    setOutputs({ filterResults });
+    setOutputs({ triggerResults });
     core.endGroup();
   } catch (error) {
     core.endGroup();
@@ -118,7 +159,8 @@ const PR_FILES_API_LIMIT = 3000;
  */
 async function getChangedFiles(
   octokit: OctokitType,
-  { owner, repo, event }: InvokeContext,
+  { owner, repo }: { owner: string; repo: string },
+  event: FileChangeEventData,
   repositoryRoot: string,
 ): Promise<string[]> {
   switch (event.eventName) {

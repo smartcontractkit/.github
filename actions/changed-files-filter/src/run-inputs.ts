@@ -4,8 +4,8 @@ import * as github from "@actions/github";
 import { getEventData } from "./event";
 
 export interface RunInputs {
-  categories: string;
-  filters: string;
+  fileSets: string;
+  triggers: string;
   repositoryRoot: string;
 }
 
@@ -15,22 +15,22 @@ export function getInputs(): RunInputs {
   core.info("Getting inputs for run.");
 
   const inputs: RunInputs = {
-    categories: getRunInputString("categories", false),
-    filters: getRunInputString("filters", true),
+    fileSets: getRunInputString("fileSets", false),
+    triggers: getRunInputString("triggers", true),
     repositoryRoot: getRunInputString("repositoryRoot", true),
   };
 
   // Log inputs, but truncate long strings to keep logs readable.
   const loggable = {
     ...inputs,
-    categories:
-      inputs.categories.length > 200
-        ? inputs.categories.slice(0, 200) + "..."
-        : inputs.categories,
-    filters:
-      inputs.filters.length > 200
-        ? inputs.filters.slice(0, 200) + "..."
-        : inputs.filters,
+    fileSets:
+      inputs.fileSets.length > 200
+        ? inputs.fileSets.slice(0, 200) + "..."
+        : inputs.fileSets,
+    triggers:
+      inputs.triggers.length > 200
+        ? inputs.triggers.slice(0, 200) + "..."
+        : inputs.triggers,
   };
   core.info(`Inputs: ${JSON.stringify(loggable)}`);
   return inputs;
@@ -68,7 +68,7 @@ interface RunInputConfiguration {
   /**
    * The local environment variable name to use when debugging locally.
    * When CL_LOCAL_DEBUG is set, this name is used instead of `parameter`.
-   * core.getInput reads from INPUT_<NAME> env vars, so set INPUT_FILTERS, etc.
+   * core.getInput reads from INPUT_<NAME> env vars, so set INPUT_TRIGGERS, etc.
    */
   localParameter: string;
 
@@ -81,13 +81,13 @@ interface RunInputConfiguration {
 const runInputsConfiguration: {
   [K in keyof RunInputs]: RunInputConfiguration;
 } = {
-  categories: {
-    parameter: "categories",
-    localParameter: "CATEGORIES",
+  fileSets: {
+    parameter: "file-sets",
+    localParameter: "FILE_SETS",
   },
-  filters: {
-    parameter: "filters",
-    localParameter: "FILTERS",
+  triggers: {
+    parameter: "triggers",
+    localParameter: "TRIGGERS",
   },
   repositoryRoot: {
     parameter: "repository-root",
