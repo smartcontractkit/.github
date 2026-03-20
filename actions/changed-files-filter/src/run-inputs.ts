@@ -4,6 +4,7 @@ import * as github from "@actions/github";
 import { getEventData } from "./event";
 
 export interface RunInputs {
+  categories: string;
   filters: string;
   repositoryRoot: string;
 }
@@ -14,13 +15,18 @@ export function getInputs(): RunInputs {
   core.info("Getting inputs for run.");
 
   const inputs: RunInputs = {
+    categories: getRunInputString("categories", false),
     filters: getRunInputString("filters", true),
     repositoryRoot: getRunInputString("repositoryRoot", true),
   };
 
-  // Log inputs, but truncate long filters strings to keep logs readable.
+  // Log inputs, but truncate long strings to keep logs readable.
   const loggable = {
     ...inputs,
+    categories:
+      inputs.categories.length > 200
+        ? inputs.categories.slice(0, 200) + "..."
+        : inputs.categories,
     filters:
       inputs.filters.length > 200
         ? inputs.filters.slice(0, 200) + "..."
@@ -75,6 +81,10 @@ interface RunInputConfiguration {
 const runInputsConfiguration: {
   [K in keyof RunInputs]: RunInputConfiguration;
 } = {
+  categories: {
+    parameter: "categories",
+    localParameter: "CATEGORIES",
+  },
   filters: {
     parameter: "filters",
     localParameter: "FILTERS",

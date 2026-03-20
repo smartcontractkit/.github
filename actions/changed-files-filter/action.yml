@@ -16,10 +16,20 @@ inputs:
     default: ${{ github.workspace }}
     required: false
 
+  categories:
+    description: |
+      An optional YAML string defining named pattern groups that filters can reference.
+      Each category is a key mapping to a list of glob patterns (which may include
+      negated patterns starting with !). Categories are resolved by name when
+      building a filter's effective pattern set.
+    required: false
+
   filters:
     description: |
-      A YAML string defining named filters and their glob pattern lists.
-      Each filter is a key mapping to a list of glob patterns.
+      A YAML string defining named filters. Each filter is a mapping with optional
+      "categories" (a list of category names to include) and "paths" (a list of
+      additional glob patterns). At least one of "categories" or "paths" is required
+      per filter, and the combined pattern set must include at least one positive pattern.
       Patterns starting with ! are exclusion patterns applied before positive matching.
       See the README for full semantics and examples.
     required: true

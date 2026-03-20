@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 import { getInvokeContext, getInputs } from "./run-inputs";
-import { parseFilters, applyFilter, FilterResult } from "./filters";
+import { parseCategories, parseFilters, applyFilter, FilterResult } from "./filters";
 import { getChangedFilesGit } from "./git";
 import { getChangedFilesForPR } from "./github";
 import type { OctokitType } from "./github";
@@ -57,9 +57,10 @@ export async function run(): Promise<void> {
     const octokit = github.getOctokit(context.token);
     core.endGroup();
 
-    // 2. Parse filters.
+    // 2. Parse categories and filters.
     core.startGroup("Parsing filters");
-    const filters = parseFilters(inputs.filters);
+    const categories = parseCategories(inputs.categories);
+    const filters = parseFilters(inputs.filters, categories);
     core.info(
       `Parsed ${filters.length} filter(s): ${filters.map((f) => f.name).join(", ")}`,
     );
