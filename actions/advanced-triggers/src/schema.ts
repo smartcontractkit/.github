@@ -70,6 +70,15 @@ export type TriggerConfig = z.infer<typeof triggerConfigSchema>;
 // Triggers (raw input) schema
 // ---------------------------------------------------------------------------
 
+const ALLOWED_TRIGGER_KEYS = new Set([
+  "inclusion-sets",
+  "exclusion-sets",
+  "paths",
+  "always-trigger-on",
+]);
+
+// Uses passthrough so unknown keys flow through to the outer superRefine,
+// where they are reported with full context (trigger name + allowed key list).
 const triggerRawSchema = z
   .object({
     "inclusion-sets": z.array(z.string()).optional(),
@@ -77,9 +86,15 @@ const triggerRawSchema = z
     paths: z.array(z.string()).optional(),
     "always-trigger-on": z.array(z.string()).optional(),
   })
-  .strict();
+  .passthrough();
 
-type TriggerRaw = z.infer<typeof triggerRawSchema>;
+// Explicit type for use after validation — excludes the passthrough index signature.
+type TriggerRaw = {
+  "inclusion-sets"?: string[];
+  "exclusion-sets"?: string[];
+  paths?: string[];
+  "always-trigger-on"?: string[];
+};
 
 function buildTriggersSchema(fileSets: FileSets) {
   return z.record(z.string(), triggerRawSchema).superRefine((triggers, ctx) => {
@@ -92,7 +107,17 @@ function buildTriggersSchema(fileSets: FileSets) {
     }
 
     for (const [name, config] of Object.entries(triggers)) {
-      validateTrigger(name, config, fileSets, ctx);
+      // Check for unknown keys with a helpful message listing allowed keys.
+      for (const key of Object.keys(config)) {
+        if (!ALLOWED_TRIGGER_KEYS.has(key)) {
+          ctx.addIssue({
+            code: "custom",
+            path: [name, key],
+            message: `Unknown key "${key}". Allowed keys: "inclusion-sets", "exclusion-sets", "paths", "always-trigger-on".`,
+          });
+        }
+      }
+      validateTrigger(name, config as TriggerRaw, fileSets, ctx);
     }
   });
 }
@@ -109,7 +134,7 @@ function validateTrigger(
       ctx.addIssue({
         code: "custom",
         path: [name, "inclusion-sets", i],
-        message: `Unknown file-set "${setName}".`,
+        message: `unknown file-set "${setName}" in "inclusion-sets".`,
       });
     }
   }
@@ -120,7 +145,7 @@ function validateTrigger(
       ctx.addIssue({
         code: "custom",
         path: [name, "exclusion-sets", i],
-        message: `Unknown file-set "${setName}".`,
+        message: `unknown file-set "${setName}" in "exclusion-sets".`,
       });
     }
   }
