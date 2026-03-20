@@ -2,12 +2,8 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 import { getInvokeContext, getInputs } from "./run-inputs";
-import {
-  parseFileSets,
-  parseTriggers,
-  applyTrigger,
-  TriggerResult,
-} from "./filters";
+import { parseFileSets, parseTriggers } from "./schema";
+import { applyTrigger, TriggerResult } from "./filters";
 import { getChangedFilesGit } from "./git";
 import { getChangedFilesForPR } from "./github";
 import type { OctokitType } from "./github";

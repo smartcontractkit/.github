@@ -11,7 +11,8 @@
     "@actions/core": "^3.0.0",
     "@actions/github": "^9.0.0",
     "micromatch": "^4.0.8",
-    "yaml": "^2.8.0"
+    "yaml": "^2.8.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@octokit/types": "^16.0.0",
