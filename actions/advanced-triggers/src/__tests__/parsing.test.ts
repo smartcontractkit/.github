@@ -236,10 +236,13 @@ my-trigger:
 
     test("inclusion-sets patterns become positive patterns", () => {
       const fileSets = { "go-files": ["**/*.go", "**/go.mod"] };
-      const [t] = parseTriggers(`
+      const [t] = parseTriggers(
+        `
 my-trigger:
   inclusion-sets: [go-files]
-`, fileSets);
+`,
+        fileSets,
+      );
       expect(t.positivePatterns).toEqual(["**/*.go", "**/go.mod"]);
       expect(t.negatedPatterns).toEqual([]);
     });
@@ -249,11 +252,14 @@ my-trigger:
         "go-files": ["**/*.go"],
         vendor: ["**/vendor/**"],
       };
-      const [t] = parseTriggers(`
+      const [t] = parseTriggers(
+        `
 my-trigger:
   inclusion-sets: [go-files]
   exclusion-sets: [vendor]
-`, fileSets);
+`,
+        fileSets,
+      );
       expect(t.positivePatterns).toEqual(["**/*.go"]);
       expect(t.negatedPatterns).toEqual(["**/vendor/**"]);
     });
@@ -264,10 +270,13 @@ my-trigger:
         "ts-files": ["**/*.ts"],
         "workflow-files": [".github/workflows/**"],
       };
-      const [t] = parseTriggers(`
+      const [t] = parseTriggers(
+        `
 my-trigger:
   inclusion-sets: [go-files, ts-files, workflow-files]
-`, fileSets);
+`,
+        fileSets,
+      );
       expect(t.positivePatterns).toEqual([
         "**/*.go",
         "**/*.ts",
@@ -281,11 +290,14 @@ my-trigger:
         vendor: ["**/vendor/**"],
         "e2e-tests": ["system-tests/**", "integration-tests/**"],
       };
-      const [t] = parseTriggers(`
+      const [t] = parseTriggers(
+        `
 my-trigger:
   inclusion-sets: [go-files]
   exclusion-sets: [vendor, e2e-tests]
-`, fileSets);
+`,
+        fileSets,
+      );
       expect(t.negatedPatterns).toEqual([
         "**/vendor/**",
         "system-tests/**",
@@ -298,14 +310,17 @@ my-trigger:
         "go-files": ["**/*.go"],
         vendor: ["**/vendor/**"],
       };
-      const [t] = parseTriggers(`
+      const [t] = parseTriggers(
+        `
 my-trigger:
   inclusion-sets: [go-files]
   exclusion-sets: [vendor]
   paths:
     - "tools/bin/runner"
     - "!docs/**"
-`, fileSets);
+`,
+        fileSets,
+      );
       expect(t.positivePatterns).toEqual(["**/*.go", "tools/bin/runner"]);
       expect(t.negatedPatterns).toEqual(["**/vendor/**", "docs/**"]);
     });
@@ -482,10 +497,13 @@ my-trigger:
     test("throws when only exclusion-sets are provided — no positive patterns", () => {
       const fileSets = { vendor: ["**/vendor/**"] };
       expect(() =>
-        parseTriggers(`
+        parseTriggers(
+          `
 my-trigger:
   exclusion-sets: [vendor]
-`, fileSets),
+`,
+          fileSets,
+        ),
       ).toThrow("only negated patterns");
     });
 
@@ -520,12 +538,15 @@ gamma:
         "go-files": ["**/*.go"],
         "ts-files": ["**/*.ts"],
       };
-      const [a, b] = parseTriggers(`
+      const [a, b] = parseTriggers(
+        `
 trigger-a:
   inclusion-sets: [go-files]
 trigger-b:
   inclusion-sets: [ts-files]
-`, fileSets);
+`,
+        fileSets,
+      );
       expect(a.positivePatterns).toEqual(["**/*.go"]);
       expect(b.positivePatterns).toEqual(["**/*.ts"]);
     });
@@ -536,7 +557,8 @@ trigger-b:
         vendor: ["**/vendor/**"],
         "e2e-tests": ["system-tests/**"],
       };
-      const [core, deployment] = parseTriggers(`
+      const [core, deployment] = parseTriggers(
+        `
 core-tests:
   inclusion-sets: [go-files]
   exclusion-sets: [vendor, e2e-tests]
@@ -545,7 +567,9 @@ deployment-tests:
   exclusion-sets: [vendor]
   paths:
     - "deployment/**"
-`, fileSets);
+`,
+        fileSets,
+      );
 
       // core-tests excludes both vendor and e2e-tests
       expect(core.negatedPatterns).toEqual(["**/vendor/**", "system-tests/**"]);

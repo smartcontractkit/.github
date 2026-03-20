@@ -15,7 +15,9 @@ import { applyTrigger, type TriggerConfig } from "../filters";
 // ---------------------------------------------------------------------------
 
 /** Build a TriggerConfig directly for targeted applyTrigger unit tests. */
-function trigger(overrides: Partial<TriggerConfig> & { name?: string } = {}): TriggerConfig {
+function trigger(
+  overrides: Partial<TriggerConfig> & { name?: string } = {},
+): TriggerConfig {
   return {
     name: "test",
     positivePatterns: ["**/*.go"],
@@ -122,10 +124,19 @@ describe("applyTrigger — exclusion pass", () => {
 
   test("multiple negated patterns each contribute to exclusion", () => {
     const result = applyTrigger(
-      ["vendor/a.go", "system-tests/b.go", "integration-tests/c.go", "core/d.go"],
+      [
+        "vendor/a.go",
+        "system-tests/b.go",
+        "integration-tests/c.go",
+        "core/d.go",
+      ],
       trigger({
         positivePatterns: ["**/*.go"],
-        negatedPatterns: ["**/vendor/**", "system-tests/**", "integration-tests/**"],
+        negatedPatterns: [
+          "**/vendor/**",
+          "system-tests/**",
+          "integration-tests/**",
+        ],
       }),
     );
     // Only core/d.go survives exclusion
@@ -262,7 +273,9 @@ core-tests:
 
   test("matches a workflow file change", () => {
     const t = parseFirst(triggersYaml, fileSets);
-    expect(applyTrigger([".github/workflows/ci-core.yml"], t).matched).toBe(true);
+    expect(applyTrigger([".github/workflows/ci-core.yml"], t).matched).toBe(
+      true,
+    );
   });
 
   test("matches the exact inline path", () => {
@@ -272,7 +285,9 @@ core-tests:
 
   test("does not match an unrelated file", () => {
     const t = parseFirst(triggersYaml, fileSets);
-    expect(applyTrigger(["docs/readme.md", "package.json"], t).matched).toBe(false);
+    expect(applyTrigger(["docs/readme.md", "package.json"], t).matched).toBe(
+      false,
+    );
   });
 });
 
@@ -306,7 +321,9 @@ core-tests:
 
   test("does not match an integration-tests .go file", () => {
     const t = parseFirst(triggersYaml, fileSets);
-    expect(applyTrigger(["integration-tests/smoke/test.go"], t).matched).toBe(false);
+    expect(applyTrigger(["integration-tests/smoke/test.go"], t).matched).toBe(
+      false,
+    );
   });
 
   test("matches when excluded and non-excluded files change together", () => {
@@ -406,10 +423,7 @@ my-trigger:
   test("no match when all changed files are excluded", () => {
     const t = parseFirst(triggersYaml, fileSets);
     expect(
-      applyTrigger(
-        ["system-tests/a.go", "integration-tests/b.go"],
-        t,
-      ).matched,
+      applyTrigger(["system-tests/a.go", "integration-tests/b.go"], t).matched,
     ).toBe(false);
   });
 
@@ -417,10 +431,10 @@ my-trigger:
     const t = parseFirst(triggersYaml, fileSets);
     const result = applyTrigger(
       [
-        "system-tests/a.go",              // excluded by exclusion-set
+        "system-tests/a.go", // excluded by exclusion-set
         ".github/workflows/readme-b.yml", // excluded by inline ! path
-        "core/c.go",                      // survives
-        "core/d.go",                      // survives
+        "core/c.go", // survives
+        "core/d.go", // survives
       ],
       t,
     );
