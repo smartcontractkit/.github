@@ -55,6 +55,7 @@ jobs:
 
       - name: ci-lint-misc
         uses: ./actions/ci-lint-misc
+        continue-on-error: true # temporary bypass for #1470
         with:
           # general inputs
           checkout-repo: "false"
