@@ -388,7 +388,10 @@ jobs:
   get_latest_chainlink_release_version:
     name: Get latest Chainlink release version
     runs-on: ubuntu-latest
-    environment: integration
+    environment:
+      name: integration
+      # http://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-environments-without-deployments
+      deployment: false
     outputs:
       latest_chainlink_release_version: ${{ steps.get_latest_version.outputs.latest_version }}
     steps:
@@ -602,7 +605,10 @@ jobs:
       fromJson(needs.validate-inputs.outputs.require_chainlink_image_versions_in_qa_ecr_matrix) != ''
       && !inputs.skip_image_build }}
     runs-on: ubuntu-latest
-    environment: integration
+    environment:
+      name: integration
+      # http://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-environments-without-deployments
+      deployment: false
     permissions:
       id-token: write
       contents: read
@@ -652,7 +658,10 @@ jobs:
       fromJson(needs.validate-inputs.outputs.require_chainlink_plugin_versions_in_qa_ecr_matrix)
       != '' }}
     runs-on: ubuntu-latest
-    environment: integration
+    environment:
+      name: integration
+      # http://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-environments-without-deployments
+      deployment: false
     permissions:
       id-token: write
       contents: read
@@ -700,7 +709,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.load-test-configurations.outputs.docker-matrix)}}
-    environment: integration
+    environment:
+      name: integration
+      # http://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-environments-without-deployments
+      deployment: false
     permissions:
       actions: read
       checks: write
@@ -1004,7 +1016,10 @@ jobs:
       always() && !failure() && !cancelled() }}
     name: Get remote runner test image
     runs-on: ubuntu-latest
-    environment: integration
+    environment:
+      name: integration
+      # http://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-environments-without-deployments
+      deployment: false
     permissions:
       actions: read
       checks: write
@@ -1062,7 +1077,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.load-test-configurations.outputs.k8s-runner-matrix)}}
-    environment: integration
+    environment:
+      name: integration
+      # http://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-environments-without-deployments
+      deployment: false
     permissions:
       actions: read
       checks: write
@@ -1266,7 +1284,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.load-test-configurations.outputs.in-memory-matrix)}}
-    environment: integration
+    environment:
+      name: integration
+      # http://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-environments-without-deployments
+      deployment: false
     permissions:
       actions: read
       checks: write
@@ -1384,7 +1405,10 @@ jobs:
     name: After tests
     runs-on: ubuntu-latest
     # Set to access secrets like secrets.QA_SLACK_API_KEY that are set in the "integration" environment
-    environment: integration
+    environment:
+      name: integration
+      # http://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-environments-without-deployments
+      deployment: false
     outputs:
       test_results: ${{ steps.set_test_results.outputs.results }}
     steps:
