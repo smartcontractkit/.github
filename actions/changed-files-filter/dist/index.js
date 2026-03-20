@@ -33639,6 +33639,7 @@ function getEventData() {
         );
       }
       return {
+        kind: "file-change",
         eventName: "pull_request",
         prNumber: pr.number,
         base: pr.base.sha,
@@ -33651,6 +33652,7 @@ function getEventData() {
         throw new Error("Push event payload missing 'before' or 'after' SHAs.");
       }
       return {
+        kind: "file-change",
         eventName: "push",
         base: pushEvent.before,
         head: pushEvent.after
@@ -33664,15 +33666,17 @@ function getEventData() {
         );
       }
       return {
+        kind: "file-change",
         eventName: "merge_group",
         base: mgEvent.merge_group.base_sha,
         head: mgEvent.merge_group.head_sha
       };
     }
     default:
-      throw new Error(
-        `Unsupported event type: "${context3.eventName}". This action supports: pull_request, push, merge_group.`
-      );
+      return {
+        kind: "passthrough",
+        eventName: context3.eventName
+      };
   }
 }
 
@@ -33680,12 +33684,14 @@ function getEventData() {
 function getInputs() {
   info("Getting inputs for run.");
   const inputs = {
-    filters: getRunInputString("filters", true),
+    fileSets: getRunInputString("fileSets", false),
+    triggers: getRunInputString("triggers", true),
     repositoryRoot: getRunInputString("repositoryRoot", true)
   };
   const loggable = {
     ...inputs,
-    filters: inputs.filters.length > 200 ? inputs.filters.slice(0, 200) + "..." : inputs.filters
+    fileSets: inputs.fileSets.length > 200 ? inputs.fileSets.slice(0, 200) + "..." : inputs.fileSets,
+    triggers: inputs.triggers.length > 200 ? inputs.triggers.slice(0, 200) + "..." : inputs.triggers
   };
   info(`Inputs: ${JSON.stringify(loggable)}`);
   return inputs;
@@ -33706,9 +33712,13 @@ function getInvokeContext() {
   return { token, owner, repo, event };
 }
 var runInputsConfiguration = {
-  filters: {
-    parameter: "filters",
-    localParameter: "FILTERS"
+  fileSets: {
+    parameter: "file-sets",
+    localParameter: "FILE_SETS"
+  },
+  triggers: {
+    parameter: "triggers",
+    localParameter: "TRIGGERS"
   },
   repositoryRoot: {
     parameter: "repository-root",
@@ -33737,68 +33747,200 @@ function getInputKey(input) {
 // actions/changed-files-filter/src/filters.ts
 var import_yaml = __toESM(require_dist());
 var import_micromatch = __toESM(require_micromatch());
-function parseFilters(filtersYaml) {
+var DEFAULT_ALWAYS_TRIGGER_ON = ["schedule", "workflow_dispatch"];
+function parseFileSets(fileSetsYaml) {
+  if (!fileSetsYaml.trim()) return {};
   let parsed;
   try {
-    parsed = (0, import_yaml.parse)(filtersYaml);
+    parsed = (0, import_yaml.parse)(fileSetsYaml);
   } catch (e) {
-    throw new Error(`Failed to parse filters YAML: ${e}`);
+    throw new Error(`Failed to parse file-sets YAML: ${e}`);
   }
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
     throw new Error(
-      "filters input must be a YAML mapping of filter names to pattern lists."
+      "file-sets input must be a YAML mapping of file-set names to pattern lists."
     );
   }
-  const filters = [];
+  const fileSets = {};
   for (const [name, rawPatterns] of Object.entries(
     parsed
   )) {
-    if (typeof name !== "string" || name.trim() === "") {
-      throw new Error("Filter names must be non-empty strings.");
-    }
     if (!Array.isArray(rawPatterns)) {
       throw new Error(
-        `Filter "${name}" must be a list of glob patterns, got: ${typeof rawPatterns}`
+        `File-set "${name}" must be a list of glob patterns, got: ${typeof rawPatterns}`
       );
     }
-    const patterns = rawPatterns.map((p, i) => {
+    fileSets[name] = rawPatterns.map((p, i) => {
       if (typeof p !== "string") {
         throw new Error(
-          `Filter "${name}": pattern at index ${i} must be a string, got: ${typeof p}`
+          `File-set "${name}": pattern at index ${i} must be a string, got: ${typeof p}`
         );
       }
-      return p.trim();
+      const trimmed = p.trim();
+      if (trimmed.startsWith("!")) {
+        throw new Error(
+          `File-set "${name}": pattern at index ${i} must not be negated. File-sets define sets of files using positive patterns only. To exclude this file-set in a trigger, use "!${name}" in the trigger's "file-sets" list.`
+        );
+      }
+      return trimmed;
     }).filter((p) => p.length > 0);
-    const negatedPatterns = patterns.filter((p) => p.startsWith("!")).map((p) => p.slice(1));
-    const positivePatterns = patterns.filter((p) => !p.startsWith("!"));
-    if (positivePatterns.length === 0) {
+  }
+  return fileSets;
+}
+function parseTriggers(triggersYaml, fileSets = {}) {
+  let parsed;
+  try {
+    parsed = (0, import_yaml.parse)(triggersYaml);
+  } catch (e) {
+    throw new Error(`Failed to parse triggers YAML: ${e}`);
+  }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new Error(
+      "triggers input must be a YAML mapping of trigger names to their configuration."
+    );
+  }
+  const triggers = [];
+  for (const [name, rawConfig] of Object.entries(
+    parsed
+  )) {
+    if (typeof name !== "string" || name.trim() === "") {
+      throw new Error("Trigger names must be non-empty strings.");
+    }
+    if (typeof rawConfig !== "object" || rawConfig === null || Array.isArray(rawConfig)) {
       throw new Error(
-        `Filter "${name}" has no positive patterns. At least one non-negated pattern is required. (Negated patterns alone cannot produce a match.)`
+        `Trigger "${name}" must be a mapping with "paths" and/or "file-sets" keys, got: ${typeof rawConfig}`
       );
     }
-    filters.push({ name, negatedPatterns, positivePatterns });
+    const config = rawConfig;
+    for (const key of Object.keys(config)) {
+      if (key !== "paths" && key !== "inclusion-sets" && key !== "exclusion-sets" && key !== "always-trigger-on") {
+        throw new Error(
+          `Trigger "${name}" has unknown key "${key}". Allowed keys: "inclusion-sets", "exclusion-sets", "paths", "always-trigger-on".`
+        );
+      }
+    }
+    const inclusionPatterns = [];
+    if (config["inclusion-sets"] !== void 0) {
+      if (!Array.isArray(config["inclusion-sets"])) {
+        throw new Error(
+          `Trigger "${name}"."inclusion-sets" must be a list of file-set names, got: ${typeof config["inclusion-sets"]}`
+        );
+      }
+      for (const setName of config["inclusion-sets"]) {
+        if (typeof setName !== "string") {
+          throw new Error(
+            `Trigger "${name}"."inclusion-sets" entries must be strings, got: ${typeof setName}`
+          );
+        }
+        if (!(setName in fileSets)) {
+          throw new Error(
+            `Trigger "${name}" references unknown file-set "${setName}" in "inclusion-sets".`
+          );
+        }
+        inclusionPatterns.push(...fileSets[setName]);
+      }
+    }
+    const exclusionPatterns = [];
+    if (config["exclusion-sets"] !== void 0) {
+      if (!Array.isArray(config["exclusion-sets"])) {
+        throw new Error(
+          `Trigger "${name}"."exclusion-sets" must be a list of file-set names, got: ${typeof config["exclusion-sets"]}`
+        );
+      }
+      for (const setName of config["exclusion-sets"]) {
+        if (typeof setName !== "string") {
+          throw new Error(
+            `Trigger "${name}"."exclusion-sets" entries must be strings, got: ${typeof setName}`
+          );
+        }
+        if (!(setName in fileSets)) {
+          throw new Error(
+            `Trigger "${name}" references unknown file-set "${setName}" in "exclusion-sets".`
+          );
+        }
+        exclusionPatterns.push(...fileSets[setName].map((p) => `!${p}`));
+      }
+    }
+    const pathPatterns = [];
+    if (config.paths !== void 0) {
+      if (!Array.isArray(config.paths)) {
+        throw new Error(
+          `Trigger "${name}".paths must be a list of glob patterns, got: ${typeof config.paths}`
+        );
+      }
+      for (let i = 0; i < config.paths.length; i++) {
+        const p = config.paths[i];
+        if (typeof p !== "string") {
+          throw new Error(
+            `Trigger "${name}".paths[${i}] must be a string, got: ${typeof p}`
+          );
+        }
+        const trimmed = p.trim();
+        if (trimmed.length > 0) pathPatterns.push(trimmed);
+      }
+    }
+    let alwaysTriggerOn = DEFAULT_ALWAYS_TRIGGER_ON;
+    if (config["always-trigger-on"] !== void 0) {
+      if (!Array.isArray(config["always-trigger-on"])) {
+        throw new Error(
+          `Trigger "${name}"."always-trigger-on" must be a list of event names, got: ${typeof config["always-trigger-on"]}`
+        );
+      }
+      alwaysTriggerOn = [];
+      for (let i = 0; i < config["always-trigger-on"].length; i++) {
+        const ev = config["always-trigger-on"][i];
+        if (typeof ev !== "string") {
+          throw new Error(
+            `Trigger "${name}"."always-trigger-on"[${i}] must be a string, got: ${typeof ev}`
+          );
+        }
+        const trimmed = ev.trim();
+        if (trimmed.length > 0) alwaysTriggerOn.push(trimmed);
+      }
+    }
+    const allPatterns = [
+      ...inclusionPatterns,
+      ...exclusionPatterns,
+      ...pathPatterns
+    ];
+    const negatedPatterns = allPatterns.filter((p) => p.startsWith("!")).map((p) => p.slice(1));
+    const positivePatterns = allPatterns.filter((p) => !p.startsWith("!"));
+    if (allPatterns.length > 0 && positivePatterns.length === 0) {
+      throw new Error(
+        `Trigger "${name}" has only negated patterns. At least one non-negated pattern is required for file-change matching. To skip file matching entirely, omit "inclusion-sets" and "paths" and rely solely on "always-trigger-on".`
+      );
+    }
+    if (allPatterns.length === 0 && alwaysTriggerOn.length === 0) {
+      throw new Error(
+        `Trigger "${name}" has no patterns and an empty "always-trigger-on". It can never output true. Add "inclusion-sets"/"paths" for file-change matching, or add event names to "always-trigger-on".`
+      );
+    }
+    const triggerConfig = {
+      name,
+      negatedPatterns,
+      positivePatterns,
+      alwaysTriggerOn
+    };
+    info(
+      `[trigger: ${name}] resolved config: ${JSON.stringify(triggerConfig, null, 2)}`
+    );
+    triggers.push(triggerConfig);
   }
-  if (filters.length === 0) {
-    throw new Error("No filters defined in the filters input.");
+  if (triggers.length === 0) {
+    throw new Error("No triggers defined in the triggers input.");
   }
-  return filters;
+  return triggers;
 }
-function applyFilter(changedFiles, filter) {
-  info(
-    `[filter: ${filter.name}] negated patterns: ${JSON.stringify(filter.negatedPatterns)}`
-  );
-  info(
-    `[filter: ${filter.name}] positive patterns: ${JSON.stringify(filter.positivePatterns)}`
-  );
+function applyTrigger(changedFiles, trigger) {
   let candidates = changedFiles;
-  if (filter.negatedPatterns.length > 0) {
+  if (trigger.negatedPatterns.length > 0) {
     candidates = changedFiles.filter((f) => {
-      const match = import_micromatch.default.isMatch(f, filter.negatedPatterns, {
+      const match = import_micromatch.default.isMatch(f, trigger.negatedPatterns, {
         dot: true
       });
       if (match) {
         debug(
-          `[filter: ${filter.name}] excluding file "${f}" due to negated patterns`
+          `[trigger: ${trigger.name}] excluding file "${f}" due to negated patterns`
         );
         return false;
       }
@@ -33806,23 +33948,23 @@ function applyFilter(changedFiles, filter) {
     });
     const excluded = changedFiles.length - candidates.length;
     info(
-      `[filter: ${filter.name}] exclusion pass: ${excluded} file(s) removed, ${candidates.length} remain`
+      `[trigger: ${trigger.name}] exclusion pass: ${excluded} file(s) removed, ${candidates.length} remain`
     );
   }
-  const matchedFiles = (0, import_micromatch.default)(candidates, filter.positivePatterns, {
+  const matchedFiles = (0, import_micromatch.default)(candidates, trigger.positivePatterns, {
     dot: true
   });
   const matched = matchedFiles.length > 0;
   info(
-    `[filter: ${filter.name}] ${matched ? "MATCHED" : "no match"} (${candidates.length} candidates, ${matchedFiles.length} matched)`
+    `[trigger: ${trigger.name}] ${matched ? "MATCHED" : "no match"} (${candidates.length} candidates, ${matchedFiles.length} matched)`
   );
   if (matchedFiles.length > 0) {
     debug(
-      `[filter: ${filter.name}] matched files: ${JSON.stringify(matchedFiles)}`
+      `[trigger: ${trigger.name}] matched files: ${JSON.stringify(matchedFiles)}`
     );
   }
   return {
-    name: filter.name,
+    name: trigger.name,
     matched,
     candidateCount: candidates.length,
     matchedFiles
@@ -33901,29 +34043,29 @@ async function getChangedFilesForPR(octokit, owner, repo, prNumber) {
 
 // actions/changed-files-filter/src/run.ts
 function setOutputs(outputs) {
-  const { filterResults } = outputs;
-  const matched = filterResults.filter((r) => r.matched).map((r) => r.name);
-  const notMatched = filterResults.filter((r) => !r.matched).map((r) => r.name);
+  const { triggerResults } = outputs;
+  const matched = triggerResults.filter((r) => r.matched).map((r) => r.name);
+  const notMatched = triggerResults.filter((r) => !r.matched).map((r) => r.name);
   const any = matched.length > 0;
-  for (const result of filterResults) {
+  for (const result of triggerResults) {
     const value = result.matched ? "true" : "false";
     info(`(output) ${result.name}: ${value}`);
     setOutput(result.name, value);
   }
   info(`(output) any: ${any}`);
   setOutput("any", String(any));
-  const filtersMatchedCsv = matched.join(",");
-  info(`(output) filters-matched: ${filtersMatchedCsv}`);
-  setOutput("filters-matched", filtersMatchedCsv);
-  const filtersNotMatchedCsv = notMatched.join(",");
-  info(`(output) filters-not-matched: ${filtersNotMatchedCsv}`);
-  setOutput("filters-not-matched", filtersNotMatchedCsv);
-  const filtersMatchedJson = JSON.stringify(matched);
-  info(`(output) filters-matched-json: ${filtersMatchedJson}`);
-  setOutput("filters-matched-json", filtersMatchedJson);
-  const filtersNotMatchedJson = JSON.stringify(notMatched);
-  info(`(output) filters-not-matched-json: ${filtersNotMatchedJson}`);
-  setOutput("filters-not-matched-json", filtersNotMatchedJson);
+  const triggersMatchedCsv = matched.join(",");
+  info(`(output) triggers-matched: ${triggersMatchedCsv}`);
+  setOutput("triggers-matched", triggersMatchedCsv);
+  const triggersNotMatchedCsv = notMatched.join(",");
+  info(`(output) triggers-not-matched: ${triggersNotMatchedCsv}`);
+  setOutput("triggers-not-matched", triggersNotMatchedCsv);
+  const triggersMatchedJson = JSON.stringify(matched);
+  info(`(output) triggers-matched-json: ${triggersMatchedJson}`);
+  setOutput("triggers-matched-json", triggersMatchedJson);
+  const triggersNotMatchedJson = JSON.stringify(notMatched);
+  info(`(output) triggers-not-matched-json: ${triggersNotMatchedJson}`);
+  setOutput("triggers-not-matched-json", triggersNotMatchedJson);
 }
 async function run() {
   try {
@@ -33932,33 +34074,65 @@ async function run() {
     const inputs = getInputs();
     const octokit = getOctokit(context3.token);
     endGroup();
-    startGroup("Parsing filters");
-    const filters = parseFilters(inputs.filters);
+    startGroup("Parsing triggers");
+    const fileSets = parseFileSets(inputs.fileSets);
+    const triggers = parseTriggers(inputs.triggers, fileSets);
     info(
-      `Parsed ${filters.length} filter(s): ${filters.map((f) => f.name).join(", ")}`
+      `Parsed ${triggers.length} trigger(s): ${triggers.map((t) => t.name).join(", ")}`
     );
     endGroup();
     startGroup("Determining changed files");
     info(`Event type: ${context3.event.eventName}`);
-    const changedFiles = await getChangedFiles(
-      octokit,
-      context3,
-      inputs.repositoryRoot
-    );
-    info(`Changed files count: ${changedFiles.length}`);
-    if (isDebug()) {
-      debug(`Changed files: ${JSON.stringify(changedFiles, null, 2)}`);
+    let changedFiles = null;
+    if (context3.event.kind === "file-change") {
+      changedFiles = await getChangedFiles(
+        octokit,
+        { owner: context3.owner, repo: context3.repo },
+        context3.event,
+        inputs.repositoryRoot
+      );
+      info(`Changed files count: ${changedFiles.length}`);
+      if (isDebug()) {
+        debug(`Changed files: ${JSON.stringify(changedFiles, null, 2)}`);
+      }
+    } else {
+      info(
+        `Event "${context3.event.eventName}" is not a file-change event \u2014 skipping changed file detection.`
+      );
     }
     endGroup();
-    startGroup("Applying filters");
-    const filterResults = [];
-    for (const filter of filters) {
-      const result = applyFilter(changedFiles, filter);
-      filterResults.push(result);
+    startGroup("Applying triggers");
+    const triggerResults = [];
+    for (const trigger of triggers) {
+      let result;
+      if (context3.event.kind === "file-change") {
+        result = applyTrigger(changedFiles, trigger);
+      } else if (trigger.alwaysTriggerOn.includes(context3.event.eventName)) {
+        info(
+          `[trigger: ${trigger.name}] event "${context3.event.eventName}" is in always-trigger-on \u2192 MATCHED`
+        );
+        result = {
+          name: trigger.name,
+          matched: true,
+          candidateCount: 0,
+          matchedFiles: []
+        };
+      } else {
+        warning(
+          `[trigger: ${trigger.name}] event "${context3.event.eventName}" is not a file-change event and is not listed in always-trigger-on [${trigger.alwaysTriggerOn.join(", ")}]. Defaulting to false.`
+        );
+        result = {
+          name: trigger.name,
+          matched: false,
+          candidateCount: 0,
+          matchedFiles: []
+        };
+      }
+      triggerResults.push(result);
     }
     endGroup();
     startGroup("Setting outputs");
-    setOutputs({ filterResults });
+    setOutputs({ triggerResults });
     endGroup();
   } catch (error2) {
     endGroup();
@@ -33966,7 +34140,7 @@ async function run() {
   }
 }
 var PR_FILES_API_LIMIT = 3e3;
-async function getChangedFiles(octokit, { owner, repo, event }, repositoryRoot) {
+async function getChangedFiles(octokit, { owner, repo }, event, repositoryRoot) {
   switch (event.eventName) {
     case "pull_request": {
       return getChangedFilesForPRWithFallback(

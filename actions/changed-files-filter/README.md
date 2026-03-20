@@ -136,20 +136,24 @@ workflow as `steps.<step-id>.outputs.<trigger-name>`.
 The `triggers` input is a YAML string. Each top-level key is a trigger name.
 Each trigger is a mapping with the following keys:
 
-| Key                 | Required | Default                         | Description                                          |
-| ------------------- | -------- | ------------------------------- | ---------------------------------------------------- |
-| `file-sets`         | no\*     | —                               | List of file-set names to include                    |
-| `paths`             | no\*     | —                               | List of additional glob patterns                     |
-| `always-trigger-on` | no       | `[schedule, workflow_dispatch]` | Event names that always output true for this trigger |
+| Key                 | Required | Default                         | Description                                                                   |
+| ------------------- | -------- | ------------------------------- | ----------------------------------------------------------------------------- |
+| `inclusion-sets`    | no       | —                               | File-set names whose patterns are matched against changed files               |
+| `exclusion-sets`    | no       | —                               | File-set names whose patterns are excluded before positive matching           |
+| `paths`             | no       | —                               | Inline glob patterns; prefix with `!` for one-off exclusions                  |
+| `always-trigger-on` | no       | `[schedule, workflow_dispatch]` | Event names that always output true for this trigger, bypassing file matching |
 
-\* At least one of `file-sets` or `paths` is required per trigger.
+A trigger must have at least one way to ever output `true`: at least one
+positive pattern from `inclusion-sets` or `paths`, or at least one entry in
+`always-trigger-on`.
 
 ### Example
 
 ```yaml
 triggers: |
   deployment-tests:
-    file-sets: [ignored-paths, go-files]
+    inclusion-sets: [go-files, workflow-files]
+    exclusion-sets: [vendor-paths]
     paths:
       - "deployment/**"
     # always-trigger-on defaults to [schedule, workflow_dispatch]
@@ -160,6 +164,12 @@ triggers: |
       - "*.md"
     # override to never auto-trigger on schedule/workflow_dispatch
     always-trigger-on: []
+
+  nightly-only:
+    # no file patterns — only fires on the listed events
+    always-trigger-on:
+      - schedule
+      - workflow_dispatch
 ```
 
 ### `always-trigger-on` semantics
@@ -190,30 +200,37 @@ is logged and the trigger outputs `false`.
 patterns that multiple triggers can reference. This avoids repeating the same
 patterns across triggers.
 
+File-sets must contain **positive patterns only** — no `!` prefixes. Exclusion
+is expressed at the trigger level via `exclusion-sets`, keeping file-set
+definitions simple and reusable in either role.
+
 ```yaml
 file-sets: |
   go-files:
     - "**/*.go"
     - "**/go.mod"
     - "**/go.sum"
-  ignored-paths:
-    - "!system-tests/**"
-    - "!docs/**"
+  vendor-paths:
+    - "**/vendor/**"
+  system-tests:
+    - "system-tests/**"
 ```
 
-Triggers then reference file-sets by name:
+Triggers reference file-sets via `inclusion-sets` (add as positive patterns) or
+`exclusion-sets` (add as negated patterns), and can combine both:
 
 ```yaml
 triggers: |
   core-tests:
-    file-sets: [ignored-paths, go-files]
+    inclusion-sets: [go-files]
+    exclusion-sets: [vendor-paths, system-tests]
     paths:
       - "tools/bin/go_core_tests"
 ```
 
-The patterns from each referenced file-set are prepended to any explicit
-`paths`, then the full combined set is split into negated/positive patterns for
-the two-phase evaluation.
+Patterns are assembled in order — inclusion-sets, then exclusion-sets, then
+inline `paths` — and then split into negated/positive for the two-phase
+evaluation.
 
 ### Negation semantics
 
@@ -246,13 +263,15 @@ never has a chance to match.
 ### Rules
 
 - A trigger must have at least one way to ever output `true`: either at least
-  one positive pattern (via `paths`/`file-sets`) for file-change matching, or at
-  least one entry in `always-trigger-on`. A trigger with neither will be
-  rejected.
-- If `paths` or `file-sets` is specified, the combined set must include at least
-  one positive (non-negated) pattern. All-negated patterns can never produce a
-  file match and will be rejected. To skip file matching entirely, omit
-  `paths`/`file-sets` and rely solely on `always-trigger-on`.
+  one positive pattern (via `inclusion-sets` or `paths`) for file-change
+  matching, or at least one entry in `always-trigger-on`. A trigger with neither
+  will be rejected.
+- If patterns are specified, the combined set must include at least one positive
+  pattern. Using only `exclusion-sets` (no `inclusion-sets` or `paths`) will be
+  rejected. To skip file matching entirely, omit pattern keys and rely solely on
+  `always-trigger-on`.
+- File-sets must contain only positive patterns — `!` is not allowed in file-set
+  definitions.
 - Blank lines in the pattern list are ignored.
 - Patterns are matched against repo-relative POSIX paths (e.g.
   `src/foo/bar.ts`).
@@ -278,11 +297,12 @@ jobs:
               - "**/*.go"
               - "**/go.mod"
               - "**/go.sum"
-            ignored-paths:
-              - "!**/vendor/**"
+            vendor-paths:
+              - "**/vendor/**"
           triggers: |
             core:
-              file-sets: [ignored-paths, go-files]
+              inclusion-sets: [go-files]
+              exclusion-sets: [vendor-paths]
               # schedule and workflow_dispatch always trigger (default)
             docs:
               paths:

@@ -19,21 +19,21 @@ inputs:
   file-sets:
     description: |
       An optional YAML string defining named pattern groups that triggers can reference.
-      Each file-set is a key mapping to a list of glob patterns (which may include
-      negated patterns starting with !). File-sets are resolved by name when
-      building a trigger's effective pattern set.
+      Each file-set is a key mapping to a list of positive glob patterns (no ! prefixes).
+      Triggers reference file-sets via "inclusion-sets" (matched as positive patterns) or
+      "exclusion-sets" (excluded before positive matching).
     required: false
 
   triggers:
     description: |
       A YAML string defining named triggers. Each trigger is a mapping with optional
-      "file-sets" (a list of file-set names to include), "paths" (a list of additional
-      glob patterns), and "always-trigger-on" (a list of event names that always produce
-      a true output, bypassing file matching). "always-trigger-on" defaults to
-      ["schedule", "workflow_dispatch"]. A trigger must have at least one way to output
-      true: either at least one positive pattern (via "paths"/"file-sets") or at least
-      one entry in "always-trigger-on". Patterns starting with ! are exclusion patterns
-      applied before positive matching. See the README for full semantics and examples.
+      "inclusion-sets" (file-set names whose patterns are matched), "exclusion-sets"
+      (file-set names whose patterns are excluded before matching), "paths" (inline glob
+      patterns, may use ! for one-off exclusions), and "always-trigger-on" (event names
+      that always produce a true output, bypassing file matching). "always-trigger-on"
+      defaults to ["schedule", "workflow_dispatch"]. A trigger must have at least one
+      way to output true: at least one positive pattern via "inclusion-sets"/"paths", or
+      at least one entry in "always-trigger-on". See the README for full semantics and examples.
     required: true
 
 outputs:

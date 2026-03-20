@@ -1,7 +1,12 @@
+# Paths to exclude from CCIP-related triggers.
+# Referenced as !ccip-excluded in triggers to negate the whole set.
+ccip-excluded:
+  - "system-tests/**"
+  - "core/scripts/cre/**"
+  - "devenv/**"
+
+# Files that are relevant to CCIP jobs.
 ccip-files:
-  - "!system-tests/**"
-  - "!core/scripts/cre/**"
-  - "!devenv/**"
   - ".github/workflows/integration-in-memory-tests.yml"
   - ".github/integration-in-memory-tests.yml"
   - "**/*.go"

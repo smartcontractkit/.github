@@ -1,22 +1,26 @@
-# Trigger using a single file-set.
+# Trigger using inclusion-sets and exclusion-sets.
 # always-trigger-on defaults to [schedule, workflow_dispatch].
 ccip:
-  file-sets: [ccip-files]
+  inclusion-sets: [ccip-files]
+  exclusion-sets: [ccip-excluded]
 
-# Trigger combining multiple file-sets AND inline paths.
-# The patterns from all file-sets are merged with the inline paths before
-# the two-phase negation/positive evaluation runs.
+# Same sets, plus extra inline paths, plus an extended always-trigger-on.
 ccip-with-extras:
-  file-sets: [ccip-files]
+  inclusion-sets: [ccip-files]
+  exclusion-sets: [ccip-excluded]
   paths:
     - ".github/workflows/ccip-*.yml"
     - "contracts/src/v0.8/ccip/**"
+  always-trigger-on:
+    - schedule
+    - workflow_dispatch
+    - workflow_call
 
-# Trigger using only inline paths with always-trigger-on explicitly overridden
-# to also include workflow_call (in addition to the defaults).
+# Trigger using only inline paths with a one-off inline exclusion.
 ci-config:
   paths:
     - ".github/workflows/**"
+    - "!.github/workflows/readme-*.yml"
     - ".github/actions/**"
   always-trigger-on:
     - schedule
@@ -31,7 +35,6 @@ docs:
   always-trigger-on: []
 
 # Trigger with no file patterns — only fires on the listed events.
-# Useful for jobs that should run on manual/scheduled triggers but never on PRs.
 nightly-only:
   always-trigger-on:
     - schedule

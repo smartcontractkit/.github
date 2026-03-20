@@ -23,7 +23,7 @@ export interface TriggerResult {
   matchedFiles: string[];
 }
 
-// A map of file-set name → flat list of glob patterns (may include negated patterns).
+// A map of file-set name → flat list of positive glob patterns.
 export type FileSets = Record<string, string[]>;
 
 const DEFAULT_ALWAYS_TRIGGER_ON = ["schedule", "workflow_dispatch"];
@@ -34,8 +34,12 @@ const DEFAULT_ALWAYS_TRIGGER_ON = ["schedule", "workflow_dispatch"];
 //   go-files:
 //     - "**/*.go"
 //     - "**/go.mod"
-//   ignored-paths:
-//     - "!system-tests/**"
+//   vendor:
+//     - "**/vendor/**"
+//
+// File-sets must contain only positive patterns. Negation (`!`) is not allowed
+// inside file-set definitions — to exclude a file-set in a trigger, reference
+// it via "exclusion-sets" instead.
 //
 // Returns an empty map if fileSetsYaml is empty.
 // Throws on malformed input.
@@ -73,7 +77,15 @@ export function parseFileSets(fileSetsYaml: string): FileSets {
             `File-set "${name}": pattern at index ${i} must be a string, got: ${typeof p}`,
           );
         }
-        return p.trim();
+        const trimmed = p.trim();
+        if (trimmed.startsWith("!")) {
+          throw new Error(
+            `File-set "${name}": pattern at index ${i} must not be negated. ` +
+              `File-sets define sets of files using positive patterns only. ` +
+              `To exclude this file-set in a trigger, use "!${name}" in the trigger's "file-sets" list.`,
+          );
+        }
+        return trimmed;
       })
       .filter((p) => p.length > 0);
   }
@@ -86,19 +98,24 @@ export function parseFileSets(fileSetsYaml: string): FileSets {
 //
 // Expected YAML format:
 //   deployment-tests:
-//     file-sets: [ignored-paths, go-files]
+//     inclusion-sets: [go-files, workflow-files]
+//     exclusion-sets: [vendor-paths]
 //     paths:
 //       - "deployment/**"
 //     always-trigger-on:
 //       - schedule
 //       - workflow_dispatch
 //
-// Both `file-sets` and `paths` are optional, but each trigger must have at
-// least one of them, and the combined set of patterns must include at least one
-// positive (non-negated) pattern.
+// `inclusion-sets`, `exclusion-sets`, and `paths` are all optional. Patterns
+// from `inclusion-sets` are treated as positive patterns; patterns from
+// `exclusion-sets` are treated as negated patterns (excluded before matching).
+// Inline `paths` entries may also use `!` for one-off exclusions.
 //
 // `always-trigger-on` is optional and defaults to ["schedule", "workflow_dispatch"].
-// Patterns starting with ! are exclusion patterns applied before positive matching.
+//
+// A trigger must have at least one way to ever output true: either at least one
+// positive pattern (via "paths"/"inclusion-sets") or at least one entry in
+// "always-trigger-on".
 //
 // Throws on malformed input or unresolved file-set references.
 export function parseTriggers(
@@ -142,39 +159,64 @@ export function parseTriggers(
     for (const key of Object.keys(config)) {
       if (
         key !== "paths" &&
-        key !== "file-sets" &&
+        key !== "inclusion-sets" &&
+        key !== "exclusion-sets" &&
         key !== "always-trigger-on"
       ) {
         throw new Error(
-          `Trigger "${name}" has unknown key "${key}". Only "paths", "file-sets", and "always-trigger-on" are allowed.`,
+          `Trigger "${name}" has unknown key "${key}". ` +
+            `Allowed keys: "inclusion-sets", "exclusion-sets", "paths", "always-trigger-on".`,
         );
       }
     }
 
-    // Resolve file-set references into patterns.
-    const fileSetPatterns: string[] = [];
-    if (config["file-sets"] !== undefined) {
-      if (!Array.isArray(config["file-sets"])) {
+    // Resolve inclusion-set references — patterns are added as positive patterns.
+    const inclusionPatterns: string[] = [];
+    if (config["inclusion-sets"] !== undefined) {
+      if (!Array.isArray(config["inclusion-sets"])) {
         throw new Error(
-          `Trigger "${name}"."file-sets" must be a list of file-set names, got: ${typeof config["file-sets"]}`,
+          `Trigger "${name}"."inclusion-sets" must be a list of file-set names, got: ${typeof config["inclusion-sets"]}`,
         );
       }
-      for (const setName of config["file-sets"]) {
+      for (const setName of config["inclusion-sets"]) {
         if (typeof setName !== "string") {
           throw new Error(
-            `Trigger "${name}"."file-sets" entries must be strings, got: ${typeof setName}`,
+            `Trigger "${name}"."inclusion-sets" entries must be strings, got: ${typeof setName}`,
           );
         }
         if (!(setName in fileSets)) {
           throw new Error(
-            `Trigger "${name}" references unknown file-set "${setName}".`,
+            `Trigger "${name}" references unknown file-set "${setName}" in "inclusion-sets".`,
           );
         }
-        fileSetPatterns.push(...fileSets[setName]);
+        inclusionPatterns.push(...fileSets[setName]);
       }
     }
 
-    // Parse explicit paths.
+    // Resolve exclusion-set references — patterns are added as negated patterns.
+    const exclusionPatterns: string[] = [];
+    if (config["exclusion-sets"] !== undefined) {
+      if (!Array.isArray(config["exclusion-sets"])) {
+        throw new Error(
+          `Trigger "${name}"."exclusion-sets" must be a list of file-set names, got: ${typeof config["exclusion-sets"]}`,
+        );
+      }
+      for (const setName of config["exclusion-sets"]) {
+        if (typeof setName !== "string") {
+          throw new Error(
+            `Trigger "${name}"."exclusion-sets" entries must be strings, got: ${typeof setName}`,
+          );
+        }
+        if (!(setName in fileSets)) {
+          throw new Error(
+            `Trigger "${name}" references unknown file-set "${setName}" in "exclusion-sets".`,
+          );
+        }
+        exclusionPatterns.push(...fileSets[setName].map((p) => `!${p}`));
+      }
+    }
+
+    // Parse explicit paths (may include inline `!` negations).
     const pathPatterns: string[] = [];
     if (config.paths !== undefined) {
       if (!Array.isArray(config.paths)) {
@@ -215,8 +257,12 @@ export function parseTriggers(
       }
     }
 
-    // File-sets first, then explicit paths.
-    const allPatterns = [...fileSetPatterns, ...pathPatterns];
+    // Inclusion sets, then exclusion sets, then explicit paths.
+    const allPatterns = [
+      ...inclusionPatterns,
+      ...exclusionPatterns,
+      ...pathPatterns,
+    ];
 
     const negatedPatterns = allPatterns
       .filter((p) => p.startsWith("!"))
@@ -229,7 +275,7 @@ export function parseTriggers(
     if (allPatterns.length > 0 && positivePatterns.length === 0) {
       throw new Error(
         `Trigger "${name}" has only negated patterns. At least one non-negated pattern is required` +
-          ` for file-change matching. To skip file matching entirely, omit "paths" and "file-sets"` +
+          ` for file-change matching. To skip file matching entirely, omit "inclusion-sets" and "paths"` +
           ` and rely solely on "always-trigger-on".`,
       );
     }
@@ -239,12 +285,23 @@ export function parseTriggers(
     if (allPatterns.length === 0 && alwaysTriggerOn.length === 0) {
       throw new Error(
         `Trigger "${name}" has no patterns and an empty "always-trigger-on". ` +
-          `It can never output true. Add "paths"/"file-sets" for file-change matching, ` +
+          `It can never output true. Add "inclusion-sets"/"paths" for file-change matching, ` +
           `or add event names to "always-trigger-on".`,
       );
     }
 
-    triggers.push({ name, negatedPatterns, positivePatterns, alwaysTriggerOn });
+    const triggerConfig: TriggerConfig = {
+      name,
+      negatedPatterns,
+      positivePatterns,
+      alwaysTriggerOn,
+    };
+
+    core.info(
+      `[trigger: ${name}] resolved config: ${JSON.stringify(triggerConfig, null, 2)}`,
+    );
+
+    triggers.push(triggerConfig);
   }
 
   if (triggers.length === 0) {
@@ -267,13 +324,6 @@ export function applyTrigger(
   changedFiles: string[],
   trigger: TriggerConfig,
 ): TriggerResult {
-  core.info(
-    `[trigger: ${trigger.name}] negated patterns: ${JSON.stringify(trigger.negatedPatterns)}`,
-  );
-  core.info(
-    `[trigger: ${trigger.name}] positive patterns: ${JSON.stringify(trigger.positivePatterns)}`,
-  );
-
   // Step 1: Exclusion pass — remove files matching any negated pattern.
   let candidates = changedFiles;
   if (trigger.negatedPatterns.length > 0) {
