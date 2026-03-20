@@ -7,7 +7,7 @@ inputs:
   github-token:
     description: "GitHub token to use for authentication"
     default: ${{ github.token }}
-    required: false
+    required: true
 
   repository-root:
     description: |
@@ -37,6 +37,8 @@ inputs:
     required: true
 
 outputs:
+  any:
+    description: '"true" if any trigger matched, "false" otherwise'
   triggers-matched:
     description: "Comma-separated list of trigger names that matched"
   triggers-not-matched:

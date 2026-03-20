@@ -6,9 +6,9 @@ const execFileAsync = promisify(execFile);
 
 /**
  * Returns changed files between two git refs using `git diff --name-only`.
- * If the refs cannot be resolved, fallback logic is applied:
- * - If `head` cannot be resolved, `HEAD` is used.
- * - If `base` cannot be resolved, `head^` is used.
+ * If either ref cannot be resolved, a `git pull` is attempted and resolution
+ * is retried once. If either ref still cannot be resolved after the retry,
+ * an error is thrown.
  */
 export async function getChangedFilesGit(
   base: string,

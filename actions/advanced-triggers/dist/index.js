@@ -33779,7 +33779,7 @@ function parseFileSets(fileSetsYaml) {
       const trimmed = p.trim();
       if (trimmed.startsWith("!")) {
         throw new Error(
-          `File-set "${name}": pattern at index ${i} must not be negated. File-sets define sets of files using positive patterns only. To exclude this file-set in a trigger, use "!${name}" in the trigger's "file-sets" list.`
+          `File-set "${name}": pattern at index ${i} must not be negated. File-sets define sets of files using positive patterns only. To exclude this file-set in a trigger, add "${name}" to the trigger's "exclusion-sets".`
         );
       }
       return trimmed;
@@ -33808,7 +33808,7 @@ function parseTriggers(triggersYaml, fileSets = {}) {
     }
     if (typeof rawConfig !== "object" || rawConfig === null || Array.isArray(rawConfig)) {
       throw new Error(
-        `Trigger "${name}" must be a mapping with "paths" and/or "file-sets" keys, got: ${typeof rawConfig}`
+        `Trigger "${name}" must be a mapping, got: ${typeof rawConfig}`
       );
     }
     const config = rawConfig;

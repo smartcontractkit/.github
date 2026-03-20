@@ -1,5 +1,5 @@
 # Paths to exclude from CCIP-related triggers.
-# Referenced as !ccip-excluded in triggers to negate the whole set.
+# Referenced via exclusion-sets: [ccip-excluded] in triggers to negate the whole set.
 ccip-excluded:
   - "system-tests/**"
   - "core/scripts/cre/**"

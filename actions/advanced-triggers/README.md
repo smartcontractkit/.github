@@ -98,7 +98,7 @@ from consideration_ before any positive matching occurs.
 
 | Input             | Required | Default                   | Description                                                      |
 | ----------------- | -------- | ------------------------- | ---------------------------------------------------------------- |
-| `github-token`    | yes      | `${{ github.token }}`     | GitHub token for API access                                      |
+| `github-token`    | yes      | `${{ github.token }}`     | GitHub token for API access (defaults to the built-in token)     |
 | `repository-root` | no       | `${{ github.workspace }}` | Repo root directory, used for git-based diff on push/merge_group |
 | `file-sets`       | no       | —                         | YAML string of named file-set pattern groups (see below)         |
 | `triggers`        | yes      | —                         | YAML string of named triggers (see below)                        |
@@ -109,6 +109,7 @@ from consideration_ before any positive matching occurs.
 
 | Output                      | Description                                              |
 | --------------------------- | -------------------------------------------------------- |
+| `any`                       | `"true"` if any trigger matched, `"false"` otherwise     |
 | `triggers-matched`          | Comma-separated list of trigger names that matched       |
 | `triggers-not-matched`      | Comma-separated list of trigger names that did not match |
 | `triggers-matched-json`     | JSON array of trigger names that matched                 |
@@ -327,8 +328,8 @@ jobs:
 
 ## Local testing
 
-A local test script is provided at `scripts/test.sh`. It simulates a
-`pull_request` event against a real PR on this repository:
+A local test script is provided at `scripts/test.sh`. It simulates a `push`
+event against a real commit on this repository:
 
 ```bash
 cd /path/to/.github
@@ -340,7 +341,7 @@ The script:
 - Builds the action via `pnpm nx build advanced-triggers`
 - Sets `CL_LOCAL_DEBUG=true`, which switches input resolution to read from
   `INPUT_<LOCALPARAMETER>` env vars instead of the action.yml parameter names
-- Reads triggers from `scripts/filters.yml` (override with `INPUT_TRIGGERS`)
+- Reads triggers from `scripts/triggers.yml` (override with `INPUT_TRIGGERS`)
 - Points at a real PR on `smartcontractkit/.github`
 
 To test against a different repo or PR, set `GITHUB_REPOSITORY` and update

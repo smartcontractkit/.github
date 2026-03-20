@@ -82,7 +82,7 @@ export function parseFileSets(fileSetsYaml: string): FileSets {
           throw new Error(
             `File-set "${name}": pattern at index ${i} must not be negated. ` +
               `File-sets define sets of files using positive patterns only. ` +
-              `To exclude this file-set in a trigger, use "!${name}" in the trigger's "file-sets" list.`,
+              `To exclude this file-set in a trigger, add "${name}" to the trigger's "exclusion-sets".`,
           );
         }
         return trimmed;
@@ -150,7 +150,7 @@ export function parseTriggers(
       Array.isArray(rawConfig)
     ) {
       throw new Error(
-        `Trigger "${name}" must be a mapping with "paths" and/or "file-sets" keys, got: ${typeof rawConfig}`,
+        `Trigger "${name}" must be a mapping, got: ${typeof rawConfig}`,
       );
     }
 
