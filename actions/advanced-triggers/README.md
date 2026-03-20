@@ -96,12 +96,36 @@ from consideration_ before any positive matching occurs.
 
 ## Inputs
 
-| Input             | Required | Default                   | Description                                                      |
-| ----------------- | -------- | ------------------------- | ---------------------------------------------------------------- |
-| `github-token`    | yes      | `${{ github.token }}`     | GitHub token for API access (defaults to the built-in token)     |
-| `repository-root` | no       | `${{ github.workspace }}` | Repo root directory, used for git-based diff on push/merge_group |
-| `file-sets`       | no       | —                         | YAML string of named file-set pattern groups (see below)         |
-| `triggers`        | yes      | —                         | YAML string of named triggers (see below)                        |
+| Input             | Required | Default                   | Description                                                                         |
+| ----------------- | -------- | ------------------------- | ----------------------------------------------------------------------------------- |
+| `github-token`    | yes      | `${{ github.token }}`     | GitHub token for API access                                                         |
+| `repository-root` | no       | `${{ github.workspace }}` | Repo root directory, used for git-based diff on push/merge_group                    |
+| `force-all`       | no       | `"false"`                 | When `"true"`, skips all filtering and outputs `true` for every trigger (see below) |
+| `file-sets`       | no       | —                         | YAML string of named file-set pattern groups (see below)                            |
+| `triggers`        | yes      | —                         | YAML string of named triggers (see below)                                           |
+
+### `force-all`
+
+When `force-all` is `"true"`, the action skips file-change detection and trigger
+evaluation entirely and outputs `true` for every configured trigger. This is
+useful when you want all jobs to run unconditionally regardless of what changed
+— for example on a release branch push or a tag push:
+
+```yaml
+- id: filter
+  uses: smartcontractkit/.github/actions/advanced-triggers@main
+  with:
+    force-all:
+      ${{ startsWith(github.ref, 'refs/tags/') || startsWith(github.ref,
+      'refs/heads/release/') }}
+    file-sets: |
+      ...
+    triggers: |
+      ...
+```
+
+The trigger names are still parsed so their outputs are set correctly — only the
+evaluation logic is bypassed.
 
 ## Outputs
 

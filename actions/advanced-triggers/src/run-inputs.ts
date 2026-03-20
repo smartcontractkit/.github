@@ -4,6 +4,7 @@ import * as github from "@actions/github";
 import { getEventData } from "./event";
 
 export interface RunInputs {
+  forceAll: string;
   fileSets: string;
   triggers: string;
   repositoryRoot: string;
@@ -15,6 +16,7 @@ export function getInputs(): RunInputs {
   core.info("Getting inputs for run.");
 
   const inputs: RunInputs = {
+    forceAll: getRunInputString("forceAll", false),
     fileSets: getRunInputString("fileSets", false),
     triggers: getRunInputString("triggers", true),
     repositoryRoot: getRunInputString("repositoryRoot", true),
@@ -81,6 +83,11 @@ interface RunInputConfiguration {
 const runInputsConfiguration: {
   [K in keyof RunInputs]: RunInputConfiguration;
 } = {
+  forceAll: {
+    parameter: "force-all",
+    localParameter: "FORCE_ALL",
+    validator: (v) => v === "true" || v === "false",
+  },
   fileSets: {
     parameter: "file-sets",
     localParameter: "FILE_SETS",
