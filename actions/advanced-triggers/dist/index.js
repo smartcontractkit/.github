@@ -47855,31 +47855,32 @@ async function run() {
     startGroup("Applying triggers");
     const triggerResults = [];
     for (const trigger of triggers) {
-      let result;
-      if (context3.event.kind === "file-change") {
-        result = applyTrigger(changedFiles, trigger);
-      } else if (trigger.alwaysTriggerOn.includes(context3.event.eventName)) {
+      if (trigger.alwaysTriggerOn.includes(context3.event.eventName)) {
         info(
           `[trigger: ${trigger.name}] event "${context3.event.eventName}" is in always-trigger-on \u2192 MATCHED`
         );
-        result = {
+        triggerResults.push({
           name: trigger.name,
           matched: true,
           candidateCount: 0,
           matchedFiles: []
-        };
-      } else {
-        warning(
-          `[trigger: ${trigger.name}] event "${context3.event.eventName}" is not a file-change event and is not listed in always-trigger-on [${trigger.alwaysTriggerOn.join(", ")}]. Defaulting to false.`
-        );
-        result = {
-          name: trigger.name,
-          matched: false,
-          candidateCount: 0,
-          matchedFiles: []
-        };
+        });
+        continue;
       }
-      triggerResults.push(result);
+      if (context3.event.kind === "file-change") {
+        const result = applyTrigger(changedFiles, trigger);
+        triggerResults.push(result);
+        continue;
+      }
+      warning(
+        `[trigger: ${trigger.name}] event "${context3.event.eventName}" is not a file-change event and is not listed in always-trigger-on [${trigger.alwaysTriggerOn.join(", ")}]. Defaulting to false.`
+      );
+      triggerResults.push({
+        name: trigger.name,
+        matched: false,
+        candidateCount: 0,
+        matchedFiles: []
+      });
     }
     endGroup();
     startGroup("Setting outputs");

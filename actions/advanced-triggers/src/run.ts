@@ -95,34 +95,35 @@ export async function run(): Promise<void> {
     core.startGroup("Applying triggers");
     const triggerResults: TriggerResult[] = [];
     for (const trigger of triggers) {
-      let result: TriggerResult;
-
-      if (context.event.kind === "file-change") {
-        result = applyTrigger(changedFiles!, trigger);
-      } else if (trigger.alwaysTriggerOn.includes(context.event.eventName)) {
+      if (trigger.alwaysTriggerOn.includes(context.event.eventName)) {
         core.info(
           `[trigger: ${trigger.name}] event "${context.event.eventName}" is in always-trigger-on → MATCHED`,
         );
-        result = {
+        triggerResults.push({
           name: trigger.name,
           matched: true,
           candidateCount: 0,
           matchedFiles: [],
-        };
-      } else {
-        core.warning(
-          `[trigger: ${trigger.name}] event "${context.event.eventName}" is not a file-change event ` +
-            `and is not listed in always-trigger-on [${trigger.alwaysTriggerOn.join(", ")}]. Defaulting to false.`,
-        );
-        result = {
-          name: trigger.name,
-          matched: false,
-          candidateCount: 0,
-          matchedFiles: [],
-        };
+        });
+        continue;
       }
 
-      triggerResults.push(result);
+      if (context.event.kind === "file-change") {
+        const result = applyTrigger(changedFiles!, trigger);
+        triggerResults.push(result);
+        continue;
+      }
+
+      core.warning(
+        `[trigger: ${trigger.name}] event "${context.event.eventName}" is not a file-change event ` +
+          `and is not listed in always-trigger-on [${trigger.alwaysTriggerOn.join(", ")}]. Defaulting to false.`,
+      );
+      triggerResults.push({
+        name: trigger.name,
+        matched: false,
+        candidateCount: 0,
+        matchedFiles: [],
+      });
     }
     core.endGroup();
 
