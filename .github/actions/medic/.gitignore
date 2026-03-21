@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Build output – checked in for action runtime; rebuild with `pnpm build`
+# dist/
+
+# Coverage reports
+coverage/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Env
+.env
+
+# Generated test file for build failure testing
+src/__tests__/build-failure.ts

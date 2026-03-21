@@ -1,0 +1,17 @@
+name: 'Medic – Workflow Retry'
+description: 'Retries failed workflow runs on a pull request'
+
+inputs:
+  github-token:
+    description: 'GitHub token for API access and workflow re-run'
+    required: true
+  pr-number:
+    description: 'Pull request number'
+    required: true
+  commenter-login:
+    description: 'GitHub login of the user who requested the retry'
+    default: ''
+
+runs:
+  using: 'node20'
+  main: '../dist/workflow-retry/index.js'

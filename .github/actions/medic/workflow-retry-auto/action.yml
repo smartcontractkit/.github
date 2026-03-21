@@ -1,0 +1,11 @@
+name: 'Medic – Auto Workflow Retry'
+description: 'Automatically retries failed workflow runs triggered by workflow_run events'
+
+inputs:
+  github-token:
+    description: 'GitHub token for API access and workflow re-run'
+    required: true
+
+runs:
+  using: 'node20'
+  main: '../dist/workflow-retry-auto/index.js'

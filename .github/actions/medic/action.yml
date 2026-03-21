@@ -1,0 +1,34 @@
+name: 'Medic – Merge Conflict Fixer'
+description: 'Resolves merge conflicts on PR branches using Claude Code CLI'
+
+inputs:
+  github-token:
+    description: 'GitHub token for API access and git push'
+    required: true
+  pr-number:
+    description: 'Pull request number to fix'
+    required: true
+  pr-branch:
+    description: 'PR head branch name'
+    required: true
+  base-branch:
+    description: 'PR base branch name'
+    required: true
+  current-attempts:
+    description: 'Current number of fix attempts for this PR'
+    default: '0'
+  dry-run:
+    description: 'Skip mutations (push, comments, labels)'
+    default: 'false'
+  mock-claude:
+    description: 'Skip Claude invocation and return mock success'
+    default: 'false'
+  show-cost-in-comment:
+    description: 'Include token/cost breakdown in the PR comment'
+    default: 'false'
+
+runs:
+  using: 'node20'
+  main: 'dist/fixer-main/index.js'
+  post: 'dist/fixer-cleanup/index.js'
+  post-if: 'always()'
