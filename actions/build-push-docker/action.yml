@@ -245,6 +245,33 @@ runs:
         flavor: |
           latest=false
 
+    - name: Inject Standard Build Args
+      if: ${{ inputs.docker-push == 'true' }}
+      id: inject-build-args
+      shell: bash
+      env:
+        EXISTING_BUILD_ARGS: ${{ inputs.docker-build-args }}
+        DOCKER_TAGS: ${{ steps.docker-meta.outputs.tags }}
+      run: |
+        set -euo pipefail
+
+        first_ref="$(printf '%s\n' "$DOCKER_TAGS" | head -n1)"
+        first_tag="${first_ref##*:}"
+
+        {
+          echo 'build-args<<EOF'
+
+          if [[ -n "${EXISTING_BUILD_ARGS:-}" ]]; then
+            printf '%s\n' "$EXISTING_BUILD_ARGS"
+          fi
+
+          if [[ -n "${first_tag:-}" ]]; then
+            printf 'CL_AUTO_DOCKER_TAG=%s\n' "$first_tag"
+          fi
+
+          echo 'EOF'
+        } | tee -a "${GITHUB_OUTPUT}"
+
     # Build records contain AWS account ID's (in e.g. the private ECR
     # hostname) and AWS account ID's are currently considered `sensitive`.
     # Avoid including the build record as a GitHub Actions artifact unless the
@@ -322,7 +349,9 @@ runs:
         file: ${{ inputs.dockerfile }}
         context: ${{ inputs.context }}
         build-contexts: ${{ inputs.docker-build-contexts }}
-        build-args: ${{ inputs.docker-build-args }}
+        build-args:
+          ${{ steps.inject-build-args.outputs.build-args ||
+          inputs.docker-build-args }}
         target: ${{ inputs.docker-target }}
         tags: ${{ steps.docker-meta.outputs.tags }}
         labels: ${{ steps.docker-meta.outputs.labels }}
