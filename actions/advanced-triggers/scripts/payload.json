@@ -1,0 +1,18 @@
+{
+  "action": "synchronize",
+  "after": "714432621d38f670f8614bee7d325a7266f12f95",
+  "before": "202b2dc242f47fc7ca8671a1be58648493e65779",
+  "pull_request": {
+    "number": 21585,
+    "head": {
+      "sha": "714432621d38f670f8614bee7d325a7266f12f95"
+    },
+    "base": {
+      "sha": "202b2dc242f47fc7ca8671a1be58648493e65779"
+    }
+  },
+  "push": {
+    "after": "714432621d38f670f8614bee7d325a7266f12f95",
+    "before": "202b2dc242f47fc7ca8671a1be58648493e65779"
+  }
+}
