@@ -33684,6 +33684,7 @@ function getEventData() {
 function getInputs() {
   info("Getting inputs for run.");
   const inputs = {
+    forceAll: getRunInputString("forceAll", false),
     fileSets: getRunInputString("fileSets", false),
     triggers: getRunInputString("triggers", true),
     repositoryRoot: getRunInputString("repositoryRoot", true)
@@ -33712,6 +33713,11 @@ function getInvokeContext() {
   return { token, owner, repo, event };
 }
 var runInputsConfiguration = {
+  forceAll: {
+    parameter: "force-all",
+    localParameter: "FORCE_ALL",
+    validator: (v) => v === "true" || v === "false"
+  },
   fileSets: {
     parameter: "file-sets",
     localParameter: "FILE_SETS"
@@ -47555,12 +47561,18 @@ var triggerConfigSchema = external_exports.object({
    */
   alwaysTriggerOn: external_exports.array(external_exports.string())
 });
+var ALLOWED_TRIGGER_KEYS = /* @__PURE__ */ new Set([
+  "inclusion-sets",
+  "exclusion-sets",
+  "paths",
+  "always-trigger-on"
+]);
 var triggerRawSchema = external_exports.object({
   "inclusion-sets": external_exports.array(external_exports.string()).optional(),
   "exclusion-sets": external_exports.array(external_exports.string()).optional(),
   paths: external_exports.array(external_exports.string()).optional(),
   "always-trigger-on": external_exports.array(external_exports.string()).optional()
-}).strict();
+}).passthrough();
 function buildTriggersSchema(fileSets) {
   return external_exports.record(external_exports.string(), triggerRawSchema).superRefine((triggers, ctx) => {
     if (Object.keys(triggers).length === 0) {
@@ -47571,6 +47583,15 @@ function buildTriggersSchema(fileSets) {
       return;
     }
     for (const [name, config2] of Object.entries(triggers)) {
+      for (const key of Object.keys(config2)) {
+        if (!ALLOWED_TRIGGER_KEYS.has(key)) {
+          ctx.addIssue({
+            code: "custom",
+            path: [name, key],
+            message: `Unknown key "${key}". Allowed keys: "inclusion-sets", "exclusion-sets", "paths", "always-trigger-on".`
+          });
+        }
+      }
       validateTrigger(name, config2, fileSets, ctx);
     }
   });
@@ -47581,7 +47602,7 @@ function validateTrigger(name, config2, fileSets, ctx) {
       ctx.addIssue({
         code: "custom",
         path: [name, "inclusion-sets", i],
-        message: `Unknown file-set "${setName}".`
+        message: `unknown file-set "${setName}" in "inclusion-sets".`
       });
     }
   }
@@ -47590,7 +47611,7 @@ function validateTrigger(name, config2, fileSets, ctx) {
       ctx.addIssue({
         code: "custom",
         path: [name, "exclusion-sets", i],
-        message: `Unknown file-set "${setName}".`
+        message: `unknown file-set "${setName}" in "exclusion-sets".`
       });
     }
   }
@@ -47832,6 +47853,23 @@ async function run() {
       `Parsed ${triggers.length} trigger(s): ${triggers.map((t) => t.name).join(", ")}`
     );
     endGroup();
+    if (inputs.forceAll === "true") {
+      startGroup("force-all override");
+      info(
+        "force-all is true \u2014 skipping file matching, all triggers set to matched."
+      );
+      const triggerResults2 = triggers.map((t) => ({
+        name: t.name,
+        matched: true,
+        candidateCount: 0,
+        matchedFiles: []
+      }));
+      endGroup();
+      startGroup("Setting outputs");
+      setOutputs({ triggerResults: triggerResults2 });
+      endGroup();
+      return;
+    }
     startGroup("Determining changed files");
     info(`Event type: ${context3.event.eventName}`);
     let changedFiles = null;

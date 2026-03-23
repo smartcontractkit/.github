@@ -24,6 +24,15 @@ inputs:
       "exclusion-sets" (excluded before positive matching).
     required: false
 
+  force-all:
+    description: |
+      When set to "true", skips all file-change detection and trigger evaluation
+      and outputs true for every configured trigger. Use this to unconditionally
+      run all jobs — for example when pushing to a release branch or a tag.
+      Defaults to "false".
+    default: "false"
+    required: false
+
   triggers:
     description: |
       A YAML string defining named triggers. Each trigger is a mapping with optional
