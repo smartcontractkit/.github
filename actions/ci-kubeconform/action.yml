@@ -45,12 +45,12 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
     - name: Install Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version-file: ${{ inputs.go-version-file }}
 

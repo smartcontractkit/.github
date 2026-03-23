@@ -369,7 +369,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
       - name: Install citool
@@ -388,7 +388,10 @@ jobs:
   get_latest_chainlink_release_version:
     name: Get latest Chainlink release version
     runs-on: ubuntu-latest
-    environment: integration
+    environment:
+      name: integration
+      # http://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-environments-without-deployments
+      deployment: false
     outputs:
       latest_chainlink_release_version: ${{ steps.get_latest_version.outputs.latest_version }}
     steps:
@@ -419,7 +422,7 @@ jobs:
       workflow_id: ${{ steps.gen_id.outputs.workflow_id }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
 
@@ -602,7 +605,10 @@ jobs:
       fromJson(needs.validate-inputs.outputs.require_chainlink_image_versions_in_qa_ecr_matrix) != ''
       && !inputs.skip_image_build }}
     runs-on: ubuntu-latest
-    environment: integration
+    environment:
+      name: integration
+      # http://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-environments-without-deployments
+      deployment: false
     permissions:
       id-token: write
       contents: read
@@ -625,7 +631,7 @@ jobs:
 
       - name: Checkout the repo
         if: ${{ steps.check-image-exists.outputs.exists != 'true' }}
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -652,7 +658,10 @@ jobs:
       fromJson(needs.validate-inputs.outputs.require_chainlink_plugin_versions_in_qa_ecr_matrix)
       != '' }}
     runs-on: ubuntu-latest
-    environment: integration
+    environment:
+      name: integration
+      # http://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-environments-without-deployments
+      deployment: false
     permissions:
       id-token: write
       contents: read
@@ -666,7 +675,7 @@ jobs:
           }}
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -700,7 +709,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.load-test-configurations.outputs.docker-matrix)}}
-    environment: integration
+    environment:
+      name: integration
+      # http://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-environments-without-deployments
+      deployment: false
     permissions:
       actions: read
       checks: write
@@ -730,7 +742,7 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -1004,7 +1016,10 @@ jobs:
       always() && !failure() && !cancelled() }}
     name: Get remote runner test image
     runs-on: ubuntu-latest
-    environment: integration
+    environment:
+      name: integration
+      # http://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-environments-without-deployments
+      deployment: false
     permissions:
       actions: read
       checks: write
@@ -1018,7 +1033,7 @@ jobs:
         }}.amazonaws.com/chainlink-tests
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
       - name: Build Test Runner Image
@@ -1062,7 +1077,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.load-test-configurations.outputs.k8s-runner-matrix)}}
-    environment: integration
+    environment:
+      name: integration
+      # http://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-environments-without-deployments
+      deployment: false
     permissions:
       actions: read
       checks: write
@@ -1092,7 +1110,7 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
 
@@ -1266,7 +1284,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.load-test-configurations.outputs.in-memory-matrix)}}
-    environment: integration
+    environment:
+      name: integration
+      # http://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-environments-without-deployments
+      deployment: false
     permissions:
       actions: read
       checks: write
@@ -1291,7 +1312,7 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
 
@@ -1384,7 +1405,10 @@ jobs:
     name: After tests
     runs-on: ubuntu-latest
     # Set to access secrets like secrets.QA_SLACK_API_KEY that are set in the "integration" environment
-    environment: integration
+    environment:
+      name: integration
+      # http://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-environments-without-deployments
+      deployment: false
     outputs:
       test_results: ${{ steps.set_test_results.outputs.results }}
     steps:
