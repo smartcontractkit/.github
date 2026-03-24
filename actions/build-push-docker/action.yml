@@ -234,7 +234,6 @@ runs:
         version: latest
 
     - name: Docker meta
-      if: ${{ inputs.docker-push == 'true' }}
       id: docker-meta
       uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
       with:
@@ -246,15 +245,12 @@ runs:
           latest=false
 
     - name: Inject Standard Build Args
-      if: ${{ inputs.docker-push == 'true' }}
       id: inject-build-args
-      shell: bash
+      shell: bash -euo pipefail {0}
       env:
         EXISTING_BUILD_ARGS: ${{ inputs.docker-build-args }}
         DOCKER_TAGS: ${{ steps.docker-meta.outputs.tags }}
       run: |
-        set -euo pipefail
-
         first_ref="$(printf '%s\n' "$DOCKER_TAGS" | head -n1)"
         first_tag="${first_ref##*:}"
 
@@ -265,7 +261,10 @@ runs:
           if [[ -n "$build_args" && "$build_args" != *$'\n' ]]; then
             build_args+=$'\n'
           fi
+          echo "Injecting CL_AUTO_DOCKER_TAG build arg with value (only first tag): $first_tag"
           build_args+="CL_AUTO_DOCKER_TAG=$first_tag"
+        else
+          echo "No tags found from docker-meta output; skipping injection of CL_AUTO_DOCKER_TAG build arg."
         fi
 
         {
@@ -351,9 +350,7 @@ runs:
         file: ${{ inputs.dockerfile }}
         context: ${{ inputs.context }}
         build-contexts: ${{ inputs.docker-build-contexts }}
-        build-args:
-          ${{ steps.inject-build-args.outputs.build-args ||
-          inputs.docker-build-args }}
+        build-args: ${{ steps.inject-build-args.outputs.build-args }}
         target: ${{ inputs.docker-target }}
         tags: ${{ steps.docker-meta.outputs.tags }}
         labels: ${{ steps.docker-meta.outputs.labels }}
