@@ -254,6 +254,10 @@ runs:
         first_ref="$(printf '%s\n' "$DOCKER_TAGS" | head -n1)"
         first_tag="${first_ref##*:}"
 
+        # Strip architecture suffix if present
+        first_tag="${first_tag%-amd64}"
+        first_tag="${first_tag%-arm64}"
+
         build_args="${EXISTING_BUILD_ARGS:-}"
 
         if [[ -n "$first_tag" ]]; then
