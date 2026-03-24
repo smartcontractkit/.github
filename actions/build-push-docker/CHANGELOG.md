@@ -1,5 +1,14 @@
 # build-push-docker
 
+## 1.2.0
+
+### Minor Changes
+
+- [#1479](https://github.com/smartcontractkit/.github/pull/1479)
+  [`21aa195`](https://github.com/smartcontractkit/.github/commit/21aa19510fc6c71057534d78542255b0c1a1cf49)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: automatically inject
+  standard build args (CL_AUTO_DOCKER_TAG)
+
 ## 1.1.0
 
 ### Minor Changes
