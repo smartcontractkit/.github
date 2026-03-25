@@ -1,5 +1,14 @@
 # ctf-build-image
 
+## 1.6.0
+
+### Minor Changes
+
+- [#1484](https://github.com/smartcontractkit/.github/pull/1484)
+  [`3315e6d`](https://github.com/smartcontractkit/.github/commit/3315e6d28f5f054239900d37fc048291e6f1b347)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: rework docker caching
+  setup
+
 ## 1.5.0
 
 ### Minor Changes
