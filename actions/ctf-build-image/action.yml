@@ -181,9 +181,13 @@ runs:
         docker-attestations: "false"
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
-
-        docker-restore-cache: "true"
-        docker-save-cache: "true"
+        # only save on events which are expected to be from the default branch
+        docker-save-cache:
+          ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
+        # dont use cache on events which are expected to be from the default branch
+        # this is to create a fresh cache/snapshot unpolluted by previous cache entries
+        docker-restore-cache:
+          ${{ github.event_name != 'schedule' && github.event_name != 'push' }}
         docker-build-cache-to:
           "type=gha,timeout=10m,mode=min,ignore-error=true,scope=ctf-build-image-${{
           runner.os }}-${{ runner.arch }}"
