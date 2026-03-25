@@ -181,11 +181,19 @@ runs:
         docker-attestations: "false"
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
-
+        # only save on events which are expected to be from the default branch
+        docker-save-cache:
+          ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
+        # dont use cache on events which are expected to be from the default branch
+        # this is to create a fresh cache/snapshot unpolluted by previous cache entries
         docker-restore-cache:
-          ${{ github.event_name == 'pull_request' || github.event_name ==
-          'merge_group' }}
-        docker-save-cache: ${{ github.event_name == 'push' }}
+          ${{ github.event_name != 'schedule' && github.event_name != 'push' }}
+        docker-build-cache-to:
+          "type=gha,timeout=10m,mode=min,ignore-error=true,scope=ctf-build-image-${{
+          runner.os }}-${{ runner.arch }}"
+        docker-build-cache-from:
+          "type=gha,timeout=10m,scope=ctf-build-image-${{ runner.os }}-${{
+          runner.arch }}"
 
         tags: type=raw,value=${{ inputs.image-tag }}
         aws-account-number: ${{ inputs.aws-account-number }}
