@@ -638,7 +638,7 @@ jobs:
 
       - name: Build Chainlink Image
         if: ${{ steps.check-image-exists.outputs.exists != 'true' }}
-        uses: smartcontractkit/.github/actions/ctf-build-image@ctf-build-image/v1
+        uses: smartcontractkit/.github/actions/ctf-build-image@test/ctf-build-image-docker-caching
         with:
           image-tag: ${{ matrix.version }}
           dockerfile: core/chainlink.Dockerfile

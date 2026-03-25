@@ -168,7 +168,7 @@ runs:
 
     - name: Build push docker image
       id: build-image
-      uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/v1
+      uses: smartcontractkit/.github/actions/build-push-docker@test/ctf-build-image-docker-caching
       with:
         context: .
         platform: ${{ inputs.platform }}
@@ -182,10 +182,14 @@ runs:
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
 
-        docker-restore-cache:
-          ${{ github.event_name == 'pull_request' || github.event_name ==
-          'merge_group' }}
-        docker-save-cache: ${{ github.event_name == 'push' }}
+        docker-restore-cache: "true"
+        docker-save-cache: "true"
+        docker-build-cache-to:
+          "type=gha,timeout=10m,mode=max,ignore-error=true,scope=ctf-build-image-${{
+          runner.os }}-${{ runner.arch }}"
+        docker-build-cache-from:
+          "type=gha,timeout=10m,scope=ctf-build-image-${{ runner.os }}-${{
+          runner.arch }}"
 
         tags: type=raw,value=${{ inputs.image-tag }}
         aws-account-number: ${{ inputs.aws-account-number }}

@@ -317,16 +317,16 @@ runs:
       env:
         DOCKER_RESTORE_CACHE: ${{ inputs.docker-restore-cache }}
         DOCKER_SAVE_CACHE: ${{ inputs.docker-save-cache }}
-        DOCKER_BUILD_CACHE_FROM: >-
-          ${{
-            format('{0},scope={1}', inputs.docker-build-cache-from, runner.arch)
-          }}
-        DOCKER_BUILD_CACHE_TO: >-
-          ${{
-            format('{0},scope={1}', inputs.docker-build-cache-to, runner.arch)
-          }}
+        DOCKER_BUILD_CACHE_FROM:
+          ${{ inputs.docker-build-cache-from ||
+          'type=gha,timeout=10m,scope=generic-${{ runner.os }}-${{ runner.arch
+          }}' }}
+        DOCKER_BUILD_CACHE_TO:
+          ${{ inputs.docker-build-cache-to ||
+          'type=gha,timeout=10m,mode=max,ignore-error=true,scope=generic-${{
+          runner.os }}-${{ runner.arch }}' }}
       run: |
-        if [[ "${DOCKER_RESTORE_CACHE}" == "true" ]]; then
+        if [[ "${DOCKER_RESTORE_CACHE}" == "false" ]]; then
           echo "no-cache=false" | tee -a "${GITHUB_OUTPUT}"
           echo "cache-from=${DOCKER_BUILD_CACHE_FROM}" | tee -a "${GITHUB_OUTPUT}"
         else
