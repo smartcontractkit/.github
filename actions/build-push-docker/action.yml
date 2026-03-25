@@ -45,6 +45,13 @@ inputs:
       caching for the specific runner architecture.
     required: false
     default: "type=gha,timeout=10m,mode=max,ignore-error=true"
+  docker-build-cache-scope:
+    description: |
+      Custom scope for Docker build cache. If not set, defaults to runner.arch.
+      Useful for separating caches when multiple Dockerfiles build on the same
+      architecture (e.g. "core" vs "plugins").
+    required: false
+    default: ""
   docker-push:
     description: "Push the docker image. Build only (no push) if: false."
     required: false
@@ -287,22 +294,24 @@ runs:
         DOCKER_SAVE_CACHE: ${{ inputs.docker-save-cache }}
         DOCKER_BUILD_CACHE_FROM: >-
           ${{
-            format('{0},scope={1}', inputs.docker-build-cache-from, runner.arch)
+            format('{0},scope={1}', inputs.docker-build-cache-from,
+            inputs.docker-build-cache-scope || runner.arch)
           }}
         DOCKER_BUILD_CACHE_TO: >-
           ${{
-            format('{0},scope={1}', inputs.docker-build-cache-to, runner.arch)
+            format('{0},scope={1}', inputs.docker-build-cache-to,
+            inputs.docker-build-cache-scope || runner.arch)
           }}
       run: |
         if [[ "${DOCKER_RESTORE_CACHE}" == "true" ]]; then
           echo "no-cache=false" | tee -a "${GITHUB_OUTPUT}"
-          echo "cache-from=${DOCKER_BUILD_CACHE_FROM}" | tee -a "${GITHUB_OUTPUT}"
+          echo "docker-cache-from=${DOCKER_BUILD_CACHE_FROM}" | tee -a "${GITHUB_OUTPUT}"
         else
           echo "no-cache=true" | tee -a "${GITHUB_OUTPUT}"
         fi
 
         if [[ "${DOCKER_SAVE_CACHE}" == "true" ]]; then
-          echo "cache-to=${DOCKER_BUILD_CACHE_TO}" | tee -a "${GITHUB_OUTPUT}"
+          echo "docker-cache-to=${DOCKER_BUILD_CACHE_TO}" | tee -a "${GITHUB_OUTPUT}"
         fi
 
     - name: Build & push image

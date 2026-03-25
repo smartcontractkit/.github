@@ -108,6 +108,14 @@ inputs:
       go get github.com/smartcontractkit/chainlink-solana@abc123
       go get github.com/smartcontractkit/chainlink-evm@def456
 
+  cache-scope:
+    required: false
+    description: |
+      Custom scope for Docker build cache. Separates caches when multiple
+      Dockerfiles build on the same architecture (e.g. "core" vs "plugins").
+      If not set, defaults to runner architecture.
+    default: ""
+
 outputs:
   docker-image-sha-digest-amd64:
     description: "Docker image SHA digest for platform: amd64"
@@ -182,10 +190,9 @@ runs:
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
 
-        docker-restore-cache:
-          ${{ github.event_name == 'pull_request' || github.event_name ==
-          'merge_group' }}
+        docker-restore-cache: "true"
         docker-save-cache: ${{ github.event_name == 'push' }}
+        docker-build-cache-scope: ${{ inputs.cache-scope }}
 
         tags: type=raw,value=${{ inputs.image-tag }}
         aws-account-number: ${{ inputs.aws-account-number }}
