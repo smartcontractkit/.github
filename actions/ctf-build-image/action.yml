@@ -185,7 +185,7 @@ runs:
         docker-restore-cache: "true"
         docker-save-cache: "true"
         docker-build-cache-to:
-          "type=gha,timeout=10m,mode=max,ignore-error=true,scope=ctf-build-image-${{
+          "type=gha,timeout=10m,mode=min,ignore-error=true,scope=ctf-build-image-${{
           runner.os }}-${{ runner.arch }}"
         docker-build-cache-from:
           "type=gha,timeout=10m,scope=ctf-build-image-${{ runner.os }}-${{
