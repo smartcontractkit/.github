@@ -189,8 +189,8 @@ runs:
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
         # only save on events which are expected to be from the default branch
-        docker-save-cache:
-          ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
+        docker-save-cache: ${{ github.event_name == 'schedule' ||
+          github.event_name == 'push' || github.event_name == 'pull_request' }} # DEBUG: Testing cache
         # dont use cache on events which are expected to be from the default branch
         # this is to create a fresh cache/snapshot unpolluted by previous cache entries
         docker-restore-cache:
@@ -208,3 +208,43 @@ runs:
         aws-region: ${{ inputs.aws-region }}
 
         github-token: ${{ steps.github-token.outputs.access-token || '' }}
+
+    # DEBUG: Inspect built image
+    - name: Inspect built image
+      if: inputs.inspect-image == 'true'
+      shell: bash
+      env:
+        IMAGE:
+          "${{ inputs.docker-registry-url }}/${{ inputs.docker-repository-name
+          }}:${{ inputs.image-tag }}"
+      run: |
+        echo "::group::Pull image"
+        docker pull "$IMAGE"
+        echo "::endgroup::"
+
+        echo "::group::Installed binaries"
+        docker run --rm --user root --entrypoint ls "$IMAGE" -lahS /usr/local/bin/
+        echo "::endgroup::"
+
+        echo "::group::Binary checksums (SHA256)"
+        docker run --rm --user root --entrypoint sh "$IMAGE" \
+          -c 'find /usr/local/bin -maxdepth 1 -type f | sort | xargs sha256sum'
+        echo "::endgroup::"
+
+        echo "::group::Shared libraries"
+        docker run --rm --user root --entrypoint sh "$IMAGE" \
+          -c 'ls -la /usr/lib/lib* 2>/dev/null || echo "No shared libraries found"'
+        echo "::endgroup::"
+
+        echo "::group::Chainlink version"
+        docker run --rm "$IMAGE" --version || true
+        echo "::endgroup::"
+
+        echo "::group::Environment variables"
+        docker inspect "$IMAGE" --format '{{range .Config.Env}}{{println .}}{{end}}'
+        echo "::endgroup::"
+
+        echo "::group::Image config"
+        docker inspect "$IMAGE" --format '{{json .Config}}' | python3 -m json.tool 2>/dev/null \
+          || docker inspect "$IMAGE" --format '{{json .Config}}'
+        echo "::endgroup::"
