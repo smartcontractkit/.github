@@ -127,12 +127,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-go@v6
-      with:
-        go-version-file: "go.mod"
-        check-latest: true
-        cache: false
-
     - name: Setup GitHub token using GATI
       if: inputs.gati-role-arn != '' && inputs.gati-lambda-url != ''
       id: github-token
@@ -144,13 +138,6 @@ runs:
         aws-role-duration-seconds: "1800"
         set-git-config: "true"
 
-    - name: Process go get overrides
-      shell: bash
-      env:
-        GO_OVERRIDES: ${{ inputs.go-get-overrides }}
-        ACTIONS_PATH: ${{ github.action_path }}
-      run: ${ACTIONS_PATH}/scripts/go-get-overrides.sh
-
     - name: Process plugin manifest overrides (public)
       shell: bash
       env:
@@ -160,16 +147,19 @@ runs:
         ACTIONS_PATH: ${{ github.action_path }}
       run: ${ACTIONS_PATH}/scripts/plugin-overrides.sh
 
-    - name: Tidy and Output go.mod
+    - name: Encode go-get overrides for Docker build arg
+      id: encode-overrides
       shell: bash
+      env:
+        GO_OVERRIDES: ${{ inputs.go-get-overrides }}
       run: |
-        echo "::group::Tidy go.mod"
-        go mod tidy
-        echo "::endgroup::"
-
-        echo "::group::cat go.mod"
-        cat go.mod
-        echo "::endgroup::"
+        if [ -z "$GO_OVERRIDES" ]; then
+          echo "encoded=" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        ENCODED=$(echo "$GO_OVERRIDES" | sed '/^$/d' | paste -sd ',' -)
+        echo "encoded=$ENCODED" >> "$GITHUB_OUTPUT"
+        echo "::info::Encoded go-get overrides: $ENCODED"
 
     - name: Free up disk space (to avoid 'no space left on device' errors)
       uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
@@ -185,6 +175,7 @@ runs:
         docker-build-args: |
           COMMIT_SHA=${{ github.sha }}
           CHAINLINK_USER=chainlink
+          GO_OVERRIDE_DEPS=${{ steps.encode-overrides.outputs.encoded }}
           ${{ inputs.docker-additional-build-args }}
         docker-attestations: "false"
         docker-registry-url: ${{ inputs.docker-registry-url }}
