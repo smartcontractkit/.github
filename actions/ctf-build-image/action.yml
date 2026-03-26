@@ -211,7 +211,6 @@ runs:
 
     # DEBUG: Inspect built image
     - name: Inspect built image
-      if: inputs.inspect-image == 'true'
       shell: bash
       env:
         IMAGE:
