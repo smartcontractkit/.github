@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {},
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "@smartcontractkit",
+  "license": "MIT",
   "packageManager": "pnpm@10.29.3"
 }
