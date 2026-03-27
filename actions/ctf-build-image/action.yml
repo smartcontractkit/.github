@@ -168,6 +168,26 @@ runs:
         echo "encoded-overides=$ENCODED" | tee -a "$GITHUB_OUTPUT"
         echo "::info::Encoded go-get overrides: $ENCODED"
 
+    - name: Compute remote plugin cache key
+      id: plugin-cache
+      shell: bash
+      run: |
+        HASH=$(cat \
+          plugins/plugins.public.yaml \
+          plugins/plugins.private.yaml \
+          plugins/plugins.testing.yaml \
+          plugins/scripts/* \
+          | sha256sum | cut -d' ' -f1)
+        echo "key=remote-plugins-${HASH}" >> "$GITHUB_OUTPUT"
+        mkdir -p .plugin-cache
+
+    - name: Restore cached remote plugin binaries
+      id: plugin-cache-restore
+      uses: actions/cache/restore@v4
+      with:
+        key: ${{ steps.plugin-cache.outputs.key }}
+        path: .plugin-cache/
+
     - name: Free up disk space (to avoid 'no space left on device' errors)
       if: inputs.free-disk-space == 'true'
       uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
@@ -185,12 +205,16 @@ runs:
           CHAINLINK_USER=chainlink
           GO_OVERRIDE_DEPS=${{ steps.encode-overrides.outputs.encoded }}
           ${{ inputs.docker-additional-build-args }}
+        docker-build-contexts: >-
+          ${{ steps.plugin-cache-restore.outputs.cache-hit == 'true'
+              && 'build-remote-plugins=.plugin-cache/'
+              || '' }}
         docker-attestations: "false"
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
         # only save on events which are expected to be from the default branch
-        docker-save-cache:
-          ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
+        docker-save-cache: ${{ github.event_name == 'schedule' ||
+          github.event_name == 'push' || github.event_name == 'pull_request' }} # DEBUG: pull_request to test
         # dont use cache on events which are expected to be from the default branch
         # this is to create a fresh cache/snapshot unpolluted by previous cache entries
         docker-restore-cache:
@@ -208,3 +232,22 @@ runs:
         aws-region: ${{ inputs.aws-region }}
 
         github-token: ${{ steps.github-token.outputs.access-token || '' }}
+
+    - name: Extract remote plugin binaries for caching
+      if: steps.plugin-cache-restore.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        DOCKERFILE: ${{ inputs.dockerfile }}
+      run: |
+        echo "Extracting remote plugin binaries for caching..."
+        docker buildx build \
+          --target export-remote-plugins \
+          --output type=local,dest=.plugin-cache \
+          -f "$DOCKERFILE" .
+
+    - name: Save remote plugin cache
+      if: steps.plugin-cache-restore.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        key: ${{ steps.plugin-cache.outputs.key }}
+        path: .plugin-cache/
