@@ -107,9 +107,15 @@ on:
         required: false
         type: string
         default: "false"
+      build-amd64-image:
+        description: "Enable amd64 Docker image build. Set to 'false' to disable jobs which only
+          build arm64 images."
+        required: false
+        type: string
+        default: "true"
       build-arm64-image:
-        description: "Enable arm64 Docker image build. Set to 'false' to disable which only
-          builds amd64 images."
+        description: "Enable arm64 Docker image build. Set to 'false' to disable jobs which only
+          build amd64 images."
         required: false
         type: string
         default: "true"
@@ -387,10 +393,17 @@ jobs:
         env:
           GITHUB_EVENT_NAME: ${{ inputs.github-event-name }}
           GITHUB_REF_NAME: ${{ inputs.github-ref-name }}
+          BUILD_AMD64_IMAGE: ${{ inputs.build-amd64-image }}
+          BUILD_ARM64_IMAGE: ${{ inputs.build-arm64-image }}
         run: |
           echo "Validating event and ref inputs..."
           if [[ "${GITHUB_EVENT_NAME:-}" == "pull_request" && ! "${GITHUB_REF_NAME:-}" =~ ^[0-9]+/merge$ ]]; then
             echo "::error::GITHUB_EVENT_NAME is pull_request but GITHUB_REF_NAME does not match expected format of: <pr_number>/merge."
+            exit 1
+          fi
+
+          if [[ "${BUILD_AMD64_IMAGE}" != "true" && "${BUILD_ARM64_IMAGE}" != "true" ]]; then
+            echo "::error::At least one of build-amd64-image or build-arm64-image must be set to true."
             exit 1
           fi
       - name: Set extra outputs
@@ -471,13 +484,21 @@ jobs:
         env:
           GITHUB_RUNNER_AMD64: ${{ inputs.github-runner-amd64 }}
           GITHUB_RUNNER_ARM64: ${{ inputs.github-runner-arm64 }}
+          BUILD_AMD64_IMAGE: ${{ inputs.build-amd64-image }}
           BUILD_ARM64_IMAGE: ${{ inputs.build-arm64-image }}
         run: |
-          matrix="[{\"runner\":\"${GITHUB_RUNNER_AMD64}\",\"arch\":\"amd64\"}"
-          if [[ "${BUILD_ARM64_IMAGE}" == "true" ]]; then
-            matrix+=",{\"runner\":\"${GITHUB_RUNNER_ARM64}\",\"arch\":\"arm64\"}"
+          matrix="[]"
+
+          if [[ "${BUILD_AMD64_IMAGE}" == "true" ]]; then
+            matrix=$(jq -c --arg runner "$GITHUB_RUNNER_AMD64" \
+              '. += [{"runner": $runner, "arch": "amd64"}]' <<< "$matrix")
           fi
-          matrix+="]"
+
+          if [[ "${BUILD_ARM64_IMAGE}" == "true" ]]; then
+            matrix=$(jq -c --arg runner "$GITHUB_RUNNER_ARM64" \
+              '. += [{"runner": $runner, "arch": "arm64"}]' <<< "$matrix")
+          fi
+
           echo "matrix=$matrix" | tee -a "$GITHUB_OUTPUT"
 
   build-publish:
@@ -664,26 +685,25 @@ jobs:
         env:
           DOCKER_IMAGE_SHA_DIGEST_AMD64: ${{ needs.build-publish.outputs.docker-image-sha-digest-amd64 }}
           DOCKER_IMAGE_SHA_DIGEST_ARM64: ${{ needs.build-publish.outputs.docker-image-sha-digest-arm64 }}
+          BUILD_AMD64_IMAGE: ${{ inputs.build-amd64-image }}
           BUILD_ARM64_IMAGE: ${{ inputs.build-arm64-image }}
         run: |
-          # Set default empty arm64 digest
+          echo "amd64_digest=" >> "$GITHUB_OUTPUT"
           echo "arm64_digest=" >> "$GITHUB_OUTPUT"
 
-          # Always include the AMD64 build
-          amd64_digest="${DOCKER_IMAGE_SHA_DIGEST_AMD64}"
-          echo "amd64_digest=$amd64_digest" | tee -a "$GITHUB_OUTPUT"
+          digests=()
 
-          image_digests="$amd64_digest"
-
-          # Only include ARM64 if enabled and build succeeded
-          if [[ "${BUILD_ARM64_IMAGE}" == "true" ]]; then
-            arm64_digest="${DOCKER_IMAGE_SHA_DIGEST_ARM64}"
-            if [[ -n "$arm64_digest" ]]; then
-              image_digests="$image_digests,$arm64_digest"
-              echo "arm64_digest=$arm64_digest" | tee -a "$GITHUB_OUTPUT"
-            fi
+          if [[ "${BUILD_AMD64_IMAGE}" == "true" && -n "${DOCKER_IMAGE_SHA_DIGEST_AMD64}" ]]; then
+            echo "amd64_digest=${DOCKER_IMAGE_SHA_DIGEST_AMD64}" | tee -a "$GITHUB_OUTPUT"
+            digests+=("${DOCKER_IMAGE_SHA_DIGEST_AMD64}")
           fi
 
+          if [[ "${BUILD_ARM64_IMAGE}" == "true" && -n "${DOCKER_IMAGE_SHA_DIGEST_ARM64}" ]]; then
+            echo "arm64_digest=${DOCKER_IMAGE_SHA_DIGEST_ARM64}" | tee -a "$GITHUB_OUTPUT"
+            digests+=("${DOCKER_IMAGE_SHA_DIGEST_ARM64}")
+          fi
+
+          image_digests="$(IFS=,; echo "${digests[*]}")"
           echo "image_digests=$image_digests" | tee -a "$GITHUB_OUTPUT"
 
       - name: Generate manifest annotations
