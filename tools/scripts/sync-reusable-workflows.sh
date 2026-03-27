@@ -14,12 +14,12 @@ MODE="$1"; shift
 
 mkdir -p "$DST_ROOT"
 
+log()  { echo "[workflow-sync] $*"; }
+
 if [ "$GITHUB_ACTIONS" = "true" ]; then
-  log()  { echo "::notice::[workflow-sync] $*"; }
   warn() { echo "::warning::[workflow-sync][WARN] $*"; }
   err()  { echo "::error::[workflow-sync][ERROR] $*" >&2; }
 else
-  log()  { echo "[workflow-sync] $*"; }
   warn() { echo "[workflow-sync][WARN] $*"; }
   err()  { echo "[workflow-sync][ERROR] $*" >&2; }
 fi
