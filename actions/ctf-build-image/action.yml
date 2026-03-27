@@ -154,18 +154,29 @@ runs:
         ACTIONS_PATH: ${{ github.action_path }}
       run: ${ACTIONS_PATH}/scripts/plugin-overrides.sh
 
-    - name: Encode go-get overrides for Docker build arg
-      id: encode-go-overrides
+    - name: Setup Go for dependency overrides
+      if: inputs.go-get-overrides != ''
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+        cache: false
+
+    - name: Apply go-get dependency overrides
+      if: inputs.go-get-overrides != ''
       shell: bash
       env:
         GO_OVERRIDES: ${{ inputs.go-get-overrides }}
       run: |
-        if [ -z "$GO_OVERRIDES" ]; then
-          echo "encoded=" | tee -a "$GITHUB_OUTPUT"
-          exit 0
-        fi
-        ENCODED=$(echo "$GO_OVERRIDES" | sed '/^$/d' | paste -sd ',' -)
-        echo "encoded=$ENCODED" | tee -a "$GITHUB_OUTPUT"
+        set -e
+        while IFS= read -r line; do
+          [ -z "$line" ] && continue
+          dep="${line%%=*}"
+          sha="${line#*=}"
+          [ -z "$dep" ] || [ -z "$sha" ] && continue
+          echo "Overriding: github.com/smartcontractkit/${dep}@${sha}"
+          go get "github.com/smartcontractkit/${dep}@${sha}"
+        done <<< "$GO_OVERRIDES"
+        go mod tidy
 
     - name: Compute remote plugin cache key
       id: plugin-cache
@@ -202,7 +213,6 @@ runs:
         docker-build-args: |
           COMMIT_SHA=${{ github.sha }}
           CHAINLINK_USER=chainlink
-          GO_OVERRIDE_DEPS=${{ steps.encode-go-overrides.outputs.encoded }}
           ${{ inputs.docker-additional-build-args }}
         docker-build-contexts: >-
           ${{ steps.plugin-cache-restore.outputs.cache-hit == 'true'
