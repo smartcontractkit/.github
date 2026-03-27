@@ -1,0 +1,11 @@
+{
+  "name": "reusable-docker-build-publish",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {},
+  "keywords": [],
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "packageManager": "pnpm@10.29.3"
+}
