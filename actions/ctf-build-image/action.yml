@@ -156,7 +156,7 @@ runs:
 
     - name: Setup Go for dependency overrides
       if: inputs.go-get-overrides != ''
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version-file: go.mod
         cache: false
