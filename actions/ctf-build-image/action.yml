@@ -165,7 +165,7 @@ runs:
           exit 0
         fi
         ENCODED=$(echo "$GO_OVERRIDES" | sed '/^$/d' | paste -sd ',' -)
-        tee -a "$GITHUB_OUTPUT"
+        echo "encoded-overides=$ENCODED" | tee -a "$GITHUB_OUTPUT"
         echo "::info::Encoded go-get overrides: $ENCODED"
 
     - name: Free up disk space (to avoid 'no space left on device' errors)
