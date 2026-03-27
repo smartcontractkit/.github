@@ -1,0 +1,58 @@
+name: validate-protos-version
+description: >
+  Validates that all github.com/smartcontractkit/chainlink-protos/cre/go
+  pseudo-versions in go.mod files reference commits from the
+  capabilities-development branch of chainlink-protos.
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout chainlink-protos
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        repository: smartcontractkit/chainlink-protos
+        ref: capabilities-development
+        path: .chainlink-protos
+        fetch-depth: 0
+        persist-credentials: false
+
+    - name:
+        Validate chainlink-protos/cre/go versions are from
+        capabilities-development
+      shell: bash
+      run: |
+        failed=0
+        found=0
+
+        while IFS= read -r gomod; do
+          version=$(grep 'github.com/smartcontractkit/chainlink-protos/cre/go ' "$gomod" | head -1 | awk '{print $2}' || true)
+          if [[ -z "$version" ]]; then
+            continue
+          fi
+
+          found=1
+          commit=${version##*-}
+
+          echo "Checking $gomod: version=$version commit=$commit"
+
+          if ! git -C .chainlink-protos merge-base --is-ancestor "$commit" capabilities-development 2>/dev/null; then
+            echo "::error file=$gomod::commit $commit is NOT on the capabilities-development branch of chainlink-protos"
+            failed=1
+          else
+            echo "OK: commit $commit is on capabilities-development"
+          fi
+        done < <(find . -name go.mod -not -path './proto_vendor/*' -not -path './.chainlink-protos/*')
+
+        if [[ "$found" -eq 0 ]]; then
+          echo "::error::No go.mod files found containing chainlink-protos/cre/go"
+          exit 1
+        fi
+
+        if [[ "$failed" -eq 1 ]]; then
+          echo ""
+          echo "One or more go.mod files reference a chainlink-protos/cre/go commit that is not on the capabilities-development branch."
+          exit 1
+        fi
+
+        echo ""
+        echo "All chainlink-protos/cre/go versions are from capabilities-development."
