@@ -222,8 +222,8 @@ runs:
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
         # only save on events which are expected to be from the default branch
-        docker-save-cache:
-          ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
+        docker-save-cache: ${{ github.event_name == 'schedule' ||
+          github.event_name == 'push' || github.event_name == 'pull_request' }} # TODO: Remove pull_request after testing
         # dont use cache on events which are expected to be from the default branch
         # this is to create a fresh cache/snapshot unpolluted by previous cache entries
         docker-restore-cache:
