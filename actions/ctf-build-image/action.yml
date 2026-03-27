@@ -183,7 +183,7 @@ runs:
 
     - name: Restore cached remote plugin binaries
       id: plugin-cache-restore
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         key: ${{ steps.plugin-cache.outputs.key }}
         path: .plugin-cache/
@@ -247,7 +247,7 @@ runs:
 
     - name: Save remote plugin cache
       if: steps.plugin-cache-restore.outputs.cache-hit != 'true'
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v5
       with:
         key: ${{ steps.plugin-cache.outputs.key }}
         path: .plugin-cache/
