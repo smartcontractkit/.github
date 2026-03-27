@@ -16,7 +16,7 @@ mkdir -p "$DST_ROOT"
 
 log()  { echo "[workflow-sync] $*"; }
 
-if [ "$GITHUB_ACTIONS" = "true" ]; then
+if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
   warn() { echo "::warning::[workflow-sync][WARN] $*"; }
   err()  { echo "::error::[workflow-sync][ERROR] $*" >&2; }
 else
