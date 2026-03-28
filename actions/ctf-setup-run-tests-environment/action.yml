@@ -183,7 +183,7 @@ runs:
 
     - name: Install Aptos CLI
       if: inputs.aptos_cli_version
-      uses: aptos-labs/actions/install-aptos-cli@63740b290d839b87ecfafbcf75ed03a36a54a29f # jan 15, 2025
+      uses: aptos-labs/actions/install-aptos-cli@f15a631e66e9c9388b653adc7199d26ab22af222 # jan 15, 2025
       with:
         CLI_VERSION: ${{ inputs.aptos_cli_version }}
 
