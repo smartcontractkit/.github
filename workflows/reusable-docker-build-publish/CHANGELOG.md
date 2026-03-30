@@ -1,5 +1,14 @@
 # reusable-docker-build-publish
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1488](https://github.com/smartcontractkit/.github/pull/1488)
+  [`77e30f3`](https://github.com/smartcontractkit/.github/commit/77e30f3aa3694a512e83f7901e61f20b714ce27d)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: allow for amd64
+  builds to be optional
+
 ## 1.0.0
 
 ### Major Changes
