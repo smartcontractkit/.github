@@ -123,14 +123,6 @@ inputs:
       on runners with sufficient disk (e.g. RunsOn with 100GB+) to save ~30-60s.
     default: "true"
 
-  save-remote-plugin-cache:
-    required: false
-    description: |
-      Whether this invocation should extract and save the remote plugin cache
-      on a cache miss. Set to "true" on exactly one matrix leg to avoid
-      duplicate extract+save work when parallel jobs share the same cache key.
-    default: "false"
-
 outputs:
   docker-image-sha-digest-amd64:
     description: "Docker image SHA digest for platform: amd64"
@@ -186,30 +178,6 @@ runs:
         done <<< "$GO_OVERRIDES"
         go mod tidy
 
-    # Remote plugin binaries: actions/cache keys only plugin manifests + scripts, not go.mod.
-    # Docker layer cache cannot do that because build-remote-plugins inherits deps-base (go.mod),
-    # so dep bumps would always invalidate ~160s of plugin work. Parallel matrix jobs may race on
-    # save; same key and artifacts mean the second actions/cache/save is effectively a no-op.
-    - name: Compute remote plugin cache key
-      id: plugin-cache
-      shell: bash
-      run: |
-        HASH=$(cat \
-          plugins/plugins.public.yaml \
-          plugins/plugins.private.yaml \
-          plugins/plugins.testing.yaml \
-          plugins/scripts/* \
-          | sha256sum | cut -d' ' -f1)
-        echo "key=remote-plugins-${HASH}" >> "$GITHUB_OUTPUT"
-        mkdir -p .plugin-cache
-
-    - name: Restore cached remote plugin binaries
-      id: plugin-cache-restore
-      uses: actions/cache/restore@v5
-      with:
-        key: ${{ steps.plugin-cache.outputs.key }}
-        path: .plugin-cache/
-
     - name: Free up disk space (to avoid 'no space left on device' errors)
       if: inputs.free-disk-space == 'true'
       uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
@@ -226,10 +194,6 @@ runs:
           COMMIT_SHA=${{ github.sha }}
           CHAINLINK_USER=chainlink
           ${{ inputs.docker-additional-build-args }}
-        docker-build-contexts: >-
-          ${{ steps.plugin-cache-restore.outputs.cache-hit == 'true'
-              && 'build-remote-plugins=.plugin-cache/'
-              || '' }}
         docker-attestations: "false"
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
@@ -253,28 +217,3 @@ runs:
         aws-region: ${{ inputs.aws-region }}
 
         github-token: ${{ steps.github-token.outputs.access-token || '' }}
-
-    - name: Extract remote plugin binaries for caching
-      if: inputs.save-remote-plugin-cache == 'true' &&
-        steps.plugin-cache-restore.outputs.cache-hit != 'true' &&
-        (github.event_name == 'schedule' || github.event_name == 'push' ||
-        github.event_name == 'pull_request') # TODO: Remove pull_request after testing
-      shell: bash
-      env:
-        DOCKERFILE: ${{ inputs.dockerfile }}
-      run: |
-        echo "Extracting remote plugin binaries for caching..."
-        docker buildx build \
-          --target export-remote-plugins \
-          --output type=local,dest=.plugin-cache \
-          -f "$DOCKERFILE" .
-
-    - name: Save remote plugin cache
-      if: inputs.save-remote-plugin-cache == 'true' &&
-        steps.plugin-cache-restore.outputs.cache-hit != 'true' &&
-        (github.event_name == 'schedule' || github.event_name == 'push' ||
-        github.event_name == 'pull_request') # TODO: Remove pull_request after testing
-      uses: actions/cache/save@v5
-      with:
-        key: ${{ steps.plugin-cache.outputs.key }}
-        path: .plugin-cache/
