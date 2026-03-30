@@ -122,7 +122,7 @@ outputs:
     description: "Docker image SHA digest for platform: amd64"
     value: ${{ steps.set-outputs.outputs.docker-image-sha-digest-amd64 }}
   docker-image-sha-digest-arm64:
-    description: "Docker image SHA digest for platform: amd64"
+    description: "Docker image SHA digest for platform: arm64"
     value: ${{ steps.set-outputs.outputs.docker-image-sha-digest-arm64 }}
   docker-image-tags:
     description: "Docker image tags"
