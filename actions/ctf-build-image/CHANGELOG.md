@@ -1,5 +1,14 @@
 # ctf-build-image
 
+## 1.8.0
+
+### Minor Changes
+
+- [#1495](https://github.com/smartcontractkit/.github/pull/1495)
+  [`27a262d`](https://github.com/smartcontractkit/.github/commit/27a262d7f1486f53834457ddd187a476d4762604)
+  Thanks [@kalverra](https://github.com/kalverra)! - Removes cache push on PR
+  event
+
 ## 1.7.0
 
 ### Minor Changes
