@@ -1,5 +1,14 @@
 # ci-lint-misc
 
+## 1.1.1
+
+### Patch Changes
+
+- [#1471](https://github.com/smartcontractkit/.github/pull/1471)
+  [`fdecb45`](https://github.com/smartcontractkit/.github/commit/fdecb456ed4086efecdd0d486caf5103bd6d3058)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump
+  reviewdog/action-actionlint
+
 ## 1.1.0
 
 ### Minor Changes

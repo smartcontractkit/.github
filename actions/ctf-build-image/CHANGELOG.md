@@ -1,5 +1,32 @@
 # ctf-build-image
 
+## 1.8.0
+
+### Minor Changes
+
+- [#1495](https://github.com/smartcontractkit/.github/pull/1495)
+  [`27a262d`](https://github.com/smartcontractkit/.github/commit/27a262d7f1486f53834457ddd187a476d4762604)
+  Thanks [@kalverra](https://github.com/kalverra)! - Removes cache push on PR
+  event
+
+## 1.7.0
+
+### Minor Changes
+
+- [#1487](https://github.com/smartcontractkit/.github/pull/1487)
+  [`e853abf`](https://github.com/smartcontractkit/.github/commit/e853abf95e88a8d1cc787ec14b00ac9ad70863e9)
+  Thanks [@kalverra](https://github.com/kalverra)! - Adds inputs and tweaks
+  docker caching strategy for better performance
+
+## 1.6.0
+
+### Minor Changes
+
+- [#1484](https://github.com/smartcontractkit/.github/pull/1484)
+  [`3315e6d`](https://github.com/smartcontractkit/.github/commit/3315e6d28f5f054239900d37fc048291e6f1b347)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: rework docker caching
+  setup
+
 ## 1.5.0
 
 ### Minor Changes
