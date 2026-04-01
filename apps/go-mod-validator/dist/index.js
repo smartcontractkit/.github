@@ -29681,7 +29681,15 @@ function lineForDependencyPathFinder() {
   };
 }
 function goModsToGoModules(goModFilePath, goMods, depPrefix) {
-  const goModules = goMods.map((d) => d.Replace || d).filter((d) => !d.Main && d.Path.startsWith(depPrefix)).map((d) => {
+  const goModules = goMods.map((d) => d.Replace || d).filter((d) => !d.Main && d.Path.startsWith(depPrefix)).filter((d) => {
+    if (d.Error && d.Error.Err) {
+      core.warning(
+        `Error loading module ${d.Path}: ${d.Error.Err}. This module will be skipped.`
+      );
+      return false;
+    }
+    return true;
+  }).map((d) => {
     const [_, owner, repo, ...subModulePathElements] = d.Path.split("/");
     const baseModule = {
       owner,

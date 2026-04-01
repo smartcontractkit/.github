@@ -109,7 +109,7 @@ runs:
         echo "workflow-run-number=${WORKFLOW_RUN_NUMBER}" | tee -a "$GITHUB_OUTPUT"
 
     - name: Checkout devenv repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: "smartcontractkit/devenv"
         ref: ${{ inputs.devenv-repo-ref }}
@@ -173,7 +173,7 @@ runs:
         echo "Kubernetes namespace [${DEVENV_NAMESPACE}] successfully labeled:"
         kubectl get namespace "${DEVENV_NAMESPACE}" --show-labels
 
-    - uses: smartcontractkit/.github/actions/setup-golang@setup-golang/1.1.0
+    - uses: smartcontractkit/.github/actions/setup-golang@setup-golang/v1
       with:
         go-version-file: "${{ github.workspace }}/devenv/go.mod"
         go-cache-dep-path: "${{ github.workspace }}/devenv/**/*.sum"

@@ -1,5 +1,14 @@
 # changesets-signed-commits
 
+## 1.8.0
+
+### Minor Changes
+
+- [#1455](https://github.com/smartcontractkit/.github/pull/1455)
+  [`2bdc12e`](https://github.com/smartcontractkit/.github/commit/2bdc12ef128524ab707543bc0814b6d9af36dfc0)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: stop trying to create
+  gh releases for already pre-existing releases
+
 ## 1.7.3
 
 ### Patch Changes

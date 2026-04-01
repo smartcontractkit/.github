@@ -1,0 +1,10 @@
+pnpm-lock.yaml linguist-generated
+**/dist/index.js linguist-generated
+
+**/generated/**/*.ts linguist-generated
+**/generated/**/*.mts linguist-generated
+
+**/__snapshots__/**/*.snap linguist-generated
+
+apps/go-mod-validator/tests/__fixtures__/**/go.mod linguist-generated
+apps/go-mod-validator/tests/__fixtures__/**/go.sum linguist-generated

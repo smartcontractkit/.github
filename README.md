@@ -26,50 +26,21 @@ the `uses` field of a Job step
 ### Action Versions
 
 This is a monorepo and all actions are versioned and tagged with the format
-`<action>@<version>`. To find the available versions, and corresponding commit
-for an action:
+`<action>/vX.Y.Z` or w/ mutable major version tags `<action>/vX`. To find the
+available versions, and corresponding commit for an action:
 
 - Look at the repo's tags through Github UI:
   https://github.com/smartcontractkit/.github/tags
-- Query the tags through CLI
-  ```
+- Query the tags through CLI (faster)
+  ```sh
   git for-each-ref --format="%(objectname) %(refname:short)" refs/tags | grep "<action name>"
   ```
 
 ### Automated Updates
 
-Updating these actions automatically requires a custom workflow, as Dependabot
-doesn't support updates for actions contained in monorepos.
-
-<details>
-<summary>Example Workflow</summary>
-
-```
-name: Update Actions
-
-on:
-  schedule:
-    - cron: "0 0 * * *"
-
-jobs:
-  update-actions:
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: write
-      pull-requests: write
-    steps:
-      - name: Update custom actions
-        uses: smartcontractkit/.github/actions/update-actions@5f5ebd52cb13f4b8530cd3005ec7ec3180840219 # update-actions@0.1.5
-        with:
-          aws-role-arn: ${{ secrets.AWS_OIDC_IAM_ROLE_ARN_GATI }}
-          aws-lambda-url: ${{ secrets.AWS_LAMBDA_URL_GATI }}
-          aws-role-arn-updater: ${{ secrets.AWS_OIDC_IAM_ROLE_ARN_GATI_UPDATER }}
-          aws-lambda-url-updater: ${{ secrets.AWS_LAMBDA_URL_GATI_UPDATER }}
-          aws-region: ${{ secrets.AWS_REGION }}
-```
-
-</details>
+We recommend using the major version tags for actions stored within this
+repository. This ensures that all actions are automatically updated if new minor
+or patch versions are released for the major version you are pinned to.
 
 ## Contributing
 
@@ -113,6 +84,8 @@ follows:
 
 1. You merge a change with a changeset file (in the `.changeset` directory)
    1. Created through invoking `pnpm changeset`
+   2. Or through [`gocs`](https://github.com/smartcontractkit/gocs)
+      (`go install github.com/smartcontractkit/gocs/cmd/gocs@latest`)
 2. A "Version packages" pull request will open or update
    ([ex](https://github.com/smartcontractkit/.github/pull/540)). This PR will
    "consume" the changesets present in the default branch by:

@@ -34,15 +34,15 @@ export async function pushTags(
     ? rewriteRootPackageTags(rewrittenTags, tagSeparator, rootPackageInfo)
     : rewrittenTags;
   core.debug(
-    `Final tags to push: ${finalTags.map((tag) => tag.name).join(", ")}`,
+    `Candidate tags to push: ${JSON.stringify(finalTags.map((tag) => tag.name))}`,
   );
 
   // Filter out rewritten tags that are already present on the remote.
   const filteredRewrittenTags = computeTagDiff(finalTags, remoteTagNames);
   core.debug(
-    `Filtered rewritten tags to push: ${filteredRewrittenTags
-      .map((tag) => tag.name)
-      .join(", ")}`,
+    `Filtered rewritten tags to push: ${JSON.stringify(
+      filteredRewrittenTags.map((tag) => tag.name),
+    )}`,
   );
   const createdTags = await createLightweightTags(filteredRewrittenTags, cwd);
   await execWithOutput("git", ["push", "origin", "--tags"], { cwd });

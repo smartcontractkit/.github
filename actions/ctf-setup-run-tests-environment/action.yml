@@ -167,7 +167,7 @@ runs:
 
     - name: Setup gauntlet plus plus
       if: inputs.gauntlet_plus_plus_image
-      uses: smartcontractkit/.github/actions/pull-private-ecr-image@pull-private-ecr-image/1.0.0 # pull-private-ecr-image@1.0.0
+      uses: smartcontractkit/.github/actions/pull-private-ecr-image@pull-private-ecr-image/1.0.0 # todo: update to major version tag
       with:
         aws-region: ${{ inputs.prod_aws_region }}
         aws-role-arn: ${{ inputs.prod_aws_role_to_assume }}
@@ -195,7 +195,7 @@ runs:
 
     # Setup AWS cred and K8s context
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
+      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
       with:
         aws-region: ${{ inputs.QA_AWS_REGION }}
         role-to-assume: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}

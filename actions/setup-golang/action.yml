@@ -49,7 +49,7 @@ runs:
         echo "version=$version" >> "$GITHUB_OUTPUT"
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: ${{ steps.go-version.outputs.version }}
         cache: ${{ inputs.use-go-cache }}
@@ -58,7 +58,7 @@ runs:
     - name: Get branch name
       if: ${{ inputs.only-modules == 'false' }}
       id: branch-name
-      uses: smartcontractkit/.github/actions/branch-names@branch-names/1.0.0
+      uses: smartcontractkit/.github/actions/branch-names@branch-names/v1
 
     - name: Set go cache keys
       shell: bash

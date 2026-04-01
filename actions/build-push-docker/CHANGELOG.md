@@ -1,5 +1,33 @@
 # build-push-docker
 
+## 1.3.0
+
+### Minor Changes
+
+- [#1484](https://github.com/smartcontractkit/.github/pull/1484)
+  [`3315e6d`](https://github.com/smartcontractkit/.github/commit/3315e6d28f5f054239900d37fc048291e6f1b347)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix and rework docker
+  caching logic. cache restores are now disabled by default, and
+  cache-to/cache-from inputs are no longer post-processed
+
+## 1.2.0
+
+### Minor Changes
+
+- [#1479](https://github.com/smartcontractkit/.github/pull/1479)
+  [`21aa195`](https://github.com/smartcontractkit/.github/commit/21aa19510fc6c71057534d78542255b0c1a1cf49)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: automatically inject
+  standard build args (CL_AUTO_DOCKER_TAG)
+
+## 1.1.0
+
+### Minor Changes
+
+- [#1458](https://github.com/smartcontractkit/.github/pull/1458)
+  [`5218eb3`](https://github.com/smartcontractkit/.github/commit/5218eb3fed5efee731fb8c7ad8fe1ca62114b836)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump many reusable
+  action dependencies for node24 support/migration
+
 ## 1.0.1
 
 ### Patch Changes
