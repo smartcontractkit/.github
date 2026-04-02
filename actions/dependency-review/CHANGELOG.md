@@ -1,5 +1,14 @@
 # dependency-review
 
+## 2.1.2
+
+### Patch Changes
+
+- [#1501](https://github.com/smartcontractkit/.github/pull/1501)
+  [`f633596`](https://github.com/smartcontractkit/.github/commit/f633596e63722f993ba09a2aa12284a6d2f9c61f)
+  Thanks [@erikburt](https://github.com/erikburt)! - add new dependency
+  vulnerability preset vulnerability-high-cve-2026-34040
+
 ## 2.1.1
 
 ### Patch Changes
