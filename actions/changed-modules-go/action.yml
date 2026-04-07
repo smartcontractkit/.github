@@ -52,5 +52,5 @@ outputs:
       A JSON array of the paths to the go modules, relative to the repository root.
 
 runs:
-  using: "node20"
+  using: "node24"
   main: "dist/index.js"

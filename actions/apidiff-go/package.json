@@ -24,7 +24,7 @@
   "devDependencies": {
     "@octokit/types": "^13.10.0",
     "@octokit/webhooks-types": "^7.6.1",
-    "@types/node": "^24.2.1",
+    "@types/node": "^24.12.2",
     "@types/semver": "^7.7.1",
     "vitest": "^4.0.18"
   }

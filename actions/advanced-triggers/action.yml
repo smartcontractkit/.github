@@ -58,5 +58,5 @@ outputs:
     description: "JSON array of trigger names that did not match"
 
 runs:
-  using: "node20"
+  using: "node24"
   main: "dist/index.js"

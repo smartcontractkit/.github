@@ -11,7 +11,7 @@
   "repository": "https://github.com/smartcontractkit/.github",
   "devDependencies": {
     "@octokit/types": "^13.5.0",
-    "@types/node": "^20.14.2",
+    "@types/node": "^24.12.2",
     "@types/node-fetch": "^2.6.11",
     "nock": "^13.5.4",
     "node-fetch": "^2.7.0",

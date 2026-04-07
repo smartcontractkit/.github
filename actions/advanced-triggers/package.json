@@ -18,7 +18,7 @@
     "@octokit/types": "^16.0.0",
     "@octokit/webhooks-types": "^7.6.1",
     "@types/micromatch": "^4.0.10",
-    "@types/node": "^25.5.0",
+    "@types/node": "^24.12.2",
     "vitest": "^4.0.18"
   }
 }
