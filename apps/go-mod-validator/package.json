@@ -15,6 +15,7 @@
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^24.12.2",
     "@types/node-fetch": "^2.6.11",
+    "@octokit/types": "^16.0.0",
     "fs-extra": "^11.2.0",
     "nock": "^13.5.4",
     "node-fetch": "^2.7.0",
@@ -23,11 +24,10 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.1",
-    "@actions/glob": "^0.4.0",
+    "@actions/core": "^2.0.3",
+    "@actions/github": "^8.0.1",
+    "@actions/glob": "^0.5.1",
     "@octokit/plugin-throttling": "^11.0.1",
-    "@octokit/types": "^13.5.0",
     "@snyk/go-semver": "^1.4.0",
     "vitest": "^4.0.18"
   },

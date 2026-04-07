@@ -10,9 +10,9 @@
   "author": "@smartcontractkit",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.1",
-    "@actions/glob": "^0.4.0",
+    "@actions/core": "^2.0.3",
+    "@actions/github": "^8.0.1",
+    "@actions/glob": "^0.5.1",
     "execa": "^9.6.0",
     "micromatch": "^4.0.8"
   },

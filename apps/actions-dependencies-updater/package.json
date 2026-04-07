@@ -24,7 +24,7 @@
     "zx": "^8.1.2"
   },
   "devDependencies": {
-    "@octokit/types": "^13.5.0",
+    "@octokit/types": "^16.0.0",
     "@types/minimist": "^1.2.5",
     "@types/node": "^24.12.2",
     "@types/semver": "^7.5.8",
