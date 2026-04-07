@@ -58,7 +58,6 @@ runs:
         aws-lambda-url: ${{ inputs.aws-lambda-url-updater }}
         aws-region: ${{ inputs.aws-region }}
         aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
-        set-git-config: "true"
 
     - name: Update custom action versions
       uses: smartcontractkit/.github/apps/update-action-versions@main

@@ -107,12 +107,11 @@ runs:
   using: composite
   steps:
     - name: Setup gh token
-      if: inputs.use-gati == 'true'
       id: get-gh-token
       uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
       with:
-        aws-role-arn: ${{ inputs.aws-role-arn-gati }}
-        aws-lambda-url: ${{ inputs.aws-lambda-url-gati }}
+        aws-role-arn: ${{ inputs.aws-role-arn }}
+        aws-lambda-url: ${{ inputs.aws-lambda-url }}
         aws-region: ${{ inputs.aws-region }}
         aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
 
