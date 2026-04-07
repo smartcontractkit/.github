@@ -1,5 +1,15 @@
 # ctf-run-tests
 
+## 0.13.0
+
+### Minor Changes
+
+- Add optional inputs `go_necessary` and `skip_go_modules_download` for workflows that run
+  precompiled `go test -c` binaries (for example E2E matrix jobs). When
+  `skip_go_modules_download` is true, module download is skipped while Go remains available
+  for `gotestsum` / `gotestloghelper`. Use `gotestsum --raw-command -- ./pkg.test -test.json ...`
+  in `test_command_to_run` for test2json output.
+
 ## 0.12.0
 
 ### Minor Changes

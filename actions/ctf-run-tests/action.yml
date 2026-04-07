@@ -220,6 +220,18 @@ inputs:
     description: |
       Whether to setup the database before running the tests. Typically used for in-memory tests.
     default: "false"
+  go_necessary:
+    required: false
+    description: |
+      Whether to install Go and run module download (via test_download_vendor_packages_command).
+      Set to "false" only if the runner already has a compatible Go toolchain and modules are not needed.
+    default: "true"
+  skip_go_modules_download:
+    required: false
+    description: |
+      When "true", replaces the module download step with a no-op. Use with precompiled test
+      binaries; Go is still installed for gotestsum/gotestloghelper unless go_necessary is false.
+    default: "false"
 
 runs:
   using: composite
@@ -231,9 +243,10 @@ runs:
       uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@ctf-setup-run-tests-environment/0.8.0
       with:
         test_download_vendor_packages_command:
-          ${{ inputs.test_download_vendor_packages_command }}
+          ${{ inputs.skip_go_modules_download == 'true' && 'echo Skipping go mod download \(prebuilt E2E binaries\); true' || inputs.test_download_vendor_packages_command }}
         go_version: ${{ inputs.go_version }}
         go_mod_path: ${{ inputs.go_mod_path }}
+        go_necessary: ${{ inputs.go_necessary }}
         cache_restore_only: ${{ inputs.cache_restore_only }}
         cache_key_id: ${{ inputs.cache_key_id }}
         aws_registries: ${{ inputs.aws_registries }}
