@@ -106,29 +106,16 @@ runs:
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
-    - name: Assume aws gati role
-      if: inputs.use-gati == 'true'
-      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
-      with:
-        role-to-assume: ${{ inputs.aws-role-arn-gati }}
-        role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
-        aws-region: ${{ inputs.aws-region }}
-        mask-aws-account-id: true
-
-    - name: Get github token from gati
+    - name: Setup gh token
       if: inputs.use-gati == 'true'
       id: get-gh-token
-      uses: smartcontractkit/chainlink-github-actions/github-app-token-issuer@main
+      uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
       with:
-        url: ${{ inputs.aws-lambda-url-gati }}
-
-    - name: Configure github token
-      if: inputs.use-gati == 'true'
-      shell: bash
-      run: |
-        git config --global \
-          url."https://x-access-token:${{ steps.get-gh-token.outputs.access-token }}@github.com/".insteadOf \
-          "https://github.com/"
+        aws-role-arn: ${{ inputs.aws-role-arn-gati }}
+        aws-lambda-url: ${{ inputs.aws-lambda-url-gati }}
+        aws-region: ${{ inputs.aws-region }}
+        aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+        set-git-config: "true"
 
     - name: Set env from files
       if: inputs.use-env-files == 'true'
