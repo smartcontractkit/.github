@@ -901,6 +901,8 @@ importers:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@25.5.0)(jiti@2.6.1)(jsdom@24.1.0)(tsx@4.19.1)(yaml@2.8.2)
 
+  workflows/reusable-codeowners-review-analysis: {}
+
   workflows/reusable-docker-build-publish: {}
 
 packages:

@@ -1,0 +1,47 @@
+# Reusable CodeOwners Review Analysis
+
+A simple reusable workflow wrapper around the `codeowners-review-analysis` CORA
+action.
+
+- https://github.com/smartcontractkit/.github/tree/main/actions/codeowners-review-analysis
+
+## Usage
+
+```yaml
+name: Codeowners Review Analysis
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+  pull_request_review:
+    types:
+      - submitted
+      - edited
+      - dismissed
+
+# Cancel any in-progress runs for the same pull request when a new event is triggered
+# - This is mainly to stop concurrent 'synchronizes' and 'review dismissal' events
+concurrency:
+  group:
+    ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cora:
+    uses: smartcontractkit/.github/.github/workflows/reusable-codeowners-review-analysis.yml@<ref>
+    permissions:
+      actions: read # needed to pull actions run url
+      contents: read # needed to pull codeowners file
+      id-token: write # used to assume aws role
+      pull-requests: write # needed to read pull request and add comments
+      issues: write # needed to add labels on PRs (weirdly)
+    with:
+      cora-minimum-codeowners: 5
+      cora-minimum-codeowners-entries: 2
+    secrets:
+      AWS_ROLE_GATI_ARN: ${{ secrets.GATI_CODEOWNERS_IAM_ARN }}
+      AWS_LAMBDA_GATI_URL: ${{ secrets.GATI_CODEOWNERS_LAMBDA_URL }}
+```
