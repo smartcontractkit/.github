@@ -1,5 +1,14 @@
 # update-actions
 
+## 0.3.0
+
+### Minor Changes
+
+- [#1504](https://github.com/smartcontractkit/.github/pull/1504)
+  [`23b59ed`](https://github.com/smartcontractkit/.github/commit/23b59ed99408a4afc17c844fe624d893f628c55d)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: migrate to
+  setup-github-token action in place of individual calls
+
 ## 0.2.0
 
 ### Minor Changes
