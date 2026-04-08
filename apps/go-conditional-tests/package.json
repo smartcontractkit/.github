@@ -4,8 +4,7 @@
   "private": true,
   "description": "",
   "engines": {
-    "pnpm": "10",
-    "node": "20"
+    "pnpm": "10"
   },
   "main": "dist/index.js",
   "scripts": {
@@ -15,7 +14,7 @@
   "devDependencies": {
     "@octokit/types": "^16.0.0",
     "@types/fs-extra": "^11.0.4",
-    "@types/node": "^20.14.9",
+    "@types/node": "^24.12.2",
     "@types/node-fetch": "^2.6.11",
     "fs-extra": "^11.2.0",
     "nock": "^13.5.4",
@@ -29,7 +28,7 @@
     "@actions/cache": "^5.0.5",
     "@actions/core": "^2.0.3",
     "@actions/github": "^8.0.1",
-    "@actions/glob": "^0.6.1",
+    "@actions/glob": "^0.5.1",
     "@octokit/plugin-throttling": "^11.0.3",
     "@snyk/go-semver": "^1.4.0",
     "execa": "^9.5.1",

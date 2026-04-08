@@ -38,7 +38,7 @@
     "@swc/cli": "0.7.10",
     "@swc/core": "1.15.8",
     "@swc/helpers": "0.5.19",
-    "@types/node": "20.14.13",
+    "@types/node": "24.12.2",
     "@typescript-eslint/eslint-plugin": "^7.13.0",
     "@typescript-eslint/parser": "^7.13.0",
     "esbuild": "^0.23.0",

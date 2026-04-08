@@ -8,8 +8,8 @@
   "license": "MIT",
   "repository": "https://github.com/smartcontractkit/.github",
   "dependencies": {
-    "@actions/core": "^3.0.0",
-    "@actions/github": "^9.0.0",
+    "@actions/core": "^2.0.3",
+    "@actions/github": "^8.0.1",
     "micromatch": "^4.0.8",
     "yaml": "^2.8.0",
     "zod": "^4.3.6"
@@ -18,7 +18,7 @@
     "@octokit/types": "^16.0.0",
     "@octokit/webhooks-types": "^7.6.1",
     "@types/micromatch": "^4.0.10",
-    "@types/node": "^25.5.0",
+    "@types/node": "^24.12.2",
     "vitest": "^4.0.18"
   }
 }
