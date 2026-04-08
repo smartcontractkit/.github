@@ -1,14 +1,14 @@
 {
   "name": "matrix-job-check",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "private": true,
   "scripts": {},
   "author": "@smartcontractkit",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^2.0.1",
-    "@actions/github": "^6.0.1"
+    "@actions/core": "^2.0.3",
+    "@actions/github": "^8.0.1"
   },
   "repository": "https://github.com/smartcontractkit/.github",
   "devDependencies": {
