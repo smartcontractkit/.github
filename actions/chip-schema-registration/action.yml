@@ -47,7 +47,7 @@ runs:
     - uses: actions/checkout@v6
 
     - name: Login to ECR
-      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      uses: aws-actions/amazon-ecr-login@f2e9fc6c2b355c1890b65e6f6f0e2ac3e6e22f78 # v2.1.2
       with:
         registries: ${{ inputs.aws-account-id }}
 
@@ -61,7 +61,7 @@ runs:
         docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/atlas-chip-cli:qa-latest chip-cli
 
     - name: Connect to Tailscale
-      uses: tailscale/github-action@84a3f23bb4d843bcf4da6cf824ec1be473daf4de
+      uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8 # v4.1.2
       with:
         oauth-client-id: ${{ inputs.ts-ouath-client-id }}
         oauth-secret: ${{ inputs.ts-ouath-secret }}
