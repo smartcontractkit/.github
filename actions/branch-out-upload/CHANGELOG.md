@@ -1,5 +1,15 @@
 # branch-out-upload
 
+## 1.9.1
+
+### Patch Changes
+
+- [#1512](https://github.com/smartcontractkit/.github/pull/1512)
+  [`e6432ad`](https://github.com/smartcontractkit/.github/commit/e6432ad8600d49bf7526f4be82608bcde708c98b)
+  Thanks [@Fletch153](https://github.com/Fletch153)! - Add artifact-name input
+  to prevent 409 collision when multiple matrix jobs upload test logs in the
+  same workflow run
+
 ## 1.9.0
 
 ### Minor Changes
