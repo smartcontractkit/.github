@@ -1,5 +1,14 @@
 # crib-deploy-environment
 
+## 8.10.0
+
+### Minor Changes
+
+- [#1510](https://github.com/smartcontractkit/.github/pull/1510)
+  [`8431395`](https://github.com/smartcontractkit/.github/commit/84313959070d021e5545d443021c136d1ce409bf)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump some action
+  dependencies to node24 version
+
 ## 8.9.0
 
 ### Minor Changes
