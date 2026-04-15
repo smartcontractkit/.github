@@ -194,7 +194,7 @@ runs:
       if:
         ${{ steps.dockerfile-ecr-parse.outputs.needs-ecr-login == 'true' ||
         inputs.docker-push == 'true' }}
-      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+      uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
         role-duration-seconds: 900
@@ -340,7 +340,7 @@ runs:
 
     - name: Build & push image
       id: build-image
-      uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+      uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
       env:
         DOCKER_BUILD_CHECKS_ANNOTATIONS: true
         DOCKER_BUILD_SUMMARY: true

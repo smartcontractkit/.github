@@ -164,12 +164,12 @@ runs:
         echo "name=${DOCKER_REGISTRY_URL}/${DOCKER_REPOSITORY_NAME}" | tee -a "$GITHUB_OUTPUT"
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+      uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
       with:
         version: v0.27.0
 
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+      uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
         role-duration-seconds: 900
@@ -372,7 +372,7 @@ runs:
 
     - name: Install cosign
       if: inputs.docker-manifest-sign == 'true'
-      uses: sigstore/cosign-installer@c56c2d3e59e4281cc41dea2217323ba5694b171e # v3.8.0
+      uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
       with:
         cosign-release: "v2.4.2"
 
