@@ -1,7 +1,3 @@
-# GENERATED FILE - DO NOT EDIT DIRECTLY.
-# Source: workflows/run-e2e-tests/run-e2e-tests.yml
-# Edit the source under workflows/, then regenerate.
-
 # This is a reusable workflow that runs E2E tests for Chainlink.
 # It is not meant to be run on its own.
 #
