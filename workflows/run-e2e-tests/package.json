@@ -1,6 +1,6 @@
 {
   "name": "run-e2e-tests",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "",
   "private": true,
   "scripts": {},
