@@ -1,7 +1,3 @@
-# GENERATED FILE - DO NOT EDIT DIRECTLY.
-# Source: workflows/reusable-docusaurus/reusable-docusaurus.yml
-# Edit the source under workflows/, then regenerate.
-
 name: Reusable Docusaurus
 
 ##
