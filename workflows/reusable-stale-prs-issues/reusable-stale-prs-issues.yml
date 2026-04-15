@@ -1,7 +1,3 @@
-# GENERATED FILE - DO NOT EDIT DIRECTLY.
-# Source: workflows/reusable-stale-prs-issues/reusable-stale-prs-issues.yml
-# Edit the source under workflows/, then regenerate.
-
 name: Reusable Stale PRs and Stale Issues
 
 # This workflow analyzes pull requests and issues to identify and close stale ones that have not had any activity for
