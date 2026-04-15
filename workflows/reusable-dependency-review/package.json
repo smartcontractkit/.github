@@ -1,0 +1,11 @@
+{
+  "name": "reusable-dependency-review",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {},
+  "keywords": [],
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "packageManager": "pnpm@10.29.3"
+}
