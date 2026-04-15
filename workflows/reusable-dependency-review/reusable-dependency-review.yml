@@ -1,7 +1,3 @@
-# GENERATED FILE - DO NOT EDIT DIRECTLY.
-# Source: workflows/reusable-dependency-review/reusable-dependency-review.yml
-# Edit the source under workflows/, then regenerate.
-
 name: Reusable Dependency Review
 
 # This workflow analyzes dependencies introduced by pull requests to help identify security vulnerabilities
