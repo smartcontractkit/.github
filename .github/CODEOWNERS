@@ -14,3 +14,8 @@
 
 # data-applications
 /actions/chip-schema-registration/ @smartcontractkit/data-tooling
+
+# Medic (auto workflow retry only)
+/actions/medic-workflow-retry-auto/** @smartcontractkit/foundations
+/libs/medic/** @smartcontractkit/foundations
+/.github/workflows/medic-*.yml @smartcontractkit/foundations

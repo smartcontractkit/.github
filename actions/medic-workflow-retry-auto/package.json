@@ -1,0 +1,20 @@
+{
+  "name": "@chainlink/medic-workflow-retry-auto",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Medic: automatic workflow retry on workflow_run failure",
+  "engines": {
+    "node": ">=24",
+    "pnpm": ">=10"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1",
+    "@chainlink/medic": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.3"
+  }
+}

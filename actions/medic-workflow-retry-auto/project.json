@@ -1,0 +1,40 @@
+{
+  "name": "medic-workflow-retry-auto",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "actions/medic-workflow-retry-auto",
+  "targets": {
+    "build": {
+      "dependsOn": ["build:internal"],
+      "command": "rimraf dist/package.json"
+    },
+    "build:internal": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "format": ["cjs"],
+        "thirdParty": true,
+        "outputPath": "actions/medic-workflow-retry-auto/dist/",
+        "main": "actions/medic-workflow-retry-auto/src/main.ts",
+        "assets": [],
+        "outputFileName": "index.js",
+        "esbuildOptions": {
+          "outExtension": {
+            ".js": ".js"
+          }
+        },
+        "tsConfig": "tsconfig.json",
+        "platform": "node"
+      },
+      "configurations": {
+        "development": {
+          "minify": false
+        },
+        "production": {
+          "minify": false
+        }
+      }
+    }
+  }
+}
