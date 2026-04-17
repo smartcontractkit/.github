@@ -30,3 +30,7 @@ yarn.lock
 **/src/generated/graphql.ts
 
 /.nx/workspace-data
+
+# Github workflow files
+.github/workflows/*.yml
+workflows/**/*.yml

@@ -1,0 +1,62 @@
+name: advanced-triggers
+description:
+  "Filters changed files for a GitHub event according to named glob trigger
+  patterns, with clear negation semantics and support for always-on event types"
+
+inputs:
+  github-token:
+    description: "GitHub token to use for authentication"
+    default: ${{ github.token }}
+    required: true
+
+  repository-root:
+    description: |
+      The root directory of the repository. Used for git-based changed file detection on push
+      and merge_group events. Defaults to the GitHub Actions workspace.
+    default: ${{ github.workspace }}
+    required: false
+
+  file-sets:
+    description: |
+      An optional YAML string defining named pattern groups that triggers can reference.
+      Each file-set is a key mapping to a list of positive glob patterns (no ! prefixes).
+      Triggers reference file-sets via "inclusion-sets" (matched as positive patterns) or
+      "exclusion-sets" (excluded before positive matching).
+    required: false
+
+  force-all:
+    description: |
+      When set to "true", skips all file-change detection and trigger evaluation
+      and outputs true for every configured trigger. Use this to unconditionally
+      run all jobs — for example when pushing to a release branch or a tag.
+      Defaults to "false".
+    default: "false"
+    required: false
+
+  triggers:
+    description: |
+      A YAML string defining named triggers. Each trigger is a mapping with optional
+      "inclusion-sets" (file-set names whose patterns are matched), "exclusion-sets"
+      (file-set names whose patterns are excluded before matching), "paths" (inline glob
+      patterns, may use ! for one-off exclusions), and "always-trigger-on" (event names
+      that always produce a true output, bypassing file matching). "always-trigger-on"
+      defaults to ["schedule", "workflow_dispatch"]. A trigger must have at least one
+      way to output true: at least one positive pattern via "inclusion-sets"/"paths", or
+      at least one entry in "always-trigger-on". See the README for full semantics and examples.
+    required: true
+
+outputs:
+  any:
+    description: '"true" if any trigger matched, "false" otherwise'
+  triggers-matched:
+    description: "Comma-separated list of trigger names that matched"
+  triggers-not-matched:
+    description: "Comma-separated list of trigger names that did not match"
+  triggers-matched-json:
+    description: "JSON array of trigger names that matched"
+  triggers-not-matched-json:
+    description: "JSON array of trigger names that did not match"
+
+runs:
+  using: "node24"
+  main: "dist/index.js"

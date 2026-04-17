@@ -81,33 +81,20 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
-    - name: Assume aws gati role
-      if: inputs.use-gati == 'true'
-      uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
-      with:
-        role-to-assume: ${{ inputs.aws-role-arn-gati }}
-        role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
-        aws-region: ${{ inputs.aws-region }}
-        mask-aws-account-id: true
-
-    - name: Get github token from gati
+    - name: Setup gh token
       if: inputs.use-gati == 'true'
       id: get-gh-token
-      uses: smartcontractkit/chainlink-github-actions/github-app-token-issuer@main
+      uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
       with:
-        url: ${{ inputs.aws-lambda-url-gati }}
-
-    - name: Configure github token
-      if: inputs.use-gati == 'true'
-      shell: bash
-      run: |
-        git config --global \
-          url."https://x-access-token:${{ steps.get-gh-token.outputs.access-token }}@github.com/".insteadOf \
-          "https://github.com/"
+        aws-role-arn: ${{ inputs.aws-role-arn-gati }}
+        aws-lambda-url: ${{ inputs.aws-lambda-url-gati }}
+        aws-region: ${{ inputs.aws-region }}
+        aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+        set-git-config: "true"
 
     - name: Set env from files
       if: inputs.use-env-files == 'true'
@@ -116,7 +103,7 @@ runs:
         envFile: ${{ inputs.env-files }}
 
     - name: Setup go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version-file: ${{ inputs.go-version-file }}
         cache: ${{ inputs.use-go-cache }}
@@ -154,7 +141,7 @@ runs:
 
     - name: Store lint report artifact
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.artifact-name }}
         path: ${{ inputs.go-directory }}/golangci-lint-report.xml

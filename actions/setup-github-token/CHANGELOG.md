@@ -1,5 +1,23 @@
 # setup-github-token
 
+## 1.2.0
+
+### Minor Changes
+
+- [#1498](https://github.com/smartcontractkit/.github/pull/1498)
+  [`7d3215c`](https://github.com/smartcontractkit/.github/commit/7d3215c222be8e26af232af22a0e52edfbdcfd02)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: use invoke-gati
+  v0.3.0 (node24) instead of older action in chainlink-github-actions
+
+## 1.1.0
+
+### Minor Changes
+
+- [#1458](https://github.com/smartcontractkit/.github/pull/1458)
+  [`5218eb3`](https://github.com/smartcontractkit/.github/commit/5218eb3fed5efee731fb8c7ad8fe1ca62114b836)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump many reusable
+  action dependencies for node24 support/migration
+
 ## 1.0.1
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # invoke-gati
 
+## 0.3.0
+
+### Minor Changes
+
+- [#1497](https://github.com/smartcontractkit/.github/pull/1497)
+  [`5026c59`](https://github.com/smartcontractkit/.github/commit/5026c5976715732f2cec99738afe84ba6dc16416)
+  Thanks [@erikburt](https://github.com/erikburt)! - sync v0.3.0 - node24 update
+
 ## 0.1.0
 
 ### Minor Changes

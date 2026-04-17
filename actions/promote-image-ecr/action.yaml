@@ -83,24 +83,24 @@ runs:
         cosign-release: "v3.0.2"
 
     - name: Configure AWS credentials (SOURCE)
-      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6
+      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
       with:
         role-to-assume: ${{ inputs.source-role-arn }}
         aws-region: ${{ inputs.source-aws-region || inputs.aws-region }}
 
     - name: Login to Amazon ECR (SOURCE)
       id: src
-      uses: aws-actions/amazon-ecr-login@v2
+      uses: aws-actions/amazon-ecr-login@f2e9fc6c2b355c1890b65e6f6f0e2ac3e6e22f78 # v2.1.2
 
     - name: Configure AWS credentials (DESTINATION)
-      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6
+      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
       with:
         role-to-assume: ${{ inputs.destination-role-arn }}
         aws-region: ${{ inputs.destination-aws-region || inputs.aws-region }}
 
     - name: Login to Amazon ECR (DESTINATION)
       id: dst
-      uses: aws-actions/amazon-ecr-login@v2
+      uses: aws-actions/amazon-ecr-login@f2e9fc6c2b355c1890b65e6f6f0e2ac3e6e22f78 # v2.1.2
 
     - name: Copy image
       shell: bash

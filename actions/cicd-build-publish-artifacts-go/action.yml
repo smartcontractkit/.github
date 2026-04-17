@@ -110,37 +110,24 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
         ref: ${{ inputs.checkout-ref }}
 
-    - name: Assume aws gati role
-      if: inputs.use-gati == 'true'
-      uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
-      with:
-        role-to-assume: ${{ inputs.aws-role-arn-gati }}
-        role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
-        aws-region: ${{ inputs.aws-region }}
-        mask-aws-account-id: true
-
-    - name: Get github token from gati
+    - name: Setup gh token
       if: inputs.use-gati == 'true'
       id: get-gh-token
-      uses: smartcontractkit/chainlink-github-actions/github-app-token-issuer@main
+      uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
       with:
-        url: ${{ inputs.aws-lambda-url-gati }}
-
-    - name: Configure github token
-      if: inputs.use-gati == 'true'
-      shell: bash
-      run: |
-        git config --global \
-          url."https://x-access-token:${{ steps.get-gh-token.outputs.access-token }}@github.com/".insteadOf \
-          "https://github.com/"
+        aws-role-arn: ${{ inputs.aws-role-arn-gati }}
+        aws-lambda-url: ${{ inputs.aws-lambda-url-gati }}
+        aws-region: ${{ inputs.aws-region }}
+        aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+        set-git-config: "true"
 
     - name: Setup go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version-file: ${{ inputs.go-version-file }}
         cache: ${{ inputs.use-go-cache }}
@@ -177,7 +164,7 @@ runs:
         fi
 
     - name: Configure aws creds
-      uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
+      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
       if: inputs.publish == 'true' && inputs.docker-registry == 'aws'
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
@@ -187,7 +174,7 @@ runs:
 
     - name: Login to aws ecr
       if: inputs.publish == 'true' && inputs.docker-registry == 'aws'
-      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      uses: aws-actions/amazon-ecr-login@f2e9fc6c2b355c1890b65e6f6f0e2ac3e6e22f78 # v2.1.2
       with:
         registries: ${{ steps.process-params.outputs.aws-account-number }}
 

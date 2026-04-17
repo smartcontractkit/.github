@@ -14,7 +14,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: ci-lint
         uses: ./actions/ci-lint-ts
@@ -29,7 +29,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
@@ -46,7 +46,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
@@ -68,7 +68,7 @@ jobs:
       actions: read
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -87,7 +87,7 @@ jobs:
       actions: read
     steps:
       - name: Checkout repo (needed to reference local action)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           persist-credentials: false

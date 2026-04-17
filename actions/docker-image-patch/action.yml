@@ -129,7 +129,7 @@ runs:
         echo "::endgroup::"
 
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
         role-duration-seconds: 900
@@ -138,7 +138,7 @@ runs:
 
     - name: Login to ECR for source image
       id: login-ecr-src
-      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      uses: aws-actions/amazon-ecr-login@f2e9fc6c2b355c1890b65e6f6f0e2ac3e6e22f78 # v2.1.2
       env:
         AWS_REGION: ${{ steps.set-outputs.outputs.registry-src-type == 'public' && 'us-east-1' || inputs.aws-region }}
       with:
@@ -175,7 +175,7 @@ runs:
 
     - name: Login to ECR for destination image
       id: login-ecr-dst
-      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+      uses: aws-actions/amazon-ecr-login@f2e9fc6c2b355c1890b65e6f6f0e2ac3e6e22f78 # v2.1.2
       env:
         AWS_REGION: ${{ inputs.aws-region }}
       with:

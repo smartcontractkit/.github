@@ -47,7 +47,7 @@ runs:
         fi
 
     - name: Assume role capable of getting token from gati
-      uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
+      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
       with:
         aws-region: ${{ inputs.aws-region }}
         mask-aws-account-id: true
@@ -58,7 +58,7 @@ runs:
 
     - name: Get github token from gati
       id: get-gh-token
-      uses: smartcontractkit/chainlink-github-actions/github-app-token-issuer@main
+      uses: smartcontractkit/.github/actions/invoke-gati@invoke-gati/0.3.0
       with:
         url: ${{ inputs.aws-lambda-url }}
 

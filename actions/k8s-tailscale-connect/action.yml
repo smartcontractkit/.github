@@ -31,15 +31,14 @@ runs:
   using: "composite"
   steps:
     - name: Connect to Tailscale
-      # v3
-      uses: tailscale/github-action@84a3f23bb4d843bcf4da6cf824ec1be473daf4de
+      uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8 # v4.1.2
       with:
         oauth-client-id: ${{ inputs.tailscale-oauth-client-id }}
         oauth-secret: ${{ inputs.tailscale-oauth-secret }}
         tags: ${{ inputs.tailscale-tags }}
 
     - name: Configure AWS credentials using OIDC
-      uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
+      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
       with:
         role-to-assume: ${{ inputs.aws-oidc-role }}
         aws-region: ${{ inputs.aws-region }}

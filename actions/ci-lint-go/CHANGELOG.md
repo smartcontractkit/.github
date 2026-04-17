@@ -1,5 +1,17 @@
 # ci-lint-go
 
+## 4.2.0
+
+### Minor Changes
+
+- [#1504](https://github.com/smartcontractkit/.github/pull/1504) [`23b59ed`](https://github.com/smartcontractkit/.github/commit/23b59ed99408a4afc17c844fe624d893f628c55d) Thanks [@erikburt](https://github.com/erikburt)! - chore: migrate to setup-github-token action in place of individual calls
+
+## 4.1.0
+
+### Minor Changes
+
+- [#1458](https://github.com/smartcontractkit/.github/pull/1458) [`5218eb3`](https://github.com/smartcontractkit/.github/commit/5218eb3fed5efee731fb8c7ad8fe1ca62114b836) Thanks [@erikburt](https://github.com/erikburt)! - chore: bump many reusable action dependencies for node24 support/migration
+
 ## 4.0.0
 
 ### Major Changes

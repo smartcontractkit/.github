@@ -108,6 +108,21 @@ inputs:
       go get github.com/smartcontractkit/chainlink-solana@abc123
       go get github.com/smartcontractkit/chainlink-evm@def456
 
+  cache-scope:
+    required: false
+    description: |
+      Custom scope for Docker build cache. Separates caches when multiple
+      Dockerfiles build on the same architecture (e.g. "core" vs "plugins").
+      If not set, defaults to runner OS and architecture.
+    default: ""
+
+  free-disk-space:
+    required: false
+    description: |
+      Whether to run the free-disk-space step before building. Set to "false"
+      on runners with sufficient disk (e.g. RunsOn with 100GB+) to save ~30-60s.
+    default: "true"
+
 outputs:
   docker-image-sha-digest-amd64:
     description: "Docker image SHA digest for platform: amd64"
@@ -119,29 +134,16 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-go@v5
-      with:
-        go-version-file: "go.mod"
-        check-latest: true
-        cache: false
-
     - name: Setup GitHub token using GATI
       if: inputs.gati-role-arn != '' && inputs.gati-lambda-url != ''
       id: github-token
-      uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/1.0.0
+      uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
       with:
         aws-role-arn: ${{ inputs.gati-role-arn }}
         aws-lambda-url: ${{ inputs.gati-lambda-url }}
         aws-region: ${{ inputs.gati-aws-region }}
         aws-role-duration-seconds: "1800"
         set-git-config: "true"
-
-    - name: Process go get overrides
-      shell: bash
-      env:
-        GO_OVERRIDES: ${{ inputs.go-get-overrides }}
-        ACTIONS_PATH: ${{ github.action_path }}
-      run: ${ACTIONS_PATH}/scripts/go-get-overrides.sh
 
     - name: Process plugin manifest overrides (public)
       shell: bash
@@ -152,18 +154,32 @@ runs:
         ACTIONS_PATH: ${{ github.action_path }}
       run: ${ACTIONS_PATH}/scripts/plugin-overrides.sh
 
-    - name: Tidy and Output go.mod
-      shell: bash
-      run: |
-        echo "::group::Tidy go.mod"
-        go mod tidy
-        echo "::endgroup::"
+    - name: Setup Go for dependency overrides
+      if: inputs.go-get-overrides != ''
+      uses: actions/setup-go@v6
+      with:
+        go-version-file: go.mod
+        cache: false
 
-        echo "::group::cat go.mod"
-        cat go.mod
-        echo "::endgroup::"
+    - name: Apply go-get dependency overrides
+      if: inputs.go-get-overrides != ''
+      shell: bash
+      env:
+        GO_OVERRIDES: ${{ inputs.go-get-overrides }}
+      run: |
+        set -e
+        while IFS= read -r line; do
+          [ -z "$line" ] && continue
+          dep="${line%%=*}"
+          sha="${line#*=}"
+          [ -z "$dep" ] || [ -z "$sha" ] && continue
+          echo "Overriding: github.com/smartcontractkit/${dep}@${sha}"
+          go get "github.com/smartcontractkit/${dep}@${sha}"
+        done <<< "$GO_OVERRIDES"
+        go mod tidy
 
     - name: Free up disk space (to avoid 'no space left on device' errors)
+      if: inputs.free-disk-space == 'true'
       uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
     - name: Build push docker image
@@ -181,11 +197,19 @@ runs:
         docker-attestations: "false"
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
-
+        # only save on events which are expected to be from the default branch
+        docker-save-cache:
+          ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
+        # dont use cache on events which are expected to be from the default branch
+        # this is to create a fresh cache/snapshot unpolluted by previous cache entries
         docker-restore-cache:
-          ${{ github.event_name == 'pull_request' || github.event_name ==
-          'merge_group' }}
-        docker-save-cache: ${{ github.event_name == 'push' }}
+          ${{ github.event_name != 'schedule' && github.event_name != 'push' }}
+        docker-build-cache-to:
+          "type=gha,timeout=10m,mode=max,ignore-error=true,compression=zstd,compression-level=3,scope=ctf-build-image-${{
+          inputs.cache-scope || format('{0}-{1}', runner.os, runner.arch) }}"
+        docker-build-cache-from:
+          "type=gha,timeout=10m,scope=ctf-build-image-${{ inputs.cache-scope ||
+          format('{0}-{1}', runner.os, runner.arch) }}"
 
         tags: type=raw,value=${{ inputs.image-tag }}
         aws-account-number: ${{ inputs.aws-account-number }}

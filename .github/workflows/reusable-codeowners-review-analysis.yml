@@ -1,3 +1,7 @@
+# GENERATED FILE - DO NOT EDIT DIRECTLY.
+# Source: workflows/reusable-codeowners-review-analysis/reusable-codeowners-review-analysis.yml
+# Edit the source under workflows/, then regenerate.
+
 name: Reusable CodeOwners Review Analysis (CORA)
 
 on:

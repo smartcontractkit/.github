@@ -2,14 +2,14 @@ name: gha-workflow-validator
 description: "Will validate workflow changes in a repository"
 
 runs:
-  using: "node20"
+  using: "node24"
   main: "dist/index.js"
 
 inputs:
   evaluate-mode:
     description: "Set to true to never fail the action."
     required: false
-    default: false
+    default: "false"
   root-directory:
     description: "Root directory of the repository."
     required: false
@@ -17,25 +17,25 @@ inputs:
   diff-only:
     description: "Only validate line changes. Not existing workflows."
     required: false
-    default: false
+    default: "false"
 
   # validator options
   validate-runners:
     description: "Validate the runners in the workflow are approved for use."
     required: false
-    default: true
+    default: "true"
   validate-action-refs:
     description: "Validate action references use a SHA reference."
     required: false
-    default: true
+    default: "true"
   validate-action-node-versions:
     description: "Validate actions referenced are using node 20."
     required: false
-    default: true
+    default: "true"
   validate-actions-cache-version:
     description: "Validate actions/cache is using the proper version."
     required: false
-    default: true
+    default: "true"
 
   # validation behaviour options
   include-all-action-definitions:
@@ -43,4 +43,4 @@ inputs:
       "Include all action.yml files in the repository, not just the ones in
       .github/actions. Useful for action monorepos."
     required: false
-    default: false
+    default: "false"

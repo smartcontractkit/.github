@@ -48,13 +48,13 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
     - name: Setup github token
       id: get-access-token
-      uses: smartcontractkit/.github/actions/setup-github-token@main
+      uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
       with:
         aws-role-arn: ${{ inputs.aws-role-arn-gati }}
         aws-lambda-url: ${{ inputs.aws-lambda-url-gati }}

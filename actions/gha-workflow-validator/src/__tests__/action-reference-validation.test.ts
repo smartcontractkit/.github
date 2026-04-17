@@ -59,7 +59,7 @@ describe(ActionRefValidation.name, () => {
 
     const actionsCheckoutLineBadRef: FileLine = {
       lineNumber: 2,
-      content: "        uses: actions/checkout@v4",
+      content: "        uses: actions/checkout@v5",
       operation: "add",
       ignored: false,
     };
@@ -84,6 +84,31 @@ describe(ActionRefValidation.name, () => {
 
     const messages = await subject.validateLine(smartcontractKitLineBadRef);
     expect(messages).toEqual([]);
+  });
+
+  it("should invalidate action sha reference (trusted smartcontractkit/*)", async () => {
+    const octokit = getTestOctokit(nockBack.currentMode);
+    const subject = new ActionRefValidation(octokit, {
+      validateNodeVersion: false,
+    });
+
+    const smartcontractKitLineBadRef: FileLine = {
+      lineNumber: 2,
+      content:
+        "        uses: smartcontractkit/action@25bceeec79364be1aa21f72170d635abc838f34d # action@v1.0.0",
+      operation: "add",
+      ignored: false,
+    };
+
+    const messages = await subject.validateLine(smartcontractKitLineBadRef);
+    expect(messages).toEqual([
+      {
+        message:
+          "Trusted actions should use a major version tag, if available.",
+        severity: "warning",
+        type: "trusted-tag-ref",
+      },
+    ]);
   });
 
   it("should invalidate action reference (sha-ref / no comment)", async () => {

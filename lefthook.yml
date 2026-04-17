@@ -12,3 +12,7 @@ pre-commit:
       description: "Check for prettier formatting"
       glob: "*.{json,md,scss,yaml,yml}"
       run: pnpm hook:check {staged_files}
+    reusable-workflows:
+      description: "Check reusable workflows are synced"
+      glob: "{workflows/*/*,.github/workflows/*}.{yml,yaml}"
+      run: pnpm workflows:check {staged_files}

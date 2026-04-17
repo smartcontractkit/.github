@@ -106,22 +106,17 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Assume aws gati role
-      uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
-      with:
-        role-to-assume: ${{ inputs.aws-role-arn }}
-        role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
-        aws-region: ${{ inputs.aws-region }}
-        mask-aws-account-id: true
-
-    - name: Get github token from gati
+    - name: Setup gh token
       id: get-gh-token
-      uses: smartcontractkit/chainlink-github-actions/github-app-token-issuer@main
+      uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
       with:
-        url: ${{ inputs.aws-lambda-url }}
+        aws-role-arn: ${{ inputs.aws-role-arn }}
+        aws-lambda-url: ${{ inputs.aws-lambda-url }}
+        aws-region: ${{ inputs.aws-region }}
+        aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
 
     - name: Checkout repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
         token: ${{ steps.get-gh-token.outputs.access-token }}
@@ -133,7 +128,7 @@ runs:
         git config user.name "${{ inputs.git-user }}"
 
     - name: Setup nodejs
-      uses: smartcontractkit/.github/actions/setup-nodejs@main
+      uses: smartcontractkit/.github/actions/setup-nodejs@setup-nodejs/v1
       with:
         node-version-file: ${{ inputs.node-version-file }}
         pnpm-version: ${{ inputs.pnpm-version }}
@@ -142,7 +137,7 @@ runs:
 
     - name: Run changesets
       id: changesets
-      uses: smartcontractkit/.github/actions/signed-commits@changesets-signed-commits/1.7.0
+      uses: smartcontractkit/.github/actions/signed-commits@changesets-signed-commits/v1
       env:
         GITHUB_TOKEN: ${{ steps.get-gh-token.outputs.access-token }}
       with:

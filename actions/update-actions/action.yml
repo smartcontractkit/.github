@@ -37,37 +37,27 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
-    - name: Assume role capable of getting token from gati
-      uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
-      with:
-        role-to-assume: ${{ inputs.aws-role-arn }}
-        role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
-        aws-region: ${{ inputs.aws-region }}
-        mask-aws-account-id: true
-
-    - name: Get github token from gati
+    - name: Setup gh token
       id: get-gh-token
-      uses: smartcontractkit/chainlink-github-actions/github-app-token-issuer@main
+      uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
       with:
-        url: ${{ inputs.aws-lambda-url }}
-
-    - name: Assume role capable of getting token from gati for updater
-      uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
-      with:
-        role-to-assume: ${{ inputs.aws-role-arn-updater }}
-        role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+        aws-role-arn: ${{ inputs.aws-role-arn }}
+        aws-lambda-url: ${{ inputs.aws-lambda-url }}
         aws-region: ${{ inputs.aws-region }}
-        mask-aws-account-id: true
+        aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
 
-    - name: Get github token from gati for updater
+    - name: Setup gh token
       id: get-gh-token-updater
-      uses: smartcontractkit/chainlink-github-actions/github-app-token-issuer@main
+      uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
       with:
-        url: ${{ inputs.aws-lambda-url-updater }}
+        aws-role-arn: ${{ inputs.aws-role-arn-updater }}
+        aws-lambda-url: ${{ inputs.aws-lambda-url-updater }}
+        aws-region: ${{ inputs.aws-region }}
+        aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
 
     - name: Update custom action versions
       uses: smartcontractkit/.github/apps/update-action-versions@main

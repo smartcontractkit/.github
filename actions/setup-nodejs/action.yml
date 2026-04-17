@@ -41,7 +41,7 @@ runs:
   using: composite
   steps:
     - name: Install node
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version-file: ${{ inputs.node-version-file }}
         registry-url: ${{ inputs.registry-url }}
@@ -77,7 +77,7 @@ runs:
         echo "pnpm-version=${PNPM_VERSION_FROM_FILE}" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Install pnpm
-      uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
+      uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
       with:
         version: ${{ steps.pnpm-version.outputs.pnpm-version }}
         run_install: false
@@ -91,7 +91,7 @@ runs:
 
     - name: Setup pnpm cache
       if: inputs.use-cache == 'true' && inputs.restore-cache-only == 'false'
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -100,7 +100,7 @@ runs:
 
     - name: Restore pnpm cache
       if: inputs.use-cache == 'true' && inputs.restore-cache-only == 'true'
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}

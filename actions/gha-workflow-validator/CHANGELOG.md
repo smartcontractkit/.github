@@ -1,5 +1,23 @@
 # gha-workflow-validator
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1505](https://github.com/smartcontractkit/.github/pull/1505)
+  [`866a6d3`](https://github.com/smartcontractkit/.github/commit/866a6d398c776fd4b30fb57d5b08804f4c7cb350)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: node24 and
+  dependency updates
+
+## 1.0.0
+
+### Major Changes
+
+- [#1460](https://github.com/smartcontractkit/.github/pull/1460)
+  [`fd8a8f8`](https://github.com/smartcontractkit/.github/commit/fd8a8f8eb964d104f27a4811741086d30616811e)
+  Thanks [@erikburt](https://github.com/erikburt)! - initial release - update to
+  flag node20 actions, and when tag refs should be used
+
 ## 0.5.4
 
 ### Patch Changes

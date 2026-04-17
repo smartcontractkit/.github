@@ -1,5 +1,31 @@
 # go-mod-validator
 
+## 1.6.0
+
+### Minor Changes
+
+- [#1505](https://github.com/smartcontractkit/.github/pull/1505)
+  [`866a6d3`](https://github.com/smartcontractkit/.github/commit/866a6d398c776fd4b30fb57d5b08804f4c7cb350)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: node24 and
+  dependency updates
+
+## 1.5.1
+
+### Patch Changes
+
+- [#1454](https://github.com/smartcontractkit/.github/pull/1454)
+  [`49849dc`](https://github.com/smartcontractkit/.github/commit/49849dcba80c8e5ee1216de7da9867e71377639f)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump simple-git dep
+
+## 1.5.0
+
+### Minor Changes
+
+- [#1452](https://github.com/smartcontractkit/.github/pull/1452)
+  [`fcdc05f`](https://github.com/smartcontractkit/.github/commit/fcdc05ffa0e8415acabbdbdcb3af1e7352df427b)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: filter out errored
+  dependenies
+
 ## 1.4.0
 
 ### Minor Changes
