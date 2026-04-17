@@ -2,8 +2,8 @@
  * Auto workflow retry — triggered by workflow_run after a failed run.
  */
 
-import * as core from '@actions/core';
-import * as github from '@actions/github';
+import * as core from "@actions/core";
+import * as github from "@actions/github";
 import {
   evaluateAndRetryRun,
   isAuthorAllowed,
@@ -11,7 +11,7 @@ import {
   upsertRetryComment,
   type OctokitClient,
   type RetryResult,
-} from '@chainlink/medic';
+} from "@chainlink/medic";
 
 interface WorkflowRunPayload {
   id: number;
@@ -30,14 +30,23 @@ async function isPREligible(
   repo: string,
   prNumber: number,
   allowedAuthors: string[],
-): Promise<{ eligible: boolean; reason?: string; author?: string; headSha?: string }> {
-  const { data: pr } = await octokit.rest.pulls.get({ owner, repo, pull_number: prNumber });
+): Promise<{
+  eligible: boolean;
+  reason?: string;
+  author?: string;
+  headSha?: string;
+}> {
+  const { data: pr } = await octokit.rest.pulls.get({
+    owner,
+    repo,
+    pull_number: prNumber,
+  });
 
   if (pr.draft) {
-    return { eligible: false, reason: 'PR is draft' };
+    return { eligible: false, reason: "PR is draft" };
   }
 
-  const author = pr.user?.login || 'unknown';
+  const author = pr.user?.login || "unknown";
   if (!isAuthorAllowed(author, allowedAuthors)) {
     return { eligible: false, reason: `author ${author} not on allowlist` };
   }
@@ -47,13 +56,17 @@ async function isPREligible(
 
 export async function run(): Promise<void> {
   try {
-    const token = core.getInput('github-token', { required: true });
+    const token = core.getInput("github-token", { required: true });
     const octokit = github.getOctokit(token);
     const { owner, repo } = github.context.repo;
 
-    const workflowRun = github.context.payload.workflow_run as WorkflowRunPayload | undefined;
+    const workflowRun = github.context.payload.workflow_run as
+      | WorkflowRunPayload
+      | undefined;
     if (!workflowRun) {
-      core.setFailed('No workflow_run in event payload — this action must be triggered by workflow_run');
+      core.setFailed(
+        "No workflow_run in event payload — this action must be triggered by workflow_run",
+      );
       return;
     }
 
@@ -61,8 +74,10 @@ export async function run(): Promise<void> {
       `Auto-retry evaluating: ${workflowRun.name} (run ${workflowRun.id}, conclusion: ${workflowRun.conclusion})`,
     );
 
-    if (workflowRun.conclusion !== 'failure') {
-      core.info(`Workflow concluded with "${workflowRun.conclusion}", nothing to retry`);
+    if (workflowRun.conclusion !== "failure") {
+      core.info(
+        `Workflow concluded with "${workflowRun.conclusion}", nothing to retry`,
+      );
       return;
     }
 
@@ -70,34 +85,46 @@ export async function run(): Promise<void> {
     const retryConfig = config.workflow_retry;
     const allowedAuthors = config.merge_conflict.allowed_authors;
 
-    const workflowFile = workflowRun.path.split('/').pop() || '';
+    const workflowFile = workflowRun.path.split("/").pop() || "";
     if (!retryConfig.retryable.includes(workflowFile)) {
-      core.info(`Workflow "${workflowFile}" is not in the retryable list, skipping`);
+      core.info(
+        `Workflow "${workflowFile}" is not in the retryable list, skipping`,
+      );
       return;
     }
 
     const runAttempt = workflowRun.run_attempt ?? 1;
     if (runAttempt >= retryConfig.max_attempts) {
-      core.info(`Max attempts reached (${runAttempt}/${retryConfig.max_attempts}), skipping`);
+      core.info(
+        `Max attempts reached (${runAttempt}/${retryConfig.max_attempts}), skipping`,
+      );
       return;
     }
 
     const pullRequests = workflowRun.pull_requests ?? [];
     if (pullRequests.length === 0) {
-      core.info('No associated pull requests found, skipping');
+      core.info("No associated pull requests found, skipping");
       return;
     }
 
     for (const prRef of pullRequests) {
       core.info(`Checking PR #${prRef.number} for eligibility`);
 
-      const eligibility = await isPREligible(octokit, owner, repo, prRef.number, allowedAuthors);
+      const eligibility = await isPREligible(
+        octokit,
+        owner,
+        repo,
+        prRef.number,
+        allowedAuthors,
+      );
       if (!eligibility.eligible) {
         core.info(`  PR #${prRef.number} not eligible: ${eligibility.reason}`);
         continue;
       }
 
-      core.info(`  PR #${prRef.number} eligible (author: ${eligibility.author})`);
+      core.info(
+        `  PR #${prRef.number} eligible (author: ${eligibility.author})`,
+      );
 
       const result = await evaluateAndRetryRun(
         octokit,
@@ -122,11 +149,14 @@ export async function run(): Promise<void> {
         headSha: eligibility.headSha!,
       });
 
-      const status = result.status === 'retrying' ? 'triggered retry' : result.status;
+      const status =
+        result.status === "retrying" ? "triggered retry" : result.status;
       core.info(`  PR #${prRef.number}: ${status}`);
     }
   } catch (error) {
-    core.setFailed(`Auto workflow retry failed: ${error instanceof Error ? error.message : String(error)}`);
+    core.setFailed(
+      `Auto workflow retry failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }
 

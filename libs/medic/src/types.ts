@@ -2,7 +2,7 @@
  * Shared TypeScript types for Medic
  */
 
-import type { GitHub } from '@actions/github/lib/utils';
+import type { GitHub } from "@actions/github/lib/utils";
 
 export type OctokitClient = InstanceType<typeof GitHub>;
 
@@ -11,11 +11,13 @@ export interface GraphQLPullRequest {
   headRefName: string;
   baseRefName: string;
   isDraft: boolean;
-  mergeable: 'MERGEABLE' | 'CONFLICTING' | 'UNKNOWN';
-  reviewDecision: 'APPROVED' | 'CHANGES_REQUESTED' | 'REVIEW_REQUIRED' | null;
+  mergeable: "MERGEABLE" | "CONFLICTING" | "UNKNOWN";
+  reviewDecision: "APPROVED" | "CHANGES_REQUESTED" | "REVIEW_REQUIRED" | null;
   author: { login: string };
   labels: { nodes: { name: string }[] };
-  commits: { nodes: { commit: { pushedDate: string | null; committedDate: string } }[] };
+  commits: {
+    nodes: { commit: { pushedDate: string | null; committedDate: string } }[];
+  };
   headRepository: { isFork: boolean } | null;
 }
 
@@ -97,7 +99,13 @@ export interface MedicConfig {
   workflow_retry: WorkflowRetryConfig;
 }
 
-export type RetryStatus = 'retrying' | 'passing' | 'max_attempts' | 'no_runs' | 'error' | 'skipped';
+export type RetryStatus =
+  | "retrying"
+  | "passing"
+  | "max_attempts"
+  | "no_runs"
+  | "error"
+  | "skipped";
 
 export interface RetryResult {
   workflow: string;
@@ -107,7 +115,7 @@ export interface RetryResult {
   status: RetryStatus;
   error?: string;
   analysis?: {
-    decision: 'retry' | 'skip';
+    decision: "retry" | "skip";
     category: string;
     reasoning: string;
     confidence: string;

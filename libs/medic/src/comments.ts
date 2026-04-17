@@ -2,10 +2,22 @@
  * PR comment utilities for Medic (merge conflict + workflow retry).
  */
 
-import * as core from '@actions/core';
-import { COMMENT_MARKER, MEDIC_LOGO_SIZE, MEDIC_LOGO_URL, PRICING, RETRY_COMMENT_MARKER } from './config';
-import { DEFAULT_MERGE_CONFLICT_CONFIG } from './workflow-config';
-import type { CommentParams, OctokitClient, RetryCommentParams, RetryStatus, TokenUsage } from './types';
+import * as core from "@actions/core";
+import {
+  COMMENT_MARKER,
+  MEDIC_LOGO_SIZE,
+  MEDIC_LOGO_URL,
+  PRICING,
+  RETRY_COMMENT_MARKER,
+} from "./config";
+import { DEFAULT_MERGE_CONFLICT_CONFIG } from "./workflow-config";
+import type {
+  CommentParams,
+  OctokitClient,
+  RetryCommentParams,
+  RetryStatus,
+  TokenUsage,
+} from "./types";
 
 function computeCost(tokens: TokenUsage): number {
   return (
@@ -17,13 +29,16 @@ function computeCost(tokens: TokenUsage): number {
 }
 
 function totalInputTokens(tokens: TokenUsage): number {
-  return tokens.inputTokens + tokens.cacheCreationTokens + tokens.cacheReadTokens;
+  return (
+    tokens.inputTokens + tokens.cacheCreationTokens + tokens.cacheReadTokens
+  );
 }
 
 export function formatComment(params: CommentParams): string {
-  const maxAttempts = params.maxAttempts ?? DEFAULT_MERGE_CONFLICT_CONFIG.max_attempts;
-  const status = params.success ? 'SUCCESS ✅' : 'FAILED ❌';
-  const statusEmoji = params.success ? '🎉' : '⚠️';
+  const maxAttempts =
+    params.maxAttempts ?? DEFAULT_MERGE_CONFLICT_CONFIG.max_attempts;
+  const status = params.success ? "SUCCESS ✅" : "FAILED ❌";
+  const statusEmoji = params.success ? "🎉" : "⚠️";
 
   const t = params.tokens;
   const totalIn = totalInputTokens(t);
@@ -53,7 +68,7 @@ export function formatComment(params: CommentParams): string {
 `;
   }
 
-  body += '\n';
+  body += "\n";
 
   if (params.success) {
     body += `Conflicts have been automatically resolved and pushed to this branch.
@@ -62,7 +77,7 @@ Please review the changes and ensure they are correct before merging.`;
   } else {
     body += `Unable to resolve conflicts automatically.
 
-${params.details || 'No additional details available.'}`;
+${params.details || "No additional details available."}`;
 
     if (params.attempt < maxAttempts) {
       body += `
@@ -114,7 +129,9 @@ export async function upsertComment(
       core.info(`Created new comment #${newComment.id}`);
     }
   } catch (error) {
-    core.warning(`Failed to upsert comment: ${error instanceof Error ? error.message : String(error)}`);
+    core.warning(
+      `Failed to upsert comment: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }
 
@@ -132,51 +149,53 @@ export async function postMessage(
       issue_number: prNumber,
       body: `<img src="${MEDIC_LOGO_URL}" alt="Medic" width="32" height="32" align="top" /> **Medic:** ${message}`,
     });
-    core.info('Posted status message');
+    core.info("Posted status message");
   } catch (error) {
-    core.warning(`Failed to post message: ${error instanceof Error ? error.message : String(error)}`);
+    core.warning(
+      `Failed to post message: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }
 
 function formatRetryStatus(status: RetryStatus): string {
   switch (status) {
-    case 'retrying':
-      return '🔄 Retrying';
-    case 'passing':
-      return '✅ Passing';
-    case 'max_attempts':
-      return '⛔ Max attempts';
-    case 'no_runs':
-      return '⏭️ No runs';
-    case 'error':
-      return '❌ Error';
-    case 'skipped':
-      return '⏭️ Skipped';
+    case "retrying":
+      return "🔄 Retrying";
+    case "passing":
+      return "✅ Passing";
+    case "max_attempts":
+      return "⛔ Max attempts";
+    case "no_runs":
+      return "⏭️ No runs";
+    case "error":
+      return "❌ Error";
+    case "skipped":
+      return "⏭️ Skipped";
     default:
-      return '❓ Unknown';
+      return "❓ Unknown";
   }
 }
 
 export function formatRetryComment(params: RetryCommentParams): string {
-  const retried = params.results.filter((r) => r.status === 'retrying');
-  const skipped = params.results.filter((r) => r.status === 'skipped');
+  const retried = params.results.filter((r) => r.status === "retrying");
+  const skipped = params.results.filter((r) => r.status === "skipped");
   const hasRetries = retried.length > 0;
   const hasSkips = skipped.length > 0;
 
   let statusLabel: string;
   let statusEmoji: string;
   if (hasRetries && hasSkips) {
-    statusLabel = 'PARTIAL RETRY 🔄';
-    statusEmoji = '🔄';
+    statusLabel = "PARTIAL RETRY 🔄";
+    statusEmoji = "🔄";
   } else if (hasRetries) {
-    statusLabel = 'RETRYING 🔄';
-    statusEmoji = '🔄';
+    statusLabel = "RETRYING 🔄";
+    statusEmoji = "🔄";
   } else if (hasSkips) {
-    statusLabel = 'SKIPPED ⏭️';
-    statusEmoji = '⏭️';
+    statusLabel = "SKIPPED ⏭️";
+    statusEmoji = "⏭️";
   } else {
-    statusLabel = 'NO ACTION ⏭️';
-    statusEmoji = '⏭️';
+    statusLabel = "NO ACTION ⏭️";
+    statusEmoji = "⏭️";
   }
 
   let body = `${RETRY_COMMENT_MARKER}
@@ -191,9 +210,12 @@ export function formatRetryComment(params: RetryCommentParams): string {
 | Workflow | Status | Attempt |
 |----------|--------|---------|
 ${params.results
-  .filter((r) => r.status !== 'no_runs')
-  .map((r) => `| ${r.workflow} | ${formatRetryStatus(r.status)} | ${r.attempt}/${params.maxAttempts} |`)
-  .join('\n')}
+  .filter((r) => r.status !== "no_runs")
+  .map(
+    (r) =>
+      `| ${r.workflow} | ${formatRetryStatus(r.status)} | ${r.attempt}/${params.maxAttempts} |`,
+  )
+  .join("\n")}
 
 `;
 
@@ -205,15 +227,21 @@ ${params.results
       body += `- **${r.workflow}**: ${a.decision.toUpperCase()} (${a.category}) — ${a.reasoning}\n`;
     }
 
-    const totalInput = analyzed.reduce((sum, r) => sum + (r.analysis!.inputTokens ?? 0), 0);
-    const totalOutput = analyzed.reduce((sum, r) => sum + (r.analysis!.outputTokens ?? 0), 0);
+    const totalInput = analyzed.reduce(
+      (sum, r) => sum + (r.analysis!.inputTokens ?? 0),
+      0,
+    );
+    const totalOutput = analyzed.reduce(
+      (sum, r) => sum + (r.analysis!.outputTokens ?? 0),
+      0,
+    );
     if (totalInput > 0 || totalOutput > 0) {
       body += `\n| Metric | Value |\n|--------|-------|\n`;
       body += `| Input tokens | ${totalInput.toLocaleString()} |\n`;
       body += `| Output tokens | ${totalOutput.toLocaleString()} |\n`;
     }
 
-    body += '\n';
+    body += "\n";
   }
 
   if (hasRetries) {
@@ -256,7 +284,9 @@ export async function upsertRetryComment(
       issue_number: prNumber,
     });
 
-    const existing = comments.find((c) => c.body?.includes(RETRY_COMMENT_MARKER));
+    const existing = comments.find((c) =>
+      c.body?.includes(RETRY_COMMENT_MARKER),
+    );
 
     if (existing) {
       await octokit.rest.issues.updateComment({
@@ -276,6 +306,8 @@ export async function upsertRetryComment(
       core.info(`Created new retry comment #${newComment.id}`);
     }
   } catch (error) {
-    core.warning(`Failed to upsert retry comment: ${error instanceof Error ? error.message : String(error)}`);
+    core.warning(
+      `Failed to upsert retry comment: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }

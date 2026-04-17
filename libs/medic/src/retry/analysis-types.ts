@@ -14,17 +14,17 @@ export interface FailedJob {
 }
 
 export interface Annotation {
-  level: 'failure' | 'warning';
+  level: "failure" | "warning";
   path: string;
   line: number;
   message: string;
 }
 
 export interface AnalysisResult {
-  decision: 'retry' | 'skip';
-  category: 'flaky' | 'infra' | 'build' | 'test' | 'lint';
+  decision: "retry" | "skip";
+  category: "flaky" | "infra" | "build" | "test" | "lint";
   reasoning: string;
-  confidence: 'high' | 'medium' | 'low';
+  confidence: "high" | "medium" | "low";
   inputTokens: number;
   outputTokens: number;
 }

@@ -2,9 +2,9 @@
  * GitHub API helpers for workflow run metadata and annotations.
  */
 
-import * as core from '@actions/core';
-import type { OctokitClient } from '../types';
-import type { Annotation, FailedJob, FailureSummary } from './analysis-types';
+import * as core from "@actions/core";
+import type { OctokitClient } from "../types";
+import type { Annotation, FailedJob, FailureSummary } from "./analysis-types";
 
 export async function getFailedJobs(
   octokit: OctokitClient,
@@ -18,15 +18,15 @@ export async function getFailedJobs(
     owner,
     repo,
     run_id: runId,
-    filter: 'latest',
+    filter: "latest",
   });
 
   const failedJobs: FailedJob[] = [];
 
   for (const job of jobs) {
-    if (job.conclusion !== 'failure') continue;
+    if (job.conclusion !== "failure") continue;
 
-    const failedStep = job.steps?.find((s) => s.conclusion === 'failure');
+    const failedStep = job.steps?.find((s) => s.conclusion === "failure");
     const annotations = await getJobAnnotations(octokit, owner, repo, job.id);
 
     failedJobs.push({
@@ -56,15 +56,25 @@ export async function getJobAnnotations(
     });
 
     return data.map(
-      (a: { annotation_level: string | null; path: string; start_line: number; message: string | null }) => ({
-        level: a.annotation_level === 'failure' ? ('failure' as const) : ('warning' as const),
-        path: a.path ?? '',
+      (a: {
+        annotation_level: string | null;
+        path: string;
+        start_line: number;
+        message: string | null;
+      }) => ({
+        level:
+          a.annotation_level === "failure"
+            ? ("failure" as const)
+            : ("warning" as const),
+        path: a.path ?? "",
         line: a.start_line ?? 0,
-        message: a.message ?? '',
+        message: a.message ?? "",
       }),
     );
   } catch (error) {
-    core.warning(`Failed to fetch annotations for job ${jobId}: ${error instanceof Error ? error.message : String(error)}`);
+    core.warning(
+      `Failed to fetch annotations for job ${jobId}: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return [];
   }
 }
@@ -84,7 +94,7 @@ export async function getWorkflowSummary(
   const failedJobs = await getFailedJobs(octokit, owner, repo, runId);
 
   return {
-    workflow: run.name ?? 'unknown',
+    workflow: run.name ?? "unknown",
     run_id: runId,
     run_attempt: run.run_attempt ?? 1,
     failed_jobs: failedJobs,

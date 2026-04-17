@@ -1,5 +1,6 @@
 name: Medic – Auto Workflow Retry
-description: Automatically retries failed workflow runs triggered by workflow_run events
+description:
+  Automatically retries failed workflow runs triggered by workflow_run events
 
 inputs:
   github-token:
