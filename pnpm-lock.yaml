@@ -529,7 +529,7 @@ importers:
     devDependencies:
       '@types/node':
         specifier: ^24.3.0
-        version: 24.3.1
+        version: 24.12.2
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -937,13 +937,13 @@ importers:
         version: 4.0.9
       '@types/node':
         specifier: ^24.3.0
-        version: 24.3.1
+        version: 24.12.2
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
       vitest:
         specifier: ^4.0.18
-        version: 4.0.18(@types/node@24.3.1)(jiti@2.4.2)(jsdom@24.1.0)(tsx@4.19.1)(yaml@2.8.0)
+        version: 4.0.18(@types/node@24.12.2)(jiti@2.6.1)(jsdom@24.1.0)(tsx@4.19.1)(yaml@2.8.2)
 
   libs/nx-chainlink:
     devDependencies:
@@ -953,7 +953,13 @@ importers:
 
   workflows/reusable-codeowners-review-analysis: {}
 
+  workflows/reusable-dependency-review: {}
+
   workflows/reusable-docker-build-publish: {}
+
+  workflows/reusable-stale-prs-issues: {}
+
+  workflows/run-e2e-tests: {}
 
 packages:
 
@@ -966,6 +972,9 @@ packages:
 
   '@actions/cache@5.0.5':
     resolution: {integrity: sha512-jiQSg0gfd+C2KPgcmdCOq7dCuCIQQWQ4b1YfGIRaaA9w7PJbRwTOcCz4LiFEUnqZGf0ha/8OKL3BeNwetHzYsQ==}
+
+  '@actions/core@1.11.1':
+    resolution: {integrity: sha512-hXJCSrkwfA46Vd9Z3q4cpEpHB1rL5NG04+/rbqW9d3+CSvtB1tYe8UTpAlixa1vj0m/ULglfEK2UKxMGxCxv5A==}
 
   '@actions/core@2.0.3':
     resolution: {integrity: sha512-Od9Thc3T1mQJYddvVPM4QGiLUewdh+3txmDYHHxoNdkqysR1MbCT+rFOtNUxYAz+7+6RIsqipVahY2GJqGPyxA==}
@@ -3695,6 +3704,9 @@ packages:
 
   '@types/istanbul-reports@3.0.4':
     resolution: {integrity: sha512-pk2B1NWalF9toCRu6gjBzR69syFjP4Od8WRAX+0mmf9lAjCRicLOWc+ZrxZHx/0XRjotgkF9t6iaMJ+aXcOdZQ==}
+
+  '@types/js-yaml@4.0.9':
+    resolution: {integrity: sha512-k4MGaQl5TGo/iipqb2UDG2UwjXziSWkh0uysQelTlJpX1qGlpUZYm8PnO4DxG1qBomtJUdYJ6qR6xdIah10JLg==}
 
   '@types/json-stable-stringify@1.0.36':
     resolution: {integrity: sha512-b7bq23s4fgBB76n34m2b3RBf6M369B0Z9uRR8aHTMd8kZISRkmDEpPD8hhpYvDFzr3bJCPES96cm3Q6qRNDbQw==}
@@ -7452,10 +7464,6 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
-  uuid@8.3.2:
-    resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
-    hasBin: true
-
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
     hasBin: true
@@ -7772,6 +7780,11 @@ snapshots:
       semver: 6.3.1
     transitivePeerDependencies:
       - supports-color
+
+  '@actions/core@1.11.1':
+    dependencies:
+      '@actions/exec': 1.1.1
+      '@actions/http-client': 2.2.3
 
   '@actions/core@2.0.3':
     dependencies:
@@ -9925,64 +9938,6 @@ snapshots:
       graphql: 16.11.0
       tslib: 2.6.3
 
-  '@graphql-tools/prisma-loader@8.0.17(@types/node@20.17.57)(graphql@16.11.0)':
-    dependencies:
-      '@graphql-tools/url-loader': 8.0.31(@types/node@20.17.57)(graphql@16.11.0)
-      '@graphql-tools/utils': 10.8.6(graphql@16.11.0)
-      '@types/js-yaml': 4.0.9
-      '@whatwg-node/fetch': 0.10.8
-      chalk: 4.1.2
-      debug: 4.4.3
-      dotenv: 16.5.0
-      graphql: 16.11.0
-      graphql-request: 6.1.0(graphql@16.11.0)
-      http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.6
-      jose: 5.10.0
-      js-yaml: 4.1.0
-      lodash: 4.17.21
-      scuid: 1.1.0
-      tslib: 2.8.1
-      yaml-ast-parser: 0.0.43
-    transitivePeerDependencies:
-      - '@fastify/websocket'
-      - '@types/node'
-      - bufferutil
-      - crossws
-      - encoding
-      - supports-color
-      - uWebSockets.js
-      - utf-8-validate
-
-  '@graphql-tools/prisma-loader@8.0.17(@types/node@24.3.1)(graphql@16.11.0)':
-    dependencies:
-      '@graphql-tools/url-loader': 8.0.31(@types/node@24.3.1)(graphql@16.11.0)
-      '@graphql-tools/utils': 10.8.6(graphql@16.11.0)
-      '@types/js-yaml': 4.0.9
-      '@whatwg-node/fetch': 0.10.8
-      chalk: 4.1.2
-      debug: 4.4.3
-      dotenv: 16.5.0
-      graphql: 16.11.0
-      graphql-request: 6.1.0(graphql@16.11.0)
-      http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.6
-      jose: 5.10.0
-      js-yaml: 4.1.0
-      lodash: 4.17.21
-      scuid: 1.1.0
-      tslib: 2.8.1
-      yaml-ast-parser: 0.0.43
-    transitivePeerDependencies:
-      - '@fastify/websocket'
-      - '@types/node'
-      - bufferutil
-      - crossws
-      - encoding
-      - supports-color
-      - uWebSockets.js
-      - utf-8-validate
-
   '@graphql-tools/relay-operation-optimizer@7.0.27(graphql@16.11.0)':
     dependencies:
       '@ardatan/relay-compiler': 12.0.3(graphql@16.11.0)
@@ -11426,6 +11381,8 @@ snapshots:
   '@types/istanbul-reports@3.0.4':
     dependencies:
       '@types/istanbul-lib-report': 3.0.0
+
+  '@types/js-yaml@4.0.9': {}
 
   '@types/json-stable-stringify@1.0.36': {}
 
@@ -15698,8 +15655,6 @@ snapshots:
   urlpattern-polyfill@10.1.0: {}
 
   util-deprecate@1.0.2: {}
-
-  uuid@8.3.2: {}
 
   uuid@9.0.1: {}
 
