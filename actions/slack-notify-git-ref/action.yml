@@ -53,6 +53,11 @@ inputs:
     description: "URL for CHANGELOG to include in Slack message"
     required: false
 
+outputs:
+  slack-thread-ts:
+    description: "timestamp of the slack thread"
+    value: ${{ steps.notify-slack.outputs.thread_ts }}
+
 runs:
   using: composite
   steps:
@@ -142,6 +147,7 @@ runs:
 
     - name: Notify slack
       uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+      id: notify-slack
       with:
         payload: ${{ env.payload }}
         channel-id: ${{ inputs.slack-channel-id }}
