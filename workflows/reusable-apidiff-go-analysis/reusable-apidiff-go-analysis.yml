@@ -1,0 +1,82 @@
+name: Reusable apidiff-go Analysis
+
+on:
+  workflow_call:
+    inputs:
+      file-patterns:
+        description: 'File patterns to determine changed modules (newline separated)'
+        required: false # defaulted
+        type: string
+        default: |
+          **/*.go
+          **/go.mod
+          **/go.sum
+
+      module-patterns:
+        description: |
+          Module patterns to determine changed modules (newline separated)
+            - Prefix with "!" to exclude patterns
+        required: false # defaulted
+        type: string
+        default: |
+          **
+
+      enforce-compatible:
+        description: 'Whether to enforce compatibility (breaking changes will cause the workflow to fail)'
+        required: false # defaulted
+        type: boolean
+        default: false
+
+permissions: {}
+
+jobs:
+  changed-modules:
+    name: Determine Changed Modules
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      modules-json: ${{ steps.changed-modules.outputs.modules-json }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Changed modules
+        id: changed-modules
+        uses: smartcontractkit/.github/actions/changed-modules-go@changed-modules-go/v1
+        with:
+          file-patterns: ${{ inputs.file-patterns }}
+          module-patterns: ${{ inputs.module-patterns }}
+
+  analyze-api-changes:
+    if: ${{ needs.changed-modules.outputs.modules-json != '[]' }}
+    name: Analyze (${{ matrix.module }})
+    runs-on: ubuntu-latest
+    needs: changed-modules
+    permissions:
+      pull-requests: write
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJson(needs.changed-modules.outputs.modules-json) }}
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: ${{ matrix.module }}/go.mod
+          cache: false
+
+      - uses: smartcontractkit/.github/actions/apidiff-go@apidiff-go/v2
+        with:
+          module-directory: ${{ matrix.module }}
+          enforce-compatible: ${{ inputs.enforce-compatible }}
+          post-comment: true
