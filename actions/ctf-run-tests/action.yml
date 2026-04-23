@@ -228,7 +228,7 @@ runs:
     - name: Setup environment
       if: inputs.run_setup == 'true'
       id: setup-env
-      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@ctf-setup-run-tests-environment/0.8.0
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@ctf-setup-run-tests-environment/0.10.0
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}
@@ -309,14 +309,14 @@ runs:
     # If default and/or custom secrets provided, decode them, mask them and set them as env vars to override the default secrets
     - name: Set default test secrets from dotenv file
       if: inputs.test_secrets_defaults_base64 != ''
-      uses: smartcontractkit/.github/actions/parse-and-mask-test-secrets@parse-and-mask-test-secrets/0.1.0
+      uses: smartcontractkit/.github/actions/parse-and-mask-test-secrets@parse-and-mask-test-secrets/0.2.0
       with:
         encoded_test_secrets: ${{ inputs.test_secrets_defaults_base64 }}
 
     # Custom secrets override the default secrets
     - name: Set custom test secrets from dotenv file
       if: inputs.test_secrets_override_base64 != ''
-      uses: smartcontractkit/.github/actions/parse-and-mask-test-secrets@parse-and-mask-test-secrets/0.1.0
+      uses: smartcontractkit/.github/actions/parse-and-mask-test-secrets@parse-and-mask-test-secrets/0.2.0
       with:
         encoded_test_secrets: ${{ inputs.test_secrets_override_base64 }}
 

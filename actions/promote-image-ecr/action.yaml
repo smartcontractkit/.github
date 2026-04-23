@@ -78,12 +78,12 @@ runs:
   using: "composite"
   steps:
     - name: Install cosign
-      uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
+      uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
       with:
         cosign-release: "v3.0.2"
 
     - name: Configure AWS credentials (SOURCE)
-      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+      uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
       with:
         role-to-assume: ${{ inputs.source-role-arn }}
         aws-region: ${{ inputs.source-aws-region || inputs.aws-region }}
@@ -93,7 +93,7 @@ runs:
       uses: aws-actions/amazon-ecr-login@f2e9fc6c2b355c1890b65e6f6f0e2ac3e6e22f78 # v2.1.2
 
     - name: Configure AWS credentials (DESTINATION)
-      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+      uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
       with:
         role-to-assume: ${{ inputs.destination-role-arn }}
         aws-region: ${{ inputs.destination-aws-region || inputs.aws-region }}
@@ -133,7 +133,7 @@ runs:
 
     - name: Upload Promotion Results
       if: always()
-      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      uses: actions/upload-artifact@v7
       with:
         name: promotion-results-${{ github.run_id }}
         path: /tmp/promotion-results/

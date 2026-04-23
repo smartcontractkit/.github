@@ -42,7 +42,7 @@ runs:
   steps:
     # Step to configure AWS credentials for Nix cache
     - name: Configure AWS credentials for Nix cache
-      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+      uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
       with:
         role-to-assume: ${{ inputs.role-to-assume }}
         role-duration-seconds: ${{ inputs.role-duration-seconds }}

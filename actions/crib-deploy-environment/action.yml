@@ -224,7 +224,7 @@ runs:
     # This step is useful only in the context of crib repo
     - name: Detect if the CLI was changed, only build if needed
       if: github.repository  == 'smartcontractkit/crib'
-      uses: dorny/paths-filter@v3
+      uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
       id: filter
       with:
         working-directory: "${{ github.workspace }}/crib"
@@ -327,7 +327,7 @@ runs:
         nix develop -c /bin/bash -c "devspace use namespace ${DEVSPACE_NAMESPACE} && devspace run ${{ inputs.command }} ${{ inputs.command-args }}"
 
     - name: Render notification template
-      uses: actions/github-script@v8
+      uses: actions/github-script@v9
       id: render-slack-template
       if:
         failure() && inputs.crib-alert-slack-webhook != '' && inputs.send-alerts

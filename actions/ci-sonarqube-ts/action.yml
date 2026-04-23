@@ -69,7 +69,7 @@ runs:
 
     - name: Download test-report artifact using workflow file name
       if: inputs.test-report-workflow != ''
-      uses: dawidd6/action-download-artifact@ac66b43f0e6a346234dd65d4d0c8fbb31cb316e5 # v11
+      uses: dawidd6/action-download-artifact@8305c0f1062bb0d184d09ef4493ecb9288447732 # v20
       with:
         workflow: ${{ inputs.test-report-workflow }}
         name: ${{ inputs.test-report-artifact }}
@@ -79,7 +79,7 @@ runs:
 
     - name: Download lint-report artifact using workflow file name
       if: inputs.lint-report-workflow != ''
-      uses: dawidd6/action-download-artifact@ac66b43f0e6a346234dd65d4d0c8fbb31cb316e5 # v11
+      uses: dawidd6/action-download-artifact@8305c0f1062bb0d184d09ef4493ecb9288447732 # v20
       with:
         workflow: ${{ inputs.lint-report-workflow }}
         name: ${{ inputs.lint-report-artifact }}
@@ -110,7 +110,7 @@ runs:
         steps.sonarqube_report_paths.outputs.sonarqube_lint_report_paths }}
 
     - name: SonarQube Scan
-      uses: sonarsource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9 # v7.0.0
+      uses: sonarsource/sonarqube-scan-action@299e4b793aaa83bf2aba7c9c14bedbb485688ec4 # v7.1.0
       with:
         args: ${{ env.SONARQUBE_ARGS }}
       env:

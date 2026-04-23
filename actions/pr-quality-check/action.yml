@@ -102,7 +102,7 @@ runs:
 
     - name: Setup Python
       if: env.SHOULD_RUN == 'true' && github.event.action != 'closed'
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: "3.11"
 
@@ -159,7 +159,7 @@ runs:
       if:
         env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
         steps.run-py.outputs.has-fix-candidates == 'true'
-      uses: actions/github-script@v8
+      uses: actions/github-script@v9
       env:
         FIX_CANDIDATES_PATH: ${{ steps.run-py.outputs.fix-candidates-path }}
       with:
@@ -192,7 +192,7 @@ runs:
       if:
         env.SHOULD_RUN == 'true' && github.event.action != 'closed' &&
         steps.run-py.outputs.has-fix-candidates == 'true'
-      uses: actions/github-script@v8
+      uses: actions/github-script@v9
       env:
         FP: ${{ steps.run-py.outputs.fix-candidates-fingerprint }}
       with:
@@ -232,7 +232,7 @@ runs:
         steps.run-py.outputs.has-fix-candidates == 'true' &&
         (inputs.claude-code-auto-fix-enabled != 'true' ||
         steps.check-claude.outputs.should-run-claude != 'true')
-      uses: actions/github-script@v8
+      uses: actions/github-script@v9
       env:
         DETAILS: ${{ steps.build-details.outputs.details }}
         MISSING: ${{ steps.check-claude.outputs.missing }}
@@ -260,7 +260,7 @@ runs:
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
-      uses: actions/github-script@v8
+      uses: actions/github-script@v9
       env:
         DETAILS: ${{ steps.build-details.outputs.details }}
         TOTAL_DETECTED: ${{ steps.run-py.outputs.total-issues-detected }}
@@ -326,7 +326,7 @@ runs:
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
-      uses: google-github-actions/auth@55bd3a7c6e2ae7cf1877fd1ccb9d54c0503c457c #v2.1.2
+      uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
       with:
         credentials_json: ${{ inputs.claude-code-gcp-service-account-key }}
         create_credentials_file: true
@@ -439,7 +439,7 @@ runs:
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
-      uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e #v7
+      uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
       with:
         token: ${{ inputs.gh-token }}
         branch: "auto-fix/pr-${{ github.event.pull_request.number }}"
@@ -472,7 +472,7 @@ runs:
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
-      uses: actions/github-script@v8
+      uses: actions/github-script@v9
       env:
         PR_NUMBER_CREATED:
           ${{ steps.create-autofix-pr.outputs.pull-request-number }}
@@ -503,7 +503,7 @@ runs:
         steps.check-claude.outputs.should-run-claude == 'true' &&
         steps.check-fingerprint.outputs.fingerprint-changed == 'true' &&
         github.event.pull_request.head.repo.full_name == github.repository
-      uses: actions/github-script@v8
+      uses: actions/github-script@v9
       env:
         COMMENT_ID: ${{ steps.post-comment.outputs.comment-id }}
         PR_URL: ${{ steps.create-autofix-pr.outputs.pull-request-url }}
@@ -548,7 +548,7 @@ runs:
     # --- Cleanup flow (on PR close) ---
     - name: Cleanup orphaned auto-fix PRs
       if: env.SHOULD_RUN == 'true' && github.event.action == 'closed'
-      uses: actions/github-script@v8
+      uses: actions/github-script@v9
       with:
         script: |
           console.log('🧹 Checking for orphaned auto-fix PRs...');

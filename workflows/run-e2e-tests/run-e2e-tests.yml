@@ -369,7 +369,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
       - name: Install citool
@@ -422,7 +422,7 @@ jobs:
       workflow_id: ${{ steps.gen_id.outputs.workflow_id }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
@@ -623,7 +623,7 @@ jobs:
     steps:
       - name: Check if image exists in ECR
         id: check-image-exists
-        uses: smartcontractkit/.github/actions/ecr-image-exists@ecr-image-exists/0.0.1
+        uses: smartcontractkit/.github/actions/ecr-image-exists@ecr-image-exists/0.2.0
         with:
           repository: ${{ inputs.ecr_name }}
           tag: ${{ matrix.version }}
@@ -631,7 +631,7 @@ jobs:
 
       - name: Checkout the repo
         if: ${{ steps.check-image-exists.outputs.exists != 'true' }}
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -675,7 +675,7 @@ jobs:
           }}
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -742,7 +742,7 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -830,7 +830,7 @@ jobs:
       - name: Get Test Secrets from AWS Secret Manager
         if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
         id: aws-test-secrets
-        uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@921f4b0ca850dd473dcef9082e3169ccbb83cc52 # ctf-fetch-aws-secret@0.0.0
+        uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@ctf-fetch-aws-secret/0.1.0
         with:
           secret_id: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
           aws_region: ${{ secrets.QA_AWS_REGION }}
@@ -842,7 +842,7 @@ jobs:
           OPTIONAL_GATI_AWS_ROLE_ARN: ${{ secrets.OPTIONAL_GATI_AWS_ROLE_ARN }}
           OPTIONAL_GATI_LAMBDA_URL: ${{ secrets.OPTIONAL_GATI_LAMBDA_URL }}
         if: ${{ env.OPTIONAL_GATI_AWS_ROLE_ARN && env.OPTIONAL_GATI_LAMBDA_URL }}
-        uses: smartcontractkit/.github/actions/setup-github-token@ef78fa97bf3c77de6563db1175422703e9e6674f # setup-github-token@0.2.1
+        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
         with:
           aws-role-arn: ${{ secrets.OPTIONAL_GATI_AWS_ROLE_ARN }}
           aws-lambda-url: ${{ secrets.OPTIONAL_GATI_LAMBDA_URL }}
@@ -852,7 +852,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.12.0
         # jankiness because: github.com/actions/runner/issues/1492 + github.com/actions/runner/issues/2418
         continue-on-error: ${{ fromJSON(env.QUARANTINE) }}
         env:
@@ -929,7 +929,7 @@ jobs:
 
       - name: Run branch-out-upload (quarantine only)
         if: ${{ !cancelled() && inputs.quarantine == 'true' }}
-        uses: smartcontractkit/.github/actions/branch-out-upload@branch-out-upload/0.1.0
+        uses: smartcontractkit/.github/actions/branch-out-upload@branch-out-upload/v1
         with:
           junit-file-path: "/tmp/junit.xml"
           trunk-org-slug: chainlink
@@ -1006,7 +1006,7 @@ jobs:
 
       - name: Show Grafana url in test summary
         if: always()
-        uses: smartcontractkit/.github/actions/ctf-show-grafana-in-test-summary@b6e37806737eef87e8c9137ceeb23ef0bff8b1db # ctf-show-grafana-in-test-summary@0.1.0
+        uses: smartcontractkit/.github/actions/ctf-show-grafana-in-test-summary@ctf-show-grafana-in-test-summary/0.2.0
 
   # Run K8s tests using old remote runner
 
@@ -1033,12 +1033,12 @@ jobs:
         }}.amazonaws.com/chainlink-tests
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
       - name: Build Test Runner Image
         id: build-test-runner-image
-        uses: smartcontractkit/.github/actions/ctf-build-test-image@main # main branch
+        uses: smartcontractkit/.github/actions/ctf-build-test-image@ctf-build-test-image/0.3.0
         if: ${{ inputs.with_existing_remote_runner_version == '' }}
         with:
           QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
@@ -1110,7 +1110,7 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
@@ -1155,7 +1155,7 @@ jobs:
       - name: Get Test Secrets from AWS Secret Manager
         if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
         id: aws-test-secrets
-        uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@921f4b0ca850dd473dcef9082e3169ccbb83cc52 # ctf-fetch-aws-secret@0.0.0
+        uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@ctf-fetch-aws-secret/0.1.0
         with:
           secret_id: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
           aws_region: ${{ secrets.QA_AWS_REGION }}
@@ -1171,7 +1171,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.12.0
         # jankiness because: github.com/actions/runner/issues/1492 + github.com/actions/runner/issues/2418
         continue-on-error: ${{ fromJSON(env.QUARANTINE) }}
         env:
@@ -1239,7 +1239,7 @@ jobs:
 
       - name: Run branch-out-upload (quarantine only)
         if: ${{ !cancelled() && inputs.quarantine == 'true' }}
-        uses: smartcontractkit/.github/actions/branch-out-upload@branch-out-upload/0.1.0
+        uses: smartcontractkit/.github/actions/branch-out-upload@branch-out-upload/v1
         with:
           junit-file-path: "/tmp/junit.xml"
           trunk-org-slug: chainlink
@@ -1312,7 +1312,7 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
@@ -1342,7 +1342,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.12.0
         # jankiness because: github.com/actions/runner/issues/1492 + github.com/actions/runner/issues/2418
         continue-on-error: ${{ fromJSON(env.QUARANTINE) }}
         env:
@@ -1390,7 +1390,7 @@ jobs:
 
       - name: Run branch-out-upload (quarantine only)
         if: ${{ !cancelled() && inputs.quarantine == 'true' }}
-        uses: smartcontractkit/.github/actions/branch-out-upload@branch-out-upload/0.1.0
+        uses: smartcontractkit/.github/actions/branch-out-upload@branch-out-upload/v1
         with:
           junit-file-path: "/tmp/junit.xml"
           trunk-org-slug: chainlink
@@ -1413,7 +1413,7 @@ jobs:
       test_results: ${{ steps.set_test_results.outputs.results }}
     steps:
       - name: Download all test result artifacts
-        uses: actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@v8
         with:
           path: test_results
           pattern: test_result_${{ needs.load-test-configurations.outputs.workflow_id

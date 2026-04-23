@@ -20,7 +20,7 @@ runs:
   steps:
     - name: Install Nix
       if: ${{ inputs.install-url == '' }}
-      uses: DeterminateSystems/nix-installer-action@da36cb69b1c3247ad7a1f931ebfd954a1105ef14 # v14
+      uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
       with:
         determinate: true
         extra-conf: |

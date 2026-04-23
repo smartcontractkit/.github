@@ -138,7 +138,7 @@ runs:
     # Go setup and caching
     - name: Setup Go
       if: inputs.go_necessary == 'true'
-      uses: smartcontractkit/.github/actions/ctf-setup-go@c83a1867f404a79db873b55f1a5fd30b42569bbb # ctf-setup-go@0.2.0
+      uses: smartcontractkit/.github/actions/ctf-setup-go@ctf-setup-go/0.3.0
       with:
         go_version: ${{ inputs.go_version }}
         go_mod_path: ${{ inputs.go_mod_path }}
@@ -167,7 +167,7 @@ runs:
 
     - name: Setup gauntlet plus plus
       if: inputs.gauntlet_plus_plus_image
-      uses: smartcontractkit/.github/actions/pull-private-ecr-image@pull-private-ecr-image/1.0.0 # todo: update to major version tag
+      uses: smartcontractkit/.github/actions/pull-private-ecr-image@pull-private-ecr-image/v1
       with:
         aws-region: ${{ inputs.prod_aws_region }}
         aws-role-arn: ${{ inputs.prod_aws_role_to_assume }}
@@ -183,7 +183,7 @@ runs:
 
     - name: Install Aptos CLI
       if: inputs.aptos_cli_version
-      uses: aptos-labs/actions/install-aptos-cli@63740b290d839b87ecfafbcf75ed03a36a54a29f # jan 15, 2025
+      uses: aptos-labs/actions/install-aptos-cli@528ef7ad9427a8c0720ea3eea790a9190d6e377d # 2026-04-09
       with:
         CLI_VERSION: ${{ inputs.aptos_cli_version }}
 
@@ -195,7 +195,7 @@ runs:
 
     # Setup AWS cred and K8s context
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+      uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
       with:
         aws-region: ${{ inputs.QA_AWS_REGION }}
         role-to-assume: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
@@ -203,7 +203,7 @@ runs:
         mask-aws-account-id: true
 
     - name: Configure local GAP proxy for accessing (Kubernetes) services
-      uses: smartcontractkit/.github/actions/setup-gap@858d6785a9cce58359f5d6f9481902f2d0a331ac # setup-gap@4.0.1
+      uses: smartcontractkit/.github/actions/setup-gap@setup-gap/v4
       if: inputs.enable-gap == 'true'
       with:
         aws-region: ${{ inputs.QA_AWS_REGION }}
@@ -229,13 +229,13 @@ runs:
     # To avoid rate limiting from Docker Hub, we can login with a paid user account.
     - name: Login to Docker Hub
       if: inputs.dockerhub_username && inputs.dockerhub_password
-      uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+      uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
       with:
         username: ${{ inputs.dockerhub_username }}
         password: ${{ inputs.dockerhub_password }}
 
     # Helm Setup
-    - uses: azure/setup-helm@29960d0f5f19214b88e1d9ba750a9914ab0f1a2f # v4.0.0
+    - uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
       with:
         version: v3.13.1
     - name: Add required helm charts including chainlink-qa
