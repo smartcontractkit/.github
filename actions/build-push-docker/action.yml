@@ -113,6 +113,16 @@ inputs:
 
       Required when inputs.docker-push is true.
     required: false
+  # other inputs
+  allow-overwrites:
+    description: |
+      Whether to allow overwriting existing image tags. If set to `false`, the action will fail if any of the tags already exist in ECR.
+      Ideally the ECR is immutable and tags cannot be overwritten. Public ECRs don't support immutability so this allows a psuedo-immutability by failing if a tag already exists.
+      This can be leveraged by immutable ECRs to fail-fast instead of building and subsequently failing to push.
+
+      Defaults to `true` for backwards compatibility. Ignored when inputs.docker-push is false.
+    required: false
+    default: "true"
 
 outputs:
   docker-repository-name:
@@ -235,6 +245,41 @@ runs:
         tags: ${{ inputs.tags }}
         flavor: |
           latest=false
+
+    - name: Check for existing tags
+      if:
+        ${{ inputs.allow-overwrites == 'false' && inputs.docker-push == 'true'
+        }}
+      id: existing-ecr-tags
+      shell: bash
+      env:
+        ECR_REPOSITORY:
+          ${{ format('{0}/{1}', inputs.docker-registry-url,
+          inputs.docker-repository-name) }}
+        TAG_NAMES: ${{ steps.docker-meta.outputs.tag-names }} # defaults to newline delimited
+      run: |
+        set -euo pipefail
+
+        tag_exists=false
+        while IFS= read -r tag; do
+          [ -n "$tag" ] || continue
+
+          if aws ecr describe-images \
+            --repository-name "$ECR_REPOSITORY" \
+            --image-ids "imageTag=$tag" \
+            --no-cli-pager \
+            >/dev/null 2>&1; then
+            echo "::warning::Tag already exists in ECR: $tag"
+            tag_exists=true
+          fi
+        done <<< "$TAG_NAMES"
+
+        echo "tag_exists=$tag_exists" >> "$GITHUB_OUTPUT"
+
+        if [ "$tag_exists" = true ]; then
+          echo "::error::One or more tags already exist in ECR (and allow-overwrites=false). Failing."
+          exit 1
+        fi
 
     - name: Inject Standard Build Args
       id: inject-build-args
