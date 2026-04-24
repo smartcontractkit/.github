@@ -1,0 +1,11 @@
+{
+  "name": "reusable-apidiff-go-analysis",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {},
+  "keywords": [],
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "packageManager": "pnpm@10.29.3"
+}
