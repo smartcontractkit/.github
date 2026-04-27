@@ -1,5 +1,15 @@
 # build-push-docker
 
+## 1.5.0
+
+### Minor Changes
+
+- [#1526](https://github.com/smartcontractkit/.github/pull/1526)
+  [`f546aa1`](https://github.com/smartcontractkit/.github/commit/f546aa129e728b9e510a3705132fd1bceacb38f6)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: add input
+  "allow-overwrites" that allows you to fail the action early if you'd overwrite
+  a tag in the target ECR
+
 ## 1.4.0
 
 ### Minor Changes
