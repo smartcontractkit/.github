@@ -250,56 +250,13 @@ runs:
       if:
         ${{ inputs.allow-overwrites == 'false' && inputs.docker-push == 'true'
         }}
-      id: existing-ecr-tags
-      shell: bash
-      env:
-        ECR_REGISTRY: ${{ inputs.docker-registry-url }}
-        ECR_REPOSITORY_NAME: ${{ inputs.docker-repository-name }}
-        TAG_NAMES: ${{ steps.docker-meta.outputs.tag-names }}
-      run: |
-        echo "::startgroup::Checking for existing tags in ECR repository"
-        set -euo pipefail
-
-        repository_name="$ECR_REPOSITORY_NAME"
-
-        echo "Registry: $ECR_REGISTRY"
-        echo "Repository name for AWS CLI: $repository_name"
-        echo "AWS caller identity:"
-        aws sts get-caller-identity
-        echo "AWS region: ${AWS_REGION:-unset} / ${AWS_DEFAULT_REGION:-unset}"
-
-        tag_exists=false
-
-        while IFS= read -r tag; do
-          [ -n "$tag" ] || continue
-
-          # Strip CR just in case the output contains Windows-style line endings
-          tag="${tag%$'\r'}"
-
-          echo "Checking for tag: [$tag]"
-
-          if output=$(aws ecr describe-images \
-            --repository-name "$repository_name" \
-            --image-ids "imageTag=$tag" \
-            --no-cli-pager 2>&1); then
-            echo "::warning::Tag already exists in ECR: $tag"
-            echo "$output"
-            tag_exists=true
-          else
-            status=$?
-            echo "Lookup failed for tag [$tag] with exit code $status"
-            echo "$output"
-          fi
-        done <<< "$TAG_NAMES"
-
-        echo "Found existing tag? $tag_exists"
-
-        if [ "$tag_exists" = true ]; then
-          echo "::error::One or more tags already exist in ECR (allow-overwrites=false)."
-          exit 1
-        fi
-
-        echo "::endgroup::"
+      uses: smartcontractkit/.github/actions/ecr-image-exists@feat/ecr-image-exists-v1
+      with:
+        docker-registry-url: ${{ inputs.docker-registry-url }}
+        docker-repository-name: ${{ inputs.docker-repository-name }}
+        tags: ${{ steps.docker-meta.outputs.tag-names }}
+        assert-non-existence: true
+        registry-auth: false
 
     - name: Inject Standard Build Args
       id: inject-build-args
