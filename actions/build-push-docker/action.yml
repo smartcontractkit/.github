@@ -250,7 +250,7 @@ runs:
       if:
         ${{ inputs.allow-overwrites == 'false' && inputs.docker-push == 'true'
         }}
-      uses: smartcontractkit/.github/actions/ecr-image-exists@feat/ecr-image-exists-v1
+      uses: smartcontractkit/.github/actions/ecr-image-exists@ecr-image-exists/v1
       with:
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
