@@ -37,7 +37,8 @@ inputs:
     required: false
     default: "false"
     description: |
-      Whether to perform registry login in this action.
+      Whether to perform Docker registry login in this action (private ECR only).
+      Public ECR auth is handled automatically in the check step.
       If false, assumes registry auth is already configured.
 
   aws-region:
@@ -62,7 +63,9 @@ outputs:
   exists:
     description: |
       Whether any of the provided image tags exist in ECR.
-    value: ${{ steps.check.outputs.exists }}
+    value:
+      ${{ steps.check-public.outputs.exists ||
+      steps.check-private.outputs.exists }}
 
 runs:
   using: composite
@@ -146,39 +149,104 @@ runs:
         mask-aws-account-id: true
 
     - name: Login to Amazon ECR
-      if: ${{ inputs.registry-auth == 'true' }}
+      if:
+        ${{ inputs.registry-auth == 'true' &&
+        steps.validate.outputs.registry-type == 'private' }}
       uses: aws-actions/amazon-ecr-login@f2e9fc6c2b355c1890b65e6f6f0e2ac3e6e22f78 # v2.1.2
       with:
-        registry-type: ${{ steps.validate.outputs.registry-type }}
+        registry-type: private
         mask-password: "true"
 
-    - name: Check if image tags exist
-      id: check
+    - name: Check if image tags exist (public ECR)
+      id: check-public
+      if: ${{ steps.validate.outputs.registry-type == 'public' }}
       shell: bash
       env:
-        AWS_REGION: ${{ inputs.aws-region }}
         TAGS: ${{ inputs.tags }}
-        REGISTRY_TYPE: ${{ steps.validate.outputs.registry-type }}
         REGISTRY_ALIAS: ${{ steps.validate.outputs.registry-alias }}
         REPOSITORY_NAME: ${{ steps.validate.outputs.repository-name }}
       run: |
         set -euo pipefail
 
-        if [[ "${REGISTRY_TYPE}" == "public" ]]; then
-          ecr_cmd=(aws ecr-public describe-images --registry-id "${REGISTRY_ALIAS}")
+        # Obtain an authenticated Bearer token to stay within rate limits.
+        # Falls back to an anonymous token when no AWS credentials are available
+        # (e.g. querying a registry you do not own without assuming a role).
+        token_url="https://public.ecr.aws/token/?scope=repository:${REGISTRY_ALIAS}/${REPOSITORY_NAME}:pull&service=public.ecr.aws"
+
+        if ecr_password=$(aws ecr-public get-login-password --region us-east-1 2>/dev/null); then
+          echo "::add-mask::${ecr_password}"
+          auth_basic=$(printf 'AWS:%s' "${ecr_password}" | base64 -w 0)
+          echo "::add-mask::${auth_basic}"
+          token_response=$(curl -sf \
+            -H "Authorization: Basic ${auth_basic}" \
+            "${token_url}") || {
+            echo "::error::Failed to fetch authenticated token from ECR Public"
+            exit 1
+          }
         else
-          ecr_cmd=(aws ecr describe-images --region "${AWS_REGION}")
+          echo "No AWS credentials available; using anonymous token (lower rate limits apply)."
+          token_response=$(curl -sf "${token_url}") || {
+            echo "::error::Failed to fetch anonymous token from ECR Public"
+            exit 1
+          }
         fi
+
+        if ! bearer_token=$(printf '%s' "${token_response}" | jq -re '.token'); then
+          echo "::error::Failed to parse token from ECR Public response:"
+          echo "${token_response}"
+          exit 1
+        fi
+        echo "::add-mask::${bearer_token}"
 
         exists=false
 
         while IFS= read -r tag; do
           [[ -n "$tag" ]] || continue
           tag="${tag%$'\r'}"
-
           echo "Checking for tag: ${tag}"
 
-          if output=$("${ecr_cmd[@]}" \
+          manifest_url="https://public.ecr.aws/v2/${REGISTRY_ALIAS}/${REPOSITORY_NAME}/manifests/${tag}"
+          http_code=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${bearer_token}" \
+            "${manifest_url}")
+
+          case "${http_code}" in
+            200)
+              echo "Found existing tag: ${tag}"
+              exists=true
+              ;;
+            404)
+              echo "Tag does not exist: ${tag}"
+              ;;
+            *)
+              echo "::error::Unexpected HTTP ${http_code} checking tag ${tag}"
+              exit 1
+              ;;
+          esac
+        done <<< "${TAGS}"
+
+        echo "exists=${exists}" | tee -a "${GITHUB_OUTPUT}"
+
+    - name: Check if image tags exist (private ECR)
+      id: check-private
+      if: ${{ steps.validate.outputs.registry-type == 'private' }}
+      shell: bash
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
+        TAGS: ${{ inputs.tags }}
+        REPOSITORY_NAME: ${{ steps.validate.outputs.repository-name }}
+      run: |
+        set -euo pipefail
+
+        exists=false
+
+        while IFS= read -r tag; do
+          [[ -n "$tag" ]] || continue
+          tag="${tag%$'\r'}"
+          echo "Checking for tag: ${tag}"
+
+          if output=$(aws ecr describe-images \
+            --region "${AWS_REGION}" \
             --repository-name "${REPOSITORY_NAME}" \
             --image-ids "imageTag=${tag}" \
             --no-cli-pager 2>&1); then
@@ -201,9 +269,10 @@ runs:
         echo "exists=${exists}" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Assert non-existence of tags
-      if:
-        ${{ inputs.assert-non-existence == 'true' && steps.check.outputs.exists
-        == 'true' }}
+      if: >-
+        ${{ inputs.assert-non-existence == 'true' &&
+        (steps.check-public.outputs.exists == 'true' ||
+        steps.check-private.outputs.exists == 'true') }}
       shell: bash
       run: |
         echo "::error::One or more provided tags already exist in ECR."
