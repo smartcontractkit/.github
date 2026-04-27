@@ -6,16 +6,16 @@ action, or can operate against credentials already present in the environment.
 
 ## Inputs
 
-| Input                       | Required | Default     | Description                                                                                                                                                                   |
-| --------------------------- | -------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `docker-registry-url`       | **yes**  | —           | Registry hostname. Examples: `public.ecr.aws`, `<account-id>.dkr.ecr.<region>.amazonaws.com`                                                                                  |
-| `docker-repository-name`    | **yes**  | —           | Repository name excluding the hostname and tags. Public ECR must include the registry alias (e.g. `chainlink/chainlink`). Private ECR is just the repo name (e.g. `my-repo`). |
-| `tags`                      | **yes**  | —           | Newline-delimited list of tags to check. At least one non-empty tag is required.                                                                                              |
-| `assert-non-existence`      | no       | `false`     | When `true`, the action fails if any of the provided tags already exist in ECR.                                                                                               |
-| `registry-auth`             | no       | `false`     | When `true`, logs in to the private ECR registry inside this action. Ignored for public ECR. Set to `false` when registry auth is already configured in a prior step.         |
-| `aws-region`                | no       | `us-east-1` | AWS region. Use `us-east-1` for public ECR.                                                                                                                                   |
-| `aws-role-arn`              | no       | —           | AWS role ARN to assume before checking tags. If omitted, uses the AWS credentials already present in the environment.                                                         |
-| `aws-role-duration-seconds` | no       | `3600`      | Session duration when assuming `aws-role-arn`.                                                                                                                                |
+| Input                       | Required | Default     | Description                                                                                                                                                           |
+| --------------------------- | -------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `docker-registry-url`       | **yes**  | —           | Registry URL. For public ECR, include the registry alias (e.g. `public.ecr.aws/chainlink`). For private ECR: `<account-id>.dkr.ecr.<region>.amazonaws.com`.           |
+| `docker-repository-name`    | **yes**  | —           | Repository name only — no hostname, no alias, no tags (e.g. `chainlink`).                                                                                             |
+| `tags`                      | **yes**  | —           | Newline-delimited list of tags to check. At least one non-empty tag is required.                                                                                      |
+| `assert-non-existence`      | no       | `false`     | When `true`, the action fails if any of the provided tags already exist in ECR.                                                                                       |
+| `registry-auth`             | no       | `false`     | When `true`, logs in to the private ECR registry inside this action. Ignored for public ECR. Set to `false` when registry auth is already configured in a prior step. |
+| `aws-region`                | no       | `us-east-1` | AWS region. Use `us-east-1` for public ECR.                                                                                                                           |
+| `aws-role-arn`              | no       | —           | AWS role ARN to assume before checking tags. If omitted, uses the AWS credentials already present in the environment.                                                 |
+| `aws-role-duration-seconds` | no       | `3600`      | Session duration when assuming `aws-role-arn`.                                                                                                                        |
 
 ## Outputs
 
@@ -48,8 +48,8 @@ action, or can operate against credentials already present in the environment.
 - name: Assert tag does not exist
   uses: smartcontractkit/.github/actions/ecr-image-exists@<sha> # ecr-image-exists@x.y.z
   with:
-    docker-registry-url: public.ecr.aws
-    docker-repository-name: chainlink/chainlink
+    docker-registry-url: public.ecr.aws/chainlink
+    docker-repository-name: chainlink
     tags: |
       v1.2.3
       v1.2.3-amd64
@@ -72,8 +72,8 @@ and set `registry-auth: "false"` (the default):
   id: check-image
   uses: smartcontractkit/.github/actions/ecr-image-exists@<sha> # ecr-image-exists@x.y.z
   with:
-    docker-registry-url: public.ecr.aws
-    docker-repository-name: chainlink/chainlink
+    docker-registry-url: public.ecr.aws/chainlink
+    docker-repository-name: chainlink
     tags: v1.2.3
 ```
 

@@ -6,22 +6,20 @@ inputs:
   docker-registry-url:
     required: true
     description: |
-      Hostname for the docker image registry.
+      Docker image registry URL. For public ECR, include the registry alias.
 
       Examples:
-        public.ecr.aws
-        <account-id>.dkr.ecr.<region>.amazonaws.com
+        public.ecr.aws/chainlink                          # Public ECR
+        <account-id>.dkr.ecr.<region>.amazonaws.com       # Private ECR
 
   docker-repository-name:
     required: true
     description: |
-      Name of the Docker repository excluding hostname. Excludes any tags.
-      Public ECR repositories include a registry alias and a forward slash.
+      Repository name only — no registry host, no alias, no tags.
 
       Examples:
-        chainlink/chainlink # Public ECR
-        chainlink/ccip      # Public ECR
-        my-repo-name        # Private ECR
+        chainlink  # Public ECR  (alias is part of docker-registry-url)
+        chainlink  # Private ECR
 
   tags:
     required: true
@@ -94,18 +92,20 @@ runs:
           exit 1
         fi
 
-        if [[ "$docker_registry_url" == "public.ecr.aws" ]]; then
+        if [[ "$docker_registry_url" == public.ecr.aws/* ]]; then
           registry_type="public"
+          registry_alias="${docker_registry_url#public.ecr.aws/}"
 
-          if [[ "$docker_repository_name" != */* ]]; then
-            echo "::error::For public ECR, 'docker-repository-name' must include the registry alias."
-            echo "::error::Example: chainlink/chainlink"
+          if [[ "$docker_repository_name" == */* ]]; then
+            echo "::error::For public ECR, 'docker-repository-name' must be a single repository name with no slash."
+            echo "::error::The registry alias belongs in 'docker-registry-url'. Example: chainlink"
             exit 1
           fi
 
           repository_name="$docker_repository_name"
         elif [[ "$docker_registry_url" =~ ^[0-9]{12}\.dkr\.ecr\.[a-z0-9-]+\.amazonaws\.com$ ]]; then
           registry_type="private"
+          registry_alias=""
 
           if [[ "$docker_repository_name" == */* ]]; then
             echo "::error::For private ECR, 'docker-repository-name' must not include a slash."
@@ -116,7 +116,7 @@ runs:
           repository_name="$docker_repository_name"
         else
           echo "::error::Unsupported docker-registry-url: ${docker_registry_url}"
-          echo "::error::Expected 'public.ecr.aws' or '<account-id>.dkr.ecr.<region>.amazonaws.com'."
+          echo "::error::Expected 'public.ecr.aws/<registry-alias>' or '<account-id>.dkr.ecr.<region>.amazonaws.com'."
           exit 1
         fi
 
@@ -133,6 +133,7 @@ runs:
         fi
 
         echo "registry-type=${registry_type}" | tee -a "${GITHUB_OUTPUT}"
+        echo "registry-alias=${registry_alias}" | tee -a "${GITHUB_OUTPUT}"
         echo "repository-name=${repository_name}" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Configure AWS Credentials
@@ -158,12 +159,13 @@ runs:
         AWS_REGION: ${{ inputs.aws-region }}
         TAGS: ${{ inputs.tags }}
         REGISTRY_TYPE: ${{ steps.validate.outputs.registry-type }}
+        REGISTRY_ALIAS: ${{ steps.validate.outputs.registry-alias }}
         REPOSITORY_NAME: ${{ steps.validate.outputs.repository-name }}
       run: |
         set -euo pipefail
 
         if [[ "${REGISTRY_TYPE}" == "public" ]]; then
-          ecr_cmd=(aws ecr-public describe-images)
+          ecr_cmd=(aws ecr-public describe-images --registry-id "${REGISTRY_ALIAS}")
         else
           ecr_cmd=(aws ecr describe-images --region "${AWS_REGION}")
         fi
