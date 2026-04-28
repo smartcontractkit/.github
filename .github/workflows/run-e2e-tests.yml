@@ -188,6 +188,14 @@ on:
         required: false
         type: number
         default: 60
+      prebuilt_e2e_test_binaries_artifact:
+        description: |
+          When non-empty, the name of a workflow artifact (uploaded by the caller) that
+          contains e2e-test-binaries.tar.gz produced from integration-tests/.e2e-test-bin.
+          Matrix jobs extract it and run tests via precompiled binaries (see e2e-tests.yml).
+        required: false
+        type: string
+        default: ""
     outputs:
       test_results:
         description: "Test results from all executed tests"
@@ -751,6 +759,21 @@ jobs:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
 
+      - name: Download prebuilt E2E test binaries
+        if: inputs.prebuilt_e2e_test_binaries_artifact != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.prebuilt_e2e_test_binaries_artifact }}
+          path: downloaded-e2e-bins
+
+      - name: Extract prebuilt E2E test binaries
+        if: inputs.prebuilt_e2e_test_binaries_artifact != ''
+        shell: bash
+        run: |
+          tar xzf downloaded-e2e-bins/e2e-test-binaries.tar.gz -C integration-tests
+          find integration-tests/.e2e-test-bin -name '*.test' -exec chmod +x {} \;
+          echo "PREBUILT_E2E_BINARIES=true" >> "$GITHUB_ENV"
+
       - name: Show test config override path in summary
         if: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
         shell: bash
@@ -856,7 +879,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@fd6d3af35a8d36bff54eac8babde688c31fd39cf
         # jankiness because: github.com/actions/runner/issues/1492 + github.com/actions/runner/issues/2418
         continue-on-error: ${{ fromJSON(env.QUARANTINE) }}
         env:
@@ -881,6 +904,7 @@ jobs:
           test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command: cd $(dirname ${{ matrix.tests.path }}) && go mod download
+          skip_go_modules_download: ${{ inputs.prebuilt_e2e_test_binaries_artifact != '' && 'true' || 'false' }}
           test_secrets_override_base64: ${{ steps.aws-test-secrets.outputs.secret_value ||
             secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
@@ -1118,6 +1142,21 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Download prebuilt E2E test binaries
+        if: inputs.prebuilt_e2e_test_binaries_artifact != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.prebuilt_e2e_test_binaries_artifact }}
+          path: downloaded-e2e-bins
+
+      - name: Extract prebuilt E2E test binaries
+        if: inputs.prebuilt_e2e_test_binaries_artifact != ''
+        shell: bash
+        run: |
+          tar xzf downloaded-e2e-bins/e2e-test-binaries.tar.gz -C integration-tests
+          find integration-tests/.e2e-test-bin -name '*.test' -exec chmod +x {} \;
+          echo "PREBUILT_E2E_BINARIES=true" >> "$GITHUB_ENV"
+
       - name: Show test config override path in summary
         if: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
         run: |
@@ -1175,7 +1214,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@fd6d3af35a8d36bff54eac8babde688c31fd39cf
         # jankiness because: github.com/actions/runner/issues/1492 + github.com/actions/runner/issues/2418
         continue-on-error: ${{ fromJSON(env.QUARANTINE) }}
         env:
@@ -1207,6 +1246,7 @@ jobs:
         with:
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command: make gomod
+          skip_go_modules_download: ${{ inputs.prebuilt_e2e_test_binaries_artifact != '' && 'true' || 'false' }}
           test_secrets_override_base64: ${{ steps.aws-test-secrets.outputs.secret_value ||
             secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
@@ -1320,6 +1360,21 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Download prebuilt E2E test binaries
+        if: inputs.prebuilt_e2e_test_binaries_artifact != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.prebuilt_e2e_test_binaries_artifact }}
+          path: downloaded-e2e-bins
+
+      - name: Extract prebuilt E2E test binaries
+        if: inputs.prebuilt_e2e_test_binaries_artifact != ''
+        shell: bash
+        run: |
+          tar xzf downloaded-e2e-bins/e2e-test-binaries.tar.gz -C integration-tests
+          find integration-tests/.e2e-test-bin -name '*.test' -exec chmod +x {} \;
+          echo "PREBUILT_E2E_BINARIES=true" >> "$GITHUB_ENV"
+
       - name: Set dynamic env vars for tests
         shell: bash
         run: |
@@ -1346,7 +1401,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.11.0
+        uses: smartcontractkit/.github/actions/ctf-run-tests@fd6d3af35a8d36bff54eac8babde688c31fd39cf
         # jankiness because: github.com/actions/runner/issues/1492 + github.com/actions/runner/issues/2418
         continue-on-error: ${{ fromJSON(env.QUARANTINE) }}
         env:
@@ -1355,6 +1410,7 @@ jobs:
           test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command: cd $(dirname ${{ matrix.tests.path }}) && go mod download
+          skip_go_modules_download: ${{ inputs.prebuilt_e2e_test_binaries_artifact != '' && 'true' || 'false' }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
           test_suite: ${{ matrix.tests.test_env_vars.TEST_SUITE }}
           artifacts_name: ${{ env.TEST_ID }}-test-logs
