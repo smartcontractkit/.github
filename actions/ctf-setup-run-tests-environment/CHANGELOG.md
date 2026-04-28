@@ -1,5 +1,14 @@
 # ctf-setup-run-tests-environment
 
+## 0.10.1
+
+### Patch Changes
+
+- [#1535](https://github.com/smartcontractkit/.github/pull/1535)
+  [`4b4103e`](https://github.com/smartcontractkit/.github/commit/4b4103e41169854332e665efae7a6ee5e87b8606)
+  Thanks [@FelixFan1992](https://github.com/FelixFan1992)! - update
+  chainlink-sui and sui cli setup
+
 ## 0.10.0
 
 ### Minor Changes
