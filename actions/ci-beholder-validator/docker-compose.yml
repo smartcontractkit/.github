@@ -24,7 +24,7 @@ services:
       # Tells Seastar (the framework Redpanda uses under the hood) to use 1 core on the system.
       - --smp 1
       - --default-log-level=info
-    image: docker.redpanda.com/redpandadata/redpanda:v23.3.18
+    image: docker.redpanda.com/redpandadata/redpanda:v23.3.21
     container_name: redpanda-0
     hostname: redpanda-0
     ports:
