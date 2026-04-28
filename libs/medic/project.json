@@ -1,0 +1,16 @@
+{
+  "name": "medic-lib",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/medic/src",
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "libs/medic",
+        "command": "vitest run",
+        "color": true
+      }
+    }
+  }
+}

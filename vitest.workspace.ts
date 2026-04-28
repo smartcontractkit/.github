@@ -1,1 +1,1 @@
-export default ["actions/*", "apps/*"];
+export default ["actions/*", "apps/*", "libs/medic"];
