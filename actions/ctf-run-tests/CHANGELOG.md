@@ -1,5 +1,14 @@
 # ctf-run-tests
 
+## 0.12.1
+
+### Patch Changes
+
+- [#1537](https://github.com/smartcontractkit/.github/pull/1537)
+  [`e4bdb73`](https://github.com/smartcontractkit/.github/commit/e4bdb73c157b3862eb798b9ddd12303b28e1e1d4)
+  Thanks [@FelixFan1992](https://github.com/FelixFan1992)! - update
+  ctf-setup-run-tests-environment version in ctf-run-tests
+
 ## 0.12.0
 
 ### Minor Changes
