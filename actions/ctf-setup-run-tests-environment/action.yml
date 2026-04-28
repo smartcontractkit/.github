@@ -189,7 +189,7 @@ runs:
 
     - name: Install Sui CLI
       if: inputs.sui_cli_version
-      uses: smartcontractkit/chainlink-sui/.github/actions/setup-sui@4b810a59d905f512d3c989f5291f969f6fc69eb2 # 30-09-2025
+      uses: smartcontractkit/chainlink-sui/.github/actions/setup-sui@4c661ad29fa0b2074227327e6a6cbfaa70131cbf # 27-04-2026
       with:
         version: ${{ inputs.sui_cli_version }}
 
