@@ -1,7 +1,7 @@
 name: changesets-action-signed-commits
 description: A GitHub action to automate releases with Changesets
 runs:
-  using: "node20"
+  using: "node24"
   main: "dist/index.js"
 inputs:
   publish:
@@ -61,9 +61,9 @@ inputs:
     default: "false"
   rootVersionPackagePath:
     description: |
-      Path to a package.json file that should use simplified v<version> tags 
-      instead of <name><separator><version> tags. The package.json must have 
-      chainlink.changesets.rootVersion set to true. If this path is provided 
+      Path to a package.json file that should use simplified v<version> tags
+      instead of <name><separator><version> tags. The package.json must have
+      chainlink.changesets.rootVersion set to true. If this path is provided
       but the field is not set correctly, the action will fail.
     required: false
 
