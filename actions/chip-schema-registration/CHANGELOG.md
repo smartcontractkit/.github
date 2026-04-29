@@ -1,5 +1,13 @@
 # chip-schema-registration
 
+## 1.3.0
+
+### Minor Changes
+
+- [#1542](https://github.com/smartcontractkit/.github/pull/1542)
+  [`dd18a6e`](https://github.com/smartcontractkit/.github/commit/dd18a6e129368edff2a65cea06fc6401154dcb08)
+  Thanks [@hendoxc](https://github.com/hendoxc)! - Fixes typo in param names
+
 ## 1.2.0
 
 ### Minor Changes
