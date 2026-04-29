@@ -1,5 +1,14 @@
 # reusable-docker-build-publish
 
+## 1.2.0
+
+### Minor Changes
+
+- [#1533](https://github.com/smartcontractkit/.github/pull/1533)
+  [`de6468a`](https://github.com/smartcontractkit/.github/commit/de6468a3dc03e8f05ad5e74635f7fdaf759b1529)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: add
+  "allow-overwrites" input. See `build-push-docker` action for more details
+
 ## 1.1.0
 
 ### Minor Changes
