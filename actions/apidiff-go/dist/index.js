@@ -21323,7 +21323,7 @@ var require_core = __commonJS({
     exports2.isDebug = isDebug2;
     exports2.debug = debug2;
     exports2.error = error;
-    exports2.warning = warning4;
+    exports2.warning = warning5;
     exports2.notice = notice;
     exports2.info = info6;
     exports2.startGroup = startGroup3;
@@ -21416,7 +21416,7 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
     function error(message, properties = {}) {
       (0, command_1.issueCommand)("error", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
-    function warning4(message, properties = {}) {
+    function warning5(message, properties = {}) {
       (0, command_1.issueCommand)("warning", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
     function notice(message, properties = {}) {
@@ -51723,6 +51723,20 @@ async function checkoutRef(repoDir, ref) {
     throw new Error(`Failed to checkout ref ${ref}: ${error}`);
   }
 }
+async function findMergeBase(repoDir, ref1, ref2) {
+  try {
+    const { stdout } = await execa("git", ["merge-base", ref1, ref2], {
+      cwd: repoDir
+    });
+    const sha = stdout.trim();
+    core3.info(`Found merge base of '${ref1}' and '${ref2}': ${sha}`);
+    return sha;
+  } catch (error) {
+    throw new Error(
+      `Could not find merge base of '${ref1}' and '${ref2}': ${error}`
+    );
+  }
+}
 
 // actions/apidiff-go/src/apidiff.ts
 async function generateExportAtRef(modulePath, ref) {
@@ -52509,8 +52523,25 @@ async function run() {
     const moduleName = await getGoModuleName(qualifiedModuleDirectory);
     core7.info(`Module name: ${moduleName}`);
     const headRef = determineRef("head", context2, inputs.headRefOverride);
-    const baseRef = determineRef("base", context2, inputs.baseRefOverride);
+    let baseRef = determineRef("base", context2, inputs.baseRefOverride);
     core7.info(`Head ref: ${headRef}, Base ref: ${baseRef}`);
+    if (!inputs.baseRefOverride) {
+      try {
+        const mergeBase = await findMergeBase(
+          inputs.repositoryRoot,
+          headRef,
+          baseRef
+        );
+        core7.info(
+          `Using merge base ${mergeBase} instead of target branch HEAD ${baseRef}`
+        );
+        baseRef = mergeBase;
+      } catch (error) {
+        core7.warning(
+          `Could not find merge base, falling back to base ref ${baseRef}: ${error}`
+        );
+      }
+    }
     core7.endGroup();
     core7.startGroup("Installing apidiff");
     await installApidiff(qualifiedModuleDirectory, inputs.apidiffVersion);
