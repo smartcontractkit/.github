@@ -9,6 +9,7 @@ import {
   resolveRef,
   checkoutRef,
   getRepoTags,
+  findMergeBase,
 } from "../git.js";
 
 import {
@@ -113,6 +114,45 @@ describe("git utilities", () => {
       const tags = await getRepoTags(localRepoDir);
       expect(tags).toContain("lightweight-tag");
       expect(tags).toContain("annotated-tag");
+    });
+  });
+
+  describe("findMergeBase", () => {
+    it("should find the common ancestor of two divergent branches", async () => {
+      // feature/test-branch diverged from main after "Common commit 1"
+      // main has since advanced with "Common commit 2", "Advance main - commit 1", etc.
+      const featureSha = await getRefSha(localRepoDir, "feature/test-branch");
+      const mainSha = await getRefSha(localRepoDir, "main");
+
+      const mergeBase = await findMergeBase(localRepoDir, featureSha, mainSha);
+
+      // The merge base should not be the HEAD of main
+      expect(mergeBase).not.toBe(mainSha);
+      // The merge base should be an ancestor of both branches
+      const { stdout: isAncestorOfMain } = await execa(
+        "git",
+        ["merge-base", "--is-ancestor", mergeBase, mainSha],
+        { cwd: localRepoDir, reject: false },
+      );
+      const { stdout: isAncestorOfFeature } = await execa(
+        "git",
+        ["merge-base", "--is-ancestor", mergeBase, featureSha],
+        { cwd: localRepoDir, reject: false },
+      );
+      expect(isAncestorOfMain).toBe("");
+      expect(isAncestorOfFeature).toBe("");
+    });
+
+    it("should return the commit itself when comparing a branch to itself", async () => {
+      const mainSha = await getRefSha(localRepoDir, "main");
+      const mergeBase = await findMergeBase(localRepoDir, mainSha, mainSha);
+      expect(mergeBase).toBe(mainSha);
+    });
+
+    it("should throw an error for invalid refs", async () => {
+      await expect(
+        findMergeBase(localRepoDir, "nonexistent1", "nonexistent2"),
+      ).rejects.toThrow();
     });
   });
 
