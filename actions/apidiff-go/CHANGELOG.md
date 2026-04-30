@@ -1,5 +1,14 @@
 # apidiff-go
 
+## 2.3.0
+
+### Minor Changes
+
+- [#1543](https://github.com/smartcontractkit/.github/pull/1543)
+  [`ff71c6f`](https://github.com/smartcontractkit/.github/commit/ff71c6f255127eda50cd3fa4044c623408d9a333)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: resolve proper merge
+  base before analyzing
+
 ## 2.2.0
 
 ### Minor Changes
