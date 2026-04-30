@@ -63,8 +63,8 @@ runs:
     - name: Connect to Tailscale
       uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8 # v4.1.2
       with:
-        oauth-client-id: ${{ inputs.ts-ouath-client-id }}
-        oauth-secret: ${{ inputs.ts-ouath-secret }}
+        oauth-client-id: ${{ inputs.ts-oauth-client-id }}
+        oauth-secret: ${{ inputs.ts-oauth-secret }}
         tags: "tag:chip-config-gha"
 
     - name: Register schemas
