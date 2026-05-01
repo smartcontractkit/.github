@@ -1,0 +1,29 @@
+{
+  "name": "@chainlink/medic",
+  "version": "0.1.0",
+  "description": "Shared Medic library: medic.yml config, PR comments, and workflow auto-retry (Claude analysis)",
+  "private": true,
+  "license": "MIT",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "engines": {
+    "node": ">=24",
+    "pnpm": ">=10"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1",
+    "@anthropic-ai/vertex-sdk": "^0.14.4",
+    "js-yaml": "^4.1.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "scripts": {
+    "test": "vitest run"
+  }
+}

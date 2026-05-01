@@ -1,0 +1,18 @@
+# Medic — auto workflow retry (`workflow_run`). Override in consuming repositories.
+# https://github.com/smartcontractkit/.github
+
+# Used for PR author allowlist when deciding whether to auto-retry a failed workflow.
+merge_conflict:
+  allowed_authors:
+    - patrickhuie19
+  max_attempts: 3
+  activity_threshold_hours: 48
+  skip_labels:
+    - medic-skip
+    - do not merge
+    - do-not-merge
+    - wip
+
+workflow_retry:
+  max_attempts: 3
+  retryable: []

@@ -9,3 +9,8 @@
 
 # data-analytics - temporarily add devex-cicd for dependency bumps
 /actions/pr-quality-check/ @smartcontractkit/data-analytics @smartcontractkit/devex-cicd
+
+# Medic (auto workflow retry only)
+/actions/medic-workflow-retry-auto/** @smartcontractkit/foundations
+/libs/medic/** @smartcontractkit/foundations
+/.github/workflows/medic-*.yml @smartcontractkit/foundations
