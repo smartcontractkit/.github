@@ -1,5 +1,13 @@
 # slack-notify-git-ref
 
+## 1.2.0
+
+### Minor Changes
+
+- [#1521](https://github.com/smartcontractkit/.github/pull/1521)
+  [`5d9c84f`](https://github.com/smartcontractkit/.github/commit/5d9c84f8e611f0ecdb4ee3610efb548afc3c855d)
+  Thanks [@Tofel](https://github.com/Tofel)! - add 'slack_thread_ts' to output
+
 ## 1.1.0
 
 ### Minor Changes

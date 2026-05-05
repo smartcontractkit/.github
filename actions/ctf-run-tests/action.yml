@@ -214,7 +214,7 @@ inputs:
     required: false
     default: ""
     description:
-      "Set to a Sui CLI version to install (e.g. mainnet-v1.50.1, mainnet)"
+      "Set to a Sui CLI version to install (e.g. mainnet-v1.69.2, mainnet)"
   setup_db:
     required: false
     description: |
@@ -228,7 +228,7 @@ runs:
     - name: Setup environment
       if: inputs.run_setup == 'true'
       id: setup-env
-      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@ctf-setup-run-tests-environment/0.8.0
+      uses: smartcontractkit/.github/actions/ctf-setup-run-tests-environment@ctf-setup-run-tests-environment/0.10.1
       with:
         test_download_vendor_packages_command:
           ${{ inputs.test_download_vendor_packages_command }}

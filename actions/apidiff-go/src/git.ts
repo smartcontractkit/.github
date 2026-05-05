@@ -121,6 +121,29 @@ export async function checkoutRef(
   }
 }
 
+/**
+ * Finds the merge base (common ancestor) of two refs.
+ * Returns the SHA of the merge base commit.
+ */
+export async function findMergeBase(
+  repoDir: string,
+  ref1: string,
+  ref2: string,
+): Promise<string> {
+  try {
+    const { stdout } = await execa("git", ["merge-base", ref1, ref2], {
+      cwd: repoDir,
+    });
+    const sha = stdout.trim();
+    core.info(`Found merge base of '${ref1}' and '${ref2}': ${sha}`);
+    return sha;
+  } catch (error) {
+    throw new Error(
+      `Could not find merge base of '${ref1}' and '${ref2}': ${error}`,
+    );
+  }
+}
+
 export async function getRepoTags(repoDir: string) {
   const { stdout: rawTags } = await execa("git", ["tag"], { cwd: repoDir });
   const tags = rawTags

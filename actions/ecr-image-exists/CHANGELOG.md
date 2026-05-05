@@ -1,5 +1,14 @@
 # ecr-image-exists
 
+## 1.0.0
+
+### Major Changes
+
+- [`4b8c957`](https://github.com/smartcontractkit/.github/commit/4b8c957485584687805fa732fc8075abb125bd9b)
+  Thanks [@erikburt](https://github.com/erikburt)! - initial release,
+  standardizing inputs with other docker image related actions, now supports
+  checking multiple tags if desired
+
 ## 0.2.0
 
 ### Minor Changes

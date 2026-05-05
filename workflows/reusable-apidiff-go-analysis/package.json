@@ -1,11 +1,11 @@
 {
-  "name": "ecr-image-exists",
+  "name": "reusable-apidiff-go-analysis",
   "version": "1.0.0",
   "description": "",
   "private": true,
   "scripts": {},
+  "keywords": [],
   "author": "@smartcontractkit",
   "license": "MIT",
-  "dependencies": {},
-  "repository": "https://github.com/smartcontractkit/.github"
+  "packageManager": "pnpm@10.29.3"
 }
