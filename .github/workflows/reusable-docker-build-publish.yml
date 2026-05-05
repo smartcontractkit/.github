@@ -339,6 +339,13 @@ on:
         required: false
         type: string
         default: "false"
+      allow-overwrites:
+        description: |
+          Whether to allow overwriting existing Docker images with the same tag in AWS ECR.
+          Default is true (for backwards compatibility).
+        required: false
+        type: string
+        default: "true"
 
     outputs:
       docker-image-sha-digest-amd64:
@@ -664,6 +671,7 @@ jobs:
           aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
           aws-region: ${{ inputs.aws-region-ecr }}
           github-token: ${{ secrets.GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE || steps.token.outputs.access-token || '' }}
+          allow-overwrites: ${{ inputs.allow-overwrites }}
 
   docker-manifest:
     name: docker-manifest

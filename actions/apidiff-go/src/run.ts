@@ -9,7 +9,7 @@ import {
   installApidiff,
   diffExports,
 } from "./apidiff";
-import { validateGitRepositoryRoot } from "./git";
+import { validateGitRepositoryRoot, findMergeBase } from "./git";
 import { upsertPRComment } from "./github";
 import { CL_LOCAL_DEBUG, getInputs, getInvokeContext } from "./run-inputs";
 import {
@@ -42,8 +42,26 @@ export async function run(): Promise<void> {
     core.info(`Module name: ${moduleName}`);
 
     const headRef = determineRef("head", context, inputs.headRefOverride);
-    const baseRef = determineRef("base", context, inputs.baseRefOverride);
+    let baseRef = determineRef("base", context, inputs.baseRefOverride);
     core.info(`Head ref: ${headRef}, Base ref: ${baseRef}`);
+
+    if (!inputs.baseRefOverride) {
+      try {
+        const mergeBase = await findMergeBase(
+          inputs.repositoryRoot,
+          headRef,
+          baseRef,
+        );
+        core.info(
+          `Using merge base ${mergeBase} instead of target branch HEAD ${baseRef}`,
+        );
+        baseRef = mergeBase;
+      } catch (error) {
+        core.warning(
+          `Could not find merge base, falling back to base ref ${baseRef}: ${error}`,
+        );
+      }
+    }
 
     core.endGroup();
 

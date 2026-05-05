@@ -34,10 +34,10 @@ inputs:
       "The full path of the schema configuration file. By default, chip.json in
       schema directory is used."
     required: false
-  ts-ouath-client-id:
+  ts-oauth-client-id:
     description: "Tailscale OAuth Client ID"
     required: true
-  ts-ouath-secret:
+  ts-oauth-secret:
     description: "Tailscale OAuth Secret"
     required: true
 
