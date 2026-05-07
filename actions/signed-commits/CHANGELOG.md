@@ -1,5 +1,14 @@
 # changesets-signed-commits
 
+## 1.9.1
+
+### Patch Changes
+
+- [#1522](https://github.com/smartcontractkit/.github/pull/1522)
+  [`7097fed`](https://github.com/smartcontractkit/.github/commit/7097fed9cef826fab840b93e5a80f21ca2f03bad)
+  Thanks [@erikburt](https://github.com/erikburt)! - fix: actually bump runtime
+  from node20 to node24
+
 ## 1.9.0
 
 ### Minor Changes
