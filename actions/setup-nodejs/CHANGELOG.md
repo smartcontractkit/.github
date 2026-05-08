@@ -1,5 +1,13 @@
 # setup-nodejs
 
+## 1.3.1
+
+### Patch Changes
+
+- [#1547](https://github.com/smartcontractkit/.github/pull/1547)
+  [`20874e7`](https://github.com/smartcontractkit/.github/commit/20874e716e51e8d01d048c18979b828ccfdd8f55)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump gha deps
+
 ## 1.3.0
 
 ### Minor Changes
