@@ -26,6 +26,14 @@ inputs:
     default: "false"
     required: false
 
+  postgres-options:
+    description: |
+      When non-empty, replaces POSTGRES_OPTIONS for this compose run only (full
+      `postgres -c ...` flag string). When empty, uses POSTGRES_OPTIONS from the
+      action's .env (default CI profile). Must be trusted workflow input only.
+    default: ""
+    required: false
+
 outputs:
   database-url:
     description: The URL to connect to the postgres database
@@ -47,10 +55,15 @@ runs:
       env:
         IMAGE_TAG: ${{ inputs.image-tag }}
         USE_TMPFS: ${{ inputs.tmpfs }}
+        SETUP_POSTGRES_OPTIONS: ${{ inputs.postgres-options }}
       run: |
         if [ "${USE_TMPFS}" == "true" ]; then
           echo "Using tmpfs mount for postgres data directory"
           cp docker-compose.tmpfs.yml docker-compose.override.yml
+        fi
+
+        if [ -n "${SETUP_POSTGRES_OPTIONS}" ]; then
+          export POSTGRES_OPTIONS="${SETUP_POSTGRES_OPTIONS}"
         fi
 
         docker compose up -d

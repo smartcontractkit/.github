@@ -1,0 +1,55 @@
+name: setup-postgres validate
+
+on:
+  pull_request:
+    paths:
+      - "actions/setup-postgres/**"
+      - ".github/workflows/setup-postgres-validate.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "actions/setup-postgres/**"
+      - ".github/workflows/setup-postgres-validate.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  postgres-options:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - case: default
+            postgres-options: ""
+            want_shared_buffers: "2GB"
+            want_fsync: "on"
+          - case: override
+            postgres-options: '-c max_connections=50 -c shared_buffers=128MB -c fsync=off -c log_lock_waits=false'
+            want_shared_buffers: "128MB"
+            want_fsync: "off"
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Setup Postgres (${{ matrix.case }})
+        uses: ./actions/setup-postgres
+        with:
+          postgres-options: ${{ matrix.postgres-options }}
+
+      - name: Assert effective GUCs
+        shell: bash
+        working-directory: ${{ github.workspace }}/actions/setup-postgres
+        env:
+          WANT_SHARED_BUFFERS: ${{ matrix.want_shared_buffers }}
+          WANT_FSYNC: ${{ matrix.want_fsync }}
+        run: |
+          got_sb=$(docker exec cl_pg psql -U postgres -d chainlink_test -tAc "SHOW shared_buffers" | tr -d '[:space:]')
+          got_fsync=$(docker exec cl_pg psql -U postgres -d chainlink_test -tAc "SHOW fsync" | tr -d '[:space:]')
+          echo "shared_buffers=$got_sb (want $WANT_SHARED_BUFFERS)"
+          echo "fsync=$got_fsync (want $WANT_FSYNC)"
+          test "$got_sb" = "$WANT_SHARED_BUFFERS"
+          test "$got_fsync" = "$WANT_FSYNC"
