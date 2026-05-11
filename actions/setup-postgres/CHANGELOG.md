@@ -1,5 +1,17 @@
 # setup-postgres
 
+## 1.2.0
+
+### Minor Changes
+
+- [#1549](https://github.com/smartcontractkit/.github/pull/1549)
+  [`1738226`](https://github.com/smartcontractkit/.github/commit/1738226c6d6374dd953f414942eae47288b118b9)
+  Thanks [@kalverra](https://github.com/kalverra)! - Add optional
+  `postgres-options` input. When set, it replaces `POSTGRES_OPTIONS` for the
+  `docker compose up` invocation so workflows can match a documented Postgres
+  profile (for example Chainlink `tools/test` diagnose) without changing the
+  baked-in default in `.env`. Empty value preserves previous behavior.
+
 ## 1.1.0
 
 ### Minor Changes
