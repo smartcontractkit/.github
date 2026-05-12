@@ -1,0 +1,21 @@
+{
+  "name": "semver-compare",
+  "version": "0.0.0",
+  "description": "Simple wrapper around semver lib to compare semantic version strings",
+  "main": "dist/index.js",
+  "private": true,
+  "scripts": {
+    "test": "vitest"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.12.2",
+    "@types/semver": "^7.7.1",
+    "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "@actions/core": "^2.0.3",
+    "semver": "^7.7.3"
+  }
+}
