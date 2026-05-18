@@ -1,0 +1,8 @@
+{
+  "action": "synchronize",
+  "after": "10182ba4d545ebb4852835cad9dafdd740764b92",
+  "before": "8be956afcec1effac0bc3aa4fbb7692e8ceea40f",
+  "pull_request": {
+    "number": 20471
+  }
+}
