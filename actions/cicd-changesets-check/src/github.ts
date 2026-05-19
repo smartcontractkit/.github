@@ -20,8 +20,8 @@ export async function getCommentId(
   octokit: Octokit,
   params: ListCommentsParams,
 ): Promise<number | null> {
-  const comments = await octokit.rest.issues.listComments(params);
-  const changesetComment = comments.data.find((comment) =>
+  const comments = await octokit.paginate(octokit.rest.issues.listComments, params);
+  const changesetComment = comments.find((comment) =>
     comment.body?.includes(CHANGESET_SIGNATURE),
   );
   return changesetComment ? changesetComment.id : null;

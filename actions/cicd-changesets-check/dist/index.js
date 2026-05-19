@@ -42495,8 +42495,8 @@ var import_node_crypto = require("node:crypto");
 // actions/cicd-changesets-check/src/github.ts
 var CHANGESET_SIGNATURE = `<!-- changeset-check-action-signature -->`;
 async function getCommentId(octokit, params) {
-  const comments = await octokit.rest.issues.listComments(params);
-  const changesetComment = comments.data.find(
+  const comments = await octokit.paginate(octokit.rest.issues.listComments, params);
+  const changesetComment = comments.find(
     (comment) => comment.body?.includes(CHANGESET_SIGNATURE)
   );
   return changesetComment ? changesetComment.id : null;
