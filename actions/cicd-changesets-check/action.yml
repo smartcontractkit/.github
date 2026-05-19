@@ -12,6 +12,10 @@ inputs:
     description: "Fail the workflow if no changeset is found"
     required: false
     default: "true"
+  show-add-link:
+    description: "Show the 'add a changeset' link for maintainers"
+    required: false
+    default: "true"
 
 outputs:
   has-changeset:

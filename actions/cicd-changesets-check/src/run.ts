@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { randomBytes } from "node:crypto";
-import { getCommentId, getHasChangeset } from "./github";
+import { getCommentId, getHasChangeset, getPackageName } from "./github";
 import { getAbsentMessage, getApproveMessage } from "./messages";
 
 export async function run(): Promise<void> {
@@ -27,12 +27,30 @@ export async function run(): Promise<void> {
       }),
     ]);
 
-    const changesetFilename = randomBytes(8).toString("hex");
-    const addChangesetUrl = `${pullRequest.head.repo.html_url}/new/${pullRequest.head.ref}?filename=.changeset/${changesetFilename}.md`;
+    const showAddLink = core.getBooleanInput("show-add-link");
+
+    let addChangesetUrl: string | undefined;
+    if (showAddLink) {
+      const packageName = await getPackageName(octokit, {
+        ...github.context.repo,
+        ref: pullRequest.head.ref,
+      });
+
+      const changesetFilename = randomBytes(8).toString("hex");
+      const changesetTemplate = [
+        "---",
+        `"${packageName ?? "<package-name>"}": patch`,
+        "---",
+        "",
+        "Description of the change",
+        "",
+      ].join("\n");
+      addChangesetUrl = `${pullRequest.head.repo.html_url}/new/${pullRequest.head.ref}?filename=.changeset/${changesetFilename}.md&value=${encodeURIComponent(changesetTemplate)}`;
+    }
 
     const message = hasChangeset
       ? getApproveMessage(github.context.sha)
-      : getAbsentMessage(github.context.sha, addChangesetUrl);
+      : getAbsentMessage({ commitSha: github.context.sha, addChangesetUrl });
 
     core.setOutput("has-changeset", hasChangeset.toString());
 
