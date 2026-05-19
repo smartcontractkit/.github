@@ -1,0 +1,22 @@
+name: cicd-changesets-check
+description: >
+  Comments on PRs with whether a PR has a changeset or not and links to
+  documentation explaining to contributors how to create a changeset.
+
+inputs:
+  token:
+    description: "GitHub token for API access"
+    required: true
+    default: ${{ github.token }}
+  fail-on-missing:
+    description: "Fail the workflow if no changeset is found"
+    required: false
+    default: "false"
+
+outputs:
+  has-changeset:
+    description: "Whether the PR has a changeset (true/false)"
+
+runs:
+  using: "node24"
+  main: "dist/index.js"
