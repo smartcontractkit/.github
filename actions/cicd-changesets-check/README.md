@@ -21,7 +21,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Check for changeset
         uses: smartcontractkit/.github/actions/cicd-changesets-check@<version>
         with:
