@@ -1,0 +1,46 @@
+{
+  "name": "cicd-changesets-check",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "build": {
+      "dependsOn": ["build:internal"],
+      "command": "rimraf dist/package.json"
+    },
+    "build:internal": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "format": ["cjs"],
+        "thirdParty": true,
+        "outputPath": "actions/cicd-changesets-check/dist/",
+        "main": "actions/cicd-changesets-check/src/index.ts",
+        "assets": [],
+        "outputFileName": "index.js",
+        "esbuildOptions": {
+          "outExtension": {
+            ".js": ".js"
+          }
+        },
+        "tsConfig": "tsconfig.json",
+        "platform": "node"
+      },
+      "configurations": {
+        "development": {
+          "minify": false
+        },
+        "production": {
+          "minify": false
+        }
+      }
+    }
+  }
+}
