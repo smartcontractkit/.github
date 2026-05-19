@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { getCommentId, getHasChangeset } from "./github";
 import { getAbsentMessage, getApproveMessage } from "./messages";
 
