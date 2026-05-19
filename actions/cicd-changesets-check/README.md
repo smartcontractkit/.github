@@ -30,10 +30,11 @@ jobs:
 
 ## Inputs
 
-| Name              | Description                                | Required | Default               |
-| ----------------- | ------------------------------------------ | -------- | --------------------- |
-| `token`           | GitHub token for API access                | Yes      | `${{ github.token }}` |
-| `fail-on-missing` | Fail the workflow if no changeset is found | No       | `"true"`              |
+| Name              | Description                                     | Required | Default               |
+| ----------------- | ----------------------------------------------- | -------- | --------------------- |
+| `token`           | GitHub token for API access                     | Yes      | `${{ github.token }}` |
+| `fail-on-missing` | Fail the workflow if no changeset is found      | No       | `"true"`              |
+| `show-add-link`   | Show the 'add a changeset' link for maintainers | No       | `"true"`              |
 
 ## Outputs
 
