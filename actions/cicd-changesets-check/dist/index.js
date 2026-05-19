@@ -42490,7 +42490,7 @@ function warning(message, properties = {}) {
 
 // actions/cicd-changesets-check/src/run.ts
 var github = __toESM(require_github());
-var import_crypto = require("crypto");
+var import_node_crypto = require("node:crypto");
 
 // actions/cicd-changesets-check/src/github.ts
 var CHANGESET_SIGNATURE = `<!-- changeset-check-action-signature -->`;
@@ -42557,7 +42557,7 @@ async function run() {
         ...github.context.repo
       })
     ]);
-    const changesetFilename = (0, import_crypto.randomBytes)(8).toString("hex");
+    const changesetFilename = (0, import_node_crypto.randomBytes)(8).toString("hex");
     const addChangesetUrl = `${pullRequest.head.repo.html_url}/new/${pullRequest.head.ref}?filename=.changeset/${changesetFilename}.md`;
     const message = hasChangeset ? getApproveMessage(github.context.sha) : getAbsentMessage(github.context.sha, addChangesetUrl);
     setOutput("has-changeset", hasChangeset.toString());
