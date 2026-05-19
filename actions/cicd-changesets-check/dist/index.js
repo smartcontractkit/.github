@@ -42495,7 +42495,10 @@ var import_node_crypto = require("node:crypto");
 // actions/cicd-changesets-check/src/github.ts
 var CHANGESET_SIGNATURE = `<!-- changeset-check-action-signature -->`;
 async function getCommentId(octokit, params) {
-  const comments = await octokit.paginate(octokit.rest.issues.listComments, params);
+  const comments = await octokit.paginate(
+    octokit.rest.issues.listComments,
+    params
+  );
   const changesetComment = comments.find(
     (comment) => comment.body?.includes(CHANGESET_SIGNATURE)
   );
@@ -42508,20 +42511,41 @@ async function getHasChangeset(octokit, params) {
   );
   return changesetFiles.length > 0;
 }
+async function getPackageName(octokit, params) {
+  try {
+    const response = await octokit.rest.repos.getContent({
+      owner: params.owner,
+      repo: params.repo,
+      path: "package.json",
+      ref: params.ref
+    });
+    if ("content" in response.data && response.data.content) {
+      const content = Buffer.from(response.data.content, "base64").toString();
+      const pkg = JSON.parse(content);
+      return pkg.name ?? null;
+    }
+  } catch {
+  }
+  return null;
+}
 
 // actions/cicd-changesets-check/src/messages.ts
-function getAbsentMessage(commitSha, addChangesetUrl) {
+function getAbsentMessage(options) {
+  const { commitSha, addChangesetUrl } = options;
+  const maintainerLink = addChangesetUrl ? `
+[Click here if you're a maintainer who wants to add a changeset to this PR](${addChangesetUrl})
+` : "";
   return `### \u{1F4A5} No Changeset
 
 Latest commit: ${commitSha}
 
 Merging this PR will not cause any packages to be released. If these changes should not cause updates to packages in this repo, this is fine \u{1F642}
 
-**If these changes should be published to npm, you need to add a changeset.**
+**If these changes should be included in a release's CHANGELOG, you need to add a changeset.**
 
 [Click here to learn what changesets are, and how to add one](https://github.com/changesets/changesets/blob/main/docs/adding-a-changeset.md).
-
-[Click here if you're a maintainer who wants to add a changeset to this PR](${addChangesetUrl})
+${maintainerLink}
+You can also use [gocs](https://github.com/smartcontractkit/gocs) to generate changeset files locally.
 
 ${CHANGESET_SIGNATURE}`;
 }
@@ -42557,9 +42581,25 @@ async function run() {
         ...github.context.repo
       })
     ]);
-    const changesetFilename = (0, import_node_crypto.randomBytes)(8).toString("hex");
-    const addChangesetUrl = `${pullRequest.head.repo.html_url}/new/${pullRequest.head.ref}?filename=.changeset/${changesetFilename}.md`;
-    const message = hasChangeset ? getApproveMessage(github.context.sha) : getAbsentMessage(github.context.sha, addChangesetUrl);
+    const showAddLink = getBooleanInput("show-add-link");
+    let addChangesetUrl;
+    if (showAddLink) {
+      const packageName = await getPackageName(octokit, {
+        ...github.context.repo,
+        ref: pullRequest.head.ref
+      });
+      const changesetFilename = (0, import_node_crypto.randomBytes)(8).toString("hex");
+      const changesetTemplate = [
+        "---",
+        `"${packageName ?? "<package-name>"}": patch`,
+        "---",
+        "",
+        "Description of the change",
+        ""
+      ].join("\n");
+      addChangesetUrl = `${pullRequest.head.repo.html_url}/new/${pullRequest.head.ref}?filename=.changeset/${changesetFilename}.md&value=${encodeURIComponent(changesetTemplate)}`;
+    }
+    const message = hasChangeset ? getApproveMessage(github.context.sha) : getAbsentMessage({ commitSha: github.context.sha, addChangesetUrl });
     setOutput("has-changeset", hasChangeset.toString());
     if (commentId) {
       await octokit.rest.issues.updateComment({
