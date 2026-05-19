@@ -30,9 +30,10 @@ jobs:
 
 ## Inputs
 
-| Name    | Description                 | Required | Default               |
-| ------- | --------------------------- | -------- | --------------------- |
-| `token` | GitHub token for API access | Yes      | `${{ github.token }}` |
+| Name              | Description                                | Required | Default               |
+| ----------------- | ------------------------------------------ | -------- | --------------------- |
+| `token`           | GitHub token for API access                | Yes      | `${{ github.token }}` |
+| `fail-on-missing` | Fail the workflow if no changeset is found | No       | `"true"`              |
 
 ## Outputs
 
