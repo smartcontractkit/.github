@@ -8,6 +8,7 @@ export interface RunInputs {
   goModDir: string;
   depPrefix: string;
   repoBranchExceptions: Map<string, string[]>;
+  repoShaExceptions: Map<string, string[]>;
 }
 
 export function getInputs(): RunInputs {
@@ -23,6 +24,7 @@ export function getInputs(): RunInputs {
     repoBranchExceptions: getRunInputRepoBranchExceptions(
       "repoBranchExceptions",
     ),
+    repoShaExceptions: getRunInputRepoBranchExceptions("repoShaExceptions"),
   };
 
   logInputs(inputs);
@@ -40,6 +42,11 @@ function logInputs(inputs: RunInputs) {
   core.info(
     `  repoBranchExceptions: ${JSON.stringify(
       Array.from(inputs.repoBranchExceptions.entries()),
+    )}`,
+  );
+  core.info(
+    `  repoShaExceptions: ${JSON.stringify(
+      Array.from(inputs.repoShaExceptions.entries()),
     )}`,
   );
 }
@@ -79,6 +86,10 @@ const runInputsConfiguration: {
   repoBranchExceptions: {
     parameter: "repo-branch-exceptions",
     localParameter: "REPO_BRANCH_EXCEPTIONS",
+  },
+  repoShaExceptions: {
+    parameter: "repo-sha-exceptions",
+    localParameter: "REPO_SHA_EXCEPTIONS",
   },
 };
 
@@ -138,6 +149,20 @@ export function getRunInputRepoBranchExceptions(
   }
 
   return repoBranchMap;
+}
+
+/**
+ * Note: Exported for testing purposes.
+ *
+ * Returns true if depSha and exceptionSha refer to the same commit.
+ * Prefix-matches to handle abbreviated (12-char) vs full (40-char) SHAs.
+ * Go pseudo-versions always carry 12-char abbreviated SHAs.
+ */
+export function shaMatches(depSha: string, exceptionSha: string): boolean {
+  if (!depSha || !exceptionSha) return false;
+  const dep = depSha.toLowerCase();
+  const exc = exceptionSha.toLowerCase();
+  return dep.length <= exc.length ? exc.startsWith(dep) : dep.startsWith(exc);
 }
 
 function parseRepoBranchLine(line: string): [string, string[]] {
