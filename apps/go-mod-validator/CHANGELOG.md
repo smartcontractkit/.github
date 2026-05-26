@@ -1,5 +1,14 @@
 # go-mod-validator
 
+## 1.7.0
+
+### Minor Changes
+
+- [#1562](https://github.com/smartcontractkit/.github/pull/1562)
+  [`6eb2050`](https://github.com/smartcontractkit/.github/commit/6eb2050e1e14ac5aae763e59e75a967027954718)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: repo-sha-exceptions
+  input for allow specific repository commits as exceptions
+
 ## 1.6.0
 
 ### Minor Changes
