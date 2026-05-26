@@ -1,13 +1,7 @@
 {
-  "//pull_request": {
-    "base": { "sha": "1f5fbda7ae76d5494b9864db90a8bfe7183db5fb" },
-    "head": { "sha": "04c256fe307ced678afbebb5cf87abab747ccb8b" },
-    "number": 773
-  },
-  "issue": {
-    "number": -1,
-    "pull_request": {
-      "number": -1
-    }
+  "pull_request": {
+    "base": { "sha": "5b92e2511d16d1aaafc73ce05c51e6ece0f0363f" },
+    "head": { "sha": "ee78d55de54240967d8dc405ef6d42d6b4996e6b" },
+    "number": 22528
   }
 }
