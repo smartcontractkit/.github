@@ -346,6 +346,12 @@ on:
         required: false
         type: string
         default: "true"
+      manifest-debug:
+        description: |
+          Enable debug output for Docker manifest generation step. Set to 'true' to enable.
+        required: false
+        type: string
+        default: "false"
 
     outputs:
       docker-image-sha-digest-amd64:
@@ -781,6 +787,8 @@ jobs:
       - name: Docker manifest index
         uses: smartcontractkit/.github/actions/build-push-docker-manifest@build-push-docker-manifest/v1
         id: docker-manifest
+        env:
+          CL_MANIFEST_DEBUG: ${{ inputs.manifest-debug }}
         with:
           # Avoid using `github.workflow_ref` here because the `cosign sign`
           # command will use the reusable workflow path for its identity and
