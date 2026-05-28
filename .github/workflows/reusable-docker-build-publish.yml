@@ -688,6 +688,10 @@ jobs:
       name: ${{ steps.docker-manifest.outputs.manifest-name }}
       tag: ${{ steps.docker-manifest.outputs.manifest-tag }}
     steps:
+      - name: Free up disk space
+        if: ${{ inputs.free-disk-space == 'true' }}
+        uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
+
       - name: Prepare image digests for manifest
         id: prepare-digests
         env:
