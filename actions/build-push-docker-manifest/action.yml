@@ -341,14 +341,8 @@ runs:
         echo "Creating Docker manifest with tag: ${DOCKER_MANIFEST_TAG}"
 
         # Build the complete command with all flags
-        CMD_ARGS=()
+        CMD_ARGS=("--tag" "${DOCKER_MANIFEST_NAME_WITH_TAG}")
 
-        if [[ "${RUNNER_DEBUG}" == "1" || "${CL_MANIFEST_DEBUG}" == "1" || "${CL_MANIFEST_DEBUG,,}" == "true" ]]; then
-          echo "Debug logging enabled for docker buildx imagetools create"
-          CMD_ARGS+=("--debug")
-        fi
-
-        CMD_ARGS+=("--tag" "${DOCKER_MANIFEST_NAME_WITH_TAG}")
         # Add additional tag flags if present
         if [[ -n "${TAG_FLAGS}" ]]; then
           echo "Adding additional tags to manifest..."
