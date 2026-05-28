@@ -1,5 +1,14 @@
 # build-push-docker-manifest
 
+## 1.3.0
+
+### Minor Changes
+
+- [#1564](https://github.com/smartcontractkit/.github/pull/1564)
+  [`321b3dc`](https://github.com/smartcontractkit/.github/commit/321b3dcd8ec358fb2df44257048ec3c92d904770)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: conditionally enable
+  docker buildx debug logs
+
 ## 1.2.1
 
 ### Patch Changes
