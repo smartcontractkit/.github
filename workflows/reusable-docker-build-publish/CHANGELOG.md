@@ -1,5 +1,13 @@
 # reusable-docker-build-publish
 
+## 1.3.0
+
+### Minor Changes
+
+- [#1566](https://github.com/smartcontractkit/.github/pull/1566)
+  [`8fc19e0`](https://github.com/smartcontractkit/.github/commit/8fc19e023c51e174aa5886b9578486e05c1918fc)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: manifest-debug input
+
 ## 1.2.0
 
 ### Minor Changes
