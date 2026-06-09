@@ -23,8 +23,10 @@ name: Reusable Docker Build and Publish
 #   jobs:
 #     docker-build-publish:
 #       permissions:
-#         contents: read  # needed to checkout repo.
-#         id-token: write # needed to assume AWS IAM role via OIDC.
+#         contents: read      # needed to checkout repo.
+#         id-token: write     # needed to assume AWS IAM role via OIDC (and Sigstore signing).
+#         attestations: write # needed when docker-manifest-attestation is not "disabled".
+#         artifact-metadata: write # needed only when docker-manifest-attestation is "github-and-registry".
 #       uses: smartcontractkit/.github/.github/workflows/reusable-docker-build-publish.yml@<git-sha>
 #       with:
 #         # NOTE: Remove the "\" escape character for every: $\{{ when implementing.
@@ -42,6 +44,7 @@ name: Reusable Docker Build and Publish
 #           latest
 #           qa-latest
 #         docker-manifest-sign: true
+#         docker-manifest-attestation: github-and-registry  # Optional: attest the manifest index (requires attestations: write; github-and-registry also needs artifact-metadata: write)
 #         git-sha: $\{{ github.sha }}
 #         github-event-name: $\{{ github.event_name }}
 #         github-ref-name: $\{{ github.ref_name }}
@@ -108,13 +111,15 @@ on:
         type: string
         default: "false"
       build-amd64-image:
-        description: "Enable amd64 Docker image build. Set to 'false' to disable jobs which only
+        description:
+          "Enable amd64 Docker image build. Set to 'false' to disable jobs which only
           build arm64 images."
         required: false
         type: string
         default: "true"
       build-arm64-image:
-        description: "Enable arm64 Docker image build. Set to 'false' to disable jobs which only
+        description:
+          "Enable arm64 Docker image build. Set to 'false' to disable jobs which only
           build amd64 images."
         required: false
         type: string
@@ -219,7 +224,11 @@ on:
         required: false
         type: string
       docker-manifest-sign:
-        description: "Sign docker manifest or not."
+        description: |
+          Sign the manifest index with cosign (Sigstore keyless signature).
+
+          Independent of `docker-manifest-attestation`, which produces a GitHub
+          build-provenance attestation via a different mechanism.
         required: false
         type: string
         default: "true"
@@ -346,6 +355,36 @@ on:
         required: false
         type: string
         default: "true"
+      docker-manifest-attestation:
+        description: |
+          Generate a GitHub build-provenance attestation for the multi-arch
+          manifest index (only the index, not the per-arch images).
+
+          This is independent of `docker-manifest-sign`: that signs the index
+          with cosign (a Sigstore keyless signature), whereas this produces an
+          in-toto build-provenance attestation via the GitHub attestations API
+          using a different mechanism. You can use either, both, or neither.
+
+          Accepted values:
+            - "disabled"            No attestation. (default)
+            - "github-only"         Record the attestation in the GitHub
+                                    attestations API only.
+            - "github-and-registry" Record in the GitHub attestations API AND
+                                    attach it to the manifest index in the
+                                    registry as an OCI referrer.
+
+          NOTE: When not "disabled", the calling job MUST grant the following
+          permissions to the reusable workflow, otherwise the manifest job will
+          fail:
+            attestations: write # publish to the GitHub attestations API
+            id-token: write     # Sigstore signing
+
+          Additionally, "github-and-registry" requires:
+            artifact-metadata: write # create the artifact storage record on the
+                                     # org linked artifacts page
+        required: false
+        type: string
+        default: "disabled"
 
     outputs:
       docker-image-sha-digest-amd64:
@@ -402,6 +441,7 @@ jobs:
           GITHUB_REF_NAME: ${{ inputs.github-ref-name }}
           BUILD_AMD64_IMAGE: ${{ inputs.build-amd64-image }}
           BUILD_ARM64_IMAGE: ${{ inputs.build-arm64-image }}
+          DOCKER_MANIFEST_ATTESTATION: ${{ inputs.docker-manifest-attestation }}
         run: |
           echo "Validating event and ref inputs..."
           if [[ "${GITHUB_EVENT_NAME:-}" == "pull_request" && ! "${GITHUB_REF_NAME:-}" =~ ^[0-9]+/merge$ ]]; then
@@ -413,6 +453,14 @@ jobs:
             echo "::error::At least one of build-amd64-image or build-arm64-image must be set to true."
             exit 1
           fi
+
+          case "${DOCKER_MANIFEST_ATTESTATION}" in
+            disabled|github-only|github-and-registry) ;;
+            *)
+              echo "::error::Invalid docker-manifest-attestation: '${DOCKER_MANIFEST_ATTESTATION}'. Must be one of: disabled, github-only, github-and-registry."
+              exit 1
+              ;;
+          esac
       - name: Set extra outputs
         id: set-extra-outputs
         env:
@@ -805,3 +853,16 @@ jobs:
           aws-account-number: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
           aws-region: ${{ inputs.aws-region-ecr }}
+
+      # Attest only the manifest index. Build-provenance attestations do not
+      # transfer from the per-arch images to the index, so the index is
+      # attested explicitly here. Requires the calling job to grant
+      # `attestations: write` and `id-token: write`; `github-and-registry` also
+      # needs `artifact-metadata: write` for the artifact storage record.
+      - name: Publish manifest attestation to GitHub
+        if: ${{ inputs.docker-manifest-attestation != 'disabled' }}
+        uses: actions/attest@v4
+        with:
+          subject-name: ${{ steps.docker-manifest.outputs.manifest-name }}
+          subject-digest: ${{ steps.docker-manifest.outputs.manifest-digest }}
+          push-to-registry: ${{ inputs.docker-manifest-attestation == 'github-and-registry' }}
