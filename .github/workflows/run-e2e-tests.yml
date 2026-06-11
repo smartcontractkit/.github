@@ -834,7 +834,7 @@ jobs:
       - name: Get Test Secrets from AWS Secret Manager
         if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
         id: aws-test-secrets
-        uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@921f4b0ca850dd473dcef9082e3169ccbb83cc52 # ctf-fetch-aws-secret@0.0.0
+        uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@61acf908014e2fe42c04f2a507c79f97eb5f8c4d # ctf-fetch-aws-secret@0.0.0
         with:
           secret_id: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
           aws_region: ${{ secrets.QA_AWS_REGION }}
@@ -1159,7 +1159,7 @@ jobs:
       - name: Get Test Secrets from AWS Secret Manager
         if: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
         id: aws-test-secrets
-        uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@921f4b0ca850dd473dcef9082e3169ccbb83cc52 # ctf-fetch-aws-secret@0.0.0
+        uses: smartcontractkit/.github/actions/ctf-fetch-aws-secret@61acf908014e2fe42c04f2a507c79f97eb5f8c4d # ctf-fetch-aws-secret@0.0.0
         with:
           secret_id: ${{ needs.validate-inputs.outputs.aws_test_secrets_key }}
           aws_region: ${{ secrets.QA_AWS_REGION }}
