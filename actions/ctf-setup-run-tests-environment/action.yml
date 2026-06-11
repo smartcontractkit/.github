@@ -195,7 +195,7 @@ runs:
 
     # Setup AWS cred and K8s context
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+      uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
       with:
         aws-region: ${{ inputs.QA_AWS_REGION }}
         role-to-assume: ${{ inputs.QA_AWS_ROLE_TO_ASSUME }}
@@ -220,7 +220,7 @@ runs:
     - name: Login to Amazon ECR
       if: inputs.aws_registries && inputs.QA_AWS_REGION
       id: login-ecr
-      uses: aws-actions/amazon-ecr-login@f2e9fc6c2b355c1890b65e6f6f0e2ac3e6e22f78 # v2.1.2
+      uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
       with:
         registries: ${{ inputs.aws_registries }}
       env:
@@ -229,7 +229,7 @@ runs:
     # To avoid rate limiting from Docker Hub, we can login with a paid user account.
     - name: Login to Docker Hub
       if: inputs.dockerhub_username && inputs.dockerhub_password
-      uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
+      uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
       with:
         username: ${{ inputs.dockerhub_username }}
         password: ${{ inputs.dockerhub_password }}
