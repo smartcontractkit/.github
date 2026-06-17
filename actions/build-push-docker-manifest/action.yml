@@ -395,14 +395,22 @@ runs:
 
           rm -f "${inspect_stderr}"
 
-          echo "${inspect_json}" | jq -r '
+          local existing_digests
+          existing_digests=$(echo "${inspect_json}" | jq -r '
             .manifest.manifests[]?
             | select(
                 ((.platform.os // "") | ascii_downcase) != "unknown"
                 and ((.annotations."vnd.docker.reference.type" // "") != "attestation-manifest")
               )
             | .digest
-          ' | sort -u | paste -sd, -
+          ' | sort -u | paste -sd, -)
+
+          if [[ -z "${existing_digests}" ]]; then
+            echo "::error::Manifest tag ${tag} exists but no platform image digests could be extracted"
+            exit 1
+          fi
+
+          echo "${existing_digests}"
         }
 
         DOCKER_MANIFEST_NAME_WITH_TAG="${DOCKER_MANIFEST_NAME}:${DOCKER_MANIFEST_TAG}"
@@ -490,9 +498,11 @@ runs:
             fi
           fi
 
-          echo "Attempt ${i}/${MAX_RETRIES}: Manifest not yet available (got: '${MANIFEST_DIGEST}'), retrying in ${RETRY_DELAY}s..."
-
-          sleep $RETRY_DELAY
+          echo "Attempt ${i}/${MAX_RETRIES}: Manifest not yet available (got: '${MANIFEST_DIGEST}')..."
+          if [[ "${i}" -lt "${MAX_RETRIES}" ]]; then
+            echo "Retrying in ${RETRY_DELAY}s..."
+            sleep "${RETRY_DELAY}"
+          fi
           MANIFEST_DIGEST=""
         done
 
