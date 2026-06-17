@@ -366,7 +366,7 @@ runs:
             echo ""
             return
           fi
-          mapfile -t sorted < <(printf '%s\n' "${normalized[@]}" | sort)
+          mapfile -t sorted < <(printf '%s\n' "${normalized[@]}" | sort -u)
           local IFS=','
           echo "${sorted[*]}"
         }
@@ -402,7 +402,7 @@ runs:
                 and ((.annotations."vnd.docker.reference.type" // "") != "attestation-manifest")
               )
             | .digest
-          ' | sort | paste -sd, -
+          ' | sort -u | paste -sd, -
         }
 
         DOCKER_MANIFEST_NAME_WITH_TAG="${DOCKER_MANIFEST_NAME}:${DOCKER_MANIFEST_TAG}"
@@ -432,19 +432,12 @@ runs:
 
         echo "skipped=false" | tee -a "${GITHUB_OUTPUT}"
 
-        # Convert comma-separated list into array and pass as separate arguments
-        IFS=',' read -ra DIGESTS <<< "$DOCKER_IMAGE_NAME_DIGESTS"
-        # Map each digest to include the manifest name
+        # Use normalized, de-duplicated digests for manifest create
+        IFS=',' read -ra DIGESTS <<< "$EXPECTED_DIGESTS"
         PREFIXED_DIGESTS=()
         for digest in "${DIGESTS[@]}"; do
-          digest=$(echo "$digest" | xargs)
-          [[ -n "$digest" ]] && PREFIXED_DIGESTS+=("${DOCKER_MANIFEST_NAME}@${digest}")
+          PREFIXED_DIGESTS+=("${DOCKER_MANIFEST_NAME}@${digest}")
         done
-
-        if [[ ${#PREFIXED_DIGESTS[@]} -eq 0 ]]; then
-          echo "::error::docker-image-name-digests must contain at least one sha256 digest"
-          exit 1
-        fi
 
         # Create Docker manifest
         echo "Creating Docker manifest with tag: ${DOCKER_MANIFEST_TAG}"
