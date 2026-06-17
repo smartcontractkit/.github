@@ -568,8 +568,11 @@ runs:
             break
           fi
 
-          echo "Attempt ${i}/${MAX_RETRIES}: Signature not yet available, retrying in ${RETRY_DELAY}s..."
-          sleep $RETRY_DELAY
+          echo "Attempt ${i}/${MAX_RETRIES}: Signature not yet available..."
+          if [[ "${i}" -lt "${MAX_RETRIES}" ]]; then
+            echo "Retrying in ${RETRY_DELAY}s..."
+            sleep "${RETRY_DELAY}"
+          fi
         done
 
         if [[ "$VERIFY_OK" != "true" ]]; then
