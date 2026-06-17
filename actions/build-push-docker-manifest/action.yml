@@ -327,13 +327,72 @@ runs:
           ${{ steps.generate-annotations.outputs.annotation-flags }}
         TAG_FLAGS: ${{ steps.process-additional-tags.outputs.tag-flags }}
       run: |
+        set -euo pipefail
+
+        normalize_digest_csv() {
+          local input="$1"
+          IFS=',' read -ra _digests <<< "$input"
+          local normalized=()
+          for digest in "${_digests[@]}"; do
+            digest=$(echo "$digest" | xargs)
+            if [[ -n "$digest" ]]; then
+              normalized+=("$digest")
+            fi
+          done
+          if [[ ${#normalized[@]} -eq 0 ]]; then
+            echo ""
+            return
+          fi
+          mapfile -t sorted < <(printf '%s\n' "${normalized[@]}" | sort)
+          local IFS=','
+          echo "${sorted[*]}"
+        }
+
+        get_existing_platform_digests() {
+          local tag="$1"
+          local inspect_json
+          if ! inspect_json=$(docker buildx imagetools inspect "${tag}" --format '{{json .}}' 2>/dev/null); then
+            return 1
+          fi
+          echo "${inspect_json}" | jq -r '
+            .manifest.manifests[]?
+            | select(
+                ((.platform.os // "") | ascii_downcase) != "unknown"
+                and ((.annotations."vnd.docker.reference.type" // "") != "attestation-manifest")
+              )
+            | .digest
+          ' | sort | paste -sd, -
+        }
+
         DOCKER_MANIFEST_NAME_WITH_TAG="${DOCKER_MANIFEST_NAME}:${DOCKER_MANIFEST_TAG}"
+        EXPECTED_DIGESTS=$(normalize_digest_csv "${DOCKER_IMAGE_NAME_DIGESTS}")
+
+        if EXISTING_DIGESTS=$(get_existing_platform_digests "${DOCKER_MANIFEST_NAME_WITH_TAG}"); then
+          echo "Found existing manifest for ${DOCKER_MANIFEST_NAME_WITH_TAG}"
+          echo "  Expected platform digests: ${EXPECTED_DIGESTS}"
+          echo "  Existing platform digests: ${EXISTING_DIGESTS}"
+
+          if [[ "${EXISTING_DIGESTS}" == "${EXPECTED_DIGESTS}" ]]; then
+            echo "✅ Manifest already exists with expected platform digests; skipping imagetools create (idempotent rerun)"
+            echo "manifest-create-skipped=true" | tee -a "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          echo "::error::Manifest tag ${DOCKER_MANIFEST_NAME_WITH_TAG} already exists with different platform digests"
+          echo "::error::Expected: ${EXPECTED_DIGESTS}"
+          echo "::error::Existing: ${EXISTING_DIGESTS}"
+          exit 1
+        fi
+
+        echo "manifest-create-skipped=false" | tee -a "${GITHUB_OUTPUT}"
+
         # Convert comma-separated list into array and pass as separate arguments
         IFS=',' read -ra DIGESTS <<< "$DOCKER_IMAGE_NAME_DIGESTS"
         # Map each digest to include the manifest name
         PREFIXED_DIGESTS=()
         for digest in "${DIGESTS[@]}"; do
-          PREFIXED_DIGESTS+=("${DOCKER_MANIFEST_NAME}@${digest}")
+          digest=$(echo "$digest" | xargs)
+          [[ -n "$digest" ]] && PREFIXED_DIGESTS+=("${DOCKER_MANIFEST_NAME}@${digest}")
         done
 
         # Create Docker manifest
@@ -412,17 +471,42 @@ runs:
 
     - name: Sign Docker Manifest using GH OIDC
       if: inputs.docker-manifest-sign == 'true'
-      shell: sh
+      id: sign-docker-manifest
+      shell: bash
       env:
         MANIFEST_NAME_WITH_DIGEST:
           ${{ steps.inspect-docker-manifest.outputs.manifest-name-with-digest }}
-      run: cosign sign "${MANIFEST_NAME_WITH_DIGEST}" --yes
+        GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
+        OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
+        OIDC_IDENTITY_REGEXP: ${{ inputs.cosign-oidc-identity-regexp }}
+      run: |
+        set -euo pipefail
+
+        verify_manifest_signature() {
+          if [[ -n "${OIDC_IDENTITY_REGEXP}" ]]; then
+            cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
+              --certificate-oidc-issuer "${OIDC_ISSUER}" \
+              --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
+              --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}"
+          else
+            cosign verify "${MANIFEST_NAME_WITH_DIGEST}"
+          fi
+        }
+
+        if verify_manifest_signature >/dev/null 2>&1; then
+          echo "✅ Manifest already signed; skipping cosign sign (idempotent rerun)"
+          echo "manifest-sign-skipped=true" | tee -a "${GITHUB_OUTPUT}"
+          exit 0
+        fi
+
+        echo "manifest-sign-skipped=false" | tee -a "${GITHUB_OUTPUT}"
+        cosign sign "${MANIFEST_NAME_WITH_DIGEST}" --yes
 
     - name: Verify Docker image signature
       if:
         inputs.docker-manifest-sign == 'true' &&
         inputs.cosign-oidc-identity-regexp != ''
-      shell: sh
+      shell: bash
       env:
         MANIFEST_NAME_WITH_DIGEST: >-
           ${{
@@ -432,10 +516,30 @@ runs:
         OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
         OIDC_IDENTITY_REGEXP: ${{ inputs.cosign-oidc-identity-regexp }}
       run: |
-        cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
-          --certificate-oidc-issuer "${OIDC_ISSUER}" \
-          --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
-          --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}"
+        MAX_RETRIES=5
+        RETRY_DELAY=10
+        VERIFY_OK=false
+
+        for i in $(seq 1 $MAX_RETRIES); do
+          echo "Attempt ${i}/${MAX_RETRIES}: Verifying cosign signature for ${MANIFEST_NAME_WITH_DIGEST}..."
+
+          if cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
+            --certificate-oidc-issuer "${OIDC_ISSUER}" \
+            --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
+            --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}"; then
+            echo "Successfully verified signature on attempt ${i}"
+            VERIFY_OK=true
+            break
+          fi
+
+          echo "Attempt ${i}/${MAX_RETRIES}: Signature not yet available, retrying in ${RETRY_DELAY}s..."
+          sleep $RETRY_DELAY
+        done
+
+        if [[ "$VERIFY_OK" != "true" ]]; then
+          echo "::error::Failed to verify cosign signature for ${MANIFEST_NAME_WITH_DIGEST} after ${MAX_RETRIES} attempts"
+          exit 1
+        fi
 
     - name: Summary output
       shell: bash
@@ -456,6 +560,10 @@ runs:
             steps.inspect-docker-manifest.outputs.manifest-name-with-tag
           }}
         MANIFEST_TAG: ${{ inputs.docker-manifest-tag }}
+        MANIFEST_CREATE_SKIPPED:
+          ${{ steps.create-push-docker-manifest.outputs.manifest-create-skipped }}
+        MANIFEST_SIGN_SKIPPED:
+          ${{ steps.sign-docker-manifest.outputs.manifest-sign-skipped }}
         OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
         OIDC_IDENTITY_REGEXP: ${{ inputs.cosign-oidc-identity-regexp }}
       run: |
@@ -467,10 +575,16 @@ runs:
         echo "Manifest additional tags: \`${MANIFEST_ADDITIONAL_TAGS:-None}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
         echo "Manifest name with tag: \`${MANIFEST_NAME_WITH_TAG}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
         echo "Manifest name with digest: \`${MANIFEST_NAME_WITH_DIGEST}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
+        if [[ "${MANIFEST_CREATE_SKIPPED}" == "true" ]]; then
+          echo "Manifest create: skipped (existing tag already points at expected platform digests)" | tee -a "${GITHUB_STEP_SUMMARY}"
+        fi
         if [[ "${DOCKER_MANIFEST_SIGNED}" == 'true' ]]; then
           echo >> "${GITHUB_STEP_SUMMARY}"
           echo "#### Docker Manifest signed 📝" | tee -a "${GITHUB_STEP_SUMMARY}"
           echo "Manifest signed with cosign. To verify, run:" | tee -a "${GITHUB_STEP_SUMMARY}"
+          if [[ "${MANIFEST_SIGN_SKIPPED}" == "true" ]]; then
+            echo "Cosign sign: skipped (valid signature already present)" | tee -a "${GITHUB_STEP_SUMMARY}"
+          fi
           echo "\`\`\`shell" >> "${GITHUB_STEP_SUMMARY}"
           echo "cosign verify ${MANIFEST_NAME_WITH_DIGEST} --certificate-oidc-issuer ${OIDC_ISSUER} --certificate-identity-regexp '${OIDC_IDENTITY_REGEXP}' --certificate-github-workflow-repository ${GITHUB_WORKFLOW_REPOSITORY}" | tee -a "${GITHUB_STEP_SUMMARY}"
           echo "\`\`\`" >> "${GITHUB_STEP_SUMMARY}"
