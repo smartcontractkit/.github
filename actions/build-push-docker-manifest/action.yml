@@ -193,12 +193,23 @@ runs:
       run: |
         if command -v jq >/dev/null 2>&1; then
           echo "jq already installed: $(jq --version)"
-        else
-          echo "jq not found; installing..."
-          sudo apt-get update -qq
-          sudo apt-get install -y jq
-          jq --version
+          exit 0
         fi
+
+        if ! command -v apt-get >/dev/null 2>&1; then
+          echo "::error::jq is required but not installed, and apt-get is unavailable on this runner. Install jq before running this action."
+          exit 1
+        fi
+
+        if ! command -v sudo >/dev/null 2>&1; then
+          echo "::error::jq is required but not installed, and sudo is unavailable on this runner. Install jq before running this action."
+          exit 1
+        fi
+
+        echo "jq not found; installing via apt-get..."
+        sudo apt-get update -qq
+        sudo apt-get install -y jq
+        jq --version
 
     - name: Generate manifest annotations
       id: generate-annotations
@@ -327,7 +338,7 @@ runs:
         fi
 
     - name: Create and push Docker manifest
-      id: create-push-docker-manifest
+      id: manifest-create
       shell: bash
       env:
         DOCKER_MANIFEST_NAME: ${{ steps.manifest-name.outputs.name }}
@@ -409,7 +420,7 @@ runs:
 
           if [[ "${EXISTING_DIGESTS}" == "${EXPECTED_DIGESTS}" ]]; then
             echo "✅ Manifest already exists with expected platform digests; skipping imagetools create (idempotent rerun)"
-            echo "manifest-create-skipped=true" | tee -a "${GITHUB_OUTPUT}"
+            echo "skipped=true" | tee -a "${GITHUB_OUTPUT}"
             exit 0
           fi
 
@@ -419,7 +430,7 @@ runs:
           exit 1
         fi
 
-        echo "manifest-create-skipped=false" | tee -a "${GITHUB_OUTPUT}"
+        echo "skipped=false" | tee -a "${GITHUB_OUTPUT}"
 
         # Convert comma-separated list into array and pass as separate arguments
         IFS=',' read -ra DIGESTS <<< "$DOCKER_IMAGE_NAME_DIGESTS"
@@ -511,7 +522,7 @@ runs:
 
     - name: Sign Docker Manifest using GH OIDC
       if: inputs.docker-manifest-sign == 'true'
-      id: sign-docker-manifest
+      id: sign-manifest
       shell: bash
       env:
         MANIFEST_NAME_WITH_DIGEST:
@@ -531,11 +542,11 @@ runs:
 
         if [[ -n "${OIDC_IDENTITY_REGEXP}" ]] && verify_manifest_signature >/dev/null 2>&1; then
           echo "✅ Manifest already signed with expected identity; skipping cosign sign (idempotent rerun)"
-          echo "manifest-sign-skipped=true" | tee -a "${GITHUB_OUTPUT}"
+          echo "skipped=true" | tee -a "${GITHUB_OUTPUT}"
           exit 0
         fi
 
-        echo "manifest-sign-skipped=false" | tee -a "${GITHUB_OUTPUT}"
+        echo "skipped=false" | tee -a "${GITHUB_OUTPUT}"
         cosign sign "${MANIFEST_NAME_WITH_DIGEST}" --yes
 
     - name: Verify Docker image signature
@@ -599,11 +610,8 @@ runs:
             steps.inspect-docker-manifest.outputs.manifest-name-with-tag
           }}
         MANIFEST_TAG: ${{ inputs.docker-manifest-tag }}
-        MANIFEST_CREATE_SKIPPED:
-          ${{ steps.create-push-docker-manifest.outputs.manifest-create-skipped
-          }}
-        MANIFEST_SIGN_SKIPPED:
-          ${{ steps.sign-docker-manifest.outputs.manifest-sign-skipped }}
+        CREATE_SKIPPED: ${{ steps.manifest-create.outputs.skipped }}
+        SIGN_SKIPPED: ${{ steps.sign-manifest.outputs.skipped }}
         OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
         OIDC_IDENTITY_REGEXP: ${{ inputs.cosign-oidc-identity-regexp }}
       run: |
@@ -615,14 +623,14 @@ runs:
         echo "Manifest additional tags: \`${MANIFEST_ADDITIONAL_TAGS:-None}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
         echo "Manifest name with tag: \`${MANIFEST_NAME_WITH_TAG}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
         echo "Manifest name with digest: \`${MANIFEST_NAME_WITH_DIGEST}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
-        if [[ "${MANIFEST_CREATE_SKIPPED}" == "true" ]]; then
+        if [[ "${CREATE_SKIPPED}" == "true" ]]; then
           echo "Manifest create: skipped (existing tag already points at expected platform digests)" | tee -a "${GITHUB_STEP_SUMMARY}"
         fi
         if [[ "${DOCKER_MANIFEST_SIGNED}" == 'true' ]]; then
           echo >> "${GITHUB_STEP_SUMMARY}"
           echo "#### Docker Manifest signed 📝" | tee -a "${GITHUB_STEP_SUMMARY}"
           echo "Manifest signed with cosign. To verify, run:" | tee -a "${GITHUB_STEP_SUMMARY}"
-          if [[ "${MANIFEST_SIGN_SKIPPED}" == "true" ]]; then
+          if [[ "${SIGN_SKIPPED}" == "true" ]]; then
             echo "Cosign sign: skipped (valid signature already present)" | tee -a "${GITHUB_STEP_SUMMARY}"
           fi
           echo "\`\`\`shell" >> "${GITHUB_STEP_SUMMARY}"
