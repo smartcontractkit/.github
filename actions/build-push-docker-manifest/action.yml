@@ -358,9 +358,14 @@ runs:
           local normalized=()
           for digest in "${_digests[@]}"; do
             digest=$(echo "$digest" | xargs)
-            if [[ -n "$digest" ]]; then
-              normalized+=("$digest")
+            if [[ -z "$digest" ]]; then
+              continue
             fi
+            if [[ ! "${digest}" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+              echo "::error::docker-image-name-digests contains invalid digest '${digest}'; expected sha256:<64-hex>"
+              exit 1
+            fi
+            normalized+=("$digest")
           done
           if [[ ${#normalized[@]} -eq 0 ]]; then
             echo ""
