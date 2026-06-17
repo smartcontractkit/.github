@@ -188,6 +188,18 @@ runs:
           }}
         registries: ${{ inputs.aws-account-number }}
 
+    - name: Ensure jq is installed
+      shell: bash
+      run: |
+        if command -v jq >/dev/null 2>&1; then
+          echo "jq already installed: $(jq --version)"
+        else
+          echo "jq not found; installing..."
+          sudo apt-get update -qq
+          sudo apt-get install -y jq
+          jq --version
+        fi
+
     - name: Generate manifest annotations
       id: generate-annotations
       shell: bash
@@ -350,10 +362,28 @@ runs:
 
         get_existing_platform_digests() {
           local tag="$1"
-          local inspect_json
-          if ! inspect_json=$(docker buildx imagetools inspect "${tag}" --format '{{json .}}' 2>/dev/null); then
-            return 1
+          local inspect_json inspect_stderr inspect_status
+
+          inspect_stderr=$(mktemp)
+          set +e
+          inspect_json=$(docker buildx imagetools inspect "${tag}" --format '{{json .}}' 2>"${inspect_stderr}")
+          inspect_status=$?
+          set -e
+
+          if [[ "${inspect_status}" -ne 0 ]]; then
+            if grep -qiE 'not found|manifest unknown|name unknown|404|does not exist|no such manifest' "${inspect_stderr}"; then
+              rm -f "${inspect_stderr}"
+              return 1
+            fi
+
+            echo "::error::Failed to inspect manifest tag ${tag}"
+            cat "${inspect_stderr}" >&2
+            rm -f "${inspect_stderr}"
+            exit 1
           fi
+
+          rm -f "${inspect_stderr}"
+
           echo "${inspect_json}" | jq -r '
             .manifest.manifests[]?
             | select(
@@ -366,6 +396,11 @@ runs:
 
         DOCKER_MANIFEST_NAME_WITH_TAG="${DOCKER_MANIFEST_NAME}:${DOCKER_MANIFEST_TAG}"
         EXPECTED_DIGESTS=$(normalize_digest_csv "${DOCKER_IMAGE_NAME_DIGESTS}")
+
+        if [[ -z "${EXPECTED_DIGESTS}" ]]; then
+          echo "::error::docker-image-name-digests must contain at least one sha256 digest"
+          exit 1
+        fi
 
         if EXISTING_DIGESTS=$(get_existing_platform_digests "${DOCKER_MANIFEST_NAME_WITH_TAG}"); then
           echo "Found existing manifest for ${DOCKER_MANIFEST_NAME_WITH_TAG}"
@@ -394,6 +429,11 @@ runs:
           digest=$(echo "$digest" | xargs)
           [[ -n "$digest" ]] && PREFIXED_DIGESTS+=("${DOCKER_MANIFEST_NAME}@${digest}")
         done
+
+        if [[ ${#PREFIXED_DIGESTS[@]} -eq 0 ]]; then
+          echo "::error::docker-image-name-digests must contain at least one sha256 digest"
+          exit 1
+        fi
 
         # Create Docker manifest
         echo "Creating Docker manifest with tag: ${DOCKER_MANIFEST_TAG}"
@@ -483,18 +523,14 @@ runs:
         set -euo pipefail
 
         verify_manifest_signature() {
-          if [[ -n "${OIDC_IDENTITY_REGEXP}" ]]; then
-            cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
-              --certificate-oidc-issuer "${OIDC_ISSUER}" \
-              --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
-              --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}"
-          else
-            cosign verify "${MANIFEST_NAME_WITH_DIGEST}"
-          fi
+          cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
+            --certificate-oidc-issuer "${OIDC_ISSUER}" \
+            --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
+            --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}"
         }
 
-        if verify_manifest_signature >/dev/null 2>&1; then
-          echo "✅ Manifest already signed; skipping cosign sign (idempotent rerun)"
+        if [[ -n "${OIDC_IDENTITY_REGEXP}" ]] && verify_manifest_signature >/dev/null 2>&1; then
+          echo "✅ Manifest already signed with expected identity; skipping cosign sign (idempotent rerun)"
           echo "manifest-sign-skipped=true" | tee -a "${GITHUB_OUTPUT}"
           exit 0
         fi
@@ -561,7 +597,8 @@ runs:
           }}
         MANIFEST_TAG: ${{ inputs.docker-manifest-tag }}
         MANIFEST_CREATE_SKIPPED:
-          ${{ steps.create-push-docker-manifest.outputs.manifest-create-skipped }}
+          ${{ steps.create-push-docker-manifest.outputs.manifest-create-skipped
+          }}
         MANIFEST_SIGN_SKIPPED:
           ${{ steps.sign-docker-manifest.outputs.manifest-sign-skipped }}
         OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
