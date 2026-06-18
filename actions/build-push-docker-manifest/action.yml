@@ -188,28 +188,14 @@ runs:
           }}
         registries: ${{ inputs.aws-account-number }}
 
-    - name: Ensure jq is installed
+    - name: Ensure jq is available
       shell: bash
       run: |
-        if command -v jq >/dev/null 2>&1; then
-          echo "jq already installed: $(jq --version)"
-          exit 0
-        fi
-
-        if ! command -v apt-get >/dev/null 2>&1; then
-          echo "::error::jq is required but not installed, and apt-get is unavailable on this runner. Install jq before running this action."
+        if ! command -v jq >/dev/null 2>&1; then
+          echo "::error::jq is required but not installed on this runner (preinstalled on GitHub-hosted ubuntu-24.04). Install jq before running this action."
           exit 1
         fi
-
-        if ! command -v sudo >/dev/null 2>&1; then
-          echo "::error::jq is required but not installed, and sudo is unavailable on this runner. Install jq before running this action."
-          exit 1
-        fi
-
-        echo "jq not found; installing via apt-get..."
-        sudo apt-get update -qq
-        sudo apt-get install -y jq
-        jq --version
+        echo "jq available: $(jq --version)"
 
     - name: Generate manifest annotations
       id: generate-annotations
