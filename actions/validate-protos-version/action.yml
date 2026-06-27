@@ -8,7 +8,7 @@ runs:
   using: composite
   steps:
     - name: Checkout chainlink-protos
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: smartcontractkit/chainlink-protos
         ref: capabilities-development

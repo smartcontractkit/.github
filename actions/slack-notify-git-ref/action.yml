@@ -63,7 +63,7 @@ runs:
   steps:
     - name: Checkout repo
       if: inputs.checkout-repo == 'true'
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
     - name: Validate inputs
