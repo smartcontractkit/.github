@@ -36,7 +36,7 @@ runs:
   using: "composite"
   steps:
     - name: Check out
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Resolve latest tag
       id: latest

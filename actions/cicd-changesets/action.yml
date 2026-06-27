@@ -116,7 +116,7 @@ runs:
         aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
 
     - name: Checkout repo
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
         token: ${{ steps.get-gh-token.outputs.access-token }}
