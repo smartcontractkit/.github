@@ -327,7 +327,7 @@ runs:
         nix develop -c /bin/bash -c "devspace use namespace ${DEVSPACE_NAMESPACE} && devspace run ${{ inputs.command }} ${{ inputs.command-args }}"
 
     - name: Render notification template
-      uses: actions/github-script@v8
+      uses: actions/github-script@v9
       id: render-slack-template
       if:
         failure() && inputs.crib-alert-slack-webhook != '' && inputs.send-alerts
