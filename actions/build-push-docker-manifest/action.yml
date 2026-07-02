@@ -471,34 +471,123 @@ runs:
       env:
         DOCKER_MANIFEST_NAME: ${{ steps.manifest-name.outputs.name }}
         DOCKER_MANIFEST_TAG: ${{ inputs.docker-manifest-tag }}
+        DOCKER_IMAGE_NAME_DIGESTS: ${{ inputs.docker-image-name-digests }}
       run: |
+        set -euo pipefail
+
+        normalize_digest_csv() {
+          local input="$1"
+          IFS=',' read -ra _digests <<< "$input"
+          local normalized=()
+          for digest in "${_digests[@]}"; do
+            digest=$(echo "$digest" | xargs)
+            if [[ -z "$digest" ]]; then
+              continue
+            fi
+            if [[ ! "${digest}" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+              echo "::error::docker-image-name-digests contains invalid digest '${digest}'; expected sha256:<64-hex>"
+              exit 1
+            fi
+            normalized+=("$digest")
+          done
+          if [[ ${#normalized[@]} -eq 0 ]]; then
+            echo ""
+            return
+          fi
+          mapfile -t sorted < <(printf '%s\n' "${normalized[@]}" | sort -u)
+          local IFS=','
+          echo "${sorted[*]}"
+        }
+
+        # Returns 0 when tag is readable and platform digests match expected; prints index digest to stdout.
+        # Returns 1 when tag is not found yet (ECR/tag propagation lag).
+        # Exits 1 on unexpected inspect errors.
+        wait_for_manifest_tag_propagation() {
+          local tag="$1"
+          local expected_digests="$2"
+          local inspect_json inspect_stderr inspect_status existing_digests index_digest
+
+          inspect_stderr=$(mktemp)
+          set +e
+          inspect_json=$(docker buildx imagetools inspect "${tag}" --format '{{json .}}' 2>"${inspect_stderr}")
+          inspect_status=$?
+          set -e
+
+          if [[ "${inspect_status}" -ne 0 ]]; then
+            if grep -qiE 'not found|manifest unknown|name unknown|404|does not exist|no such manifest' "${inspect_stderr}"; then
+              rm -f "${inspect_stderr}"
+              return 1
+            fi
+
+            echo "::error::Failed to inspect manifest tag ${tag}"
+            cat "${inspect_stderr}" >&2
+            rm -f "${inspect_stderr}"
+            exit 1
+          fi
+
+          rm -f "${inspect_stderr}"
+
+          existing_digests=$(echo "${inspect_json}" | jq -r '
+            .manifest.manifests[]?
+            | select(
+                ((.platform.os // "") | ascii_downcase) != "unknown"
+                and ((.annotations."vnd.docker.reference.type" // "") != "attestation-manifest")
+              )
+            | .digest
+          ' | sort -u | paste -sd, -)
+
+          if [[ -z "${existing_digests}" ]]; then
+            echo "Manifest tag ${tag} is visible but platform digests are not yet available" >&2
+            return 1
+          fi
+
+          if [[ "${existing_digests}" != "${expected_digests}" ]]; then
+            echo "Manifest tag ${tag} visible but platform digests not yet fully propagated" >&2
+            echo "  Expected: ${expected_digests}" >&2
+            echo "  Got: ${existing_digests}" >&2
+            return 1
+          fi
+
+          index_digest=$(echo "${inspect_json}" | jq -r '.manifest.digest // .digest // empty')
+          if [[ ! "${index_digest}" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+            echo "Manifest tag ${tag} matched platform digests but index digest not yet readable (got: '${index_digest}')" >&2
+            return 1
+          fi
+
+          echo "${index_digest}"
+          return 0
+        }
+
         DOCKER_MANIFEST_NAME_WITH_TAG="${DOCKER_MANIFEST_NAME}:${DOCKER_MANIFEST_TAG}"
+        EXPECTED_DIGESTS=$(normalize_digest_csv "${DOCKER_IMAGE_NAME_DIGESTS}")
+
+        if [[ -z "${EXPECTED_DIGESTS}" ]]; then
+          echo "::error::docker-image-name-digests must contain at least one sha256 digest"
+          exit 1
+        fi
 
         MAX_RETRIES=5
         RETRY_DELAY=10
         MANIFEST_DIGEST=""
 
         for i in $(seq 1 $MAX_RETRIES); do
-          echo "Attempt ${i}/${MAX_RETRIES}: Inspecting manifest (${DOCKER_MANIFEST_NAME_WITH_TAG}) to retrieve digest..."
+          echo "Attempt ${i}/${MAX_RETRIES}: Waiting for manifest tag ${DOCKER_MANIFEST_NAME_WITH_TAG} to propagate in registry..."
 
-          if INSPECT_OUTPUT=$(docker buildx imagetools inspect "${DOCKER_MANIFEST_NAME_WITH_TAG}" 2>/dev/null); then
-            MANIFEST_DIGEST=$(echo "${INSPECT_OUTPUT}" | grep -m1 'Digest:' | awk '{print $2}')
-            if [[ "${MANIFEST_DIGEST}" =~ ^sha256:[a-f0-9]{64}$ ]]; then
-              echo "Successfully retrieved manifest digest on attempt ${i}: ${MANIFEST_DIGEST}"
-              break
-            fi
+          if MANIFEST_DIGEST=$(wait_for_manifest_tag_propagation "${DOCKER_MANIFEST_NAME_WITH_TAG}" "${EXPECTED_DIGESTS}"); then
+            echo "✅ Manifest tag propagated with expected platform digests on attempt ${i}: ${MANIFEST_DIGEST}"
+            break
           fi
 
-          echo "Attempt ${i}/${MAX_RETRIES}: Manifest not yet available (got: '${MANIFEST_DIGEST}')..."
+          MANIFEST_DIGEST=""
           if [[ "${i}" -lt "${MAX_RETRIES}" ]]; then
             echo "Retrying in ${RETRY_DELAY}s..."
             sleep "${RETRY_DELAY}"
           fi
-          MANIFEST_DIGEST=""
         done
 
         if [[ -z "${MANIFEST_DIGEST}" ]]; then
-          echo "::error::Failed to retrieve manifest digest for ${DOCKER_MANIFEST_NAME_WITH_TAG} after ${MAX_RETRIES} attempts"
+          echo "::error::Failed to verify manifest tag propagation for ${DOCKER_MANIFEST_NAME_WITH_TAG} after ${MAX_RETRIES} attempts"
+          echo "::error::Expected platform digests: ${EXPECTED_DIGESTS}"
           exit 1
         fi
 
@@ -542,48 +631,6 @@ runs:
 
         echo "skipped=false" | tee -a "${GITHUB_OUTPUT}"
         cosign sign "${MANIFEST_NAME_WITH_DIGEST}" --yes
-
-    - name: Verify Docker image signature
-      if:
-        inputs.docker-manifest-sign == 'true' &&
-        inputs.cosign-oidc-identity-regexp != ''
-      shell: bash
-      env:
-        MANIFEST_NAME_WITH_DIGEST: >-
-          ${{
-            steps.inspect-docker-manifest.outputs.manifest-name-with-digest
-          }}
-        GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
-        OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
-        OIDC_IDENTITY_REGEXP: ${{ inputs.cosign-oidc-identity-regexp }}
-      run: |
-        MAX_RETRIES=5
-        RETRY_DELAY=10
-        VERIFY_OK=false
-
-        for i in $(seq 1 $MAX_RETRIES); do
-          echo "Attempt ${i}/${MAX_RETRIES}: Verifying cosign signature for ${MANIFEST_NAME_WITH_DIGEST}..."
-
-          if cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
-            --certificate-oidc-issuer "${OIDC_ISSUER}" \
-            --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
-            --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}"; then
-            echo "Successfully verified signature on attempt ${i}"
-            VERIFY_OK=true
-            break
-          fi
-
-          echo "Attempt ${i}/${MAX_RETRIES}: Signature not yet available..."
-          if [[ "${i}" -lt "${MAX_RETRIES}" ]]; then
-            echo "Retrying in ${RETRY_DELAY}s..."
-            sleep "${RETRY_DELAY}"
-          fi
-        done
-
-        if [[ "$VERIFY_OK" != "true" ]]; then
-          echo "::error::Failed to verify cosign signature for ${MANIFEST_NAME_WITH_DIGEST} after ${MAX_RETRIES} attempts"
-          exit 1
-        fi
 
     - name: Summary output
       shell: bash

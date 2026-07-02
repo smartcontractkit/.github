@@ -850,6 +850,45 @@ jobs:
           aws-role-arn: ${{ secrets.AWS_ROLE_PUBLISH_ARN }}
           aws-region: ${{ inputs.aws-region-ecr }}
 
+      - name: Verify Docker manifest signature
+        if: ${{ inputs.docker-manifest-sign == 'true' }}
+        shell: bash
+        env:
+          MANIFEST_NAME_WITH_DIGEST: ${{ steps.docker-manifest.outputs.manifest-name-with-digest }}
+          GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
+          OIDC_ISSUER: https://token.actions.githubusercontent.com
+          OIDC_IDENTITY_REGEXP: "^https://github.com/smartcontractkit/.*$"
+        run: |
+          set -euo pipefail
+
+          MAX_RETRIES=5
+          RETRY_DELAY=10
+          VERIFY_OK=false
+
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Attempt ${i}/${MAX_RETRIES}: Verifying cosign signature for ${MANIFEST_NAME_WITH_DIGEST}..."
+
+            if cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
+              --certificate-oidc-issuer "${OIDC_ISSUER}" \
+              --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
+              --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}"; then
+              echo "Successfully verified signature on attempt ${i}"
+              VERIFY_OK=true
+              break
+            fi
+
+            echo "Attempt ${i}/${MAX_RETRIES}: Signature not yet available..."
+            if [[ "${i}" -lt "${MAX_RETRIES}" ]]; then
+              echo "Retrying in ${RETRY_DELAY}s..."
+              sleep "${RETRY_DELAY}"
+            fi
+          done
+
+          if [[ "$VERIFY_OK" != "true" ]]; then
+            echo "::error::Failed to verify cosign signature for ${MANIFEST_NAME_WITH_DIGEST} after ${MAX_RETRIES} attempts"
+            exit 1
+          fi
+
       # Attest only the manifest index. Build-provenance attestations do not
       # transfer from the per-arch images to the index, so the index is
       # attested explicitly here. Requires the calling job to grant
