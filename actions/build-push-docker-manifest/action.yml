@@ -637,8 +637,7 @@ runs:
       env:
         DOCKER_MANIFEST_SIGNED: ${{ inputs.docker-manifest-sign }}
         GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
-        MANIFEST_ADDITIONAL_TAGS:
-          ${{ steps.inspect-docker-manifest.outputs.manifest-additional-tags }}
+        MANIFEST_ADDITIONAL_TAGS: ${{ inputs.manifest-additional-tags }}
         MANIFEST_DIGEST:
           ${{ steps.inspect-docker-manifest.outputs.manifest-digest }}
         MANIFEST_NAME: ${{ steps.inspect-docker-manifest.outputs.manifest-name}}
