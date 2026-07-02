@@ -14,7 +14,8 @@ import {
 } from "./repo-tags";
 import { createRepo, createCommit } from "./utils.testutils";
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+import * as utils from "../../utils";
 
 describe("repo-tags", () => {
   describe("deleteTags", () => {
@@ -503,6 +504,38 @@ describe("repo-tags", () => {
   });
 
   describe("pushTags", () => {
+    it("should push each release tag individually instead of bulk --tags", async () => {
+      const testTags = await createTestRepoWithRemote("repo-tags", true);
+      const execSpy = vi.spyOn(utils, "execWithOutput");
+
+      await pushTags("@", false, testTags.localRepoPath);
+
+      const releaseTagPushCalls = execSpy.mock.calls.filter(
+        ([cmd, args]) =>
+          cmd === "git" &&
+          args[0] === "push" &&
+          args[1] === "origin" &&
+          args[2] !== "--tags" &&
+          args[2] !== "--force",
+      );
+
+      expect(releaseTagPushCalls).toHaveLength(testTags.localOnlyTags.length);
+      expect(
+        releaseTagPushCalls.every(([, args]) => typeof args[2] === "string"),
+      ).toBe(true);
+      expect(
+        execSpy.mock.calls.some(
+          ([cmd, args]) =>
+            cmd === "git" &&
+            args[0] === "push" &&
+            args[1] === "origin" &&
+            args[2] === "--tags",
+        ),
+      ).toBe(false);
+
+      execSpy.mockRestore();
+    });
+
     it("should push lightweight versions of tags (@)", async () => {
       const testTags = await createTestRepoWithRemote("repo-tags", true);
       const tagNames = testTags.localOnlyTags.map((t) => t.name);

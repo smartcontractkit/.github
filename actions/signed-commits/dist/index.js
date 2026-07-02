@@ -81845,7 +81845,7 @@ async function pushTags(tagSeparator, createMajorVersionTags, cwd, rootPackageIn
     )}`
   );
   const createdTags = await createLightweightTags(filteredRewrittenTags, cwd);
-  await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
+  await pushTagsToRemote(createdTags, cwd);
   if (createMajorVersionTags) {
     const majorVersionTags = getMajorVersionTags(
       filteredRewrittenTags,
@@ -81861,6 +81861,11 @@ async function pushTags(tagSeparator, createMajorVersionTags, cwd, rootPackageIn
     return [...createdTags, ...createdMajorTags];
   }
   return createdTags;
+}
+async function pushTagsToRemote(tags, cwd) {
+  for (const tag of tags) {
+    await execWithOutput("git", ["push", "origin", tag.name], { cwd });
+  }
 }
 async function getLocalTags(cwd) {
   const stdout = await execWithOutput("git", ["tag", "--list"], { cwd });
