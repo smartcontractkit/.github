@@ -45,7 +45,7 @@ export async function pushTags(
     )}`,
   );
   const createdTags = await createLightweightTags(filteredRewrittenTags, cwd);
-  await execWithOutput("git", ["push", "origin", "--tags"], { cwd });
+  await pushTagsToRemote(createdTags, cwd);
 
   if (createMajorVersionTags) {
     const majorVersionTags = getMajorVersionTags(
@@ -66,6 +66,20 @@ export async function pushTags(
   }
 
   return createdTags;
+}
+
+/**
+ * Push release tags one at a time. GitHub does not emit push webhooks when more
+ * than three tags are pushed in a single `git push --tags`, which breaks
+ * tag-triggered CI for multi-package Changesets releases.
+ */
+export async function pushTagsToRemote(
+  tags: GitTag[],
+  cwd?: string,
+): Promise<void> {
+  for (const tag of tags) {
+    await execWithOutput("git", ["push", "origin", tag.name], { cwd });
+  }
 }
 
 /**
