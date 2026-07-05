@@ -159,7 +159,7 @@ runs:
     - name: Assume role
       # We only need to assume a role if we intend to use k8s API server access via the proxy
       if: inputs.use-k8s == 'true'
-      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+      uses: aws-actions/configure-aws-credentials@254c19bd240aabef8777f48595e9d2d7b972184b # v6.2.1
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
         role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}

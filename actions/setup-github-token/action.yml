@@ -47,7 +47,7 @@ runs:
         fi
 
     - name: Assume role capable of getting token from gati
-      uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+      uses: aws-actions/configure-aws-credentials@254c19bd240aabef8777f48595e9d2d7b972184b # v6.2.1
       with:
         aws-region: ${{ inputs.aws-region }}
         mask-aws-account-id: true

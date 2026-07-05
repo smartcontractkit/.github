@@ -183,7 +183,7 @@ runs:
 
     - name: Upload Test Results to Trunk.io
       id: upload-to-trunk
-      uses: trunk-io/analytics-uploader@95a0fb8b29e45b6068304261fb518644b426a803 # v2.0.8
+      uses: trunk-io/analytics-uploader@385f1ccdf345b4532dc4b6c665dd432b702b8e28 # v2.1.2
       continue-on-error: ${{ inputs.trunk-upload-only == 'true' }}
       env:
         TRUNK_TELEMETRY: "off"
