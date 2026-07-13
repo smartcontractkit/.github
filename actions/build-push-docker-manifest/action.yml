@@ -395,12 +395,15 @@ runs:
           rm -f "${inspect_stderr}"
 
           local existing_digests
-          # Platform children only: skip unknown/attestation descriptors so the
-          # comparison matches the amd64/arm64 digests we were asked to publish.
+          # Platform children only: require os + architecture, skip unknown OS
+          # and attestation descriptors so SBOMs/attachments without .platform
+          # cannot pollute the digest set comparison.
           existing_digests=$(echo "${inspect_json}" | jq -r '
             .manifest.manifests[]?
             | select(
-                ((.platform.os // "") | ascii_downcase) != "unknown"
+                (.platform.os? // "" | ascii_downcase) != "unknown"
+                and (.platform.os? // "") != ""
+                and (.platform.architecture? // "") != ""
                 and ((.annotations."vnd.docker.reference.type" // "") != "attestation-manifest")
               )
             | .digest
@@ -548,7 +551,9 @@ runs:
           existing_digests=$(echo "${inspect_json}" | jq -r '
             .manifest.manifests[]?
             | select(
-                ((.platform.os // "") | ascii_downcase) != "unknown"
+                (.platform.os? // "" | ascii_downcase) != "unknown"
+                and (.platform.os? // "") != ""
+                and (.platform.architecture? // "") != ""
                 and ((.annotations."vnd.docker.reference.type" // "") != "attestation-manifest")
               )
             | .digest
