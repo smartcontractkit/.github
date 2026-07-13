@@ -314,6 +314,15 @@ runs:
           sleep 30
         fi
 
+    # Idempotency (RANE-4683): a full-job rerun must not call `imagetools create`
+    # again when the tag already points at the same platform digests. Re-creating
+    # always mints a *new* multi-arch index digest even when the children are
+    # identical, which moves the tag onto an unsigned wrapper and breaks
+    # downstream cosign verify / promote. Compare platform digests (set equality
+    # via sorted unique CSV), not the index digest — that is what must stay
+    # stable across reruns. Signature verification is intentionally elsewhere
+    # (isolated job in reusable-docker-build-publish) so verify flakes never
+    # re-enter this create path.
     - name: Create and push Docker manifest
       id: manifest-create
       shell: bash
@@ -329,6 +338,9 @@ runs:
       run: |
         set -euo pipefail
 
+        # Canonicalize digest CSV for set comparison: trim, validate sha256,
+        # de-dupe + sort. Same helper is used for expected inputs and (via
+        # sort -u in jq pipeline) existing platform digests below.
         normalize_digest_csv() {
           local input="$1"
           IFS=',' read -ra _digests <<< "$input"
@@ -353,6 +365,10 @@ runs:
           echo "${sorted[*]}"
         }
 
+        # Returns 0 + prints sorted unique platform digests CSV when the tag
+        # exists. Returns 1 only when the tag is missing (first create).
+        # Unexpected inspect failures exit hard — do not treat them as "absent"
+        # or we would recreate over a real tag.
         get_existing_platform_digests() {
           local tag="$1"
           local inspect_json inspect_stderr inspect_status
@@ -364,6 +380,7 @@ runs:
           set -e
 
           if [[ "${inspect_status}" -ne 0 ]]; then
+            # Tag not present yet → first-run create path.
             if grep -qiE 'not found|manifest unknown|name unknown|404|does not exist|no such manifest' "${inspect_stderr}"; then
               rm -f "${inspect_stderr}"
               return 1
@@ -378,6 +395,8 @@ runs:
           rm -f "${inspect_stderr}"
 
           local existing_digests
+          # Platform children only: skip unknown/attestation descriptors so the
+          # comparison matches the amd64/arm64 digests we were asked to publish.
           existing_digests=$(echo "${inspect_json}" | jq -r '
             .manifest.manifests[]?
             | select(
@@ -403,6 +422,10 @@ runs:
           exit 1
         fi
 
+        # Idempotent create decision:
+        #   same platform digests  → skip create (preserve existing index digest)
+        #   different digests      → fail hard (do not silently overwrite)
+        #   tag missing            → create below
         if EXISTING_DIGESTS=$(get_existing_platform_digests "${DOCKER_MANIFEST_NAME_WITH_TAG}"); then
           echo "Found existing manifest for ${DOCKER_MANIFEST_NAME_WITH_TAG}"
           echo "  Expected platform digests: ${EXPECTED_DIGESTS}"
@@ -456,6 +479,10 @@ runs:
         # Execute the command
         docker buildx imagetools create "${CMD_ARGS[@]}"
 
+    # After create (or an idempotent skip), wait until the *tag* resolves to the
+    # expected platform digests and a stable index digest. ECR can briefly show
+    # the tag before children fully propagate; signing/outputting too early
+    # would pin the wrong digest. This is registry lag, not Sigstore lag.
     - name: Inspect Docker manifest digest
       id: inspect-docker-manifest
       shell: bash
@@ -491,8 +518,8 @@ runs:
         }
 
         # Returns 0 when tag is readable and platform digests match expected; prints index digest to stdout.
-        # Returns 1 when tag is not found yet (ECR/tag propagation lag).
-        # Exits 1 on unexpected inspect errors.
+        # Returns 1 when tag is not found yet / digests not fully propagated (ECR lag) → caller retries.
+        # Exits 1 on unexpected inspect errors (do not retry those as lag).
         wait_for_manifest_tag_propagation() {
           local tag="$1"
           local expected_digests="$2"
