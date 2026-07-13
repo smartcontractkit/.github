@@ -102,7 +102,7 @@ runs:
 
     - name: Setup Python
       if: env.SHOULD_RUN == 'true' && github.event.action != 'closed'
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: "3.11"
 
