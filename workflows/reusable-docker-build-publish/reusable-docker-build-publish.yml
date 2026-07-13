@@ -906,46 +906,10 @@ jobs:
             }}
           registries: ${{ secrets.AWS_ACCOUNT_ID }}
 
-      - name: Install cosign
-        uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
-        with:
-          # https://github.com/sigstore/cosign/releases
-          cosign-release: "v2.6.1"
-
       - name: Verify Docker manifest signature
-        shell: bash
-        env:
-          MANIFEST_NAME_WITH_DIGEST: ${{ needs.docker-manifest.outputs.name-with-digest }}
-          GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
-          OIDC_ISSUER: https://token.actions.githubusercontent.com
-          OIDC_IDENTITY_REGEXP: "^https://github.com/smartcontractkit/.*$"
-        run: |
-          set -euo pipefail
-
-          MAX_RETRIES=5
-          RETRY_DELAY=10
-          VERIFY_OK=false
-
-          for i in $(seq 1 $MAX_RETRIES); do
-            echo "Attempt ${i}/${MAX_RETRIES}: Verifying cosign signature for ${MANIFEST_NAME_WITH_DIGEST}..."
-
-            if cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
-              --certificate-oidc-issuer "${OIDC_ISSUER}" \
-              --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
-              --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}"; then
-              echo "Successfully verified signature on attempt ${i}"
-              VERIFY_OK=true
-              break
-            fi
-
-            echo "Attempt ${i}/${MAX_RETRIES}: Signature not yet available..."
-            if [[ "${i}" -lt "${MAX_RETRIES}" ]]; then
-              echo "Retrying in ${RETRY_DELAY}s..."
-              sleep "${RETRY_DELAY}"
-            fi
-          done
-
-          if [[ "$VERIFY_OK" != "true" ]]; then
-            echo "::error::Failed to verify cosign signature for ${MANIFEST_NAME_WITH_DIGEST} after ${MAX_RETRIES} attempts"
-            exit 1
-          fi
+        # TODO: pin to verify-docker-signature/v1 once the action is released.
+        uses: smartcontractkit/.github/actions/verify-docker-signature@main
+        with:
+          image: ${{ needs.docker-manifest.outputs.name-with-digest }}
+          identity-regexp: "^https://github.com/smartcontractkit/.*$"
+          workflow-repository: ${{ inputs.github-workflow-repository }}
