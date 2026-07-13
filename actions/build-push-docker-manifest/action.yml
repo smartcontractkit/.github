@@ -188,15 +188,6 @@ runs:
           }}
         registries: ${{ inputs.aws-account-number }}
 
-    - name: Ensure jq is available
-      shell: bash
-      run: |
-        if ! command -v jq >/dev/null 2>&1; then
-          echo "::error::jq is required but not installed on this runner (preinstalled on GitHub-hosted ubuntu-24.04). Install jq before running this action."
-          exit 1
-        fi
-        echo "jq available: $(jq --version)"
-
     - name: Generate manifest annotations
       id: generate-annotations
       shell: bash
@@ -610,26 +601,15 @@ runs:
       env:
         MANIFEST_NAME_WITH_DIGEST:
           ${{ steps.inspect-docker-manifest.outputs.manifest-name-with-digest }}
-        GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
-        OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
-        OIDC_IDENTITY_REGEXP: ${{ inputs.cosign-oidc-identity-regexp }}
       run: |
         set -euo pipefail
 
-        verify_manifest_signature() {
-          cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
-            --certificate-oidc-issuer "${OIDC_ISSUER}" \
-            --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
-            --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}"
-        }
-
-        if [[ -n "${OIDC_IDENTITY_REGEXP}" ]] && verify_manifest_signature >/dev/null 2>&1; then
-          echo "✅ Manifest already signed with expected identity; skipping cosign sign (idempotent rerun)"
-          echo "skipped=true" | tee -a "${GITHUB_OUTPUT}"
-          exit 0
-        fi
-
-        echo "skipped=false" | tee -a "${GITHUB_OUTPUT}"
+        # Signature verification is intentionally NOT done here. It runs as a
+        # separate, independently retryable job in the caller
+        # (reusable-docker-build-publish) so a Sigstore propagation lag can be
+        # retried without re-running create/sign — which is what previously
+        # caused index digest drift (RANE-4683). cosign sign is safe to repeat
+        # on a full-job rerun (idempotent create guards the digest above).
         cosign sign "${MANIFEST_NAME_WITH_DIGEST}" --yes
 
     - name: Summary output
@@ -651,7 +631,6 @@ runs:
           }}
         MANIFEST_TAG: ${{ inputs.docker-manifest-tag }}
         CREATE_SKIPPED: ${{ steps.manifest-create.outputs.skipped }}
-        SIGN_SKIPPED: ${{ steps.sign-manifest.outputs.skipped }}
         OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
         OIDC_IDENTITY_REGEXP: ${{ inputs.cosign-oidc-identity-regexp }}
       run: |
@@ -669,10 +648,7 @@ runs:
         if [[ "${DOCKER_MANIFEST_SIGNED}" == 'true' ]]; then
           echo >> "${GITHUB_STEP_SUMMARY}"
           echo "#### Docker Manifest signed 📝" | tee -a "${GITHUB_STEP_SUMMARY}"
-          echo "Manifest signed with cosign. To verify, run:" | tee -a "${GITHUB_STEP_SUMMARY}"
-          if [[ "${SIGN_SKIPPED}" == "true" ]]; then
-            echo "Cosign sign: skipped (valid signature already present)" | tee -a "${GITHUB_STEP_SUMMARY}"
-          fi
+          echo "Manifest signed with cosign. Signature verification runs as a separate job in the caller workflow. To verify manually, run:" | tee -a "${GITHUB_STEP_SUMMARY}"
           echo "\`\`\`shell" >> "${GITHUB_STEP_SUMMARY}"
           echo "cosign verify ${MANIFEST_NAME_WITH_DIGEST} --certificate-oidc-issuer ${OIDC_ISSUER} --certificate-identity-regexp '${OIDC_IDENTITY_REGEXP}' --certificate-github-workflow-repository ${GITHUB_WORKFLOW_REPOSITORY}" | tee -a "${GITHUB_STEP_SUMMARY}"
           echo "\`\`\`" >> "${GITHUB_STEP_SUMMARY}"
