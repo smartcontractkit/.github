@@ -868,12 +868,12 @@ jobs:
           subject-digest: ${{ steps.docker-manifest.outputs.manifest-digest }}
           push-to-registry: ${{ inputs.docker-manifest-attestation == 'github-and-registry' }}
 
-  # Signature verification runs as its own isolated job with a single verify
-  # step. If a Sigstore/Rekor propagation lag causes a transient "no signatures
-  # found" right after a good sign, re-run THIS job alone — manifest create/sign
-  # is never re-run, so the index digest can't drift onto an unsigned wrapper
-  # (RANE-4683). The job is the retry unit; there is intentionally no in-step
-  # retry loop.
+  # Signature verification runs as its own isolated job. It retries with
+  # exponential backoff for up to 10 minutes to absorb Sigstore/Rekor
+  # propagation lag ("no signatures found" right after a good sign). Because
+  # verify is isolated from manifest create/sign, a propagation flake never
+  # re-runs create/sign, so the index digest can't drift onto an unsigned
+  # wrapper (RANE-4683).
   verify-manifest-signature:
     name: verify-manifest-signature
     if: ${{ inputs.docker-push == 'true' && inputs.docker-manifest-sign == 'true' }}
@@ -924,7 +924,34 @@ jobs:
           OIDC_IDENTITY_REGEXP: "^https://github.com/smartcontractkit/.*$"
         run: |
           set -euo pipefail
-          cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
-            --certificate-oidc-issuer "${OIDC_ISSUER}" \
-            --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
-            --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}"
+
+          # Retry with exponential backoff for up to 10 minutes to absorb
+          # Sigstore propagation lag. Delay doubles (10s, 20s, 40s, ...) capped
+          # at 120s per wait; total wait is bounded by MAX_ELAPSED_SECONDS.
+          MAX_ELAPSED_SECONDS=600
+          delay=10
+          elapsed=0
+          attempt=1
+
+          while true; do
+            echo "Attempt ${attempt}: verifying cosign signature for ${MANIFEST_NAME_WITH_DIGEST}..."
+            if cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
+              --certificate-oidc-issuer "${OIDC_ISSUER}" \
+              --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
+              --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}"; then
+              echo "✅ Verified signature on attempt ${attempt} (after ${elapsed}s)"
+              exit 0
+            fi
+
+            if (( elapsed + delay > MAX_ELAPSED_SECONDS )); then
+              echo "::error::Signature not verified within ${MAX_ELAPSED_SECONDS}s for ${MANIFEST_NAME_WITH_DIGEST}"
+              exit 1
+            fi
+
+            echo "Signature not yet available (propagation lag); retrying in ${delay}s (elapsed ${elapsed}s)..."
+            sleep "${delay}"
+            elapsed=$(( elapsed + delay ))
+            delay=$(( delay * 2 ))
+            if (( delay > 120 )); then delay=120; fi
+            attempt=$(( attempt + 1 ))
+          done
