@@ -930,19 +930,31 @@ jobs:
           delay=10
           elapsed=0
           attempt=1
+          last_verify_output=""
 
           while true; do
             echo "Attempt ${attempt}: verifying cosign signature for ${MANIFEST_NAME_WITH_DIGEST}..."
-            if cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
-              --certificate-oidc-issuer "${OIDC_ISSUER}" \
-              --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
-              --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}"; then
+            set +e
+            last_verify_output="$(
+              cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
+                --certificate-oidc-issuer "${OIDC_ISSUER}" \
+                --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
+                --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}" 2>&1
+            )"
+            verify_status=$?
+            set -e
+
+            if [[ "${verify_status}" -eq 0 ]]; then
+              echo "${last_verify_output}"
               echo "✅ Verified signature on attempt ${attempt} (after ${elapsed}s)"
               exit 0
             fi
 
             if (( elapsed + delay > MAX_ELAPSED_SECONDS )); then
               echo "::error::Signature not verified within ${MAX_ELAPSED_SECONDS}s for ${MANIFEST_NAME_WITH_DIGEST}"
+              echo "::error::Last cosign verify output (attempt ${attempt}):"
+              # Print outside ::error:: so multi-line cosign output stays readable.
+              echo "${last_verify_output}"
               exit 1
             fi
 
