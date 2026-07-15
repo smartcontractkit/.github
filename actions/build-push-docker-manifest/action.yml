@@ -470,19 +470,24 @@ runs:
         # Retry to absorb Sigstore/Rekor propagation lag ("no signatures found"
         # right after a good sign). Because create is idempotent (guard above),
         # re-running this step/job on a flake never re-mints the index digest.
+        last_verify_output=""
         for attempt in 1 2 3 4 5; do
-          if cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
+          if last_verify_output=$(cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
               --certificate-oidc-issuer "${OIDC_ISSUER}" \
               --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
-              --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}"; then
+              --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}" 2>&1); then
+            echo "${last_verify_output}"
             exit 0
           fi
-          delay=$(( attempt * 15 ))
-          echo "Signature not yet verifiable (attempt ${attempt}); retrying in ${delay}s..."
-          sleep "${delay}"
+
+          if [[ "${attempt}" -lt 5 ]]; then
+            delay=$(( attempt * 15 ))
+            echo "Signature not yet verifiable (attempt ${attempt}); retrying in ${delay}s..."
+            sleep "${delay}"
+          fi
         done
 
-        echo "::error::Signature not verified for ${MANIFEST_NAME_WITH_DIGEST}"
+        echo "::error::Signature not verified for ${MANIFEST_NAME_WITH_DIGEST} (last output: ${last_verify_output})"
         exit 1
 
     - name: Summary output
