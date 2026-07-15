@@ -1,11 +1,8 @@
 ---
 "build-push-docker-manifest": minor
-"reusable-docker-build-publish": patch
 ---
 
-Harden manifest create and cosign sign for idempotent build-publish reruns (RANE-4683):
+Make manifest create idempotent for build-publish reruns (RANE-4683):
 
-- Skip `imagetools create` when the tag already points at the expected platform digests, and fail explicitly if it points at different digests (prevents index digest drift on rerun).
-- Retry manifest tag propagation after create to absorb ECR lag.
-- Move cosign signature **verification** out of the `build-push-docker-manifest` action and into its own isolated `verify-manifest-signature` job in `reusable-docker-build-publish` (per review). Verification retries with exponential backoff for up to 10 minutes to absorb Sigstore propagation lag. Because verify is isolated from create/sign, a "no signatures found" flake never re-runs manifest create/sign — the sequence that previously drifted the index digest onto an unsigned wrapper.
-- Simplify the action's sign step to always `cosign sign` (safe to repeat now that verify is decoupled and create is idempotent); drop the sign-skip verification shell.
+- Skip `imagetools create` when the manifest tag already exists, so a rerun doesn't mint a new index digest and move the tag onto an unsigned wrapper. Fail if the existing tag doesn't reference the digests being published.
+- Retry `cosign verify` to absorb Sigstore propagation lag ("no signatures found" right after a good sign). Because create is idempotent, retrying verify never re-runs create/sign.
