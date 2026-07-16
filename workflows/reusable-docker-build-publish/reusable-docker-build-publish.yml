@@ -509,6 +509,9 @@ jobs:
           GITHUB_EVENT_NAME: ${{ inputs.github-event-name }}
           REPO_TRUNK: ${{ steps.get-trunk.outputs.trunk }}
           DOCKER_CACHE_BEHAVIOUR: ${{ inputs.docker-cache-behaviour }}
+          RUNNER_OS: ${{ runner.os }}
+          RUNNER_ARCH: ${{ runner.arch }}
+          NORMALIZED_DOCKERFILE: ${{ replace(replace(inputs.dockerfile, './', ''), '/', '-') }}
           DOCKER_CACHE_SCOPE: >-
             ${{ runner.os }}-${{ runner.arch }}-${{
               replace(
@@ -516,10 +519,18 @@ jobs:
                 '/',
                 '-'
               )
-            }}
+            }}-${{ inputs.docker-tag-custom-suffix || 'root' }}
+          DOCKER_TAG_CUSTOM_SUFFIX: ${{ inputs.docker-tag-custom-suffix }}
           BUILD_CACHE_TO: "type=gha,timeout=10m,mode=max,ignore-error=true,compression=zstd,compression-level=3"
           BUILD_CACHE_FROM: "type=gha,timeout=10m"
         run: |
+          docker_cache_suffix="${DOCKER_TAG_CUSTOM_SUFFIX:-${NORMALIZED_DOCKERFILE:-}}"
+
+          DOCKER_CACHE_SCOPE="${RUNNER_OS}-${RUNNER_ARCH}"
+          if [[ -n "${docker_cache_suffix}" ]]; then
+            DOCKER_CACHE_SCOPE="${DOCKER_CACHE_SCOPE}-${docker_cache_suffix}"
+          fi
+
           echo "docker-build-cache-to=${BUILD_CACHE_TO},scope=${DOCKER_CACHE_SCOPE}" | tee -a "${GITHUB_OUTPUT}"
           echo "docker-build-cache-from=${BUILD_CACHE_FROM},scope=${DOCKER_CACHE_SCOPE}" | tee -a "${GITHUB_OUTPUT}"
 
