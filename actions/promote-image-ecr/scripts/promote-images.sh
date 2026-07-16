@@ -20,8 +20,8 @@ echo '{"promotions": []}' > "$RESULTS_JSON"
 copy_image() {
   local src="$1"
   local dst="$2"
-  # cosign copy includes signatures and attestations by default
-  cosign copy "${src}" "${dst}"
+
+  oras copy -r "${src}" "${dst}"
 }
 
 # Function to append promotion result to markdown
@@ -160,7 +160,7 @@ else
     write_markdown_result "$SOURCE_REPOSITORY" "$SOURCE_TAG" "$DESTINATION_REPOSITORY" "$DESTINATION_TAG" "$SOURCE_AWS_REGION" "$DESTINATION_AWS_REGION" "0" "failed"
     # Write failure to JSON
     write_promotion_json "$SOURCE_REPOSITORY" "$SOURCE_TAG" "$DESTINATION_REPOSITORY" "$DESTINATION_TAG" "0" "failed"
-  
+
     exit 1
   fi
 fi
