@@ -43,6 +43,19 @@ permissions:
   id-token: write # OIDC to assume AWS role(s)
 ```
 
+When `docker-manifest-attestation` is not `"disabled"`, the calling job must
+also grant `attestations: write` (and `id-token: write`, already required
+above). The `"github-and-registry"` value additionally requires
+`artifact-metadata: write` to create the artifact storage record:
+
+```yaml
+permissions:
+  contents: read # checkout
+  id-token: write # OIDC to assume AWS role(s) and Sigstore signing
+  attestations: write # publish manifest attestation to the GitHub attestations API
+  artifact-metadata: write # only for "github-and-registry": create the org linked-artifacts storage record
+```
+
 ---
 
 ## Usage
@@ -255,7 +268,16 @@ Controlled by `docker-cache-behaviour`:
 - `docker-image-tag-strip-prefix` — strip prefix from tag refs (e.g., `v`)
 - `docker-tag-custom-suffix` — append suffix to generated base tag (e.g.,
   `-plugins`)
-- `docker-manifest-sign` (`"true"`/`"false"`) — sign manifest index
+- `docker-manifest-sign` (`"true"`/`"false"`) — sign manifest index with cosign
+- `docker-manifest-attestation` (`"disabled"`/`"github-only"`/
+  `"github-and-registry"`, default `"disabled"`) — generate a GitHub
+  build-provenance attestation for the manifest index. Independent of
+  `docker-manifest-sign` (cosign). `"github-only"` records it in the GitHub
+  attestations API; `"github-and-registry"` additionally attaches it to the
+  index in the registry as an OCI referrer (which also records it on the org
+  linked artifacts page). Any non-`"disabled"` value requires
+  `attestations: write`; `"github-and-registry"` additionally requires
+  `artifact-metadata: write` (see Permissions above).
 - `docker-manifest-additional-tags` — alias tags for manifest
 - `docker-manifest-annotations` — extra/override annotations
 - `environment` — environment name

@@ -21,11 +21,18 @@ Requirements:
   `${{ github.workspace }}`
 - `dep-prefix`: Prefix to filter dependencies to check. By default, we use
   `github.com/smartcontractkit`
-- `repo-branch-exceptions` - Input allowing exceptions for non-default branches
-  on certain repositories.
+- `repo-branch-exceptions` - Long-lived exceptions allowing specific branches as
+  valid references for certain repositories (e.g. release branches).
   - The input is newline delimited, in the format of:
     - `<owner>/<repo>:<branch-1>,<optional branches>`
     - Example: `smartcontractkit/.github:develop`
+- `repo-sha-exceptions` - Short-lived exceptions allowing specific commit SHAs
+  as valid references for certain repositories (e.g. hotfixes, pre-merge pins).
+  Only applies to pseudo-version dependencies (commit-pinned). SHA matching is
+  prefix-based, so a 12-char abbreviated SHA matches a full 40-char SHA.
+  - The input is newline delimited, in the format of:
+    - `<owner>/<repo>:<sha-1>,<optional shas>`
+    - Example: `smartcontractkit/chainlink:abcdefabcdef`
 
 ## Outputs
 

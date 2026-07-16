@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { getRunInputRepoBranchExceptions } from "../src/run-inputs";
+import { getRunInputRepoBranchExceptions, shaMatches } from "../src/run-inputs";
 import * as core from "@actions/core";
 
 vi.mock("@actions/core", () => ({
@@ -160,5 +160,40 @@ smartcontractkit/.github: develop,feature/test`;
     expect(() => {
       getRunInputRepoBranchExceptions("repoBranchExceptions");
     }).toThrow("No branch in line: smartcontractkit/.github main");
+  });
+});
+
+describe("shaMatches", () => {
+  it("returns true for exact 12-char match", () => {
+    expect(shaMatches("abcdefabcdef", "abcdefabcdef")).toBe(true);
+  });
+
+  it("returns false for exact 12-char mismatch", () => {
+    expect(shaMatches("abcdefabcdef", "111111111111")).toBe(false);
+  });
+
+  it("returns true when 40-char exception starts with the 12-char dep SHA", () => {
+    expect(
+      shaMatches("abcdefabcdef", "abcdefabcdef1234567890abcdefabcdef12345678"),
+    ).toBe(true);
+  });
+
+  it("returns false when 40-char exception does not start with the dep SHA", () => {
+    expect(
+      shaMatches("abcdefabcdef", "111111111111abcdefabcdef1234567890abcdef"),
+    ).toBe(false);
+  });
+
+  it("is case-insensitive", () => {
+    expect(shaMatches("abcdefabcdef", "ABCDEFABCDEF")).toBe(true);
+    expect(shaMatches("ABCDEFABCDEF", "abcdefabcdef")).toBe(true);
+  });
+
+  it("returns false when depSha is empty", () => {
+    expect(shaMatches("", "abcdefabcdef")).toBe(false);
+  });
+
+  it("returns false when exceptionSha is empty", () => {
+    expect(shaMatches("abcdefabcdef", "")).toBe(false);
   });
 });

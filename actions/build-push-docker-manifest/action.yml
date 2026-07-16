@@ -135,21 +135,20 @@ inputs:
 outputs:
   manifest-digest:
     description: "Docker @sha256:<sha> digest."
-    value: ${{ steps.create-push-docker-manifest.outputs.manifest-digest }}
+    value: ${{ steps.inspect-docker-manifest.outputs.manifest-digest }}
   manifest-tag:
     description: "Docker manifest tag."
     value: ${{ inputs.docker-manifest-tag }}
   manifest-name:
     description: "Docker manifest name."
-    value: ${{ steps.create-push-docker-manifest.outputs.manifest-name }}
+    value: ${{ steps.inspect-docker-manifest.outputs.manifest-name }}
   manifest-name-with-digest:
     description: "Docker manifest name with digest."
     value:
-      ${{ steps.create-push-docker-manifest.outputs.manifest-name-with-digest }}
+      ${{ steps.inspect-docker-manifest.outputs.manifest-name-with-digest }}
   manifest-name-with-tag:
     description: "Docker manifest name with tag."
-    value:
-      ${{ steps.create-push-docker-manifest.outputs.manifest-name-with-tag }}
+    value: ${{ steps.inspect-docker-manifest.outputs.manifest-name-with-tag }}
 
 runs:
   using: composite
@@ -364,8 +363,41 @@ runs:
         # Execute the command
         docker buildx imagetools create "${CMD_ARGS[@]}"
 
-        # Get manifest digest (format: sha256:hash)
-        MANIFEST_DIGEST=$(docker buildx imagetools inspect "${DOCKER_MANIFEST_NAME_WITH_TAG}" | grep -m1 'Digest:' | awk '{print $2}')
+    - name: Inspect Docker manifest digest
+      id: inspect-docker-manifest
+      shell: bash
+      env:
+        DOCKER_MANIFEST_NAME: ${{ steps.manifest-name.outputs.name }}
+        DOCKER_MANIFEST_TAG: ${{ inputs.docker-manifest-tag }}
+      run: |
+        DOCKER_MANIFEST_NAME_WITH_TAG="${DOCKER_MANIFEST_NAME}:${DOCKER_MANIFEST_TAG}"
+
+        MAX_RETRIES=5
+        RETRY_DELAY=10
+        MANIFEST_DIGEST=""
+
+        for i in $(seq 1 $MAX_RETRIES); do
+          echo "Attempt ${i}/${MAX_RETRIES}: Inspecting manifest (${DOCKER_MANIFEST_NAME_WITH_TAG}) to retrieve digest..."
+
+          if INSPECT_OUTPUT=$(docker buildx imagetools inspect "${DOCKER_MANIFEST_NAME_WITH_TAG}" 2>/dev/null); then
+            MANIFEST_DIGEST=$(echo "${INSPECT_OUTPUT}" | grep -m1 'Digest:' | awk '{print $2}')
+            if [[ "${MANIFEST_DIGEST}" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+              echo "Successfully retrieved manifest digest on attempt ${i}: ${MANIFEST_DIGEST}"
+              break
+            fi
+          fi
+
+          echo "Attempt ${i}/${MAX_RETRIES}: Manifest not yet available (got: '${MANIFEST_DIGEST}'), retrying in ${RETRY_DELAY}s..."
+
+          sleep $RETRY_DELAY
+          MANIFEST_DIGEST=""
+        done
+
+        if [[ -z "${MANIFEST_DIGEST}" ]]; then
+          echo "::error::Failed to retrieve manifest digest for ${DOCKER_MANIFEST_NAME_WITH_TAG} after ${MAX_RETRIES} attempts"
+          exit 1
+        fi
+
         echo "manifest-digest=${MANIFEST_DIGEST}" | tee -a "${GITHUB_OUTPUT}"
         echo "manifest-name=${DOCKER_MANIFEST_NAME}" | tee -a "${GITHUB_OUTPUT}"
         echo "manifest-name-with-digest=${DOCKER_MANIFEST_NAME}@${MANIFEST_DIGEST}" | tee -a "${GITHUB_OUTPUT}"
@@ -383,8 +415,7 @@ runs:
       shell: sh
       env:
         MANIFEST_NAME_WITH_DIGEST:
-          ${{
-          steps.create-push-docker-manifest.outputs.manifest-name-with-digest }}
+          ${{ steps.inspect-docker-manifest.outputs.manifest-name-with-digest }}
       run: cosign sign "${MANIFEST_NAME_WITH_DIGEST}" --yes
 
     - name: Verify Docker image signature
@@ -395,7 +426,7 @@ runs:
       env:
         MANIFEST_NAME_WITH_DIGEST: >-
           ${{
-            steps.create-push-docker-manifest.outputs.manifest-name-with-digest
+            steps.inspect-docker-manifest.outputs.manifest-name-with-digest
           }}
         GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
         OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
@@ -412,19 +443,17 @@ runs:
         DOCKER_MANIFEST_SIGNED: ${{ inputs.docker-manifest-sign }}
         GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
         MANIFEST_ADDITIONAL_TAGS:
-          ${{ steps.create-push-docker-manifest.outputs.manifest-additional-tags
-          }}
+          ${{ steps.inspect-docker-manifest.outputs.manifest-additional-tags }}
         MANIFEST_DIGEST:
-          ${{ steps.create-push-docker-manifest.outputs.manifest-digest }}
-        MANIFEST_NAME:
-          ${{ steps.create-push-docker-manifest.outputs.manifest-name}}
+          ${{ steps.inspect-docker-manifest.outputs.manifest-digest }}
+        MANIFEST_NAME: ${{ steps.inspect-docker-manifest.outputs.manifest-name}}
         MANIFEST_NAME_WITH_DIGEST: >-
           ${{
-            steps.create-push-docker-manifest.outputs.manifest-name-with-digest
+            steps.inspect-docker-manifest.outputs.manifest-name-with-digest
           }}
         MANIFEST_NAME_WITH_TAG: >-
           ${{
-            steps.create-push-docker-manifest.outputs.manifest-name-with-tag
+            steps.inspect-docker-manifest.outputs.manifest-name-with-tag
           }}
         MANIFEST_TAG: ${{ inputs.docker-manifest-tag }}
         OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}

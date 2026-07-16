@@ -5,7 +5,7 @@ import { throttling } from "@octokit/plugin-throttling";
 import { getDeps, BaseGoModule, lineForDependencyPathFinder } from "./deps";
 import { getChangedGoModFiles } from "./diff";
 import { getDefaultBranch, isGoModReferencingBranch } from "./github";
-import { getInputs } from "./run-inputs";
+import { getInputs, shaMatches } from "./run-inputs";
 import { FIXING_ERRORS } from "./strings";
 
 import type { Octokit } from "./github";
@@ -181,6 +181,25 @@ async function validateDependency(
   inputs: RunInputs,
 ): Promise<Invalidation | null> {
   core.info(`Validating dependency: ${dep.owner}/${dep.repo}@${dep.version}`);
+
+  // SHA exception check: only for pseudo-version (commit-pinned) deps.
+  // Short-circuits before any GitHub API call.
+  if ("commitSha" in dep) {
+    const shaExceptions =
+      inputs.repoShaExceptions.get(`${dep.owner}/${dep.repo}`) || [];
+    core.debug(
+      `SHA exceptions for ${dep.owner}/${dep.repo}: ${shaExceptions.join(", ")}`,
+    );
+    const matchedSha = shaExceptions.find((exc) =>
+      shaMatches(dep.commitSha, exc),
+    );
+    if (matchedSha) {
+      core.info(
+        `[${dep.goModFilePath}] dependency ${dep.name} allowed by SHA exception (matched: ${matchedSha})`,
+      );
+      return null;
+    }
+  }
 
   const defaultBranch = await getDefaultBranch(octokit, dep);
   const exceptions =

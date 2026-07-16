@@ -1,0 +1,64 @@
+name: changed-roots
+description: "Gets the changed package/module roots for a GitHub event"
+
+inputs:
+  github-token:
+    description: "GitHub token to use for authentication"
+    default: ${{ github.token }}
+    required: true
+
+  repository-root:
+    description:
+      "The root directory of the repository to analyze. It must be the
+      repository executing this action."
+    default: ${{ github.workspace }}
+    required: true
+
+  root-file:
+    description: |
+      The file that defines the root of a module/package.
+      For example, in a Go repository, this could be "go.mod" to identify module roots.
+      In a JavaScript repository, this could be "package.json" to identify package roots.
+      In a Helm repository, this could be "Chart.yaml" to identify chart roots.
+    required: true
+
+  file-patterns:
+    description: |
+      A list of glob patterns that specify which files to consider when detecting changed modules.
+      Supports standard glob syntax, including negations (e.g. `!**/*_test.go` to exclude test files).
+      Patterns can be separated by commas or newlines. Relative to the repository root.
+    required: false
+    default: "**/*"
+
+  root-patterns:
+    description: |
+      A list of glob patterns that specify which roots to include when determining changes.
+      Supports negations (e.g. `!**/test/**` to exclude test modules/packages).
+      Patterns can be separated by commas or newlines. Relative to the repository root.
+      Note: "*" and "**"" patterns will match the root module/package ".". To exclude the root module/package, use "!__ROOT__".
+    required: false
+    default: "**"
+
+  no-change-behaviour:
+    description: |
+      Defines how the action behaves when the triggering event has no associated changeset
+      (e.g. `schedule`, `workflow_dispatch`).
+      Available options:
+        - `all`: Treat all modules/packages as changed.
+        - `root`: Treat only the root module/package (`.`) as changed.
+        - `latest-commit`: Use modules/packages changed in the latest commit.
+        - `none`: Treat no modules/packages as changed.
+    required: false
+    default: "all"
+
+outputs:
+  roots-csv:
+    description: |
+      A CSV string of the paths to the modules/packages, relative to the repository root.
+  roots-json:
+    description: |
+      A JSON array of the paths to the modules/packages, relative to the repository root.
+
+runs:
+  using: "node24"
+  main: "dist/index.js"

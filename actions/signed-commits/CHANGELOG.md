@@ -1,5 +1,16 @@
 # changesets-signed-commits
 
+## 1.9.2
+
+### Patch Changes
+
+- [#1580](https://github.com/smartcontractkit/.github/pull/1580)
+  [`28829c6`](https://github.com/smartcontractkit/.github/commit/28829c6c248feadf093542eace587d8722852297)
+  Thanks [@pkcll](https://github.com/pkcll)! - Push Changesets release tags one
+  at a time instead of `git push origin --tags`. GitHub suppresses push webhooks
+  when more than three tags are pushed at once, which prevented tag-triggered
+  service CI from running on multi-package releases.
+
 ## 1.9.1
 
 ### Patch Changes

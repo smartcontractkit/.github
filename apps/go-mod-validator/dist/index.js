@@ -50323,7 +50323,8 @@ function getInputs() {
     depPrefix: getRunInputString("depPrefix"),
     repoBranchExceptions: getRunInputRepoBranchExceptions(
       "repoBranchExceptions"
-    )
+    ),
+    repoShaExceptions: getRunInputRepoBranchExceptions("repoShaExceptions")
   };
   logInputs(inputs);
   return inputs;
@@ -50339,6 +50340,11 @@ function logInputs(inputs) {
   core4.info(
     `  repoBranchExceptions: ${JSON.stringify(
       Array.from(inputs.repoBranchExceptions.entries())
+    )}`
+  );
+  core4.info(
+    `  repoShaExceptions: ${JSON.stringify(
+      Array.from(inputs.repoShaExceptions.entries())
     )}`
   );
 }
@@ -50362,6 +50368,10 @@ var runInputsConfiguration = {
   repoBranchExceptions: {
     parameter: "repo-branch-exceptions",
     localParameter: "REPO_BRANCH_EXCEPTIONS"
+  },
+  repoShaExceptions: {
+    parameter: "repo-sha-exceptions",
+    localParameter: "REPO_SHA_EXCEPTIONS"
   }
 };
 function getRunInputString(input, defaultValue = "") {
@@ -50405,6 +50415,12 @@ function getRunInputRepoBranchExceptions(input) {
     addOrAppendMapValue(repoBranchMap, repo, branches);
   }
   return repoBranchMap;
+}
+function shaMatches(depSha, exceptionSha) {
+  if (!depSha || !exceptionSha) return false;
+  const dep = depSha.toLowerCase();
+  const exc = exceptionSha.toLowerCase();
+  return dep.length <= exc.length ? exc.startsWith(dep) : dep.startsWith(exc);
 }
 function parseRepoBranchLine(line) {
   const [repo, ...rest] = line.split(":").map((s) => s.trim());
@@ -50573,6 +50589,21 @@ async function run() {
 }
 async function validateDependency(octokit, dep, inputs) {
   core5.info(`Validating dependency: ${dep.owner}/${dep.repo}@${dep.version}`);
+  if ("commitSha" in dep) {
+    const shaExceptions = inputs.repoShaExceptions.get(`${dep.owner}/${dep.repo}`) || [];
+    core5.debug(
+      `SHA exceptions for ${dep.owner}/${dep.repo}: ${shaExceptions.join(", ")}`
+    );
+    const matchedSha = shaExceptions.find(
+      (exc) => shaMatches(dep.commitSha, exc)
+    );
+    if (matchedSha) {
+      core5.info(
+        `[${dep.goModFilePath}] dependency ${dep.name} allowed by SHA exception (matched: ${matchedSha})`
+      );
+      return null;
+    }
+  }
   const defaultBranch = await getDefaultBranch(octokit, dep);
   const exceptions = inputs.repoBranchExceptions.get(`${dep.owner}/${dep.repo}`) || [];
   core5.debug(`Default branch for ${dep.owner}/${dep.repo} is ${defaultBranch}`);

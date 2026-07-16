@@ -1,5 +1,30 @@
 # build-push-docker-manifest
 
+## 1.4.0
+
+### Minor Changes
+
+- [#1567](https://github.com/smartcontractkit/.github/pull/1567)
+  [`a8bc5b6`](https://github.com/smartcontractkit/.github/commit/a8bc5b67df4af0bd76e0b39727d672669370c9b1)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: poll for manifest
+  existence before attempting to get digest
+
+### Patch Changes
+
+- [#1567](https://github.com/smartcontractkit/.github/pull/1567)
+  [`a8bc5b6`](https://github.com/smartcontractkit/.github/commit/a8bc5b67df4af0bd76e0b39727d672669370c9b1)
+  Thanks [@erikburt](https://github.com/erikburt)! - revert: previous change,
+  ignore debug env vars for buildx logging
+
+## 1.3.0
+
+### Minor Changes
+
+- [#1564](https://github.com/smartcontractkit/.github/pull/1564)
+  [`321b3dc`](https://github.com/smartcontractkit/.github/commit/321b3dcd8ec358fb2df44257048ec3c92d904770)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: conditionally enable
+  docker buildx debug logs
+
 ## 1.2.1
 
 ### Patch Changes
