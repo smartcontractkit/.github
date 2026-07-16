@@ -417,6 +417,8 @@ jobs:
       build-type: ${{ steps.set-extra-outputs.outputs.build-type }}
       docker-restore-cache: ${{ steps.should-cache.outputs.docker-restore-cache }}
       docker-save-cache: ${{ steps.should-cache.outputs.docker-save-cache }}
+      docker-build-cache-to: ${{ steps.should-cache.outputs.docker-build-cache-to }}
+      docker-build-cache-from: ${{ steps.should-cache.outputs.docker-build-cache-from }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -504,14 +506,27 @@ jobs:
           fi
           echo "trunk=${trunk}" | tee -a "${GITHUB_OUTPUT}"
 
-      - name: Check docker cache constraints
+      - name: Setup docker cache values
         id: should-cache
         env:
           GITHUB_REF_NAME: ${{ inputs.github-ref-name }}
           GITHUB_EVENT_NAME: ${{ inputs.github-event-name }}
           REPO_TRUNK: ${{ steps.get-trunk.outputs.trunk }}
           DOCKER_CACHE_BEHAVIOUR: ${{ inputs.docker-cache-behaviour }}
+          DOCKER_CACHE_SCOPE: >-
+            ${{ runner.os }}-${{ runner.arch }}-${{
+              replace(
+                replace(inputs.dockerfile, './', ''),
+                '/',
+                '-'
+              )
+            }}
+          BUILD_CACHE_TO: "type=gha,timeout=10m,mode=max,ignore-error=true,compression=zstd,compression-level=3"
+          BUILD_CACHE_FROM: "type=gha,timeout=10m"
         run: |
+          echo "docker-build-cache-to=${BUILD_CACHE_TO},scope=${DOCKER_CACHE_SCOPE}" | tee -a "${GITHUB_OUTPUT}"
+          echo "docker-build-cache-from=${BUILD_CACHE_FROM},scope=${DOCKER_CACHE_SCOPE}" | tee -a "${GITHUB_OUTPUT}"
+
           if [[ "${DOCKER_CACHE_BEHAVIOUR}" == "disable" ]]; then
             echo "docker-restore-cache=false" | tee -a "${GITHUB_OUTPUT}"
             echo "docker-save-cache=false" | tee -a "${GITHUB_OUTPUT}"
@@ -519,14 +534,14 @@ jobs:
             echo "docker-restore-cache=true" | tee -a "${GITHUB_OUTPUT}"
             echo "docker-save-cache=true" | tee -a "${GITHUB_OUTPUT}"
           elif [[ "${DOCKER_CACHE_BEHAVIOUR}" == "write-on-trunk" ]]; then
-              echo "docker-restore-cache=true" | tee -a "${GITHUB_OUTPUT}"
+            echo "docker-restore-cache=true" | tee -a "${GITHUB_OUTPUT}"
             if [[ "${GITHUB_REF_NAME}" == "${REPO_TRUNK}" ]] && [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
               echo "docker-save-cache=true" | tee -a "${GITHUB_OUTPUT}"
             else
               echo "docker-save-cache=false" | tee -a "${GITHUB_OUTPUT}"
             fi
           else
-            echo "::error::Invalid DOCKER_CACHE_BEHAVIOUR: ${DOCKER_CACHE_BEHAVIOUR}. Must be one of: disabled, enabled, write-on-trunk."
+            echo "::error::Invalid DOCKER_CACHE_BEHAVIOUR: ${DOCKER_CACHE_BEHAVIOUR}. Must be one of: disable, enable, write-on-trunk."
             exit 1
           fi
 
@@ -576,6 +591,9 @@ jobs:
       - name: Free up disk space
         if: ${{ inputs.free-disk-space == 'true' }}
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
+
+      - name: Enable S3 Cache for Self-Hosted Runners
+        uses: runs-on/action@4e5f72399b6b17f2e79c511c1b38a315a64d22dc # v2.2.0
 
       - uses: actions/checkout@v6
         id: checkout
@@ -712,6 +730,8 @@ jobs:
           docker-build-args: ${{ inputs.docker-build-args }}
           docker-restore-cache: ${{ needs.init.outputs.docker-restore-cache }}
           docker-save-cache: ${{ needs.init.outputs.docker-save-cache }}
+          docker-build-cache-to: ${{ needs.init.outputs.docker-build-cache-to }}
+          docker-build-cache-from: ${{ needs.init.outputs.docker-build-cache-from }}
           context: ${{ inputs.docker-build-context }}
           docker-build-contexts: ${{ inputs.docker-build-contexts }}
           docker-push: ${{ inputs.docker-push }}
