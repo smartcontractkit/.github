@@ -511,13 +511,17 @@ jobs:
           DOCKER_CACHE_BEHAVIOUR: ${{ inputs.docker-cache-behaviour }}
           RUNNER_OS: ${{ runner.os }}
           RUNNER_ARCH: ${{ runner.arch }}
+          DOCKERFILE: ${{ inputs.dockerfile }}
           DOCKER_TAG_CUSTOM_SUFFIX: ${{ inputs.docker-tag-custom-suffix }}
-          NORMALIZED_DOCKERFILE: ${{ replace(replace(inputs.dockerfile, './', ''), '/', '-') }}
           BUILD_CACHE_TO: "type=gha,timeout=10m,mode=max,ignore-error=true,compression=zstd,compression-level=3"
           BUILD_CACHE_FROM: "type=gha,timeout=10m"
         run: |
+          # Normalize dockerfile path: remove './' prefix and replace '/' with '-'
+          normalized_dockerfile="${DOCKERFILE#./}"
+          normalized_dockerfile="${normalized_dockerfile//\//-}"
+
           # Build cache scope from OS, architecture, and optional suffix
-          docker_cache_suffix="${DOCKER_TAG_CUSTOM_SUFFIX:-${NORMALIZED_DOCKERFILE}}"
+          docker_cache_suffix="${DOCKER_TAG_CUSTOM_SUFFIX:-${normalized_dockerfile}}"
           DOCKER_CACHE_SCOPE="${RUNNER_OS}-${RUNNER_ARCH}"
 
           if [[ -n "${docker_cache_suffix}" ]]; then
