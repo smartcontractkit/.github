@@ -178,11 +178,11 @@ async function processRepo(args: ProcessRepoArgs): Promise<ProcessResult> {
     };
   }
 
-  if (!verification.ok) {
+  if (!verification.verified) {
     const snippet = verification.body.slice(0, 200);
     return {
       ok: false,
-      failure: `${name}: SigScanner rejected ${sha} (status ${verification.status}): ${snippet}`,
+      failure: `${name}: SigScanner did not verify ${sha} (status ${verification.status}): ${snippet}`,
     };
   }
 

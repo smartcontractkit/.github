@@ -42,23 +42,9 @@ describe("verifyCommit", () => {
     });
   });
 
-  test("returns ok=true on 200 response", async () => {
-    fetchMock.mockResolvedValueOnce(new Response("verified", { status: 200 }));
-
-    const result = await verifyCommit({
-      url: "https://sig",
-      apiKey: "k",
-      sha: "s",
-      repository: "r",
-    });
-    expect(result.ok).toBe(true);
-    expect(result.status).toBe(200);
-    expect(result.body).toBe("verified");
-  });
-
-  test("returns ok=false on 401 unauthorized", async () => {
+  test('returns verified=true when body is {"verified":true} with 200', async () => {
     fetchMock.mockResolvedValueOnce(
-      new Response("unauthorized", { status: 401 }),
+      new Response(JSON.stringify({ verified: true }), { status: 200 }),
     );
 
     const result = await verifyCommit({
@@ -67,12 +53,55 @@ describe("verifyCommit", () => {
       sha: "s",
       repository: "r",
     });
-    expect(result.ok).toBe(false);
-    expect(result.status).toBe(401);
-    expect(result.body).toBe("unauthorized");
+    expect(result.verified).toBe(true);
+    expect(result.status).toBe(200);
   });
 
-  test("returns ok=false on 500 server error", async () => {
+  test('returns verified=false when body is {"verified":false} with 200', async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ verified: false }), { status: 200 }),
+    );
+
+    const result = await verifyCommit({
+      url: "https://sig",
+      apiKey: "k",
+      sha: "s",
+      repository: "r",
+    });
+    expect(result.verified).toBe(false);
+    expect(result.status).toBe(200);
+    expect(result.body).toContain('"verified":false');
+  });
+
+  test("returns verified=false when body is not valid JSON", async () => {
+    fetchMock.mockResolvedValueOnce(new Response("not json", { status: 200 }));
+
+    const result = await verifyCommit({
+      url: "https://sig",
+      apiKey: "k",
+      sha: "s",
+      repository: "r",
+    });
+    expect(result.verified).toBe(false);
+    expect(result.status).toBe(200);
+  });
+
+  test("returns verified=false on 401 unauthorized even if body says verified", async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ verified: true }), { status: 401 }),
+    );
+
+    const result = await verifyCommit({
+      url: "https://sig",
+      apiKey: "k",
+      sha: "s",
+      repository: "r",
+    });
+    expect(result.verified).toBe(false);
+    expect(result.status).toBe(401);
+  });
+
+  test("returns verified=false on 500 server error", async () => {
     fetchMock.mockResolvedValueOnce(
       new Response("server exploded", { status: 500 }),
     );
@@ -83,7 +112,7 @@ describe("verifyCommit", () => {
       sha: "s",
       repository: "r",
     });
-    expect(result.ok).toBe(false);
+    expect(result.verified).toBe(false);
     expect(result.status).toBe(500);
   });
 

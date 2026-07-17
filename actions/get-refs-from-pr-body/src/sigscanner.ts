@@ -9,7 +9,7 @@ export interface VerifyCommitOptions {
 }
 
 export interface VerifyCommitResult {
-  ok: boolean;
+  verified: boolean;
   status: number;
   body: string;
 }
@@ -44,12 +44,22 @@ export async function verifyCommit(
   core.debug(
     `SigScanner response: status=${response.status} ok=${response.ok}`,
   );
-  core.debug(`SigScanner response headers: ${JSON.stringify(responseHeaders)}`);
   core.debug(`SigScanner response body: ${body}`);
 
+  const verified = response.ok && parseVerified(body);
+
   return {
-    ok: response.ok,
+    verified,
     status: response.status,
     body,
   };
+}
+
+function parseVerified(body: string): boolean {
+  try {
+    const parsed = JSON.parse(body);
+    return parsed?.verified === true;
+  } catch {
+    return false;
+  }
 }

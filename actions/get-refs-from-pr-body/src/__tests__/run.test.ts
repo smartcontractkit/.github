@@ -110,9 +110,9 @@ describe("run", () => {
       .mockResolvedValueOnce(SOLANA_SHA)
       .mockResolvedValueOnce(STARKNET_SHA);
     vi.mocked(verifyCommit).mockResolvedValue({
-      ok: true,
+      verified: true,
       status: 200,
-      body: "verified",
+      body: '{"verified":true}',
     });
 
     await run();
@@ -130,9 +130,9 @@ describe("run", () => {
       `core ref: ${CORE_SHA}`,
     );
     vi.mocked(verifyCommit).mockResolvedValue({
-      ok: true,
+      verified: true,
       status: 200,
-      body: "ok",
+      body: '{"verified":true}',
     });
 
     await run();
@@ -149,9 +149,9 @@ describe("run", () => {
     vi.mocked(getPullRequestBody).mockResolvedValueOnce("core ref: my-core");
     vi.mocked(resolveRefToSha).mockResolvedValueOnce(CORE_SHA);
     vi.mocked(verifyCommit).mockResolvedValue({
-      ok: true,
+      verified: true,
       status: 200,
-      body: "ok",
+      body: '{"verified":true}',
     });
 
     await run();
@@ -168,9 +168,9 @@ describe("run", () => {
     vi.mocked(getPullRequestBody).mockResolvedValueOnce("core ref: foo..bar");
     vi.mocked(resolveRefToSha).mockResolvedValue(SOLANA_SHA);
     vi.mocked(verifyCommit).mockResolvedValue({
-      ok: true,
+      verified: true,
       status: 200,
-      body: "ok",
+      body: '{"verified":true}',
     });
 
     await run();
@@ -185,7 +185,7 @@ describe("run", () => {
     );
   });
 
-  test("fails when SigScanner rejects a commit and lists every failure", async () => {
+  test("fails when SigScanner does not verify a commit and lists every failure", async () => {
     vi.mocked(getPullRequestBody).mockResolvedValueOnce(
       "core ref: my-core\nsolana ref: my-solana",
     );
@@ -193,11 +193,15 @@ describe("run", () => {
       .mockResolvedValueOnce(CORE_SHA)
       .mockResolvedValueOnce(SOLANA_SHA);
     vi.mocked(verifyCommit)
-      .mockResolvedValueOnce({ ok: true, status: 200, body: "ok" })
       .mockResolvedValueOnce({
-        ok: false,
-        status: 403,
-        body: "not verified",
+        verified: true,
+        status: 200,
+        body: '{"verified":true}',
+      })
+      .mockResolvedValueOnce({
+        verified: false,
+        status: 200,
+        body: '{"verified":false}',
       });
 
     await run();
@@ -207,8 +211,8 @@ describe("run", () => {
     expect(verifyCommit).toHaveBeenCalledTimes(2);
     expect(core.setFailed).toHaveBeenCalledTimes(1);
     const msg = vi.mocked(core.setFailed).mock.calls[0][0] as string;
-    expect(msg).toMatch(/solana: SigScanner rejected/);
-    expect(msg).toMatch(/status 403/);
+    expect(msg).toMatch(/solana: SigScanner did not verify/);
+    expect(msg).toMatch(/"verified":false/);
   });
 
   test("aggregates failures across multiple repos", async () => {
@@ -217,9 +221,9 @@ describe("run", () => {
     );
     vi.mocked(resolveRefToSha).mockResolvedValueOnce(CORE_SHA);
     vi.mocked(verifyCommit).mockResolvedValueOnce({
-      ok: false,
-      status: 403,
-      body: "not verified",
+      verified: false,
+      status: 200,
+      body: '{"verified":false}',
     });
 
     await run();
@@ -229,7 +233,7 @@ describe("run", () => {
     expect(core.setFailed).toHaveBeenCalledTimes(1);
     const msg = vi.mocked(core.setFailed).mock.calls[0][0] as string;
     expect(msg).toMatch(/2 repo\(s\)/);
-    expect(msg).toMatch(/core: SigScanner rejected/);
+    expect(msg).toMatch(/core: SigScanner did not verify/);
     expect(msg).toMatch(/solana: invalid ref/);
   });
 

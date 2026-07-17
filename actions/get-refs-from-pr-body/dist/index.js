@@ -44372,13 +44372,21 @@ async function verifyCommit(opts) {
   core3.debug(
     `SigScanner response: status=${response.status} ok=${response.ok}`
   );
-  core3.debug(`SigScanner response headers: ${JSON.stringify(responseHeaders)}`);
   core3.debug(`SigScanner response body: ${body}`);
+  const verified = response.ok && parseVerified(body);
   return {
-    ok: response.ok,
+    verified,
     status: response.status,
     body
   };
+}
+function parseVerified(body) {
+  try {
+    const parsed = JSON.parse(body);
+    return parsed?.verified === true;
+  } catch {
+    return false;
+  }
 }
 
 // actions/get-refs-from-pr-body/src/run.ts
@@ -44521,11 +44529,11 @@ async function processRepo(args) {
       failure: `${name}: SigScanner request failed for ${sha} \u2014 ${message}`
     };
   }
-  if (!verification.ok) {
+  if (!verification.verified) {
     const snippet = verification.body.slice(0, 200);
     return {
       ok: false,
-      failure: `${name}: SigScanner rejected ${sha} (status ${verification.status}): ${snippet}`
+      failure: `${name}: SigScanner did not verify ${sha} (status ${verification.status}): ${snippet}`
     };
   }
   core4.info(`${name}: verified ${sha}`);
