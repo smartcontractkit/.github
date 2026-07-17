@@ -530,7 +530,9 @@ runs:
           if (( delay > 60 )); then delay=60; fi
         done
 
-        echo "::error::Signature not verified for ${MANIFEST_NAME_WITH_DIGEST} (last output: ${last_verify_output})"
+        echo "::error::Signature not verified for ${MANIFEST_NAME_WITH_DIGEST}"
+        echo "Last cosign verify output:" >&2
+        echo "${last_verify_output}" >&2
         exit 1
 
     - name: Summary output
