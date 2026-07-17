@@ -338,22 +338,23 @@ runs:
 
         # Idempotency guard: if the tag already exists, don't recreate it.
         # Sanity check: the existing manifest must reference the same *platform* digests we're about to publish.
+        EXPECTED_DIGESTS_CSV="$(python3 - <<'PY'
+import os, re
+raw=os.environ.get("DOCKER_IMAGE_NAME_DIGESTS", "")
+digests=[d.strip() for d in raw.split(",") if d.strip()]
+if not digests:
+    raise SystemExit("::error::docker-image-name-digests must be a non-empty comma-separated list of sha256:<64-hex> digests")
+bad=[d for d in digests if not re.fullmatch(r"sha256:[a-f0-9]{64}", d)]
+if bad:
+    raise SystemExit("::error::docker-image-name-digests must be a comma-separated list of sha256:<64-hex> digests; invalid: " + ", ".join(bad))
+print(",".join(sorted(set(digests))))
+PY
+        )"
+        DOCKER_IMAGE_NAME_DIGESTS="${EXPECTED_DIGESTS_CSV}"
+
         INSPECT_OUTPUT="$(docker buildx imagetools inspect "${DOCKER_MANIFEST_NAME_WITH_TAG}" --raw 2>&1)" || INSPECT_RC=$?
         if [[ ${INSPECT_RC:-0} -eq 0 ]]; then
           EXISTING_MANIFEST="${INSPECT_OUTPUT}"
-
-          EXPECTED_DIGESTS_CSV="$(python3 - <<'PY'
-        import os, re
-        raw=os.environ.get("DOCKER_IMAGE_NAME_DIGESTS", "")
-        digests=[d.strip() for d in raw.split(",") if d.strip()]
-        if not digests:
-            raise SystemExit("::error::docker-image-name-digests must be a non-empty comma-separated list of sha256:<64-hex> digests")
-        bad=[d for d in digests if not re.fullmatch(r"sha256:[a-f0-9]{64}", d)]
-        if bad:
-            raise SystemExit("::error::docker-image-name-digests must be a comma-separated list of sha256:<64-hex> digests; invalid: " + ", ".join(bad))
-        print(",".join(sorted(set(digests))))
-        PY
-          )"
 
           EXISTING_DIGESTS_CSV="$(python3 - <<'PY'
         import json, sys
