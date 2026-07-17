@@ -356,7 +356,7 @@ PY
           EXISTING_DIGESTS_CSV="$(python3 - <<'PY'
 import json, sys
 m=json.loads(sys.stdin.read() or "{}")
-digests=sorted({d.get("digest","") for d in m.get("manifests",[]) if d.get("platform") and d.get("digest")})
+digests=sorted({d.get("digest","") for d in (m.get("manifests",[]) or []) if d.get("digest") and (d.get("platform") or {}).get("os") not in (None, "", "unknown") and (d.get("platform") or {}).get("architecture") not in (None, "", "unknown")})
 print(",".join([d for d in digests if d]))
 PY
 <<<"${EXISTING_MANIFEST}")"
