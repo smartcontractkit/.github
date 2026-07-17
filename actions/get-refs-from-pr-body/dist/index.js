@@ -417,7 +417,7 @@ var require_tunnel = __commonJS({
         connectOptions.headers = connectOptions.headers || {};
         connectOptions.headers["Proxy-Authorization"] = "Basic " + new Buffer(connectOptions.proxyAuth).toString("base64");
       }
-      debug("making CONNECT request");
+      debug2("making CONNECT request");
       var connectReq = self.request(connectOptions);
       connectReq.useChunkedEncodingByDefault = false;
       connectReq.once("response", onResponse);
@@ -437,7 +437,7 @@ var require_tunnel = __commonJS({
         connectReq.removeAllListeners();
         socket.removeAllListeners();
         if (res.statusCode !== 200) {
-          debug(
+          debug2(
             "tunneling socket could not be established, statusCode=%d",
             res.statusCode
           );
@@ -449,7 +449,7 @@ var require_tunnel = __commonJS({
           return;
         }
         if (head.length > 0) {
-          debug("got illegal response body from proxy");
+          debug2("got illegal response body from proxy");
           socket.destroy();
           var error = new Error("got illegal response body from proxy");
           error.code = "ECONNRESET";
@@ -457,13 +457,13 @@ var require_tunnel = __commonJS({
           self.removeSocket(placeholder);
           return;
         }
-        debug("tunneling connection has established");
+        debug2("tunneling connection has established");
         self.sockets[self.sockets.indexOf(placeholder)] = socket;
         return cb(socket);
       }
       function onError(cause) {
         connectReq.removeAllListeners();
-        debug(
+        debug2(
           "tunneling socket could not be established, cause=%s\n",
           cause.message,
           cause.stack
@@ -525,9 +525,9 @@ var require_tunnel = __commonJS({
       }
       return target;
     }
-    var debug;
+    var debug2;
     if (process.env.NODE_DEBUG && /\btunnel\b/.test(process.env.NODE_DEBUG)) {
-      debug = function() {
+      debug2 = function() {
         var args = Array.prototype.slice.call(arguments);
         if (typeof args[0] === "string") {
           args[0] = "TUNNEL: " + args[0];
@@ -537,10 +537,10 @@ var require_tunnel = __commonJS({
         console.error.apply(console, args);
       };
     } else {
-      debug = function() {
+      debug2 = function() {
       };
     }
-    exports2.debug = debug;
+    exports2.debug = debug2;
   }
 });
 
@@ -21321,7 +21321,7 @@ var require_core = __commonJS({
     exports2.setCommandEcho = setCommandEcho;
     exports2.setFailed = setFailed3;
     exports2.isDebug = isDebug;
-    exports2.debug = debug;
+    exports2.debug = debug2;
     exports2.error = error;
     exports2.warning = warning;
     exports2.notice = notice;
@@ -21410,7 +21410,7 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
     function isDebug() {
       return process.env["RUNNER_DEBUG"] === "1";
     }
-    function debug(message) {
+    function debug2(message) {
       (0, command_1.issueCommand)("debug", {}, message);
     }
     function error(message, properties = {}) {
@@ -44184,7 +44184,7 @@ var require_github = __commonJS({
 });
 
 // actions/get-refs-from-pr-body/src/run.ts
-var core3 = __toESM(require_core());
+var core4 = __toESM(require_core());
 var github2 = __toESM(require_github());
 
 // actions/get-refs-from-pr-body/src/run-inputs.ts
@@ -44347,12 +44347,16 @@ async function resolveRefToSha(octokit, owner, repo, ref) {
 }
 
 // actions/get-refs-from-pr-body/src/sigscanner.ts
+var core3 = __toESM(require_core());
 async function verifyCommit(opts) {
   const params = new URLSearchParams({
     commit: opts.sha,
     repository: opts.repository
   });
   const target = `${opts.url}?${params.toString()}`;
+  core3.debug(
+    `SigScanner request: GET ${target} (repository=${opts.repository}, commit=${opts.sha})`
+  );
   const response = await fetch(target, {
     method: "GET",
     headers: {
@@ -44361,6 +44365,15 @@ async function verifyCommit(opts) {
     signal: AbortSignal.timeout(opts.timeoutMs ?? 3e5)
   });
   const body = await response.text();
+  const responseHeaders = {};
+  response.headers.forEach((value, key) => {
+    responseHeaders[key] = value;
+  });
+  core3.debug(
+    `SigScanner response: status=${response.status} ok=${response.ok}`
+  );
+  core3.debug(`SigScanner response headers: ${JSON.stringify(responseHeaders)}`);
+  core3.debug(`SigScanner response body: ${body}`);
   return {
     ok: response.ok,
     status: response.status,
@@ -44371,42 +44384,42 @@ async function verifyCommit(opts) {
 // actions/get-refs-from-pr-body/src/run.ts
 async function run() {
   try {
-    core3.startGroup("Inputs and Context");
+    core4.startGroup("Inputs and Context");
     const context2 = getInvokeContext();
     const inputs = getInputs();
     const octokit = github2.getOctokit(context2.token);
-    core3.endGroup();
+    core4.endGroup();
     if (context2.eventName !== "pull_request") {
-      core3.info(
+      core4.info(
         `Event '${context2.eventName}' is not 'pull_request'; skipping PR body extraction and emitting default refs.`
       );
       setDefaultOutputs();
       return;
     }
     if (context2.prNumber === void 0) {
-      core3.setFailed(
+      core4.setFailed(
         "pull_request event received but no PR number was found in the payload."
       );
       return;
     }
-    core3.startGroup("Fetch PR body");
+    core4.startGroup("Fetch PR body");
     const body = await getPullRequestBody(
       octokit,
       context2.owner,
       context2.repo,
       context2.prNumber
     );
-    core3.info(`PR body length: ${body.length}`);
-    core3.endGroup();
+    core4.info(`PR body length: ${body.length}`);
+    core4.endGroup();
     if (!body.trim()) {
-      core3.info("PR body is empty; emitting default refs for all repos.");
+      core4.info("PR body is empty; emitting default refs for all repos.");
       setDefaultOutputs();
       return;
     }
     const extracted = extractRefsFromBody(body);
-    core3.info(`Extracted refs: ${JSON.stringify(extracted)}`);
+    core4.info(`Extracted refs: ${JSON.stringify(extracted)}`);
     if (Object.values(extracted).every((ref) => ref === void 0)) {
-      core3.info(
+      core4.info(
         "No override refs found in PR body; emitting default refs for all repos."
       );
       setDefaultOutputs();
@@ -44417,13 +44430,13 @@ async function run() {
     for (const [name, config] of Object.entries(REPO_CONFIG)) {
       const extractedRef = extracted[name];
       if (extractedRef === void 0) {
-        core3.info(
+        core4.info(
           `${name}: no override in PR body, using default '${config.defaultRef}' (not resolved or verified)`
         );
         outputs[name] = config.defaultRef;
         continue;
       }
-      core3.startGroup(`Process ${name}`);
+      core4.startGroup(`Process ${name}`);
       const result = await processRepo({
         name,
         config,
@@ -44432,7 +44445,7 @@ async function run() {
         sigscannerUrl: inputs.sigscannerUrl,
         sigscannerApiKey: inputs.sigscannerApiKey
       });
-      core3.endGroup();
+      core4.endGroup();
       if (result.ok) {
         outputs[name] = result.sha;
       } else {
@@ -44440,28 +44453,28 @@ async function run() {
       }
     }
     if (failures.length > 0) {
-      core3.setFailed(
+      core4.setFailed(
         `Ref verification failed for ${failures.length} repo(s):
 ${failures.map((f) => `  - ${f}`).join("\n")}`
       );
       return;
     }
     for (const [name, config] of Object.entries(REPO_CONFIG)) {
-      core3.setOutput(config.outputKey, outputs[name]);
+      core4.setOutput(config.outputKey, outputs[name]);
     }
-    core3.info(
+    core4.info(
       `Final refs: ${Object.entries(outputs).map(([n, sha]) => `${n}=${sha}`).join(", ")}`
     );
   } catch (error) {
-    core3.endGroup();
+    core4.endGroup();
     const message = error instanceof Error ? error.message : String(error);
-    core3.setFailed(`Action failed: ${message}`);
+    core4.setFailed(`Action failed: ${message}`);
   }
 }
 async function processRepo(args) {
   const { name, config, extractedRef, octokit } = args;
   const target = `${config.owner}/${config.repo}`;
-  core3.info(`${name}: using ref '${extractedRef}' from PR body`);
+  core4.info(`${name}: using ref '${extractedRef}' from PR body`);
   let validated;
   try {
     validated = validateGitRef(extractedRef);
@@ -44475,7 +44488,7 @@ async function processRepo(args) {
   let sha;
   if (isFullSha(validated)) {
     sha = validated.toLowerCase();
-    core3.info(`${name}: ref is already a full SHA (${sha})`);
+    core4.info(`${name}: ref is already a full SHA (${sha})`);
   } else {
     try {
       sha = await resolveRefToSha(
@@ -44492,7 +44505,7 @@ async function processRepo(args) {
       };
     }
   }
-  core3.info(`${name}: verifying ${sha} against SigScanner (${target})`);
+  core4.info(`${name}: verifying ${sha} against SigScanner (${target})`);
   let verification;
   try {
     verification = await verifyCommit({
@@ -44515,12 +44528,12 @@ async function processRepo(args) {
       failure: `${name}: SigScanner rejected ${sha} (status ${verification.status}): ${snippet}`
     };
   }
-  core3.info(`${name}: verified ${sha}`);
+  core4.info(`${name}: verified ${sha}`);
   return { ok: true, sha };
 }
 function setDefaultOutputs() {
   for (const [, config] of Object.entries(REPO_CONFIG)) {
-    core3.setOutput(config.outputKey, config.defaultRef);
+    core4.setOutput(config.outputKey, config.defaultRef);
   }
 }
 

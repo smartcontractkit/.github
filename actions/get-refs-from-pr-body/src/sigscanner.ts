@@ -1,3 +1,5 @@
+import * as core from "@actions/core";
+
 export interface VerifyCommitOptions {
   url: string;
   apiKey: string;
@@ -21,6 +23,10 @@ export async function verifyCommit(
   });
   const target = `${opts.url}?${params.toString()}`;
 
+  core.debug(
+    `SigScanner request: GET ${target} (repository=${opts.repository}, commit=${opts.sha})`,
+  );
+
   const response = await fetch(target, {
     method: "GET",
     headers: {
@@ -30,6 +36,17 @@ export async function verifyCommit(
   });
 
   const body = await response.text();
+  const responseHeaders: Record<string, string> = {};
+  response.headers.forEach((value, key) => {
+    responseHeaders[key] = value;
+  });
+
+  core.debug(
+    `SigScanner response: status=${response.status} ok=${response.ok}`,
+  );
+  core.debug(`SigScanner response headers: ${JSON.stringify(responseHeaders)}`);
+  core.debug(`SigScanner response body: ${body}`);
+
   return {
     ok: response.ok,
     status: response.status,

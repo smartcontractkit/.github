@@ -1,5 +1,11 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 
+vi.mock("@actions/core", () => ({
+  debug: vi.fn(),
+  info: vi.fn(),
+  warning: vi.fn(),
+}));
+
 import { verifyCommit } from "../sigscanner";
 
 describe("verifyCommit", () => {
