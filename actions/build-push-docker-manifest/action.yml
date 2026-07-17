@@ -489,10 +489,14 @@ runs:
         set -euo pipefail
 
         # Retry to absorb Sigstore/Rekor propagation lag ("no signatures found"
-        # right after a good sign). Because create is idempotent (guard above),
-        # re-running this step/job on a flake never re-mints the index digest.
+        # right after a good sign). Keep the retry budget large enough to absorb
+        # longer propagation delays.
         last_verify_output=""
-        for attempt in 1 2 3 4 5; do
+        start_ts=$(date +%s)
+        max_elapsed_seconds=600
+        delay=5
+
+        while true; do
           if last_verify_output=$(cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
               --certificate-oidc-issuer "${OIDC_ISSUER}" \
               --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
@@ -501,11 +505,21 @@ runs:
             exit 0
           fi
 
-          if [[ "${attempt}" -lt 5 ]]; then
-            delay=$(( attempt * 15 ))
-            echo "Signature not yet verifiable (attempt ${attempt}); retrying in ${delay}s..."
-            sleep "${delay}"
+          now=$(date +%s)
+          elapsed=$(( now - start_ts ))
+          if (( elapsed >= max_elapsed_seconds )); then
+            break
           fi
+
+          sleep_for=$delay
+          if (( elapsed + sleep_for > max_elapsed_seconds )); then
+            sleep_for=$(( max_elapsed_seconds - elapsed ))
+          fi
+          echo "Signature not yet verifiable; retrying in ${sleep_for}s (elapsed ${elapsed}s/${max_elapsed_seconds}s)..."
+          sleep "${sleep_for}"
+
+          delay=$(( delay * 2 ))
+          if (( delay > 60 )); then delay=60; fi
         done
 
         echo "::error::Signature not verified for ${MANIFEST_NAME_WITH_DIGEST} (last output: ${last_verify_output})"
