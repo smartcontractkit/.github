@@ -371,7 +371,7 @@ runs:
           # publish; if it points at something else, fail rather than trust it.
           MISSING_DIGESTS=()
           for digest in "${EXPECTED_DIGESTS[@]}"; do
-            grep -q "${digest}" <<< "${EXISTING_MANIFEST}" || MISSING_DIGESTS+=("$digest")
+            grep -Fq -- "${digest}" <<< "${EXISTING_MANIFEST}" || MISSING_DIGESTS+=("$digest")
           done
           if [[ ${#MISSING_DIGESTS[@]} -gt 0 ]]; then
             echo "::error::Manifest tag ${DOCKER_MANIFEST_NAME_WITH_TAG} already exists but does not reference expected digest(s): ${MISSING_DIGESTS[*]}"
