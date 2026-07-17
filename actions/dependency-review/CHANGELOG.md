@@ -1,5 +1,14 @@
 # dependency-review
 
+## 2.2.0
+
+### Minor Changes
+
+- [#1585](https://github.com/smartcontractkit/.github/pull/1585)
+  [`d88abf6`](https://github.com/smartcontractkit/.github/commit/d88abf6aea313e74a3446bfa33692154f643afe2)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: update
+  actions/dependency-review-action to v5.0.0
+
 ## 2.1.2
 
 ### Patch Changes
