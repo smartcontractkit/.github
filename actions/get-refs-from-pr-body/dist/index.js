@@ -44415,11 +44415,19 @@ async function run() {
     const outputs = {};
     const failures = [];
     for (const [name, config] of Object.entries(REPO_CONFIG)) {
+      const extractedRef = extracted[name];
+      if (extractedRef === void 0) {
+        core3.info(
+          `${name}: no override in PR body, using default '${config.defaultRef}' (not resolved or verified)`
+        );
+        outputs[name] = config.defaultRef;
+        continue;
+      }
       core3.startGroup(`Process ${name}`);
       const result = await processRepo({
         name,
         config,
-        extractedRef: extracted[name],
+        extractedRef,
         octokit,
         sigscannerUrl: inputs.sigscannerUrl,
         sigscannerApiKey: inputs.sigscannerApiKey
@@ -44453,18 +44461,16 @@ ${failures.map((f) => `  - ${f}`).join("\n")}`
 async function processRepo(args) {
   const { name, config, extractedRef, octokit } = args;
   const target = `${config.owner}/${config.repo}`;
-  const chosenRef = extractedRef ?? config.defaultRef;
-  if (extractedRef) {
-    core3.info(`${name}: using ref '${chosenRef}' from PR body`);
-  } else {
-    core3.info(`${name}: no override in PR body, using default '${chosenRef}'`);
-  }
+  core3.info(`${name}: using ref '${extractedRef}' from PR body`);
   let validated;
   try {
-    validated = validateGitRef(chosenRef);
+    validated = validateGitRef(extractedRef);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return { ok: false, failure: `${name}: invalid ref '${chosenRef}' \u2014 ${message}` };
+    return {
+      ok: false,
+      failure: `${name}: invalid ref '${extractedRef}' \u2014 ${message}`
+    };
   }
   let sha;
   if (isFullSha(validated)) {

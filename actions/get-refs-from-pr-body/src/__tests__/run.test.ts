@@ -129,9 +129,6 @@ describe("run", () => {
     vi.mocked(getPullRequestBody).mockResolvedValueOnce(
       `core ref: ${CORE_SHA}`,
     );
-    vi.mocked(resolveRefToSha)
-      .mockResolvedValueOnce(SOLANA_SHA)
-      .mockResolvedValueOnce(STARKNET_SHA);
     vi.mocked(verifyCommit).mockResolvedValue({
       ok: true,
       status: 200,
@@ -140,10 +137,31 @@ describe("run", () => {
 
     await run();
 
-    // core-ref already a full SHA → not resolved, but solana + starknet defaults still resolve
-    expect(resolveRefToSha).toHaveBeenCalledTimes(2);
-    expect(verifyCommit).toHaveBeenCalledTimes(3);
+    // core is a full SHA → verified without resolving; solana + starknet are defaulted → skipped entirely
+    expect(resolveRefToSha).not.toHaveBeenCalled();
+    expect(verifyCommit).toHaveBeenCalledTimes(1);
     expect(core.setOutput).toHaveBeenCalledWith("core-ref", CORE_SHA);
+    expect(core.setOutput).toHaveBeenCalledWith("solana-ref", "develop");
+    expect(core.setOutput).toHaveBeenCalledWith("starknet-ref", "develop");
+  });
+
+  test("defaults per-repo when only some overrides are present", async () => {
+    vi.mocked(getPullRequestBody).mockResolvedValueOnce("core ref: my-core");
+    vi.mocked(resolveRefToSha).mockResolvedValueOnce(CORE_SHA);
+    vi.mocked(verifyCommit).mockResolvedValue({
+      ok: true,
+      status: 200,
+      body: "ok",
+    });
+
+    await run();
+
+    expect(resolveRefToSha).toHaveBeenCalledTimes(1);
+    expect(verifyCommit).toHaveBeenCalledTimes(1);
+    expect(core.setFailed).not.toHaveBeenCalled();
+    expect(core.setOutput).toHaveBeenCalledWith("core-ref", CORE_SHA);
+    expect(core.setOutput).toHaveBeenCalledWith("solana-ref", "develop");
+    expect(core.setOutput).toHaveBeenCalledWith("starknet-ref", "develop");
   });
 
   test("fails the action when a ref is syntactically invalid", async () => {
@@ -173,19 +191,20 @@ describe("run", () => {
     );
     vi.mocked(resolveRefToSha)
       .mockResolvedValueOnce(CORE_SHA)
-      .mockResolvedValueOnce(SOLANA_SHA)
-      .mockResolvedValueOnce(STARKNET_SHA);
+      .mockResolvedValueOnce(SOLANA_SHA);
     vi.mocked(verifyCommit)
       .mockResolvedValueOnce({ ok: true, status: 200, body: "ok" })
       .mockResolvedValueOnce({
         ok: false,
         status: 403,
         body: "not verified",
-      })
-      .mockResolvedValueOnce({ ok: true, status: 200, body: "ok" });
+      });
 
     await run();
 
+    // starknet is defaulted → not resolved/verified
+    expect(resolveRefToSha).toHaveBeenCalledTimes(2);
+    expect(verifyCommit).toHaveBeenCalledTimes(2);
     expect(core.setFailed).toHaveBeenCalledTimes(1);
     const msg = vi.mocked(core.setFailed).mock.calls[0][0] as string;
     expect(msg).toMatch(/solana: SigScanner rejected/);
@@ -196,19 +215,17 @@ describe("run", () => {
     vi.mocked(getPullRequestBody).mockResolvedValueOnce(
       "core ref: my-core\nsolana ref: foo..bar",
     );
-    vi.mocked(resolveRefToSha)
-      .mockResolvedValueOnce(CORE_SHA)
-      .mockResolvedValueOnce(STARKNET_SHA);
-    vi.mocked(verifyCommit)
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 403,
-        body: "not verified",
-      })
-      .mockResolvedValueOnce({ ok: true, status: 200, body: "ok" });
+    vi.mocked(resolveRefToSha).mockResolvedValueOnce(CORE_SHA);
+    vi.mocked(verifyCommit).mockResolvedValueOnce({
+      ok: false,
+      status: 403,
+      body: "not verified",
+    });
 
     await run();
 
+    // starknet defaulted → not resolved/verified
+    expect(resolveRefToSha).toHaveBeenCalledTimes(1);
     expect(core.setFailed).toHaveBeenCalledTimes(1);
     const msg = vi.mocked(core.setFailed).mock.calls[0][0] as string;
     expect(msg).toMatch(/2 repo\(s\)/);
@@ -220,18 +237,15 @@ describe("run", () => {
     vi.mocked(getPullRequestBody).mockResolvedValueOnce(
       "core ref: nonexistent-branch",
     );
-    vi.mocked(resolveRefToSha)
-      .mockRejectedValueOnce(new Error("404 not found"))
-      .mockResolvedValueOnce(SOLANA_SHA)
-      .mockResolvedValueOnce(STARKNET_SHA);
-    vi.mocked(verifyCommit).mockResolvedValue({
-      ok: true,
-      status: 200,
-      body: "ok",
-    });
+    vi.mocked(resolveRefToSha).mockRejectedValueOnce(
+      new Error("404 not found"),
+    );
 
     await run();
 
+    // solana + starknet defaulted → not resolved/verified
+    expect(resolveRefToSha).toHaveBeenCalledTimes(1);
+    expect(verifyCommit).not.toHaveBeenCalled();
     expect(core.setFailed).toHaveBeenCalledTimes(1);
     const msg = vi.mocked(core.setFailed).mock.calls[0][0] as string;
     expect(msg).toMatch(/core: could not resolve/);

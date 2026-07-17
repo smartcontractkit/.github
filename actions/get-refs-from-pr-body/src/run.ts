@@ -63,11 +63,20 @@ export async function run() {
     const failures: string[] = [];
 
     for (const [name, config] of Object.entries(REPO_CONFIG)) {
+      const extractedRef = extracted[name];
+      if (extractedRef === undefined) {
+        core.info(
+          `${name}: no override in PR body, using default '${config.defaultRef}' (not resolved or verified)`,
+        );
+        outputs[name] = config.defaultRef;
+        continue;
+      }
+
       core.startGroup(`Process ${name}`);
       const result = await processRepo({
         name,
         config,
-        extractedRef: extracted[name],
+        extractedRef,
         octokit,
         sigscannerUrl: inputs.sigscannerUrl,
         sigscannerApiKey: inputs.sigscannerApiKey,
@@ -108,7 +117,7 @@ export async function run() {
 interface ProcessRepoArgs {
   name: string;
   config: RepoConfig;
-  extractedRef: string | undefined;
+  extractedRef: string;
   octokit: OctokitType;
   sigscannerUrl: string;
   sigscannerApiKey: string;
@@ -118,21 +127,16 @@ async function processRepo(args: ProcessRepoArgs): Promise<ProcessResult> {
   const { name, config, extractedRef, octokit } = args;
   const target = `${config.owner}/${config.repo}`;
 
-  const chosenRef = extractedRef ?? config.defaultRef;
-  if (extractedRef) {
-    core.info(`${name}: using ref '${chosenRef}' from PR body`);
-  } else {
-    core.info(`${name}: no override in PR body, using default '${chosenRef}'`);
-  }
+  core.info(`${name}: using ref '${extractedRef}' from PR body`);
 
   let validated: string;
   try {
-    validated = validateGitRef(chosenRef);
+    validated = validateGitRef(extractedRef);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return {
       ok: false,
-      failure: `${name}: invalid ref '${chosenRef}' — ${message}`,
+      failure: `${name}: invalid ref '${extractedRef}' — ${message}`,
     };
   }
 
