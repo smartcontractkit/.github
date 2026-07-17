@@ -25,6 +25,10 @@ inputs:
       Only restore the cache, set to true if you want to restore and save on
       cache hit miss
     default: "false"
+  cache_builds:
+    required: false
+    description: Cache go builds (GOCACHE). Defaults to false.
+    default: "false"
   cache_key_id:
     required: false
     description: Cache go vendors unique id
@@ -144,6 +148,7 @@ runs:
         go_mod_path: ${{ inputs.go_mod_path }}
         cache_restore_only: ${{ inputs.cache_restore_only }}
         cache_key_id: ${{ inputs.cache_key_id }}
+        cache_builds: ${{ inputs.cache_builds }}
         should_tidy: ${{ inputs.should_tidy }}
         no_cache: ${{ inputs.no_cache }}
         test_download_vendor_packages_command:
