@@ -15,7 +15,22 @@ inputs:
     description: ""
     required: false
     default: app-token-issuer-infra-releng[bot]
-  # aws inputs
+  # token inputs
+  github-token:
+    description: |
+      GitHub token used to checkout the repo and create/publish the release PR
+      and tags. Defaults to the automatic GITHUB_TOKEN.
+
+      This is only used when GATI is not configured (i.e. `aws-role-arn` is
+      empty). When `aws-role-arn` is set, a GATI-issued token is used instead
+      and this input is ignored.
+
+      When relying on the default GITHUB_TOKEN, the calling job must grant
+      `contents: write` and `pull-requests: write` permissions.
+    required: false
+    default: ${{ github.token }}
+  # aws inputs (GATI) - optional
+  # Provide these to issue a token via GATI instead of using `github-token`.
   aws-role-duration-seconds:
     description: ""
     required: false
@@ -106,8 +121,13 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Setup gh token
-      id: get-gh-token
+    # GATI is optional. This step only runs when `aws-role-arn` is provided.
+    # When GATI is not configured, the action falls back to `github-token`
+    # (the automatic GITHUB_TOKEN by default). Using GATI requires the calling
+    # job to grant `id-token: write` permission.
+    - name: Setup gh token (GATI)
+      id: setup-gh-token
+      if: inputs.aws-role-arn != ''
       uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
       with:
         aws-role-arn: ${{ inputs.aws-role-arn }}
@@ -115,11 +135,31 @@ runs:
         aws-region: ${{ inputs.aws-region }}
         aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
 
+    # Prefer the GATI-issued token when present, otherwise use `github-token`.
+    - name: Resolve gh token
+      id: resolve-gh-token
+      shell: bash
+      env:
+        GATI_TOKEN: ${{ steps.setup-gh-token.outputs.access-token }}
+        GITHUB_TOKEN_INPUT: ${{ inputs.github-token }}
+      run: |
+        if [[ -n "${GATI_TOKEN}" ]]; then
+          TOKEN="${GATI_TOKEN}"
+        else
+          TOKEN="${GITHUB_TOKEN_INPUT}"
+        fi
+        if [[ -z "${TOKEN}" ]]; then
+          echo "::error::No GitHub token available. Provide GATI inputs (aws-role-arn, aws-lambda-url, aws-region) or set github-token."
+          exit 1
+        fi
+        echo "::add-mask::${TOKEN}"
+        echo "token=${TOKEN}" >> "$GITHUB_OUTPUT"
+
     - name: Checkout repo
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
-        token: ${{ steps.get-gh-token.outputs.access-token }}
+        token: ${{ steps.resolve-gh-token.outputs.token }}
 
     - name: Set git config
       shell: bash
@@ -139,7 +179,7 @@ runs:
       id: changesets
       uses: smartcontractkit/.github/actions/signed-commits@changesets-signed-commits/v1
       env:
-        GITHUB_TOKEN: ${{ steps.get-gh-token.outputs.access-token }}
+        GITHUB_TOKEN: ${{ steps.resolve-gh-token.outputs.token }}
       with:
         publish: ${{ inputs.changesets-publish-cmd }}
         version: ${{ inputs.changesets-version-cmd }}
