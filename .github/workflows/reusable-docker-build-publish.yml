@@ -417,6 +417,9 @@ jobs:
       build-type: ${{ steps.set-extra-outputs.outputs.build-type }}
       docker-restore-cache: ${{ steps.should-cache.outputs.docker-restore-cache }}
       docker-save-cache: ${{ steps.should-cache.outputs.docker-save-cache }}
+      docker-build-cache-to: ${{ steps.should-cache.outputs.docker-build-cache-to }}
+      docker-build-cache-from: ${{ steps.should-cache.outputs.docker-build-cache-from }}
+      docker-cache-suffix: ${{ steps.should-cache.outputs.docker-cache-suffix }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -504,14 +507,29 @@ jobs:
           fi
           echo "trunk=${trunk}" | tee -a "${GITHUB_OUTPUT}"
 
-      - name: Check docker cache constraints
+      - name: Setup docker cache values
         id: should-cache
         env:
           GITHUB_REF_NAME: ${{ inputs.github-ref-name }}
           GITHUB_EVENT_NAME: ${{ inputs.github-event-name }}
           REPO_TRUNK: ${{ steps.get-trunk.outputs.trunk }}
           DOCKER_CACHE_BEHAVIOUR: ${{ inputs.docker-cache-behaviour }}
+          DOCKERFILE: ${{ inputs.dockerfile }}
+          DOCKER_TAG_CUSTOM_SUFFIX: ${{ inputs.docker-tag-custom-suffix }}
+          BUILD_CACHE_TO: "type=gha,timeout=10m,mode=max,ignore-error=true,compression=zstd,compression-level=3"
+          BUILD_CACHE_FROM: "type=gha,timeout=10m"
         run: |
+          # Normalize dockerfile path: remove './' prefix and replace '/' with '-'
+          normalized_dockerfile="${DOCKERFILE#./}"
+          normalized_dockerfile="${normalized_dockerfile//\//-}"
+
+          # Build cache suffix (architecture will be added per-build in build-publish job)
+          docker_cache_suffix="${DOCKER_TAG_CUSTOM_SUFFIX:-${normalized_dockerfile}}"
+
+          echo "docker-build-cache-to=${BUILD_CACHE_TO}" | tee -a "${GITHUB_OUTPUT}"
+          echo "docker-build-cache-from=${BUILD_CACHE_FROM}" | tee -a "${GITHUB_OUTPUT}"
+          echo "docker-cache-suffix=${docker_cache_suffix}" | tee -a "${GITHUB_OUTPUT}"
+
           if [[ "${DOCKER_CACHE_BEHAVIOUR}" == "disable" ]]; then
             echo "docker-restore-cache=false" | tee -a "${GITHUB_OUTPUT}"
             echo "docker-save-cache=false" | tee -a "${GITHUB_OUTPUT}"
@@ -519,14 +537,14 @@ jobs:
             echo "docker-restore-cache=true" | tee -a "${GITHUB_OUTPUT}"
             echo "docker-save-cache=true" | tee -a "${GITHUB_OUTPUT}"
           elif [[ "${DOCKER_CACHE_BEHAVIOUR}" == "write-on-trunk" ]]; then
-              echo "docker-restore-cache=true" | tee -a "${GITHUB_OUTPUT}"
+            echo "docker-restore-cache=true" | tee -a "${GITHUB_OUTPUT}"
             if [[ "${GITHUB_REF_NAME}" == "${REPO_TRUNK}" ]] && [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
               echo "docker-save-cache=true" | tee -a "${GITHUB_OUTPUT}"
             else
               echo "docker-save-cache=false" | tee -a "${GITHUB_OUTPUT}"
             fi
           else
-            echo "::error::Invalid DOCKER_CACHE_BEHAVIOUR: ${DOCKER_CACHE_BEHAVIOUR}. Must be one of: disabled, enabled, write-on-trunk."
+            echo "::error::Invalid DOCKER_CACHE_BEHAVIOUR: ${DOCKER_CACHE_BEHAVIOUR}. Must be one of: disable, enable, write-on-trunk."
             exit 1
           fi
 
@@ -577,12 +595,32 @@ jobs:
         if: ${{ inputs.free-disk-space == 'true' }}
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
+      - name: Enable S3 Cache for Self-Hosted Runners
+        uses: runs-on/action@4e5f72399b6b17f2e79c511c1b38a315a64d22dc # v2.2.0
+
       - uses: actions/checkout@v6
         id: checkout
         with:
           persist-credentials: false
           fetch-depth: 1
           ref: ${{ inputs.git-sha }}
+
+      - name: Compute per-architecture cache scope
+        id: compute-cache-scope
+        env:
+          RUNNER_OS: ${{ runner.os }}
+          MATRIX_ARCH: ${{ matrix.arch }}
+          DOCKER_CACHE_SUFFIX: ${{ needs.init.outputs.docker-cache-suffix }}
+        run: |
+          # Build cache scope with the correct architecture for this specific runner
+          DOCKER_CACHE_SCOPE="${RUNNER_OS}-${MATRIX_ARCH}"
+
+          if [[ -n "${DOCKER_CACHE_SUFFIX}" ]]; then
+            DOCKER_CACHE_SCOPE="${DOCKER_CACHE_SCOPE}-${DOCKER_CACHE_SUFFIX}"
+          fi
+
+          echo "scope=${DOCKER_CACHE_SCOPE}" | tee -a "${GITHUB_OUTPUT}"
+
       # Generated tags must be compatible with:
       # https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
       - name: Set Docker image tags
@@ -712,6 +750,8 @@ jobs:
           docker-build-args: ${{ inputs.docker-build-args }}
           docker-restore-cache: ${{ needs.init.outputs.docker-restore-cache }}
           docker-save-cache: ${{ needs.init.outputs.docker-save-cache }}
+          docker-build-cache-to: ${{ needs.init.outputs.docker-build-cache-to }},scope=${{ steps.compute-cache-scope.outputs.scope }}
+          docker-build-cache-from: ${{ needs.init.outputs.docker-build-cache-from }},scope=${{ steps.compute-cache-scope.outputs.scope }}
           context: ${{ inputs.docker-build-context }}
           docker-build-contexts: ${{ inputs.docker-build-contexts }}
           docker-push: ${{ inputs.docker-push }}

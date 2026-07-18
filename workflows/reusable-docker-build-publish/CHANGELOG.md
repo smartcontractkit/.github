@@ -1,5 +1,13 @@
 # reusable-docker-build-publish
 
+## 1.6.0
+
+### Minor Changes
+
+- [#1588](https://github.com/smartcontractkit/.github/pull/1588)
+  [`e425a9e`](https://github.com/smartcontractkit/.github/commit/e425a9eec8a5747c8adc00b4cda3c474b6930de7)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: better docker caching
+
 ## 1.5.0
 
 ### Minor Changes
