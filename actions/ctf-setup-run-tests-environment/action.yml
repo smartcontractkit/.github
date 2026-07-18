@@ -54,6 +54,10 @@ inputs:
   QA_AWS_ROLE_TO_ASSUME:
     required: true
     description: The AWS role to assume
+  should_tidy:
+    required: false
+    description: Should we check go mod tidy
+    default: "true"
   no_cache:
     required: false
     description: Do not use a go cache
@@ -135,63 +139,21 @@ runs:
           exit 1
         fi
 
-    # Go setup and caching (replaces ctf-setup-go with actions/setup-go@v7)
+    # Go setup and caching
     - name: Setup Go
       if: inputs.go_necessary == 'true'
-      uses: actions/setup-go@v7
+      uses: smartcontractkit/.github/actions/ctf-setup-go@c83a1867f404a79db873b55f1a5fd30b42569bbb # ctf-setup-go@0.2.0
       with:
-        go-version-file: ${{ inputs.go_mod_path }}
-        go-version: ${{ inputs.go_version }}
-        check-latest: true
-        cache: ${{ inputs.no_cache == 'false' }}
-
-    - name: Setup Go with private repo access
-      if: inputs.go_necessary == 'true' && inputs.gati_token != ''
-      shell: bash
-      run: |
-        git config --global url."https://x-access-token:${{ inputs.gati_token }}@github.com/".insteadOf "https://github.com/"
-        go env -w GOPRIVATE=github.com/smartcontractkit/*
-
-    - name: Set go cache dir
-      if:
-        inputs.go_necessary == 'true' && inputs.cache_builds == 'true' &&
-        inputs.no_cache == 'false'
-      shell: bash
-      id: go-cache-dir
-      run: echo "gobuildcache=$(go env GOCACHE)" >> $GITHUB_OUTPUT
-
-    - name: Cache Go Builds
-      if:
-        inputs.go_necessary == 'true' && inputs.cache_builds == 'true' &&
-        inputs.cache_restore_only == 'false' && inputs.no_cache == 'false'
-      uses: actions/cache@v6
-      with:
-        path: ${{ steps.go-cache-dir.outputs.gobuildcache }}
-        key:
-          ${{ runner.os }}-${{ inputs.cache_key_id }}-gobuild-${{
-          hashFiles(inputs.go_mod_path) }}
-        restore-keys: |
-          ${{ runner.os }}-${{ inputs.cache_key_id }}-gobuild-
-
-    - name: Restore Go Builds
-      if:
-        inputs.go_necessary == 'true' && inputs.cache_builds == 'true' &&
-        inputs.cache_restore_only != 'false' && inputs.no_cache == 'false'
-      uses: actions/cache/restore@v6
-      with:
-        path: ${{ steps.go-cache-dir.outputs.gobuildcache }}
-        key:
-          ${{ runner.os }}-${{ inputs.cache_key_id }}-gobuild-${{
-          hashFiles(inputs.go_mod_path) }}
-        restore-keys: |
-          ${{ runner.os }}-${{ inputs.cache_key_id }}-gobuild-
-
-    - name: Run go mod download
-      if:
-        inputs.go_necessary == 'true' &&
-        inputs.test_download_vendor_packages_command
-      shell: bash
-      run: ${{ inputs.test_download_vendor_packages_command }}
+        go_version: ${{ inputs.go_version }}
+        go_mod_path: ${{ inputs.go_mod_path }}
+        cache_restore_only: ${{ inputs.cache_restore_only }}
+        cache_key_id: ${{ inputs.cache_key_id }}
+        cache_builds: ${{ inputs.cache_builds }}
+        should_tidy: ${{ inputs.should_tidy }}
+        no_cache: ${{ inputs.no_cache }}
+        test_download_vendor_packages_command:
+          ${{ inputs.test_download_vendor_packages_command }}
+        gati_token: ${{ inputs.gati_token }}
 
     - name: Setup postgres container
       id: setup-pg

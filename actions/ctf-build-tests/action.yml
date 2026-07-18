@@ -27,6 +27,16 @@ inputs:
   go_tags:
     required: false
     description: Go tags to use when building
+  cache_restore_only:
+    required: false
+    description:
+      Only restore the cache, set to true if you want to restore and save on
+      cache hit miss
+    default: "false"
+  cache_key_id:
+    required: false
+    description: Cache go vendors unique id
+    default: go
   dep_chainlink_integration_tests:
     required: false
     description: chainlink/integration-tests commit or branch
@@ -38,19 +48,17 @@ inputs:
 runs:
   using: composite
   steps:
-    # Setup Tools and libraries (replaces ctf-setup-go with actions/setup-go@v7)
+    # Setup Tools and libraries
     - name: Setup Go
-      uses: actions/setup-go@v7
+      uses: smartcontractkit/.github/actions/ctf-setup-go@b0d756c57fcdbcff187e74166562a029fdd5d1b9 # ctf-setup-go@0.0.0
       with:
-        go-version-file: ${{ inputs.go_mod_path }}
-        go-version: ${{ inputs.go_version }}
-        check-latest: true
-        cache: true
-
-    - name: Run go mod download
-      if: inputs.test_download_vendor_packages_command
-      shell: bash
-      run: ${{ inputs.test_download_vendor_packages_command }}
+        test_download_vendor_packages_command:
+          ${{ inputs.test_download_vendor_packages_command }}
+        go_version: ${{ inputs.go_version }}
+        go_mod_path: ${{ inputs.go_mod_path }}
+        cache_restore_only: ${{ inputs.cache_restore_only }}
+        cache_key_id: ${{ inputs.cache_key_id }}
+        should_tidy: "true"
 
     - name: Replace chainlink/integration-tests deps
       if: ${{ inputs.dep_chainlink_integration_tests }}
