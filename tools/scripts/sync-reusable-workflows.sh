@@ -155,12 +155,6 @@ done
 # Post-processing
 # ------------------------------------------------------------
 
-if [[ "$MODE" == "fix" && $changed_count -gt 0 ]]; then
-  err "regenerated $changed_count file(s) under $DST_ROOT — please stage them:"
-  err "  git add $DST_ROOT"
-  exit 1
-fi
-
 if [[ $strict_fail -eq 1 ]]; then
   if [[ "$MODE" == "check" ]]; then
     err "impacted reusable workflows are out of sync."
