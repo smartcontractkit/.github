@@ -176,17 +176,22 @@ applied).
 
 Otherwise the base tag is derived from `github-event-name`:
 
-| Build type | Trigger                    | Base tag format                                            |
-| ---------- | -------------------------- | ---------------------------------------------------------- |
-| `nightly`  | `schedule`                 | `nightly-YYYYMMDD{customSuffix}`                           |
-| `branch`   | `push` to branch           | `<branch-lowercased-with-/-as-->-<shortsha>{customSuffix}` |
-| `tag`      | `push` to tag OR `release` | `<ref_name_after_strip>{customSuffix}`                     |
-| `pr`       | `pull_request`             | `pr-<number>-<shortsha>{customSuffix}`                     |
-| `manual`   | `workflow_dispatch`        | `manual-<shortsha>{customSuffix}`                          |
+| Build type | Trigger                    | Base tag format                                                                                                                                                  |
+| ---------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nightly`  | `schedule`                 | `nightly-YYYYMMDD{customSuffix}`                                                                                                                                 |
+| `branch`   | `push` to branch           | `<branch-lowercased-with-/-as-->-<shortsha>{customSuffix}` (or `<branch>-<timestamp>-<shortsha>{customSuffix}` when `docker-image-tag-branch-timestamp: "true"`) |
+| `tag`      | `push` to tag OR `release` | `<ref_name_after_strip>{customSuffix}`                                                                                                                           |
+| `pr`       | `pull_request`             | `pr-<number>-<shortsha>{customSuffix}`                                                                                                                           |
+| `manual`   | `workflow_dispatch`        | `manual-<shortsha>{customSuffix}`                                                                                                                                |
 
 Notes:
 
 - Branch names are normalized to lowercase and `/` becomes `-`.
+- `docker-image-tag-branch-timestamp: "true"` (opt-in, **branch builds only**)
+  embeds a UTC build timestamp (`YYYYMMDDHHMMSS`) between the branch name and
+  the short SHA: `<branch>-<timestamp>-<shortsha>`. This makes branch tags
+  unique per build and sortable chronologically. It does not affect `pr`, `tag`,
+  `nightly`, or `manual` builds.
 - `docker-image-tag-strip-prefix` (e.g., `v`) can strip prefixes from tag names.
 - `docker-tag-custom-suffix` is appended to all generated tags **except** when
   using `docker-image-tag-override`.
@@ -268,6 +273,9 @@ Controlled by `docker-cache-behaviour`:
 - `docker-image-tag-strip-prefix` — strip prefix from tag refs (e.g., `v`)
 - `docker-tag-custom-suffix` — append suffix to generated base tag (e.g.,
   `-plugins`)
+- `docker-image-tag-branch-timestamp` (`"true"`/`"false"`, default `"false"`) —
+  opt-in; embed a UTC `YYYYMMDDHHMMSS` timestamp in **branch-build** tags
+  (`<branch>-<timestamp>-<shortsha>`). No effect on other build types.
 - `docker-manifest-sign` (`"true"`/`"false"`) — sign manifest index with cosign
 - `docker-manifest-attestation` (`"disabled"`/`"github-only"`/
   `"github-and-registry"`, default `"disabled"`) — generate a GitHub

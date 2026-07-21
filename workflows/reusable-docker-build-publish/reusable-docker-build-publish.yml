@@ -252,6 +252,21 @@ on:
           NOTE: This will not be added when docker-image-tag-override is set.
         required: false
         type: string
+      docker-image-tag-branch-timestamp:
+        description: |
+          Opt-in. When "true", embed a UTC build timestamp (YYYYMMDDHHMMSS) in
+          the Docker image tag for BRANCH builds only (pushes to a branch),
+          producing:
+
+            <branch>-<timestamp>-<shortsha>{customSuffix}
+
+          Makes branch tags unique per build and sortable chronologically.
+
+          This does NOT affect other build types: pr, tag (semver/release),
+          nightly, or manual tags are unchanged.
+        required: false
+        type: string
+        default: "false"
       docker-target:
         description: "Target stage in the Dockerfile to build."
         required: false
@@ -408,6 +423,7 @@ jobs:
       id-token: write
     outputs:
       date: ${{ steps.get-date.outputs.date }}
+      timestamp: ${{ steps.get-date.outputs.timestamp }}
       git-short-sha: ${{ steps.git-short-sha.outputs.short-sha }}
       pr-number: ${{ steps.set-extra-outputs.outputs.pr-number }}
       build-type: ${{ steps.set-extra-outputs.outputs.build-type }}
@@ -428,6 +444,10 @@ jobs:
           echo "Getting today's date..."
           date=$(date +%Y%m%d) # YYYYMMDD
           echo "date=${date}" | tee -a "${GITHUB_OUTPUT}"
+          # Computed once here (not per-arch) so both matrix builds share the
+          # same timestamp and produce a matching manifest tag.
+          timestamp=$(date -u +%Y%m%d%H%M%S) # YYYYMMDDHHMMSS (UTC)
+          echo "timestamp=${timestamp}" | tee -a "${GITHUB_OUTPUT}"
       - name: Get Short SHA
         id: git-short-sha
         run: |
@@ -626,8 +646,10 @@ jobs:
           DOCKER_IMAGE_TAG_OVERRIDE: ${{ inputs.docker-image-tag-override }}
           DOCKER_IMAGE_TAG_STRIP_PREFIX: ${{ inputs.docker-image-tag-strip-prefix }}
           DOCKER_IMAGE_TYPE: ${{ needs.init.outputs.build-type }}
+          DOCKER_IMAGE_TAG_BRANCH_TIMESTAMP: ${{ inputs.docker-image-tag-branch-timestamp }}
           DOCKER_TAG_CUSTOM_SUFFIX: ${{ inputs.docker-tag-custom-suffix }}
           GIT_SHORT_SHA: ${{ needs.init.outputs.git-short-sha }}
+          TIMESTAMP: ${{ needs.init.outputs.timestamp }}
           GITHUB_REF_NAME: ${{ inputs.github-ref-name }}
           MATRIX_ARCH: ${{ matrix.arch }}
           PR_NUMBER: ${{ needs.init.outputs.pr-number }}
@@ -649,8 +671,14 @@ jobs:
               branch)
                 # Normalize branch name: replace "/" with "-" and ensure lowercase for consistency
                 safe_ref_name=$(echo "${ref_name}" | tr '[:upper:]' '[:lower:]' | tr '/' '-')
-                # Examples: main-d34db33 or release-2.29.1-cre-d34db33-custom-suffix
-                tag_value="${safe_ref_name}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                if [[ "${DOCKER_IMAGE_TAG_BRANCH_TIMESTAMP:-}" == "true" ]]; then
+                  # Timestamp before short SHA so tags sort chronologically.
+                  # Examples: main-20250307143005-d34db33 or main-20250307143005-d34db33-custom-suffix
+                  tag_value="${safe_ref_name}-${TIMESTAMP}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                else
+                  # Examples: main-d34db33 or release-2.29.1-cre-d34db33-custom-suffix
+                  tag_value="${safe_ref_name}-${GIT_SHORT_SHA}${DOCKER_TAG_CUSTOM_SUFFIX}"
+                fi
                 ;;
               manual)
                 # Examples: manual-d34db33 or manual-d34db33-custom-suffix
