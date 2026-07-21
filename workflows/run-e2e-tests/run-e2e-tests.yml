@@ -184,6 +184,11 @@ on:
         required: false
         type: number
         default: 60
+      cache_builds:
+        description: "Cache go builds (GOCACHE). Set to 'true' to enable go build cache sharing."
+        required: false
+        type: string
+        default: "false"
     outputs:
       test_results:
         description: "Test results from all executed tests"
@@ -899,6 +904,7 @@ jobs:
           publish_check_name: ${{ env.TEST_ID }}
           token: ${{ secrets.GH_TOKEN }}
           cache_key_id: e2e-tests
+          cache_builds: ${{ inputs.cache_builds }}
           go_mod_path: ./integration-tests/go.mod
           QA_AWS_REGION: ${{ secrets.QA_AWS_REGION }}
           QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
@@ -1216,6 +1222,7 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           should_cleanup: false
           cache_key_id: e2e-tests
+          cache_builds: ${{ inputs.cache_builds }}
           go_mod_path: ./integration-tests/go.mod
           QA_AWS_REGION: ${{ secrets.QA_AWS_REGION }}
           QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}

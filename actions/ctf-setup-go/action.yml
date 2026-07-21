@@ -72,7 +72,7 @@ runs:
         fi
 
     - name: Setup Go
-      uses: actions/setup-go@v6
+      uses: actions/setup-go@v7
       with:
         go-version: ${{ steps.export-go-version.outputs.go_version }}
         check-latest: true
@@ -94,7 +94,7 @@ runs:
 
     - name: Cache Go Modules
       if: inputs.cache_restore_only == 'false' && inputs.no_cache == 'false'
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       id: cache-packages
       with:
         path: ${{ steps.go-cache-dir.outputs.gomodcache }}
@@ -104,12 +104,11 @@ runs:
         restore-keys: |
           ${{ runner.os }}-${{ inputs.cache_key_id }}-gomod-
 
-    - uses: actions/cache@v5
+    - uses: actions/cache@v6
       if: inputs.cache_restore_only == 'false' && inputs.cache_builds == 'true'
       name: Cache Go Builds
       with:
         path: ${{ steps.go-cache-dir.outputs.gobuildcache }}
-        # The lifetime of go build outputs is pretty short, so we make our primary cache key be the branch name
         key:
           ${{ runner.os }}-${{ inputs.cache_key_id }}-gobuild-${{
           hashFiles(inputs.go_mod_path) }}
@@ -118,7 +117,7 @@ runs:
 
     - name: Restore Go Modules
       if: inputs.cache_restore_only != 'false' && inputs.no_cache == 'false'
-      uses: actions/cache/restore@v5
+      uses: actions/cache/restore@v6
       id: restore-cache-packages
       with:
         path: |
@@ -128,6 +127,19 @@ runs:
           hashFiles(inputs.go_mod_path) }}
         restore-keys: |
           ${{ runner.os }}-${{ inputs.cache_key_id }}-gomod-
+
+    - name: Restore Go Builds
+      if: inputs.cache_restore_only != 'false' && inputs.cache_builds == 'true'
+      uses: actions/cache/restore@v6
+      id: restore-cache-builds
+      with:
+        path: |
+          ${{ steps.go-cache-dir.outputs.gobuildcache }}
+        key:
+          ${{ runner.os }}-${{ inputs.cache_key_id }}-gobuild-${{
+          hashFiles(inputs.go_mod_path) }}
+        restore-keys: |
+          ${{ runner.os }}-${{ inputs.cache_key_id }}-gobuild-
 
     - name: Tidy and check files
       if: ${{ inputs.should_tidy == 'true' }}
