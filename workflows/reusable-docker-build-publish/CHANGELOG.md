@@ -1,5 +1,17 @@
 # reusable-docker-build-publish
 
+## 1.7.0
+
+### Minor Changes
+
+- [#1599](https://github.com/smartcontractkit/.github/pull/1599)
+  [`68b2e4c`](https://github.com/smartcontractkit/.github/commit/68b2e4c67ed0f9ed1278867980c1cf134f0ca31d)
+  Thanks [@chainchad](https://github.com/chainchad)! - Add opt-in
+  `docker-image-tag-branch-timestamp` input to embed a UTC build timestamp
+  (YYYYMMDDHHMMSS) in branch-build Docker tags:
+  `<branch>-<timestamp>-<shortsha>`. Off by default; other build types (pr, tag,
+  nightly, manual) are unaffected.
+
 ## 1.6.0
 
 ### Minor Changes
