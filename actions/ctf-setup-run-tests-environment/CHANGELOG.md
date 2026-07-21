@@ -1,5 +1,14 @@
 # ctf-setup-run-tests-environment
 
+## 0.11.0
+
+### Minor Changes
+
+- [#1596](https://github.com/smartcontractkit/.github/pull/1596)
+  [`0a1bfac`](https://github.com/smartcontractkit/.github/commit/0a1bfac471c41f8125232890c4d62e0208ac6d91)
+  Thanks [@kalverra](https://github.com/kalverra)! - Add `cache_builds` input to
+  optionally cache go builds
+
 ## 0.10.2
 
 ### Patch Changes
