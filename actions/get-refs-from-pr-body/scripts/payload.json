@@ -1,0 +1,7 @@
+{
+  "action": "synchronize",
+  "pull_request": {
+    "number": 20471,
+    "body": "core ref: develop\nsolana ref: develop\nstarknet ref: develop"
+  }
+}
