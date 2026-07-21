@@ -1,0 +1,40 @@
+name: get-refs-from-pr-body
+description:
+  "Extracts per-repo git refs from a PR body, resolves them to SHAs, and
+  verifies each SHA through SigScanner."
+
+inputs:
+  github-token:
+    description:
+      "GitHub token used to fetch the PR body and resolve refs to SHAs against
+      the target repositories."
+    default: ${{ github.token }}
+    required: true
+
+  sigscanner-url:
+    description: "SigScanner endpoint URL used to verify each resolved commit."
+    required: true
+
+  sigscanner-api-key:
+    description: "SigScanner API key (org-wide secret)."
+    required: true
+
+outputs:
+  core-ref:
+    description:
+      "Resolved and verified commit SHA for smartcontractkit/chainlink, or the
+      default ref when the action is skipped (non-pull_request events)."
+
+  solana-ref:
+    description:
+      "Resolved and verified commit SHA for smartcontractkit/chainlink-solana,
+      or the default ref when the action is skipped."
+
+  starknet-ref:
+    description:
+      "Resolved and verified commit SHA for smartcontractkit/chainlink-starknet,
+      or the default ref when the action is skipped."
+
+runs:
+  using: node24
+  main: "dist/index.js"
