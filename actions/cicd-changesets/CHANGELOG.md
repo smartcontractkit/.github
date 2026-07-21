@@ -1,5 +1,16 @@
 # cicd-changesets
 
+## 1.4.0
+
+### Minor Changes
+
+- [#1593](https://github.com/smartcontractkit/.github/pull/1593)
+  [`1056063`](https://github.com/smartcontractkit/.github/commit/105606365812f5c3c7cf988bb834fe818ea81d56)
+  Thanks [@chainchad](https://github.com/chainchad)! - Make GATI optional. The
+  action now uses the automatic `GITHUB_TOKEN` by default (configurable via the
+  new `github-token` input) and only issues a token via GATI when `aws-role-arn`
+  is provided. Existing callers that pass the AWS/GATI inputs are unaffected.
+
 ## 1.3.0
 
 ### Minor Changes

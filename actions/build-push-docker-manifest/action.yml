@@ -314,8 +314,13 @@ runs:
           sleep 30
         fi
 
+    # Idempotency (RANE-4683): re-running `imagetools create` mints a new
+    # multi-arch index digest even when the children are identical, which moves
+    # the tag onto an unsigned wrapper and breaks downstream cosign verify /
+    # promote. So if the tag already exists we skip create and keep the existing
+    # index digest.
     - name: Create and push Docker manifest
-      id: create-push-docker-manifest
+      id: manifest-create
       shell: bash
       env:
         DOCKER_MANIFEST_NAME: ${{ steps.manifest-name.outputs.name }}
@@ -327,12 +332,69 @@ runs:
           ${{ steps.generate-annotations.outputs.annotation-flags }}
         TAG_FLAGS: ${{ steps.process-additional-tags.outputs.tag-flags }}
       run: |
+        set -euo pipefail
+
         DOCKER_MANIFEST_NAME_WITH_TAG="${DOCKER_MANIFEST_NAME}:${DOCKER_MANIFEST_TAG}"
-        # Convert comma-separated list into array and pass as separate arguments
-        IFS=',' read -ra DIGESTS <<< "$DOCKER_IMAGE_NAME_DIGESTS"
-        # Map each digest to include the manifest name
+
+        # Normalize + validate the expected digests up front (before both the
+        # idempotency check and create) so bad/empty input fails fast here
+        # rather than deep inside imagetools with a less actionable error.
+        EXPECTED_DIGESTS=()
+        IFS=',' read -ra RAW_DIGESTS <<< "$DOCKER_IMAGE_NAME_DIGESTS"
+        for digest in "${RAW_DIGESTS[@]}"; do
+          digest=$(echo "$digest" | xargs)
+          [[ -z "$digest" ]] && continue
+          if [[ ! "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+            echo "::error::docker-image-name-digests contains an invalid entry '${digest}'; expected sha256:<64-hex>"
+            exit 1
+          fi
+          EXPECTED_DIGESTS+=("$digest")
+        done
+        if [[ ${#EXPECTED_DIGESTS[@]} -eq 0 ]]; then
+          echo "::error::docker-image-name-digests must contain at least one sha256:<64-hex> digest"
+          exit 1
+        fi
+
+        # Idempotency guard: if the tag already exists, don't recreate it
+        # (re-creating mints a new index digest even when children are identical,
+        # moving the tag onto an unsigned wrapper). Capture stdout (the raw
+        # manifest) and stderr separately so registry warnings never pollute the
+        # payload, and distinguish "tag missing" from real inspect failures so a
+        # transient/auth error doesn't silently fall through to create.
+        INSPECT_ERR=$(mktemp)
+        INSPECT_RC=0
+        EXISTING_MANIFEST=$(docker buildx imagetools inspect "${DOCKER_MANIFEST_NAME_WITH_TAG}" --raw 2>"${INSPECT_ERR}") || INSPECT_RC=$?
+
+        if [[ "${INSPECT_RC}" -eq 0 ]]; then
+          rm -f "${INSPECT_ERR}"
+          # Tag exists — sanity check it references the digests we're about to
+          # publish; if it points at something else, fail rather than trust it.
+          MISSING_DIGESTS=()
+          for digest in "${EXPECTED_DIGESTS[@]}"; do
+            grep -Fq -- "${digest}" <<< "${EXISTING_MANIFEST}" || MISSING_DIGESTS+=("$digest")
+          done
+          if [[ ${#MISSING_DIGESTS[@]} -gt 0 ]]; then
+            echo "::error::Manifest tag ${DOCKER_MANIFEST_NAME_WITH_TAG} already exists but does not reference expected digest(s): ${MISSING_DIGESTS[*]}"
+            exit 1
+          fi
+          echo "✅ Manifest tag ${DOCKER_MANIFEST_NAME_WITH_TAG} already exists and references the expected digests; skipping create (idempotent rerun)"
+          echo "skipped=true" | tee -a "${GITHUB_OUTPUT}"
+          exit 0
+        fi
+
+        if ! grep -qiE 'not found|no such manifest|manifest unknown|MANIFEST_UNKNOWN|404' "${INSPECT_ERR}"; then
+          echo "::error::Failed to inspect manifest tag ${DOCKER_MANIFEST_NAME_WITH_TAG}"
+          cat "${INSPECT_ERR}" >&2
+          rm -f "${INSPECT_ERR}"
+          exit 1
+        fi
+        rm -f "${INSPECT_ERR}"
+
+        echo "skipped=false" | tee -a "${GITHUB_OUTPUT}"
+
+        # Map each validated digest to include the manifest name
         PREFIXED_DIGESTS=()
-        for digest in "${DIGESTS[@]}"; do
+        for digest in "${EXPECTED_DIGESTS[@]}"; do
           PREFIXED_DIGESTS+=("${DOCKER_MANIFEST_NAME}@${digest}")
         done
 
@@ -422,7 +484,7 @@ runs:
       if:
         inputs.docker-manifest-sign == 'true' &&
         inputs.cosign-oidc-identity-regexp != ''
-      shell: sh
+      shell: bash
       env:
         MANIFEST_NAME_WITH_DIGEST: >-
           ${{
@@ -432,18 +494,53 @@ runs:
         OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
         OIDC_IDENTITY_REGEXP: ${{ inputs.cosign-oidc-identity-regexp }}
       run: |
-        cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
-          --certificate-oidc-issuer "${OIDC_ISSUER}" \
-          --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
-          --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}"
+        set -euo pipefail
+
+        # Retry to absorb Sigstore/Rekor propagation lag ("no signatures found"
+        # right after a good sign). Keep the retry budget large enough to absorb
+        # longer propagation delays.
+        last_verify_output=""
+        start_ts=$(date +%s)
+        max_elapsed_seconds=600
+        delay=5
+
+        while true; do
+          if last_verify_output=$(cosign verify "${MANIFEST_NAME_WITH_DIGEST}" \
+              --certificate-oidc-issuer "${OIDC_ISSUER}" \
+              --certificate-identity-regexp "${OIDC_IDENTITY_REGEXP}" \
+              --certificate-github-workflow-repository "${GITHUB_WORKFLOW_REPOSITORY}" 2>&1); then
+            echo "${last_verify_output}"
+            exit 0
+          fi
+
+          now=$(date +%s)
+          elapsed=$(( now - start_ts ))
+          if (( elapsed >= max_elapsed_seconds )); then
+            break
+          fi
+
+          sleep_for=$delay
+          if (( elapsed + sleep_for > max_elapsed_seconds )); then
+            sleep_for=$(( max_elapsed_seconds - elapsed ))
+          fi
+          echo "Signature not yet verifiable; retrying in ${sleep_for}s (elapsed ${elapsed}s/${max_elapsed_seconds}s)..."
+          sleep "${sleep_for}"
+
+          delay=$(( delay * 2 ))
+          if (( delay > 60 )); then delay=60; fi
+        done
+
+        echo "::error::Signature not verified for ${MANIFEST_NAME_WITH_DIGEST}"
+        echo "Last cosign verify output:" >&2
+        echo "${last_verify_output}" >&2
+        exit 1
 
     - name: Summary output
       shell: bash
       env:
         DOCKER_MANIFEST_SIGNED: ${{ inputs.docker-manifest-sign }}
         GITHUB_WORKFLOW_REPOSITORY: ${{ inputs.github-workflow-repository }}
-        MANIFEST_ADDITIONAL_TAGS:
-          ${{ steps.inspect-docker-manifest.outputs.manifest-additional-tags }}
+        MANIFEST_ADDITIONAL_TAGS: ${{ inputs.manifest-additional-tags }}
         MANIFEST_DIGEST:
           ${{ steps.inspect-docker-manifest.outputs.manifest-digest }}
         MANIFEST_NAME: ${{ steps.inspect-docker-manifest.outputs.manifest-name}}
@@ -456,6 +553,7 @@ runs:
             steps.inspect-docker-manifest.outputs.manifest-name-with-tag
           }}
         MANIFEST_TAG: ${{ inputs.docker-manifest-tag }}
+        CREATE_SKIPPED: ${{ steps.manifest-create.outputs.skipped }}
         OIDC_ISSUER: ${{ inputs.cosign-oidc-issuer }}
         OIDC_IDENTITY_REGEXP: ${{ inputs.cosign-oidc-identity-regexp }}
       run: |
@@ -467,6 +565,9 @@ runs:
         echo "Manifest additional tags: \`${MANIFEST_ADDITIONAL_TAGS:-None}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
         echo "Manifest name with tag: \`${MANIFEST_NAME_WITH_TAG}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
         echo "Manifest name with digest: \`${MANIFEST_NAME_WITH_DIGEST}\`" | tee -a "${GITHUB_STEP_SUMMARY}"
+        if [[ "${CREATE_SKIPPED}" == "true" ]]; then
+          echo "Manifest create: skipped (tag already exists and references the expected digests)" | tee -a "${GITHUB_STEP_SUMMARY}"
+        fi
         if [[ "${DOCKER_MANIFEST_SIGNED}" == 'true' ]]; then
           echo >> "${GITHUB_STEP_SUMMARY}"
           echo "#### Docker Manifest signed 📝" | tee -a "${GITHUB_STEP_SUMMARY}"
