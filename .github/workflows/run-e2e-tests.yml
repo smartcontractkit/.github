@@ -18,7 +18,8 @@ on:
         type: string
         default: "Run E2E Tests"
       chainlink_version:
-        description: "Enter Chainlink version to use for the tests. Example: v2.10.0,
+        description:
+          "Enter Chainlink version to use for the tests. Example: v2.10.0,
           develop or commit sha"
         required: false
         type: string
@@ -60,7 +61,8 @@ on:
         required: false
         type: string
       test_secrets_override_key:
-        description: 'Key to use for overriding the default test secrets. Use "aws:" prefix
+        description:
+          'Key to use for overriding the default test secrets. Use "aws:" prefix
           for AWS secrets. Example:
           "aws:testsecrets/TEST_SECRETS_OVERRIDE_BASE64"'
         required: false
@@ -70,12 +72,14 @@ on:
         required: false
         type: string
       check_test_path:
-        description: "Path to the test folder to check for tests missing definition in
+        description:
+          "Path to the test folder to check for tests missing definition in
           .github/e2e-tests.yml"
         required: false
         type: string
       with_existing_remote_runner_version:
-        description: 'Use the existing remote runner version for k8s tests. Example:
+        description:
+          'Use the existing remote runner version for k8s tests. Example:
           "d3bf5044af33e08be788a2df31c4a745cf69d787"'
         required: false
         type: string
@@ -86,27 +90,31 @@ on:
         default: chaos migration reorg smoke soak benchmark load ccip-tests/load
           ccip-tests/smoke ccip-tests/chaos
       require_chainlink_image_versions_in_qa_ecr:
-        description: 'Check Chainlink image versions to be present in QA ECR. If not, build
+        description:
+          'Check Chainlink image versions to be present in QA ECR. If not, build
           and push the image to QA ECR. Takes comma separated list of Chainlink
           image versions. Example:
           "5733cdcda9a9fc6da6343798b119b2ae136146cd,0b7d2c497a508efa5a827714780d908b7b8eda19"'
         required: false
         type: string
       require_chainlink_plugin_versions_in_qa_ecr:
-        description: 'Check Chainlink plugins versions to be present in QA ECR. If not,
+        description:
+          'Check Chainlink plugins versions to be present in QA ECR. If not,
           build and push the image to QA ECR. Takes comma separated list of
           Chainlink image versions. Example:
           "5733cdcda9a9fc6da6343798b119b2ae136146cd,0b7d2c497a508efa5a827714780d908b7b8eda19"'
         required: false
         type: string
       skip_image_build:
-        description: 'Set to "true" to skip building Chainlink image. Useful running tests which
+        description:
+          'Set to "true" to skip building Chainlink image. Useful running tests which
           do not require Chainlink image to be built. Example: "true"'
         required: false
         type: boolean
         default: false
       slack_notification_after_tests:
-        description: 'Set to "always" to always send a slack notification after the tests.
+        description:
+          'Set to "always" to always send a slack notification after the tests.
           Set "on_failure" to send a notification only on test failure'
         required: false
         type: string
@@ -128,7 +136,8 @@ on:
         type: string
         default: debug
       upload_cl_node_coverage_artifact:
-        description: 'Set to "true" to upload Chainlink node coverage artifact to as Github
+        description:
+          'Set to "true" to upload Chainlink node coverage artifact to as Github
           artifact'
         required: false
         type: boolean
@@ -152,7 +161,8 @@ on:
         type: boolean
         default: false
       collect_test_telemetry:
-        description: 'Set to "true" to collect telemetry data for E2E tests, helpful for
+        description:
+          'Set to "true" to collect telemetry data for E2E tests, helpful for
           debugging resource issues.'
         required: false
         type: boolean
@@ -193,6 +203,11 @@ on:
         required: false
         type: string
         default: "false"
+      test_binary_path:
+        description: "Path to pre-compiled test binary if using cached binaries"
+        required: false
+        type: string
+        default: ""
     outputs:
       test_results:
         description: "Test results from all executed tests"
@@ -266,7 +281,8 @@ env:
   QA_CHAINLINK_IMAGE: >-
     ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION }}.amazonaws.com/${{ inputs.ecr_name }}
   DEFAULT_CHAINLINK_VERSION: ${{ inputs.chainlink_version }}
-  DEFAULT_CHAINLINK_PLUGINS_VERSION: ${{ inputs.chainlink_version != '' && format('{0}-plugins',
+  DEFAULT_CHAINLINK_PLUGINS_VERSION:
+    ${{ inputs.chainlink_version != '' && format('{0}-plugins',
     inputs.chainlink_version) }}
   DEFAULT_CHAINLINK_UPGRADE_VERSION: ${{ inputs.chainlink_version }}
   CHAINLINK_ENV_USER: ${{ github.actor }}
@@ -285,7 +301,8 @@ env:
   E2E_FAST_FILLER_IMAGE: ${{ secrets.PROD_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
     secrets.AWS_REGION}}.amazonaws.com/ccip-fast-transfer-filler
   SLACK_USER: ${{ inputs.SLACK_USER }}
-  SLACK_CHANNEL: ${{ inputs.slack_notification_after_tests_channel_id || inputs.SLACK_CHANNEL
+  SLACK_CHANNEL:
+    ${{ inputs.slack_notification_after_tests_channel_id || inputs.SLACK_CHANNEL
     || secrets.SLACK_CHANNEL }}
 
 jobs:
@@ -378,7 +395,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Install citool
@@ -431,14 +448,14 @@ jobs:
       workflow_id: ${{ steps.gen_id.outputs.workflow_id }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
-          go-version: "1.24.0"
+          go-version: "1.26.5"
           check-latest: true
           cache: false # disable caching as this job doesn't benefit from it
 
@@ -622,7 +639,8 @@ jobs:
       id-token: write
       contents: read
     env:
-      CHAINLINK_IMAGE: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
+      CHAINLINK_IMAGE:
+        ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
         }}.amazonaws.com/${{ inputs.ecr_name }}
     strategy:
       matrix:
@@ -640,7 +658,7 @@ jobs:
 
       - name: Checkout the repo
         if: ${{ steps.check-image-exists.outputs.exists != 'true' }}
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -675,7 +693,8 @@ jobs:
       id-token: write
       contents: read
     env:
-      CHAINLINK_IMAGE: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
+      CHAINLINK_IMAGE:
+        ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
         }}.amazonaws.com/${{ inputs.ecr_name }}
     strategy:
       matrix:
@@ -684,7 +703,7 @@ jobs:
           }}
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -751,7 +770,7 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
           ref: ${{ inputs.chainlink_version }}
@@ -858,6 +877,12 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
           aws-role-duration-seconds: "1800"
 
+      - name: Restore Pre-Compiled Test Binaries from S3 Cache
+        uses: actions/cache/restore@v6
+        with:
+          path: integration-tests/bin/
+          key: test-binaries-${{ inputs.chainlink_version || github.sha }}
+
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
@@ -867,7 +892,8 @@ jobs:
         env:
           DETACH_RUNNER: true
           RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
-          E2E_TEST_CHAINLINK_VERSION: ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
+          E2E_TEST_CHAINLINK_VERSION:
+            ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
             env.DEFAULT_CHAINLINK_VERSION }}
           E2E_TEST_LOKI_TENANT_ID: ${{ secrets.LOKI_TENANT_ID }}
           E2E_TEST_LOKI_ENDPOINT: ${{ secrets.LOKI_URL }}
@@ -883,10 +909,14 @@ jobs:
             secrets.QA_AWS_REGION }}.amazonaws.com
           GITHUB_API_TOKEN: ${{ steps.setup-optional-gati-token.outputs.access-token || ''}}
         with:
+          skip_docker_check: ${{ inputs.skip_image_build && 'true' || 'false' }}
           test_go_project_path: ${{ matrix.tests.test_go_project_path }}
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
+          test_binary_path: ${{ inputs.test_binary_path || './integration-tests/bin/ccip-smoke.test' }}
+          test_package_name: "github.com/smartcontractkit/chainlink/integration-tests/smoke/ccip"
           test_download_vendor_packages_command: cd $(dirname ${{ matrix.tests.path }}) && go mod download
-          test_secrets_override_base64: ${{ steps.aws-test-secrets.outputs.secret_value ||
+          test_secrets_override_base64:
+            ${{ steps.aws-test-secrets.outputs.secret_value ||
             secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
@@ -1000,7 +1030,8 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
         with:
-          name: test_result_${{ needs.load-test-configurations.outputs.workflow_id
+          name:
+            test_result_${{ needs.load-test-configurations.outputs.workflow_id
             }}_${{ env.TEST_ID }}
           path: test_result.json
           retention-days: 1
@@ -1039,11 +1070,12 @@ jobs:
     outputs:
       remote-runner-version: ${{ steps.set-remote-runner-version.outputs.remote-runner-version }}
     env:
-      ENV_JOB_IMAGE_BASE: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
+      ENV_JOB_IMAGE_BASE:
+        ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.QA_AWS_REGION
         }}.amazonaws.com/chainlink-tests
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Build Test Runner Image
@@ -1120,7 +1152,7 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -1188,7 +1220,8 @@ jobs:
           DETACH_RUNNER: true
           RUN_QUARANTINED_TESTS: "true" # always run quarantined tests in CI
           RR_MEM: ${{ matrix.tests.remote_runner_memory }}
-          TEST_ARGS: -test.timeout 900h -test.memprofile memprofile.out -test.cpuprofile
+          TEST_ARGS:
+            -test.timeout 900h -test.memprofile memprofile.out -test.cpuprofile
             profile.out
           ENV_JOB_IMAGE: ${{ secrets.QA_AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{
             secrets.QA_AWS_REGION }}.amazonaws.com/chainlink-tests:${{
@@ -1197,7 +1230,8 @@ jobs:
             secrets.QA_AWS_REGION }}.amazonaws.com
           # We can comment these out when we have a stable soak test and aren't worried about resource consumption
           REF_NAME: ${{ github.head_ref || github.ref_name }}
-          E2E_TEST_CHAINLINK_VERSION: ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
+          E2E_TEST_CHAINLINK_VERSION:
+            ${{ matrix.tests.test_env_vars.E2E_TEST_CHAINLINK_VERSION ||
             env.DEFAULT_CHAINLINK_VERSION }}
           E2E_TEST_LOKI_TENANT_ID: ${{ secrets.LOKI_TENANT_ID }}
           E2E_TEST_LOKI_ENDPOINT: ${{ secrets.LOKI_URL }}
@@ -1213,7 +1247,8 @@ jobs:
         with:
           test_command_to_run: ${{ matrix.tests.test_cmd }} ${{ matrix.tests.test_cmd_opts }}
           test_download_vendor_packages_command: make gomod
-          test_secrets_override_base64: ${{ steps.aws-test-secrets.outputs.secret_value ||
+          test_secrets_override_base64:
+            ${{ steps.aws-test-secrets.outputs.secret_value ||
             secrets.TEST_SECRETS_OVERRIDE_BASE64 }}
           test_config_override_path: ${{ env.TEST_CONFIG_OVERRIDE_PATH }}
           test_type: ${{ matrix.tests.test_env_vars.TEST_TYPE }}
@@ -1323,7 +1358,7 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Checkout repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -1411,7 +1446,13 @@ jobs:
           trunk-upload-only: "false"
 
   after_tests:
-    needs: [load-test-configurations, run-docker-tests, run-k8s-runner-tests, run-in-memory-tests]
+    needs:
+      [
+        load-test-configurations,
+        run-docker-tests,
+        run-k8s-runner-tests,
+        run-in-memory-tests,
+      ]
     if: always()
     name: After tests
     runs-on: ubuntu-latest
@@ -1427,7 +1468,8 @@ jobs:
         uses: actions/download-artifact@v4.1.8
         with:
           path: test_results
-          pattern: test_result_${{ needs.load-test-configurations.outputs.workflow_id
+          pattern:
+            test_result_${{ needs.load-test-configurations.outputs.workflow_id
             }}_*
 
       - name: Set detailed test results

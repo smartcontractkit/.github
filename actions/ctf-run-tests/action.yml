@@ -224,6 +224,18 @@ inputs:
     description: |
       Whether to setup the database before running the tests. Typically used for in-memory tests.
     default: "false"
+  test_binary_path:
+    required: false
+    description: "Path to pre-compiled test binary if using cached binaries"
+    default: ""
+  test_package_name:
+    required: false
+    description: "Go package name for test2json"
+    default: ""
+  skip_docker_check:
+    required: false
+    description: "Skip validating or building docker images"
+    default: "false"
 
 runs:
   using: composite
@@ -326,6 +338,7 @@ runs:
         encoded_test_secrets: ${{ inputs.test_secrets_override_base64 }}
 
     - name: Set default E2E_TEST_* env vars if they are not set already
+      if: inputs.skip_docker_check != 'true'
       shell: bash
       run: |
         if [[ -z "${{ env.E2E_TEST_CHAINLINK_IMAGE }}" ]]; then
@@ -374,8 +387,13 @@ runs:
           cd "${{ inputs.test_go_project_path }}"
         fi
 
-        # Run the test command
-        ${{ inputs.test_command_to_run }} 2>&1 | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage -hidepassingtests=false
+        # Run the test command or pre-compiled binary
+        if [ -n "${{ inputs.test_binary_path }}" ] && [ -f "${{ inputs.test_binary_path }}" ]; then
+          echo "Using pre-compiled test binary ${{ inputs.test_binary_path }}"
+          go tool test2json -t -p "${{ inputs.test_package_name || 'github.com/smartcontractkit/chainlink/integration-tests' }}" "${{ inputs.test_binary_path }}" -test.v 2>&1 | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage -hidepassingtests=false
+        else
+          ${{ inputs.test_command_to_run }} 2>&1 | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage -hidepassingtests=false
+        fi
 
     - name: Publish Artifacts
       if: failure()
