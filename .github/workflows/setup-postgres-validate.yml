@@ -31,7 +31,7 @@ jobs:
             want_shared_buffers: "128MB"
             want_fsync: "off"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
