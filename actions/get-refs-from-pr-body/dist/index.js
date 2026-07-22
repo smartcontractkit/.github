@@ -44351,7 +44351,8 @@ var core3 = __toESM(require_core());
 async function verifyCommit(opts) {
   const params = new URLSearchParams({
     commit: opts.sha,
-    repository: opts.repository
+    repository: opts.repository,
+    disable_gpg: "true"
   });
   const target = `${opts.url}?${params.toString()}`;
   core3.debug(
