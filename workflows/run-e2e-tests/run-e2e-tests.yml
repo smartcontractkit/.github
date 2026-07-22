@@ -848,7 +848,7 @@ jobs:
         shell: bash
         run: |
           echo "::startgroup::Install gotestsum"
-          go install gotest.tools/gotestsum@v1.12.3
+          go install gotest.tools/gotestsum@v1.13.0
           echo "::endgroup::"
 
       - name: Get Test Secrets from AWS Secret Manager
@@ -884,7 +884,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
-        uses: ./.github/actions/ctf-run-tests # DEBUG: Checking pre-compiled binaries
+        uses: smartcontractkit/.github/actions/ctf-run-tests@e800fd48f9f6e7f381f83cebe6310c7a12347b06 # DEBUG: Checking pre-compiled binaries
         # jankiness because: github.com/actions/runner/issues/1492 + github.com/actions/runner/issues/2418
         continue-on-error: ${{ fromJSON(env.QUARANTINE) }}
         env:
@@ -1205,7 +1205,7 @@ jobs:
         shell: bash
         run: |
           echo "::startgroup::Install gotestsum"
-          go install gotest.tools/gotestsum@v1.12.3
+          go install gotest.tools/gotestsum@v1.13.0
           echo "::endgroup::"
 
       - name: Run tests
@@ -1380,7 +1380,7 @@ jobs:
         shell: bash
         run: |
           echo "::startgroup::Install gotestsum"
-          go install gotest.tools/gotestsum@v1.12.3
+          go install gotest.tools/gotestsum@v1.13.0
           echo "::endgroup::"
 
       - name: Run tests
