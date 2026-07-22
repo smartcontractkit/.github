@@ -389,9 +389,10 @@ runs:
 
         # Run the test command or pre-compiled binary
         if [ -n "${{ inputs.test_binary_path }}" ] && [ -f "${{ inputs.test_binary_path }}" ]; then
-          echo "Using pre-compiled test binary ${{ inputs.test_binary_path }}"
+          echo "Using precompiled binary"
           go tool test2json -t -p "${{ inputs.test_package_name || 'github.com/smartcontractkit/chainlink/integration-tests' }}" "${{ inputs.test_binary_path }}" -test.v 2>&1 | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage -hidepassingtests=false
         else
+          echo "No precompiled binary found. Building from scratch..."
           ${{ inputs.test_command_to_run }} 2>&1 | tee /tmp/gotest.log | gotestloghelper -ci -singlepackage -hidepassingtests=false
         fi
 
