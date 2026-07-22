@@ -20,6 +20,7 @@ export async function verifyCommit(
   const params = new URLSearchParams({
     commit: opts.sha,
     repository: opts.repository,
+    disable_gpg: "true",
   });
   const target = `${opts.url}?${params.toString()}`;
 
