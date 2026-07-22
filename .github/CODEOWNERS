@@ -1,11 +1,15 @@
+# Default Owner
 * @smartcontractkit/devex-cicd
 
-# CRIB and devenv
-/actions/crib-*/** @smartcontractkit/cl-orchestration
-/actions/devenv-*/** @smartcontractkit/cl-orchestration
+# Add @smartcontractkit/devex-cicd to all other
+# entries for managing dependency bumps.
 
-# data-tooling  - temporarily add devex-cicd for dependency bumps
+# cl-orchestration
+/actions/crib-*/** @smartcontractkit/cl-orchestration @smartcontractkit/devex-cicd
+/actions/devenv-*/** @smartcontractkit/cl-orchestration @smartcontractkit/devex-cicd
+
+# data-tooling
 /actions/chip-schema-registration/ @smartcontractkit/data-tooling @smartcontractkit/devex-cicd
 
-# data-analytics - temporarily add devex-cicd for dependency bumps
+# data-analytics
 /actions/pr-quality-check/ @smartcontractkit/data-analytics @smartcontractkit/devex-cicd
