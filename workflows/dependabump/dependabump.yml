@@ -58,7 +58,7 @@ jobs:
           fi
           SEVERITY="${SEVERITY//[[:space:]]/}"
           gh api --paginate -H "Accept: application/vnd.github+json" --method GET \
-            '/repos/smartcontractkit/chainlink-common/dependabot/alerts?state=open&ecosystem=Go&severity=$SEVERITY' \
+            "/repos/${GITHUB_REPOSITORY}/dependabot/alerts?state=open&ecosystem=Go&severity=${SEVERITY}" \
             --jq '.[] | select(.security_vulnerability.first_patched_version != null) | .dependency.manifest_path |= rtrimstr("go.mod") | "./\(.dependency.manifest_path) \(.security_vulnerability.package.name) \(.security_vulnerability.first_patched_version.identifier)"' | \
             dependabot && gomods tidy
         continue-on-error: true
