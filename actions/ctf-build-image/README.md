@@ -66,3 +66,9 @@ environments. If you find something broken, and need support reach out on
   leave this alone.
 - `platform` - Defaults to `linux/amd64`, use `linux/arm64` for arm-based
   runners. Cross-platform builds are not supported.
+- `cache-mode` - Caching preset: `auto` (default: restores cache for PRs, saves
+  cache for default branch push/schedule events), `read-write`, `read-only`,
+  `write-only`, or `off`.
+- `cache-map` - JSON string mapping cache mount paths for `buildkit-cache-dance`
+  (e.g. `'{"go-mod-cache": "/go/pkg/mod"}'`). Passing a non-empty `cache-map`
+  automatically enables `buildkit-cache-dance`.
