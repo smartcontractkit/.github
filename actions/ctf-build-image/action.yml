@@ -123,36 +123,45 @@ inputs:
       on runners with sufficient disk (e.g. RunsOn with 100GB+) to save ~30-60s.
     default: "true"
 
+  cache-mode:
+    required: false
+    description: |
+      Caching mode preset: "auto" (default), "read-write", "read-only", "write-only", or "off".
+      If unset, defaults to "auto" (restores cache for PRs, saves cache for default branch push/schedule events).
+      See: https://docs.docker.com/build/ci/github-actions/cache/
+    default: "auto"
+
+  cache-map:
+    required: false
+    description: |
+      JSON string mapping cache mount paths/names for buildkit-cache-dance (e.g. '{"go-mod-cache": "/go/pkg/mod"}').
+      Passing a non-empty cache-map automatically enables buildkit-cache-dance.
+      See: https://github.com/reproducible-containers/buildkit-cache-dance
+      See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
+    default: ""
+
   docker-restore-cache:
     required: false
     description: |
-      Optionally override docker restore cache behavior ("true" or "false").
-      If unset, cache is restored for non-schedule and non-push events.
-      See: https://docs.docker.com/build/ci/github-actions/cache/
+      Deprecated explicit override for docker restore cache ("true" or "false").
     default: ""
 
   docker-save-cache:
     required: false
     description: |
-      Optionally override docker save cache behavior ("true" or "false").
-      If unset, cache is saved only on schedule and push events.
-      See: https://docs.docker.com/build/ci/github-actions/cache/
+      Deprecated explicit override for docker save cache ("true" or "false").
     default: ""
 
   cache-dance:
     required: false
     description: |
-      Whether to enable buildkit-cache-dance to persist RUN --mount=type=cache buildkit cache mounts.
-      See: https://github.com/reproducible-containers/buildkit-cache-dance
-      See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
-    default: "false"
+      Deprecated: Explicitly enable/disable buildkit-cache-dance.
+    default: ""
 
   cache-dance-cache-map:
     required: false
     description: |
-      JSON string mapping cache mount paths/names for buildkit-cache-dance (e.g. '{"go-mod-cache": "/go/pkg/mod"}').
-      See: https://github.com/reproducible-containers/buildkit-cache-dance
-      See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
+      Deprecated alias for cache-map.
     default: ""
 
 outputs:
@@ -183,30 +192,45 @@ runs:
         PLUGIN_OVERRIDES: ${{ inputs.plugin-manifest-overrides }}
         PLUGINS_MANIFEST_PATH:
           ${{ github.workspace }}/plugins/plugins.public.yaml
-        ACTIONS_PATH: ${{ github.action_path }}
-      run: ${ACTIONS_PATH}/scripts/plugin-overrides.sh
+      run: |
+        if [[ -z "${PLUGIN_OVERRIDES}" ]]; then
+          echo "No plugin overrides provided. Skipping manifest processing."
+          exit 0
+        fi
 
-    - name: Setup Go for dependency overrides
-      if: inputs.go-get-overrides != ''
-      uses: actions/setup-go@v7
-      with:
-        go-version-file: go.mod
-        cache: false
+        if [[ ! -f "${PLUGINS_MANIFEST_PATH}" ]]; then
+          echo "Manifest file not found: ${PLUGINS_MANIFEST_PATH}"
+          exit 1
+        fi
 
-    - name: Apply go-get dependency overrides
-      if: inputs.go-get-overrides != ''
+        echo "Applying plugin overrides..."
+        while IFS= read -r line; do
+          if [[ -n "$line" ]]; then
+            plugin=$(echo "$line" | cut -d'=' -f1)
+            override=$(echo "$line" | cut -d'=' -f2)
+            echo "Overriding plugin: $plugin -> $override"
+            yq eval -i "(.plugins[] | select(.name == \"$plugin\")).location = \"$override\"" "$PLUGINS_MANIFEST_PATH"
+          fi
+        done <<< "$PLUGIN_OVERRIDES"
+
+    - name: Process Go dependency overrides
       shell: bash
       env:
         GO_OVERRIDES: ${{ inputs.go-get-overrides }}
       run: |
-        set -e
+        if [[ -z "${GO_OVERRIDES}" ]]; then
+          echo "No Go dependency overrides provided."
+          exit 0
+        fi
+
+        echo "Applying Go dependency overrides..."
         while IFS= read -r line; do
-          [ -z "$line" ] && continue
-          dep="${line%%=*}"
-          sha="${line#*=}"
-          [ -z "$dep" ] || [ -z "$sha" ] && continue
-          echo "Overriding: github.com/smartcontractkit/${dep}@${sha}"
-          go get "github.com/smartcontractkit/${dep}@${sha}"
+          if [[ -n "$line" ]]; then
+            module=$(echo "$line" | cut -d'=' -f1)
+            override=$(echo "$line" | cut -d'=' -f2)
+            echo "Replacing Go module: $module -> $override"
+            go mod edit -replace "$module=$override"
+          fi
         done <<< "$GO_OVERRIDES"
         go mod tidy
 
@@ -218,6 +242,7 @@ runs:
       shell: bash
       id: cache-settings
       env:
+        CACHE_MODE: ${{ inputs.cache-mode }}
         DOCKER_SAVE_CACHE_INPUT: ${{ inputs.docker-save-cache }}
         DOCKER_RESTORE_CACHE_INPUT: ${{ inputs.docker-restore-cache }}
         GITHUB_EVENT_NAME: ${{ github.event_name }}
@@ -239,10 +264,7 @@ runs:
         docker-attestations: "false"
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
-        # only save on events which are expected to be from the default branch (unless overridden)
         docker-save-cache: ${{ steps.cache-settings.outputs.save-cache }}
-        # dont use cache on events which are expected to be from the default branch (unless overridden)
-        # this is to create a fresh cache/snapshot unpolluted by previous cache entries
         docker-restore-cache: ${{ steps.cache-settings.outputs.restore-cache }}
         docker-build-cache-to:
           "type=gha,timeout=10m,mode=max,ignore-error=true,compression=zstd,compression-level=3,scope=ctf-build-image-${{
@@ -250,8 +272,9 @@ runs:
         docker-build-cache-from:
           "type=gha,timeout=10m,scope=ctf-build-image-${{ inputs.cache-scope ||
           format('{0}-{1}', runner.os, runner.arch) }}"
+        cache-mode: ${{ inputs.cache-mode }}
+        cache-map: ${{ inputs.cache-map || inputs.cache-dance-cache-map }}
         cache-dance: ${{ inputs.cache-dance }}
-        cache-dance-cache-map: ${{ inputs.cache-dance-cache-map }}
 
         tags: type=raw,value=${{ inputs.image-tag }}
         aws-account-number: ${{ inputs.aws-account-number }}
