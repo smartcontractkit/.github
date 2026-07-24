@@ -7,14 +7,16 @@ PLUGIN_SCRIPT="${SCRIPT_DIR}/plugin-overrides.sh"
 echo "===== Testing plugin-overrides.sh ====="
 export DRY_RUN=true
 
-# Create a temporary manifest file for testing
+# Create a temporary manifest file matching chainlink plugins.public.yaml schema
 TEMP_MANIFEST=$(mktemp)
 cat > "$TEMP_MANIFEST" << EOF
 plugins:
-  - name: cosmos
-    location: "old-cosmos-ref"
-  - name: solana
-    location: "old-solana-ref"
+  cosmos:
+    - gitRef: "old-cosmos-ref"
+      moduleURI: "github.com/smartcontractkit/chainlink-cosmos"
+  solana:
+    - gitRef: "old-solana-ref"
+      moduleURI: "github.com/smartcontractkit/chainlink-solana"
 EOF
 
 # Test 1: Dry run with valid input
@@ -34,6 +36,8 @@ if command -v yq &>/dev/null; then
   "$PLUGIN_SCRIPT"
   unset DRY_RUN
   export DRY_RUN=true
+  echo "Updated manifest:"
+  cat "$TEMP_MANIFEST"
   echo "Test 2 completed."
   echo
 fi

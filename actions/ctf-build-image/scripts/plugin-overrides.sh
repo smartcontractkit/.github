@@ -14,7 +14,7 @@ if [[ ! -f "${PLUGINS_MANIFEST_PATH}" && "${DRY_RUN}" != "true" ]]; then
   exit 1
 fi
 
-echo "Applying plugin overrides..."
+echo "Applying plugin manifest overrides..."
 while IFS= read -r line || [[ -n "$line" ]]; do
   [[ -z "$line" ]] && continue
   if [[ "$line" != *"="* ]]; then
@@ -23,13 +23,17 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   fi
 
   plugin="${line%%=*}"
-  override="${line#*=}"
-  [[ -z "$plugin" || -z "$override" ]] && continue
+  gitref="${line#*=}"
+  [[ -z "$plugin" || -z "$gitref" ]] && continue
 
-  echo "Overriding plugin: ${plugin} -> ${override}"
+  echo "Overriding plugin gitRef: ${plugin} -> ${gitref}"
   if [[ "${DRY_RUN}" == "true" ]]; then
-    echo "[DRY RUN] yq eval -i '(.plugins[] | select(.name == \"${plugin}\")).location = \"${override}\"' \"${PLUGINS_MANIFEST_PATH}\""
+    echo "[DRY RUN] yq eval -i '.plugins.${plugin}[0].gitRef = \"${gitref}\"' \"${PLUGINS_MANIFEST_PATH}\""
   else
-    yq eval -i "(.plugins[] | select(.name == \"${plugin}\")).location = \"${override}\"" "${PLUGINS_MANIFEST_PATH}"
+    if ! yq e ".plugins.${plugin}" "${PLUGINS_MANIFEST_PATH}" &>/dev/null; then
+      echo "::warning::Plugin '${plugin}' not found in manifest, skipping."
+      continue
+    fi
+    yq eval -i ".plugins.${plugin}[0].gitRef = \"${gitref}\"" "${PLUGINS_MANIFEST_PATH}"
   fi
 done <<< "$PLUGIN_OVERRIDES"
