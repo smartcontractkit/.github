@@ -123,6 +123,21 @@ inputs:
       Defaults to `true` for backwards compatibility. Ignored when inputs.docker-push is false.
     required: false
     default: "true"
+  cache-dance:
+    description: |
+      Whether to enable buildkit-cache-dance to persist RUN --mount=type=cache buildkit cache mounts.
+      See: https://github.com/reproducible-containers/buildkit-cache-dance
+      See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
+    required: false
+    default: "false"
+  cache-dance-cache-map:
+    description: |
+      JSON string mapping cache mount paths/names for buildkit-cache-dance (e.g. '{"go-mod-cache": "/go/pkg/mod"}').
+      Required if cache-dance is set to true.
+      See: https://github.com/reproducible-containers/buildkit-cache-dance
+      See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
+    required: false
+    default: ""
 
 outputs:
   docker-repository-name:
@@ -170,6 +185,23 @@ runs:
         if [[ -z "${DOCKER_REPOSITORY_NAME}" ]]; then
           echo "::error::docker-repository-name input is required when docker-push is true."
           exit 1
+        fi
+
+    - name: Validate cache-dance configuration
+      shell: bash
+      env:
+        CACHE_DANCE: ${{ inputs.cache-dance }}
+        CACHE_MAP: ${{ inputs.cache-dance-cache-map }}
+      run: |
+        if [[ "${CACHE_DANCE}" == "true" ]]; then
+          if [[ -z "${CACHE_MAP}" ]]; then
+            echo "::error::cache-dance-cache-map input is required when cache-dance is true."
+            exit 1
+          fi
+          if ! echo "${CACHE_MAP}" | jq . >/dev/null 2>&1; then
+            echo "::error::cache-dance-cache-map must be valid JSON."
+            exit 1
+          fi
         fi
 
     - name: Check runner arch and platform compatibility
@@ -360,6 +392,15 @@ runs:
 
         echo "no-cache=false" | tee -a "${GITHUB_OUTPUT}"
         echo "cache-from=${CACHE_FROM}" | tee -a "${GITHUB_OUTPUT}"
+
+    # Persist BuildKit RUN --mount=type=cache directories across GHA runs
+    # See: https://github.com/reproducible-containers/buildkit-cache-dance
+    # See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
+    - name: Cache Dance
+      if: ${{ inputs.cache-dance == 'true' }}
+      uses: reproducible-containers/buildkit-cache-dance@5422eac04292c961a382e0f584ea0f03ad9da723 # v3.4.0
+      with:
+        cache-map: ${{ inputs.cache-dance-cache-map }}
 
     - name: Build & push image
       id: build-image

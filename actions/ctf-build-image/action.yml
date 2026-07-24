@@ -123,6 +123,22 @@ inputs:
       on runners with sufficient disk (e.g. RunsOn with 100GB+) to save ~30-60s.
     default: "true"
 
+  docker-restore-cache:
+    required: false
+    description: |
+      Optionally override docker restore cache behavior ("true" or "false").
+      If unset, cache is restored for non-schedule and non-push events.
+      See: https://docs.docker.com/build/ci/github-actions/cache/
+    default: ""
+
+  docker-save-cache:
+    required: false
+    description: |
+      Optionally override docker save cache behavior ("true" or "false").
+      If unset, cache is saved only on schedule and push events.
+      See: https://docs.docker.com/build/ci/github-actions/cache/
+    default: ""
+
 outputs:
   docker-image-sha-digest-amd64:
     description: "Docker image SHA digest for platform: amd64"
@@ -197,13 +213,17 @@ runs:
         docker-attestations: "false"
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
-        # only save on events which are expected to be from the default branch
-        docker-save-cache:
-          ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
-        # dont use cache on events which are expected to be from the default branch
+        # only save on events which are expected to be from the default branch (unless overridden)
+        docker-save-cache: >-
+          ${{ inputs.docker-save-cache != '' && inputs.docker-save-cache ||
+          (inputs.docker-save-cache == '' && (github.event_name == 'schedule' ||
+          github.event_name == 'push')) }}
+        # dont use cache on events which are expected to be from the default branch (unless overridden)
         # this is to create a fresh cache/snapshot unpolluted by previous cache entries
-        docker-restore-cache:
-          ${{ github.event_name != 'schedule' && github.event_name != 'push' }}
+        docker-restore-cache: >-
+          ${{ inputs.docker-restore-cache != '' && inputs.docker-restore-cache
+          || (inputs.docker-restore-cache == '' && github.event_name !=
+          'schedule' && github.event_name != 'push') }}
         docker-build-cache-to:
           "type=gha,timeout=10m,mode=max,ignore-error=true,compression=zstd,compression-level=3,scope=ctf-build-image-${{
           inputs.cache-scope || format('{0}-{1}', runner.os, runner.arch) }}"
