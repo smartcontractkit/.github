@@ -214,9 +214,19 @@ runs:
       if: inputs.free-disk-space == 'true'
       uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
+    - name: Resolve cache settings
+      shell: bash
+      id: cache-settings
+      env:
+        DOCKER_SAVE_CACHE_INPUT: ${{ inputs.docker-save-cache }}
+        DOCKER_RESTORE_CACHE_INPUT: ${{ inputs.docker-restore-cache }}
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
+      run: |
+        ${{ github.action_path }}/scripts/resolve-cache-settings.sh >> "$GITHUB_OUTPUT"
+
     - name: Build push docker image
       id: build-image
-      uses: smartcontractkit/.github/actions/build-push-docker@7e35079241f460640626adb0ca320fb29aabd8a9 # DEBUG: Using cache dance version
+      uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/v1
       with:
         context: .
         platform: ${{ inputs.platform }}
@@ -230,16 +240,10 @@ runs:
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
         # only save on events which are expected to be from the default branch (unless overridden)
-        docker-save-cache: >-
-          ${{ inputs.docker-save-cache != '' && inputs.docker-save-cache ||
-          (inputs.docker-save-cache == '' && (github.event_name == 'schedule' ||
-          github.event_name == 'push')) }}
+        docker-save-cache: ${{ steps.cache-settings.outputs.save-cache }}
         # dont use cache on events which are expected to be from the default branch (unless overridden)
         # this is to create a fresh cache/snapshot unpolluted by previous cache entries
-        docker-restore-cache: >-
-          ${{ inputs.docker-restore-cache != '' && inputs.docker-restore-cache
-          || (inputs.docker-restore-cache == '' && github.event_name !=
-          'schedule' && github.event_name != 'push') }}
+        docker-restore-cache: ${{ steps.cache-settings.outputs.restore-cache }}
         docker-build-cache-to:
           "type=gha,timeout=10m,mode=max,ignore-error=true,compression=zstd,compression-level=3,scope=ctf-build-image-${{
           inputs.cache-scope || format('{0}-{1}', runner.os, runner.arch) }}"

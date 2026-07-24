@@ -192,17 +192,7 @@ runs:
       env:
         CACHE_DANCE: ${{ inputs.cache-dance }}
         CACHE_MAP: ${{ inputs.cache-dance-cache-map }}
-      run: |
-        if [[ "${CACHE_DANCE}" == "true" ]]; then
-          if [[ -z "${CACHE_MAP}" ]]; then
-            echo "::error::cache-dance-cache-map input is required when cache-dance is true."
-            exit 1
-          fi
-          if ! echo "${CACHE_MAP}" | jq . >/dev/null 2>&1; then
-            echo "::error::cache-dance-cache-map must be valid JSON."
-            exit 1
-          fi
-        fi
+      run: ${{ github.action_path }}/scripts/validate-cache-dance-config.sh
 
     - name: Check runner arch and platform compatibility
       shell: bash
