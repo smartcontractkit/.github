@@ -888,7 +888,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@8d2a4d67859d149ab0ca1f2104ac81a78a51e9de # DEBUG: Checking pre-compiled binaries
+        uses: smartcontractkit/.github/actions/ctf-run-tests@bac39781339f2c188f45d78d94cbf10352704ddc # DEBUG: Checking pre-compiled binaries
         # jankiness because: github.com/actions/runner/issues/1492 + github.com/actions/runner/issues/2418
         continue-on-error: ${{ fromJSON(env.QUARANTINE) }}
         env:
@@ -1215,7 +1215,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.12.1
+        uses: smartcontractkit/.github/actions/ctf-run-tests@bac39781339f2c188f45d78d94cbf10352704ddc # DEBUG: Checking pre-compiled binaries
         # jankiness because: github.com/actions/runner/issues/1492 + github.com/actions/runner/issues/2418
         continue-on-error: ${{ fromJSON(env.QUARANTINE) }}
         env:
@@ -1390,7 +1390,7 @@ jobs:
       - name: Run tests
         id: run_tests
         timeout-minutes: ${{ matrix.tests.timeout_minutes || inputs.test-timeout-minutes }}
-        uses: smartcontractkit/.github/actions/ctf-run-tests@ctf-run-tests/0.12.1
+        uses: smartcontractkit/.github/actions/ctf-run-tests@bac39781339f2c188f45d78d94cbf10352704ddc # DEBUG: Checking pre-compiled binaries
         # jankiness because: github.com/actions/runner/issues/1492 + github.com/actions/runner/issues/2418
         continue-on-error: ${{ fromJSON(env.QUARANTINE) }}
         env:
