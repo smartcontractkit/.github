@@ -199,11 +199,11 @@ runs:
       id: validate-cache-dance
       shell: bash
       env:
+        ACTION_PATH: ${{ github.action_path }}
         CACHE_DANCE: ${{ inputs.cache-dance }}
         CACHE_MAP: ${{ inputs.cache-map || inputs.cache-dance-cache-map }}
-      run:
-        ${{ github.action_path }}/scripts/validate-cache-dance-config.sh >>
-        "$GITHUB_OUTPUT"
+      run: |
+        "${ACTION_PATH}/scripts/validate-cache-dance-config.sh" >> "$GITHUB_OUTPUT"
 
     - name: Check runner arch and platform compatibility
       shell: bash

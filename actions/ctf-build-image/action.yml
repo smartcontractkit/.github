@@ -242,12 +242,13 @@ runs:
       shell: bash
       id: cache-settings
       env:
+        ACTION_PATH: ${{ github.action_path }}
         CACHE_MODE: ${{ inputs.cache-mode }}
         DOCKER_SAVE_CACHE_INPUT: ${{ inputs.docker-save-cache }}
         DOCKER_RESTORE_CACHE_INPUT: ${{ inputs.docker-restore-cache }}
         GITHUB_EVENT_NAME: ${{ github.event_name }}
       run: |
-        ${{ github.action_path }}/scripts/resolve-cache-settings.sh >> "$GITHUB_OUTPUT"
+        "${ACTION_PATH}/scripts/resolve-cache-settings.sh" >> "$GITHUB_OUTPUT"
 
     - name: Build push docker image
       id: build-image
