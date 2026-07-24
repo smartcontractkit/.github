@@ -63,4 +63,14 @@ RES_RESTORE=$(resolve_restore_cache "true" "push")
 [ "$RES_RESTORE" = "true" ] || (echo "FAIL: expected restore=true, got $RES_RESTORE" && exit 1)
 echo "Test 4 passed."
 
-echo "All cache event override tests completed successfully."
+echo "Test 5: Forward cache-dance inputs"
+resolve_cache_dance_forwarding() {
+  local dance="$1"
+  local map="$2"
+  echo "dance=$dance,map=$map"
+}
+FORWARD=$(resolve_cache_dance_forwarding "true" '{"go-mod-cache": "/go/pkg/mod"}')
+[ "$FORWARD" = 'dance=true,map={"go-mod-cache": "/go/pkg/mod"}' ] || (echo "FAIL: expected dance forwarding match" && exit 1)
+echo "Test 5 passed."
+
+echo "All cache event override and dance forwarding tests completed successfully."

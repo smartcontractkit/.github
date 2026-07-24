@@ -139,6 +139,22 @@ inputs:
       See: https://docs.docker.com/build/ci/github-actions/cache/
     default: ""
 
+  cache-dance:
+    required: false
+    description: |
+      Whether to enable buildkit-cache-dance to persist RUN --mount=type=cache buildkit cache mounts.
+      See: https://github.com/reproducible-containers/buildkit-cache-dance
+      See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
+    default: "false"
+
+  cache-dance-cache-map:
+    required: false
+    description: |
+      JSON string mapping cache mount paths/names for buildkit-cache-dance (e.g. '{"go-mod-cache": "/go/pkg/mod"}').
+      See: https://github.com/reproducible-containers/buildkit-cache-dance
+      See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
+    default: ""
+
 outputs:
   docker-image-sha-digest-amd64:
     description: "Docker image SHA digest for platform: amd64"
@@ -200,7 +216,7 @@ runs:
 
     - name: Build push docker image
       id: build-image
-      uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/v1
+      uses: smartcontractkit/.github/actions/build-push-docker@7e35079241f460640626adb0ca320fb29aabd8a9 # DEBUG: Using cache dance version
       with:
         context: .
         platform: ${{ inputs.platform }}
@@ -230,6 +246,8 @@ runs:
         docker-build-cache-from:
           "type=gha,timeout=10m,scope=ctf-build-image-${{ inputs.cache-scope ||
           format('{0}-{1}', runner.os, runner.arch) }}"
+        cache-dance: ${{ inputs.cache-dance }}
+        cache-dance-cache-map: ${{ inputs.cache-dance-cache-map }}
 
         tags: type=raw,value=${{ inputs.image-tag }}
         aws-account-number: ${{ inputs.aws-account-number }}
