@@ -189,50 +189,20 @@ runs:
     - name: Process plugin manifest overrides (public)
       shell: bash
       env:
+        ACTION_PATH: ${{ github.action_path }}
         PLUGIN_OVERRIDES: ${{ inputs.plugin-manifest-overrides }}
         PLUGINS_MANIFEST_PATH:
           ${{ github.workspace }}/plugins/plugins.public.yaml
       run: |
-        if [[ -z "${PLUGIN_OVERRIDES}" ]]; then
-          echo "No plugin overrides provided. Skipping manifest processing."
-          exit 0
-        fi
-
-        if [[ ! -f "${PLUGINS_MANIFEST_PATH}" ]]; then
-          echo "Manifest file not found: ${PLUGINS_MANIFEST_PATH}"
-          exit 1
-        fi
-
-        echo "Applying plugin overrides..."
-        while IFS= read -r line; do
-          if [[ -n "$line" ]]; then
-            plugin=$(echo "$line" | cut -d'=' -f1)
-            override=$(echo "$line" | cut -d'=' -f2)
-            echo "Overriding plugin: $plugin -> $override"
-            yq eval -i "(.plugins[] | select(.name == \"$plugin\")).location = \"$override\"" "$PLUGINS_MANIFEST_PATH"
-          fi
-        done <<< "$PLUGIN_OVERRIDES"
+        "${ACTION_PATH}/scripts/plugin-overrides.sh"
 
     - name: Process Go dependency overrides
       shell: bash
       env:
+        ACTION_PATH: ${{ github.action_path }}
         GO_OVERRIDES: ${{ inputs.go-get-overrides }}
       run: |
-        if [[ -z "${GO_OVERRIDES}" ]]; then
-          echo "No Go dependency overrides provided."
-          exit 0
-        fi
-
-        echo "Applying Go dependency overrides..."
-        while IFS= read -r line; do
-          if [[ -n "$line" ]]; then
-            module=$(echo "$line" | cut -d'=' -f1)
-            override=$(echo "$line" | cut -d'=' -f2)
-            echo "Replacing Go module: $module -> $override"
-            go mod edit -replace "$module=$override"
-          fi
-        done <<< "$GO_OVERRIDES"
-        go mod tidy
+        "${ACTION_PATH}/scripts/go-get-overrides.sh"
 
     - name: Free up disk space (to avoid 'no space left on device' errors)
       if: inputs.free-disk-space == 'true'
