@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Applies Go dependency overrides via `go mod edit -replace`
+# Applies Go dependency overrides
 # Env inputs: GO_OVERRIDES
 
 if [[ -z "${GO_OVERRIDES}" ]]; then
@@ -17,15 +17,26 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     continue
   fi
 
-  module="${line%%=*}"
-  override="${line#*=}"
-  [[ -z "$module" || -z "$override" ]] && continue
+  dep="${line%%=*}"
+  sha="${line#*=}"
+  [[ -z "$dep" || -z "$sha" ]] && continue
 
-  echo "Replacing Go module: ${module} -> ${override}"
-  if [[ "${DRY_RUN}" == "true" ]]; then
-    echo "[DRY RUN] go mod edit -replace ${module}=${override}"
+  # Qualify module name if short name provided
+  if [[ "$dep" != *"/"* ]]; then
+    module="github.com/smartcontractkit/${dep}"
   else
-    go mod edit -replace "${module}=${override}"
+    module="${dep}"
+  fi
+
+  echo "Replacing Go module: ${module} -> ${sha}"
+  if [[ "${DRY_RUN}" == "true" ]]; then
+    echo "[DRY RUN] go mod edit -replace ${module}=${sha}"
+  else
+    if [[ "$sha" == *"/"* ]]; then
+      go mod edit -replace "${module}=${sha}"
+    else
+      go mod edit -replace "${module}=${module}@${sha}"
+    fi
   fi
 done <<< "$GO_OVERRIDES"
 
