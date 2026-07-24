@@ -1,5 +1,14 @@
 # ci-lint-misc
 
+## 1.1.3
+
+### Patch Changes
+
+- [#1609](https://github.com/smartcontractkit/.github/pull/1609)
+  [`ae06446`](https://github.com/smartcontractkit/.github/commit/ae06446a139581684ecc366ce2e42fbccd5b15d4)
+  Thanks [@chainchad](https://github.com/chainchad)! - Update dependency version
+  for actionlint action
+
 ## 1.1.2
 
 ### Patch Changes
