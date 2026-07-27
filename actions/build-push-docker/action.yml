@@ -12,21 +12,6 @@ inputs:
   docker-build-contexts:
     description: "List of additional build contexts (e.g., name=path)"
     required: false
-  docker-restore-cache:
-    description: |
-      Toggles the docker cache for builds. If set to `false`, the cache will not be used.
-      Configure source with `docker-build-cache-from` input parameter.
-      See `--no-cache` flag in:
-      https://docs.docker.com/engine/reference/commandline/buildx_build/#cache
-    required: false
-    default: "false"
-  docker-save-cache:
-    description: |
-      Whether to save the Docker build cache after the build. If set to `false`,
-      the cache will not be saved. Configure destination with `docker-build-cache-to`
-      input parameter.
-    required: false
-    default: "false"
   # See: https://github.com/moby/buildkit#github-actions-cache-experimental
   docker-build-cache-from:
     description: |
@@ -136,16 +121,6 @@ inputs:
       See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
     required: false
     default: ""
-  cache-dance:
-    description: |
-      Deprecated: Explicitly enable/disable buildkit-cache-dance. If unset, cache-dance is automatically enabled when cache-map is provided.
-    required: false
-    default: ""
-  cache-dance-cache-map:
-    description: |
-      Deprecated alias for cache-map.
-    required: false
-    default: ""
 
 outputs:
   docker-repository-name:
@@ -200,8 +175,7 @@ runs:
       shell: bash
       env:
         ACTION_PATH: ${{ github.action_path }}
-        CACHE_DANCE: ${{ inputs.cache-dance }}
-        CACHE_MAP: ${{ inputs.cache-map || inputs.cache-dance-cache-map }}
+        CACHE_MAP: ${{ inputs.cache-map }}
       run: |
         "${ACTION_PATH}/scripts/validate-cache-dance-config.sh" >> "$GITHUB_OUTPUT"
 
@@ -359,12 +333,22 @@ runs:
           echo "docker-provenance=false" | tee -a "${GITHUB_OUTPUT}"
         fi
 
+    - name: Resolve cache settings
+      id: resolve-cache
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        CACHE_MODE: ${{ inputs.cache-mode }}
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
+      run: |
+        "${ACTION_PATH}/scripts/resolve-cache-settings.sh" >> "$GITHUB_OUTPUT"
+
     - name: Docker cache configuration
       id: docker-cache
       shell: bash
       env:
-        DOCKER_RESTORE_CACHE: ${{ inputs.docker-restore-cache }}
-        DOCKER_SAVE_CACHE: ${{ inputs.docker-save-cache }}
+        DOCKER_RESTORE_CACHE: ${{ steps.resolve-cache.outputs.restore-cache }}
+        DOCKER_SAVE_CACHE: ${{ steps.resolve-cache.outputs.save-cache }}
         DOCKER_BUILD_CACHE_FROM: ${{ inputs.docker-build-cache-from }}
         DOCKER_BUILD_CACHE_TO: ${{ inputs.docker-build-cache-to }}
         DEFAULT_DOCKER_BUILD_CACHE_FROM:

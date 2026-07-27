@@ -140,18 +140,6 @@ inputs:
       See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
     default: ""
 
-  docker-restore-cache:
-    required: false
-    description: |
-      Deprecated explicit override for docker restore cache ("true" or "false").
-    default: ""
-
-  docker-save-cache:
-    required: false
-    description: |
-      Deprecated explicit override for docker save cache ("true" or "false").
-    default: ""
-
 outputs:
   docker-image-sha-digest-amd64:
     description: "Docker image SHA digest for platform: amd64"
@@ -196,18 +184,6 @@ runs:
       if: inputs.free-disk-space == 'true'
       uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
-    - name: Resolve cache settings
-      shell: bash
-      id: cache-settings
-      env:
-        ACTION_PATH: ${{ github.action_path }}
-        CACHE_MODE: ${{ inputs.cache-mode }}
-        DOCKER_SAVE_CACHE_INPUT: ${{ inputs.docker-save-cache }}
-        DOCKER_RESTORE_CACHE_INPUT: ${{ inputs.docker-restore-cache }}
-        GITHUB_EVENT_NAME: ${{ github.event_name }}
-      run: |
-        "${ACTION_PATH}/scripts/resolve-cache-settings.sh" >> "$GITHUB_OUTPUT"
-
     - name: Build push docker image
       id: build-image
       uses: smartcontractkit/.github/actions/build-push-docker@build-push-docker/v1
@@ -223,8 +199,6 @@ runs:
         docker-attestations: "false"
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
-        docker-save-cache: ${{ steps.cache-settings.outputs.save-cache }}
-        docker-restore-cache: ${{ steps.cache-settings.outputs.restore-cache }}
         docker-build-cache-to:
           "type=gha,timeout=10m,mode=max,ignore-error=true,compression=zstd,compression-level=3,scope=ctf-build-image-${{
           inputs.cache-scope || format('{0}-{1}', runner.os, runner.arch) }}"
@@ -232,8 +206,7 @@ runs:
           "type=gha,timeout=10m,scope=ctf-build-image-${{ inputs.cache-scope ||
           format('{0}-{1}', runner.os, runner.arch) }}"
         cache-mode: ${{ inputs.cache-mode }}
-        cache-map: ${{ inputs.cache-map || inputs.cache-dance-cache-map }}
-        cache-dance: ${{ inputs.cache-dance }}
+        cache-map: ${{ inputs.cache-map }}
 
         tags: type=raw,value=${{ inputs.image-tag }}
         aws-account-number: ${{ inputs.aws-account-number }}

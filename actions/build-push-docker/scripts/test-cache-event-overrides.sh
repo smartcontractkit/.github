@@ -4,7 +4,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RESOLVE_SCRIPT="${SCRIPT_DIR}/resolve-cache-settings.sh"
 
-echo "===== Testing ctf-build-image cache mode resolution ====="
+echo "===== Testing build-push-docker cache mode resolution ====="
 
 parse_val() {
   local output="$1"

@@ -2,31 +2,18 @@
 set -e
 
 # Validates cache-dance configuration inputs.
-# Accepts positional arguments:
-#   $1: CACHE_DANCE ("true" | "false" | "")
-#   $2: CACHE_MAP (JSON string or path map)
-# Or environment variables: CACHE_DANCE, CACHE_MAP, CACHE_DANCE_CACHE_MAP
-CACHE_MAP="${2:-${CACHE_MAP:-${CACHE_DANCE_CACHE_MAP}}}"
+# Positional argument $1: CACHE_MAP (JSON string or path map)
+# Or environment variable: CACHE_MAP
+CACHE_MAP="${1:-${CACHE_MAP}}"
 
 if [ -n "$CACHE_MAP" ]; then
-  if [ "$EXPLICIT_DANCE" = "false" ]; then
-    CACHE_DANCE="false"
-  else
-    CACHE_DANCE="true"
-  fi
-else
-  if [ "$EXPLICIT_DANCE" = "true" ]; then
-    echo "::error::cache-map input is required when cache-dance is true."
-    exit 1
-  fi
-  CACHE_DANCE="false"
-fi
-
-if [ "$CACHE_DANCE" = "true" ]; then
+  CACHE_DANCE="true"
   if ! echo "$CACHE_MAP" | jq . >/dev/null 2>&1; then
     echo "::error::cache-map must be valid JSON."
     exit 1
   fi
+else
+  CACHE_DANCE="false"
 fi
 
 echo "cache-dance=${CACHE_DANCE}"
