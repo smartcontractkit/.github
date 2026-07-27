@@ -110,7 +110,7 @@ inputs:
     default: "true"
   cache-mode:
     description: |
-      Caching mode preset: "auto" (default), "read-write", "read-only", "write-only", or "off".
+      Caching mode preset: "auto" (default), "read-write" (or "true"), "read-only", "write-only", or "off" (or "false").
     required: false
     default: "auto"
   cache-map:

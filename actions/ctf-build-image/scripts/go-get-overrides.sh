@@ -33,15 +33,17 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     exit 1
   fi
 
-  echo "Replacing Go module: ${module} -> ${sha}"
-  if [[ "${DRY_RUN}" == "true" ]]; then
-    echo "[DRY RUN] go mod edit -replace ${module}=${sha}"
+  if [[ "$sha" == *"/"* ]]; then
+    replace_target="$sha"
   else
-    if [[ "$sha" == *"/"* ]]; then
-      go mod edit -replace "${module}=${sha}"
-    else
-      go mod edit -replace "${module}=${module}@${sha}"
-    fi
+    replace_target="${module}@${sha}"
+  fi
+
+  echo "Replacing Go module: ${module} -> ${replace_target}"
+  if [[ "${DRY_RUN}" == "true" ]]; then
+    echo "[DRY RUN] go mod edit -replace \"${module}=${replace_target}\""
+  else
+    go mod edit -replace "${module}=${replace_target}"
   fi
 done <<< "$GO_OVERRIDES"
 

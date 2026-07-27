@@ -3,4 +3,4 @@
 "ctf-build-image": minor
 ---
 
-Adds buildkit-cache-dance to properly, persistently cache docker build layers in CI
+Adds buildkit-cache-dance to properly and persistently cache Docker build layers in CI
