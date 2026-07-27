@@ -152,18 +152,6 @@ inputs:
       Deprecated explicit override for docker save cache ("true" or "false").
     default: ""
 
-  cache-dance:
-    required: false
-    description: |
-      Deprecated: Explicitly enable/disable buildkit-cache-dance.
-    default: ""
-
-  cache-dance-cache-map:
-    required: false
-    description: |
-      Deprecated alias for cache-map.
-    default: ""
-
 outputs:
   docker-image-sha-digest-amd64:
     description: "Docker image SHA digest for platform: amd64"

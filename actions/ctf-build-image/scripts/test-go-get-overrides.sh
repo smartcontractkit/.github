@@ -32,4 +32,15 @@ invalid-line"
 echo "Test 3 completed."
 echo
 
+# Test 4: Disallowed module override triggers failure
+echo "Test 4: Disallowed module override triggers failure"
+export GO_OVERRIDES="github.com/evil/pkg=abc123
+github.com/smartcontractkit/chainlink-solana=def456"
+if "$GO_SCRIPT"; then
+  echo "Test 4 failed: expected script to fail on unauthorized module"
+  exit 1
+fi
+echo "Test 4 completed."
+echo
+
 echo "All tests for go-get-overrides.sh completed."

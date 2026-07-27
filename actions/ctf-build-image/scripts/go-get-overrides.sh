@@ -28,6 +28,11 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     module="${dep}"
   fi
 
+  if [[ "$module" != github.com/smartcontractkit/* ]]; then
+    echo "::error::Unauthorized override (must target github.com/smartcontractkit/*): ${module}"
+    exit 1
+  fi
+
   echo "Replacing Go module: ${module} -> ${sha}"
   if [[ "${DRY_RUN}" == "true" ]]; then
     echo "[DRY RUN] go mod edit -replace ${module}=${sha}"
