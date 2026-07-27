@@ -19,12 +19,12 @@ DANCE=$(parse_val "$RES" "cache-dance")
 echo "Test 1 passed."
 
 echo "Test 2: Implicit enable - cache-map provided"
-VALID_MAP='{"go-mod-cache": "/go/pkg/mod"}'
+VALID_MAP='{"go-mod-cache":"/go/pkg/mod"}'
 RES=$("$VALIDATE_SCRIPT" "$VALID_MAP")
 DANCE=$(parse_val "$RES" "cache-dance")
 MAP=$(parse_val "$RES" "cache-map")
 [ "$DANCE" = "true" ] || (echo "FAIL: expected cache-dance=true, got $DANCE" && exit 1)
-[ "$MAP" = "$VALID_MAP" ] || (echo "FAIL: expected cache-map match" && exit 1)
+[ "$MAP" = "$VALID_MAP" ] || (echo "FAIL: expected cache-map match, got '$MAP' vs '$VALID_MAP'" && exit 1)
 echo "Test 2 passed."
 
 echo "Test 3: Invalid JSON in cache-map (should fail)"
@@ -41,15 +41,16 @@ DANCE=$(parse_val "$RES" "cache-dance")
 [ "$DANCE" = "true" ] || (echo "FAIL: expected cache-dance=true via env, got $DANCE" && exit 1)
 echo "Test 4 passed."
 
-echo "Test 5: Multiline JSON in cache-map (should fail)"
-MULTILINE_MAP='{"go-mod-cache":
-"/go/pkg/mod"}'
-if "$VALIDATE_SCRIPT" "$MULTILINE_MAP"; then
-  echo "FAIL: Expected failure when cache-map contains newlines"
-  exit 1
-else
-  echo "Test 5 passed (failed as expected)."
-fi
+echo "Test 5: Multiline JSON in cache-map (should compact to single-line JSON)"
+MULTILINE_MAP='{
+  "go-mod-cache": "/go/pkg/mod"
+}'
+RES=$("$VALIDATE_SCRIPT" "$MULTILINE_MAP")
+DANCE=$(parse_val "$RES" "cache-dance")
+MAP=$(parse_val "$RES" "cache-map")
+[ "$DANCE" = "true" ] || (echo "FAIL: expected cache-dance=true for multiline JSON, got $DANCE" && exit 1)
+[ "$MAP" = "$VALID_MAP" ] || (echo "FAIL: expected compact JSON match, got $MAP" && exit 1)
+echo "Test 5 passed."
 
 echo "Test 6: Fallback alias CACHE_DANCE_CACHE_MAP support"
 RES=$(CACHE_DANCE_CACHE_MAP="$VALID_MAP" "$VALIDATE_SCRIPT")

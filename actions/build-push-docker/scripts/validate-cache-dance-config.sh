@@ -11,18 +11,15 @@ fi
 
 if [ -n "$CACHE_MAP" ]; then
   CACHE_DANCE="true"
-  if [[ "$CACHE_MAP" == *$'\n'* ]]; then
-    echo "::error::cache-map must be a single-line JSON string (no newlines), because it is written to \$GITHUB_OUTPUT."
-    exit 1
-  fi
   if ! command -v jq >/dev/null 2>&1; then
     echo "::error::'jq' command not found; required to validate cache-map JSON."
     exit 1
   fi
-  if ! echo "$CACHE_MAP" | jq . >/dev/null 2>&1; then
+  if ! COMPACT_MAP=$(echo "$CACHE_MAP" | jq -c . 2>/dev/null); then
     echo "::error::cache-map must be valid JSON."
     exit 1
   fi
+  CACHE_MAP="$COMPACT_MAP"
 else
   CACHE_DANCE="false"
 fi
