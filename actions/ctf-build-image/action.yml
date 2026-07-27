@@ -123,6 +123,23 @@ inputs:
       on runners with sufficient disk (e.g. RunsOn with 100GB+) to save ~30-60s.
     default: "true"
 
+  cache-mode:
+    required: false
+    description: |
+      Caching mode preset: "auto" (default), "read-write" (or "true"), "read-only", "write-only", or "off" (or "false").
+      If unset, defaults to "auto" (restores cache for PRs, saves cache for default branch push/schedule events).
+      See: https://docs.docker.com/build/ci/github-actions/cache/
+    default: "auto"
+
+  cache-map:
+    required: false
+    description: |
+      JSON string mapping cache mount paths/names for buildkit-cache-dance (e.g. '{"go-mod-cache": "/go/pkg/mod"}').
+      Passing a non-empty cache-map automatically enables buildkit-cache-dance.
+      See: https://github.com/reproducible-containers/buildkit-cache-dance
+      See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
+    default: ""
+
 outputs:
   docker-image-sha-digest-amd64:
     description: "Docker image SHA digest for platform: amd64"
@@ -148,11 +165,12 @@ runs:
     - name: Process plugin manifest overrides (public)
       shell: bash
       env:
+        ACTION_PATH: ${{ github.action_path }}
         PLUGIN_OVERRIDES: ${{ inputs.plugin-manifest-overrides }}
         PLUGINS_MANIFEST_PATH:
           ${{ github.workspace }}/plugins/plugins.public.yaml
-        ACTIONS_PATH: ${{ github.action_path }}
-      run: ${ACTIONS_PATH}/scripts/plugin-overrides.sh
+      run: |
+        "${ACTION_PATH}/scripts/plugin-overrides.sh"
 
     - name: Setup Go for dependency overrides
       if: inputs.go-get-overrides != ''
@@ -161,22 +179,14 @@ runs:
         go-version-file: go.mod
         cache: false
 
-    - name: Apply go-get dependency overrides
+    - name: Process Go dependency overrides
       if: inputs.go-get-overrides != ''
       shell: bash
       env:
+        ACTION_PATH: ${{ github.action_path }}
         GO_OVERRIDES: ${{ inputs.go-get-overrides }}
       run: |
-        set -e
-        while IFS= read -r line; do
-          [ -z "$line" ] && continue
-          dep="${line%%=*}"
-          sha="${line#*=}"
-          [ -z "$dep" ] || [ -z "$sha" ] && continue
-          echo "Overriding: github.com/smartcontractkit/${dep}@${sha}"
-          go get "github.com/smartcontractkit/${dep}@${sha}"
-        done <<< "$GO_OVERRIDES"
-        go mod tidy
+        "${ACTION_PATH}/scripts/go-get-overrides.sh"
 
     - name: Free up disk space (to avoid 'no space left on device' errors)
       if: inputs.free-disk-space == 'true'
@@ -197,19 +207,14 @@ runs:
         docker-attestations: "false"
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
-        # only save on events which are expected to be from the default branch
-        docker-save-cache:
-          ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
-        # dont use cache on events which are expected to be from the default branch
-        # this is to create a fresh cache/snapshot unpolluted by previous cache entries
-        docker-restore-cache:
-          ${{ github.event_name != 'schedule' && github.event_name != 'push' }}
         docker-build-cache-to:
           "type=gha,timeout=10m,mode=max,ignore-error=true,compression=zstd,compression-level=3,scope=ctf-build-image-${{
           inputs.cache-scope || format('{0}-{1}', runner.os, runner.arch) }}"
         docker-build-cache-from:
           "type=gha,timeout=10m,scope=ctf-build-image-${{ inputs.cache-scope ||
           format('{0}-{1}', runner.os, runner.arch) }}"
+        cache-mode: ${{ inputs.cache-mode }}
+        cache-map: ${{ inputs.cache-map }}
 
         tags: type=raw,value=${{ inputs.image-tag }}
         aws-account-number: ${{ inputs.aws-account-number }}

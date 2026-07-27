@@ -12,21 +12,6 @@ inputs:
   docker-build-contexts:
     description: "List of additional build contexts (e.g., name=path)"
     required: false
-  docker-restore-cache:
-    description: |
-      Toggles the docker cache for builds. If set to `false`, the cache will not be used.
-      Configure source with `docker-build-cache-from` input parameter.
-      See `--no-cache` flag in:
-      https://docs.docker.com/engine/reference/commandline/buildx_build/#cache
-    required: false
-    default: "false"
-  docker-save-cache:
-    description: |
-      Whether to save the Docker build cache after the build. If set to `false`,
-      the cache will not be saved. Configure destination with `docker-build-cache-to`
-      input parameter.
-    required: false
-    default: "false"
   # See: https://github.com/moby/buildkit#github-actions-cache-experimental
   docker-build-cache-from:
     description: |
@@ -123,6 +108,29 @@ inputs:
       Defaults to `true` for backwards compatibility. Ignored when inputs.docker-push is false.
     required: false
     default: "true"
+  docker-restore-cache:
+    description: |
+      [Deprecated] Toggles docker cache restore for builds. Use `cache-mode` instead.
+    required: false
+    default: ""
+  docker-save-cache:
+    description: |
+      [Deprecated] Toggles docker cache save after builds. Use `cache-mode` instead.
+    required: false
+    default: ""
+  cache-mode:
+    description: |
+      Caching mode preset: "auto" (default), "read-write" (or "true"), "read-only", "write-only", or "off" (or "false").
+    required: false
+    default: "auto"
+  cache-map:
+    description: |
+      JSON string mapping cache mount paths/names for buildkit-cache-dance (e.g. '{"go-mod-cache": "/go/pkg/mod"}').
+      Passing a non-empty cache-map automatically enables buildkit-cache-dance.
+      See: https://github.com/reproducible-containers/buildkit-cache-dance
+      See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
+    required: false
+    default: ""
 
 outputs:
   docker-repository-name:
@@ -171,6 +179,17 @@ runs:
           echo "::error::docker-repository-name input is required when docker-push is true."
           exit 1
         fi
+
+    - name: Validate cache-dance configuration
+      id: validate-cache-dance
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        CACHE_MAP: ${{ inputs.cache-map }}
+        CACHE_DANCE_CACHE_MAP: ${{ inputs.cache-dance-cache-map }}
+      run: |
+
+        "${ACTION_PATH}/scripts/validate-cache-dance-config.sh" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Check runner arch and platform compatibility
       shell: bash
@@ -326,12 +345,24 @@ runs:
           echo "docker-provenance=false" | tee -a "${GITHUB_OUTPUT}"
         fi
 
+    - name: Resolve cache settings
+      id: resolve-cache
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        CACHE_MODE: ${{ inputs.cache-mode }}
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
+        DOCKER_RESTORE_CACHE: ${{ inputs.docker-restore-cache }}
+        DOCKER_SAVE_CACHE: ${{ inputs.docker-save-cache }}
+      run: |
+        "${ACTION_PATH}/scripts/resolve-cache-settings.sh" | tee -a "${GITHUB_OUTPUT}"
+
     - name: Docker cache configuration
       id: docker-cache
       shell: bash
       env:
-        DOCKER_RESTORE_CACHE: ${{ inputs.docker-restore-cache }}
-        DOCKER_SAVE_CACHE: ${{ inputs.docker-save-cache }}
+        DOCKER_RESTORE_CACHE: ${{ steps.resolve-cache.outputs.restore-cache }}
+        DOCKER_SAVE_CACHE: ${{ steps.resolve-cache.outputs.save-cache }}
         DOCKER_BUILD_CACHE_FROM: ${{ inputs.docker-build-cache-from }}
         DOCKER_BUILD_CACHE_TO: ${{ inputs.docker-build-cache-to }}
         DEFAULT_DOCKER_BUILD_CACHE_FROM:
@@ -360,6 +391,15 @@ runs:
 
         echo "no-cache=false" | tee -a "${GITHUB_OUTPUT}"
         echo "cache-from=${CACHE_FROM}" | tee -a "${GITHUB_OUTPUT}"
+
+    # Persist BuildKit RUN --mount=type=cache directories across GHA runs
+    # See: https://github.com/reproducible-containers/buildkit-cache-dance
+    # See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
+    - name: Cache Dance
+      if: ${{ steps.validate-cache-dance.outputs.cache-dance == 'true' }}
+      uses: reproducible-containers/buildkit-cache-dance@5422eac04292c961a382e0f584ea0f03ad9da723 # v3.4.0
+      with:
+        cache-map: ${{ steps.validate-cache-dance.outputs.cache-map }}
 
     - name: Build & push image
       id: build-image
