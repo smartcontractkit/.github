@@ -60,4 +60,20 @@ RES_RESTORE=$(parse_val "$RES" "restore-cache")
 [ "$RES_RESTORE" = "false" ] || (echo "FAIL: expected restore=false, got $RES_RESTORE" && exit 1)
 echo "Test 6 passed."
 
+echo "Test 7: Legacy docker-restore-cache=true and docker-save-cache=true override default auto mode"
+RES=$("$RESOLVE_SCRIPT" "auto" "pull_request" "true" "true")
+RES_SAVE=$(parse_val "$RES" "save-cache")
+RES_RESTORE=$(parse_val "$RES" "restore-cache")
+[ "$RES_SAVE" = "true" ] || (echo "FAIL: expected save=true, got $RES_SAVE" && exit 1)
+[ "$RES_RESTORE" = "true" ] || (echo "FAIL: expected restore=true, got $RES_RESTORE" && exit 1)
+echo "Test 7 passed."
+
+echo "Test 8: Legacy docker-restore-cache=false on pull_request overrides default auto mode"
+RES=$("$RESOLVE_SCRIPT" "auto" "pull_request" "false" "false")
+RES_SAVE=$(parse_val "$RES" "save-cache")
+RES_RESTORE=$(parse_val "$RES" "restore-cache")
+[ "$RES_SAVE" = "false" ] || (echo "FAIL: expected save=false, got $RES_SAVE" && exit 1)
+[ "$RES_RESTORE" = "false" ] || (echo "FAIL: expected restore=false, got $RES_RESTORE" && exit 1)
+echo "Test 8 passed."
+
 echo "All cache mode resolution tests completed successfully."

@@ -108,6 +108,16 @@ inputs:
       Defaults to `true` for backwards compatibility. Ignored when inputs.docker-push is false.
     required: false
     default: "true"
+  docker-restore-cache:
+    description: |
+      [Deprecated] Toggles docker cache restore for builds. Use `cache-mode` instead.
+    required: false
+    default: ""
+  docker-save-cache:
+    description: |
+      [Deprecated] Toggles docker cache save after builds. Use `cache-mode` instead.
+    required: false
+    default: ""
   cache-mode:
     description: |
       Caching mode preset: "auto" (default), "read-write" (or "true"), "read-only", "write-only", or "off" (or "false").
@@ -340,6 +350,8 @@ runs:
         ACTION_PATH: ${{ github.action_path }}
         CACHE_MODE: ${{ inputs.cache-mode }}
         GITHUB_EVENT_NAME: ${{ github.event_name }}
+        DOCKER_RESTORE_CACHE: ${{ inputs.docker-restore-cache }}
+        DOCKER_SAVE_CACHE: ${{ inputs.docker-save-cache }}
       run: |
         "${ACTION_PATH}/scripts/resolve-cache-settings.sh" >> "$GITHUB_OUTPUT"
 

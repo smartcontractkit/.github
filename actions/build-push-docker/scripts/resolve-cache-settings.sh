@@ -6,6 +6,8 @@ set -e
 
 CACHE_MODE="${1:-${CACHE_MODE}}"
 EVENT_NAME="${2:-${GITHUB_EVENT_NAME}}"
+LEGACY_RESTORE="${3:-${DOCKER_RESTORE_CACHE}}"
+LEGACY_SAVE="${4:-${DOCKER_SAVE_CACHE}}"
 
 if [ -z "$CACHE_MODE" ]; then
   CACHE_MODE="auto"
@@ -38,6 +40,13 @@ case "$CACHE_MODE" in
     fi
     ;;
 esac
+
+if [ -n "$LEGACY_RESTORE" ]; then
+  RESTORE_CACHE="$LEGACY_RESTORE"
+fi
+if [ -n "$LEGACY_SAVE" ]; then
+  SAVE_CACHE="$LEGACY_SAVE"
+fi
 
 echo "save-cache=${SAVE_CACHE}"
 echo "restore-cache=${RESTORE_CACHE}"

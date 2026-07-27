@@ -123,6 +123,16 @@ inputs:
       on runners with sufficient disk (e.g. RunsOn with 100GB+) to save ~30-60s.
     default: "true"
 
+  docker-restore-cache:
+    required: false
+    description: |
+      [Deprecated] Toggles docker cache restore for builds. Use `cache-mode` instead.
+    default: ""
+  docker-save-cache:
+    required: false
+    description: |
+      [Deprecated] Toggles docker cache save after builds. Use `cache-mode` instead.
+    default: ""
   cache-mode:
     required: false
     description: |
@@ -207,6 +217,8 @@ runs:
           format('{0}-{1}', runner.os, runner.arch) }}"
         cache-mode: ${{ inputs.cache-mode }}
         cache-map: ${{ inputs.cache-map }}
+        docker-restore-cache: ${{ inputs.docker-restore-cache }}
+        docker-save-cache: ${{ inputs.docker-save-cache }}
 
         tags: type=raw,value=${{ inputs.image-tag }}
         aws-account-number: ${{ inputs.aws-account-number }}
