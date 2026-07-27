@@ -189,7 +189,7 @@ runs:
         CACHE_DANCE_CACHE_MAP: ${{ inputs.cache-dance-cache-map }}
       run: |
 
-        "${ACTION_PATH}/scripts/validate-cache-dance-config.sh" >> "$GITHUB_OUTPUT"
+        "${ACTION_PATH}/scripts/validate-cache-dance-config.sh" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Check runner arch and platform compatibility
       shell: bash
@@ -355,7 +355,7 @@ runs:
         DOCKER_RESTORE_CACHE: ${{ inputs.docker-restore-cache }}
         DOCKER_SAVE_CACHE: ${{ inputs.docker-save-cache }}
       run: |
-        "${ACTION_PATH}/scripts/resolve-cache-settings.sh" >> "$GITHUB_OUTPUT"
+        "${ACTION_PATH}/scripts/resolve-cache-settings.sh" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Docker cache configuration
       id: docker-cache

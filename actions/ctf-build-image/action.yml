@@ -215,8 +215,6 @@ runs:
           format('{0}-{1}', runner.os, runner.arch) }}"
         cache-mode: ${{ inputs.cache-mode }}
         cache-map: ${{ inputs.cache-map }}
-        docker-restore-cache: ${{ inputs.docker-restore-cache }}
-        docker-save-cache: ${{ inputs.docker-save-cache }}
 
         tags: type=raw,value=${{ inputs.image-tag }}
         aws-account-number: ${{ inputs.aws-account-number }}
