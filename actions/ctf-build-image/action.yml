@@ -123,16 +123,6 @@ inputs:
       on runners with sufficient disk (e.g. RunsOn with 100GB+) to save ~30-60s.
     default: "true"
 
-  docker-restore-cache:
-    required: false
-    description: |
-      [Deprecated] Toggles docker cache restore for builds. Use `cache-mode` instead.
-    default: ""
-  docker-save-cache:
-    required: false
-    description: |
-      [Deprecated] Toggles docker cache save after builds. Use `cache-mode` instead.
-    default: ""
   cache-mode:
     required: false
     description: |

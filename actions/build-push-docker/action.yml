@@ -131,11 +131,6 @@ inputs:
       See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
     required: false
     default: ""
-  cache-dance-cache-map:
-    description: |
-      [Deprecated] Alias for `cache-map`. JSON string mapping cache mount paths/names for buildkit-cache-dance.
-    required: false
-    default: ""
 
 outputs:
   docker-repository-name:
