@@ -33,23 +33,20 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     exit 1
   fi
 
-  if [[ "$sha" == *"/"* ]]; then
-    if [[ "$sha" != github.com/smartcontractkit/*@* ]]; then
-      echo "::error::Invalid replace target (expected github.com/smartcontractkit/*@<ref>): ${sha}"
-      exit 1
-    fi
-    replace_target="$sha"
-  else
-    replace_target="${module}@${sha}"
+  # Reject local filesystem targets (not safe in CI)
+  if [[ "$sha" == /* || "$sha" == ./* || "$sha" == ../* ]]; then
+    echo "::error::Invalid override ref (local filesystem paths are not allowed): ${sha}"
+    exit 1
   fi
 
-  echo "Replacing Go module: ${module} -> ${replace_target}"
+  echo "Overriding Go module version: ${module}@${sha}"
   if [[ "${DRY_RUN}" == "true" ]]; then
-    echo "[DRY RUN] go mod edit -replace \"${module}=${replace_target}\""
+    echo "[DRY RUN] go get \"${module}@${sha}\""
   else
-    go mod edit -replace "${module}=${replace_target}"
+    go get "${module}@${sha}"
   fi
 done <<< "$GO_OVERRIDES"
+
 
 if [[ "${DRY_RUN}" != "true" ]]; then
   go mod tidy

@@ -9,7 +9,9 @@ export DRY_RUN=true
 
 # Create a temporary manifest file matching chainlink plugins.public.yaml schema
 TEMP_MANIFEST=$(mktemp)
+trap 'rm -f "$TEMP_MANIFEST"' EXIT
 cat > "$TEMP_MANIFEST" << EOF
+
 plugins:
   cosmos:
     - gitRef: "old-cosmos-ref"

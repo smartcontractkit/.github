@@ -30,7 +30,7 @@ case "$CACHE_MODE" in
     SAVE_CACHE="false"
     RESTORE_CACHE="false"
     ;;
-  auto|*)
+  auto)
     if [ "$EVENT_NAME" = "schedule" ] || [ "$EVENT_NAME" = "push" ]; then
       SAVE_CACHE="true"
       RESTORE_CACHE="false"
@@ -39,7 +39,12 @@ case "$CACHE_MODE" in
       RESTORE_CACHE="true"
     fi
     ;;
+  *)
+    echo "::error::Invalid cache-mode '${CACHE_MODE}'. Expected auto, read-write, read-only, write-only, off (or true/false)."
+    exit 1
+    ;;
 esac
+
 
 if [ -n "$LEGACY_RESTORE" ]; then
   RESTORE_CACHE="$LEGACY_RESTORE"

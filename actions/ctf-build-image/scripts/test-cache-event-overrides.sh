@@ -76,4 +76,13 @@ RES_RESTORE=$(parse_val "$RES" "restore-cache")
 [ "$RES_RESTORE" = "false" ] || (echo "FAIL: expected restore=false, got $RES_RESTORE" && exit 1)
 echo "Test 8 passed."
 
+echo "Test 9: Invalid cache-mode preset should fail"
+if "$RESOLVE_SCRIPT" "invalid-mode" "push"; then
+  echo "FAIL: Expected failure when cache-mode is invalid"
+  exit 1
+else
+  echo "Test 9 passed (failed as expected)."
+fi
+
 echo "All cache mode resolution tests completed successfully."
+

@@ -50,10 +50,12 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     fi
 
     # Verify plugin exists in manifest
-    if ! yq e ".plugins[\"${plugin}\"]" "$PLUGINS_MANIFEST_PATH" &> /dev/null; then
+    plugin_val=$(yq e ".plugins[\"${plugin}\"]" "$PLUGINS_MANIFEST_PATH" 2>/dev/null)
+    if [[ "$plugin_val" == "null" || -z "$plugin_val" ]]; then
         echo "::warning::Plugin '$plugin' not found in manifest, skipping."
         continue
     fi
+
 
     echo "::info::Updating plugins manifest with $plugin@${sha}"
 

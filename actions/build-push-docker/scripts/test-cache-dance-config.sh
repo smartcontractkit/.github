@@ -41,4 +41,21 @@ DANCE=$(parse_val "$RES" "cache-dance")
 [ "$DANCE" = "true" ] || (echo "FAIL: expected cache-dance=true via env, got $DANCE" && exit 1)
 echo "Test 4 passed."
 
+echo "Test 5: Multiline JSON in cache-map (should fail)"
+MULTILINE_MAP='{"go-mod-cache":
+"/go/pkg/mod"}'
+if "$VALIDATE_SCRIPT" "$MULTILINE_MAP"; then
+  echo "FAIL: Expected failure when cache-map contains newlines"
+  exit 1
+else
+  echo "Test 5 passed (failed as expected)."
+fi
+
+echo "Test 6: Fallback alias CACHE_DANCE_CACHE_MAP support"
+RES=$(CACHE_DANCE_CACHE_MAP="$VALID_MAP" "$VALIDATE_SCRIPT")
+DANCE=$(parse_val "$RES" "cache-dance")
+[ "$DANCE" = "true" ] || (echo "FAIL: expected cache-dance=true via alias env, got $DANCE" && exit 1)
+echo "Test 6 passed."
+
 echo "All cache dance configuration tests completed successfully."
+

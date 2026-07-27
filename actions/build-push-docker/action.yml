@@ -131,6 +131,11 @@ inputs:
       See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
     required: false
     default: ""
+  cache-dance-cache-map:
+    description: |
+      [Deprecated] Alias for `cache-map`. JSON string mapping cache mount paths/names for buildkit-cache-dance.
+    required: false
+    default: ""
 
 outputs:
   docker-repository-name:
@@ -186,7 +191,9 @@ runs:
       env:
         ACTION_PATH: ${{ github.action_path }}
         CACHE_MAP: ${{ inputs.cache-map }}
+        CACHE_DANCE_CACHE_MAP: ${{ inputs.cache-dance-cache-map }}
       run: |
+
         "${ACTION_PATH}/scripts/validate-cache-dance-config.sh" >> "$GITHUB_OUTPUT"
 
     - name: Check runner arch and platform compatibility
