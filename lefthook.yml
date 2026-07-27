@@ -18,3 +18,7 @@ pre-commit:
       glob: "{workflows/*/*,.github/workflows/*}.{yml,yaml}"
       run: pnpm workflows:fix {staged_files}
       stage_fixed: true
+    actionlint:
+      description: "Run actionlint"
+      glob: "{workflows/*,actions/*,.github/workflows/*}.{yml,yaml}"
+      run: actionlint workflows/**/*.{yaml,yml} .github/workflows/*.{yaml,yml}
