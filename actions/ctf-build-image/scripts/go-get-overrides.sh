@@ -34,6 +34,10 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   fi
 
   if [[ "$sha" == *"/"* ]]; then
+    if [[ "$sha" != github.com/smartcontractkit/*@* ]]; then
+      echo "::error::Invalid replace target (expected github.com/smartcontractkit/*@<ref>): ${sha}"
+      exit 1
+    fi
     replace_target="$sha"
   else
     replace_target="${module}@${sha}"

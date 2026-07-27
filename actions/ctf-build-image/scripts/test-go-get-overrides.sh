@@ -40,7 +40,14 @@ if "$GO_SCRIPT"; then
   echo "Test 4 failed: expected script to fail on unauthorized module"
   exit 1
 fi
-echo "Test 4 completed."
+# Test 5: Slash-containing replace target not targeting SCK triggers failure
+echo "Test 5: Slash-containing replace target not targeting SCK triggers failure"
+export GO_OVERRIDES="github.com/smartcontractkit/chainlink-solana=/tmp/evil"
+if "$GO_SCRIPT"; then
+  echo "Test 5 failed: expected script to fail on local filesystem target"
+  exit 1
+fi
+echo "Test 5 completed."
 echo
 
 echo "All tests for go-get-overrides.sh completed."

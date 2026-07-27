@@ -44,27 +44,27 @@ while IFS= read -r line || [[ -n "$line" ]]; do
 
     if [[ "${DRY_RUN}" == "true" ]]; then
         echo "[DRY RUN] Updating plugins manifest with $plugin@${sha}"
-        echo "[DRY RUN] yq eval -i '.plugins.${plugin}[0].gitRef = \"${sha}\"' \"${PLUGINS_MANIFEST_PATH}\""
+        echo "[DRY RUN] yq eval -i '.plugins[\"${plugin}\"][0].gitRef = \"${sha}\"' \"${PLUGINS_MANIFEST_PATH}\""
         updated_plugins_manifest=true
         continue
     fi
 
     # Verify plugin exists in manifest
-    if ! yq e ".plugins.$plugin" "$PLUGINS_MANIFEST_PATH" &> /dev/null; then
+    if ! yq e ".plugins[\"${plugin}\"]" "$PLUGINS_MANIFEST_PATH" &> /dev/null; then
         echo "::warning::Plugin '$plugin' not found in manifest, skipping."
         continue
     fi
 
     echo "::info::Updating plugins manifest with $plugin@${sha}"
 
-    old_ref=$(yq e ".plugins.${plugin}[0].gitRef" "$PLUGINS_MANIFEST_PATH")
+    old_ref=$(yq e ".plugins[\"${plugin}\"][0].gitRef" "$PLUGINS_MANIFEST_PATH")
     echo "::info::Current gitRef for plugin $plugin is $old_ref"
     if [[ "${old_ref}" == "null" ]]; then
         echo "::warning::No gitRef found for plugin $plugin, skipping update."
         continue
     fi
 
-    yq e ".plugins.${plugin}[0].gitRef = \"$sha\"" -i "$PLUGINS_MANIFEST_PATH" || {
+    yq e ".plugins[\"${plugin}\"][0].gitRef = \"$sha\"" -i "$PLUGINS_MANIFEST_PATH" || {
         echo "::error::Failed to update plugin $plugin in manifest."
         exit 1
     }

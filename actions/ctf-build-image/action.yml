@@ -182,7 +182,15 @@ runs:
       run: |
         "${ACTION_PATH}/scripts/plugin-overrides.sh"
 
+    - name: Setup Go for dependency overrides
+      if: inputs.go-get-overrides != ''
+      uses: actions/setup-go@v7
+      with:
+        go-version-file: go.mod
+        cache: false
+
     - name: Process Go dependency overrides
+      if: inputs.go-get-overrides != ''
       shell: bash
       env:
         ACTION_PATH: ${{ github.action_path }}

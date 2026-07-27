@@ -2,7 +2,7 @@
 set -e
 
 # Validates cache-dance configuration inputs.
-# Positional argument $1: CACHE_MAP (JSON string or path map)
+# Positional argument $1: CACHE_MAP (JSON string)
 # Or environment variable: CACHE_MAP
 CACHE_MAP="${1:-${CACHE_MAP}}"
 
