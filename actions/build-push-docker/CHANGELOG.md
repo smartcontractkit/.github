@@ -1,5 +1,14 @@
 # build-push-docker
 
+## 1.6.0
+
+### Minor Changes
+
+- [#1608](https://github.com/smartcontractkit/.github/pull/1608)
+  [`90a98cc`](https://github.com/smartcontractkit/.github/commit/90a98cc61569e7178adf8dfae1a894c67d97cc04)
+  Thanks [@kalverra](https://github.com/kalverra)! - Adds buildkit-cache-dance
+  to properly and persistently cache Docker build layers in CI
+
 ## 1.5.1
 
 ### Patch Changes
