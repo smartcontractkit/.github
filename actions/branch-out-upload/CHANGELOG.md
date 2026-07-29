@@ -1,5 +1,13 @@
 # branch-out-upload
 
+## 1.9.3
+
+### Patch Changes
+
+- [#1618](https://github.com/smartcontractkit/.github/pull/1618)
+  [`13cd90a`](https://github.com/smartcontractkit/.github/commit/13cd90a6681996c48c4f7a6a6195c5de9b687253)
+  Thanks [@kalverra](https://github.com/kalverra)! - Update trunk action version
+
 ## 1.9.2
 
 ### Patch Changes
