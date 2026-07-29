@@ -2,15 +2,15 @@
 set -e
 
 # Validates cache-dance configuration inputs.
-# Positional argument $1: CACHE_MAP (JSON string)
-# Or environment variable: CACHE_MAP
+# Emits: cache-dance=true, cache-map=<compact JSON or empty>
+# An empty cache-map tells buildkit-cache-dance to auto-discover mounts from the Dockerfile.
 CACHE_MAP="${1:-${CACHE_MAP}}"
 if [ -z "$CACHE_MAP" ]; then
   CACHE_MAP="${CACHE_DANCE_CACHE_MAP}"
 fi
 
+# Explicit cache-map: validates JSON and passes it to buildkit-cache-dance.
 if [ -n "$CACHE_MAP" ]; then
-  CACHE_DANCE="true"
   if ! command -v jq >/dev/null 2>&1; then
     echo "::error::'jq' command not found; required to validate cache-map JSON."
     exit 1
@@ -19,11 +19,11 @@ if [ -n "$CACHE_MAP" ]; then
     echo "::error::cache-map must be valid JSON."
     exit 1
   fi
-  CACHE_MAP="$COMPACT_MAP"
-else
-  CACHE_DANCE="false"
+  echo "cache-dance=true"
+  echo "cache-map=${COMPACT_MAP}"
+  exit 0
 fi
 
-echo "cache-dance=${CACHE_DANCE}"
-echo "cache-map=${CACHE_MAP}"
-
+# Default: auto-discover mounts from Dockerfile.
+echo "cache-dance=true"
+echo "cache-map="

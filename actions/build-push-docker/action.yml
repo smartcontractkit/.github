@@ -126,7 +126,7 @@ inputs:
   cache-map:
     description: |
       JSON string mapping cache mount paths/names for buildkit-cache-dance (e.g. '{"go-mod-cache": "/go/pkg/mod"}').
-      Passing a non-empty cache-map automatically enables buildkit-cache-dance.
+      If omitted, buildkit-cache-dance automatically discovers mounts from the Dockerfile.
       See: https://github.com/reproducible-containers/buildkit-cache-dance
       See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
     required: false
@@ -223,7 +223,7 @@ runs:
       if:
         ${{ steps.dockerfile-ecr-parse.outputs.needs-ecr-login == 'true' ||
         inputs.docker-push == 'true' }}
-      uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+      uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
         role-duration-seconds: 900
@@ -232,14 +232,14 @@ runs:
 
     - name: Login to private ECR registries for base images
       if: ${{ steps.dockerfile-ecr-parse.outputs.needs-ecr-login == 'true' }}
-      uses: aws-actions/amazon-ecr-login@f2e9fc6c2b355c1890b65e6f6f0e2ac3e6e22f78 # v2.1.2
+      uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # v2.1.6
       with:
         registries: ${{ steps.dockerfile-ecr-parse.outputs.ecr-registries }}
 
     - name: Login to ECR for publishing
       if: ${{ inputs.docker-push == 'true' }}
       id: login-ecr
-      uses: aws-actions/amazon-ecr-login@f2e9fc6c2b355c1890b65e6f6f0e2ac3e6e22f78 # v2.1.2
+      uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # v2.1.6
       with:
         registry-type: >-
           ${{
@@ -250,14 +250,15 @@ runs:
         registries: ${{ inputs.aws-account-number }}
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+      id: setup-buildx
+      uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
       with:
         # https://github.com/docker/buildx/tags
-        version: v0.33.0
+        version: v0.36.0
 
     - name: Docker meta
       id: docker-meta
-      uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
+      uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
       with:
         images:
           ${{ format('{0}/{1}', inputs.docker-registry-url,
@@ -392,18 +393,51 @@ runs:
         echo "no-cache=false" | tee -a "${GITHUB_OUTPUT}"
         echo "cache-from=${CACHE_FROM}" | tee -a "${GITHUB_OUTPUT}"
 
-    # Persist BuildKit RUN --mount=type=cache directories across GHA runs
-    # See: https://github.com/reproducible-containers/buildkit-cache-dance
-    # See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
+    # Read-only path (PRs): restore mounts, never write them back.
+    - name: Restore BuildKit cache mounts (read-only)
+      if:
+        ${{ steps.validate-cache-dance.outputs.cache-dance == 'true' &&
+        steps.resolve-cache.outputs.save-cache != 'true' }}
+      uses: actions/cache/restore@v6
+      with:
+        path: cache-mount
+        key:
+          bk-mounts-${{ runner.os }}-${{ runner.arch }}-${{ inputs.dockerfile
+          }}-${{ github.run_id }}
+        restore-keys: |
+          bk-mounts-${{ runner.os }}-${{ runner.arch }}-${{ inputs.dockerfile }}-
+
+    # Read-write path (default-branch push / schedule): restore now, save in this step's
+    # post phase. Post steps run in REVERSE registration order, so this action's save runs
+    # AFTER the dance's extract. That ordering is why actions/cache must be registered
+    # BEFORE the Cache Dance step. Do not reorder these steps.
+    - name: Cache BuildKit cache mounts (read-write)
+      if:
+        ${{ steps.validate-cache-dance.outputs.cache-dance == 'true' &&
+        steps.resolve-cache.outputs.save-cache == 'true' }}
+      uses: actions/cache@v6
+      with:
+        path: cache-mount
+        key:
+          bk-mounts-${{ runner.os }}-${{ runner.arch }}-${{ inputs.dockerfile
+          }}-${{ github.run_id }}
+        restore-keys: |
+          bk-mounts-${{ runner.os }}-${{ runner.arch }}-${{ inputs.dockerfile }}-
+
     - name: Cache Dance
       if: ${{ steps.validate-cache-dance.outputs.cache-dance == 'true' }}
       uses: reproducible-containers/buildkit-cache-dance@5422eac04292c961a382e0f584ea0f03ad9da723 # v3.4.0
       with:
+        builder: ${{ steps.setup-buildx.outputs.name }}
+        dockerfile: ${{ inputs.dockerfile }}
+        cache-dir: cache-mount
         cache-map: ${{ steps.validate-cache-dance.outputs.cache-map }}
+        # Extraction is only useful when we are going to save the result.
+        skip-extraction: ${{ steps.resolve-cache.outputs.save-cache != 'true' }}
 
     - name: Build & push image
       id: build-image
-      uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+      uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
       env:
         DOCKER_BUILD_CHECKS_ANNOTATIONS: true
         DOCKER_BUILD_SUMMARY: true

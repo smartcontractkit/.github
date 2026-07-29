@@ -135,7 +135,7 @@ inputs:
     required: false
     description: |
       JSON string mapping cache mount paths/names for buildkit-cache-dance (e.g. '{"go-mod-cache": "/go/pkg/mod"}').
-      Passing a non-empty cache-map automatically enables buildkit-cache-dance.
+      If omitted, buildkit-cache-dance automatically discovers mounts from the Dockerfile.
       See: https://github.com/reproducible-containers/buildkit-cache-dance
       See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
     default: ""
@@ -201,14 +201,16 @@ runs:
 
         dockerfile: ${{ inputs.dockerfile }}
         docker-build-args: |
-          COMMIT_SHA=${{ github.sha }}
+          CL_IS_PROD_BUILD=false
+          COMMIT_SHA=e2e0000000000000000000000000000000000000
+          VERSION_TAG=e2e-test-build
           CHAINLINK_USER=chainlink
           ${{ inputs.docker-additional-build-args }}
         docker-attestations: "false"
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
         docker-build-cache-to:
-          "type=gha,timeout=10m,mode=max,ignore-error=true,compression=zstd,compression-level=3,scope=ctf-build-image-${{
+          "type=gha,timeout=10m,mode=max,compression=zstd,compression-level=3,scope=ctf-build-image-${{
           inputs.cache-scope || format('{0}-{1}', runner.os, runner.arch) }}"
         docker-build-cache-from:
           "type=gha,timeout=10m,scope=ctf-build-image-${{ inputs.cache-scope ||
