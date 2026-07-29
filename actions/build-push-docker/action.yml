@@ -223,7 +223,7 @@ runs:
       if:
         ${{ steps.dockerfile-ecr-parse.outputs.needs-ecr-login == 'true' ||
         inputs.docker-push == 'true' }}
-      uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+      uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
         role-duration-seconds: 900
@@ -232,14 +232,14 @@ runs:
 
     - name: Login to private ECR registries for base images
       if: ${{ steps.dockerfile-ecr-parse.outputs.needs-ecr-login == 'true' }}
-      uses: aws-actions/amazon-ecr-login@f2e9fc6c2b355c1890b65e6f6f0e2ac3e6e22f78 # v2.1.2
+      uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # v2.1.6
       with:
         registries: ${{ steps.dockerfile-ecr-parse.outputs.ecr-registries }}
 
     - name: Login to ECR for publishing
       if: ${{ inputs.docker-push == 'true' }}
       id: login-ecr
-      uses: aws-actions/amazon-ecr-login@f2e9fc6c2b355c1890b65e6f6f0e2ac3e6e22f78 # v2.1.2
+      uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # v2.1.6
       with:
         registry-type: >-
           ${{
@@ -251,14 +251,14 @@ runs:
 
     - name: Set up Docker Buildx
       id: setup-buildx
-      uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+      uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
       with:
         # https://github.com/docker/buildx/tags
-        version: v0.33.0
+        version: v0.36.0
 
     - name: Docker meta
       id: docker-meta
-      uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
+      uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
       with:
         images:
           ${{ format('{0}/{1}', inputs.docker-registry-url,
