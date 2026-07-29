@@ -398,7 +398,7 @@ runs:
       if:
         ${{ steps.validate-cache-dance.outputs.cache-dance == 'true' &&
         steps.resolve-cache.outputs.save-cache != 'true' }}
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v6
       with:
         path: cache-mount
         key:
@@ -415,7 +415,7 @@ runs:
       if:
         ${{ steps.validate-cache-dance.outputs.cache-dance == 'true' &&
         steps.resolve-cache.outputs.save-cache == 'true' }}
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: cache-mount
         key:
