@@ -114,20 +114,6 @@ runs:
           echo "junit-path-to-upload=$JUNIT_FILE_PATH" | tee -a "$GITHUB_OUTPUT"
         fi
 
-    - name: Get Go environment
-      id: go-env
-      shell: bash
-      run: |
-        echo "gomodcache=$(go env GOMODCACHE)" | tee -a "$GITHUB_OUTPUT"
-
-    - uses: actions/cache@v5
-      if: ${{ steps.inputs-ext.outputs.run-tests == 'true' }}
-      with:
-        path: ${{ steps.go-env.outputs.gomodcache }}
-        key: ${{ runner.os }}-gotestsum-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-gotestsum-
-
     - name: Install gotestsum
       if: ${{ steps.inputs-ext.outputs.run-tests == 'true' }}
       shell: bash
@@ -157,15 +143,6 @@ runs:
         )
         echo "Running command: ${COMMAND[*]}"
         "${COMMAND[@]}"
-
-    - uses: actions/cache@v5
-      if: ${{ steps.inputs-ext.outputs.run-enhancer == 'true' }}
-      with:
-        path: ${{ steps.go-env.outputs.gomodcache }}
-        key:
-          ${{ runner.os }}-junit-enhancer-${{ inputs.junit-enhancer-version }}
-        restore-keys: |
-          ${{ runner.os }}-junit-enhancer-
 
     - name: Install JUnit Enhancer (go)
       if: ${{ steps.inputs-ext.outputs.run-enhancer == 'true' }}
