@@ -1,5 +1,13 @@
 # build-push-docker
 
+## 1.7.1
+
+### Patch Changes
+
+- [#1616](https://github.com/smartcontractkit/.github/pull/1616)
+  [`9c2d82d`](https://github.com/smartcontractkit/.github/commit/9c2d82d09b8f4d0121129caffb105afd69ff3cb6)
+  Thanks [@kalverra](https://github.com/kalverra)! - Fix buildx version
+
 ## 1.7.0
 
 ### Minor Changes
