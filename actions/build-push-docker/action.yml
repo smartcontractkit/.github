@@ -126,7 +126,7 @@ inputs:
   cache-map:
     description: |
       JSON string mapping cache mount paths/names for buildkit-cache-dance (e.g. '{"go-mod-cache": "/go/pkg/mod"}').
-      Passing a non-empty cache-map automatically enables buildkit-cache-dance.
+      If omitted, buildkit-cache-dance automatically discovers mounts from the Dockerfile.
       See: https://github.com/reproducible-containers/buildkit-cache-dance
       See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
     required: false
@@ -250,6 +250,7 @@ runs:
         registries: ${{ inputs.aws-account-number }}
 
     - name: Set up Docker Buildx
+      id: setup-buildx
       uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
       with:
         # https://github.com/docker/buildx/tags
@@ -392,18 +393,51 @@ runs:
         echo "no-cache=false" | tee -a "${GITHUB_OUTPUT}"
         echo "cache-from=${CACHE_FROM}" | tee -a "${GITHUB_OUTPUT}"
 
-    # Persist BuildKit RUN --mount=type=cache directories across GHA runs
-    # See: https://github.com/reproducible-containers/buildkit-cache-dance
-    # See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
+    # Read-only path (PRs): restore mounts, never write them back.
+    - name: Restore BuildKit cache mounts (read-only)
+      if:
+        ${{ steps.validate-cache-dance.outputs.cache-dance == 'true' &&
+        steps.resolve-cache.outputs.save-cache != 'true' }}
+      uses: actions/cache/restore@v4
+      with:
+        path: cache-mount
+        key:
+          bk-mounts-${{ runner.os }}-${{ runner.arch }}-${{ inputs.dockerfile
+          }}-${{ github.run_id }}
+        restore-keys: |
+          bk-mounts-${{ runner.os }}-${{ runner.arch }}-${{ inputs.dockerfile }}-
+
+    # Read-write path (default-branch push / schedule): restore now, save in this step's
+    # post phase. Post steps run in REVERSE registration order, so this action's save runs
+    # AFTER the dance's extract. That ordering is why actions/cache must be registered
+    # BEFORE the Cache Dance step. Do not reorder these steps.
+    - name: Cache BuildKit cache mounts (read-write)
+      if:
+        ${{ steps.validate-cache-dance.outputs.cache-dance == 'true' &&
+        steps.resolve-cache.outputs.save-cache == 'true' }}
+      uses: actions/cache@v4
+      with:
+        path: cache-mount
+        key:
+          bk-mounts-${{ runner.os }}-${{ runner.arch }}-${{ inputs.dockerfile
+          }}-${{ github.run_id }}
+        restore-keys: |
+          bk-mounts-${{ runner.os }}-${{ runner.arch }}-${{ inputs.dockerfile }}-
+
     - name: Cache Dance
       if: ${{ steps.validate-cache-dance.outputs.cache-dance == 'true' }}
       uses: reproducible-containers/buildkit-cache-dance@5422eac04292c961a382e0f584ea0f03ad9da723 # v3.4.0
       with:
+        builder: ${{ steps.setup-buildx.outputs.name }}
+        dockerfile: ${{ inputs.dockerfile }}
+        cache-dir: cache-mount
         cache-map: ${{ steps.validate-cache-dance.outputs.cache-map }}
+        # Extraction is only useful when we are going to save the result.
+        skip-extraction: ${{ steps.resolve-cache.outputs.save-cache != 'true' }}
 
     - name: Build & push image
       id: build-image
-      uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+      uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
       env:
         DOCKER_BUILD_CHECKS_ANNOTATIONS: true
         DOCKER_BUILD_SUMMARY: true
