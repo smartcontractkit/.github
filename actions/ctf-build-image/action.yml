@@ -201,7 +201,9 @@ runs:
 
         dockerfile: ${{ inputs.dockerfile }}
         docker-build-args: |
-          COMMIT_SHA=${{ github.sha }}
+          CL_IS_PROD_BUILD=false
+          COMMIT_SHA=e2e0000000000000000000000000000000000000
+          VERSION_TAG=e2e-test-build
           CHAINLINK_USER=chainlink
           ${{ inputs.docker-additional-build-args }}
         docker-attestations: "false"
