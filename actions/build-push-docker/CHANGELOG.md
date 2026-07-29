@@ -1,5 +1,17 @@
 # build-push-docker
 
+## 1.7.0
+
+### Minor Changes
+
+- [#1614](https://github.com/smartcontractkit/.github/pull/1614)
+  [`e2e578e`](https://github.com/smartcontractkit/.github/commit/e2e578ea0e500f70bb3511671c656564315bf015)
+  Thanks [@kalverra](https://github.com/kalverra)! - Persist BuildKit
+  `RUN --mount=type=cache` dirs across runs by default. Automatically discovers
+  cache mounts from the Dockerfile (matching on mount `id`) unless custom
+  `cache-map` JSON is provided, and wraps buildkit-cache-dance in
+  `actions/cache`.
+
 ## 1.6.0
 
 ### Minor Changes
