@@ -24,7 +24,6 @@ jobs:
       pull-requests: write
       actions: read
       security-events: read
-      vulnerability-alerts: read
     uses: smartcontractkit/.github/workflows/reusable-dependabump.yml@main
     secrets:
       SLACK_TOKEN: ${{ secrets.DEPENDABUMP_SLACK_API_KEY }}
