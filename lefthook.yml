@@ -1,10 +1,8 @@
-fix:
-  parallel: true
-  commands:
-    prettier:
-      description: "Fix prettier formatting"
-      glob: "*.{json,md,scss,yaml,yml}"
-      run: pnpm hook:fix {staged_files}
+output:
+  - summary
+  - success
+  - failure
+
 pre-commit:
   parallel: true
   commands:
