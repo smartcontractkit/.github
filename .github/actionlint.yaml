@@ -1,0 +1,4 @@
+paths:
+  "**":
+    ignore:
+      - 'unknown permission scope "vulnerability-alerts"'
