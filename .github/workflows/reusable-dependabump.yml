@@ -33,13 +33,15 @@ jobs:
       vulnerability-alerts: read
     env:
       GH_TOKEN: ${{ github.token }}
-      GOTOOLCHAIN: auto
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
       - name: Set up Go
         uses: actions/setup-go@v7
+
+      - name: Enforce Auto Toolchain
+        run: echo "GOTOOLCHAIN=auto" >> "$GITHUB_ENV"
 
       - name: Install tools
         id: install
