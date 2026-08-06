@@ -1,5 +1,22 @@
 # reusable-dependabump
 
+## 0.1.2
+
+### Patch Changes
+
+- [#1626](https://github.com/smartcontractkit/.github/pull/1626)
+  [`9e6e611`](https://github.com/smartcontractkit/.github/commit/9e6e611568158bb8ae6817668fe16e8dd2a4f445)
+  Thanks [@jmank88](https://github.com/jmank88)! - fix GOTOOLCHAIN=auto
+
+## 0.1.1
+
+### Patch Changes
+
+- [#1622](https://github.com/smartcontractkit/.github/pull/1622)
+  [`0e3ee33`](https://github.com/smartcontractkit/.github/commit/0e3ee332ca7f57d2380628a9f54d092e0cd7f540)
+  Thanks [@jmank88](https://github.com/jmank88)! - fix post-bump-command by
+  using GOTOOLCHAIN=auto
+
 ## 0.1.0
 
 ### Minor Changes

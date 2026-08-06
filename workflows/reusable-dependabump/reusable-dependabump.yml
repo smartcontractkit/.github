@@ -36,10 +36,11 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v7
 
+      - name: Enforce Auto Toolchain
+        run: echo "GOTOOLCHAIN=auto" >> "$GITHUB_ENV"
+
       - name: Install tools
         id: install
-        env:
-          GOTOOLCHAIN: auto
         run: |
           go install github.com/jmank88/gomods@ec230e90e89d4310b21fdeeba0d1290a3821a901 && \
           go install github.com/smartcontractkit/chainlink-common/script/cmd/dependabot@70b55abaf6e19d887c219b497046838d6113f22c
@@ -48,7 +49,6 @@ jobs:
       - name: Bump Dependencies
         id: bump
         env:
-          GOTOOLCHAIN: auto
           SEVERITY: ${{ inputs.severity }}
         if: steps.install.outcome == 'success'
         run: |
