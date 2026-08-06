@@ -15,7 +15,36 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Only PRs touching a releasable package need a changeset. Repo-level
+      # changes (workflows, docs, tooling) roll up to the private root
+      # package.json, which is never released.
+      - name: Detect changed packages
+        id: changed-packages
+        uses: smartcontractkit/.github/actions/changed-roots@changed-roots/1.0.0
+        with:
+          github-token: ${{ github.token }}
+          root-file: package.json
+          # Mirrors the pnpm workspace globs. The repo root is excluded
+          # implicitly since it never matches these patterns.
+          root-patterns: |
+            actions/**
+            libs/**
+            apps/**
+            workflows/**
+            !actions/signed-commits/__fixtures__/**
+            !**/node_modules/**
+
       - name: Check for changeset
+        if: steps.changed-packages.outputs.roots-csv != ''
         uses: smartcontractkit/.github/actions/cicd-changesets-check@cicd-changesets-check/0.1.0
         with:
           token: ${{ github.token }}
+
+      - name: Skip changeset check
+        if: steps.changed-packages.outputs.roots-csv == ''
+        run: |
+          echo "No releasable packages were modified - a changeset is not required." \
+            >> "$GITHUB_STEP_SUMMARY"
