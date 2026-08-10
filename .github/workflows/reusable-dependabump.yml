@@ -15,7 +15,7 @@ on:
       severity:
         required: false
         type: string
-        default: 'critical,high'
+        default: 'critical,high,moderate'
       post-bump-command:
         required: false
         type: string
