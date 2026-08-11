@@ -1,5 +1,19 @@
 # reusable-dependabump
 
+## 1.0.0
+
+### Major Changes
+
+- [#1631](https://github.com/smartcontractkit/.github/pull/1631)
+  [`8a2ded9`](https://github.com/smartcontractkit/.github/commit/8a2ded989b9e0a7b4aa88bffedc1360d83e07d32)
+  Thanks [@jmank88](https://github.com/jmank88)! - first stable release
+
+### Patch Changes
+
+- [#1629](https://github.com/smartcontractkit/.github/pull/1629)
+  [`5f84d33`](https://github.com/smartcontractkit/.github/commit/5f84d338c01975a3b6810457e383a0036667385b)
+  Thanks [@jmank88](https://github.com/jmank88)! - include moderate severity
+
 ## 0.1.2
 
 ### Patch Changes
