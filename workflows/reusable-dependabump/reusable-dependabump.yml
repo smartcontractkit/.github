@@ -52,7 +52,7 @@ jobs:
           SEVERITY: ${{ inputs.severity }}
         if: steps.install.outcome == 'success'
         run: |
-          if ! printf '%s' "$SEVERITY" | grep -Eq '^[[:space:]]*(critical|high|medium|low)([[:space:]]*,[[:space:]]*(critical|high|medium|low))*[[:space:]]*$'; then
+          if ! printf '%s' "$SEVERITY" | grep -Eq '^[[:space:]]*(critical|high|moderate|low)([[:space:]]*,[[:space:]]*(critical|high|moderate|low))*[[:space:]]*$'; then
             echo "Invalid severity input: $SEVERITY" >&2
             exit 1
           fi
