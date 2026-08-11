@@ -1,5 +1,13 @@
 # reusable-dependabump
 
+## 1.0.1
+
+### Patch Changes
+
+- [#1632](https://github.com/smartcontractkit/.github/pull/1632)
+  [`6bb8785`](https://github.com/smartcontractkit/.github/commit/6bb87852b3fa3c283e5532ed42fedb4055688379)
+  Thanks [@jmank88](https://github.com/jmank88)! - fix severity validation
+
 ## 1.0.0
 
 ### Major Changes
