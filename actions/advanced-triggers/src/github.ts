@@ -11,7 +11,7 @@ export type PRFiles = ListFilesResponse["data"];
 type CompareResponse = GetResponseTypeFromEndpointMethod<
   OctokitType["rest"]["repos"]["compareCommits"]
 >;
-export type CompareFiles = CompareResponse["data"]["files"];
+type CompareFiles = CompareResponse["data"]["files"];
 
 export async function getChangedFilesForPR(
   octokit: OctokitType,

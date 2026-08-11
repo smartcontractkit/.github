@@ -58,7 +58,7 @@ describe("getChangedFilesForMergeGroup", () => {
     expect(files).toEqual(["src/foo.ts", "src/bar.ts"]);
   });
 
-  test("paginates across multiple pages", async () => {
+  test("returns all files from octokit.paginate", async () => {
     const octokit = makeOctokit(
       vi
         .fn()

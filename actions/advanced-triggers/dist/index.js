@@ -68385,11 +68385,16 @@ async function gitFetchMissingRefs(base, head, directory, token) {
     return;
   }
   core4.info(`Fetching missing refs from origin: ${refs.join(", ")}`);
-  const args = ["fetch", "origin", "--depth=1", ...refs];
+  const args = ["fetch", "origin", "--depth=1", "--", ...refs];
   const options = { cwd: directory };
   if (token) {
     const auth2 = Buffer.from(`x-access-token:${token}`).toString("base64");
-    args.unshift("-c", `http.extraheader=AUTHORIZATION: basic ${auth2}`);
+    options.env = {
+      ...process.env,
+      GIT_CONFIG_COUNT: "1",
+      GIT_CONFIG_KEY_0: "http.extraheader",
+      GIT_CONFIG_VALUE_0: `AUTHORIZATION: basic ${auth2}`
+    };
   }
   try {
     await execFileAsync("git", args, options);

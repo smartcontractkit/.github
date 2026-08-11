@@ -1,4 +1,5 @@
 import { vi, describe, test, expect } from "vitest";
+import { execFile } from "child_process";
 
 vi.mock("@actions/core", () => ({
   info: vi.fn(),
@@ -16,6 +17,7 @@ let execFileSequence: {
   stderr?: string;
   exitCode?: number;
 }[] = [];
+let execFileCalls: { cmd: string; args: string[]; options: any }[] = [];
 
 vi.mock("child_process", () => ({
   execFile: vi.fn(
@@ -28,21 +30,14 @@ vi.mock("child_process", () => ({
         result?: { stdout: string; stderr: string },
       ) => void,
     ) => {
+      execFileCalls.push({ cmd, args, options });
       const fullCommand = `${cmd} ${args.join(" ")}`;
 
-      const match = execFileResponses[fullCommand];
-      if (match) {
-        callback(null, {
-          stdout: match.stdout ?? "",
-          stderr: match.stderr ?? "",
-        });
-        return {} as any;
-      }
-
-      const seqMatch = execFileSequence.find(
+      const seqIndex = execFileSequence.findIndex(
         (s) => s.command === cmd && s.args.join(" ") === args.join(" "),
       );
-      if (seqMatch) {
+      if (seqIndex !== -1) {
+        const [seqMatch] = execFileSequence.splice(seqIndex, 1);
         if (seqMatch.exitCode !== undefined && seqMatch.exitCode !== 0) {
           const err = new Error(
             seqMatch.stderr ?? "exit code " + seqMatch.exitCode,
@@ -55,6 +50,15 @@ vi.mock("child_process", () => ({
             stderr: seqMatch.stderr ?? "",
           });
         }
+        return {} as any;
+      }
+
+      const match = execFileResponses[fullCommand];
+      if (match) {
+        callback(null, {
+          stdout: match.stdout ?? "",
+          stderr: match.stderr ?? "",
+        });
         return {} as any;
       }
 
@@ -76,9 +80,19 @@ function setExecFileResponse(
   execFileResponses[fullCommand] = { stdout };
 }
 
+function pushExecFileSequence(
+  command: string,
+  args: string[],
+  stdout: string,
+  exitCode: number = 0,
+) {
+  execFileSequence.push({ command, args, stdout, exitCode });
+}
+
 function clearExecFileResponses() {
   execFileResponses = {};
   execFileSequence = [];
+  execFileCalls = [];
 }
 
 // ---------------------------------------------------------------------------
@@ -112,12 +126,23 @@ describe("getChangedFilesGit", () => {
   test("fetches missing refs when token provided", async () => {
     clearExecFileResponses();
     // First resolution attempt fails for both refs.
-    setExecFileResponse(
+    pushExecFileSequence(
+      "git",
+      ["rev-parse", "-q", "--verify", "head-sha^{commit}"],
+      "",
+    );
+    pushExecFileSequence(
       "git",
       ["rev-parse", "-q", "--verify", "base-sha^{commit}"],
       "",
     );
-    setExecFileResponse(
+    // gitFetchMissingRefs checks
+    pushExecFileSequence(
+      "git",
+      ["rev-parse", "-q", "--verify", "base-sha^{commit}"],
+      "",
+    );
+    pushExecFileSequence(
       "git",
       ["rev-parse", "-q", "--verify", "head-sha^{commit}"],
       "",
@@ -125,15 +150,7 @@ describe("getChangedFilesGit", () => {
     // Fetch succeeds.
     setExecFileResponse(
       "git",
-      [
-        "-c",
-        "http.extraheader=AUTHORIZATION: basic eC1hY2Nlc3MtdG9rZW46dG9rZW4=",
-        "fetch",
-        "origin",
-        "--depth=1",
-        "base-sha",
-        "head-sha",
-      ],
+      ["fetch", "origin", "--depth=1", "--", "base-sha", "head-sha"],
       "",
     );
     // Resolution succeeds after fetch.
@@ -161,6 +178,13 @@ describe("getChangedFilesGit", () => {
     );
 
     expect(files).toEqual(["src/foo.ts"]);
+    const fetchCall = execFileCalls.find((c) => c.args[0] === "fetch");
+    expect(fetchCall).toBeDefined();
+    expect(fetchCall?.options?.env?.GIT_CONFIG_COUNT).toBe("1");
+    expect(fetchCall?.options?.env?.GIT_CONFIG_KEY_0).toBe("http.extraheader");
+    expect(fetchCall?.options?.env?.GIT_CONFIG_VALUE_0).toBe(
+      "AUTHORIZATION: basic eC1hY2Nlc3MtdG9rZW46dG9rZW4=",
+    );
   });
 
   test("throws when refs remain unresolved after fetch", async () => {
@@ -177,15 +201,7 @@ describe("getChangedFilesGit", () => {
     );
     setExecFileResponse(
       "git",
-      [
-        "-c",
-        "http.extraheader=AUTHORIZATION: basic eC1hY2Nlc3MtdG9rZW46dG9rZW4=",
-        "fetch",
-        "origin",
-        "--depth=1",
-        "base-sha",
-        "head-sha",
-      ],
+      ["fetch", "origin", "--depth=1", "--", "base-sha", "head-sha"],
       "",
     );
     setExecFileResponse(
