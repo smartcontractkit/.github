@@ -13,9 +13,7 @@ import { getChangedFilesForMergeGroup, type OctokitType } from "../github";
 // Helpers
 // ---------------------------------------------------------------------------
 
-function makeOctokit(
-  compareCommitsImpl = vi.fn(),
-): OctokitType {
+function makeOctokit(compareCommitsImpl = vi.fn()): OctokitType {
   return {
     paginate: vi.fn(),
     rest: {

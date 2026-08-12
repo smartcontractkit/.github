@@ -20,9 +20,7 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-function makeOctokit(
-  compareCommitsImpl = vi.fn(),
-): OctokitType {
+function makeOctokit(compareCommitsImpl = vi.fn()): OctokitType {
   return {
     paginate: vi.fn(),
     rest: {

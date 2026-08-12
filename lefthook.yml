@@ -9,7 +9,7 @@ pre-commit:
     prettier:
       description: "Fix prettier formatting"
       glob: "*.{json,md,scss,yaml,yml}"
-      run: pnpm hook:fix {staged_files}
+      run: pnpm prettier:write {staged_files}
       stage_fixed: true
     reusable-workflows:
       description: "Fix reusable workflows sync"

@@ -62,5 +62,5 @@ export async function getChangedFilesForMergeGroup(
     );
   }
 
-  return res.data.files.map((f: { filename: any; }) => f.filename);
+  return res.data.files.map((f: { filename: any }) => f.filename);
 }
