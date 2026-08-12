@@ -14,13 +14,13 @@ import { getChangedFilesForMergeGroup, type OctokitType } from "../github";
 // ---------------------------------------------------------------------------
 
 function makeOctokit(
-  paginateImpl: OctokitType["paginate"] = vi.fn(),
+  compareCommitsImpl = vi.fn(),
 ): OctokitType {
   return {
-    paginate: paginateImpl,
+    paginate: vi.fn(),
     rest: {
       repos: {
-        compareCommits: vi.fn(),
+        compareCommits: compareCommitsImpl,
       },
     },
   } as unknown as OctokitType;
@@ -33,7 +33,11 @@ function makeOctokit(
 describe("getChangedFilesForMergeGroup", () => {
   test("returns filenames from compareCommits", async () => {
     const octokit = makeOctokit(
-      vi.fn().mockResolvedValue(["src/foo.ts", "src/bar.ts"]),
+      vi.fn().mockResolvedValue({
+        data: {
+          files: [{ filename: "src/foo.ts" }, { filename: "src/bar.ts" }],
+        },
+      }),
     );
 
     const files = await getChangedFilesForMergeGroup(
@@ -44,79 +48,56 @@ describe("getChangedFilesForMergeGroup", () => {
       "head-sha",
     );
 
-    expect(octokit.paginate).toHaveBeenCalledWith(
-      octokit.rest.repos.compareCommits,
-      {
-        owner: "smartcontractkit",
-        repo: ".github",
-        base: "base-sha",
-        head: "head-sha",
-        per_page: 100,
-      },
-      expect.any(Function),
-    );
+    expect(octokit.rest.repos.compareCommits).toHaveBeenCalledWith({
+      owner: "smartcontractkit",
+      repo: ".github",
+      base: "base-sha",
+      head: "head-sha",
+      per_page: 100,
+    });
     expect(files).toEqual(["src/foo.ts", "src/bar.ts"]);
   });
 
-  test("returns all files from octokit.paginate", async () => {
+  test("throws when files property is undefined", async () => {
     const octokit = makeOctokit(
-      vi
-        .fn()
-        .mockResolvedValue([
-          "src/foo.ts",
-          "src/bar.ts",
-          "src/baz.ts",
-          "src/qux.ts",
-        ]),
+      vi.fn().mockResolvedValue({
+        data: {},
+      }),
     );
 
-    const files = await getChangedFilesForMergeGroup(
-      octokit,
-      "smartcontractkit",
-      ".github",
-      "base-sha",
-      "head-sha",
+    await expect(
+      getChangedFilesForMergeGroup(
+        octokit,
+        "smartcontractkit",
+        ".github",
+        "base-sha",
+        "head-sha",
+      ),
+    ).rejects.toThrow(
+      "GitHub compareCommits API did not return a files list for base-sha...head-sha",
     );
-
-    expect(files).toEqual([
-      "src/foo.ts",
-      "src/bar.ts",
-      "src/baz.ts",
-      "src/qux.ts",
-    ]);
   });
 
-  test("returns empty array when no files changed", async () => {
-    const octokit = makeOctokit(vi.fn().mockResolvedValue([]));
-
-    const files = await getChangedFilesForMergeGroup(
-      octokit,
-      "smartcontractkit",
-      ".github",
-      "base-sha",
-      "head-sha",
+  test("throws when files count reaches or exceeds 300 limit", async () => {
+    const fakeFiles = Array.from({ length: 300 }, (_, i) => ({
+      filename: `file_${i}.ts`,
+    }));
+    const octokit = makeOctokit(
+      vi.fn().mockResolvedValue({
+        data: { files: fakeFiles },
+      }),
     );
 
-    expect(files).toEqual([]);
-  });
-
-  test("extracts filenames from response data", async () => {
-    const paginate = vi.fn().mockImplementation((endpoint, params, mapFn) => {
-      const mapped = mapFn({
-        data: { files: [{ filename: "mapped/file.ts" }] },
-      });
-      return Promise.resolve(mapped);
-    });
-    const octokit = makeOctokit(paginate);
-
-    const files = await getChangedFilesForMergeGroup(
-      octokit,
-      "smartcontractkit",
-      ".github",
-      "base-sha",
-      "head-sha",
+    await expect(
+      getChangedFilesForMergeGroup(
+        octokit,
+        "smartcontractkit",
+        ".github",
+        "base-sha",
+        "head-sha",
+      ),
+    ).rejects.toThrow(
+      "GitHub compareCommits returned 300 files (hit 300 limit)",
     );
-
-    expect(files).toEqual(["mapped/file.ts"]);
   });
 });

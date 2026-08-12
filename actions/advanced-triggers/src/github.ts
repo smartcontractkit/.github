@@ -42,18 +42,25 @@ export async function getChangedFilesForMergeGroup(
     `Fetching changed files for ${owner}/${repo} merge group ${base}...${head}`,
   );
 
-  const files = await octokit.paginate(
-    octokit.rest.repos.compareCommits,
-    {
-      owner,
-      repo,
-      base,
-      head,
-      per_page: 100,
-    },
-    (response: CompareResponse) =>
-      response.data.files?.map((f: CompareFiles[number]) => f.filename) ?? [],
-  );
+  const res = await octokit.rest.repos.compareCommits({
+    owner,
+    repo,
+    base,
+    head,
+    per_page: 100,
+  });
 
-  return files;
+  if (!res.data.files) {
+    throw new Error(
+      `GitHub compareCommits API did not return a files list for ${base}...${head}`,
+    );
+  }
+
+  if (res.data.files.length >= 300) {
+    throw new Error(
+      `GitHub compareCommits returned ${res.data.files.length} files (hit 300 limit).`,
+    );
+  }
+
+  return res.data.files.map((f) => f.filename);
 }

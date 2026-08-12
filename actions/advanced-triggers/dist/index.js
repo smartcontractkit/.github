@@ -19649,10 +19649,10 @@ var require_oidc_utils = __commonJS({
           var _a2;
           const httpclient = _OidcClient.createHttpClient();
           const res = yield httpclient.getJson(id_token_url).catch((error49) => {
-            throw new Error(`Failed to get ID Token. 
- 
+            throw new Error(`Failed to get ID Token.
+
         Error Code : ${error49.statusCode}
- 
+
         Error Message: ${error49.message}`);
           });
           const id_token = (_a2 = res.result) === null || _a2 === void 0 ? void 0 : _a2.value;
@@ -57399,7 +57399,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
             })));
           }
         }
-        
+
         if (${id}.value === undefined) {
           if (${k} in input) {
             newResult[${k}] = undefined;
@@ -57407,7 +57407,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
         } else {
           newResult[${k}] = ${id}.value;
         }
-        
+
       `);
       } else {
         doc.write(`
@@ -57417,7 +57417,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
             path: iss.path ? [${k}, ...iss.path] : [${k}]
           })));
         }
-        
+
         if (${id}.value === undefined) {
           if (${k} in input) {
             newResult[${k}] = undefined;
@@ -57425,7 +57425,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
         } else {
           newResult[${k}] = ${id}.value;
         }
-        
+
       `);
       }
     }
@@ -68434,18 +68434,24 @@ async function getChangedFilesForMergeGroup(octokit, owner, repo, base, head) {
   core5.debug(
     `Fetching changed files for ${owner}/${repo} merge group ${base}...${head}`
   );
-  const files = await octokit.paginate(
-    octokit.rest.repos.compareCommits,
-    {
-      owner,
-      repo,
-      base,
-      head,
-      per_page: 100
-    },
-    (response) => response.data.files?.map((f) => f.filename) ?? []
-  );
-  return files;
+  const res = await octokit.rest.repos.compareCommits({
+    owner,
+    repo,
+    base,
+    head,
+    per_page: 100
+  });
+  if (!res.data.files) {
+    throw new Error(
+      `GitHub compareCommits API did not return a files list for ${base}...${head}`
+    );
+  }
+  if (res.data.files.length >= 300) {
+    throw new Error(
+      `GitHub compareCommits returned ${res.data.files.length} files (hit 300 limit).`
+    );
+  }
+  return res.data.files.map((f) => f.filename);
 }
 
 // actions/advanced-triggers/src/run.ts

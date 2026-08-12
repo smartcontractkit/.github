@@ -21,13 +21,13 @@ beforeEach(() => {
 });
 
 function makeOctokit(
-  paginateImpl: OctokitType["paginate"] = vi.fn(),
+  compareCommitsImpl = vi.fn(),
 ): OctokitType {
   return {
-    paginate: paginateImpl,
+    paginate: vi.fn(),
     rest: {
       repos: {
-        compareCommits: vi.fn(),
+        compareCommits: compareCommitsImpl,
       },
       pulls: {
         listFiles: vi.fn(),
@@ -42,7 +42,13 @@ function makeOctokit(
 
 describe("getChangedFiles routing", () => {
   test("merge_group uses compareCommits API and returns filenames", async () => {
-    const octokit = makeOctokit(vi.fn().mockResolvedValue(["src/foo.ts"]));
+    const octokit = makeOctokit(
+      vi.fn().mockResolvedValue({
+        data: {
+          files: [{ filename: "src/foo.ts" }],
+        },
+      }),
+    );
 
     const event: MergeGroupEventData = {
       kind: "file-change",
@@ -59,17 +65,13 @@ describe("getChangedFiles routing", () => {
       "token",
     );
 
-    expect(octokit.paginate).toHaveBeenCalledWith(
-      octokit.rest.repos.compareCommits,
-      {
-        owner: "smartcontractkit",
-        repo: ".github",
-        base: "base-sha",
-        head: "head-sha",
-        per_page: 100,
-      },
-      expect.any(Function),
-    );
+    expect(octokit.rest.repos.compareCommits).toHaveBeenCalledWith({
+      owner: "smartcontractkit",
+      repo: ".github",
+      base: "base-sha",
+      head: "head-sha",
+      per_page: 100,
+    });
     expect(files).toEqual(["src/foo.ts"]);
     expect(getChangedFilesGit).not.toHaveBeenCalled();
   });
