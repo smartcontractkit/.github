@@ -16,6 +16,8 @@
     "lint:affected": "pnpm nx affected --target=lint --verbose",
     "build": "pnpm nx run-many --target=build --verbose",
     "build:affected": "pnpm nx affected --target=build --verbose",
+    "build:artifacts": "pnpm build",
+    "build:artifacts:affected": "pnpm build:affected",
     "test": "pnpm nx run-many --target=test --verbose",
     "test:affected": "pnpm nx affected --target=test --verbose",
     "package": "pnpm nx run-many --target=package --verbose",
