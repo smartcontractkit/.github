@@ -25,6 +25,7 @@ pre-commit:
       glob: "*.sh"
       run: shellcheck {staged_files}
     build-artifacts:
-      description: "Build artifacts"
-      glob: "package.json"
-      run: pnpm build:artifacts
+      description: "Build artifacts for affected projects"
+      glob: "*.{js,ts,json}"
+      run: pnpm build:affected
+      stage_fixed: true
