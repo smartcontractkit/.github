@@ -139,6 +139,12 @@ inputs:
       See: https://github.com/reproducible-containers/buildkit-cache-dance
       See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
     default: ""
+  context-cache-key:
+    required: false
+    description: |
+      Cache key suffix for Docker build context fingerprinting. See build-push-docker
+      action for details.
+    default: ""
 
 outputs:
   docker-image-sha-digest-amd64:
@@ -217,6 +223,7 @@ runs:
           format('{0}-{1}', runner.os, runner.arch) }}"
         cache-mode: ${{ inputs.cache-mode }}
         cache-map: ${{ inputs.cache-map }}
+        context-cache-key: ${{ inputs.context-cache-key }}
 
         tags: type=raw,value=${{ inputs.image-tag }}
         aws-account-number: ${{ inputs.aws-account-number }}

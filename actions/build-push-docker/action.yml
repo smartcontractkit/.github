@@ -131,6 +131,15 @@ inputs:
       See: https://docs.docker.com/build/ci/github-actions/cache/#cache-mounts
     required: false
     default: ""
+  context-cache-key:
+    description: |
+      Cache key suffix for Docker build context fingerprinting. When non-empty,
+      the action checks if this context was previously built successfully.
+      If cache-hit, skips BuildKit cache mount restore and cache-dance
+      inject, as Docker layer cache should be valid.
+      Format: "{scope}-{hash}" (e.g., "core-abc123def456")
+    required: false
+    default: ""
 
 outputs:
   docker-repository-name:
@@ -393,11 +402,28 @@ runs:
         echo "no-cache=false" | tee -a "${GITHUB_OUTPUT}"
         echo "cache-from=${CACHE_FROM}" | tee -a "${GITHUB_OUTPUT}"
 
+    # When context-cache-key is set, check if this exact build context was
+    # previously built. If so, Docker layer cache should be valid and the
+    # cache-dance inject is pure overhead (~30-40s). Skip it.
+    - name: Prepare context cache marker
+      if: inputs.context-cache-key != ''
+      shell: bash
+      run: echo "built" > .ctx-marker
+
+    - name: Check if build context was previously built
+      id: ctx-check
+      if: inputs.context-cache-key != ''
+      uses: actions/cache/restore@v6
+      with:
+        path: .ctx-marker
+        key: buildctx-${{ inputs.context-cache-key }}
+
     # Read-only path (PRs): restore mounts, never write them back.
     - name: Restore BuildKit cache mounts (read-only)
       if:
         ${{ steps.validate-cache-dance.outputs.cache-dance == 'true' &&
-        steps.resolve-cache.outputs.save-cache != 'true' }}
+        steps.resolve-cache.outputs.save-cache != 'true' &&
+        steps.ctx-check.outputs.cache-hit != 'true' }}
       uses: actions/cache/restore@v6
       with:
         path: cache-mount
@@ -414,7 +440,8 @@ runs:
     - name: Cache BuildKit cache mounts (read-write)
       if:
         ${{ steps.validate-cache-dance.outputs.cache-dance == 'true' &&
-        steps.resolve-cache.outputs.save-cache == 'true' }}
+        steps.resolve-cache.outputs.save-cache == 'true' &&
+        steps.ctx-check.outputs.cache-hit != 'true' }}
       uses: actions/cache@v6
       with:
         path: cache-mount
@@ -425,7 +452,9 @@ runs:
           bk-mounts-${{ runner.os }}-${{ runner.arch }}-${{ inputs.dockerfile }}-
 
     - name: Cache Dance
-      if: ${{ steps.validate-cache-dance.outputs.cache-dance == 'true' }}
+      if:
+        ${{ steps.validate-cache-dance.outputs.cache-dance == 'true' &&
+        steps.ctx-check.outputs.cache-hit != 'true' }}
       uses: reproducible-containers/buildkit-cache-dance@5422eac04292c961a382e0f584ea0f03ad9da723 # v3.4.0
       with:
         builder: ${{ steps.setup-buildx.outputs.name }}
@@ -476,3 +505,12 @@ runs:
         elif [[ "${INPUT_PLATFORM}" == "linux/arm64" ]]; then
           echo "docker-image-sha-digest-arm64=${DOCKER_IMAGE_DIGEST}" | tee -a "${GITHUB_OUTPUT}"
         fi
+
+    - name: Save context cache marker
+      if:
+        inputs.context-cache-key != '' && steps.ctx-check.outputs.cache-hit !=
+        'true'
+      uses: actions/cache/save@v6
+      with:
+        path: .ctx-marker
+        key: buildctx-${{ inputs.context-cache-key }}
