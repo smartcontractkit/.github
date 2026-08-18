@@ -1,5 +1,14 @@
 # advanced-triggers
 
+## 1.1.1
+
+### Patch Changes
+
+- [#1634](https://github.com/smartcontractkit/.github/pull/1634)
+  [`1bb42c1`](https://github.com/smartcontractkit/.github/commit/1bb42c15806fcdb021805182bea333c59adfd798)
+  Thanks [@kalverra](https://github.com/kalverra)! - better handle merge_group
+  events
+
 ## 1.1.0
 
 ### Minor Changes
