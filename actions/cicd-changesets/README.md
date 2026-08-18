@@ -50,14 +50,13 @@ with:
 
 ## Package manager
 
-`package-manager` selects the toolchain, and defaults to `pnpm`.
+`package-manager` selects the toolchain; defaults to `pnpm`.
 
-### pnpm (default)
+### pnpm
 
-Node and pnpm are installed, `pnpm install` runs, and the changesets commands
-default to `pnpm run ci:changeset:{version,publish}`. The repo needs a
-`package.json` whose `engines.node` (or whatever `node-version-file` points at)
-resolves a Node version.
+Installs Node and pnpm, runs `pnpm install`, and defaults the changesets
+commands to `pnpm run ci:changeset:{version,publish}`. The repo's `package.json`
+must resolve a Node version (via `engines.node` or `node-version-file`).
 
 ### bun
 
@@ -66,10 +65,9 @@ with:
   package-manager: bun
 ```
 
-Node and pnpm are not installed at all. bun is set up instead,
-`bun install --frozen-lockfile` runs, and the changesets commands default to
-`bun run ci:changeset:{version,publish}`. Point those scripts at the changesets
-CLI in the repo's `package.json`:
+Installs bun (not Node/pnpm), runs `bun install --frozen-lockfile`, and defaults
+the changesets commands to `bun run ci:changeset:{version,publish}`. Define
+those scripts in `package.json`:
 
 ```json
 {
@@ -81,34 +79,16 @@ CLI in the repo's `package.json`:
 }
 ```
 
-Two things make this work without a Node toolchain step. `@changesets/cli` is a
-Node CLI, but the runner already provides Node, and bun installs a normal
-`node_modules` tree, so the `signed-commits` action resolves
-`@changesets/cli/bin.js` the same way it does under pnpm. And `bun.lock` records
-the root package's name and dependencies but not its own version, so a
-`changeset version` bump does not invalidate the lockfile and
-`--frozen-lockfile` keeps holding across releases.
-
 #### Bun version
 
-The bun version is resolved in this order, and the first hit wins:
+Resolved in order: `bun-version` (explicit) → `bun-version-file` →
+auto-detection (the default).
 
-1. `bun-version` — an exact version, e.g. `"1.3.14"`. Use this to override the
-   repo's pin from the workflow.
-2. `bun-version-file` — a path to the file that pins bun.
-3. Auto-detection — with both inputs empty (the default).
+setup-bun reads `.tool-versions`, `.bun-version`, and `package.json` natively,
+so those are forwarded to it. This action reads `mise.toml` itself (setup-bun
+does not understand mise) and passes the version to setup-bun. With both inputs
+empty it auto-detects: mise file first, then `.tool-versions`/`.bun-version`,
+then `package.json`, then `latest`.
 
-setup-bun already reads `.tool-versions`, `.bun-version`, and `package.json`
-(`packageManager`, else `engines.bun`) natively via its own `bun-version-file`
-input, so this action forwards those straight through. It does not understand
-`mise.toml`, which is where our TypeScript repos pin an exact bun, so this
-action reads `mise.toml`, `.mise.toml`, and `.config/mise/config.toml` itself
-and passes the version to setup-bun as `bun-version`.
-
-Auto-detection (the default) tries a mise file first; if none pins bun it
-forwards `.tool-versions` or `.bun-version` to setup-bun if present; otherwise
-setup-bun reads `package.json` itself, and if that does not pin bun either it
-installs `latest`.
-
-The default is auto-detection, so a repo that already pins bun in `mise.toml`
-(as the `ts-service` blueprint does) needs no `bun-version` at all.
+A repo that pins bun in `mise.toml` (as the `ts-service` blueprint does) needs
+no `bun-version` input.
