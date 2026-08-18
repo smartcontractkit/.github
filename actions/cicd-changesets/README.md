@@ -64,7 +64,6 @@ resolves a Node version.
 ```yaml
 with:
   package-manager: bun
-  bun-version: "1.3.14"
 ```
 
 Node and pnpm are not installed at all. bun is set up instead,
@@ -89,3 +88,27 @@ Node CLI, but the runner already provides Node, and bun installs a normal
 the root package's name and dependencies but not its own version, so a
 `changeset version` bump does not invalidate the lockfile and
 `--frozen-lockfile` keeps holding across releases.
+
+#### Bun version
+
+The bun version is resolved in this order, and the first hit wins:
+
+1. `bun-version` — an exact version, e.g. `"1.3.14"`. Use this to override the
+   repo's pin from the workflow.
+2. `bun-version-file` — a path to the file that pins bun.
+3. Auto-detection — with both inputs empty (the default).
+
+setup-bun already reads `.tool-versions`, `.bun-version`, and `package.json`
+(`packageManager`, else `engines.bun`) natively via its own `bun-version-file`
+input, so this action forwards those straight through. It does not understand
+`mise.toml`, which is where our TypeScript repos pin an exact bun, so this
+action reads `mise.toml`, `.mise.toml`, and `.config/mise/config.toml` itself
+and passes the version to setup-bun as `bun-version`.
+
+Auto-detection (the default) tries a mise file first; if none pins bun it
+forwards `.tool-versions` or `.bun-version` to setup-bun if present; otherwise
+setup-bun reads `package.json` itself, and if that does not pin bun either it
+installs `latest`.
+
+The default is auto-detection, so a repo that already pins bun in `mise.toml`
+(as the `ts-service` blueprint does) needs no `bun-version` at all.
