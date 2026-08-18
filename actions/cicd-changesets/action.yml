@@ -44,7 +44,25 @@ inputs:
   aws-lambda-url:
     description: ""
     required: false
-  # nodejs inputs
+  # toolchain inputs
+  package-manager:
+    description: |
+      Which package manager installs dependencies and runs the changesets
+      commands: `pnpm` (default) or `bun`.
+
+      With `pnpm`, Node and pnpm are installed and `pnpm install` runs. With
+      `bun`, neither is installed: bun is set up instead and
+      `bun install --frozen-lockfile` runs, so a bun repo needs no
+      `engines.node` in its package.json and no pnpm lockfile.
+    required: false
+    default: "pnpm"
+  bun-version:
+    description: |
+      The bun version to install. Only used when `package-manager` is `bun`.
+      Pass an exact version to match the repo's pinned bun.
+    required: false
+    default: "latest"
+  # nodejs inputs (package-manager: pnpm only)
   node-version-file:
     description: ""
     required: false
@@ -59,13 +77,17 @@ inputs:
     default: "true"
   # changesets inputs
   changesets-publish-cmd:
-    description: ""
+    description: |
+      Defaults to `<package-manager> run ci:changeset:publish`, i.e.
+      `pnpm run ci:changeset:publish` unless `package-manager` is `bun`.
     required: false
-    default: pnpm run ci:changeset:publish
+    default: ""
   changesets-version-cmd:
-    description: ""
+    description: |
+      Defaults to `<package-manager> run ci:changeset:version`, i.e.
+      `pnpm run ci:changeset:version` unless `package-manager` is `bun`.
     required: false
-    default: pnpm run ci:changeset:version
+    default: ""
   changesets-create-gh-release:
     description: ""
     required: false
@@ -121,6 +143,20 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Validate package-manager
+      shell: bash
+      env:
+        PACKAGE_MANAGER: ${{ inputs.package-manager }}
+      run: |
+        set -euo pipefail
+        case "${PACKAGE_MANAGER}" in
+          pnpm | bun) ;;
+          *)
+            echo "::error::package-manager must be 'pnpm' or 'bun', got '${PACKAGE_MANAGER}'"
+            exit 1
+            ;;
+        esac
+
     # GATI is optional. This step only runs when `aws-role-arn` is provided.
     # When GATI is not configured, the action falls back to `github-token`
     # (the automatic GITHUB_TOKEN by default). Using GATI requires the calling
@@ -167,7 +203,12 @@ runs:
         git config user.email "${{ inputs.git-email }}"
         git config user.name "${{ inputs.git-user }}"
 
+    # One of the two toolchain paths below runs, never both. `bun` skips Node and
+    # pnpm entirely: a bun repo has no pnpm lockfile to install from, and its
+    # package.json carries `engines.bun` rather than the `engines.node` that
+    # node-version-file needs.
     - name: Setup nodejs
+      if: inputs.package-manager == 'pnpm'
       uses: smartcontractkit/.github/actions/setup-nodejs@setup-nodejs/v1
       with:
         node-version-file: ${{ inputs.node-version-file }}
@@ -175,14 +216,45 @@ runs:
         use-cache: ${{ inputs.pnpm-use-cache }}
         run-install: "true"
 
+    - name: Setup bun
+      if: inputs.package-manager == 'bun'
+      uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+      with:
+        bun-version: ${{ inputs.bun-version }}
+
+    # bun.lock records the root package's name and its dependencies, not the
+    # root's own version, so a `changeset version` bump does not invalidate it
+    # and --frozen-lockfile keeps holding across releases.
+    - name: Run package manager install (bun)
+      if: inputs.package-manager == 'bun'
+      shell: bash
+      run: bun install --frozen-lockfile
+
+    # Both commands default to the selected package manager, so a bun caller
+    # that overrides neither does not fall back to a pnpm that was never
+    # installed. For a pnpm caller the resolved values are unchanged.
+    - name: Resolve changesets commands
+      id: cmds
+      shell: bash
+      env:
+        PACKAGE_MANAGER: ${{ inputs.package-manager }}
+        PUBLISH_CMD: ${{ inputs.changesets-publish-cmd }}
+        VERSION_CMD: ${{ inputs.changesets-version-cmd }}
+      run: |
+        set -euo pipefail
+        {
+          echo "publish=${PUBLISH_CMD:-${PACKAGE_MANAGER} run ci:changeset:publish}"
+          echo "version=${VERSION_CMD:-${PACKAGE_MANAGER} run ci:changeset:version}"
+        } | tee -a "${GITHUB_OUTPUT}"
+
     - name: Run changesets
       id: changesets
       uses: smartcontractkit/.github/actions/signed-commits@changesets-signed-commits/v1
       env:
         GITHUB_TOKEN: ${{ steps.resolve-gh-token.outputs.token }}
       with:
-        publish: ${{ inputs.changesets-publish-cmd }}
-        version: ${{ inputs.changesets-version-cmd }}
+        publish: ${{ steps.cmds.outputs.publish }}
+        version: ${{ steps.cmds.outputs.version }}
         createGithubReleases: ${{ inputs.changesets-create-gh-release }}
         rootVersionPackagePath:
           ${{ inputs.changesets-root-version-package-path }}

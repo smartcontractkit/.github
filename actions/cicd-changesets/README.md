@@ -47,3 +47,45 @@ with:
   aws-role-arn: ${{ secrets.AWS_ROLE_ARN_GATI_CHANGESETS }}
   aws-lambda-url: ${{ secrets.AWS_LAMBDA_URL_GATI }}
 ```
+
+## Package manager
+
+`package-manager` selects the toolchain, and defaults to `pnpm`.
+
+### pnpm (default)
+
+Node and pnpm are installed, `pnpm install` runs, and the changesets commands
+default to `pnpm run ci:changeset:{version,publish}`. The repo needs a
+`package.json` whose `engines.node` (or whatever `node-version-file` points at)
+resolves a Node version.
+
+### bun
+
+```yaml
+with:
+  package-manager: bun
+  bun-version: "1.3.14"
+```
+
+Node and pnpm are not installed at all. bun is set up instead,
+`bun install --frozen-lockfile` runs, and the changesets commands default to
+`bun run ci:changeset:{version,publish}`. Point those scripts at the changesets
+CLI in the repo's `package.json`:
+
+```json
+{
+  "scripts": {
+    "ci:changeset:version": "bun run changeset version",
+    "ci:changeset:publish": "bun run changeset publish"
+  },
+  "devDependencies": { "@changesets/cli": "~2.31.0" }
+}
+```
+
+Two things make this work without a Node toolchain step. `@changesets/cli` is a
+Node CLI, but the runner already provides Node, and bun installs a normal
+`node_modules` tree, so the `signed-commits` action resolves
+`@changesets/cli/bin.js` the same way it does under pnpm. And `bun.lock` records
+the root package's name and dependencies but not its own version, so a
+`changeset version` bump does not invalidate the lockfile and
+`--frozen-lockfile` keeps holding across releases.
