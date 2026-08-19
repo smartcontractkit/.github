@@ -239,7 +239,7 @@ runs:
     # setup-bun reads .tool-versions, .bun-version, and package.json natively
     # via its bun-version-file input, so those are forwarded to it unchanged.
     # It does not read mise.toml, which is where our TypeScript repos pin an
-    # exact bun, so that one case is resolved here and passed as bun-version.
+    # exact bun, so the script resolves that case to a plain version instead.
     # `bun-version` still wins when set, the same way setup-nodejs lets
     # pnpm-version override .tool-versions.
     - name: Resolve bun version
@@ -249,78 +249,7 @@ runs:
       env:
         BUN_VERSION: ${{ inputs.bun-version }}
         BUN_VERSION_FILE: ${{ inputs.bun-version-file }}
-      run: |
-        set -euo pipefail
-
-        # Print the bun entry of a mise [tools] table, in any of the forms mise
-        # accepts: a bare string, an array of versions, or a table with a
-        # version key.
-        mise_bun_line() {
-          awk '
-            /^[[:space:]]*\[/ { tools = ($0 ~ /^[[:space:]]*\[tools\][[:space:]]*$/); next }
-            tools && /^[[:space:]]*("bun"|bun)[[:space:]]*=/ { print; exit }
-          ' "$1"
-        }
-
-        out_version=""
-        out_file=""
-
-        if [[ -n "${BUN_VERSION}" ]]; then
-          # Explicit override wins; do not read any file.
-          out_version="${BUN_VERSION}"
-        else
-          # Pick the mise file to read, if any: an explicit bun-version-file
-          # that names one, else the first of the local mise paths that exists.
-          mise_file=""
-          if [[ -n "${BUN_VERSION_FILE}" ]]; then
-            case "$(basename "${BUN_VERSION_FILE}")" in
-              mise.toml | .mise.toml | config.toml) mise_file="${BUN_VERSION_FILE}" ;;
-            esac
-          else
-            for c in mise.toml .mise.toml .config/mise/config.toml; do
-              [[ -f "${c}" ]] && { mise_file="${c}"; break; }
-            done
-          fi
-
-          if [[ -n "${mise_file}" ]]; then
-            if [[ ! -f "${mise_file}" ]]; then
-              echo "::error::bun-version-file '${mise_file}' does not exist"
-              exit 1
-            fi
-            raw=$(mise_bun_line "${mise_file}")
-            raw="${raw#*=}"
-            raw="${raw%%#*}"
-            raw=$(printf '%s' "${raw}" | tr -d "\"'[]{} ")
-            raw="${raw##*=}"
-            raw="${raw%%,*}"
-            if [[ -n "${raw}" ]]; then
-              out_version="${raw}"
-              echo "Using bun version from ${mise_file}: ${out_version}"
-            elif [[ -n "${BUN_VERSION_FILE}" ]]; then
-              # An explicitly named mise file must pin bun; an auto-detected
-              # one that does not is just skipped.
-              echo "::error::bun-version-file '${mise_file}' does not pin a bun version"
-              exit 1
-            fi
-          fi
-
-          # No mise pin: forward a non-mise bun-version-file, or an
-          # auto-detected .tool-versions / .bun-version, to setup-bun, which
-          # reads those natively. package.json is read by setup-bun
-          # automatically when no file is given, so it is never forwarded.
-          if [[ -z "${out_version}" ]]; then
-            if [[ -n "${BUN_VERSION_FILE}" ]]; then
-              out_file="${BUN_VERSION_FILE}"
-            else
-              for c in .tool-versions .bun-version; do
-                [[ -f "${c}" ]] && { out_file="${c}"; break; }
-              done
-            fi
-          fi
-        fi
-
-        echo "version=${out_version}" >> "${GITHUB_OUTPUT}"
-        echo "file=${out_file}" >> "${GITHUB_OUTPUT}"
+      run: "${GITHUB_ACTION_PATH}/scripts/resolve-bun-version.sh"
 
     - name: Setup bun
       if: inputs.package-manager == 'bun'
