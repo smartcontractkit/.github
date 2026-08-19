@@ -116,4 +116,4 @@ fi
 {
   echo "version=${out_version}"
   echo "file=${out_file}"
-} >>"${GITHUB_OUTPUT}"
+} | tee -a "${GITHUB_OUTPUT}"
