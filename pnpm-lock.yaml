@@ -999,6 +999,8 @@ importers:
 
   workflows/reusable-codeowners-review-analysis: {}
 
+  workflows/reusable-dependabump: {}
+
   workflows/reusable-dependency-review: {}
 
   workflows/reusable-docker-build-publish: {}

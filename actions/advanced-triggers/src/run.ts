@@ -5,7 +5,7 @@ import { getInvokeContext, getInputs } from "./run-inputs";
 import { parseFileSets, parseTriggers } from "./schema";
 import { applyTrigger, TriggerResult } from "./filters";
 import { getChangedFilesGit } from "./git";
-import { getChangedFilesForPR } from "./github";
+import { getChangedFilesForMergeGroup, getChangedFilesForPR } from "./github";
 import type { OctokitType } from "./github";
 import type { FileChangeEventData } from "./event";
 
@@ -99,6 +99,7 @@ export async function run(): Promise<void> {
         { owner: context.owner, repo: context.repo },
         context.event,
         inputs.repositoryRoot,
+        context.token,
       );
       core.info(`Changed files count: ${changedFiles.length}`);
       if (core.isDebug()) {
@@ -174,11 +175,12 @@ const PR_FILES_API_LIMIT = 3000;
  *
  * The git fallback requires the repository to be checked out at repositoryRoot.
  */
-async function getChangedFiles(
+export async function getChangedFiles(
   octokit: OctokitType,
   { owner, repo }: { owner: string; repo: string },
   event: FileChangeEventData,
   repositoryRoot: string,
+  token: string,
 ): Promise<string[]> {
   switch (event.eventName) {
     case "pull_request": {
@@ -190,17 +192,25 @@ async function getChangedFiles(
         event.base,
         event.head,
         repositoryRoot,
+        token,
       );
     }
 
     case "push": {
       core.info("Fetching changed files via git diff (push).");
-      return getChangedFilesGit(event.base, event.head, repositoryRoot);
+      return getChangedFilesGit(event.base, event.head, repositoryRoot, token);
     }
 
     case "merge_group": {
-      core.info("Fetching changed files via git diff (merge_group).");
-      return getChangedFilesGit(event.base, event.head, repositoryRoot);
+      return getChangedFilesForMergeGroupWithFallback(
+        octokit,
+        owner,
+        repo,
+        event.base,
+        event.head,
+        repositoryRoot,
+        token,
+      );
     }
 
     default:
@@ -217,6 +227,7 @@ async function getChangedFilesForPRWithFallback(
   base: string,
   head: string,
   repositoryRoot: string,
+  token: string,
 ): Promise<string[]> {
   core.info("Fetching changed files via GitHub API (pull_request).");
 
@@ -229,7 +240,7 @@ async function getChangedFilesForPRWithFallback(
       `GitHub API request for PR files failed: ${err}. ` +
         `Falling back to git diff (base: ${base}, head: ${head}).`,
     );
-    return getChangedFilesGit(base, head, repositoryRoot);
+    return getChangedFilesGit(base, head, repositoryRoot, token);
   }
 
   if (apiFiles.length >= PR_FILES_API_LIMIT) {
@@ -238,7 +249,39 @@ async function getChangedFilesForPRWithFallback(
         `known API limit of ${PR_FILES_API_LIMIT}. The list may be truncated. ` +
         `Falling back to git diff (base: ${base}, head: ${head}).`,
     );
-    return getChangedFilesGit(base, head, repositoryRoot);
+    return getChangedFilesGit(base, head, repositoryRoot, token);
+  }
+
+  core.info(`GitHub API returned ${apiFiles.length} changed file(s).`);
+  return apiFiles;
+}
+
+async function getChangedFilesForMergeGroupWithFallback(
+  octokit: OctokitType,
+  owner: string,
+  repo: string,
+  base: string,
+  head: string,
+  repositoryRoot: string,
+  token: string,
+): Promise<string[]> {
+  core.info("Fetching changed files via GitHub API (merge_group).");
+
+  let apiFiles: string[];
+  try {
+    apiFiles = await getChangedFilesForMergeGroup(
+      octokit,
+      owner,
+      repo,
+      base,
+      head,
+    );
+  } catch (err) {
+    core.warning(
+      `GitHub API request for merge group files failed: ${err}. ` +
+        `Falling back to git diff (base: ${base}, head: ${head}).`,
+    );
+    return getChangedFilesGit(base, head, repositoryRoot, token);
   }
 
   core.info(`GitHub API returned ${apiFiles.length} changed file(s).`);

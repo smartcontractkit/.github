@@ -68346,17 +68346,18 @@ var core4 = __toESM(require_core());
 var import_child_process = require("child_process");
 var import_util3 = require("util");
 var execFileAsync = (0, import_util3.promisify)(import_child_process.execFile);
-async function getChangedFilesGit(base, head, directory = process.cwd()) {
+async function getChangedFilesGit(base, head, directory = process.cwd(), token) {
   core4.info(
     `Getting changed files between ${base} and ${head} in ${directory}`
   );
   let resolvedHead = await resolveCommitish(head, directory);
   let resolvedBase = await resolveCommitish(base, directory);
   if (!resolvedHead || !resolvedBase) {
+    const missing = [resolvedBase ? null : base, resolvedHead ? null : head].filter((ref) => Boolean(ref)).join(", ");
     core4.warning(
-      `Head ("${head}") or Base ("${base}") could not be resolved. Attempting to pull latest changes and retry...`
+      `Head ("${head}") or Base ("${base}") could not be resolved. Attempting shallow fetch of missing refs (${missing}) from origin...`
     );
-    await gitPull(directory);
+    await gitFetchMissingRefs(base, head, directory, token);
     resolvedHead = resolvedHead || await resolveCommitish(head, directory);
     resolvedBase = resolvedBase || await resolveCommitish(base, directory);
   }
@@ -68376,6 +68377,33 @@ async function getChangedFilesGit(base, head, directory = process.cwd()) {
   );
   return changedFiles.split("\n").filter(Boolean);
 }
+async function gitFetchMissingRefs(base, head, directory, token) {
+  const refs = [];
+  if (!await resolveCommitish(base, directory)) refs.push(base);
+  if (!await resolveCommitish(head, directory)) refs.push(head);
+  if (refs.length === 0) {
+    return;
+  }
+  core4.info(`Fetching missing refs from origin: ${refs.join(", ")}`);
+  const args = ["fetch", "origin", "--depth=1", "--", ...refs];
+  const options = { cwd: directory };
+  if (token) {
+    const auth2 = Buffer.from(`x-access-token:${token}`).toString("base64");
+    options.env = {
+      ...process.env,
+      GIT_CONFIG_COUNT: "1",
+      GIT_CONFIG_KEY_0: "http.extraheader",
+      GIT_CONFIG_VALUE_0: `AUTHORIZATION: basic ${auth2}`
+    };
+  }
+  try {
+    await execFileAsync("git", args, options);
+    core4.info(`Successfully fetched missing refs from origin`);
+  } catch (err) {
+    core4.error(`Failed to fetch missing refs from origin: ${err}`);
+    throw new Error(`Failed to fetch missing refs from origin: ${err}`);
+  }
+}
 async function resolveCommitish(ref, directory) {
   if (!ref || /\s/.test(ref) || ref.includes("..")) return null;
   try {
@@ -68387,16 +68415,6 @@ async function resolveCommitish(ref, directory) {
     return stdout.trim();
   } catch {
     return null;
-  }
-}
-async function gitPull(directory) {
-  core4.info(`Attempting to pull latest changes in ${directory}...`);
-  try {
-    await execFileAsync("git", ["pull"], { cwd: directory });
-    core4.info(`Successfully pulled latest changes in ${directory}`);
-  } catch (err) {
-    core4.error(`Failed to pull latest changes in ${directory}: ${err}`);
-    throw new Error(`Failed to pull latest changes: ${err}`);
   }
 }
 
@@ -68411,6 +68429,29 @@ async function getChangedFilesForPR(octokit, owner, repo, prNumber) {
     per_page: 100
   });
   return prFiles;
+}
+async function getChangedFilesForMergeGroup(octokit, owner, repo, base, head) {
+  core5.debug(
+    `Fetching changed files for ${owner}/${repo} merge group ${base}...${head}`
+  );
+  const res = await octokit.rest.repos.compareCommits({
+    owner,
+    repo,
+    base,
+    head,
+    per_page: 100
+  });
+  if (!res.data.files) {
+    throw new Error(
+      `GitHub compareCommits API did not return a files list for ${base}...${head}`
+    );
+  }
+  if (res.data.files.length >= 300) {
+    throw new Error(
+      `GitHub compareCommits returned ${res.data.files.length} files (hit 300 limit).`
+    );
+  }
+  return res.data.files.map((f) => f.filename);
 }
 
 // actions/advanced-triggers/src/run.ts
@@ -68478,7 +68519,8 @@ async function run() {
         octokit,
         { owner: context3.owner, repo: context3.repo },
         context3.event,
-        inputs.repositoryRoot
+        inputs.repositoryRoot,
+        context3.token
       );
       core6.info(`Changed files count: ${changedFiles.length}`);
       if (core6.isDebug()) {
@@ -68530,7 +68572,7 @@ async function run() {
   }
 }
 var PR_FILES_API_LIMIT = 3e3;
-async function getChangedFiles(octokit, { owner, repo }, event, repositoryRoot) {
+async function getChangedFiles(octokit, { owner, repo }, event, repositoryRoot, token) {
   switch (event.eventName) {
     case "pull_request": {
       return getChangedFilesForPRWithFallback(
@@ -68540,23 +68582,31 @@ async function getChangedFiles(octokit, { owner, repo }, event, repositoryRoot) 
         event.prNumber,
         event.base,
         event.head,
-        repositoryRoot
+        repositoryRoot,
+        token
       );
     }
     case "push": {
       core6.info("Fetching changed files via git diff (push).");
-      return getChangedFilesGit(event.base, event.head, repositoryRoot);
+      return getChangedFilesGit(event.base, event.head, repositoryRoot, token);
     }
     case "merge_group": {
-      core6.info("Fetching changed files via git diff (merge_group).");
-      return getChangedFilesGit(event.base, event.head, repositoryRoot);
+      return getChangedFilesForMergeGroupWithFallback(
+        octokit,
+        owner,
+        repo,
+        event.base,
+        event.head,
+        repositoryRoot,
+        token
+      );
     }
     default:
       event;
       throw new Error(`Unhandled event: ${JSON.stringify(event)}`);
   }
 }
-async function getChangedFilesForPRWithFallback(octokit, owner, repo, prNumber, base, head, repositoryRoot) {
+async function getChangedFilesForPRWithFallback(octokit, owner, repo, prNumber, base, head, repositoryRoot, token) {
   core6.info("Fetching changed files via GitHub API (pull_request).");
   let apiFiles;
   try {
@@ -68566,13 +68616,33 @@ async function getChangedFilesForPRWithFallback(octokit, owner, repo, prNumber, 
     core6.warning(
       `GitHub API request for PR files failed: ${err}. Falling back to git diff (base: ${base}, head: ${head}).`
     );
-    return getChangedFilesGit(base, head, repositoryRoot);
+    return getChangedFilesGit(base, head, repositoryRoot, token);
   }
   if (apiFiles.length >= PR_FILES_API_LIMIT) {
     core6.warning(
       `GitHub API returned ${apiFiles.length} files, which meets or exceeds the known API limit of ${PR_FILES_API_LIMIT}. The list may be truncated. Falling back to git diff (base: ${base}, head: ${head}).`
     );
-    return getChangedFilesGit(base, head, repositoryRoot);
+    return getChangedFilesGit(base, head, repositoryRoot, token);
+  }
+  core6.info(`GitHub API returned ${apiFiles.length} changed file(s).`);
+  return apiFiles;
+}
+async function getChangedFilesForMergeGroupWithFallback(octokit, owner, repo, base, head, repositoryRoot, token) {
+  core6.info("Fetching changed files via GitHub API (merge_group).");
+  let apiFiles;
+  try {
+    apiFiles = await getChangedFilesForMergeGroup(
+      octokit,
+      owner,
+      repo,
+      base,
+      head
+    );
+  } catch (err) {
+    core6.warning(
+      `GitHub API request for merge group files failed: ${err}. Falling back to git diff (base: ${base}, head: ${head}).`
+    );
+    return getChangedFilesGit(base, head, repositoryRoot, token);
   }
   core6.info(`GitHub API returned ${apiFiles.length} changed file(s).`);
   return apiFiles;
