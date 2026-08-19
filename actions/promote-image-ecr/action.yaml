@@ -1,6 +1,6 @@
 name: Promote image between ECR registries
 description: |
-  Promote an image from one ECR registry to another, using cosign (default) or skopeo.
+  Promote an image from one ECR registry to another, using cosign.
   The action will assume the provided IAM roles to access the source and destination registries.
 
 inputs:
@@ -55,17 +55,11 @@ inputs:
     required: false
   images:
     description: |
-      JSON array of images to promote. Each object should have: sourceRepository, destinationRepository, sourceTag, destinationTag.
-      Example: [{"sourceRepository":"app1","destinationRepository":"app1","sourceTag":"v1.0","destinationTag":"v1.0"}]
-      If provided, this takes precedence over individual sourceRepository/destinationRepository/sourceTag/destinationTag inputs.
+      JSON array of images to promote. Each object should have: source_repository, destination_repository, source_tag, destination_tag.
+      Example: [{"source_repository":"app1","destination_repository":"app1","source_tag":"v1.0","destination_tag":"v1.0"}]
+      If provided, this takes precedence over the individual source-repository/destination-repository/source-tag/destination-tag inputs.
     required: false
     default: ""
-  copy-signatures:
-    description:
-      Use cosign to copy images (includes signatures and attestations). Set to
-      'false' to use skopeo instead.
-    required: false
-    default: "true"
 
 outputs:
   promoted-images:
@@ -112,13 +106,9 @@ runs:
         SOURCE_TAG: ${{ inputs.source-tag }}
         DESTINATION_TAG: ${{ inputs.destination-tag }}
         IMAGES_JSON: ${{ inputs.images }}
-        SKOPEO_ARGS: ${{ inputs.skopeo-additional-args }}
         SOURCE_AWS_REGION: ${{ inputs.source-aws-region || inputs.aws-region }}
         DESTINATION_AWS_REGION:
           ${{ inputs.destination-aws-region || inputs.aws-region }}
-        SRC_PASS: ${{ steps.src.outputs.password }}
-        DST_PASS: ${{ steps.dst.outputs.password }}
-        COPY_SIGNATURES: ${{ inputs.copy-signatures }}
         ACTION_PATH: ${{ github.action_path }}
       run: |
         "${ACTION_PATH}/scripts/promote-images.sh"
@@ -144,8 +134,8 @@ runs:
       if: always()
       shell: bash
       run: |
-        if [ -f /tmp/promotion-results/promoted-images.json ]; then
-          echo "promoted-images=$(cat /tmp/promotion-results/promoted-images.json)" >> $GITHUB_OUTPUT
+        if [ -f /tmp/promotion-results/promotion-results.json ]; then
+          echo "promoted-images=$(jq -c '.promotions' /tmp/promotion-results/promotion-results.json)" >> $GITHUB_OUTPUT
         else
           echo "promoted-images=[]" >> $GITHUB_OUTPUT
         fi
