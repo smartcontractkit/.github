@@ -616,7 +616,7 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Enable S3 Cache for Self-Hosted Runners
-        uses: runs-on/action@4e5f72399b6b17f2e79c511c1b38a315a64d22dc # v2.2.0
+        uses: runs-on/action@46910bf61b41721b0579f237e186afb35477007a # v2.3.0
 
       - uses: actions/checkout@v6
         id: checkout

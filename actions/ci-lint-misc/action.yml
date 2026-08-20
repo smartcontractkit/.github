@@ -26,7 +26,7 @@ runs:
         fetch-depth: ${{ inputs.checkout-repo-fetch-depth }}
 
     - name: Run actionlint
-      uses: reviewdog/action-actionlint@50842263c20a7c46bd0065b9e624d3c569db061e # v1.73.0
+      uses: reviewdog/action-actionlint@d63ba7532e0942965320cd8d73cbae4c7b3c5283 # v1.73.1
 
     - name: Run shellcheck
       uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # v2.0.0
