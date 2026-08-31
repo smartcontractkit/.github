@@ -63,6 +63,12 @@ jobs:
             dependabot && gomods tidy
         continue-on-error: true
 
+      - name: Install Nix
+        if: ${{ steps.bump.outcome == 'success' && contains(inputs.post-bump-command, 'nix') }}
+        uses: cachix/install-nix-action@02a151ada4993995686f9ed4f1be7cfbb229e56f # v31
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
       - name: Post-bump Command
         id: post-bump
         if: ${{ steps.bump.outcome == 'success' && inputs.post-bump-command != '' }}
