@@ -1,5 +1,17 @@
 # build-push-docker
 
+## 1.7.2
+
+### Patch Changes
+
+- [#1653](https://github.com/smartcontractkit/.github/pull/1653)
+  [`f6a20ba`](https://github.com/smartcontractkit/.github/commit/f6a20bad9635eb555ba0608040f46e86990ce4ef)
+  Thanks [@kalverra](https://github.com/kalverra)! - Fix cache-map input
+  description: recommend the object form with an explicit id matching the
+  Dockerfile cache mount id. The simple string form omits id, so BuildKit keys
+  the cache on the target path and never matches mounts that define an explicit
+  id.
+
 ## 1.7.1
 
 ### Patch Changes
