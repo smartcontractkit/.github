@@ -1,5 +1,23 @@
 # reusable-dependabump
 
+## 1.0.3
+
+### Patch Changes
+
+- [#1647](https://github.com/smartcontractkit/.github/pull/1647)
+  [`534c959`](https://github.com/smartcontractkit/.github/commit/534c9590a673739e70e901f9bbaf1c14a10c2513)
+  Thanks [@jmank88](https://github.com/jmank88)! - Improve slack notification
+  messages
+
+## 1.0.2
+
+### Patch Changes
+
+- [#1645](https://github.com/smartcontractkit/.github/pull/1645)
+  [`274cfbd`](https://github.com/smartcontractkit/.github/commit/274cfbdd18a82a4a7eb5d9ef7f5b1ea39f7bb53f)
+  Thanks [@jmank88](https://github.com/jmank88)! - Support nix based
+  port-bump-command
+
 ## 1.0.1
 
 ### Patch Changes

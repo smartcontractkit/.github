@@ -1,5 +1,16 @@
 # ctf-setup-run-tests-environment
 
+## 0.12.0
+
+### Minor Changes
+
+- [#1642](https://github.com/smartcontractkit/.github/pull/1642)
+  [`c8ded17`](https://github.com/smartcontractkit/.github/commit/c8ded17e2675d4359a9b1b9148bceaf51555cadf)
+  Thanks [@tvc-jaz](https://github.com/tvc-jaz)! - Remove the Bitnami Helm chart
+  repo from test env setup. The action no longer runs `helm repo add bitnami`;
+  CTF charts are provided through the `chainlink-qa` repository. Tests that
+  still require a Bitnami chart must add their own non-Bitnami source.
+
 ## 0.11.0
 
 ### Minor Changes
