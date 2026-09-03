@@ -1,0 +1,397 @@
+name: ci-grafana-alert-test
+description:
+  "CD quality gate: bookend a release with a live-recorded observation of
+  Grafana alerts (`record`) and fail the job if any watched alert was bad during
+  the window (`check`). Wraps the grafana-alertcheck CLI from
+  chainlink-testing-framework, built from source at run time via `go tool`
+  because no versioned release exists yet."
+
+inputs:
+  mode:
+    description:
+      "'record' (start the recorder) or 'check' (classify the window and exit)"
+    required: true
+  grafana-url:
+    description: "Base URL of the Grafana instance"
+    required: true
+  grafana-token:
+    description: "Grafana API token (secret)"
+    required: true
+  alerts:
+    description:
+      "One alert rule name per line. Required with mode: record. Refused with
+      mode: check — the recorded log already carries its own alert set."
+    required: false
+  ctf-ref:
+    description:
+      "git ref (commit SHA, tag, or branch) of
+      smartcontractkit/chainlink-testing-framework to build grafana-alertcheck
+      from. Pin this to a commit SHA for reproducible runs — there is no
+      versioned release yet, so a branch name here can change what runs
+      underneath you without warning."
+    required: true
+  go-version:
+    description:
+      "Go version passed to actions/setup-go (grafana-alertcheck needs >= 1.24
+      for `go tool`)"
+    required: false
+    default: stable
+  states:
+    description:
+      "Comma-separated bad states to classify against. mode: check only.
+      Default: firing"
+    required: false
+  from:
+    description:
+      "RFC3339 timestamp, explicit offset, of when the deploy landed. Required
+      with mode: check. Must come from the deploy step's own completion output,
+      never a wrapper step."
+    required: false
+  to:
+    description:
+      "RFC3339 timestamp of the end of the window. Mutually exclusive with
+      duration; give exactly one. mode: check only."
+    required: false
+  duration:
+    description:
+      "Go-style duration (e.g. 10m, 1h30m) added to `from` to compute `to` when
+      there is no distinct 'done' event. Mutually exclusive with `to`; give
+      exactly one. mode: check only."
+    required: false
+  preexisting:
+    description:
+      "fail-unless-recovered (default) | fail | ignore — how to judge an
+      instance already bad at `from`. mode: check only."
+    required: false
+  min-observed:
+    description:
+      "Minimum number of rules that must be observed. Default: every resolved
+      rule. mode: check only."
+    required: false
+  allow-paused:
+    description:
+      "Do not count a rule paused before the window against min-observed. mode:
+      check only."
+    required: false
+    default: "false"
+  nodata-is-unobservable:
+    description:
+      "Treat a sustained health=nodata as unobservable rather than a note. mode:
+      check only."
+    required: false
+    default: "false"
+  poll-interval:
+    description:
+      "Override every watched rule's poll cadence (Go duration, e.g. 30s).
+      Default: automatic, per rule. mode: record only."
+    required: false
+  concurrency:
+    description: "Maximum concurrent requests to Grafana"
+    required: false
+  folder:
+    description: "Default folder to scope an unqualified alert name to"
+    required: false
+  fail-on-violation:
+    description:
+      "Set to 'false' to stop a violation (exit 1) from failing the job. A
+      could-not-check result (exit 2) always fails the job regardless."
+    required: false
+    default: "true"
+
+outputs:
+  log-path:
+    description: "Path of the JSONL evidence log. mode: record only."
+    value: ${{ steps.record-outputs.outputs.log-path }}
+  pidfile:
+    description: "Path of the recorder's pidfile. mode: record only."
+    value: ${{ steps.record-outputs.outputs.pidfile }}
+  passed:
+    description: "'true' if the check exited 0. mode: check only."
+    value: ${{ steps.result.outputs.passed }}
+  violation-count:
+    description: "Number of violations. mode: check only."
+    value: ${{ steps.result.outputs.violation-count }}
+  violations:
+    description: "JSON array of violations. mode: check only."
+    value: ${{ steps.result.outputs.violations }}
+  outcomes:
+    description:
+      "JSON array of {alert, outcome} per resolved rule. mode: check only."
+    value: ${{ steps.result.outputs.outcomes }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate mode
+      shell: bash
+      env:
+        MODE: ${{ inputs.mode }}
+      run: |
+        case "$MODE" in
+          record|check) ;;
+          *)
+            echo "::error::ci-grafana-alert-test: mode must be 'record' or 'check', got '${MODE}'"
+            exit 1
+            ;;
+        esac
+
+    - name: Validate record inputs
+      if: inputs.mode == 'record'
+      shell: bash
+      env:
+        ALERTS: ${{ inputs.alerts }}
+      run: |
+        if [ -z "$ALERTS" ]; then
+          echo "::error::ci-grafana-alert-test: 'alerts' is required with mode: record"
+          exit 1
+        fi
+
+    - name: Resolve check window
+      if: inputs.mode == 'check'
+      id: window
+      shell: bash
+      env:
+        ALERTS: ${{ inputs.alerts }}
+        FROM: ${{ inputs.from }}
+        TO: ${{ inputs.to }}
+        DURATION: ${{ inputs.duration }}
+      run: |
+        if [ -n "$ALERTS" ]; then
+          echo "::error::ci-grafana-alert-test: 'alerts' is refused with mode: check — the recorded log already carries its own alert set"
+          exit 1
+        fi
+        if [ -z "$FROM" ]; then
+          echo "::error::ci-grafana-alert-test: 'from' is required with mode: check, and must come from the deploy step's own completion output"
+          exit 1
+        fi
+        if [ -z "$TO" ] && [ -z "$DURATION" ]; then
+          echo "::error::ci-grafana-alert-test: exactly one of 'to' or 'duration' is required with mode: check"
+          exit 1
+        fi
+        if [ -n "$TO" ] && [ -n "$DURATION" ]; then
+          echo "::error::ci-grafana-alert-test: 'to' and 'duration' are mutually exclusive — give exactly one"
+          exit 1
+        fi
+
+        if [ -n "$TO" ]; then
+          echo "to=$TO" >> "$GITHUB_OUTPUT"
+        else
+          remaining="$DURATION"
+          total=0
+          while [ -n "$remaining" ]; do
+            if [[ "$remaining" =~ ^([0-9]+)(h|m|s) ]]; then
+              n="${BASH_REMATCH[1]}"
+              u="${BASH_REMATCH[2]}"
+              case "$u" in
+                h) total=$((total + n * 3600)) ;;
+                m) total=$((total + n * 60)) ;;
+                s) total=$((total + n)) ;;
+              esac
+              remaining="${remaining#"${BASH_REMATCH[0]}"}"
+            else
+              echo "::error::ci-grafana-alert-test: 'duration' must use h/m/s units (e.g. 10m, 1h30m), got '$DURATION'"
+              exit 1
+            fi
+          done
+          if [ "$total" -le 0 ]; then
+            echo "::error::ci-grafana-alert-test: 'duration' must be positive, got '$DURATION'"
+            exit 1
+          fi
+          from_epoch=$(date -u -d "$FROM" +%s) || {
+            echo "::error::ci-grafana-alert-test: 'from' must be RFC3339 with an explicit offset, got '$FROM'"
+            exit 1
+          }
+          to_epoch=$((from_epoch + total))
+          echo "to=$(date -u -d "@$to_epoch" +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Set up Go
+      uses: actions/setup-go@v7
+      with:
+        go-version: ${{ inputs.go-version }}
+        cache: false
+
+    - name: Install grafana-alertcheck via go tool
+      shell: bash
+      env:
+        CTF_REF: ${{ inputs.ctf-ref }}
+        TOOLDIR: ${{ runner.temp }}/grafana-alert-gate/toolmod
+      run: |
+        mkdir -p "$TOOLDIR"
+        cd "$TOOLDIR"
+        if [ ! -f go.mod ]; then
+          go mod init grafana-alert-gate-tool
+        fi
+        go get -tool "github.com/smartcontractkit/chainlink-testing-framework/grafana-alertcheck/cmd/grafana-alertcheck@${CTF_REF}"
+
+    - name: Write alert list
+      if: inputs.mode == 'record'
+      id: alerts-file
+      shell: bash
+      env:
+        ALERTS: ${{ inputs.alerts }}
+        GATE_DIR: ${{ runner.temp }}/grafana-alert-gate
+      run: |
+        mkdir -p "$GATE_DIR"
+        printf '%s\n' "$ALERTS" > "$GATE_DIR/alerts.txt"
+        echo "path=$GATE_DIR/alerts.txt" >> "$GITHUB_OUTPUT"
+
+    - name: Run grafana-alertcheck watch
+      if: inputs.mode == 'record'
+      shell: bash
+      working-directory: ${{ runner.temp }}/grafana-alert-gate/toolmod
+      env:
+        GRAFANA_URL: ${{ inputs.grafana-url }}
+        GRAFANA_TOKEN: ${{ inputs.grafana-token }}
+        OUT: ${{ runner.temp }}/grafana-alert-gate/log.jsonl
+        ALERTS_FILE: ${{ steps.alerts-file.outputs.path }}
+        FOLDER: ${{ inputs.folder }}
+        CONCURRENCY: ${{ inputs.concurrency }}
+        POLL_INTERVAL: ${{ inputs.poll-interval }}
+      run: |
+        args=(watch --out "$OUT" --alerts "$ALERTS_FILE")
+        [ -n "$FOLDER" ] && args+=(--folder "$FOLDER")
+        [ -n "$CONCURRENCY" ] && args+=(--concurrency "$CONCURRENCY")
+        [ -n "$POLL_INTERVAL" ] && args+=(--poll-interval "$POLL_INTERVAL")
+        go tool grafana-alertcheck "${args[@]}"
+
+    - name: Set record outputs
+      if: inputs.mode == 'record'
+      id: record-outputs
+      shell: bash
+      run: |
+        echo "log-path=${{ runner.temp }}/grafana-alert-gate/log.jsonl" >> "$GITHUB_OUTPUT"
+        echo "pidfile=${{ runner.temp }}/grafana-alert-gate/log.jsonl.pid" >> "$GITHUB_OUTPUT"
+
+    - name: Run grafana-alertcheck check
+      if: inputs.mode == 'check'
+      id: run-check
+      shell: bash
+      working-directory: ${{ runner.temp }}/grafana-alert-gate/toolmod
+      env:
+        GRAFANA_URL: ${{ inputs.grafana-url }}
+        GRAFANA_TOKEN: ${{ inputs.grafana-token }}
+        LOG_PATH: ${{ runner.temp }}/grafana-alert-gate/log.jsonl
+        RESULT_PATH: ${{ runner.temp }}/grafana-alert-gate/result.json
+        FROM: ${{ inputs.from }}
+        TO: ${{ steps.window.outputs.to }}
+        STATES: ${{ inputs.states }}
+        PREEXISTING: ${{ inputs.preexisting }}
+        MIN_OBSERVED: ${{ inputs.min-observed }}
+        ALLOW_PAUSED: ${{ inputs.allow-paused }}
+        NODATA_UNOBSERVABLE: ${{ inputs.nodata-is-unobservable }}
+        FOLDER: ${{ inputs.folder }}
+        CONCURRENCY: ${{ inputs.concurrency }}
+      run: |
+        args=(check --in "$LOG_PATH" --from "$FROM" --to "$TO" --output json)
+        [ -n "$STATES" ] && args+=(--states "$STATES")
+        [ -n "$PREEXISTING" ] && args+=(--preexisting "$PREEXISTING")
+        [ -n "$MIN_OBSERVED" ] && args+=(--min-observed "$MIN_OBSERVED")
+        [ "$ALLOW_PAUSED" = "true" ] && args+=(--allow-paused)
+        [ "$NODATA_UNOBSERVABLE" = "true" ] && args+=(--nodata-is-unobservable)
+        [ -n "$FOLDER" ] && args+=(--folder "$FOLDER")
+        [ -n "$CONCURRENCY" ] && args+=(--concurrency "$CONCURRENCY")
+
+        set +e
+        go tool grafana-alertcheck "${args[@]}" >"$RESULT_PATH" 2>"$RESULT_PATH.stderr"
+        code=$?
+        set -e
+
+        cat "$RESULT_PATH.stderr" >&2 || true
+        echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+
+    - name: Write step summary
+      if: always() && inputs.mode == 'check'
+      shell: bash
+      env:
+        RESULT_PATH: ${{ runner.temp }}/grafana-alert-gate/result.json
+      run: |
+        {
+          echo "### Grafana alert gate"
+          echo
+          if [ -s "$RESULT_PATH" ]; then
+            table=$(jq -r '
+              def esc: tostring | gsub("\\|"; "\\|");
+              (.Violations // []) as $v
+              | (.Verdicts // [])[]
+              | . as $r
+              | ($v | map(select(.RuleUID == $r.RuleUID)) | .[0]) as $viol
+              | [
+                  $r.Alert,
+                  $r.Outcome,
+                  ($viol.State // "-"),
+                  ($viol.Health // "-"),
+                  (($viol.LastError // "-") | .[0:120]),
+                  (($r.BadFor / 1000000000 | tostring) + "s"),
+                  (($r.Note // $viol.Note) // "-")
+                ] | map(esc) | "| " + (join(" | ")) + " |"
+            ' "$RESULT_PATH")
+            if [ "${#table}" -gt 1000000 ]; then
+              table="${table:0:1000000}"$'\n'"(truncated near 1 MB)"
+            fi
+            echo "| Alert | Outcome | State | Health | Last error | Bad for | Note |"
+            echo "|---|---|---|---|---|---|---|"
+            echo "$table"
+          else
+            echo "_No result was produced — the gate could not run to completion. See the job log._"
+          fi
+        } >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Upload evidence log
+      if:
+        always() && inputs.mode == 'check' && steps.run-check.outputs.exit-code
+        != '0'
+      uses: actions/upload-artifact@v7
+      with:
+        name:
+          grafana-alert-gate-log-${{ github.run_id }}-${{ github.run_attempt }}
+        path: ${{ runner.temp }}/grafana-alert-gate/log.jsonl
+        if-no-files-found: warn
+
+    - name: Set check outputs
+      if: always() && inputs.mode == 'check'
+      id: result
+      shell: bash
+      env:
+        RESULT_PATH: ${{ runner.temp }}/grafana-alert-gate/result.json
+        EXIT_CODE: ${{ steps.run-check.outputs.exit-code }}
+      run: |
+        if [ "$EXIT_CODE" = "0" ]; then passed=true; else passed=false; fi
+        if [ -s "$RESULT_PATH" ]; then
+          violation_count=$(jq '(.Violations // []) | length' "$RESULT_PATH")
+          violations=$(jq -c '.Violations // []' "$RESULT_PATH")
+          outcomes=$(jq -c '[(.Verdicts // [])[] | {alert: .Alert, outcome: .Outcome}]' "$RESULT_PATH")
+        else
+          violation_count=0
+          violations='[]'
+          outcomes='[]'
+        fi
+        echo "passed=$passed" >> "$GITHUB_OUTPUT"
+        echo "violation-count=$violation_count" >> "$GITHUB_OUTPUT"
+        echo "violations=$violations" >> "$GITHUB_OUTPUT"
+        echo "outcomes=$outcomes" >> "$GITHUB_OUTPUT"
+
+    - name: Enforce gate result
+      if: inputs.mode == 'check'
+      shell: bash
+      env:
+        EXIT_CODE: ${{ steps.run-check.outputs.exit-code }}
+        FAIL_ON_VIOLATION: ${{ inputs.fail-on-violation }}
+      run: |
+        case "$EXIT_CODE" in
+          0)
+            exit 0
+            ;;
+          1)
+            if [ "$FAIL_ON_VIOLATION" != "false" ]; then
+              echo "::error::ci-grafana-alert-test: the release window contains a violation"
+              exit 1
+            fi
+            echo "::warning::ci-grafana-alert-test: violations detected; fail-on-violation is false so the job continues"
+            exit 0
+            ;;
+          *)
+            echo "::error::ci-grafana-alert-test: could not complete the check (exit ${EXIT_CODE}) — this is a could-not-check result and always fails the job regardless of fail-on-violation"
+            exit 1
+            ;;
+        esac
