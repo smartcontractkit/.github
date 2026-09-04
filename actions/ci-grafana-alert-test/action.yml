@@ -293,11 +293,10 @@ runs:
         [ -n "$CONCURRENCY" ] && args+=(--concurrency "$CONCURRENCY")
 
         set +e
-        go tool grafana-alertcheck "${args[@]}" >"$RESULT_PATH" 2>"$RESULT_PATH.stderr"
+        go tool grafana-alertcheck "${args[@]}" >"$RESULT_PATH" 2> >(tee "$RESULT_PATH.stderr" >&2)
         code=$?
         set -e
 
-        cat "$RESULT_PATH.stderr" >&2 || true
         echo "exit-code=$code" >> "$GITHUB_OUTPUT"
 
     - name: Write step summary
