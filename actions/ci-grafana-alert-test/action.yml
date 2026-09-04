@@ -259,9 +259,11 @@ runs:
       if: inputs.mode == 'record'
       id: record-outputs
       shell: bash
+      env:
+        GATE_DIR: ${{ runner.temp }}/grafana-alert-gate
       run: |
-        echo "log-path=${{ runner.temp }}/grafana-alert-gate/log.jsonl" >> "$GITHUB_OUTPUT"
-        echo "pidfile=${{ runner.temp }}/grafana-alert-gate/log.jsonl.pid" >> "$GITHUB_OUTPUT"
+        echo "log-path=$GATE_DIR/log.jsonl" >> "$GITHUB_OUTPUT"
+        echo "pidfile=$GATE_DIR/log.jsonl.pid" >> "$GITHUB_OUTPUT"
 
     - name: Run grafana-alertcheck check
       if: inputs.mode == 'check'
