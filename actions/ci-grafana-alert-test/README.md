@@ -1,9 +1,9 @@
 # ci-grafana-alert-test
 
 A CD quality gate for Grafana alerts. It bookends a release with two calls to
-this action — `record` before the deploy, `check` after the work is done — and
-answers one question: _was any watched alert in a bad state at any point during
-the release window?_
+this action — `record` before the deploy or tests, `check` after the work is
+done — and answers one question: _was any watched alert in a bad state at any
+point during the release window?_
 
 It wraps the
 [`grafana-alertcheck`](https://github.com/smartcontractkit/chainlink-testing-framework/tree/main/grafana-alertcheck)
@@ -69,6 +69,31 @@ evidence log is **uploaded, never downloaded** — so a rerun cannot replay old
 evidence to pass. A second attempt legitimately relabeling the same commit
 `newly_bad` on attempt 1 and `persistently_bad` on attempt 2 is correct, not a
 bug — the exit code is the same, the label is more accurate.
+
+## Deploy and test in separate jobs
+
+`record` and `check` would ideally live in one job on one runner, because
+`check` finds the recorded log by convention on the local filesystem. If your
+deploy and your verification/test work run in **different jobs**, you have to
+choose where the gate lives, and that choice trades off against coverage:
+
+- **Record/check in the deploy job only** — the window observes the deploy and
+  whatever falls inside its `duration`. Whether it also covers your test job's
+  activity depends entirely on how long the gate runs versus when (and how long)
+  the test job runs; there is no automated way to know for sure, so any alert
+  that fires under test traffic could fall just outside the window.
+- **Record/check in the test job only** — there is a **blind window** between
+  the deployment becoming ready and the test job's recorder starting. Alerts
+  that fire in that span are never seen.
+
+There is no way to shrink that blind window by leaning on one job alone — the
+recorder cannot see back in time, it can only watch from the moment it starts.
+The way to get **zero gap** is to run the gate in **both** jobs: each job
+records its own window, and as long as the deploy job's window end overlaps (or
+touches) the test job's window start, the two observations together cover the
+whole span with no uncovered interval. The price is two overlapping windows to
+classify and, when the same alert fires across the boundary, two violations to
+reconcile — but that is strictly better than a silent gap.
 
 ## Timing
 
