@@ -40,9 +40,9 @@ inputs:
     required: false
   duration:
     description:
-      "Go-style duration (e.g. 10m, 1h30m) added to `from` to compute `to` when
-      there is no distinct 'done' event. Mutually exclusive with `to`; give
-      exactly one. mode: check only."
+      "Duration expressed as one or more integer h/m/s segments (e.g. 10m,
+      1h30m) added to `from` to compute `to` when there is no distinct 'done'
+      event. Mutually exclusive with `to`; give exactly one. mode: check only."
     required: false
   preexisting:
     description:
@@ -114,7 +114,7 @@ runs:
       env:
         RELEASE_VERSION: v0.1.0
       run: |
-        echo "version=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
+        echo "version=$RELEASE_VERSION" | tee -a "$GITHUB_OUTPUT"
 
     - name: Validate mode
       shell: bash
@@ -191,12 +191,9 @@ runs:
             echo "::error::ci-grafana-alert-test: 'duration' must be positive, got '$DURATION'"
             exit 1
           fi
-          from_epoch=$(date -u -d "$FROM" +%s) || {
-            echo "::error::ci-grafana-alert-test: 'from' must be RFC3339 with an explicit offset, got '$FROM'"
-            exit 1
-          }
-          to_epoch=$((from_epoch + total))
-          echo "to=$(date -u -d "@$to_epoch" +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+          # use python intead of bash, so that it works both on Linux and Darwin
+          to=$(python3 -c 'import sys, datetime; d = datetime.datetime.fromisoformat(sys.argv[1].replace("Z", "+00:00")); print((d + datetime.timedelta(seconds=int(sys.argv[2]))).astimezone(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))' "$FROM" "$total")
+          echo "to=$to" >> "$GITHUB_OUTPUT"
         fi
 
     - name: Install grafana-alertcheck from release

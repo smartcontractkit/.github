@@ -7,11 +7,9 @@ point during the release window?_
 
 It wraps the
 [`grafana-alertcheck`](https://github.com/smartcontractkit/chainlink-testing-framework/tree/main/grafana-alertcheck)
-CLI from `chainlink-testing-framework`. There is no versioned release of that
-CLI yet, so this action builds it from source at run time with `go tool` (Go >=
-1.24's native tool-dependency support) rather than downloading a release asset.
-**Pin `ctf-ref` to a commit SHA** once you depend on this in a real pipeline — a
-branch name will silently change what runs underneath you.
+CLI from `chainlink-testing-framework`. The action downloads a prebuilt release
+binary rather than compiling from source — the version is pinned in one place in
+the action and bumped by editing that single line when a new release ships.
 
 ## Usage
 
@@ -24,7 +22,6 @@ branch name will silently change what runs underneath you.
     alerts: |
       My Service Latency
       My Service Error Rate
-    ctf-ref: <commit-sha>
 
 - id: deploy
   run: ./deploy.sh # emits deployed_at=<RFC3339> when the rollout is stable
@@ -37,7 +34,6 @@ branch name will silently change what runs underneath you.
     mode: check
     grafana-url: ${{ vars.GRAFANA_URL }}
     grafana-token: ${{ secrets.GRAFANA_TOKEN }}
-    ctf-ref: <commit-sha>
     from: ${{ steps.deploy.outputs.deployed_at }}
     to: ${{ steps.work.outputs.finished_at }} # ...or `duration: 10m` when there is no done event — never both
 ```
@@ -131,7 +127,6 @@ ones worth calling out:
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `mode`                     | `record` or `check`                                                                                                                          |
 | `alerts`                   | One alert name per line. `record` only — `check` reads the set from the recorded log, and giving both is an error                            |
-| `ctf-ref`                  | git ref of `chainlink-testing-framework` to build `grafana-alertcheck` from. **Pin to a commit SHA**                                         |
 | `from` / `to` / `duration` | `check` only. `from` is when the deploy landed; `to` is when the work ended; `duration` replaces `to` when there is no distinct "done" event |
 | `fail-on-violation`        | Default `true`. Stops exit 1 only, never exit 2                                                                                              |
 
@@ -144,4 +139,7 @@ convention, so you never need to wire them through yourself. `check` sets
 
 ## Runner requirements
 
-Linux (`ubuntu-*`) runners only — the window arithmetic uses GNU `date`.
+Linux (`ubuntu-*`) and macOS runners, `amd64` or `arm64`. The release provides
+no other platform binaries, and the window arithmetic relies on `python3`
+(available on GitHub-hosted runners) rather than GNU `date`, so it works on both
+OSes.
