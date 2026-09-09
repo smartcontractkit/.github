@@ -4,9 +4,9 @@
 # Add @smartcontractkit/devex-cicd to all other
 # entries for managing dependency bumps.
 
-# cl-orchestration
-/actions/crib-*/** @smartcontractkit/cl-orchestration @smartcontractkit/devex-cicd
-/actions/devenv-*/** @smartcontractkit/cl-orchestration @smartcontractkit/devex-cicd
+# rane
+/actions/crib-*/** @smartcontractkit/rane @smartcontractkit/devex-cicd
+/actions/devenv-*/** @smartcontractkit/rane @smartcontractkit/devex-cicd
 
 # data-tooling
 /actions/chip-schema-registration/ @smartcontractkit/data-tooling @smartcontractkit/devex-cicd

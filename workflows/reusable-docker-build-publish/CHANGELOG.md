@@ -1,5 +1,18 @@
 # reusable-docker-build-publish
 
+## 1.8.0
+
+### Minor Changes
+
+- [#1653](https://github.com/smartcontractkit/.github/pull/1653)
+  [`f6a20ba`](https://github.com/smartcontractkit/.github/commit/f6a20bad9635eb555ba0608040f46e86990ce4ef)
+  Thanks [@kalverra](https://github.com/kalverra)! - Add `docker-cache-map`
+  input, passed through to build-push-docker's `cache-map`. Set it to restrict
+  buildkit-cache-dance to specific cache mounts (e.g.
+  `'{"cache-mount/go-build-cache": {"id": "go-build-cache", "target": "/var/cache-target"}}'`)
+  instead of auto-discovering all cache mounts in the Dockerfile. Omit to keep
+  auto-discovery.
+
 ## 1.7.0
 
 ### Minor Changes

@@ -146,6 +146,17 @@ on:
         required: false
         type: string
         default: "write-on-trunk"
+      docker-cache-map:
+        description: |
+          JSON string mapping cache mount paths/names for buildkit-cache-dance, passed
+          through to build-push-docker's cache-map. Use the object form with an explicit
+          id matching the Dockerfile's cache mount id, e.g.
+          '{"cache-mount/go-build-cache": {"id": "go-build-cache", "target": "/var/cache-target"}}'.
+          Restricts cache-dance to only the listed mounts; if omitted, all cache mounts
+          are discovered from the Dockerfile.
+        required: false
+        type: string
+        default: ""
       docker-build-context:
         description: "Path to Docker build context."
         required: true
@@ -433,7 +444,7 @@ jobs:
       docker-build-cache-from: ${{ steps.should-cache.outputs.docker-build-cache-from }}
       docker-cache-suffix: ${{ steps.should-cache.outputs.docker-cache-suffix }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
           fetch-depth: 1
@@ -612,9 +623,9 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Enable S3 Cache for Self-Hosted Runners
-        uses: runs-on/action@4e5f72399b6b17f2e79c511c1b38a315a64d22dc # v2.2.0
+        uses: runs-on/action@efac073ea2507ec18797de3a81704201ade11d9d # v2.3.1
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         id: checkout
         with:
           persist-credentials: false
@@ -776,6 +787,7 @@ jobs:
           docker-save-cache: ${{ needs.init.outputs.docker-save-cache }}
           docker-build-cache-to: ${{ needs.init.outputs.docker-build-cache-to }},scope=${{ steps.compute-cache-scope.outputs.scope }}
           docker-build-cache-from: ${{ needs.init.outputs.docker-build-cache-from }},scope=${{ steps.compute-cache-scope.outputs.scope }}
+          cache-map: ${{ inputs.docker-cache-map }}
           context: ${{ inputs.docker-build-context }}
           docker-build-contexts: ${{ inputs.docker-build-contexts }}
           docker-push: ${{ inputs.docker-push }}
