@@ -1,5 +1,24 @@
 # reusable-docker-build-publish
 
+## 1.8.1
+
+### Patch Changes
+
+- [#1656](https://github.com/smartcontractkit/.github/pull/1656)
+  [`61692af`](https://github.com/smartcontractkit/.github/commit/61692afe544674ab0370ce7b06458697ee612f99)
+  Thanks [@HashWrangler](https://github.com/HashWrangler)! - Set
+  `fail-fast: false` on the `build-publish` arch matrix.
+
+  Each arch pushes its own per-arch tag before the manifest is assembled. With
+  fail-fast enabled, a transient failure in one arch cancels the other _after_
+  it has already pushed, leaving the image half-published: the surviving arch's
+  tag exists, the manifest does not, and every retry then fails the "tags
+  already exist in ECR" pre-check. That state cannot be recovered by re-running,
+  only by deleting the orphaned tag or bumping the version.
+
+  Letting both arches run to completion means a flake in one can be re-run on
+  its own and the manifest step can finish.
+
 ## 1.8.0
 
 ### Minor Changes
