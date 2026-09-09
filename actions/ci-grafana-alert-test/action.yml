@@ -3,8 +3,8 @@ description:
   "CD quality gate: bookend a release with a live-recorded observation of
   Grafana alerts (`record`) and fail the job if any watched alert was bad during
   the window (`check`). Wraps the grafana-alertcheck CLI from
-  chainlink-testing-framework, built from source at run time via `go tool`
-  because no versioned release exists yet."
+  chainlink-testing-framework, downloaded as a prebuilt binary from the released
+  `grafana-alertcheck/v0.1.0` version."
 
 inputs:
   mode:
@@ -22,20 +22,6 @@ inputs:
       "One alert rule name per line. Required with mode: record. Refused with
       mode: check — the recorded log already carries its own alert set."
     required: false
-  ctf-ref:
-    description:
-      "git ref (commit SHA, tag, or branch) of
-      smartcontractkit/chainlink-testing-framework to build grafana-alertcheck
-      from. Pin this to a commit SHA for reproducible runs — there is no
-      versioned release yet, so a branch name here can change what runs
-      underneath you without warning."
-    required: true
-  go-version:
-    description:
-      "Go version passed to actions/setup-go (grafana-alertcheck needs >= 1.24
-      for `go tool`)"
-    required: false
-    default: stable
   states:
     description:
       "Comma-separated bad states to classify against. mode: check only.
@@ -122,6 +108,14 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Resolve release version
+      id: version
+      shell: bash
+      env:
+        RELEASE_VERSION: v0.1.0
+      run: |
+        echo "version=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
+
     - name: Validate mode
       shell: bash
       env:
@@ -205,24 +199,27 @@ runs:
           echo "to=$(date -u -d "@$to_epoch" +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
         fi
 
-    - name: Set up Go
-      uses: actions/setup-go@v7
-      with:
-        go-version: ${{ inputs.go-version }}
-        cache: false
-
-    - name: Install grafana-alertcheck via go tool
+    - name: Install grafana-alertcheck from release
+      id: install
       shell: bash
       env:
-        CTF_REF: ${{ inputs.ctf-ref }}
-        TOOLDIR: ${{ runner.temp }}/grafana-alert-gate/toolmod
+        VERSION: ${{ steps.version.outputs.version }}
+        BIN_DIR: ${{ runner.temp }}/grafana-alert-gate/bin
       run: |
-        mkdir -p "$TOOLDIR"
-        cd "$TOOLDIR"
-        if [ ! -f go.mod ]; then
-          go mod init grafana-alert-gate-tool
-        fi
-        go get -tool "github.com/smartcontractkit/chainlink-testing-framework/grafana-alertcheck/cmd/grafana-alertcheck@${CTF_REF}"
+        case "$RUNNER_OS" in
+          Linux) os="linux" ;;
+          macOS) os="darwin" ;;
+          *) echo "::error::ci-grafana-alert-test: unsupported runner OS '${RUNNER_OS}'"; exit 1 ;;
+        esac
+        case "$RUNNER_ARCH" in
+          X64) arch="amd64" ;;
+          ARM64) arch="arm64" ;;
+          *) echo "::error::ci-grafana-alert-test: unsupported runner arch '${RUNNER_ARCH}'"; exit 1 ;;
+        esac
+        mkdir -p "$BIN_DIR"
+        url="https://github.com/smartcontractkit/chainlink-testing-framework/releases/download/grafana-alertcheck%2F${VERSION}/grafana-alertcheck-${VERSION}-${os}-${arch}.tar.gz"
+        curl -fsSL "$url" | tar xz -C "$BIN_DIR"
+        echo "path=$BIN_DIR/grafana-alertcheck" >> "$GITHUB_OUTPUT"
 
     - name: Write alert list
       if: inputs.mode == 'record'
@@ -239,8 +236,8 @@ runs:
     - name: Run grafana-alertcheck watch
       if: inputs.mode == 'record'
       shell: bash
-      working-directory: ${{ runner.temp }}/grafana-alert-gate/toolmod
       env:
+        BIN: ${{ steps.install.outputs.path }}
         GRAFANA_URL: ${{ inputs.grafana-url }}
         GRAFANA_TOKEN: ${{ inputs.grafana-token }}
         OUT: ${{ runner.temp }}/grafana-alert-gate/log.jsonl
@@ -253,7 +250,7 @@ runs:
         [ -n "$FOLDER" ] && args+=(--folder "$FOLDER")
         [ -n "$CONCURRENCY" ] && args+=(--concurrency "$CONCURRENCY")
         [ -n "$POLL_INTERVAL" ] && args+=(--poll-interval "$POLL_INTERVAL")
-        go tool grafana-alertcheck "${args[@]}"
+        "$BIN" "${args[@]}"
 
     - name: Set record outputs
       if: inputs.mode == 'record'
@@ -269,8 +266,8 @@ runs:
       if: inputs.mode == 'check'
       id: run-check
       shell: bash
-      working-directory: ${{ runner.temp }}/grafana-alert-gate/toolmod
       env:
+        BIN: ${{ steps.install.outputs.path }}
         GRAFANA_URL: ${{ inputs.grafana-url }}
         GRAFANA_TOKEN: ${{ inputs.grafana-token }}
         LOG_PATH: ${{ runner.temp }}/grafana-alert-gate/log.jsonl
@@ -295,7 +292,7 @@ runs:
         [ -n "$CONCURRENCY" ] && args+=(--concurrency "$CONCURRENCY")
 
         set +e
-        go tool grafana-alertcheck "${args[@]}" >"$RESULT_PATH" 2> >(tee "$RESULT_PATH.stderr" >&2)
+        "$BIN" "${args[@]}" >"$RESULT_PATH" 2> >(tee "$RESULT_PATH.stderr" >&2)
         code=$?
         set -e
 
