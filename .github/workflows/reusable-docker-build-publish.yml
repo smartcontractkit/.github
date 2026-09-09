@@ -615,6 +615,12 @@ jobs:
     runs-on: ${{ matrix.runner }}
     timeout-minutes: ${{ inputs.timeout }}
     strategy:
+      # Each arch pushes its own per-arch tag before the manifest is assembled,
+      # so cancelling a sibling mid-publish leaves the image half-published: the
+      # surviving arch's tag exists, the manifest does not, and every retry then
+      # trips the "tags already exist" guard. Let both arches finish so a
+      # transient failure in one can be re-run on its own.
+      fail-fast: false
       matrix:
         include: ${{ fromJson(needs.set-build-matrix.outputs.matrix) }}
     outputs:
