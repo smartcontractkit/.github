@@ -23,6 +23,7 @@ inputs:
   aws-region:
     description: AWS region. Required unless profile is set.
     required: false
+    default: "us-west-2"
   aws-role-duration-seconds:
     description: Duration of role in seconds
     required: false
