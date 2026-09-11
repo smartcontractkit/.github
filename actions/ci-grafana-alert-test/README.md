@@ -140,6 +140,5 @@ convention, so you never need to wire them through yourself. `check` sets
 ## Runner requirements
 
 Linux (`ubuntu-*`) and macOS runners, `amd64` or `arm64`. The release provides
-no other platform binaries, and the window arithmetic relies on `python3`
-(available on GitHub-hosted runners) rather than GNU `date`, so it works on both
-OSes.
+no other platform binaries. The action runs on the `node24` runtime, and the
+window arithmetic is done in TypeScript, so it works on both OSes.
