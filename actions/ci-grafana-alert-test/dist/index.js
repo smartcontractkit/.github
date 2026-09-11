@@ -112247,7 +112247,7 @@ function resolveCheckWindow(from, to, duration2) {
 }
 
 // actions/ci-grafana-alert-test/src/run.ts
-var RELEASE_VERSION = "v0.1.0";
+var RELEASE_VERSION = "v0.1.1";
 var BIN_NAME = "grafana-alertcheck";
 function runnerTemp() {
   const tmp = process.env.RUNNER_TEMP;
@@ -112424,13 +112424,15 @@ async function runCheck(binPath) {
     const result = await getExecOutput(binPath, args, {
       env: grafanaEnv(),
       ignoreReturnCode: true,
-      silent: true
+      silent: true,
+      listeners: {
+        stderr: (data) => {
+          process.stdout.write(data);
+        }
+      }
     });
     exitCode = result.exitCode;
     fs9.writeFileSync(resultPath, result.stdout);
-    if (result.stderr) {
-      info(result.stderr);
-    }
   } catch (error2) {
     exitCode = 2;
     error(`grafana-alertcheck failed to run: ${String(error2)}`);

@@ -12,7 +12,7 @@ import { parseResult, type GrafanaAlertCheckResult } from "./result";
 import { buildSummaryBody } from "./summary";
 import { resolveCheckWindow } from "./window";
 
-const RELEASE_VERSION = "v0.1.0";
+const RELEASE_VERSION = "v0.1.1";
 const BIN_NAME = "grafana-alertcheck";
 
 function runnerTemp(): string {
@@ -225,12 +225,14 @@ async function runCheck(binPath: string): Promise<void> {
       env: grafanaEnv(),
       ignoreReturnCode: true,
       silent: true,
+      listeners: {
+        stderr: (data: Buffer) => {
+          process.stdout.write(data);
+        },
+      },
     });
     exitCode = result.exitCode;
     fs.writeFileSync(resultPath, result.stdout);
-    if (result.stderr) {
-      core.info(result.stderr);
-    }
   } catch (error) {
     exitCode = 2;
     core.error(`grafana-alertcheck failed to run: ${String(error)}`);
