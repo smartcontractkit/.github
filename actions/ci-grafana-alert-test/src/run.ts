@@ -184,7 +184,7 @@ function enforceGate(exitCode: number, failOnViolation: string): void {
   if (exitCode === 1) {
     if (failOnViolation !== "false") {
       throw new Error(
-        "ci-grafana-alert-test: the release window contains a violation",
+        "ci-grafana-alert-test: the window contains at least one violation",
       );
     }
     core.warning(
@@ -224,6 +224,7 @@ async function runCheck(binPath: string): Promise<void> {
     const result = await getExecOutput(binPath, args, {
       env: grafanaEnv(),
       ignoreReturnCode: true,
+      silent: true,
     });
     exitCode = result.exitCode;
     fs.writeFileSync(resultPath, result.stdout);

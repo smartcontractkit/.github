@@ -112388,7 +112388,7 @@ function enforceGate(exitCode, failOnViolation) {
   if (exitCode === 1) {
     if (failOnViolation !== "false") {
       throw new Error(
-        "ci-grafana-alert-test: the release window contains a violation"
+        "ci-grafana-alert-test: the window contains at least one violation"
       );
     }
     warning(
@@ -112423,7 +112423,8 @@ async function runCheck(binPath) {
   try {
     const result = await getExecOutput(binPath, args, {
       env: grafanaEnv(),
-      ignoreReturnCode: true
+      ignoreReturnCode: true,
+      silent: true
     });
     exitCode = result.exitCode;
     fs9.writeFileSync(resultPath, result.stdout);
