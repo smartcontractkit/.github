@@ -23359,7 +23359,7 @@ var require_has_flag = __commonJS({
 var require_supports_color = __commonJS({
   "node_modules/.pnpm/supports-color@5.5.0/node_modules/supports-color/index.js"(exports2, module2) {
     "use strict";
-    var os9 = require("os");
+    var os8 = require("os");
     var hasFlag = require_has_flag();
     var env = process.env;
     var forceColor;
@@ -23397,7 +23397,7 @@ var require_supports_color = __commonJS({
       }
       const min = forceColor ? 1 : 0;
       if (process.platform === "win32") {
-        const osRelease = os9.release().split(".");
+        const osRelease = os8.release().split(".");
         if (Number(process.versions.node.split(".")[0]) >= 8 && Number(osRelease[0]) >= 10 && Number(osRelease[2]) >= 10586) {
           return Number(osRelease[2]) >= 14931 ? 3 : 2;
         }
@@ -112084,7 +112084,6 @@ function _getGlobal(key, defaultValue) {
 
 // actions/ci-grafana-alert-test/src/run.ts
 var fs9 = __toESM(require("fs"));
-var os8 = __toESM(require("os"));
 var path8 = __toESM(require("path"));
 
 // actions/ci-grafana-alert-test/src/outputs.ts
@@ -112127,10 +112126,10 @@ function mapArch(runnerArch) {
   }
 }
 function resolveAsset(version3, runnerOs, runnerArch) {
-  const os9 = mapOs(runnerOs);
+  const os8 = mapOs(runnerOs);
   const arch2 = mapArch(runnerArch);
-  const url2 = `https://github.com/smartcontractkit/chainlink-testing-framework/releases/download/grafana-alertcheck%2F${version3}/grafana-alertcheck-${version3}-${os9}-${arch2}.tar.gz`;
-  return { os: os9, arch: arch2, url: url2 };
+  const url2 = `https://github.com/smartcontractkit/chainlink-testing-framework/releases/download/grafana-alertcheck%2F${version3}/grafana-alertcheck-${version3}-${os8}-${arch2}.tar.gz`;
+  return { os: os8, arch: arch2, url: url2 };
 }
 
 // actions/ci-grafana-alert-test/src/result.ts
@@ -112250,11 +112249,30 @@ function resolveCheckWindow(from, to, duration2) {
 // actions/ci-grafana-alert-test/src/run.ts
 var RELEASE_VERSION = "v0.1.0";
 var BIN_NAME = "grafana-alertcheck";
+function runnerTemp() {
+  const tmp = process.env.RUNNER_TEMP;
+  if (!tmp) {
+    throw new Error("ci-grafana-alert-test: RUNNER_TEMP is not set");
+  }
+  return tmp;
+}
 function gateDir() {
-  return path8.join(
-    process.env.RUNNER_TEMP ?? os8.tmpdir(),
-    "grafana-alert-gate"
-  );
+  return path8.join(runnerTemp(), "grafana-alert-gate");
+}
+function makeTempDir(prefix2) {
+  return fs9.mkdtempSync(path8.join(runnerTemp(), prefix2));
+}
+function readNonEmpty(filePath) {
+  let content;
+  try {
+    content = fs9.readFileSync(filePath, "utf8");
+  } catch (error2) {
+    if (error2.code === "ENOENT") {
+      return void 0;
+    }
+    throw error2;
+  }
+  return content.length > 0 ? content : void 0;
 }
 function grafanaEnv() {
   return {
@@ -112266,8 +112284,7 @@ async function installBinary() {
   const runnerOs = process.env.RUNNER_OS ?? "";
   const runnerArch = process.env.RUNNER_ARCH ?? "";
   const asset = resolveAsset(RELEASE_VERSION, runnerOs, runnerArch);
-  const binDir = path8.join(gateDir(), "bin");
-  fs9.mkdirSync(binDir, { recursive: true });
+  const binDir = makeTempDir("grafana-alertcheck-bin-");
   const tarball = await downloadTool(asset.url);
   await extractTar(tarball, binDir);
   const binPath = path8.join(binDir, BIN_NAME);
@@ -112283,7 +112300,10 @@ async function runRecord(binPath) {
   }
   const dir = gateDir();
   fs9.mkdirSync(dir, { recursive: true });
-  const alertsFile = path8.join(dir, "alerts.txt");
+  const alertsFile = path8.join(
+    makeTempDir("grafana-alert-gate-"),
+    "alerts.txt"
+  );
   fs9.writeFileSync(alertsFile, alerts);
   const logPath = path8.join(dir, "log.jsonl");
   const args = ["watch", "--out", logPath, "--alerts", alertsFile];
@@ -112332,23 +112352,16 @@ function buildCheckArgs(window2) {
   return args;
 }
 async function writeStepSummary(resultPath) {
-  let body2;
-  if (fs9.existsSync(resultPath) && fs9.statSync(resultPath).size > 0) {
-    const result = parseResult(fs9.readFileSync(resultPath, "utf8"));
-    body2 = buildSummaryBody(result);
-  } else {
-    body2 = "_No result was produced \u2014 the gate could not run to completion. See the job log._";
-  }
+  const raw = readNonEmpty(resultPath);
+  const body2 = raw ? buildSummaryBody(parseResult(raw)) : "_No result was produced \u2014 the gate could not run to completion. See the job log._";
   await summary.addRaw(`### Grafana alert gate
 
 ${body2}`).write();
 }
 async function setCheckOutputs(resultPath, exitCode) {
   setOutput("passed", exitCode === 0 ? "true" : "false");
-  let result = {};
-  if (fs9.existsSync(resultPath) && fs9.statSync(resultPath).size > 0) {
-    result = parseResult(fs9.readFileSync(resultPath, "utf8"));
-  }
+  const raw = readNonEmpty(resultPath);
+  const result = raw ? parseResult(raw) : {};
   const outputs = extractCheckOutputs(result);
   setOutput("violation-count", outputs.violationCount.toString());
   setOutput("violations", outputs.violations);
@@ -112402,7 +112415,10 @@ async function runCheck(binPath) {
   const args = buildCheckArgs(window2);
   const dir = gateDir();
   fs9.mkdirSync(dir, { recursive: true });
-  const resultPath = path8.join(dir, "result.json");
+  const resultPath = path8.join(
+    makeTempDir("grafana-alert-gate-"),
+    "result.json"
+  );
   let exitCode;
   try {
     const result = await getExecOutput(binPath, args, {

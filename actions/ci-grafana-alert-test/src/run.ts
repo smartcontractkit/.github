@@ -4,7 +4,6 @@ import { getExecOutput } from "@actions/exec";
 import * as tc from "@actions/tool-cache";
 
 import * as fs from "fs";
-import * as os from "os";
 import * as path from "path";
 
 import { extractCheckOutputs } from "./outputs";
@@ -16,11 +15,35 @@ import { resolveCheckWindow } from "./window";
 const RELEASE_VERSION = "v0.1.0";
 const BIN_NAME = "grafana-alertcheck";
 
+function runnerTemp(): string {
+  const tmp = process.env.RUNNER_TEMP;
+  if (!tmp) {
+    throw new Error("ci-grafana-alert-test: RUNNER_TEMP is not set");
+  }
+  return tmp;
+}
+
+// Deterministic across `record` and `check` invocations (same job, same runner)
+// so the check finds the recorded log by convention on the local filesystem.
 function gateDir(): string {
-  return path.join(
-    process.env.RUNNER_TEMP ?? os.tmpdir(),
-    "grafana-alert-gate",
-  );
+  return path.join(runnerTemp(), "grafana-alert-gate");
+}
+
+function makeTempDir(prefix: string): string {
+  return fs.mkdtempSync(path.join(runnerTemp(), prefix));
+}
+
+function readNonEmpty(filePath: string): string | undefined {
+  let content: string;
+  try {
+    content = fs.readFileSync(filePath, "utf8");
+  } catch (error) {
+    if ((error as { code?: string }).code === "ENOENT") {
+      return undefined;
+    }
+    throw error;
+  }
+  return content.length > 0 ? content : undefined;
 }
 
 function grafanaEnv(): { [key: string]: string } {
@@ -35,8 +58,7 @@ async function installBinary(): Promise<string> {
   const runnerArch = process.env.RUNNER_ARCH ?? "";
 
   const asset = resolveAsset(RELEASE_VERSION, runnerOs, runnerArch);
-  const binDir = path.join(gateDir(), "bin");
-  fs.mkdirSync(binDir, { recursive: true });
+  const binDir = makeTempDir("grafana-alertcheck-bin-");
 
   const tarball = await tc.downloadTool(asset.url);
   await tc.extractTar(tarball, binDir);
@@ -56,7 +78,10 @@ async function runRecord(binPath: string): Promise<void> {
 
   const dir = gateDir();
   fs.mkdirSync(dir, { recursive: true });
-  const alertsFile = path.join(dir, "alerts.txt");
+  const alertsFile = path.join(
+    makeTempDir("grafana-alert-gate-"),
+    "alerts.txt",
+  );
   fs.writeFileSync(alertsFile, alerts);
 
   const logPath = path.join(dir, "log.jsonl");
@@ -113,14 +138,10 @@ function buildCheckArgs(window: { from: string; to: string }): string[] {
 }
 
 async function writeStepSummary(resultPath: string): Promise<void> {
-  let body: string;
-  if (fs.existsSync(resultPath) && fs.statSync(resultPath).size > 0) {
-    const result = parseResult(fs.readFileSync(resultPath, "utf8"));
-    body = buildSummaryBody(result);
-  } else {
-    body =
-      "_No result was produced — the gate could not run to completion. See the job log._";
-  }
+  const raw = readNonEmpty(resultPath);
+  const body = raw
+    ? buildSummaryBody(parseResult(raw))
+    : "_No result was produced — the gate could not run to completion. See the job log._";
   await core.summary.addRaw(`### Grafana alert gate\n\n${body}`).write();
 }
 
@@ -130,10 +151,8 @@ async function setCheckOutputs(
 ): Promise<void> {
   core.setOutput("passed", exitCode === 0 ? "true" : "false");
 
-  let result: GrafanaAlertCheckResult = {};
-  if (fs.existsSync(resultPath) && fs.statSync(resultPath).size > 0) {
-    result = parseResult(fs.readFileSync(resultPath, "utf8"));
-  }
+  const raw = readNonEmpty(resultPath);
+  const result: GrafanaAlertCheckResult = raw ? parseResult(raw) : {};
 
   const outputs = extractCheckOutputs(result);
   core.setOutput("violation-count", outputs.violationCount.toString());
@@ -195,7 +214,10 @@ async function runCheck(binPath: string): Promise<void> {
 
   const dir = gateDir();
   fs.mkdirSync(dir, { recursive: true });
-  const resultPath = path.join(dir, "result.json");
+  const resultPath = path.join(
+    makeTempDir("grafana-alert-gate-"),
+    "result.json",
+  );
 
   let exitCode: number;
   try {
