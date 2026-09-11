@@ -112377,7 +112377,7 @@ async function uploadEvidenceLog(logPath) {
   const artifactName = `grafana-alert-gate-log-${runId}-${runAttempt}`;
   await artifact_default.uploadArtifact(
     artifactName,
-    [path8.basename(logPath)],
+    [logPath],
     path8.dirname(logPath)
   );
 }

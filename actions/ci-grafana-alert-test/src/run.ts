@@ -172,7 +172,7 @@ async function uploadEvidenceLog(logPath: string): Promise<void> {
 
   await artifactClient.uploadArtifact(
     artifactName,
-    [path.basename(logPath)],
+    [logPath],
     path.dirname(logPath),
   );
 }
