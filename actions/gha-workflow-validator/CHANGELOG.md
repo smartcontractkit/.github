@@ -1,5 +1,14 @@
 # gha-workflow-validator
 
+## 1.1.1
+
+### Patch Changes
+
+- [#1658](https://github.com/smartcontractkit/.github/pull/1658)
+  [`38a8a1c`](https://github.com/smartcontractkit/.github/commit/38a8a1c9d81575c35d104fa7cca81723178652dc)
+  Thanks [@kalverra](https://github.com/kalverra)! - Support GitHub Actions
+  self-repository syntax (`$/`) for local actions and reusable workflows.
+
 ## 1.1.0
 
 ### Minor Changes

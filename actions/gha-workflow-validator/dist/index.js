@@ -47870,7 +47870,7 @@ function extractActionReferenceFromLine(line) {
       actionIdentifier = actionIdentifier.substring(0, indexOfQuote);
     }
   }
-  if (actionIdentifier.startsWith("./")) {
+  if (actionIdentifier.startsWith("./") || actionIdentifier.startsWith("$/")) {
     return;
   }
   const [identifier, gitRef] = actionIdentifier.trim().split("@");

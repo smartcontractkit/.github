@@ -34,6 +34,19 @@ describe(ActionRefValidation.name, () => {
     expect(messages).toEqual([]);
   });
 
+  it("should validate self-repository action reference without errors", async () => {
+    const octokit = getTestOctokit(nockBack.currentMode);
+    const subject = new ActionRefValidation(octokit);
+    const line: FileLine = {
+      lineNumber: 1,
+      content: "        uses: $/.github/actions/setup-runner-spot",
+      operation: "add",
+      ignored: false,
+    };
+    const messages = await subject.validateLine(line);
+    expect(messages).toEqual([]);
+  });
+
   it("should validate single action reference (untrusted)", async () => {
     const octokit = getTestOctokit(nockBack.currentMode);
     const subject = new ActionRefValidation(octokit, {
@@ -352,6 +365,30 @@ describe(extractActionReferenceFromLine.name, () => {
 
   it("parses invalid reference as no reference (misplaced quotes)", () => {
     const line = '-      uses: "./.github/actions/"local-action # comment';
+    const actionReference = extractActionReferenceFromLine(line);
+    expect(actionReference).toBeUndefined();
+  });
+
+  it("parses self-repository reference as no reference", () => {
+    const line = "        - uses: $/.github/actions/local-action # comment";
+    const actionReference = extractActionReferenceFromLine(line);
+    expect(actionReference).toBeUndefined();
+  });
+
+  it("parses self-repository reference as no reference (with single quotes)", () => {
+    const line = "        - uses: '$/.github/actions/local-action' # comment";
+    const actionReference = extractActionReferenceFromLine(line);
+    expect(actionReference).toBeUndefined();
+  });
+
+  it("parses self-repository reference as no reference (with double quotes)", () => {
+    const line = '        - uses: "$/.github/actions/local-action" # comment';
+    const actionReference = extractActionReferenceFromLine(line);
+    expect(actionReference).toBeUndefined();
+  });
+
+  it("parses self-repository reusable workflow reference as no reference", () => {
+    const line = "        - uses: $/.github/workflows/reusable.yml";
     const actionReference = extractActionReferenceFromLine(line);
     expect(actionReference).toBeUndefined();
   });
