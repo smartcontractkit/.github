@@ -34,6 +34,7 @@ jobs:
             libs/**
             apps/**
             workflows/**
+            !actions/invoke-gati-v2/**
             !actions/signed-commits/__fixtures__/**
             !**/node_modules/**
 
