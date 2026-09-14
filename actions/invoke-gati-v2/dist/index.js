@@ -21958,7 +21958,7 @@ function decodeUrl() {
 }
 async function requestInstallationToken(url, jwt, retries) {
   const attempts = retries + 1;
-  core.info(`Requesting an installation token from ${url}.`);
+  core.info(`Requesting an installation token`);
   for (let attempt = 1; ; attempt++) {
     const result = await attemptRequest(url, jwt);
     if (result.kind === "token") {
@@ -21986,7 +21986,7 @@ async function attemptRequest(url, jwt) {
   } catch (error) {
     return {
       kind: "error",
-      error: new Error(`Request to ${url} failed: ${error}`),
+      error: new Error(`Request failed: ${error}`),
       retryable: true
     };
   }
@@ -21995,7 +21995,7 @@ async function attemptRequest(url, jwt) {
     return {
       kind: "error",
       error: new Error(
-        `Request to ${url} failed: ${response.status} ${response.statusText}. ${body}`
+        `Request failed: ${response.status} ${response.statusText}. ${body}`
       ),
       retryable: isRetryableStatus(response.status)
     };
@@ -22007,19 +22007,19 @@ async function readToken(response, url) {
   const description = describeResponse(response, raw);
   if (!raw.trim()) {
     throw new Error(
-      `Response from ${url} was empty (${description}), expected a JSON body containing a token.`
+      `Response was empty (${description}), expected a JSON body containing a token.`
     );
   }
   let body;
   try {
     body = JSON.parse(raw);
   } catch {
-    throw new Error(`Response from ${url} was not JSON (${description}).`);
+    throw new Error(`Response was not JSON (${description}).`);
   }
   const token = body?.token;
   if (typeof token !== "string" || !token) {
     throw new Error(
-      `Response from ${url} did not contain a token (${description}).`
+      `Response did not contain a token (${description}).`
     );
   }
   return token;

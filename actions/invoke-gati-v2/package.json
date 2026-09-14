@@ -1,6 +1,6 @@
 {
   "name": "invoke-gati-v2",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "The github action for interfacing with the GATI v2 service",
   "private": true,
   "engines": {
