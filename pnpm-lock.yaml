@@ -575,6 +575,8 @@ importers:
 
   actions/invoke-gati: {}
 
+  actions/invoke-gati-v2: {}
+
   actions/k8s-tailscale-connect: {}
 
   actions/license-checker: {}
