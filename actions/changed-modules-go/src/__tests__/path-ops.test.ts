@@ -127,8 +127,8 @@ describe("matchModule", () => {
 
     test('should normalize a module directory given with a "./" prefix', () => {
       const moduleDirectories = ["./x/config"];
-      const result = matchModule("x/config/go.mod", moduleDirectories);
-      expect(result).toBe("x/config");
+      const result = matchModules(["x/config/go.mod"], moduleDirectories);
+      expect(result).toEqual([["x/config/go.mod", "x/config"]]);
     });
   });
 });
