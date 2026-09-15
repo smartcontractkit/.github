@@ -14,7 +14,7 @@ function normalizePath(p: string): string {
   if (s === "." || s === "./") return ".";
 
   // strip leading ./ and extra slashes
-  s = s.replace(/^.\//, "").replace(/\/+$/, "");
+  s = s.replace(/^\.\//, "").replace(/\/+$/, "");
   return s;
 }
 
