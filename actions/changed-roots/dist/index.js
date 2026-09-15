@@ -50654,7 +50654,7 @@ var import_micromatch = __toESM(require_micromatch());
 function normalizePath(p) {
   let s = p.replace(/\\/g, "/");
   if (s === "." || s === "./") return ".";
-  s = s.replace(/^.\//, "").replace(/\/+$/, "");
+  s = s.replace(/^\.\//, "").replace(/\/+$/, "");
   return s;
 }
 function sortDeepestFirst(mods) {

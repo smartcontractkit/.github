@@ -110,6 +110,26 @@ describe("matchModule", () => {
       const result = matchModule("scripts/build.js", moduleDirectories);
       expect(result).toBe("scripts");
     });
+
+    // A single-character top-level directory used to be stripped along with the "./" prefix,
+    // so "x/config/go.mod" matched a module named "config" that no directory holds.
+    test("should keep a single-character top-level directory", () => {
+      const moduleDirectories = ["x/config"];
+      const result = matchModule("x/config/go.mod", moduleDirectories);
+      expect(result).toBe("x/config");
+    });
+
+    test('should still strip a leading "./" prefix', () => {
+      const moduleDirectories = ["x/config"];
+      const result = matchModule("./x/config/go.mod", moduleDirectories);
+      expect(result).toBe("x/config");
+    });
+
+    test('should normalize a module directory given with a "./" prefix', () => {
+      const moduleDirectories = ["./x/config"];
+      const result = matchModule("x/config/go.mod", moduleDirectories);
+      expect(result).toBe("x/config");
+    });
   });
 });
 
