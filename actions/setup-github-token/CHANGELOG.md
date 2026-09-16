@@ -1,5 +1,17 @@
 # setup-github-token
 
+## 1.3.0
+
+### Minor Changes
+
+- [#1660](https://github.com/smartcontractkit/.github/pull/1660)
+  [`bc2e526`](https://github.com/smartcontractkit/.github/commit/bc2e526225094bc90126b8c70b6abfa7bf155188)
+  Thanks [@erikburt](https://github.com/erikburt)! - Support GATI v2 behind a
+  staged rollout. Adds a `profile` input that selects GATI v2, a `gati-version`
+  input to force either flow, and a `gati-version` output. `aws-role-arn` and
+  `aws-lambda-url` are now optional, and required only when `profile` is not
+  set.
+
 ## 1.2.1
 
 ### Patch Changes
