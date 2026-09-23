@@ -280,6 +280,7 @@ runs:
         docker-registry-url: ${{ inputs.docker-registry-url }}
         docker-repository-name: ${{ inputs.docker-repository-name }}
         tags: ${{ steps.docker-meta.outputs.tag-names }}
+        aws-region: ${{ inputs.aws-region }}
         assert-non-existence: true
         registry-auth: false
 
