@@ -14,8 +14,7 @@ documentation for more details.
 
 - `file-patterns`, `module-patterns` - see
   [`changed-modules-go`](https://github.com/smartcontractkit/.github/tree/main/actions/changed-modules-go)
-- ``enforce-compatible` - see
-  [`apidiff-go`](https://github.com/smartcontractkit/.github/tree/main/actions/apidiff-go)
+- ``enforce-compatible` - see [`apidiff-go`](https://github.com/smartcontractkit/.github/tree/main/actions/apidiff-go)
 
 ```yaml
 name: Analyze API Changes

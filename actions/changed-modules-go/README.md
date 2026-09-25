@@ -70,12 +70,11 @@ on:
 
   lint:
     name: Lint ${{ matrix.modules }}
-    needs: [ init ]
+    needs: [init]
     runs-on: ubuntu-latest
 
     name: GolangCI Lint
-    permissions:
-      ...
+    permissions: ...
     strategy:
       fail-fast: false
       matrix:
