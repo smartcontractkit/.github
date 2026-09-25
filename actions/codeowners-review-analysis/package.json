@@ -9,18 +9,18 @@
   "dependencies": {
     "@actions/core": "^2.0.3",
     "@actions/github": "^8.0.1",
-    "@octokit/core": "^7.0.3",
+    "@octokit/core": "^7.0.8",
     "@octokit/plugin-paginate-graphql": "^6.0.0"
   },
   "repository": "https://github.com/smartcontractkit/.github",
   "devDependencies": {
-    "@graphql-codegen/cli": "^6.1.2",
-    "@graphql-codegen/typescript-operations": "^5.0.8",
+    "@graphql-codegen/cli": "^6.3.1",
+    "@graphql-codegen/typescript-operations": "^5.1.0",
     "@octokit/graphql-schema": "^14.58.0",
     "@octokit/types": "^16.0.0",
-    "@types/node": "^24.12.2",
-    "nock": "^14.0.10",
+    "@types/node": "^24.13.6",
+    "nock": "^14.0.17",
     "node-fetch": "^2.7.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.11"
   }
 }
