@@ -14,8 +14,7 @@ pre-commit:
     reusable-workflows:
       description: "Fix reusable workflows sync"
       glob: "{workflows/*/*,.github/workflows/*}.{yml,yaml}"
-      run: pnpm workflows:fix {staged_files}
-      stage_fixed: true
+      run: pnpm workflows:fix --stage {staged_files}
     actionlint:
       description: "Run actionlint"
       glob: "{workflows/*/*,.github/workflows/*}.{yml,yaml}"
