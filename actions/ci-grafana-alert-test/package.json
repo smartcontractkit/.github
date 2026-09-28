@@ -1,6 +1,6 @@
 {
   "name": "ci-grafana-alert-test",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "private": true,
   "scripts": {},
@@ -14,7 +14,7 @@
   },
   "repository": "https://github.com/smartcontractkit/.github",
   "devDependencies": {
-    "@types/node": "^24.12.2",
-    "vitest": "^4.0.18"
+    "@types/node": "^24.13.6",
+    "vitest": "^4.1.11"
   }
 }

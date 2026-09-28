@@ -1,6 +1,6 @@
 {
   "name": "delete-deployments",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "",
   "private": true,
   "scripts": {},
@@ -10,13 +10,13 @@
   "devDependencies": {
     "@octokit/types": "^16.0.0",
     "@octokit/webhooks-types": "^7.6.1",
-    "@types/node": "^24.12.2",
+    "@types/node": "^24.13.6",
     "typescript": "^5.9.3"
   },
   "dependencies": {
     "@actions/core": "^2.0.3",
     "@actions/github": "^8.0.1",
-    "@octokit/plugin-retry": "^8.1.0",
-    "@octokit/plugin-throttling": "^11.0.3"
+    "@octokit/plugin-retry": "^8.1.1",
+    "@octokit/plugin-throttling": "^11.0.5"
   }
 }
