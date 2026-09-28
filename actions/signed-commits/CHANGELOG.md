@@ -1,5 +1,13 @@
 # changesets-signed-commits
 
+## 1.9.3
+
+### Patch Changes
+
+- [#1671](https://github.com/smartcontractkit/.github/pull/1671)
+  [`18995c9`](https://github.com/smartcontractkit/.github/commit/18995c9052322600144199b39a7ec932ae8cf3eb)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: update dependencies
+
 ## 1.9.2
 
 ### Patch Changes
