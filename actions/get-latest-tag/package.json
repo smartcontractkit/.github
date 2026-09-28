@@ -12,15 +12,15 @@
   "dependencies": {
     "@actions/core": "^2.0.3",
     "@actions/github": "^8.0.1",
-    "semver": "^7.7.4"
+    "semver": "^7.8.5"
   },
   "repository": "https://github.com/smartcontractkit/.github",
   "devDependencies": {
     "@octokit/types": "^16.0.0",
     "@octokit/webhooks-types": "^7.6.1",
     "@types/micromatch": "^4.0.10",
-    "@types/node": "^24.12.2",
-    "@types/semver": "^7.7.1",
-    "vitest": "^4.0.18"
+    "@types/node": "^24.13.6",
+    "@types/semver": "^7.8.0",
+    "vitest": "^4.1.11"
   }
 }

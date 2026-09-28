@@ -91,8 +91,7 @@ interface GoModBranchUnknownResult {
 }
 
 export type GoModBranchLookupResult =
-  | GoModBranchKnownLookupResult
-  | GoModBranchUnknownResult;
+  GoModBranchKnownLookupResult | GoModBranchUnknownResult;
 
 // Create a singleton cache for storing promises
 const cache: { [key: string]: Promise<GoModBranchLookupResult> } = {};

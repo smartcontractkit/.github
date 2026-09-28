@@ -193,7 +193,7 @@ function accumulateLatestSignals(
     if (!n) continue;
 
     const authorLogin =
-      n.author && "login" in n.author ? n.author.login ?? null : null;
+      n.author && "login" in n.author ? (n.author.login ?? null) : null;
     const submittedAt = n.submittedAt;
 
     const onBehalfOfTeams =

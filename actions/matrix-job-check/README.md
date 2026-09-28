@@ -55,11 +55,10 @@ on:
   # This will spawn in 0-n jobs.
   lint:
     name: Lint - ${{ matrix.modules }}
-    needs: [ init ]
+    needs: [init]
     runs-on: ubuntu-latest
 
-    permissions:
-      ...
+    permissions: ...
     strategy:
       fail-fast: false
       matrix:
@@ -83,7 +82,7 @@ on:
 
   lint-results:
     name: Lint Results
-    needs: [ "init", "lint" ]
+    needs: ["init", "lint"]
     runs-on: "ubuntu-latest"
     permissions:
       actions: read
@@ -99,8 +98,9 @@ on:
 
           # OR, as an example:
           #  - allow failures if PR was labelled with 'allow-lint-issues'
-          assert-no-failures: ${{ contains(join(github.event.pull_request.labels.*.name, ' '), 'allow-lint-issues') }}
-
+          assert-no-failures:
+            ${{ contains(join(github.event.pull_request.labels.*.name, ' '),
+            'allow-lint-issues') }}
 ```
 
 ## Development

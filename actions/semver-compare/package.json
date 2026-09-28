@@ -10,12 +10,12 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^24.12.2",
-    "@types/semver": "^7.7.1",
-    "vitest": "^4.0.18"
+    "@types/node": "^24.13.6",
+    "@types/semver": "^7.8.0",
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "@actions/core": "^2.0.3",
-    "semver": "^7.7.3"
+    "semver": "^7.8.5"
   }
 }

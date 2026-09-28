@@ -2,9 +2,7 @@ import * as github from "@actions/github";
 import { PushEvent, MergeGroupEvent } from "@octokit/webhooks-types";
 
 export type FileChangeEventData =
-  | PullRequestEventData
-  | PushEventData
-  | MergeGroupEventData;
+  PullRequestEventData | PushEventData | MergeGroupEventData;
 
 export type EventData = FileChangeEventData | PassthroughEventData;
 
