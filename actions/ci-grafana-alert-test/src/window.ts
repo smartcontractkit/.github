@@ -105,6 +105,12 @@ export function resolveCheckWindow(
   return { from, to: addSecondsToRfc3339(from, seconds) };
 }
 
+// Live must not lose the base's fractional seconds: truncating 10:00:00.900
+// before adding 1s yields a 100 ms window. Go accepts fractional seconds.
+function toRfc3339PreciseUtc(date: Date): string {
+  return date.toISOString().replace(/\.000Z$/, "Z");
+}
+
 /**
  * Validates the `from`/`to`/`duration` inputs for mode: live (single-step) and
  * resolves the window. `from` is optional there — the CLI starts observing at
@@ -122,7 +128,9 @@ export function resolveLiveWindow(
   const resolvedTo =
     to.trim() !== ""
       ? to
-      : addSecondsToRfc3339(toRfc3339Utc(now), parseDuration(duration));
+      : toRfc3339PreciseUtc(
+          new Date(now.getTime() + parseDuration(duration) * 1000),
+        );
 
   const toDate = new Date(resolvedTo);
   if (Number.isNaN(toDate.getTime())) {

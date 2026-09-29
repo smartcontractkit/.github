@@ -121,6 +121,30 @@ describe("buildSummaryRows", () => {
     expect(rows).toContain("Other \\| Alert");
   });
 
+  it("adds a failing row for violations that no verdict names", () => {
+    const rows = buildSummaryRows({
+      Violations: [
+        {
+          Outcome: "not_counted",
+          Note: "min-observed 3 exceeds the 1 rule(s) counted as observed",
+        },
+      ],
+      Verdicts: [{ Alert: "A", RuleUID: "r1", Outcome: "healthy", BadFor: 0 }],
+    });
+
+    expect(rows).toContain("| ✅ | A | healthy | - | - | - | 0s | - |");
+    expect(rows).toContain(
+      "| ❌ | - | not_counted | - | - | - | - | min-observed 3 exceeds the 1 rule(s) counted as observed |",
+    );
+  });
+
+  it("does not duplicate matched violations as unmatched rows", () => {
+    const rows = buildSummaryRows(result);
+    const occurrences = rows.split("| My Alert |").length - 1;
+
+    expect(occurrences).toBe(1);
+  });
+
   it("rounds broken time up to full seconds with a 1s floor", () => {
     const rows = buildSummaryRows({
       Violations: [],
@@ -226,6 +250,27 @@ describe("buildSummaryBody", () => {
     };
     const body = buildSummaryBody(huge);
     expect(body).toContain("(truncated near 1 MB)");
+  });
+
+  it("caps the whole body, including instance details", () => {
+    const violations = Array.from({ length: 2000 }, (_, i) => ({
+      Alert: "A",
+      RuleUID: "r1",
+      Outcome: "new_failure",
+      InstanceLabels: { instance: `host-${i}`, pad: "x".repeat(500) },
+    }));
+    const body = buildSummaryBody(
+      {
+        Violations: violations,
+        Verdicts: [
+          { Alert: "A", RuleUID: "r1", Outcome: "new_failure", BadFor: 0 },
+        ],
+      },
+      true,
+    );
+
+    expect(body.length).toBeLessThan(1_000_100);
+    expect(body.endsWith("(truncated near 1 MB)")).toBe(true);
   });
 });
 

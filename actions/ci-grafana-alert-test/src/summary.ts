@@ -11,7 +11,7 @@ export const SUMMARY_SEPARATOR = "|---|---|---|---|---|---|---|---|";
 
 const STATUS_FAIL = "❌";
 const STATUS_PASS = "✅";
-const MAX_TABLE_LENGTH = 1_000_000;
+const MAX_SUMMARY_LENGTH = 1_000_000;
 
 // Outcomes that pass on their own. `paused`/`skipped` pass only with
 // allow-paused, so a matching violation decides those rows.
@@ -80,26 +80,56 @@ export function isFailure(
   );
 }
 
+function row(cells: string[]): string {
+  return `| ${cells.map(tableCell).join(" | ")} |`;
+}
+
+// Violations that no verdict names — the CLI's synthetic `not_counted`
+// min-observed shortfall. Without these rows an exit 1 could render all ✅.
+function buildUnmatchedViolationRows(
+  verdicts: Verdict[],
+  violations: Violation[],
+): string[] {
+  return violations
+    .filter(
+      (violation) =>
+        !verdicts.some((verdict) => verdict.RuleUID === violation.RuleUID),
+    )
+    .map((violation) =>
+      row([
+        STATUS_FAIL,
+        violation.Alert || "-",
+        violation.Outcome ?? "-",
+        violation.State ?? "-",
+        violation.Health ?? "-",
+        truncateLastError(violation.LastError),
+        "-",
+        violation.Note ?? "-",
+      ]),
+    );
+}
+
 export function buildSummaryRows(result: GrafanaAlertCheckResult): string {
   const verdicts = result.Verdicts ?? [];
   const violations = result.Violations ?? [];
 
-  return verdicts
-    .map((verdict) => {
-      const violation = findViolation(violations, verdict.RuleUID);
-      const cells = [
-        isFailure(verdict, violation) ? STATUS_FAIL : STATUS_PASS,
-        verdict.Alert,
-        verdict.Outcome,
-        violation?.State ?? "-",
-        violation?.Health ?? "-",
-        truncateLastError(violation?.LastError),
-        formatBrokenFor(verdict.BadFor),
-        formatNote(verdict, violation),
-      ].map(tableCell);
-      return `| ${cells.join(" | ")} |`;
-    })
-    .join("\n");
+  const rows = verdicts.map((verdict) => {
+    const violation = findViolation(violations, verdict.RuleUID);
+    return row([
+      isFailure(verdict, violation) ? STATUS_FAIL : STATUS_PASS,
+      verdict.Alert,
+      verdict.Outcome,
+      violation?.State ?? "-",
+      violation?.Health ?? "-",
+      truncateLastError(violation?.LastError),
+      formatBrokenFor(verdict.BadFor),
+      formatNote(verdict, violation),
+    ]);
+  });
+
+  return [...rows, ...buildUnmatchedViolationRows(verdicts, violations)].join(
+    "\n",
+  );
 }
 
 function buildEarlyExitNote(termination: Termination): string {
@@ -170,12 +200,9 @@ export function buildSummaryBody(
   result: GrafanaAlertCheckResult,
   includeInstances = false,
 ): string {
-  let rows = buildSummaryRows(result);
-  if (rows.length > MAX_TABLE_LENGTH) {
-    rows = `${rows.slice(0, MAX_TABLE_LENGTH)}\n(truncated near 1 MB)`;
-  }
-
-  const parts = [`${SUMMARY_HEADER}\n${SUMMARY_SEPARATOR}\n${rows}`];
+  const parts = [
+    `${SUMMARY_HEADER}\n${SUMMARY_SEPARATOR}\n${buildSummaryRows(result)}`,
+  ];
   if (result.terminated_early) {
     parts.unshift(buildEarlyExitNote(result.terminated_early));
   }
@@ -185,5 +212,10 @@ export function buildSummaryBody(
       parts.push(instances);
     }
   }
-  return parts.join("\n\n");
+
+  const body = parts.join("\n\n");
+  if (body.length > MAX_SUMMARY_LENGTH) {
+    return `${body.slice(0, MAX_SUMMARY_LENGTH)}\n\n(truncated near 1 MB)`;
+  }
+  return body;
 }

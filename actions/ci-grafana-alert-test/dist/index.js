@@ -61671,8 +61671,8 @@ var Summary = class {
    * @returns {Summary} summary instance
    */
   addTable(rows) {
-    const tableBody = rows.map((row) => {
-      const cells = row.map((cell) => {
+    const tableBody = rows.map((row2) => {
+      const cells = row2.map((cell) => {
         if (typeof cell === "string") {
           return this.wrap("td", cell);
         }
@@ -102169,7 +102169,7 @@ var SUMMARY_HEADER = "| Status | Alert | Verdict | Grafana state | Grafana healt
 var SUMMARY_SEPARATOR = "|---|---|---|---|---|---|---|---|";
 var STATUS_FAIL = "\u274C";
 var STATUS_PASS = "\u2705";
-var MAX_TABLE_LENGTH = 1e6;
+var MAX_SUMMARY_LENGTH = 1e6;
 var PASSING_OUTCOMES = /* @__PURE__ */ new Set(["healthy", "clean", "recovered"]);
 function escapePipe(value) {
   return value.replaceAll("|", "\\|");
@@ -102207,12 +102207,31 @@ function isFailure(verdict, violation) {
   }
   return !(PASSING_OUTCOMES.has(verdict.Outcome) || verdict.Outcome === "paused" || verdict.Outcome === "skipped");
 }
+function row(cells) {
+  return `| ${cells.map(tableCell).join(" | ")} |`;
+}
+function buildUnmatchedViolationRows(verdicts, violations) {
+  return violations.filter(
+    (violation) => !verdicts.some((verdict) => verdict.RuleUID === violation.RuleUID)
+  ).map(
+    (violation) => row([
+      STATUS_FAIL,
+      violation.Alert || "-",
+      violation.Outcome ?? "-",
+      violation.State ?? "-",
+      violation.Health ?? "-",
+      truncateLastError(violation.LastError),
+      "-",
+      violation.Note ?? "-"
+    ])
+  );
+}
 function buildSummaryRows(result) {
   const verdicts = result.Verdicts ?? [];
   const violations = result.Violations ?? [];
-  return verdicts.map((verdict) => {
+  const rows = verdicts.map((verdict) => {
     const violation = findViolation(violations, verdict.RuleUID);
-    const cells = [
+    return row([
       isFailure(verdict, violation) ? STATUS_FAIL : STATUS_PASS,
       verdict.Alert,
       verdict.Outcome,
@@ -102221,9 +102240,11 @@ function buildSummaryRows(result) {
       truncateLastError(violation?.LastError),
       formatBrokenFor(verdict.BadFor),
       formatNote(verdict, violation)
-    ].map(tableCell);
-    return `| ${cells.join(" | ")} |`;
-  }).join("\n");
+    ]);
+  });
+  return [...rows, ...buildUnmatchedViolationRows(verdicts, violations)].join(
+    "\n"
+  );
 }
 function buildEarlyExitNote(termination) {
   const target = termination.alert ? ` on "${singleLine(termination.alert)}"` : "";
@@ -102274,14 +102295,11 @@ ${items.join("\n")}`;
 ${sections.join("\n\n")}`;
 }
 function buildSummaryBody(result, includeInstances = false) {
-  let rows = buildSummaryRows(result);
-  if (rows.length > MAX_TABLE_LENGTH) {
-    rows = `${rows.slice(0, MAX_TABLE_LENGTH)}
-(truncated near 1 MB)`;
-  }
-  const parts = [`${SUMMARY_HEADER}
+  const parts = [
+    `${SUMMARY_HEADER}
 ${SUMMARY_SEPARATOR}
-${rows}`];
+${buildSummaryRows(result)}`
+  ];
   if (result.terminated_early) {
     parts.unshift(buildEarlyExitNote(result.terminated_early));
   }
@@ -102291,7 +102309,13 @@ ${rows}`];
       parts.push(instances);
     }
   }
-  return parts.join("\n\n");
+  const body2 = parts.join("\n\n");
+  if (body2.length > MAX_SUMMARY_LENGTH) {
+    return `${body2.slice(0, MAX_SUMMARY_LENGTH)}
+
+(truncated near 1 MB)`;
+  }
+  return body2;
 }
 
 // actions/ci-grafana-alert-test/src/window.ts
@@ -102357,9 +102381,14 @@ function resolveCheckWindow(from, to, duration2) {
   const seconds = parseDuration(duration2);
   return { from, to: addSecondsToRfc3339(from, seconds) };
 }
+function toRfc3339PreciseUtc(date) {
+  return date.toISOString().replace(/\.000Z$/, "Z");
+}
 function resolveLiveWindow(from, to, duration2, now = /* @__PURE__ */ new Date()) {
   assertSingleToOrDuration(to, duration2, "live");
-  const resolvedTo = to.trim() !== "" ? to : addSecondsToRfc3339(toRfc3339Utc(now), parseDuration(duration2));
+  const resolvedTo = to.trim() !== "" ? to : toRfc3339PreciseUtc(
+    new Date(now.getTime() + parseDuration(duration2) * 1e3)
+  );
   const toDate = new Date(resolvedTo);
   if (Number.isNaN(toDate.getTime())) {
     throw new Error(
@@ -102375,7 +102404,7 @@ function resolveLiveWindow(from, to, duration2, now = /* @__PURE__ */ new Date()
 }
 
 // actions/ci-grafana-alert-test/src/run.ts
-var RELEASE_VERSION = "v0.1.3";
+var RELEASE_VERSION = "v0.1.6";
 var BIN_NAME = "grafana-alertcheck";
 var SUMMARY_TITLE = "### Grafana alert gate";
 function runnerTemp() {

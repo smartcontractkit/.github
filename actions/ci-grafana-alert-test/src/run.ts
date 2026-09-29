@@ -14,7 +14,7 @@ import { parseResult, type GrafanaAlertCheckResult } from "./result";
 import { buildSummaryBody } from "./summary";
 import { resolveCheckWindow, resolveLiveWindow } from "./window";
 
-const RELEASE_VERSION = "v0.1.3";
+const RELEASE_VERSION = "v0.1.6";
 const BIN_NAME = "grafana-alertcheck";
 const SUMMARY_TITLE = "### Grafana alert gate";
 

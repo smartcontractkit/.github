@@ -121,6 +121,12 @@ describe("resolveLiveWindow", () => {
     });
   });
 
+  it("preserves fractional seconds when computing to from duration", () => {
+    expect(
+      resolveLiveWindow("", "", "1s", new Date("2024-01-15T10:00:00.900Z")),
+    ).toEqual({ to: "2024-01-15T10:00:01.900Z" });
+  });
+
   it("carries an explicit from with an explicit to", () => {
     expect(
       resolveLiveWindow(
