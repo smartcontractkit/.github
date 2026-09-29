@@ -161,7 +161,7 @@ describe("buildSummaryBody", () => {
   it("prefixes the header, separator, and status column", () => {
     const body = buildSummaryBody(result);
     expect(body).toContain(
-      "| Status | Alert | Outcome | State | Health | Last error | Bad for | Note |\n|---|---|---|---|---|---|---|---|",
+      "| Status | Alert | Verdict | Grafana state | Grafana health | Last error | Broken for | Details |\n|---|---|---|---|---|---|---|---|",
     );
   });
 

@@ -6,7 +6,7 @@ import type {
 } from "./result";
 
 export const SUMMARY_HEADER =
-  "| Status | Alert | Outcome | State | Health | Last error | Bad for | Note |";
+  "| Status | Alert | Verdict | Grafana state | Grafana health | Last error | Broken for | Details |";
 export const SUMMARY_SEPARATOR = "|---|---|---|---|---|---|---|---|";
 
 const STATUS_FAIL = "❌";

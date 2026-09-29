@@ -2,6 +2,7 @@ import * as core from "@actions/core";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  findPullRequestNumber,
   SUMMARY_COMMENT_MARKER,
   upsertSummaryComment,
   type Octokit,
@@ -9,13 +10,16 @@ import {
 
 vi.mock("@actions/core", () => ({ warning: vi.fn() }));
 
-function mockOctokit(comments: Array<{ id: number; body?: string }> = []) {
+function mockOctokit(paginateResult: unknown[] = []) {
   const updateComment = vi.fn().mockResolvedValue({});
   const createComment = vi.fn().mockResolvedValue({});
-  const paginate = vi.fn().mockResolvedValue(comments);
+  const paginate = vi.fn().mockResolvedValue(paginateResult);
   const octokit = {
     paginate,
-    rest: { issues: { listComments: vi.fn(), updateComment, createComment } },
+    rest: {
+      issues: { listComments: vi.fn(), updateComment, createComment },
+      repos: { listPullRequestsAssociatedWithCommit: vi.fn() },
+    },
   };
   return {
     octokit: octokit as unknown as Octokit,
@@ -24,6 +28,52 @@ function mockOctokit(comments: Array<{ id: number; body?: string }> = []) {
     createComment,
   };
 }
+
+describe("findPullRequestNumber", () => {
+  const sha = "abc123";
+  const pullRequests = [
+    { number: 1, state: "closed", head: { sha } },
+    { number: 2, state: "open", head: { sha: "different" } },
+    { number: 3, state: "open", head: { sha } },
+  ];
+
+  it("returns the open pull request whose head is the SHA", async () => {
+    const { octokit } = mockOctokit(pullRequests);
+
+    await expect(
+      findPullRequestNumber(octokit, "org", "repo", sha),
+    ).resolves.toBe(3);
+  });
+
+  it("ignores closed pull requests and heads with a different SHA", async () => {
+    const { octokit } = mockOctokit([pullRequests[0], pullRequests[1]]);
+
+    await expect(
+      findPullRequestNumber(octokit, "org", "repo", sha),
+    ).resolves.toBeUndefined();
+  });
+
+  it("returns undefined when no pull request matches", async () => {
+    const { octokit } = mockOctokit([]);
+
+    await expect(
+      findPullRequestNumber(octokit, "org", "repo", sha),
+    ).resolves.toBeUndefined();
+  });
+
+  it("paginates the associated pull requests with a full page size", async () => {
+    const { octokit, paginate } = mockOctokit([]);
+
+    await findPullRequestNumber(octokit, "org", "repo", sha);
+
+    expect(paginate).toHaveBeenCalledWith(expect.anything(), {
+      owner: "org",
+      repo: "repo",
+      commit_sha: sha,
+      per_page: 100,
+    });
+  });
+});
 
 describe("upsertSummaryComment", () => {
   it("creates the comment when no marker comment exists", async () => {

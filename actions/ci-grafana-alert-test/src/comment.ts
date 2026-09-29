@@ -17,6 +17,22 @@ function withMarker(body: string): string {
   return `${truncated}\n\n${SUMMARY_COMMENT_MARKER}`;
 }
 
+export async function findPullRequestNumber(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  sha: string,
+): Promise<number | undefined> {
+  const pullRequests = await octokit.paginate(
+    octokit.rest.repos.listPullRequestsAssociatedWithCommit,
+    { owner, repo, commit_sha: sha, per_page: 100 },
+  );
+  return pullRequests.find(
+    (pullRequest) =>
+      pullRequest.state === "open" && pullRequest.head.sha === sha,
+  )?.number;
+}
+
 export async function upsertSummaryComment(
   octokit: Octokit,
   owner: string,

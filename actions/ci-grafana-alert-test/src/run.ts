@@ -7,7 +7,7 @@ import * as tc from "@actions/tool-cache";
 import * as fs from "fs";
 import * as path from "path";
 
-import { upsertSummaryComment } from "./comment";
+import { findPullRequestNumber, upsertSummaryComment } from "./comment";
 import { extractCheckOutputs } from "./outputs";
 import { resolveAsset } from "./release";
 import { parseResult, type GrafanaAlertCheckResult } from "./result";
@@ -176,25 +176,56 @@ async function writeStepSummary(
   return body;
 }
 
+// The SHA that identifies the deployed/finished work across event types:
+// a deployment_status carries it on the deployment, a pull_request on the PR
+// head (context.sha is the synthetic merge commit there), and manually
+// dispatched runs fall back to the checked-out commit.
+function eventSha(): string | undefined {
+  const { payload, sha } = github.context;
+  return (
+    payload.pull_request?.head?.sha ||
+    payload.deployment?.sha ||
+    sha ||
+    undefined
+  );
+}
+
 async function postSummaryComment(body: string): Promise<void> {
-  const pullRequest = github.context.payload.pull_request;
-  if (!pullRequest) {
-    core.info(
-      "No pull request in this event; skipping the PR summary comment.",
-    );
-    return;
-  }
   const token = core.getInput("github-token");
   if (!token) {
     core.warning("No 'github-token'; skipping the PR summary comment.");
     return;
   }
+
+  const { owner, repo } = github.context.repo;
+  const sha = eventSha();
+  if (!sha) {
+    core.info("No commit SHA in this event; skipping the PR summary comment.");
+    return;
+  }
+
   const octokit = github.getOctokit(token);
+  let prNumber: number | undefined;
+  try {
+    prNumber = await findPullRequestNumber(octokit, owner, repo, sha);
+  } catch (error) {
+    core.warning(
+      `Failed to resolve the pull request for the summary comment: ${String(error)}`,
+    );
+    return;
+  }
+  if (!prNumber) {
+    core.info(
+      `No open pull request has ${sha} as its head; skipping the PR summary comment.`,
+    );
+    return;
+  }
+
   await upsertSummaryComment(
     octokit,
-    github.context.repo.owner,
-    github.context.repo.repo,
-    pullRequest.number,
+    owner,
+    repo,
+    prNumber,
     `${SUMMARY_TITLE}\n\n${body}`,
   );
 }

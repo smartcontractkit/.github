@@ -102072,6 +102072,15 @@ function withMarker(body2) {
 
 ${SUMMARY_COMMENT_MARKER}`;
 }
+async function findPullRequestNumber(octokit, owner, repo, sha) {
+  const pullRequests = await octokit.paginate(
+    octokit.rest.repos.listPullRequestsAssociatedWithCommit,
+    { owner, repo, commit_sha: sha, per_page: 100 }
+  );
+  return pullRequests.find(
+    (pullRequest) => pullRequest.state === "open" && pullRequest.head.sha === sha
+  )?.number;
+}
 async function upsertSummaryComment(octokit, owner, repo, prNumber, body2) {
   try {
     const comments = await octokit.paginate(octokit.rest.issues.listComments, {
@@ -102156,7 +102165,7 @@ function parseResult(json) {
 }
 
 // actions/ci-grafana-alert-test/src/summary.ts
-var SUMMARY_HEADER = "| Status | Alert | Outcome | State | Health | Last error | Bad for | Note |";
+var SUMMARY_HEADER = "| Status | Alert | Verdict | Grafana state | Grafana health | Last error | Broken for | Details |";
 var SUMMARY_SEPARATOR = "|---|---|---|---|---|---|---|---|";
 var STATUS_FAIL = "\u274C";
 var STATUS_PASS = "\u2705";
@@ -102486,25 +102495,43 @@ async function writeStepSummary(resultPath, includeInstances) {
 ${body2}`).write();
   return body2;
 }
+function eventSha() {
+  const { payload, sha } = github.context;
+  return payload.pull_request?.head?.sha || payload.deployment?.sha || sha || void 0;
+}
 async function postSummaryComment(body2) {
-  const pullRequest = github.context.payload.pull_request;
-  if (!pullRequest) {
-    info(
-      "No pull request in this event; skipping the PR summary comment."
-    );
-    return;
-  }
   const token = getInput("github-token");
   if (!token) {
     warning("No 'github-token'; skipping the PR summary comment.");
     return;
   }
+  const { owner, repo } = github.context.repo;
+  const sha = eventSha();
+  if (!sha) {
+    info("No commit SHA in this event; skipping the PR summary comment.");
+    return;
+  }
   const octokit = github.getOctokit(token);
+  let prNumber;
+  try {
+    prNumber = await findPullRequestNumber(octokit, owner, repo, sha);
+  } catch (error2) {
+    warning(
+      `Failed to resolve the pull request for the summary comment: ${String(error2)}`
+    );
+    return;
+  }
+  if (!prNumber) {
+    info(
+      `No open pull request has ${sha} as its head; skipping the PR summary comment.`
+    );
+    return;
+  }
   await upsertSummaryComment(
     octokit,
-    github.context.repo.owner,
-    github.context.repo.repo,
-    pullRequest.number,
+    owner,
+    repo,
+    prNumber,
     `${SUMMARY_TITLE}
 
 ${body2}`

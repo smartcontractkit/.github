@@ -78,8 +78,10 @@ cleared before the test step began is missed. Use `record` + `check` when the
 deploy window itself must be covered with no gap; use `live` when the step
 itself is the work being watched.
 
-On a `pull_request` event, `check` and `live` also upsert their summary as a PR
-comment. The calling job needs `pull-requests: write` for that:
+`check` and `live` also upsert their summary as a comment on the **open pull
+request whose head is the commit the run observed** — this works for
+`pull_request`, `deployment_status`, and manually dispatched runs alike. The
+calling job needs `pull-requests: write` for that:
 
 ```yaml
 permissions:
@@ -155,16 +157,16 @@ timeout accounts for this.
 
 `check` and `live` write a Markdown table to the step summary — one row per
 alert, with a ✅/❌ status, the verdict, the raw Grafana state and health, how
-long it was bad, and any note. When the run exits early, the summary says so and
-points at `no-fail-fast`. With `print-instances-details: 'true'` the failing
-instances of every bad alert are listed underneath the table (identity comes
-from the JSON result the CLI writes for `--output json`).
+long it was broken, and any details. When the run exits early, the summary says
+so and points at `no-fail-fast`. With `print-instances-details: 'true'` the
+failing instances of every bad alert are listed underneath the table (identity
+comes from the JSON result the CLI writes for `--output json`).
 
-On `pull_request` events the same body is upserted as a PR comment: the action
-finds its previous comment by a hidden marker, page by page, and updates it
-instead of posting duplicates on reruns. Commenting is skipped with a warning
-when there is no PR context or the token lacks `pull-requests: write` — it never
-fails the gate.
+On pull requests the same body is upserted as a PR comment: the action finds the
+open PR whose head is this run's commit (via the commit→pull requests API),
+finds its previous comment by a hidden marker, and updates it instead of posting
+duplicates on reruns. No PR match, a missing token, or an API rejection is
+logged/a warned and skipped — it never fails the gate.
 
 ## Failure behaviour
 

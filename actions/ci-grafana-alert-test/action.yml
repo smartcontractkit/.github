@@ -4,8 +4,8 @@ description:
   Grafana alerts (`record`) and fail the job if any watched alert was bad during
   the window (`check`); `live` skips the recorder and watches inline instead.
   Wraps the grafana-alertcheck CLI from chainlink-testing-framework, downloaded
-  as a prebuilt binary. On pull requests, `check` and `live` upsert their
-  summary as a comment."
+  as a prebuilt binary. When the run's commit is the head of an open pull
+  request, `check` and `live` upsert their summary as a comment there."
 
 inputs:
   mode:
@@ -106,10 +106,11 @@ inputs:
     default: "false"
   github-token:
     description:
-      "Token used to upsert the summary comment on the pull request. Defaults to
-      the workflow's automatic token; the calling job needs 'pull-requests:
-      write'. Commenting is skipped with a warning when the run is not on a pull
-      request or the token cannot comment. check and live."
+      "Token used to find the open pull request whose head is this run's commit
+      and upsert the summary comment on it. Defaults to the workflow's automatic
+      token; the calling job needs 'pull-requests: write'. Commenting is skipped
+      with a warning when the token is empty or the lookup/write fails, and
+      skipped with a log when no open pull request matches. check and live."
     required: false
     default: ${{ github.token }}
 
