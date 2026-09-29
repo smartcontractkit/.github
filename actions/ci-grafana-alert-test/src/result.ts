@@ -5,8 +5,6 @@ export interface Violation {
   State?: string;
   Health?: string;
   LastError?: string;
-  FirstSeen?: string;
-  ClearedAt?: string;
   InstanceLabels?: Record<string, string>;
   Note?: string;
 }
@@ -16,14 +14,12 @@ export interface Verdict {
   RuleUID: string;
   Outcome: string;
   BadFor: number;
-  PollEvery?: number;
   Note?: string;
 }
 
 export interface Termination {
   Kind?: string;
   Alert?: string;
-  RuleUID?: string;
   Outcome?: string;
   Reason?: string;
   At?: string;

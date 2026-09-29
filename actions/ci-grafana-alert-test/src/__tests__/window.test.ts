@@ -4,6 +4,7 @@ import {
   addSecondsToRfc3339,
   parseDuration,
   resolveCheckWindow,
+  resolveLiveWindow,
   toRfc3339Utc,
 } from "../window";
 
@@ -95,5 +96,66 @@ describe("resolveCheckWindow", () => {
     expect(() =>
       resolveCheckWindow("2024-01-15T10:00:00Z", "2024-01-15T10:10:00Z", "10m"),
     ).toThrow("mutually exclusive");
+  });
+});
+
+describe("resolveLiveWindow", () => {
+  const now = new Date("2024-01-15T10:00:00Z");
+
+  it("passes through an explicit to and omits an absent from", () => {
+    expect(resolveLiveWindow("", "2024-01-15T10:10:00Z", "", now)).toEqual({
+      to: "2024-01-15T10:10:00Z",
+    });
+  });
+
+  it("computes to from duration measured from the start of the live run", () => {
+    expect(resolveLiveWindow("", "", "10m", now)).toEqual({
+      to: "2024-01-15T10:10:00Z",
+    });
+  });
+
+  it("measures duration from now even when an explicit from is given", () => {
+    expect(resolveLiveWindow("2024-01-15T09:00:00Z", "", "10m", now)).toEqual({
+      from: "2024-01-15T09:00:00Z",
+      to: "2024-01-15T10:10:00Z",
+    });
+  });
+
+  it("carries an explicit from with an explicit to", () => {
+    expect(
+      resolveLiveWindow(
+        "2024-01-15T09:55:00Z",
+        "2024-01-15T10:10:00Z",
+        "",
+        now,
+      ),
+    ).toEqual({
+      from: "2024-01-15T09:55:00Z",
+      to: "2024-01-15T10:10:00Z",
+    });
+  });
+
+  it("requires exactly one of to or duration", () => {
+    expect(() => resolveLiveWindow("", "", "", now)).toThrow(
+      "exactly one of 'to' or 'duration'",
+    );
+    expect(() =>
+      resolveLiveWindow("", "2024-01-15T10:10:00Z", "10m", now),
+    ).toThrow("mutually exclusive");
+  });
+
+  it("rejects a to that is not in the future", () => {
+    expect(() =>
+      resolveLiveWindow("", "2024-01-15T10:00:00Z", "", now),
+    ).toThrow("must be in the future");
+    expect(() =>
+      resolveLiveWindow("", "2024-01-15T09:59:00Z", "", now),
+    ).toThrow("must be in the future");
+  });
+
+  it("rejects an invalid to", () => {
+    expect(() => resolveLiveWindow("", "not-a-date", "", now)).toThrow(
+      "not a valid RFC3339",
+    );
   });
 });

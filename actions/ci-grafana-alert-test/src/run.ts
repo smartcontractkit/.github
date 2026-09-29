@@ -12,7 +12,7 @@ import { extractCheckOutputs } from "./outputs";
 import { resolveAsset } from "./release";
 import { parseResult, type GrafanaAlertCheckResult } from "./result";
 import { buildSummaryBody } from "./summary";
-import { resolveCheckWindow } from "./window";
+import { resolveCheckWindow, resolveLiveWindow } from "./window";
 
 const RELEASE_VERSION = "v0.1.3";
 const BIN_NAME = "grafana-alertcheck";
@@ -71,6 +71,15 @@ async function installBinary(): Promise<string> {
   return binPath;
 }
 
+function writeAlertsFile(alerts: string): string {
+  const alertsFile = path.join(
+    makeTempDir("grafana-alert-gate-"),
+    "alerts.txt",
+  );
+  fs.writeFileSync(alertsFile, alerts);
+  return alertsFile;
+}
+
 async function runRecord(binPath: string): Promise<void> {
   const alerts = core.getInput("alerts");
   if (alerts.trim() === "") {
@@ -81,11 +90,7 @@ async function runRecord(binPath: string): Promise<void> {
 
   const dir = gateDir();
   fs.mkdirSync(dir, { recursive: true });
-  const alertsFile = path.join(
-    makeTempDir("grafana-alert-gate-"),
-    "alerts.txt",
-  );
-  fs.writeFileSync(alertsFile, alerts);
+  const alertsFile = writeAlertsFile(alerts);
 
   const logPath = path.join(dir, "log.jsonl");
   const args = ["watch", "--out", logPath, "--alerts", alertsFile];
@@ -108,19 +113,37 @@ async function runRecord(binPath: string): Promise<void> {
   core.setOutput("pidfile", `${logPath}.pid`);
 }
 
-function buildCheckArgs(window: { from: string; to: string }): string[] {
-  const logPath = path.join(gateDir(), "log.jsonl");
-  const args = [
-    "check",
-    "--in",
-    logPath,
-    "--from",
-    window.from,
-    "--to",
-    window.to,
-    "--output",
-    "json",
-  ];
+export interface CheckPaths {
+  logPath?: string;
+  alertsPath?: string;
+}
+
+export function buildCheckArgs(
+  window: { from?: string; to: string },
+  live: boolean,
+  paths: CheckPaths,
+): string[] {
+  const args = ["check"];
+
+  if (live) {
+    if (!paths.alertsPath) {
+      throw new Error("ci-grafana-alert-test: mode: live needs an alerts file");
+    }
+    args.push("--alerts", paths.alertsPath);
+    if (window.from) args.push("--from", window.from);
+  } else {
+    if (!window.from) {
+      throw new Error("ci-grafana-alert-test: mode: check requires 'from'");
+    }
+    if (!paths.logPath) {
+      throw new Error(
+        "ci-grafana-alert-test: mode: check needs a recorded log",
+      );
+    }
+    args.push("--in", paths.logPath, "--from", window.from);
+  }
+
+  args.push("--to", window.to, "--output", "json");
 
   const states = core.getInput("states");
   if (states) args.push("--states", states);
@@ -191,21 +214,34 @@ async function setCheckOutputs(
   core.setOutput("outcomes", outputs.outcomes);
 }
 
+async function uploadArtifactNamed(
+  prefix: string,
+  filePath: string,
+): Promise<void> {
+  const runId = process.env.GITHUB_RUN_ID ?? "";
+  const runAttempt = process.env.GITHUB_RUN_ATTEMPT ?? "";
+
+  await artifactClient.uploadArtifact(
+    `grafana-alert-gate-${prefix}-${runId}-${runAttempt}`,
+    [filePath],
+    path.dirname(filePath),
+  );
+}
+
 async function uploadEvidenceLog(logPath: string): Promise<void> {
   if (!fs.existsSync(logPath)) {
     core.warning("No evidence log to upload");
     return;
   }
+  await uploadArtifactNamed("log", logPath);
+}
 
-  const runId = process.env.GITHUB_RUN_ID ?? "";
-  const runAttempt = process.env.GITHUB_RUN_ATTEMPT ?? "";
-  const artifactName = `grafana-alert-gate-log-${runId}-${runAttempt}`;
-
-  await artifactClient.uploadArtifact(
-    artifactName,
-    [logPath],
-    path.dirname(logPath),
-  );
+async function uploadResult(resultPath: string): Promise<void> {
+  if (readNonEmpty(resultPath) === undefined) {
+    core.warning("No result to upload");
+    return;
+  }
+  await uploadArtifactNamed("result", resultPath);
 }
 
 function enforceGate(exitCode: number, failOnViolation: string): void {
@@ -228,23 +264,41 @@ function enforceGate(exitCode: number, failOnViolation: string): void {
   );
 }
 
-async function runCheck(binPath: string): Promise<void> {
+async function runCheck(binPath: string, live: boolean): Promise<void> {
   const alerts = core.getInput("alerts");
-  if (alerts.trim() !== "") {
+  if (live && alerts.trim() === "") {
+    throw new Error(
+      "ci-grafana-alert-test: 'alerts' is required with mode: live",
+    );
+  }
+  if (!live && alerts.trim() !== "") {
     throw new Error(
       "ci-grafana-alert-test: 'alerts' is refused with mode: check — the recorded log already carries its own alert set",
     );
   }
 
-  const window = resolveCheckWindow(
-    core.getInput("from"),
-    core.getInput("to"),
-    core.getInput("duration"),
-  );
-  const args = buildCheckArgs(window);
+  const window = live
+    ? resolveLiveWindow(
+        core.getInput("from"),
+        core.getInput("to"),
+        core.getInput("duration"),
+      )
+    : resolveCheckWindow(
+        core.getInput("from"),
+        core.getInput("to"),
+        core.getInput("duration"),
+      );
 
   const dir = gateDir();
-  fs.mkdirSync(dir, { recursive: true });
+  let paths: CheckPaths;
+  if (live) {
+    paths = { alertsPath: writeAlertsFile(alerts) };
+  } else {
+    fs.mkdirSync(dir, { recursive: true });
+    paths = { logPath: path.join(dir, "log.jsonl") };
+  }
+
+  const args = buildCheckArgs(window, live, paths);
   const resultPath = path.join(
     makeTempDir("grafana-alert-gate-"),
     "result.json",
@@ -277,7 +331,11 @@ async function runCheck(binPath: string): Promise<void> {
   await postSummaryComment(body);
 
   if (exitCode !== 0) {
-    await uploadEvidenceLog(path.join(dir, "log.jsonl"));
+    if (live) {
+      await uploadResult(resultPath);
+    } else {
+      await uploadEvidenceLog(path.join(dir, "log.jsonl"));
+    }
   }
 
   enforceGate(exitCode, core.getInput("fail-on-violation"));
@@ -286,9 +344,9 @@ async function runCheck(binPath: string): Promise<void> {
 export async function run(): Promise<void> {
   try {
     const mode = core.getInput("mode", { required: true });
-    if (mode !== "record" && mode !== "check") {
+    if (mode !== "record" && mode !== "check" && mode !== "live") {
       throw new Error(
-        `ci-grafana-alert-test: mode must be 'record' or 'check', got '${mode}'`,
+        `ci-grafana-alert-test: mode must be 'record', 'check' or 'live', got '${mode}'`,
       );
     }
 
@@ -297,7 +355,7 @@ export async function run(): Promise<void> {
     if (mode === "record") {
       await runRecord(binPath);
     } else {
-      await runCheck(binPath);
+      await runCheck(binPath, mode === "live");
     }
   } catch (error) {
     core.setFailed(error instanceof Error ? error.message : String(error));

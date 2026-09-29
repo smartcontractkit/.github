@@ -3,6 +3,11 @@ export interface CheckWindow {
   to: string;
 }
 
+export interface LiveWindow {
+  from?: string;
+  to: string;
+}
+
 const DURATION_SEGMENT = /^(\d+)(h|m|s)/;
 
 /**
@@ -59,6 +64,23 @@ export function addSecondsToRfc3339(from: string, seconds: number): string {
   return toRfc3339Utc(shifted);
 }
 
+function assertSingleToOrDuration(
+  to: string,
+  duration: string,
+  mode: string,
+): void {
+  if (to.trim() === "" && duration.trim() === "") {
+    throw new Error(
+      `exactly one of 'to' or 'duration' is required with mode: ${mode}`,
+    );
+  }
+  if (to.trim() !== "" && duration.trim() !== "") {
+    throw new Error(
+      "'to' and 'duration' are mutually exclusive — give exactly one",
+    );
+  }
+}
+
 /**
  * Validates the `from`/`to`/`duration` inputs for mode: check and resolves the
  * window's `to` value (`to` as given, or `from + duration`).
@@ -73,16 +95,7 @@ export function resolveCheckWindow(
       "'from' is required with mode: check, and must come from the deploy step's own completion output",
     );
   }
-  if (to.trim() === "" && duration.trim() === "") {
-    throw new Error(
-      "exactly one of 'to' or 'duration' is required with mode: check",
-    );
-  }
-  if (to.trim() !== "" && duration.trim() !== "") {
-    throw new Error(
-      "'to' and 'duration' are mutually exclusive — give exactly one",
-    );
-  }
+  assertSingleToOrDuration(to, duration, "check");
 
   if (to.trim() !== "") {
     return { from, to };
@@ -90,4 +103,38 @@ export function resolveCheckWindow(
 
   const seconds = parseDuration(duration);
   return { from, to: addSecondsToRfc3339(from, seconds) };
+}
+
+/**
+ * Validates the `from`/`to`/`duration` inputs for mode: live (single-step) and
+ * resolves the window. `from` is optional there — the CLI starts observing at
+ * its first poll and names the earlier gap a blind spot. `duration` is measured
+ * from the start of the live run, not from `from`.
+ */
+export function resolveLiveWindow(
+  from: string,
+  to: string,
+  duration: string,
+  now: Date = new Date(),
+): LiveWindow {
+  assertSingleToOrDuration(to, duration, "live");
+
+  const resolvedTo =
+    to.trim() !== ""
+      ? to
+      : addSecondsToRfc3339(toRfc3339Utc(now), parseDuration(duration));
+
+  const toDate = new Date(resolvedTo);
+  if (Number.isNaN(toDate.getTime())) {
+    throw new Error(
+      `'to' is not a valid RFC3339 timestamp, got '${resolvedTo}'`,
+    );
+  }
+  if (toDate.getTime() <= now.getTime()) {
+    throw new Error(
+      `'to' must be in the future with mode: live, got '${resolvedTo}'`,
+    );
+  }
+
+  return from.trim() !== "" ? { from, to: resolvedTo } : { to: resolvedTo };
 }

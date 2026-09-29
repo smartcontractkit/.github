@@ -100804,16 +100804,16 @@ function uploadArtifact(name, files, rootDirectory, options) {
       stream5 = yield createZipUploadStream(zipSpecification, options === null || options === void 0 ? void 0 : options.compressionLevel);
     }
     info(`Uploading artifact: ${artifactFileName}`);
-    const uploadResult = yield uploadToBlobStorage(createArtifactResp.signedUploadUrl, stream5, contentType2);
+    const uploadResult2 = yield uploadToBlobStorage(createArtifactResp.signedUploadUrl, stream5, contentType2);
     const finalizeArtifactReq = {
       workflowRunBackendId: backendIds.workflowRunBackendId,
       workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
       name,
-      size: uploadResult.uploadSize ? uploadResult.uploadSize.toString() : "0"
+      size: uploadResult2.uploadSize ? uploadResult2.uploadSize.toString() : "0"
     };
-    if (uploadResult.sha256Hash) {
+    if (uploadResult2.sha256Hash) {
       finalizeArtifactReq.hash = StringValue.create({
-        value: `sha256:${uploadResult.sha256Hash}`
+        value: `sha256:${uploadResult2.sha256Hash}`
       });
     }
     info(`Finalizing artifact upload`);
@@ -100824,8 +100824,8 @@ function uploadArtifact(name, files, rootDirectory, options) {
     const artifactId = BigInt(finalizeArtifactResp.artifactId);
     info(`Artifact ${name} successfully finalized. Artifact ID ${artifactId}`);
     return {
-      size: uploadResult.uploadSize,
-      digest: uploadResult.sha256Hash,
+      size: uploadResult2.uploadSize,
+      digest: uploadResult2.sha256Hash,
       id: Number(artifactId)
     };
   });
@@ -102165,6 +102165,15 @@ var PASSING_OUTCOMES = /* @__PURE__ */ new Set(["healthy", "clean", "recovered"]
 function escapePipe(value) {
   return value.replaceAll("|", "\\|");
 }
+function singleLine(value) {
+  return value.replaceAll(/[\r\n]+/g, " ");
+}
+function tableCell(value) {
+  return escapePipe(singleLine(value));
+}
+function inlineCode(value) {
+  return singleLine(value).replaceAll("`", "'");
+}
 function truncateLastError(lastError) {
   if (lastError === void 0) {
     return "-";
@@ -102198,14 +102207,16 @@ function buildSummaryRows(result) {
       truncateLastError(violation?.LastError),
       `${badForSeconds}s`,
       formatNote(verdict, violation)
-    ].map(escapePipe);
+    ].map(tableCell);
     return `| ${cells.join(" | ")} |`;
   }).join("\n");
 }
 function buildEarlyExitNote(termination) {
-  const target = termination.Alert ? ` on "${termination.Alert}"` : "";
-  const comparison = termination.At ? ` at ${termination.At}` : "";
-  const detail = termination.Reason ?? termination.Outcome ?? termination.Kind ?? "unknown";
+  const target = termination.Alert ? ` on "${singleLine(termination.Alert)}"` : "";
+  const comparison = termination.At ? ` at ${singleLine(termination.At)}` : "";
+  const detail = singleLine(
+    termination.Reason ?? termination.Outcome ?? termination.Kind ?? "unknown"
+  );
   return `> **Early exit:** the gate stopped before the window closed${target}${comparison} (${detail}). Set \`no-fail-fast: true\` to observe the full window.`;
 }
 function sortLabels(labels) {
@@ -102231,17 +102242,17 @@ function buildInstancesSection(result) {
   }
   const sections = [...grouped.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([alert, violations]) => {
     const items = violations.map((violation) => {
-      const labels = JSON.stringify(
-        sortLabels(violation.InstanceLabels ?? {})
+      const labels = inlineCode(
+        JSON.stringify(sortLabels(violation.InstanceLabels ?? {}))
       );
       const details = [
         violation.Outcome,
         violation.State && `state: ${violation.State}`,
         violation.Health && `health: ${violation.Health}`
-      ].filter(Boolean).join("; ");
-      return `- \`${labels}\`${details ? ` \u2014 ${details}` : ""}`;
+      ].filter((part) => Boolean(part)).map(singleLine).join("; ");
+      return `- \`${labels}\`${details ? ` \u2014 ${escapePipe(details)}` : ""}`;
     });
-    return `**${escapePipe(alert)}**
+    return `**${tableCell(alert)}**
 ${items.join("\n")}`;
   });
   return `#### Failing instances
@@ -102307,15 +102318,10 @@ function addSecondsToRfc3339(from, seconds) {
   const shifted = new Date(date.getTime() + seconds * 1e3);
   return toRfc3339Utc(shifted);
 }
-function resolveCheckWindow(from, to, duration2) {
-  if (from.trim() === "") {
-    throw new Error(
-      "'from' is required with mode: check, and must come from the deploy step's own completion output"
-    );
-  }
+function assertSingleToOrDuration(to, duration2, mode) {
   if (to.trim() === "" && duration2.trim() === "") {
     throw new Error(
-      "exactly one of 'to' or 'duration' is required with mode: check"
+      `exactly one of 'to' or 'duration' is required with mode: ${mode}`
     );
   }
   if (to.trim() !== "" && duration2.trim() !== "") {
@@ -102323,11 +102329,35 @@ function resolveCheckWindow(from, to, duration2) {
       "'to' and 'duration' are mutually exclusive \u2014 give exactly one"
     );
   }
+}
+function resolveCheckWindow(from, to, duration2) {
+  if (from.trim() === "") {
+    throw new Error(
+      "'from' is required with mode: check, and must come from the deploy step's own completion output"
+    );
+  }
+  assertSingleToOrDuration(to, duration2, "check");
   if (to.trim() !== "") {
     return { from, to };
   }
   const seconds = parseDuration(duration2);
   return { from, to: addSecondsToRfc3339(from, seconds) };
+}
+function resolveLiveWindow(from, to, duration2, now = /* @__PURE__ */ new Date()) {
+  assertSingleToOrDuration(to, duration2, "live");
+  const resolvedTo = to.trim() !== "" ? to : addSecondsToRfc3339(toRfc3339Utc(now), parseDuration(duration2));
+  const toDate = new Date(resolvedTo);
+  if (Number.isNaN(toDate.getTime())) {
+    throw new Error(
+      `'to' is not a valid RFC3339 timestamp, got '${resolvedTo}'`
+    );
+  }
+  if (toDate.getTime() <= now.getTime()) {
+    throw new Error(
+      `'to' must be in the future with mode: live, got '${resolvedTo}'`
+    );
+  }
+  return from.trim() !== "" ? { from, to: resolvedTo } : { to: resolvedTo };
 }
 
 // actions/ci-grafana-alert-test/src/run.ts
@@ -102376,6 +102406,14 @@ async function installBinary() {
   fs9.chmodSync(binPath, 493);
   return binPath;
 }
+function writeAlertsFile(alerts) {
+  const alertsFile = path8.join(
+    makeTempDir("grafana-alert-gate-"),
+    "alerts.txt"
+  );
+  fs9.writeFileSync(alertsFile, alerts);
+  return alertsFile;
+}
 async function runRecord(binPath) {
   const alerts = getInput("alerts");
   if (alerts.trim() === "") {
@@ -102385,11 +102423,7 @@ async function runRecord(binPath) {
   }
   const dir = gateDir();
   fs9.mkdirSync(dir, { recursive: true });
-  const alertsFile = path8.join(
-    makeTempDir("grafana-alert-gate-"),
-    "alerts.txt"
-  );
-  fs9.writeFileSync(alertsFile, alerts);
+  const alertsFile = writeAlertsFile(alerts);
   const logPath = path8.join(dir, "log.jsonl");
   const args = ["watch", "--out", logPath, "--alerts", alertsFile];
   const folder = getInput("folder");
@@ -102407,19 +102441,26 @@ async function runRecord(binPath) {
   setOutput("log-path", logPath);
   setOutput("pidfile", `${logPath}.pid`);
 }
-function buildCheckArgs(window2) {
-  const logPath = path8.join(gateDir(), "log.jsonl");
-  const args = [
-    "check",
-    "--in",
-    logPath,
-    "--from",
-    window2.from,
-    "--to",
-    window2.to,
-    "--output",
-    "json"
-  ];
+function buildCheckArgs(window2, live, paths) {
+  const args = ["check"];
+  if (live) {
+    if (!paths.alertsPath) {
+      throw new Error("ci-grafana-alert-test: mode: live needs an alerts file");
+    }
+    args.push("--alerts", paths.alertsPath);
+    if (window2.from) args.push("--from", window2.from);
+  } else {
+    if (!window2.from) {
+      throw new Error("ci-grafana-alert-test: mode: check requires 'from'");
+    }
+    if (!paths.logPath) {
+      throw new Error(
+        "ci-grafana-alert-test: mode: check needs a recorded log"
+      );
+    }
+    args.push("--in", paths.logPath, "--from", window2.from);
+  }
+  args.push("--to", window2.to, "--output", "json");
   const states = getInput("states");
   if (states) args.push("--states", states);
   const preexisting = getInput("preexisting");
@@ -102478,19 +102519,28 @@ async function setCheckOutputs(resultPath, exitCode) {
   setOutput("violations", outputs.violations);
   setOutput("outcomes", outputs.outcomes);
 }
+async function uploadArtifactNamed(prefix2, filePath) {
+  const runId = process.env.GITHUB_RUN_ID ?? "";
+  const runAttempt = process.env.GITHUB_RUN_ATTEMPT ?? "";
+  await artifact_default.uploadArtifact(
+    `grafana-alert-gate-${prefix2}-${runId}-${runAttempt}`,
+    [filePath],
+    path8.dirname(filePath)
+  );
+}
 async function uploadEvidenceLog(logPath) {
   if (!fs9.existsSync(logPath)) {
     warning("No evidence log to upload");
     return;
   }
-  const runId = process.env.GITHUB_RUN_ID ?? "";
-  const runAttempt = process.env.GITHUB_RUN_ATTEMPT ?? "";
-  const artifactName = `grafana-alert-gate-log-${runId}-${runAttempt}`;
-  await artifact_default.uploadArtifact(
-    artifactName,
-    [logPath],
-    path8.dirname(logPath)
-  );
+  await uploadArtifactNamed("log", logPath);
+}
+async function uploadResult(resultPath) {
+  if (readNonEmpty(resultPath) === void 0) {
+    warning("No result to upload");
+    return;
+  }
+  await uploadArtifactNamed("result", resultPath);
 }
 function enforceGate(exitCode, failOnViolation) {
   if (exitCode === 0) {
@@ -102511,21 +102561,36 @@ function enforceGate(exitCode, failOnViolation) {
     `ci-grafana-alert-test: could not complete the check (exit ${exitCode}) \u2014 this is a could-not-check result and always fails the job regardless of fail-on-violation`
   );
 }
-async function runCheck(binPath) {
+async function runCheck(binPath, live) {
   const alerts = getInput("alerts");
-  if (alerts.trim() !== "") {
+  if (live && alerts.trim() === "") {
+    throw new Error(
+      "ci-grafana-alert-test: 'alerts' is required with mode: live"
+    );
+  }
+  if (!live && alerts.trim() !== "") {
     throw new Error(
       "ci-grafana-alert-test: 'alerts' is refused with mode: check \u2014 the recorded log already carries its own alert set"
     );
   }
-  const window2 = resolveCheckWindow(
+  const window2 = live ? resolveLiveWindow(
+    getInput("from"),
+    getInput("to"),
+    getInput("duration")
+  ) : resolveCheckWindow(
     getInput("from"),
     getInput("to"),
     getInput("duration")
   );
-  const args = buildCheckArgs(window2);
   const dir = gateDir();
-  fs9.mkdirSync(dir, { recursive: true });
+  let paths;
+  if (live) {
+    paths = { alertsPath: writeAlertsFile(alerts) };
+  } else {
+    fs9.mkdirSync(dir, { recursive: true });
+    paths = { logPath: path8.join(dir, "log.jsonl") };
+  }
+  const args = buildCheckArgs(window2, live, paths);
   const resultPath = path8.join(
     makeTempDir("grafana-alert-gate-"),
     "result.json"
@@ -102555,23 +102620,27 @@ async function runCheck(binPath) {
   await setCheckOutputs(resultPath, exitCode);
   await postSummaryComment(body2);
   if (exitCode !== 0) {
-    await uploadEvidenceLog(path8.join(dir, "log.jsonl"));
+    if (live) {
+      await uploadResult(resultPath);
+    } else {
+      await uploadEvidenceLog(path8.join(dir, "log.jsonl"));
+    }
   }
   enforceGate(exitCode, getInput("fail-on-violation"));
 }
 async function run() {
   try {
     const mode = getInput("mode", { required: true });
-    if (mode !== "record" && mode !== "check") {
+    if (mode !== "record" && mode !== "check" && mode !== "live") {
       throw new Error(
-        `ci-grafana-alert-test: mode must be 'record' or 'check', got '${mode}'`
+        `ci-grafana-alert-test: mode must be 'record', 'check' or 'live', got '${mode}'`
       );
     }
     const binPath = await installBinary();
     if (mode === "record") {
       await runRecord(binPath);
     } else {
-      await runCheck(binPath);
+      await runCheck(binPath, mode === "live");
     }
   } catch (error2) {
     setFailed(error2 instanceof Error ? error2.message : String(error2));

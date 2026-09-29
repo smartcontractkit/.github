@@ -21,6 +21,20 @@ function escapePipe(value: string): string {
   return value.replaceAll("|", "\\|");
 }
 
+// CLI/Grafana strings reach Markdown that is also posted as a PR comment, so
+// collapse newlines and neutralise inline-code spans.
+function singleLine(value: string): string {
+  return value.replaceAll(/[\r\n]+/g, " ");
+}
+
+function tableCell(value: string): string {
+  return escapePipe(singleLine(value));
+}
+
+function inlineCode(value: string): string {
+  return singleLine(value).replaceAll("`", "'");
+}
+
 function truncateLastError(lastError: string | undefined): string {
   if (lastError === undefined) {
     return "-";
@@ -74,17 +88,20 @@ export function buildSummaryRows(result: GrafanaAlertCheckResult): string {
         truncateLastError(violation?.LastError),
         `${badForSeconds}s`,
         formatNote(verdict, violation),
-      ].map(escapePipe);
+      ].map(tableCell);
       return `| ${cells.join(" | ")} |`;
     })
     .join("\n");
 }
 
 function buildEarlyExitNote(termination: Termination): string {
-  const target = termination.Alert ? ` on "${termination.Alert}"` : "";
-  const comparison = termination.At ? ` at ${termination.At}` : "";
-  const detail =
-    termination.Reason ?? termination.Outcome ?? termination.Kind ?? "unknown";
+  const target = termination.Alert
+    ? ` on "${singleLine(termination.Alert)}"`
+    : "";
+  const comparison = termination.At ? ` at ${singleLine(termination.At)}` : "";
+  const detail = singleLine(
+    termination.Reason ?? termination.Outcome ?? termination.Kind ?? "unknown",
+  );
   return (
     `> **Early exit:** the gate stopped before the window closed` +
     `${target}${comparison} (${detail}).` +
@@ -122,19 +139,20 @@ export function buildInstancesSection(result: GrafanaAlertCheckResult): string {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([alert, violations]) => {
       const items = violations.map((violation) => {
-        const labels = JSON.stringify(
-          sortLabels(violation.InstanceLabels ?? {}),
+        const labels = inlineCode(
+          JSON.stringify(sortLabels(violation.InstanceLabels ?? {})),
         );
         const details = [
           violation.Outcome,
           violation.State && `state: ${violation.State}`,
           violation.Health && `health: ${violation.Health}`,
         ]
-          .filter(Boolean)
+          .filter((part): part is string => Boolean(part))
+          .map(singleLine)
           .join("; ");
-        return `- \`${labels}\`${details ? ` — ${details}` : ""}`;
+        return `- \`${labels}\`${details ? ` — ${escapePipe(details)}` : ""}`;
       });
-      return `**${escapePipe(alert)}**\n${items.join("\n")}`;
+      return `**${tableCell(alert)}**\n${items.join("\n")}`;
     });
 
   return `#### Failing instances\n\n${sections.join("\n\n")}`;

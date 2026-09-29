@@ -121,6 +121,23 @@ describe("buildSummaryRows", () => {
     expect(rows).toContain("Other \\| Alert");
   });
 
+  it("collapses newlines in table cells", () => {
+    const rows = buildSummaryRows({
+      Violations: [],
+      Verdicts: [
+        {
+          Alert: "Multi\nLine",
+          RuleUID: "r",
+          Outcome: "new_failure",
+          BadFor: 0,
+          Note: "first\nsecond",
+        },
+      ],
+    });
+    expect(rows).toContain("Multi Line");
+    expect(rows).toContain("first second");
+  });
+
   it("truncates LastError to 120 chars", () => {
     const long = {
       Violations: [
@@ -153,7 +170,7 @@ describe("buildSummaryBody", () => {
       ...result,
       TerminatedEarly: {
         Kind: "bad_onset",
-        Alert: "My Alert",
+        Alert: "My\nAlert",
         Outcome: "new_failure",
         At: "2026-09-29T10:00:00Z",
       },
@@ -201,6 +218,23 @@ describe("buildInstancesSection", () => {
   it("skips violations without instance labels", () => {
     const section = buildInstancesSection(result);
     expect(section).not.toContain("min-observed shortfall");
+  });
+
+  it("neutralises backticks and newlines in labels and the alert heading", () => {
+    const section = buildInstancesSection({
+      Violations: [
+        {
+          Alert: "Bad\nAlert",
+          RuleUID: "r",
+          Outcome: "new_failure",
+          InstanceLabels: { "pod`x": "a\nb" },
+        },
+      ],
+    });
+
+    expect(section).toContain("**Bad Alert**");
+    expect(section).toContain('- `{"pod\'x":"a\\nb"}`');
+    expect(section).not.toContain("Bad\nAlert");
   });
 
   it("returns empty when nothing has instance labels", () => {
