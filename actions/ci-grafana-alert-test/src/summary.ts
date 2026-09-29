@@ -42,6 +42,15 @@ function truncateLastError(lastError: string | undefined): string {
   return lastError.length > 120 ? lastError.slice(0, 120) : lastError;
 }
 
+// Full started seconds: any partial second counts, and a sub-second break
+// still reads as 1s rather than 0s.
+function formatBrokenFor(badFor: number): string {
+  if (badFor <= 0) {
+    return "0s";
+  }
+  return `${Math.ceil(badFor / 1_000_000_000)}s`;
+}
+
 function findViolation(
   violations: Violation[],
   ruleUid: string,
@@ -78,7 +87,6 @@ export function buildSummaryRows(result: GrafanaAlertCheckResult): string {
   return verdicts
     .map((verdict) => {
       const violation = findViolation(violations, verdict.RuleUID);
-      const badForSeconds = (verdict.BadFor / 1_000_000_000).toString();
       const cells = [
         isFailure(verdict, violation) ? STATUS_FAIL : STATUS_PASS,
         verdict.Alert,
@@ -86,7 +94,7 @@ export function buildSummaryRows(result: GrafanaAlertCheckResult): string {
         violation?.State ?? "-",
         violation?.Health ?? "-",
         truncateLastError(violation?.LastError),
-        `${badForSeconds}s`,
+        formatBrokenFor(verdict.BadFor),
         formatNote(verdict, violation),
       ].map(tableCell);
       return `| ${cells.join(" | ")} |`;

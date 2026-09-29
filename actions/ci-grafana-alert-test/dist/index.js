@@ -102189,6 +102189,12 @@ function truncateLastError(lastError) {
   }
   return lastError.length > 120 ? lastError.slice(0, 120) : lastError;
 }
+function formatBrokenFor(badFor) {
+  if (badFor <= 0) {
+    return "0s";
+  }
+  return `${Math.ceil(badFor / 1e9)}s`;
+}
 function findViolation(violations, ruleUid) {
   return violations.find((violation) => violation.RuleUID === ruleUid);
 }
@@ -102206,7 +102212,6 @@ function buildSummaryRows(result) {
   const violations = result.Violations ?? [];
   return verdicts.map((verdict) => {
     const violation = findViolation(violations, verdict.RuleUID);
-    const badForSeconds = (verdict.BadFor / 1e9).toString();
     const cells = [
       isFailure(verdict, violation) ? STATUS_FAIL : STATUS_PASS,
       verdict.Alert,
@@ -102214,7 +102219,7 @@ function buildSummaryRows(result) {
       violation?.State ?? "-",
       violation?.Health ?? "-",
       truncateLastError(violation?.LastError),
-      `${badForSeconds}s`,
+      formatBrokenFor(verdict.BadFor),
       formatNote(verdict, violation)
     ].map(tableCell);
     return `| ${cells.join(" | ")} |`;

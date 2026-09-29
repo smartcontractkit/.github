@@ -100,7 +100,7 @@ describe("buildSummaryRows", () => {
     const rows = buildSummaryRows(result);
 
     expect(rows).toContain(
-      "| ❌ | My Alert | new_failure | firing | bad | some error | 1.5s | verdict note |",
+      "| ❌ | My Alert | new_failure | firing | bad | some error | 2s | verdict note |",
     );
   });
 
@@ -119,6 +119,33 @@ describe("buildSummaryRows", () => {
   it("escapes pipes in cells", () => {
     const rows = buildSummaryRows(result);
     expect(rows).toContain("Other \\| Alert");
+  });
+
+  it("rounds broken time up to full seconds with a 1s floor", () => {
+    const rows = buildSummaryRows({
+      Violations: [],
+      Verdicts: [
+        {
+          Alert: "Sub",
+          RuleUID: "r1",
+          Outcome: "new_failure",
+          BadFor: 400_000_000,
+        },
+        { Alert: "None", RuleUID: "r2", Outcome: "healthy", BadFor: 0 },
+        {
+          Alert: "Partial",
+          RuleUID: "r3",
+          Outcome: "new_failure",
+          BadFor: 10_200_000_000,
+        },
+      ],
+    });
+
+    expect(rows).toContain("| ❌ | Sub | new_failure | - | - | - | 1s | - |");
+    expect(rows).toContain("| ✅ | None | healthy | - | - | - | 0s | - |");
+    expect(rows).toContain(
+      "| ❌ | Partial | new_failure | - | - | - | 11s | - |",
+    );
   });
 
   it("collapses newlines in table cells", () => {
