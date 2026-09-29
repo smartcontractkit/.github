@@ -1,19 +1,22 @@
 import artifactClient from "@actions/artifact";
 import * as core from "@actions/core";
 import { getExecOutput } from "@actions/exec";
+import * as github from "@actions/github";
 import * as tc from "@actions/tool-cache";
 
 import * as fs from "fs";
 import * as path from "path";
 
+import { upsertSummaryComment } from "./comment";
 import { extractCheckOutputs } from "./outputs";
 import { resolveAsset } from "./release";
 import { parseResult, type GrafanaAlertCheckResult } from "./result";
 import { buildSummaryBody } from "./summary";
 import { resolveCheckWindow } from "./window";
 
-const RELEASE_VERSION = "v0.1.1";
+const RELEASE_VERSION = "v0.1.3";
 const BIN_NAME = "grafana-alertcheck";
+const SUMMARY_TITLE = "### Grafana alert gate";
 
 function runnerTemp(): string {
   const tmp = process.env.RUNNER_TEMP;
@@ -129,6 +132,7 @@ function buildCheckArgs(window: { from: string; to: string }): string[] {
   if (core.getInput("nodata-is-unobservable") === "true") {
     args.push("--nodata-is-unobservable");
   }
+  if (core.getInput("no-fail-fast") === "true") args.push("--no-fail-fast");
   const folder = core.getInput("folder");
   if (folder) args.push("--folder", folder);
   const concurrency = core.getInput("concurrency");
@@ -137,12 +141,39 @@ function buildCheckArgs(window: { from: string; to: string }): string[] {
   return args;
 }
 
-async function writeStepSummary(resultPath: string): Promise<void> {
+async function writeStepSummary(
+  resultPath: string,
+  includeInstances: boolean,
+): Promise<string> {
   const raw = readNonEmpty(resultPath);
   const body = raw
-    ? buildSummaryBody(parseResult(raw))
+    ? buildSummaryBody(parseResult(raw), includeInstances)
     : "_No result was produced — the gate could not run to completion. See the job log._";
-  await core.summary.addRaw(`### Grafana alert gate\n\n${body}`).write();
+  await core.summary.addRaw(`${SUMMARY_TITLE}\n\n${body}`).write();
+  return body;
+}
+
+async function postSummaryComment(body: string): Promise<void> {
+  const pullRequest = github.context.payload.pull_request;
+  if (!pullRequest) {
+    core.info(
+      "No pull request in this event; skipping the PR summary comment.",
+    );
+    return;
+  }
+  const token = core.getInput("github-token");
+  if (!token) {
+    core.warning("No 'github-token'; skipping the PR summary comment.");
+    return;
+  }
+  const octokit = github.getOctokit(token);
+  await upsertSummaryComment(
+    octokit,
+    github.context.repo.owner,
+    github.context.repo.repo,
+    pullRequest.number,
+    `${SUMMARY_TITLE}\n\n${body}`,
+  );
 }
 
 async function setCheckOutputs(
@@ -238,8 +269,12 @@ async function runCheck(binPath: string): Promise<void> {
     core.error(`grafana-alertcheck failed to run: ${String(error)}`);
   }
 
-  await writeStepSummary(resultPath);
+  const body = await writeStepSummary(
+    resultPath,
+    core.getInput("print-instances-details") === "true",
+  );
   await setCheckOutputs(resultPath, exitCode);
+  await postSummaryComment(body);
 
   if (exitCode !== 0) {
     await uploadEvidenceLog(path.join(dir, "log.jsonl"));

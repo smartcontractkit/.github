@@ -3,8 +3,8 @@ description:
   "CD quality gate: bookend a release with a live-recorded observation of
   Grafana alerts (`record`) and fail the job if any watched alert was bad during
   the window (`check`). Wraps the grafana-alertcheck CLI from
-  chainlink-testing-framework, downloaded as a prebuilt binary from the released
-  `grafana-alertcheck/v0.1.0` version."
+  chainlink-testing-framework, downloaded as a prebuilt binary. On pull
+  requests, `check` upserts its summary as a comment."
 
 inputs:
   mode:
@@ -66,6 +66,13 @@ inputs:
       check only."
     required: false
     default: "false"
+  no-fail-fast:
+    description:
+      "Set to 'true' to wait for the full window even after a certain failure,
+      for a full-window coverage proof instead of the fastest feedback. Requires
+      grafana-alertcheck v0.1.2 or newer. mode: check only."
+    required: false
+    default: "false"
   poll-interval:
     description:
       "Override every watched rule's poll cadence (Go duration, e.g. 30s).
@@ -83,6 +90,21 @@ inputs:
       could-not-check result (exit 2) always fails the job regardless."
     required: false
     default: "true"
+  print-instances-details:
+    description:
+      "Set to 'true' to list the failing instances of every alert in a bad state
+      underneath the summary table, in the step summary and the PR comment
+      alike. mode: check only."
+    required: false
+    default: "false"
+  github-token:
+    description:
+      "Token used to upsert the summary comment on the pull request. Defaults to
+      the workflow's automatic token; the calling job needs 'pull-requests:
+      write'. Commenting is skipped with a warning when the run is not on a pull
+      request or the token cannot comment. mode: check only."
+    required: false
+    default: ${{ github.token }}
 
 outputs:
   log-path:

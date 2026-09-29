@@ -44,6 +44,15 @@ step's own completion output, never from a wrapper step around it; a single step
 must not serve its own completion as `from`, or the window between landing and
 finishing is never observed at all.
 
+On a `pull_request` event, `check` also upserts its summary as a PR comment. The
+calling job needs `pull-requests: write` for that:
+
+```yaml
+permissions:
+  contents: read
+  pull-requests: write
+```
+
 ## What it checks, and what it does not
 
 - The gate checks the **state and health** of an alert. It does **not** check
@@ -63,8 +72,9 @@ finishing is never observed at all.
 `check` run classifies its own freshly recorded window, and on failure the
 evidence log is **uploaded, never downloaded** — so a rerun cannot replay old
 evidence to pass. A second attempt legitimately relabeling the same commit
-`newly_bad` on attempt 1 and `persistently_bad` on attempt 2 is correct, not a
-bug — the exit code is the same, the label is more accurate.
+`new_failure` (formerly `newly_bad`) on attempt 1 and `still_failing` (formerly
+`persistently_bad`) on attempt 2 is correct, not a bug — the exit code is the
+same, the label is more accurate.
 
 ## Deploy and test in separate jobs
 
@@ -100,10 +110,26 @@ gate actually watching it.
 
 A gate with a 10-minute window (`to − from`) holds the runner for
 **approximately 10 minutes plus grace and drain time**, printed at the start of
-the `check` step. There is no early exit — the gate observes the full window
-even after it already knows the answer, because early-exiting is exactly what
-would reopen the coverage gap this whole tool exists to close. Make sure the
-surrounding job's timeout accounts for this.
+the `check` step. By default the CLI exits early on a failure that cannot become
+a pass; `no-fail-fast: 'true'` instead observes the full window even after it
+already knows the answer, because early-exiting is exactly what would reopen the
+coverage gap this whole tool exists to close. Make sure the surrounding job's
+timeout accounts for this.
+
+## Step summary and pull request comment
+
+`check` writes a Markdown table to the step summary — one row per alert, with a
+✅/❌ status, the verdict, the raw Grafana state and health, how long it was
+bad, and any note. When the run exits early, the summary says so and points at
+`no-fail-fast`. With `print-instances-details: 'true'` the failing instances of
+every bad alert are listed underneath the table (identity comes from the JSON
+result the CLI writes for `--output json`).
+
+On `pull_request` events the same body is upserted as a PR comment: the action
+finds its previous comment by a hidden marker, page by page, and updates it
+instead of posting duplicates on reruns. Commenting is skipped with a warning
+when there is no PR context or the token lacks `pull-requests: write` — it never
+fails the gate.
 
 ## Failure behaviour
 
@@ -111,6 +137,12 @@ surrounding job's timeout accounts for this.
   **could-not-check** result (exit 2 — auth failure, coverage gap, an
   unobservable rule, a schedule that doesn't fit, and so on) always fails the
   job: an inability to answer is never a pass.
+- By default `check` exits early as soon as it observes a failure that cannot
+  become a pass, which is a latency optimization, not a weaker gate. Set
+  `no-fail-fast: 'true'` to always wait for the full window and its coverage
+  proof (this pulls in the full-window cost described under [Timing](#timing)).
+  It requires the CLI release that ships the flag — bump the action's pinned
+  version (`v0.1.2` or newer) before using it.
 - On any non-zero `check` exit, the JSONL evidence log is uploaded as
   `grafana-alert-gate-log-${{ github.run_id }}-${{ github.run_attempt }}` for
   diagnosis after the runner is gone.
@@ -129,6 +161,9 @@ ones worth calling out:
 | `alerts`                   | One alert name per line. `record` only — `check` reads the set from the recorded log, and giving both is an error                            |
 | `from` / `to` / `duration` | `check` only. `from` is when the deploy landed; `to` is when the work ended; `duration` replaces `to` when there is no distinct "done" event |
 | `fail-on-violation`        | Default `true`. Stops exit 1 only, never exit 2                                                                                              |
+| `no-fail-fast`             | Default `false`. `true` waits for the full window even after a certain failure; needs CLI v0.1.2+                                            |
+| `print-instances-details`  | Default `false`. Lists the failing instances of every bad alert under the summary table and in the PR comment                                |
+| `github-token`             | Defaults to `${{ github.token }}`. Used only to upsert the PR comment; needs `pull-requests: write`                                          |
 
 ## Outputs
 
