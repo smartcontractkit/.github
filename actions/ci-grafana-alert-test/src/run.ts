@@ -99,27 +99,92 @@ function writeAlertsFile(alerts: string): string {
   return alertsFile;
 }
 
-async function runRecord(binPath: string): Promise<void> {
-  const alerts = core.getInput("alerts");
-  if (alerts.trim() === "") {
+export interface AlertSelection {
+  alertsPath?: string;
+  includeLabels?: string;
+  excludeLabels?: string;
+}
+
+export function validateAlertSelection(
+  mode: string,
+  alerts: string,
+  includeLabels: string,
+  excludeLabels: string,
+  folder: string,
+): void {
+  const named = alerts.trim() !== "";
+  const byLabels = includeLabels.trim() !== "" || excludeLabels.trim() !== "";
+
+  if (named && byLabels) {
     throw new Error(
-      "ci-grafana-alert-test: 'alerts' is required with mode: record",
+      `ci-grafana-alert-test: 'alerts' and label selection are mutually exclusive with mode: ${mode}`,
     );
   }
+  if (!named && !byLabels) {
+    throw new Error(
+      `ci-grafana-alert-test: 'alerts' or 'include-labels' is required with mode: ${mode}`,
+    );
+  }
+  if (excludeLabels.trim() !== "" && includeLabels.trim() === "") {
+    throw new Error(
+      "ci-grafana-alert-test: 'exclude-labels' requires 'include-labels'",
+    );
+  }
+  if (byLabels && folder.trim() !== "") {
+    throw new Error(
+      "ci-grafana-alert-test: 'folder' cannot be combined with label selection",
+    );
+  }
+}
+
+function alertSelection(
+  alerts: string,
+  includeLabels: string,
+  excludeLabels: string,
+): AlertSelection {
+  if (alerts.trim() !== "") {
+    return { alertsPath: writeAlertsFile(alerts) };
+  }
+  return { includeLabels, excludeLabels: excludeLabels || undefined };
+}
+
+function addSelectionArgs(args: string[], selection: AlertSelection): void {
+  if (selection.alertsPath) {
+    args.push("--alerts", selection.alertsPath);
+    return;
+  }
+  args.push("--include-labels", selection.includeLabels ?? "");
+  if (selection.excludeLabels) {
+    args.push("--exclude-labels", selection.excludeLabels);
+  }
+}
+
+async function runRecord(binPath: string): Promise<void> {
+  const alerts = core.getInput("alerts");
+  const includeLabels = core.getInput("include-labels");
+  const excludeLabels = core.getInput("exclude-labels");
+  const folder = core.getInput("folder");
+  validateAlertSelection(
+    "record",
+    alerts,
+    includeLabels,
+    excludeLabels,
+    folder,
+  );
 
   const dir = gateDir();
   fs.mkdirSync(dir, { recursive: true });
-  const alertsFile = writeAlertsFile(alerts);
-
   const logPath = path.join(dir, "log.jsonl");
-  const args = ["watch", "--out", logPath, "--alerts", alertsFile];
+  const args = ["watch", "--out", logPath];
+  addSelectionArgs(args, alertSelection(alerts, includeLabels, excludeLabels));
 
-  const folder = core.getInput("folder");
   if (folder) args.push("--folder", folder);
   const concurrency = core.getInput("concurrency");
   if (concurrency) args.push("--concurrency", concurrency);
   const pollInterval = core.getInput("poll-interval");
   if (pollInterval) args.push("--poll-interval", pollInterval);
+  const until = core.getInput("until");
+  if (until) args.push("--until", until);
 
   const result = await getExecOutput(binPath, args, { env: grafanaEnv() });
   if (result.exitCode !== 0) {
@@ -134,21 +199,23 @@ async function runRecord(binPath: string): Promise<void> {
 
 export interface CheckPaths {
   logPath?: string;
-  alertsPath?: string;
 }
 
 export function buildCheckArgs(
   window: { from?: string; to: string },
   live: boolean,
   paths: CheckPaths,
+  selection: AlertSelection = {},
 ): string[] {
   const args = ["check"];
 
   if (live) {
-    if (!paths.alertsPath) {
-      throw new Error("ci-grafana-alert-test: mode: live needs an alerts file");
+    if (!selection.alertsPath && !selection.includeLabels) {
+      throw new Error(
+        "ci-grafana-alert-test: mode: live needs 'alerts' or 'include-labels'",
+      );
     }
-    args.push("--alerts", paths.alertsPath);
+    addSelectionArgs(args, selection);
     if (window.from) args.push("--from", window.from);
   } else {
     if (!window.from) {
@@ -329,15 +396,31 @@ function enforceGate(exitCode: number, failOnViolation: string): void {
 
 async function runCheck(binPath: string, live: boolean): Promise<void> {
   const alerts = core.getInput("alerts");
-  if (live && alerts.trim() === "") {
+  const includeLabels = core.getInput("include-labels");
+  const excludeLabels = core.getInput("exclude-labels");
+
+  if (
+    !live &&
+    (alerts.trim() !== "" ||
+      includeLabels.trim() !== "" ||
+      excludeLabels.trim() !== "")
+  ) {
     throw new Error(
-      "ci-grafana-alert-test: 'alerts' is required with mode: live",
+      "ci-grafana-alert-test: alert selection is refused with mode: check — the recorded log already carries its own alert set",
     );
   }
-  if (!live && alerts.trim() !== "") {
-    throw new Error(
-      "ci-grafana-alert-test: 'alerts' is refused with mode: check — the recorded log already carries its own alert set",
+
+  let selection: AlertSelection = {};
+  if (live) {
+    const folder = core.getInput("folder");
+    validateAlertSelection(
+      "live",
+      alerts,
+      includeLabels,
+      excludeLabels,
+      folder,
     );
+    selection = alertSelection(alerts, includeLabels, excludeLabels);
   }
 
   const window = live
@@ -353,15 +436,13 @@ async function runCheck(binPath: string, live: boolean): Promise<void> {
       );
 
   const dir = gateDir();
-  let paths: CheckPaths;
-  if (live) {
-    paths = { alertsPath: writeAlertsFile(alerts) };
-  } else {
+  const paths: CheckPaths = {};
+  if (!live) {
     fs.mkdirSync(dir, { recursive: true });
-    paths = { logPath: path.join(dir, "log.jsonl") };
+    paths.logPath = path.join(dir, "log.jsonl");
   }
 
-  const args = buildCheckArgs(window, live, paths);
+  const args = buildCheckArgs(window, live, paths, selection);
   const resultPath = path.join(
     makeTempDir("grafana-alert-gate-"),
     "result.json",

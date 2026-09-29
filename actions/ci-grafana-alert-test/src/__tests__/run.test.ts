@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
 import * as core from "@actions/core";
-import { buildCheckArgs, missingCheckCommentBody } from "../run";
+import {
+  buildCheckArgs,
+  missingCheckCommentBody,
+  validateAlertSelection,
+} from "../run";
 
 vi.mock("@actions/core", () => ({ getInput: vi.fn() }));
 
@@ -35,10 +39,14 @@ describe("buildCheckArgs", () => {
   it("builds live-mode args with alerts and no recorded log", () => {
     setInputs();
 
-    const args = buildCheckArgs({ to: "T" }, true, {
-      logPath: "/tmp/log.jsonl",
-      alertsPath: "/tmp/alerts.txt",
-    });
+    const args = buildCheckArgs(
+      { to: "T" },
+      true,
+      {},
+      {
+        alertsPath: "/tmp/alerts.txt",
+      },
+    );
 
     expect(args).toEqual([
       "check",
@@ -52,23 +60,70 @@ describe("buildCheckArgs", () => {
     expect(args).not.toContain("--in");
   });
 
+  it("builds live-mode args with label selection", () => {
+    setInputs();
+
+    const args = buildCheckArgs(
+      { to: "T" },
+      true,
+      {},
+      {
+        includeLabels: "team=bcm,env=stage",
+        excludeLabels: "severity=info",
+      },
+    );
+
+    expect(args).toEqual([
+      "check",
+      "--include-labels",
+      "team=bcm,env=stage",
+      "--exclude-labels",
+      "severity=info",
+      "--to",
+      "T",
+      "--output",
+      "json",
+    ]);
+    expect(args).not.toContain("--alerts");
+  });
+
+  it("omits --exclude-labels when only inclusions are given", () => {
+    setInputs();
+
+    const args = buildCheckArgs(
+      { to: "T" },
+      true,
+      {},
+      {
+        includeLabels: "team=bcm",
+      },
+    );
+
+    expect(args).toContain("--include-labels");
+    expect(args).not.toContain("--exclude-labels");
+  });
+
   it("passes an explicit from in live mode", () => {
     setInputs();
 
     expect(
-      buildCheckArgs({ from: "F", to: "T" }, true, {
-        logPath: "/tmp/log.jsonl",
-        alertsPath: "/tmp/alerts.txt",
-      }),
+      buildCheckArgs(
+        { from: "F", to: "T" },
+        true,
+        {},
+        {
+          alertsPath: "/tmp/alerts.txt",
+        },
+      ),
     ).toContain("F");
   });
 
-  it("requires an alerts file in live mode", () => {
+  it("requires an alert selection in live mode", () => {
     setInputs();
 
-    expect(() =>
-      buildCheckArgs({ to: "T" }, true, { logPath: "/tmp/log.jsonl" }),
-    ).toThrow("needs an alerts file");
+    expect(() => buildCheckArgs({ to: "T" }, true, {})).toThrow(
+      "needs 'alerts' or 'include-labels'",
+    );
   });
 
   it("requires from in recorder mode", () => {
@@ -100,10 +155,7 @@ describe("buildCheckArgs", () => {
     });
 
     expect(
-      buildCheckArgs({ to: "T" }, true, {
-        logPath: "/tmp/log.jsonl",
-        alertsPath: "/tmp/alerts.txt",
-      }),
+      buildCheckArgs({ to: "T" }, true, {}, { alertsPath: "/tmp/alerts.txt" }),
     ).toEqual([
       "check",
       "--alerts",
@@ -132,11 +184,49 @@ describe("buildCheckArgs", () => {
     setInputs();
 
     expect(
-      buildCheckArgs({ to: "T" }, true, {
-        logPath: "/tmp/log.jsonl",
-        alertsPath: "/tmp/alerts.txt",
-      }),
+      buildCheckArgs({ to: "T" }, true, {}, { alertsPath: "/tmp/alerts.txt" }),
     ).not.toContain("--no-fail-fast");
+  });
+});
+
+describe("validateAlertSelection", () => {
+  it("accepts enumerated alerts with a folder", () => {
+    expect(() =>
+      validateAlertSelection("record", "A\nB", "", "", "Platform"),
+    ).not.toThrow();
+  });
+
+  it("accepts include labels, with optional excludes", () => {
+    expect(() =>
+      validateAlertSelection("record", "", "team=bcm", "", ""),
+    ).not.toThrow();
+    expect(() =>
+      validateAlertSelection("live", "", "team=bcm", "severity=info", ""),
+    ).not.toThrow();
+  });
+
+  it("refuses alerts combined with labels", () => {
+    expect(() =>
+      validateAlertSelection("record", "A", "team=bcm", "", ""),
+    ).toThrow("mutually exclusive");
+  });
+
+  it("requires alerts or include labels", () => {
+    expect(() => validateAlertSelection("live", "", "", "", "")).toThrow(
+      "'alerts' or 'include-labels' is required",
+    );
+  });
+
+  it("requires include labels before exclude labels", () => {
+    expect(() =>
+      validateAlertSelection("record", "", "", "severity=info", ""),
+    ).toThrow("'exclude-labels' requires 'include-labels'");
+  });
+
+  it("refuses labels combined with a folder", () => {
+    expect(() =>
+      validateAlertSelection("live", "", "team=bcm", "", "Platform"),
+    ).toThrow("'folder' cannot be combined with label selection");
   });
 });
 

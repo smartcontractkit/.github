@@ -79,14 +79,29 @@ When a recorder did run but `check`/`live` never completed (the work failed
 first), `stop` also upserts the summary comment saying the gate did not run, so
 the PR is not left with a stale or missing verdict.
 
+## Selecting alerts
+
+In `record` and `live` you either enumerate alerts or select them by labels:
+
+- `alerts`: one alert name per line; `folder` scopes an unqualified name to a
+  folder.
+- `include-labels` / `exclude-labels`: comma-separated exact-match `key=value`
+  pairs, e.g. `include-labels: team=bcm,env=stage`. A rule must carry **every**
+  inclusion to be watched and is dropped if it carries **any** exclusion; a
+  missing label never drops a rule. `exclude-labels` requires `include-labels`,
+  labels cannot be combined with `alerts` or `folder`, and a selection matching
+  no rules fails the run (exit 2) rather than watching an empty set.
+
+`check` never selects: the recorded log already names its own alert set.
+
 ## Live mode
 
 `live` is the CLI's single-step mode: it polls Grafana itself for the whole
-window and then classifies it, so it needs `alerts` and blocks until `to` (or
-the `duration` elapses). Unlike `check`, it does not need a prior `record` and
-does not use `from` to anchor the window — the window starts at live's first
-observation. If you pass `from` anyway, the CLI just names the interval between
-it and the first observation as a blind spot.
+window and then classifies it, so it needs `alerts` or `include-labels` and
+blocks until `to` (or the `duration` elapses). Unlike `check`, it does not need
+a prior `record` and does not use `from` to anchor the window — the window
+starts at live's first observation. If you pass `from` anyway, the CLI just
+names the interval between it and the first observation as a blind spot.
 
 The trade-off is exactly that blind interval: live cannot see anything that
 happened before the step started, so an alert that fired during the deploy and
@@ -216,7 +231,10 @@ ones worth calling out:
 | Input                      | Notes                                                                                                                                                                           |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `mode`                     | `record`, `check`, `live`, or `stop`                                                                                                                                            |
-| `alerts`                   | One alert name per line. Required for `record` and `live`; refused for `check`, which reads the set from the recorded log                                                       |
+| `alerts`                   | One alert name per line. Required for `record` and `live` unless `include-labels` is given; refused for `check`, which reads the set from the recorded log                      |
+| `include-labels`           | Exact-match `key=value` pairs selecting rules by label, e.g. `team=bcm,env=stage`. Alternative to `alerts` in `record` and `live`; cannot be combined with `folder`             |
+| `exclude-labels`           | Drops any rule carrying one of these exact matches. Requires `include-labels`                                                                                                   |
+| `until`                    | `record` only. RFC3339 hard stop for the recorder; by default it runs until `check`/`stop` reaps it                                                                             |
 | `from` / `to` / `duration` | `check` and `live`. `from` is when the deploy landed; `to` is when the work ended; `duration` replaces `to` when there is no distinct "done" event (measured from live's start) |
 | `fail-on-violation`        | Default `true`. Stops exit 1 only, never exit 2                                                                                                                                 |
 | `no-fail-fast`             | Default `false`. `true` waits for the full window even after a certain failure; needs CLI v0.1.2+                                                                               |
