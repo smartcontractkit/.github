@@ -64,6 +64,17 @@ function grafanaEnv(): { [key: string]: string } {
   };
 }
 
+// Proof, for a later `stop` in the same job, that `check`/`live` ran to
+// completion — regardless of its exit code.
+function checkCompletedMarkerPath(): string {
+  return path.join(gateDir(), "check-completed");
+}
+
+function markCheckCompleted(): void {
+  fs.mkdirSync(gateDir(), { recursive: true });
+  fs.writeFileSync(checkCompletedMarkerPath(), new Date().toISOString());
+}
+
 async function installBinary(): Promise<string> {
   const runnerOs = process.env.RUNNER_OS ?? "";
   const runnerArch = process.env.RUNNER_ARCH ?? "";
@@ -195,6 +206,19 @@ function eventSha(): string | undefined {
     payload.deployment?.sha ||
     sha ||
     undefined
+  );
+}
+
+function runUrl(): string {
+  const { owner, repo } = github.context.repo;
+  const runId = process.env.GITHUB_RUN_ID ?? "";
+  return `${github.context.serverUrl}/${owner}/${repo}/actions/runs/${runId}`;
+}
+
+export function missingCheckCommentBody(runUrl: string): string {
+  return (
+    "❌ **The gate did not run** — the workflow failed before `check`/`live` " +
+    `classified the window, so there is no verdict for this run. See the [job run](${runUrl}).`
   );
 }
 
@@ -362,6 +386,8 @@ async function runCheck(binPath: string, live: boolean): Promise<void> {
     core.error(`grafana-alertcheck failed to run: ${String(error)}`);
   }
 
+  markCheckCompleted();
+
   const body = await writeStepSummary(
     resultPath,
     core.getInput("print-instances-details") === "true",
@@ -391,6 +417,19 @@ async function runStop(binPath: string): Promise<void> {
       },
     },
   });
+
+  if (fs.existsSync(checkCompletedMarkerPath())) {
+    core.info(
+      "check already ran in this job; leaving the summary comment as is.",
+    );
+  } else if (fs.existsSync(logPath)) {
+    await postSummaryComment(missingCheckCommentBody(runUrl()));
+  } else {
+    core.info(
+      "No recorder ran in this job; skipping the missing-check comment.",
+    );
+  }
+
   if (result.exitCode !== 0) {
     throw new Error(
       `ci-grafana-alert-test: grafana-alertcheck stop failed (exit ${result.exitCode})`,

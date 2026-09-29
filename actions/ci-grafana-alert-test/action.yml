@@ -13,7 +13,8 @@ inputs:
     description:
       "'record' (start the recorder), 'check' (classify a recorded window and
       exit), 'live' (single-step: watch and classify inline, no recorder), or
-      'stop' (reap a detached recorder; idempotent, safe under if: always())"
+      'stop' (reap a detached recorder; idempotent, safe under if: always(), and
+      notes a gate that never ran)"
     required: true
   grafana-url:
     description:
@@ -116,7 +117,8 @@ inputs:
       and upsert the summary comment on it. Defaults to the workflow's automatic
       token; the calling job needs 'pull-requests: write'. Commenting is skipped
       with a warning when the token is empty or the lookup/write fails, and
-      skipped with a log when no open pull request matches. check and live."
+      skipped with a log when no open pull request matches. check, live and
+      stop."
     required: false
     default: ${{ github.token }}
 

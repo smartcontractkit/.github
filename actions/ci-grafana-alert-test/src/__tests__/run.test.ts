@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import * as core from "@actions/core";
-import { buildCheckArgs } from "../run";
+import { buildCheckArgs, missingCheckCommentBody } from "../run";
 
 vi.mock("@actions/core", () => ({ getInput: vi.fn() }));
 
@@ -137,5 +137,16 @@ describe("buildCheckArgs", () => {
         alertsPath: "/tmp/alerts.txt",
       }),
     ).not.toContain("--no-fail-fast");
+  });
+});
+
+describe("missingCheckCommentBody", () => {
+  it("spells out the missing gate and links the run", () => {
+    const body = missingCheckCommentBody(
+      "https://github.com/org/repo/actions/runs/42",
+    );
+
+    expect(body).toContain("The gate did not run");
+    expect(body).toContain("https://github.com/org/repo/actions/runs/42");
   });
 });

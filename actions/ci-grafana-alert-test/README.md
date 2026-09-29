@@ -75,6 +75,9 @@ it stops polling Grafana for the rest of its window:
 
 `stop` is idempotent — it is a no-op after a completed `check`, a previous
 `stop`, or when no recorder ever started — and needs no Grafana credentials.
+When a recorder did run but `check`/`live` never completed (the work failed
+first), `stop` also upserts the summary comment saying the gate did not run, so
+the PR is not left with a stale or missing verdict.
 
 ## Live mode
 
