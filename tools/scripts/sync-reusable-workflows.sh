@@ -5,12 +5,19 @@ SRC_ROOT="workflows"
 DST_ROOT=".github/workflows"
 
 usage() {
-  echo "Usage: $0 check|fix [staged_files...]"
+  echo "Usage: $0 check|fix [--stage] [staged_files...]"
 }
 
 [[ $# -ge 1 ]] || { usage; exit 2; }
 MODE="$1"; shift
 [[ "$MODE" == "check" || "$MODE" == "fix" ]] || { usage; exit 2; }
+
+# --stage: git add the workflows this run regenerated. Used by the pre-commit
+# hook so the generated copy lands in the same commit as its source.
+STAGE=0
+if [[ "${1:-}" == "--stage" ]]; then
+  STAGE=1; shift
+fi
 
 mkdir -p "$DST_ROOT"
 
@@ -95,6 +102,7 @@ dst_overwrite_allowed() {
 strict_fail=0
 warn_count=0
 changed_count=0
+fixed=()
 
 for src in "${SOURCES[@]}"; do
   dir="$(basename "$(dirname "$src")")"
@@ -139,6 +147,7 @@ EOF
           log "update $dst (from $src)"
           mv "$tmp" "$dst"
           changed_count=$((changed_count + 1))
+          fixed+=("$dst")
         fi
       fi
     else
@@ -166,6 +175,11 @@ fi
 
 if [[ $warn_count -gt 0 ]]; then
   warn "$warn_count non-impacted workflow(s) are out of sync (not failing this commit)."
+fi
+
+if [[ $STAGE -eq 1 && ${#fixed[@]} -gt 0 ]]; then
+  log "staging ${#fixed[@]} regenerated workflow(s)"
+  git add -- "${fixed[@]}"
 fi
 
 log "OK"
