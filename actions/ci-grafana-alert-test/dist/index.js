@@ -102226,10 +102226,10 @@ function buildSummaryRows(result) {
   }).join("\n");
 }
 function buildEarlyExitNote(termination) {
-  const target = termination.Alert ? ` on "${singleLine(termination.Alert)}"` : "";
-  const comparison = termination.At ? ` at ${singleLine(termination.At)}` : "";
+  const target = termination.alert ? ` on "${singleLine(termination.alert)}"` : "";
+  const comparison = termination.at ? ` at ${singleLine(termination.at)}` : "";
   const detail = singleLine(
-    termination.Reason ?? termination.Outcome ?? termination.Kind ?? "unknown"
+    termination.reason ?? termination.outcome ?? termination.kind ?? "unknown"
   );
   return `> **Early exit:** the gate stopped before the window closed${target}${comparison} (${detail}). Set \`no-fail-fast: true\` to observe the full window.`;
 }
@@ -102282,8 +102282,8 @@ function buildSummaryBody(result, includeInstances = false) {
   const parts = [`${SUMMARY_HEADER}
 ${SUMMARY_SEPARATOR}
 ${rows}`];
-  if (result.TerminatedEarly) {
-    parts.unshift(buildEarlyExitNote(result.TerminatedEarly));
+  if (result.terminated_early) {
+    parts.unshift(buildEarlyExitNote(result.terminated_early));
   }
   if (includeInstances) {
     const instances = buildInstancesSection(result);

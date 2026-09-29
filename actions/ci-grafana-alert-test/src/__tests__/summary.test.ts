@@ -192,14 +192,14 @@ describe("buildSummaryBody", () => {
     );
   });
 
-  it("spells out an early exit", () => {
+  it("spells out a wire-format early exit", () => {
     const body = buildSummaryBody({
       ...result,
-      TerminatedEarly: {
-        Kind: "bad_onset",
-        Alert: "My\nAlert",
-        Outcome: "new_failure",
-        At: "2026-09-29T10:00:00Z",
+      terminated_early: {
+        kind: "violation",
+        alert: "My\nAlert",
+        outcome: "new_failure",
+        at: "2026-09-29T10:00:00Z",
       },
     });
     expect(body).toContain("**Early exit:**");

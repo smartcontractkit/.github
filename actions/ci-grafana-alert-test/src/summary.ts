@@ -103,12 +103,12 @@ export function buildSummaryRows(result: GrafanaAlertCheckResult): string {
 }
 
 function buildEarlyExitNote(termination: Termination): string {
-  const target = termination.Alert
-    ? ` on "${singleLine(termination.Alert)}"`
+  const target = termination.alert
+    ? ` on "${singleLine(termination.alert)}"`
     : "";
-  const comparison = termination.At ? ` at ${singleLine(termination.At)}` : "";
+  const comparison = termination.at ? ` at ${singleLine(termination.at)}` : "";
   const detail = singleLine(
-    termination.Reason ?? termination.Outcome ?? termination.Kind ?? "unknown",
+    termination.reason ?? termination.outcome ?? termination.kind ?? "unknown",
   );
   return (
     `> **Early exit:** the gate stopped before the window closed` +
@@ -176,8 +176,8 @@ export function buildSummaryBody(
   }
 
   const parts = [`${SUMMARY_HEADER}\n${SUMMARY_SEPARATOR}\n${rows}`];
-  if (result.TerminatedEarly) {
-    parts.unshift(buildEarlyExitNote(result.TerminatedEarly));
+  if (result.terminated_early) {
+    parts.unshift(buildEarlyExitNote(result.terminated_early));
   }
   if (includeInstances) {
     const instances = buildInstancesSection(result);
