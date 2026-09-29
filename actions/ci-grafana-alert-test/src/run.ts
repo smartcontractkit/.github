@@ -49,10 +49,18 @@ function readNonEmpty(filePath: string): string | undefined {
   return content.length > 0 ? content : undefined;
 }
 
+function requiredInput(name: string): string {
+  const value = core.getInput(name);
+  if (value.trim() === "") {
+    throw new Error(`ci-grafana-alert-test: '${name}' is required`);
+  }
+  return value;
+}
+
 function grafanaEnv(): { [key: string]: string } {
   return {
-    GRAFANA_URL: core.getInput("grafana-url", { required: true }),
-    GRAFANA_TOKEN: core.getInput("grafana-token", { required: true }),
+    GRAFANA_URL: requiredInput("grafana-url"),
+    GRAFANA_TOKEN: requiredInput("grafana-token"),
   };
 }
 
@@ -372,12 +380,35 @@ async function runCheck(binPath: string, live: boolean): Promise<void> {
   enforceGate(exitCode, core.getInput("fail-on-violation"));
 }
 
+async function runStop(binPath: string): Promise<void> {
+  const logPath = path.join(gateDir(), "log.jsonl");
+  const result = await getExecOutput(binPath, ["stop", "--out", logPath], {
+    ignoreReturnCode: true,
+    silent: true,
+    listeners: {
+      stderr: (data: Buffer) => {
+        process.stdout.write(data);
+      },
+    },
+  });
+  if (result.exitCode !== 0) {
+    throw new Error(
+      `ci-grafana-alert-test: grafana-alertcheck stop failed (exit ${result.exitCode})`,
+    );
+  }
+}
+
 export async function run(): Promise<void> {
   try {
     const mode = core.getInput("mode", { required: true });
-    if (mode !== "record" && mode !== "check" && mode !== "live") {
+    if (
+      mode !== "record" &&
+      mode !== "check" &&
+      mode !== "live" &&
+      mode !== "stop"
+    ) {
       throw new Error(
-        `ci-grafana-alert-test: mode must be 'record', 'check' or 'live', got '${mode}'`,
+        `ci-grafana-alert-test: mode must be 'record', 'check', 'live' or 'stop', got '${mode}'`,
       );
     }
 
@@ -385,6 +416,8 @@ export async function run(): Promise<void> {
 
     if (mode === "record") {
       await runRecord(binPath);
+    } else if (mode === "stop") {
+      await runStop(binPath);
     } else {
       await runCheck(binPath, mode === "live");
     }

@@ -102398,10 +102398,17 @@ function readNonEmpty(filePath) {
   }
   return content.length > 0 ? content : void 0;
 }
+function requiredInput(name) {
+  const value = getInput(name);
+  if (value.trim() === "") {
+    throw new Error(`ci-grafana-alert-test: '${name}' is required`);
+  }
+  return value;
+}
 function grafanaEnv() {
   return {
-    GRAFANA_URL: getInput("grafana-url", { required: true }),
-    GRAFANA_TOKEN: getInput("grafana-token", { required: true })
+    GRAFANA_URL: requiredInput("grafana-url"),
+    GRAFANA_TOKEN: requiredInput("grafana-token")
   };
 }
 async function installBinary() {
@@ -102655,17 +102662,36 @@ async function runCheck(binPath, live) {
   }
   enforceGate(exitCode, getInput("fail-on-violation"));
 }
+async function runStop(binPath) {
+  const logPath = path8.join(gateDir(), "log.jsonl");
+  const result = await getExecOutput(binPath, ["stop", "--out", logPath], {
+    ignoreReturnCode: true,
+    silent: true,
+    listeners: {
+      stderr: (data) => {
+        process.stdout.write(data);
+      }
+    }
+  });
+  if (result.exitCode !== 0) {
+    throw new Error(
+      `ci-grafana-alert-test: grafana-alertcheck stop failed (exit ${result.exitCode})`
+    );
+  }
+}
 async function run() {
   try {
     const mode = getInput("mode", { required: true });
-    if (mode !== "record" && mode !== "check" && mode !== "live") {
+    if (mode !== "record" && mode !== "check" && mode !== "live" && mode !== "stop") {
       throw new Error(
-        `ci-grafana-alert-test: mode must be 'record', 'check' or 'live', got '${mode}'`
+        `ci-grafana-alert-test: mode must be 'record', 'check', 'live' or 'stop', got '${mode}'`
       );
     }
     const binPath = await installBinary();
     if (mode === "record") {
       await runRecord(binPath);
+    } else if (mode === "stop") {
+      await runStop(binPath);
     } else {
       await runCheck(binPath, mode === "live");
     }

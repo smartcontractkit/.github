@@ -63,6 +63,19 @@ work ends" — use `live` instead:
     duration: 10m # the window runs for 10 minutes from the start of this step; `to` works too
 ```
 
+If the work step fails before `check`/`live` runs, reap the detached recorder so
+it stops polling Grafana for the rest of its window:
+
+```yaml
+- uses: smartcontractkit/.github/actions/ci-grafana-alert-test@ci-grafana-alert-test/v1
+  if: always()
+  with:
+    mode: stop
+```
+
+`stop` is idempotent — it is a no-op after a completed `check`, a previous
+`stop`, or when no recorder ever started — and needs no Grafana credentials.
+
 ## Live mode
 
 `live` is the CLI's single-step mode: it polls Grafana itself for the whole
@@ -199,7 +212,7 @@ ones worth calling out:
 
 | Input                      | Notes                                                                                                                                                                           |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mode`                     | `record`, `check`, or `live`                                                                                                                                                    |
+| `mode`                     | `record`, `check`, `live`, or `stop`                                                                                                                                            |
 | `alerts`                   | One alert name per line. Required for `record` and `live`; refused for `check`, which reads the set from the recorded log                                                       |
 | `from` / `to` / `duration` | `check` and `live`. `from` is when the deploy landed; `to` is when the work ended; `duration` replaces `to` when there is no distinct "done" event (measured from live's start) |
 | `fail-on-violation`        | Default `true`. Stops exit 1 only, never exit 2                                                                                                                                 |

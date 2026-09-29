@@ -2,23 +2,29 @@ name: ci-grafana-alert-test
 description:
   "CD quality gate: bookend a release with a live-recorded observation of
   Grafana alerts (`record`) and fail the job if any watched alert was bad during
-  the window (`check`); `live` skips the recorder and watches inline instead.
-  Wraps the grafana-alertcheck CLI from chainlink-testing-framework, downloaded
-  as a prebuilt binary. When the run's commit is the head of an open pull
-  request, `check` and `live` upsert their summary as a comment there."
+  the window (`check`); `live` skips the recorder and watches inline instead,
+  and `stop` reaps a recorder after a failed work step. Wraps the
+  grafana-alertcheck CLI from chainlink-testing-framework, downloaded as a
+  prebuilt binary. When the run's commit is the head of an open pull request,
+  `check` and `live` upsert their summary as a comment there."
 
 inputs:
   mode:
     description:
       "'record' (start the recorder), 'check' (classify a recorded window and
-      exit), or 'live' (single-step: watch and classify inline, no recorder)"
+      exit), 'live' (single-step: watch and classify inline, no recorder), or
+      'stop' (reap a detached recorder; idempotent, safe under if: always())"
     required: true
   grafana-url:
-    description: "Base URL of the Grafana instance"
-    required: true
+    description:
+      "Base URL of the Grafana instance. Required for record, check, and live;
+      not used by stop."
+    required: false
   grafana-token:
-    description: "Grafana API token (secret)"
-    required: true
+    description:
+      "Grafana API token (secret). Required for record, check, and live; not
+      used by stop."
+    required: false
   alerts:
     description:
       "One alert rule name per line. Required with mode: record and mode: live.
