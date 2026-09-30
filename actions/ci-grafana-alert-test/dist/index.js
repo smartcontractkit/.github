@@ -102440,7 +102440,7 @@ function resolveLiveWindow(from, to, observationWindow, now = /* @__PURE__ */ ne
 }
 
 // actions/ci-grafana-alert-test/src/run.ts
-var RELEASE_VERSION = "v0.1.7";
+var RELEASE_VERSION = "v0.1.8";
 var BIN_NAME = "grafana-alertcheck";
 var SUMMARY_TITLE = "### Grafana alert gate";
 function runnerTemp() {
