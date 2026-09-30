@@ -5,7 +5,7 @@ import {
   buildInstancesSection,
   buildSummaryBody,
   buildSummaryRows,
-  isFailure,
+  rowStatus,
 } from "../summary";
 
 const result: GrafanaAlertCheckResult = {
@@ -57,19 +57,19 @@ const result: GrafanaAlertCheckResult = {
   ],
 };
 
-describe("isFailure", () => {
+describe("rowStatus", () => {
   it("passes healthy and recovered without a violation", () => {
     const verdict = { Alert: "A", RuleUID: "r", Outcome: "healthy", BadFor: 0 };
-    expect(isFailure(verdict, undefined)).toBe(false);
-    expect(isFailure({ ...verdict, Outcome: "recovered" }, undefined)).toBe(
-      false,
+    expect(rowStatus(verdict, undefined)).toBe("✅");
+    expect(rowStatus({ ...verdict, Outcome: "recovered" }, undefined)).toBe(
+      "✅",
     );
   });
 
-  it("passes paused without a violation but fails it with one", () => {
+  it("gives paused without a violation a neutral status, failing it with one", () => {
     const verdict = { Alert: "A", RuleUID: "r", Outcome: "paused", BadFor: 0 };
-    expect(isFailure(verdict, undefined)).toBe(false);
-    expect(isFailure(verdict, { RuleUID: "r" })).toBe(true);
+    expect(rowStatus(verdict, undefined)).toBe("⏸️");
+    expect(rowStatus(verdict, { RuleUID: "r" })).toBe("❌");
   });
 
   it("fails recovered when the policy still counts it as a violation", () => {
@@ -79,8 +79,8 @@ describe("isFailure", () => {
       Outcome: "recovered",
       BadFor: 0,
     };
-    expect(isFailure(verdict, { RuleUID: "r", Outcome: "recovered" })).toBe(
-      true,
+    expect(rowStatus(verdict, { RuleUID: "r", Outcome: "recovered" })).toBe(
+      "❌",
     );
   });
 
@@ -91,7 +91,7 @@ describe("isFailure", () => {
       Outcome: "not_verified",
       BadFor: 0,
     };
-    expect(isFailure(verdict, undefined)).toBe(true);
+    expect(rowStatus(verdict, undefined)).toBe("❌");
   });
 });
 
@@ -104,7 +104,7 @@ describe("buildSummaryRows", () => {
     );
   });
 
-  it("marks passing and unverified rules with the right status", () => {
+  it("marks passing, neutral, and unverified rules with the right status", () => {
     const rows = buildSummaryRows(result);
 
     expect(rows).toContain(
@@ -113,7 +113,7 @@ describe("buildSummaryRows", () => {
     expect(rows).toContain(
       "| ❌ | Unverified | not_verified | - | - | - | 0s | - |",
     );
-    expect(rows).toContain("| ✅ | Paused | paused | - | - | - | 0s | - |");
+    expect(rows).toContain("| ⏸️ | Paused | paused | - | - | - | 0s | - |");
   });
 
   it("escapes pipes in cells", () => {
@@ -206,6 +206,15 @@ describe("buildSummaryRows", () => {
   it("returns empty for no verdicts", () => {
     expect(buildSummaryRows({ Verdicts: [] })).toBe("");
   });
+
+  it("orders failing rows first, then paused, then passing", () => {
+    const statuses = buildSummaryRows(result)
+      .split("\n")
+      .map((line) => line.split("|")[1].trim());
+    const rank: Record<string, number> = { "❌": 0, "⏸️": 1, "✅": 2 };
+
+    expect(statuses).toEqual([...statuses].sort((a, b) => rank[a] - rank[b]));
+  });
 });
 
 describe("buildSummaryBody", () => {
@@ -228,7 +237,7 @@ describe("buildSummaryBody", () => {
     });
     expect(body).toContain("**Early exit:**");
     expect(body).toContain('on "My Alert" at 2026-09-29T10:00:00Z');
-    expect(body).toContain("Set `no-fail-fast: true`");
+    expect(body).toContain("Set `fail-fast: false`");
   });
 
   it("lists failing instances only when asked", () => {

@@ -11,10 +11,11 @@ export const SUMMARY_SEPARATOR = "|---|---|---|---|---|---|---|---|";
 
 const STATUS_FAIL = "❌";
 const STATUS_PASS = "✅";
+const STATUS_PAUSED = "⏸️";
 const MAX_SUMMARY_LENGTH = 1_000_000;
 
-// Outcomes that pass on their own. `paused`/`skipped` pass only with
-// allow-paused, so a matching violation decides those rows.
+// Outcomes that pass on their own. A paused rule was never watched, so it is
+// neither a pass nor a failure unless it produced a violation.
 const PASSING_OUTCOMES = new Set(["healthy", "clean", "recovered"]);
 
 function escapePipe(value: string): string {
@@ -66,22 +67,40 @@ function formatNote(
   return verdict.Note ?? violation?.Note ?? "-";
 }
 
-export function isFailure(
+// A row's status: a violation always fails; paused/skipped is neutral because
+// the rule was never watched, and only counts against the run when it produced
+// a violation (min-observed shortfall).
+export function rowStatus(
   verdict: Verdict,
   violation: Violation | undefined,
-): boolean {
+): string {
   if (violation !== undefined) {
-    return true;
+    return STATUS_FAIL;
   }
-  return !(
-    PASSING_OUTCOMES.has(verdict.Outcome) ||
-    verdict.Outcome === "paused" ||
-    verdict.Outcome === "skipped"
-  );
+  if (PASSING_OUTCOMES.has(verdict.Outcome)) {
+    return STATUS_PASS;
+  }
+  if (verdict.Outcome === "paused" || verdict.Outcome === "skipped") {
+    return STATUS_PAUSED;
+  }
+  return STATUS_FAIL;
 }
 
 function row(cells: string[]): string {
   return `| ${cells.map(tableCell).join(" | ")} |`;
+}
+
+// Failing first, then the neutral paused rules, then passes. The sort is
+// stable, so alerts keep the CLI's order within one status.
+const STATUS_RANK: Record<string, number> = {
+  [STATUS_FAIL]: 0,
+  [STATUS_PAUSED]: 1,
+  [STATUS_PASS]: 2,
+};
+
+interface SummaryRow {
+  status: string;
+  line: string;
 }
 
 // Violations that no verdict names — the CLI's synthetic `not_counted`
@@ -89,14 +108,15 @@ function row(cells: string[]): string {
 function buildUnmatchedViolationRows(
   verdicts: Verdict[],
   violations: Violation[],
-): string[] {
+): SummaryRow[] {
   return violations
     .filter(
       (violation) =>
         !verdicts.some((verdict) => verdict.RuleUID === violation.RuleUID),
     )
-    .map((violation) =>
-      row([
+    .map((violation) => ({
+      status: STATUS_FAIL,
+      line: row([
         STATUS_FAIL,
         violation.Alert || "-",
         violation.Outcome ?? "-",
@@ -106,30 +126,37 @@ function buildUnmatchedViolationRows(
         "-",
         violation.Note ?? "-",
       ]),
-    );
+    }));
 }
 
 export function buildSummaryRows(result: GrafanaAlertCheckResult): string {
   const verdicts = result.Verdicts ?? [];
   const violations = result.Violations ?? [];
 
-  const rows = verdicts.map((verdict) => {
+  const rows: SummaryRow[] = verdicts.map((verdict) => {
     const violation = findViolation(violations, verdict.RuleUID);
-    return row([
-      isFailure(verdict, violation) ? STATUS_FAIL : STATUS_PASS,
-      verdict.Alert,
-      verdict.Outcome,
-      violation?.State ?? "-",
-      violation?.Health ?? "-",
-      truncateLastError(violation?.LastError),
-      formatBrokenFor(verdict.BadFor),
-      formatNote(verdict, violation),
-    ]);
+    const status = rowStatus(verdict, violation);
+    return {
+      status,
+      line: row([
+        status,
+        verdict.Alert,
+        verdict.Outcome,
+        violation?.State ?? "-",
+        violation?.Health ?? "-",
+        truncateLastError(violation?.LastError),
+        formatBrokenFor(verdict.BadFor),
+        formatNote(verdict, violation),
+      ]),
+    };
   });
 
-  return [...rows, ...buildUnmatchedViolationRows(verdicts, violations)].join(
-    "\n",
-  );
+  rows.push(...buildUnmatchedViolationRows(verdicts, violations));
+
+  return rows
+    .sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status])
+    .map((summaryRow) => summaryRow.line)
+    .join("\n");
 }
 
 function buildEarlyExitNote(termination: Termination): string {
@@ -143,7 +170,7 @@ function buildEarlyExitNote(termination: Termination): string {
   return (
     `> **Early exit:** the gate stopped before the window closed` +
     `${target}${comparison} (${detail}).` +
-    " Set `no-fail-fast: true` to observe the full window."
+    " Set `fail-fast: false` to observe the full window."
   );
 }
 

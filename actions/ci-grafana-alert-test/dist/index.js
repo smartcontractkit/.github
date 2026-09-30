@@ -14364,7 +14364,7 @@ var require_fetch = __commonJS({
       fetchParams.controller.resume = async () => {
         while (true) {
           let bytes;
-          let isFailure2;
+          let isFailure;
           try {
             const { done, value } = await fetchParams.controller.next();
             if (isAborted(fetchParams)) {
@@ -14376,7 +14376,7 @@ var require_fetch = __commonJS({
               bytes = void 0;
             } else {
               bytes = err;
-              isFailure2 = true;
+              isFailure = true;
             }
           }
           if (bytes === void 0) {
@@ -14385,7 +14385,7 @@ var require_fetch = __commonJS({
             return;
           }
           timingInfo.decodedBodySize += bytes?.byteLength ?? 0;
-          if (isFailure2) {
+          if (isFailure) {
             fetchParams.controller.terminate(bytes);
             return;
           }
@@ -64352,9 +64352,9 @@ function validateArtifactName(name) {
   for (const [invalidCharacterKey, errorMessageForCharacter] of invalidArtifactNameCharacters) {
     if (name.includes(invalidCharacterKey)) {
       throw new Error(`The artifact name is not valid: ${name}. Contains the following character: ${errorMessageForCharacter}
-          
+
 Invalid characters include: ${Array.from(invalidArtifactNameCharacters.values()).toString()}
-          
+
 These characters are not allowed in the artifact name due to limitations with certain file systems such as NTFS. To maintain file system agnostic behavior, these characters are intentionally not allowed to prevent potential problems with downloads on different file systems.`);
     }
   }
@@ -64367,9 +64367,9 @@ function validateFilePath(path9) {
   for (const [invalidCharacterKey, errorMessageForCharacter] of invalidArtifactFilePathCharacters) {
     if (path9.includes(invalidCharacterKey)) {
       throw new Error(`The path for one of the files in artifact is not valid: ${path9}. Contains the following character: ${errorMessageForCharacter}
-          
+
 Invalid characters include: ${Array.from(invalidArtifactFilePathCharacters.values()).toString()}
-          
+
 The following characters are not allowed in files that are uploaded due to limitations with certain file systems such as NTFS. To maintain file system agnostic behavior, these characters are intentionally not allowed to prevent potential problems with downloads on different file systems.
           `);
     }
@@ -65560,7 +65560,7 @@ var RestError = class _RestError extends Error {
     } : void 0;
     Object.defineProperty(this, custom, {
       value: () => {
-        return `RestError: ${this.message} 
+        return `RestError: ${this.message}
  ${errorSanitizer.sanitize({
           ...this,
           request: { ...this.request, agent },
@@ -73697,9 +73697,9 @@ var XMLParser = class {
     this.options = buildOptions(options);
   }
   /**
-   * Parse XML dats to JS object 
-   * @param {string|Uint8Array} xmlData 
-   * @param {boolean|Object} validationOption 
+   * Parse XML dats to JS object
+   * @param {string|Uint8Array} xmlData
+   * @param {boolean|Object} validationOption
    */
   parse(xmlData, validationOption) {
     if (typeof xmlData !== "string" && xmlData.toString) {
@@ -73721,8 +73721,8 @@ var XMLParser = class {
   }
   /**
    * Add Entity which is not by default supported by this library
-   * @param {string} key 
-   * @param {string} value 
+   * @param {string} key
+   * @param {string} value
    */
   addEntity(key, value) {
     if (value.indexOf("&") !== -1) {
@@ -73738,10 +73738,10 @@ var XMLParser = class {
   /**
    * Returns a Symbol that can be used to access the metadata
    * property on a node.
-   * 
+   *
    * If Symbol is not available in the environment, an ordinary property is used
    * and the name of the property is here returned.
-   * 
+   *
    * The XMLMetaData property is only present when `captureMetaData`
    * is true in the options.
    */
@@ -102169,6 +102169,7 @@ var SUMMARY_HEADER = "| Status | Alert | Verdict | Grafana state | Grafana healt
 var SUMMARY_SEPARATOR = "|---|---|---|---|---|---|---|---|";
 var STATUS_FAIL = "\u274C";
 var STATUS_PASS = "\u2705";
+var STATUS_PAUSED = "\u23F8\uFE0F";
 var MAX_SUMMARY_LENGTH = 1e6;
 var PASSING_OUTCOMES = /* @__PURE__ */ new Set(["healthy", "clean", "recovered"]);
 function escapePipe(value) {
@@ -102201,20 +102202,32 @@ function findViolation(violations, ruleUid) {
 function formatNote(verdict, violation) {
   return verdict.Note ?? violation?.Note ?? "-";
 }
-function isFailure(verdict, violation) {
+function rowStatus(verdict, violation) {
   if (violation !== void 0) {
-    return true;
+    return STATUS_FAIL;
   }
-  return !(PASSING_OUTCOMES.has(verdict.Outcome) || verdict.Outcome === "paused" || verdict.Outcome === "skipped");
+  if (PASSING_OUTCOMES.has(verdict.Outcome)) {
+    return STATUS_PASS;
+  }
+  if (verdict.Outcome === "paused" || verdict.Outcome === "skipped") {
+    return STATUS_PAUSED;
+  }
+  return STATUS_FAIL;
 }
 function row(cells) {
   return `| ${cells.map(tableCell).join(" | ")} |`;
 }
+var STATUS_RANK = {
+  [STATUS_FAIL]: 0,
+  [STATUS_PAUSED]: 1,
+  [STATUS_PASS]: 2
+};
 function buildUnmatchedViolationRows(verdicts, violations) {
   return violations.filter(
     (violation) => !verdicts.some((verdict) => verdict.RuleUID === violation.RuleUID)
-  ).map(
-    (violation) => row([
+  ).map((violation) => ({
+    status: STATUS_FAIL,
+    line: row([
       STATUS_FAIL,
       violation.Alert || "-",
       violation.Outcome ?? "-",
@@ -102224,27 +102237,30 @@ function buildUnmatchedViolationRows(verdicts, violations) {
       "-",
       violation.Note ?? "-"
     ])
-  );
+  }));
 }
 function buildSummaryRows(result) {
   const verdicts = result.Verdicts ?? [];
   const violations = result.Violations ?? [];
   const rows = verdicts.map((verdict) => {
     const violation = findViolation(violations, verdict.RuleUID);
-    return row([
-      isFailure(verdict, violation) ? STATUS_FAIL : STATUS_PASS,
-      verdict.Alert,
-      verdict.Outcome,
-      violation?.State ?? "-",
-      violation?.Health ?? "-",
-      truncateLastError(violation?.LastError),
-      formatBrokenFor(verdict.BadFor),
-      formatNote(verdict, violation)
-    ]);
+    const status = rowStatus(verdict, violation);
+    return {
+      status,
+      line: row([
+        status,
+        verdict.Alert,
+        verdict.Outcome,
+        violation?.State ?? "-",
+        violation?.Health ?? "-",
+        truncateLastError(violation?.LastError),
+        formatBrokenFor(verdict.BadFor),
+        formatNote(verdict, violation)
+      ])
+    };
   });
-  return [...rows, ...buildUnmatchedViolationRows(verdicts, violations)].join(
-    "\n"
-  );
+  rows.push(...buildUnmatchedViolationRows(verdicts, violations));
+  return rows.sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status]).map((summaryRow) => summaryRow.line).join("\n");
 }
 function buildEarlyExitNote(termination) {
   const target = termination.alert ? ` on "${singleLine(termination.alert)}"` : "";
@@ -102252,7 +102268,7 @@ function buildEarlyExitNote(termination) {
   const detail = singleLine(
     termination.reason ?? termination.outcome ?? termination.kind ?? "unknown"
   );
-  return `> **Early exit:** the gate stopped before the window closed${target}${comparison} (${detail}). Set \`no-fail-fast: true\` to observe the full window.`;
+  return `> **Early exit:** the gate stopped before the window closed${target}${comparison} (${detail}). Set \`fail-fast: false\` to observe the full window.`;
 }
 function sortLabels(labels) {
   return Object.fromEntries(
@@ -102319,15 +102335,17 @@ ${buildSummaryRows(result)}`
 }
 
 // actions/ci-grafana-alert-test/src/window.ts
+var MAX_OBSERVATION_WINDOW_SECONDS = 5 * 3600 + 30 * 60;
+var MAX_OBSERVATION_WINDOW = "5h30m";
 var DURATION_SEGMENT = /^(\d+)(h|m|s)/;
-function parseDuration(duration2) {
-  let remaining = duration2;
+function parseObservationWindow(observationWindow) {
+  let remaining = observationWindow;
   let total = 0;
   while (remaining.length > 0) {
     const match = DURATION_SEGMENT.exec(remaining);
     if (!match) {
       throw new Error(
-        `'duration' must use h/m/s units (e.g. 10m, 1h30m), got '${duration2}'`
+        `'observation_window' must use h/m/s units (e.g. 10m, 1h30m), got '${observationWindow}'`
       );
     }
     const value = Number(match[1]);
@@ -102336,9 +102354,24 @@ function parseDuration(duration2) {
     remaining = remaining.slice(match[0].length);
   }
   if (total <= 0) {
-    throw new Error(`'duration' must be positive, got '${duration2}'`);
+    throw new Error(
+      `'observation_window' must be positive, got '${observationWindow}'`
+    );
   }
   return total;
+}
+function assertWithinMaxObservationWindow(seconds) {
+  if (seconds > MAX_OBSERVATION_WINDOW_SECONDS) {
+    throw new Error(
+      `the observation window is longer than the maximum supported ${MAX_OBSERVATION_WINDOW}: GitHub Actions runners can run for at most 6 hours`
+    );
+  }
+}
+function assertWindowWithinLimit(fromMs, toMs) {
+  if (Number.isNaN(fromMs) || Number.isNaN(toMs)) {
+    return;
+  }
+  assertWithinMaxObservationWindow((toMs - fromMs) / 1e3);
 }
 function toRfc3339Utc(date) {
   const pad = (n) => String(n).padStart(2, "0");
@@ -102356,55 +102389,48 @@ function addSecondsToRfc3339(from, seconds) {
   const shifted = new Date(date.getTime() + seconds * 1e3);
   return toRfc3339Utc(shifted);
 }
-function assertSingleToOrDuration(to, duration2, mode) {
-  if (to.trim() === "" && duration2.trim() === "") {
+function assertSingleToOrObservationWindow(to, observationWindow, mode) {
+  if (to.trim() === "" && observationWindow.trim() === "") {
     throw new Error(
-      `exactly one of 'to' or 'duration' is required with mode: ${mode}`
+      `exactly one of 'to' or 'observation_window' is required with mode: ${mode}`
     );
   }
-  if (to.trim() !== "" && duration2.trim() !== "") {
+  if (to.trim() !== "" && observationWindow.trim() !== "") {
     throw new Error(
-      "'to' and 'duration' are mutually exclusive \u2014 give exactly one"
+      "'to' and 'observation_window' are mutually exclusive \u2014 give exactly one"
     );
   }
 }
-function resolveCheckWindow(from, to, duration2) {
-  if (from.trim() === "") {
-    throw new Error(
-      "'from' is required with mode: check, and must come from the deploy step's own completion output"
-    );
-  }
-  assertSingleToOrDuration(to, duration2, "check");
+function resolveCheckWindow(from, to, observationWindow) {
+  assertSingleToOrObservationWindow(to, observationWindow, "check");
   if (to.trim() !== "") {
+    assertWindowWithinLimit(Date.parse(from), Date.parse(to));
     return { from, to };
   }
-  const seconds = parseDuration(duration2);
+  const seconds = parseObservationWindow(observationWindow);
+  assertWithinMaxObservationWindow(seconds);
   return { from, to: addSecondsToRfc3339(from, seconds) };
 }
 function toRfc3339PreciseUtc(date) {
   return date.toISOString().replace(/\.000Z$/, "Z");
 }
-function resolveLiveWindow(from, to, duration2, now = /* @__PURE__ */ new Date()) {
-  assertSingleToOrDuration(to, duration2, "live");
-  const resolvedTo = to.trim() !== "" ? to : toRfc3339PreciseUtc(
-    new Date(now.getTime() + parseDuration(duration2) * 1e3)
-  );
-  const toDate = new Date(resolvedTo);
-  if (Number.isNaN(toDate.getTime())) {
-    throw new Error(
-      `'to' is not a valid RFC3339 timestamp, got '${resolvedTo}'`
-    );
+function resolveLiveWindow(from, to, observationWindow, now = /* @__PURE__ */ new Date()) {
+  assertSingleToOrObservationWindow(to, observationWindow, "live");
+  let resolvedTo;
+  if (to.trim() !== "") {
+    resolvedTo = to;
+  } else {
+    const seconds = parseObservationWindow(observationWindow);
+    assertWithinMaxObservationWindow(seconds);
+    resolvedTo = toRfc3339PreciseUtc(new Date(now.getTime() + seconds * 1e3));
   }
-  if (toDate.getTime() <= now.getTime()) {
-    throw new Error(
-      `'to' must be in the future with mode: live, got '${resolvedTo}'`
-    );
-  }
+  const startMs = from.trim() !== "" ? Date.parse(from) : now.getTime();
+  assertWindowWithinLimit(startMs, Date.parse(resolvedTo));
   return from.trim() !== "" ? { from, to: resolvedTo } : { to: resolvedTo };
 }
 
 // actions/ci-grafana-alert-test/src/run.ts
-var RELEASE_VERSION = "v0.1.6";
+var RELEASE_VERSION = "v0.1.7";
 var BIN_NAME = "grafana-alertcheck";
 var SUMMARY_TITLE = "### Grafana alert gate";
 function runnerTemp() {
@@ -102432,17 +102458,10 @@ function readNonEmpty(filePath) {
   }
   return content.length > 0 ? content : void 0;
 }
-function requiredInput(name) {
-  const value = getInput(name);
-  if (value.trim() === "") {
-    throw new Error(`ci-grafana-alert-test: '${name}' is required`);
-  }
-  return value;
-}
 function grafanaEnv() {
   return {
-    GRAFANA_URL: requiredInput("grafana-url"),
-    GRAFANA_TOKEN: requiredInput("grafana-token")
+    GRAFANA_URL: getInput("grafana-url"),
+    GRAFANA_TOKEN: getInput("grafana-token")
   };
 }
 function checkCompletedMarkerPath() {
@@ -102471,63 +102490,38 @@ function writeAlertsFile(alerts) {
   fs9.writeFileSync(alertsFile, alerts);
   return alertsFile;
 }
-function validateAlertSelection(mode, alerts, includeLabels, excludeLabels, folder) {
-  const named = alerts.trim() !== "";
-  const byLabels = includeLabels.trim() !== "" || excludeLabels.trim() !== "";
-  if (named && byLabels) {
-    throw new Error(
-      `ci-grafana-alert-test: 'alerts' and label selection are mutually exclusive with mode: ${mode}`
-    );
-  }
-  if (!named && !byLabels) {
-    throw new Error(
-      `ci-grafana-alert-test: 'alerts' or 'include-labels' is required with mode: ${mode}`
-    );
-  }
-  if (excludeLabels.trim() !== "" && includeLabels.trim() === "") {
-    throw new Error(
-      "ci-grafana-alert-test: 'exclude-labels' requires 'include-labels'"
-    );
-  }
-  if (byLabels && folder.trim() !== "") {
-    throw new Error(
-      "ci-grafana-alert-test: 'folder' cannot be combined with label selection"
-    );
-  }
-}
 function alertSelection(alerts, includeLabels, excludeLabels) {
-  if (alerts.trim() !== "") {
-    return { alertsPath: writeAlertsFile(alerts) };
-  }
-  return { includeLabels, excludeLabels: excludeLabels || void 0 };
+  return {
+    alertsPath: alerts.trim() !== "" ? writeAlertsFile(alerts) : void 0,
+    includeLabels: includeLabels.trim() !== "" ? includeLabels : void 0,
+    excludeLabels: excludeLabels.trim() !== "" ? excludeLabels : void 0
+  };
 }
 function addSelectionArgs(args, selection) {
   if (selection.alertsPath) {
     args.push("--alerts", selection.alertsPath);
-    return;
   }
-  args.push("--include-labels", selection.includeLabels ?? "");
+  if (selection.includeLabels) {
+    args.push("--include-labels", selection.includeLabels);
+  }
   if (selection.excludeLabels) {
     args.push("--exclude-labels", selection.excludeLabels);
   }
 }
 async function runRecord(binPath) {
-  const alerts = getInput("alerts");
-  const includeLabels = getInput("include-labels");
-  const excludeLabels = getInput("exclude-labels");
-  const folder = getInput("folder");
-  validateAlertSelection(
-    "record",
-    alerts,
-    includeLabels,
-    excludeLabels,
-    folder
-  );
   const dir = gateDir();
   fs9.mkdirSync(dir, { recursive: true });
   const logPath = path8.join(dir, "log.jsonl");
   const args = ["watch", "--out", logPath];
-  addSelectionArgs(args, alertSelection(alerts, includeLabels, excludeLabels));
+  addSelectionArgs(
+    args,
+    alertSelection(
+      getInput("alerts"),
+      getInput("include-labels"),
+      getInput("exclude-labels")
+    )
+  );
+  const folder = getInput("folder");
   if (folder) args.push("--folder", folder);
   const concurrency = getInput("concurrency");
   if (concurrency) args.push("--concurrency", concurrency);
@@ -102546,24 +102540,15 @@ async function runRecord(binPath) {
 }
 function buildCheckArgs(window2, live, paths, selection = {}) {
   const args = ["check"];
-  if (live) {
-    if (!selection.alertsPath && !selection.includeLabels) {
-      throw new Error(
-        "ci-grafana-alert-test: mode: live needs 'alerts' or 'include-labels'"
-      );
-    }
-    addSelectionArgs(args, selection);
-    if (window2.from) args.push("--from", window2.from);
-  } else {
-    if (!window2.from) {
-      throw new Error("ci-grafana-alert-test: mode: check requires 'from'");
-    }
+  addSelectionArgs(args, selection);
+  if (window2.from) args.push("--from", window2.from);
+  if (!live) {
     if (!paths.logPath) {
       throw new Error(
         "ci-grafana-alert-test: mode: check needs a recorded log"
       );
     }
-    args.push("--in", paths.logPath, "--from", window2.from);
+    args.push("--in", paths.logPath);
   }
   args.push("--to", window2.to, "--output", "json");
   const states = getInput("states");
@@ -102576,7 +102561,8 @@ function buildCheckArgs(window2, live, paths, selection = {}) {
   if (getInput("nodata-is-unobservable") === "true") {
     args.push("--nodata-is-unobservable");
   }
-  if (getInput("no-fail-fast") === "true") args.push("--no-fail-fast");
+  const failFast = getInput("fail-fast") !== "false";
+  args.push(failFast ? "--fail-fast" : "--fail-fast=false");
   const folder = getInput("folder");
   if (folder) args.push("--folder", folder);
   const concurrency = getInput("concurrency");
@@ -102693,34 +102679,19 @@ function enforceGate(exitCode, failOnViolation) {
   );
 }
 async function runCheck(binPath, live) {
-  const alerts = getInput("alerts");
-  const includeLabels = getInput("include-labels");
-  const excludeLabels = getInput("exclude-labels");
-  if (!live && (alerts.trim() !== "" || includeLabels.trim() !== "" || excludeLabels.trim() !== "")) {
-    throw new Error(
-      "ci-grafana-alert-test: alert selection is refused with mode: check \u2014 the recorded log already carries its own alert set"
-    );
-  }
-  let selection = {};
-  if (live) {
-    const folder = getInput("folder");
-    validateAlertSelection(
-      "live",
-      alerts,
-      includeLabels,
-      excludeLabels,
-      folder
-    );
-    selection = alertSelection(alerts, includeLabels, excludeLabels);
-  }
+  const selection = alertSelection(
+    getInput("alerts"),
+    getInput("include-labels"),
+    getInput("exclude-labels")
+  );
   const window2 = live ? resolveLiveWindow(
     getInput("from"),
     getInput("to"),
-    getInput("duration")
+    getInput("observation_window")
   ) : resolveCheckWindow(
     getInput("from"),
     getInput("to"),
-    getInput("duration")
+    getInput("observation_window")
   );
   const dir = gateDir();
   const paths = {};

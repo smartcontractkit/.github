@@ -1,11 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import * as core from "@actions/core";
-import {
-  buildCheckArgs,
-  missingCheckCommentBody,
-  validateAlertSelection,
-} from "../run";
+import { buildCheckArgs, missingCheckCommentBody } from "../run";
 
 vi.mock("@actions/core", () => ({ getInput: vi.fn() }));
 
@@ -25,14 +21,15 @@ describe("buildCheckArgs", () => {
       }),
     ).toEqual([
       "check",
-      "--in",
-      "/tmp/log.jsonl",
       "--from",
       "F",
+      "--in",
+      "/tmp/log.jsonl",
       "--to",
       "T",
       "--output",
       "json",
+      "--fail-fast",
     ]);
   });
 
@@ -56,6 +53,7 @@ describe("buildCheckArgs", () => {
       "T",
       "--output",
       "json",
+      "--fail-fast",
     ]);
     expect(args).not.toContain("--in");
   });
@@ -83,6 +81,7 @@ describe("buildCheckArgs", () => {
       "T",
       "--output",
       "json",
+      "--fail-fast",
     ]);
     expect(args).not.toContain("--alerts");
   });
@@ -118,28 +117,56 @@ describe("buildCheckArgs", () => {
     ).toContain("F");
   });
 
-  it("requires an alert selection in live mode", () => {
-    setInputs();
-
-    expect(() => buildCheckArgs({ to: "T" }, true, {})).toThrow(
-      "needs 'alerts' or 'include-labels'",
-    );
-  });
-
-  it("requires from in recorder mode", () => {
-    setInputs();
-
-    expect(() =>
-      buildCheckArgs({ to: "T" }, false, { logPath: "/tmp/log.jsonl" }),
-    ).toThrow("requires 'from'");
-  });
-
   it("requires a recorded log in recorder mode", () => {
     setInputs();
 
     expect(() => buildCheckArgs({ from: "F", to: "T" }, false, {})).toThrow(
       "needs a recorded log",
     );
+  });
+
+  it("adds no selection flags when nothing was selected", () => {
+    setInputs();
+
+    expect(buildCheckArgs({ to: "T" }, true, {})).toEqual([
+      "check",
+      "--to",
+      "T",
+      "--output",
+      "json",
+      "--fail-fast",
+    ]);
+  });
+
+  it("forwards alerts and labels together for the CLI to refuse", () => {
+    setInputs();
+
+    const args = buildCheckArgs(
+      { to: "T" },
+      true,
+      {},
+      {
+        alertsPath: "/tmp/alerts.txt",
+        includeLabels: "team=bcm",
+      },
+    );
+
+    expect(args).toContain("--alerts");
+    expect(args).toContain("--include-labels");
+  });
+
+  it("forwards a selection in recorder mode for the CLI to refuse", () => {
+    setInputs();
+
+    const args = buildCheckArgs(
+      { from: "F", to: "T" },
+      false,
+      { logPath: "/tmp/log.jsonl" },
+      { alertsPath: "/tmp/alerts.txt" },
+    );
+
+    expect(args).toContain("--alerts");
+    expect(args).toContain("--in");
   });
 
   it("forwards optional knobs and flags", () => {
@@ -149,7 +176,7 @@ describe("buildCheckArgs", () => {
       "min-observed": "2",
       "allow-paused": "true",
       "nodata-is-unobservable": "true",
-      "no-fail-fast": "true",
+      "fail-fast": "false",
       folder: "Platform",
       concurrency: "4",
     });
@@ -172,7 +199,7 @@ describe("buildCheckArgs", () => {
       "2",
       "--allow-paused",
       "--nodata-is-unobservable",
-      "--no-fail-fast",
+      "--fail-fast=false",
       "--folder",
       "Platform",
       "--concurrency",
@@ -180,53 +207,26 @@ describe("buildCheckArgs", () => {
     ]);
   });
 
-  it("omits --no-fail-fast unless explicitly enabled", () => {
+  it("enables fail-fast by default", () => {
     setInputs();
 
     expect(
       buildCheckArgs({ to: "T" }, true, {}, { alertsPath: "/tmp/alerts.txt" }),
-    ).not.toContain("--no-fail-fast");
-  });
-});
-
-describe("validateAlertSelection", () => {
-  it("accepts enumerated alerts with a folder", () => {
-    expect(() =>
-      validateAlertSelection("record", "A\nB", "", "", "Platform"),
-    ).not.toThrow();
+    ).toContain("--fail-fast");
   });
 
-  it("accepts include labels, with optional excludes", () => {
-    expect(() =>
-      validateAlertSelection("record", "", "team=bcm", "", ""),
-    ).not.toThrow();
-    expect(() =>
-      validateAlertSelection("live", "", "team=bcm", "severity=info", ""),
-    ).not.toThrow();
-  });
+  it("passes --fail-fast=false when disabled", () => {
+    setInputs({ "fail-fast": "false" });
 
-  it("refuses alerts combined with labels", () => {
-    expect(() =>
-      validateAlertSelection("record", "A", "team=bcm", "", ""),
-    ).toThrow("mutually exclusive");
-  });
-
-  it("requires alerts or include labels", () => {
-    expect(() => validateAlertSelection("live", "", "", "", "")).toThrow(
-      "'alerts' or 'include-labels' is required",
+    const args = buildCheckArgs(
+      { to: "T" },
+      true,
+      {},
+      { alertsPath: "/tmp/alerts.txt" },
     );
-  });
 
-  it("requires include labels before exclude labels", () => {
-    expect(() =>
-      validateAlertSelection("record", "", "", "severity=info", ""),
-    ).toThrow("'exclude-labels' requires 'include-labels'");
-  });
-
-  it("refuses labels combined with a folder", () => {
-    expect(() =>
-      validateAlertSelection("live", "", "team=bcm", "", "Platform"),
-    ).toThrow("'folder' cannot be combined with label selection");
+    expect(args).toContain("--fail-fast=false");
+    expect(args).not.toContain("--fail-fast");
   });
 });
 

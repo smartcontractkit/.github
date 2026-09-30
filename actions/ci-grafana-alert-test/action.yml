@@ -61,15 +61,17 @@ inputs:
   to:
     description:
       "RFC3339 timestamp of the end of the window. Mutually exclusive with
-      duration; give exactly one. check and live (live requires it to be in the
-      future)."
+      observation_window; give exactly one. check and live (live requires it to
+      be in the future)."
     required: false
-  duration:
+  observation_window:
     description:
       "Duration expressed as one or more integer h/m/s segments (e.g. 10m,
       1h30m) added to `from` (mode: check) or to the start of the live run
       (mode: live) to compute `to` when there is no distinct 'done' event.
-      Mutually exclusive with `to`; give exactly one. check and live."
+      Mutually exclusive with `to`; give exactly one. check and live. The
+      observation window may not exceed 5h30m, because GitHub Actions runners
+      can run for at most 6h."
     required: false
   preexisting:
     description:
@@ -93,13 +95,13 @@ inputs:
       and live."
     required: false
     default: "false"
-  no-fail-fast:
+  fail-fast:
     description:
-      "Set to 'true' to wait for the full window even after a certain failure,
-      for a full-window coverage proof instead of the fastest feedback. Requires
-      grafana-alertcheck v0.1.2 or newer. check and live."
+      "Set to 'false' to wait for the full window even after a certain failure,
+      for a full-window coverage proof instead of the fastest feedback. check
+      and live."
     required: false
-    default: "false"
+    default: "true"
   poll-interval:
     description:
       "Override every watched rule's poll cadence (Go duration, e.g. 30s).

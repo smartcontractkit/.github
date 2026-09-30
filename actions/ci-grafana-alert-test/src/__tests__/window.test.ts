@@ -2,43 +2,44 @@ import { describe, expect, it } from "vitest";
 
 import {
   addSecondsToRfc3339,
-  parseDuration,
+  MAX_OBSERVATION_WINDOW,
+  parseObservationWindow,
   resolveCheckWindow,
   resolveLiveWindow,
   toRfc3339Utc,
 } from "../window";
 
-describe("parseDuration", () => {
+describe("parseObservationWindow", () => {
   it("parses a single minute", () => {
-    expect(parseDuration("10m")).toBe(600);
+    expect(parseObservationWindow("10m")).toBe(600);
   });
 
   it("parses compound durations in h/m/s order", () => {
-    expect(parseDuration("1h30m")).toBe(5400);
-    expect(parseDuration("1h30m45s")).toBe(5445);
+    expect(parseObservationWindow("1h30m")).toBe(5400);
+    expect(parseObservationWindow("1h30m45s")).toBe(5445);
   });
 
   it("parses seconds and hours independently", () => {
-    expect(parseDuration("45s")).toBe(45);
-    expect(parseDuration("2h")).toBe(7200);
+    expect(parseObservationWindow("45s")).toBe(45);
+    expect(parseObservationWindow("2h")).toBe(7200);
   });
 
   it("rejects an empty duration", () => {
-    expect(() => parseDuration("")).toThrow("must be positive");
+    expect(() => parseObservationWindow("")).toThrow("must be positive");
   });
 
   it("rejects zero-valued segments", () => {
-    expect(() => parseDuration("0m")).toThrow("must be positive");
+    expect(() => parseObservationWindow("0m")).toThrow("must be positive");
   });
 
   it("rejects unknown units", () => {
-    expect(() => parseDuration("10x")).toThrow(
-      "'duration' must use h/m/s units",
+    expect(() => parseObservationWindow("10x")).toThrow(
+      "'observation_window' must use h/m/s units",
     );
   });
 
   it("rejects whitespace", () => {
-    expect(() => parseDuration("10 m")).toThrow("h/m/s units");
+    expect(() => parseObservationWindow("10 m")).toThrow("h/m/s units");
   });
 });
 
@@ -76,26 +77,51 @@ describe("resolveCheckWindow", () => {
     ).toEqual({ from: "2024-01-15T10:00:00Z", to: "2024-01-15T10:10:00Z" });
   });
 
-  it("computes to from duration", () => {
+  it("computes to from observation_window", () => {
     expect(resolveCheckWindow("2024-01-15T10:00:00Z", "", "10m")).toEqual({
       from: "2024-01-15T10:00:00Z",
       to: "2024-01-15T10:10:00Z",
     });
   });
 
-  it("requires from", () => {
-    expect(() => resolveCheckWindow("", "2024-01-15T10:10:00Z", "")).toThrow(
-      "'from' is required",
-    );
+  it("leaves an absent from to the CLI to reject", () => {
+    expect(resolveCheckWindow("", "2024-01-15T10:10:00Z", "")).toEqual({
+      from: "",
+      to: "2024-01-15T10:10:00Z",
+    });
   });
 
-  it("requires exactly one of to or duration", () => {
+  it("requires exactly one of to or observation_window", () => {
     expect(() => resolveCheckWindow("2024-01-15T10:00:00Z", "", "")).toThrow(
-      "exactly one of 'to' or 'duration'",
+      "exactly one of 'to' or 'observation_window'",
     );
     expect(() =>
       resolveCheckWindow("2024-01-15T10:00:00Z", "2024-01-15T10:10:00Z", "10m"),
     ).toThrow("mutually exclusive");
+  });
+
+  it("allows an explicit window of exactly the maximum length", () => {
+    expect(() =>
+      resolveCheckWindow("2024-01-15T10:00:00Z", "2024-01-15T15:30:00Z", ""),
+    ).not.toThrow();
+  });
+
+  it("rejects an explicit window longer than the maximum", () => {
+    expect(() =>
+      resolveCheckWindow("2024-01-15T10:00:00Z", "2024-01-15T15:30:01Z", ""),
+    ).toThrow(`${MAX_OBSERVATION_WINDOW}: GitHub Actions runners`);
+  });
+
+  it("allows an observation_window of exactly the maximum length", () => {
+    expect(() =>
+      resolveCheckWindow("2024-01-15T10:00:00Z", "", "5h30m"),
+    ).not.toThrow();
+  });
+
+  it("rejects an observation_window longer than the maximum", () => {
+    expect(() => resolveCheckWindow("2024-01-15T10:00:00Z", "", "6h")).toThrow(
+      `${MAX_OBSERVATION_WINDOW}: GitHub Actions runners`,
+    );
   });
 });
 
@@ -108,20 +134,20 @@ describe("resolveLiveWindow", () => {
     });
   });
 
-  it("computes to from duration measured from the start of the live run", () => {
+  it("computes to from observation_window measured from the start of the live run", () => {
     expect(resolveLiveWindow("", "", "10m", now)).toEqual({
       to: "2024-01-15T10:10:00Z",
     });
   });
 
-  it("measures duration from now even when an explicit from is given", () => {
+  it("measures observation_window from now even when an explicit from is given", () => {
     expect(resolveLiveWindow("2024-01-15T09:00:00Z", "", "10m", now)).toEqual({
       from: "2024-01-15T09:00:00Z",
       to: "2024-01-15T10:10:00Z",
     });
   });
 
-  it("preserves fractional seconds when computing to from duration", () => {
+  it("preserves fractional seconds when computing to from observation_window", () => {
     expect(
       resolveLiveWindow("", "", "1s", new Date("2024-01-15T10:00:00.900Z")),
     ).toEqual({ to: "2024-01-15T10:00:01.900Z" });
@@ -141,27 +167,39 @@ describe("resolveLiveWindow", () => {
     });
   });
 
-  it("requires exactly one of to or duration", () => {
+  it("passes a past or invalid to through for the CLI to reject", () => {
+    expect(resolveLiveWindow("", "2024-01-15T09:00:00Z", "", now)).toEqual({
+      to: "2024-01-15T09:00:00Z",
+    });
+    expect(resolveLiveWindow("", "not-a-date", "", now)).toEqual({
+      to: "not-a-date",
+    });
+  });
+
+  it("requires exactly one of to or observation_window", () => {
     expect(() => resolveLiveWindow("", "", "", now)).toThrow(
-      "exactly one of 'to' or 'duration'",
+      "exactly one of 'to' or 'observation_window'",
     );
     expect(() =>
       resolveLiveWindow("", "2024-01-15T10:10:00Z", "10m", now),
     ).toThrow("mutually exclusive");
   });
 
-  it("rejects a to that is not in the future", () => {
-    expect(() =>
-      resolveLiveWindow("", "2024-01-15T10:00:00Z", "", now),
-    ).toThrow("must be in the future");
-    expect(() =>
-      resolveLiveWindow("", "2024-01-15T09:59:00Z", "", now),
-    ).toThrow("must be in the future");
+  it("rejects an observation_window longer than the maximum", () => {
+    expect(() => resolveLiveWindow("", "", "6h", now)).toThrow(
+      `${MAX_OBSERVATION_WINDOW}: GitHub Actions runners`,
+    );
   });
 
-  it("rejects an invalid to", () => {
-    expect(() => resolveLiveWindow("", "not-a-date", "", now)).toThrow(
-      "not a valid RFC3339",
-    );
+  it("rejects a to more than the maximum ahead of the live start", () => {
+    expect(() =>
+      resolveLiveWindow("", "2024-01-15T15:30:01Z", "", now),
+    ).toThrow(`${MAX_OBSERVATION_WINDOW}: GitHub Actions runners`);
+  });
+
+  it("rejects a from more than the maximum before the computed to", () => {
+    expect(() =>
+      resolveLiveWindow("2024-01-15T04:00:00Z", "", "1m", now),
+    ).toThrow(`${MAX_OBSERVATION_WINDOW}: GitHub Actions runners`);
   });
 });

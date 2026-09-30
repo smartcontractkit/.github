@@ -39,7 +39,7 @@ the action and bumped by editing that single line when a new release ships.
     grafana-url: ${{ vars.GRAFANA_URL }}
     grafana-token: ${{ secrets.GRAFANA_TOKEN }}
     from: ${{ steps.deploy.outputs.deployed_at }}
-    to: ${{ steps.work.outputs.finished_at }} # ...or `duration: 10m` when there is no done event — never both
+    to: ${{ steps.work.outputs.finished_at }} # ...or `observation_window: 10m` when there is no done event — never both
 ```
 
 `record` and `check` must run in the **same job, on the same runner** — nothing
@@ -60,7 +60,7 @@ work ends" — use `live` instead:
     alerts: |
       My Service Latency
       My Service Error Rate
-    duration: 10m # the window runs for 10 minutes from the start of this step; `to` works too
+    observation_window: 10m # the window runs for 10 minutes from the start of this step; `to` works too
 ```
 
 If the work step fails before `check`/`live` runs, reap the detached recorder so
@@ -98,10 +98,10 @@ In `record` and `live` you either enumerate alerts or select them by labels:
 
 `live` is the CLI's single-step mode: it polls Grafana itself for the whole
 window and then classifies it, so it needs `alerts` or `include-labels` and
-blocks until `to` (or the `duration` elapses). Unlike `check`, it does not need
-a prior `record` and does not use `from` to anchor the window — the window
-starts at live's first observation. If you pass `from` anyway, the CLI just
-names the interval between it and the first observation as a blind spot.
+blocks until `to` (or the `observation_window` elapses). Unlike `check`, it does
+not need a prior `record` and does not use `from` to anchor the window — the
+window starts at live's first observation. If you pass `from` anyway, the CLI
+just names the interval between it and the first observation as a blind spot.
 
 The trade-off is exactly that blind interval: live cannot see anything that
 happened before the step started, so an alert that fired during the deploy and
@@ -178,18 +178,18 @@ gate actually watching it.
 A gate with a 10-minute window (`to − from`) holds the runner for
 **approximately 10 minutes plus grace and drain time**, printed at the start of
 the `check` step. `live` holds it for its whole window the same way. By default
-the CLI exits early on a failure that cannot become a pass;
-`no-fail-fast: 'true'` instead observes the full window even after it already
-knows the answer, because early-exiting is exactly what would reopen the
-coverage gap this whole tool exists to close. Make sure the surrounding job's
-timeout accounts for this.
+the CLI exits early on a failure that cannot become a pass; `fail-fast: 'false'`
+instead observes the full window even after it already knows the answer, because
+early-exiting is exactly what would reopen the coverage gap this whole tool
+exists to close. Make sure the surrounding job's timeout accounts for this.
 
 ## Step summary and pull request comment
 
 `check` and `live` write a Markdown table to the step summary — one row per
-alert, with a ✅/❌ status, the verdict, the raw Grafana state and health, how
-long it was broken, and any details. When the run exits early, the summary says
-so and points at `no-fail-fast`. With `print-instances-details: 'true'` the
+alert, with a ✅/❌/⏸️ status (⏸️ marks a paused rule that was never watched and
+did not count against the run), the verdict, the raw Grafana state and health,
+how long it was broken, and any details. When the run exits early, the summary
+says so and points at `fail-fast`. With `print-instances-details: 'true'` the
 failing instances of every bad alert are listed underneath the table (identity
 comes from the JSON result the CLI writes for `--output json`).
 
@@ -207,39 +207,44 @@ logged/a warned and skipped — it never fails the gate.
   job: an inability to answer is never a pass.
 - By default `check` and `live` exit early as soon as they observe a failure
   that cannot become a pass, which is a latency optimization, not a weaker gate.
-  Set `no-fail-fast: 'true'` to always wait for the full window and its coverage
+  Set `fail-fast: 'false'` to always wait for the full window and its coverage
   proof (this pulls in the full-window cost described under [Timing](#timing)).
-  It requires the CLI release that ships the flag — bump the action's pinned
-  version (`v0.1.2` or newer) before using it.
+  It requires the CLI release that ships the renamed `--fail-fast` flag — bump
+  the action's pinned version before using it.
 - On any non-zero `check` exit, the JSONL evidence log is uploaded as
   `grafana-alert-gate-log-${{ github.run_id }}-${{ github.run_attempt }}` for
   diagnosis after the runner is gone. `live` has no JSONL log, so it uploads the
   JSON result as
   `grafana-alert-gate-result-${{ github.run_id }}-${{ github.run_attempt }}`
   instead.
-- `to` and `duration` are mutually exclusive on `mode: check` and `mode: live` —
-  give exactly one. There is deliberately no default for either; a 10-minute
-  gate is a choice you make explicitly, not one this action makes for you. With
-  `live`, `duration` is measured from the start of the live step, and `to` must
-  be in the future.
+- `to` and `observation_window` are mutually exclusive on `mode: check` and
+  `mode: live` — give exactly one. There is deliberately no default for either;
+  a 10-minute gate is a choice you make explicitly, not one this action makes
+  for you. With `live`, `observation_window` is measured from the start of the
+  live step, and `to` must be in the future.
+- The observation window — `to − from`, or the `observation_window` itself — may
+  not exceed **5h30m**. GitHub-hosted runners are killed after 6 hours, so a
+  longer window could never complete; the 30-minute headroom covers the
+  surrounding steps and the CLI's grace and drain time. A longer window fails
+  the step before anything is observed.
 
 ## Inputs
 
 See [action.yml](action.yml) for the full, authoritative list with defaults. The
 ones worth calling out:
 
-| Input                      | Notes                                                                                                                                                                           |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mode`                     | `record`, `check`, `live`, or `stop`                                                                                                                                            |
-| `alerts`                   | One alert name per line. Required for `record` and `live` unless `include-labels` is given; refused for `check`, which reads the set from the recorded log                      |
-| `include-labels`           | Exact-match `key=value` pairs selecting rules by label, e.g. `team=bcm,env=stage`. Alternative to `alerts` in `record` and `live`; cannot be combined with `folder`             |
-| `exclude-labels`           | Drops any rule carrying one of these exact matches. Requires `include-labels`                                                                                                   |
-| `until`                    | `record` only. RFC3339 hard stop for the recorder; by default it runs until `check`/`stop` reaps it                                                                             |
-| `from` / `to` / `duration` | `check` and `live`. `from` is when the deploy landed; `to` is when the work ended; `duration` replaces `to` when there is no distinct "done" event (measured from live's start) |
-| `fail-on-violation`        | Default `true`. Stops exit 1 only, never exit 2                                                                                                                                 |
-| `no-fail-fast`             | Default `false`. `true` waits for the full window even after a certain failure; needs CLI v0.1.2+                                                                               |
-| `print-instances-details`  | Default `false`. Lists the failing instances of every bad alert under the summary table and in the PR comment                                                                   |
-| `github-token`             | Defaults to `${{ github.token }}`. Used only to upsert the PR comment; needs `pull-requests: write`                                                                             |
+| Input                                | Notes                                                                                                                                                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mode`                               | `record`, `check`, `live`, or `stop`                                                                                                                                                                 |
+| `alerts`                             | One alert name per line. Required for `record` and `live` unless `include-labels` is given; refused for `check`, which reads the set from the recorded log                                           |
+| `include-labels`                     | Exact-match `key=value` pairs selecting rules by label, e.g. `team=bcm,env=stage`. Alternative to `alerts` in `record` and `live`; cannot be combined with `folder`                                  |
+| `exclude-labels`                     | Drops any rule carrying one of these exact matches. Requires `include-labels`                                                                                                                        |
+| `until`                              | `record` only. RFC3339 hard stop for the recorder; by default it runs until `check`/`stop` reaps it                                                                                                  |
+| `from` / `to` / `observation_window` | `check` and `live`. `from` is when the deploy landed; `to` is when the work ended; `observation_window` replaces `to` when there is no distinct "done" event (measured from live's start). Max 5h30m |
+| `fail-on-violation`                  | Default `true`. Stops exit 1 only, never exit 2                                                                                                                                                      |
+| `fail-fast`                          | Default `true`. `false` waits for the full window even after a certain failure; needs the CLI release that ships `--fail-fast`                                                                       |
+| `print-instances-details`            | Default `false`. Lists the failing instances of every bad alert under the summary table and in the PR comment                                                                                        |
+| `github-token`                       | Defaults to `${{ github.token }}`. Used only to upsert the PR comment; needs `pull-requests: write`                                                                                                  |
 
 ## Outputs
 
