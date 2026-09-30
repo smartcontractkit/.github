@@ -139,9 +139,10 @@ function toRfc3339PreciseUtc(date: Date): string {
 /**
  * Resolves the `from`/`to`/`observation_window` inputs for mode: live
  * (single-step). `from` is optional there — the CLI starts observing at its
- * first poll and names the earlier gap a blind spot. `observation_window` is
- * measured from the start of the live run, not from `from`. Whether `to` is in
- * the future is the CLI's to enforce.
+ * first poll and names the earlier gap a blind spot, and forwards it for
+ * reporting. `observation_window` and the runtime limit are measured from the
+ * start of the live run, not from `from`. Whether `to` is in the future is the
+ * CLI's to enforce.
  */
 export function resolveLiveWindow(
   from: string,
@@ -160,8 +161,10 @@ export function resolveLiveWindow(
     resolvedTo = toRfc3339PreciseUtc(new Date(now.getTime() + seconds * 1000));
   }
 
-  const startMs = from.trim() !== "" ? Date.parse(from) : now.getTime();
-  assertWindowWithinLimit(startMs, Date.parse(resolvedTo));
+  // The live step only runs from now until `to`: an earlier `from` is a
+  // declared blind spot, not runner time, so it does not count against the
+  // limit. An invalid `to` is the CLI's to reject.
+  assertWindowWithinLimit(now.getTime(), Date.parse(resolvedTo));
 
   return from.trim() !== "" ? { from, to: resolvedTo } : { to: resolvedTo };
 }

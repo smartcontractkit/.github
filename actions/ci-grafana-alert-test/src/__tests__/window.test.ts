@@ -197,9 +197,32 @@ describe("resolveLiveWindow", () => {
     ).toThrow(`${MAX_OBSERVATION_WINDOW}: GitHub Actions runners`);
   });
 
-  it("rejects a from more than the maximum before the computed to", () => {
+  it("measures the limit from now, so a historical from is only a blind spot", () => {
+    expect(
+      resolveLiveWindow(
+        "2024-01-14T10:00:00Z",
+        "2024-01-15T10:10:00Z",
+        "",
+        now,
+      ),
+    ).toEqual({
+      from: "2024-01-14T10:00:00Z",
+      to: "2024-01-15T10:10:00Z",
+    });
+    expect(resolveLiveWindow("2024-01-15T04:00:00Z", "", "1m", now)).toEqual({
+      from: "2024-01-15T04:00:00Z",
+      to: "2024-01-15T10:01:00Z",
+    });
+  });
+
+  it("still rejects a to more than the maximum from now despite a historical from", () => {
     expect(() =>
-      resolveLiveWindow("2024-01-15T04:00:00Z", "", "1m", now),
+      resolveLiveWindow(
+        "2024-01-14T10:00:00Z",
+        "2024-01-15T15:30:01Z",
+        "",
+        now,
+      ),
     ).toThrow(`${MAX_OBSERVATION_WINDOW}: GitHub Actions runners`);
   });
 });

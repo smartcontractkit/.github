@@ -102434,8 +102434,7 @@ function resolveLiveWindow(from, to, observationWindow, now = /* @__PURE__ */ ne
     assertWithinMaxObservationWindow(seconds);
     resolvedTo = toRfc3339PreciseUtc(new Date(now.getTime() + seconds * 1e3));
   }
-  const startMs = from.trim() !== "" ? Date.parse(from) : now.getTime();
-  assertWindowWithinLimit(startMs, Date.parse(resolvedTo));
+  assertWindowWithinLimit(now.getTime(), Date.parse(resolvedTo));
   return from.trim() !== "" ? { from, to: resolvedTo } : { to: resolvedTo };
 }
 

@@ -230,7 +230,9 @@ logged/a warned and skipped — it never fails the gate.
   not exceed **5h30m**. GitHub-hosted runners are killed after 6 hours, so a
   longer window could never complete; the 30-minute headroom covers the
   surrounding steps and the CLI's grace and drain time. A longer window fails
-  the step before anything is observed.
+  the step before anything is observed. In `live` the limit is measured from the
+  start of the step, because the runner only waits until `to`; a historical
+  `from` is a declared blind spot and does not count against it.
 
 ## Inputs
 
