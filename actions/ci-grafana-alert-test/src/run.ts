@@ -84,17 +84,15 @@ async function installBinary(): Promise<string> {
   return binPath;
 }
 
-function writeAlertsFile(alerts: string): string {
-  const alertsFile = path.join(
-    makeTempDir("grafana-alert-gate-"),
-    "alerts.txt",
-  );
-  fs.writeFileSync(alertsFile, alerts);
-  return alertsFile;
+function writeSelectionFile(contents: string, fileName: string): string {
+  const filePath = path.join(makeTempDir("grafana-alert-gate-"), fileName);
+  fs.writeFileSync(filePath, contents);
+  return filePath;
 }
 
 export interface AlertSelection {
   alertsPath?: string;
+  excludeAlertsPath?: string;
   includeLabels?: string;
   excludeLabels?: string;
 }
@@ -103,11 +101,19 @@ export interface AlertSelection {
 // refuses: it validates them itself, and it is the one authority on the rules.
 function alertSelection(
   alerts: string,
+  excludeAlerts: string,
   includeLabels: string,
   excludeLabels: string,
 ): AlertSelection {
   return {
-    alertsPath: alerts.trim() !== "" ? writeAlertsFile(alerts) : undefined,
+    alertsPath:
+      alerts.trim() !== ""
+        ? writeSelectionFile(alerts, "alerts.txt")
+        : undefined,
+    excludeAlertsPath:
+      excludeAlerts.trim() !== ""
+        ? writeSelectionFile(excludeAlerts, "exclude-alerts.txt")
+        : undefined,
     includeLabels: includeLabels.trim() !== "" ? includeLabels : undefined,
     excludeLabels: excludeLabels.trim() !== "" ? excludeLabels : undefined,
   };
@@ -116,6 +122,9 @@ function alertSelection(
 function addSelectionArgs(args: string[], selection: AlertSelection): void {
   if (selection.alertsPath) {
     args.push("--alerts", selection.alertsPath);
+  }
+  if (selection.excludeAlertsPath) {
+    args.push("--exclude-alerts", selection.excludeAlertsPath);
   }
   if (selection.includeLabels) {
     args.push("--include-labels", selection.includeLabels);
@@ -134,6 +143,7 @@ async function runRecord(binPath: string): Promise<void> {
     args,
     alertSelection(
       core.getInput("alerts"),
+      core.getInput("exclude-alerts"),
       core.getInput("include-labels"),
       core.getInput("exclude-labels"),
     ),
@@ -351,6 +361,7 @@ function enforceGate(exitCode: number, failOnViolation: string): void {
 async function runCheck(binPath: string, live: boolean): Promise<void> {
   const selection = alertSelection(
     core.getInput("alerts"),
+    core.getInput("exclude-alerts"),
     core.getInput("include-labels"),
     core.getInput("exclude-labels"),
   );

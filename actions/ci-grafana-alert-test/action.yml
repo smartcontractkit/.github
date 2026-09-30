@@ -45,6 +45,13 @@ inputs:
       is dropped. Requires `include-labels`. mode: record and mode: live;
       refused with mode: check."
     required: false
+  exclude-alerts:
+    description:
+      "One alert name per line, subtracted from the selected set. Combinable
+      with `alerts` and with label selection; a name that does not resolve is an
+      error, and excluding every selected rule fails the run. Refused with mode:
+      check — the recorded log already carries its own alert set."
+    required: false
   states:
     description:
       "Comma-separated bad states to classify against. check and live. Default:

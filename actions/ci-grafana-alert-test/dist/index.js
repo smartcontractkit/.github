@@ -64352,9 +64352,9 @@ function validateArtifactName(name) {
   for (const [invalidCharacterKey, errorMessageForCharacter] of invalidArtifactNameCharacters) {
     if (name.includes(invalidCharacterKey)) {
       throw new Error(`The artifact name is not valid: ${name}. Contains the following character: ${errorMessageForCharacter}
-
+          
 Invalid characters include: ${Array.from(invalidArtifactNameCharacters.values()).toString()}
-
+          
 These characters are not allowed in the artifact name due to limitations with certain file systems such as NTFS. To maintain file system agnostic behavior, these characters are intentionally not allowed to prevent potential problems with downloads on different file systems.`);
     }
   }
@@ -64367,9 +64367,9 @@ function validateFilePath(path9) {
   for (const [invalidCharacterKey, errorMessageForCharacter] of invalidArtifactFilePathCharacters) {
     if (path9.includes(invalidCharacterKey)) {
       throw new Error(`The path for one of the files in artifact is not valid: ${path9}. Contains the following character: ${errorMessageForCharacter}
-
+          
 Invalid characters include: ${Array.from(invalidArtifactFilePathCharacters.values()).toString()}
-
+          
 The following characters are not allowed in files that are uploaded due to limitations with certain file systems such as NTFS. To maintain file system agnostic behavior, these characters are intentionally not allowed to prevent potential problems with downloads on different file systems.
           `);
     }
@@ -65560,7 +65560,7 @@ var RestError = class _RestError extends Error {
     } : void 0;
     Object.defineProperty(this, custom, {
       value: () => {
-        return `RestError: ${this.message}
+        return `RestError: ${this.message} 
  ${errorSanitizer.sanitize({
           ...this,
           request: { ...this.request, agent },
@@ -73697,9 +73697,9 @@ var XMLParser = class {
     this.options = buildOptions(options);
   }
   /**
-   * Parse XML dats to JS object
-   * @param {string|Uint8Array} xmlData
-   * @param {boolean|Object} validationOption
+   * Parse XML dats to JS object 
+   * @param {string|Uint8Array} xmlData 
+   * @param {boolean|Object} validationOption 
    */
   parse(xmlData, validationOption) {
     if (typeof xmlData !== "string" && xmlData.toString) {
@@ -73721,8 +73721,8 @@ var XMLParser = class {
   }
   /**
    * Add Entity which is not by default supported by this library
-   * @param {string} key
-   * @param {string} value
+   * @param {string} key 
+   * @param {string} value 
    */
   addEntity(key, value) {
     if (value.indexOf("&") !== -1) {
@@ -73738,10 +73738,10 @@ var XMLParser = class {
   /**
    * Returns a Symbol that can be used to access the metadata
    * property on a node.
-   *
+   * 
    * If Symbol is not available in the environment, an ordinary property is used
    * and the name of the property is here returned.
-   *
+   * 
    * The XMLMetaData property is only present when `captureMetaData`
    * is true in the options.
    */
@@ -102482,17 +102482,15 @@ async function installBinary() {
   fs9.chmodSync(binPath, 493);
   return binPath;
 }
-function writeAlertsFile(alerts) {
-  const alertsFile = path8.join(
-    makeTempDir("grafana-alert-gate-"),
-    "alerts.txt"
-  );
-  fs9.writeFileSync(alertsFile, alerts);
-  return alertsFile;
+function writeSelectionFile(contents, fileName) {
+  const filePath = path8.join(makeTempDir("grafana-alert-gate-"), fileName);
+  fs9.writeFileSync(filePath, contents);
+  return filePath;
 }
-function alertSelection(alerts, includeLabels, excludeLabels) {
+function alertSelection(alerts, excludeAlerts, includeLabels, excludeLabels) {
   return {
-    alertsPath: alerts.trim() !== "" ? writeAlertsFile(alerts) : void 0,
+    alertsPath: alerts.trim() !== "" ? writeSelectionFile(alerts, "alerts.txt") : void 0,
+    excludeAlertsPath: excludeAlerts.trim() !== "" ? writeSelectionFile(excludeAlerts, "exclude-alerts.txt") : void 0,
     includeLabels: includeLabels.trim() !== "" ? includeLabels : void 0,
     excludeLabels: excludeLabels.trim() !== "" ? excludeLabels : void 0
   };
@@ -102500,6 +102498,9 @@ function alertSelection(alerts, includeLabels, excludeLabels) {
 function addSelectionArgs(args, selection) {
   if (selection.alertsPath) {
     args.push("--alerts", selection.alertsPath);
+  }
+  if (selection.excludeAlertsPath) {
+    args.push("--exclude-alerts", selection.excludeAlertsPath);
   }
   if (selection.includeLabels) {
     args.push("--include-labels", selection.includeLabels);
@@ -102517,6 +102518,7 @@ async function runRecord(binPath) {
     args,
     alertSelection(
       getInput("alerts"),
+      getInput("exclude-alerts"),
       getInput("include-labels"),
       getInput("exclude-labels")
     )
@@ -102681,6 +102683,7 @@ function enforceGate(exitCode, failOnViolation) {
 async function runCheck(binPath, live) {
   const selection = alertSelection(
     getInput("alerts"),
+    getInput("exclude-alerts"),
     getInput("include-labels"),
     getInput("exclude-labels")
   );

@@ -155,6 +155,50 @@ describe("buildCheckArgs", () => {
     expect(args).toContain("--include-labels");
   });
 
+  it("forwards exclude-alerts alongside alerts", () => {
+    setInputs();
+
+    expect(
+      buildCheckArgs(
+        { to: "T" },
+        true,
+        {},
+        {
+          alertsPath: "/tmp/alerts.txt",
+          excludeAlertsPath: "/tmp/exclude-alerts.txt",
+        },
+      ),
+    ).toEqual([
+      "check",
+      "--alerts",
+      "/tmp/alerts.txt",
+      "--exclude-alerts",
+      "/tmp/exclude-alerts.txt",
+      "--to",
+      "T",
+      "--output",
+      "json",
+      "--fail-fast",
+    ]);
+  });
+
+  it("forwards exclude-alerts alongside label selection", () => {
+    setInputs();
+
+    const args = buildCheckArgs(
+      { to: "T" },
+      true,
+      {},
+      {
+        includeLabels: "team=bcm",
+        excludeAlertsPath: "/tmp/exclude-alerts.txt",
+      },
+    );
+
+    expect(args).toContain("--include-labels");
+    expect(args).toContain("--exclude-alerts");
+  });
+
   it("forwards a selection in recorder mode for the CLI to refuse", () => {
     setInputs();
 

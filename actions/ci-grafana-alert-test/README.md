@@ -91,6 +91,10 @@ In `record` and `live` you either enumerate alerts or select them by labels:
   missing label never drops a rule. `exclude-labels` requires `include-labels`,
   labels cannot be combined with `alerts` or `folder`, and a selection matching
   no rules fails the run (exit 2) rather than watching an empty set.
+- `exclude-alerts`: one alert name per line subtracted from the selection,
+  whether it came from `alerts` or from labels. The names resolve exactly like
+  `alerts` (`folder` scopes them the same way), so a typo is an error rather
+  than a silent no-op; excluding every selected rule fails the run.
 
 `check` never selects: the recorded log already names its own alert set.
 
@@ -239,6 +243,7 @@ ones worth calling out:
 | `alerts`                             | One alert name per line. Required for `record` and `live` unless `include-labels` is given; refused for `check`, which reads the set from the recorded log                                           |
 | `include-labels`                     | Exact-match `key=value` pairs selecting rules by label, e.g. `team=bcm,env=stage`. Alternative to `alerts` in `record` and `live`; cannot be combined with `folder`                                  |
 | `exclude-labels`                     | Drops any rule carrying one of these exact matches. Requires `include-labels`                                                                                                                        |
+| `exclude-alerts`                     | One alert name per line subtracted from the selected set. Works with `alerts` and label selection; refused for `check`                                                                               |
 | `until`                              | `record` only. RFC3339 hard stop for the recorder; by default it runs until `check`/`stop` reaps it                                                                                                  |
 | `from` / `to` / `observation_window` | `check` and `live`. `from` is when the deploy landed; `to` is when the work ended; `observation_window` replaces `to` when there is no distinct "done" event (measured from live's start). Max 5h30m |
 | `fail-on-violation`                  | Default `true`. Stops exit 1 only, never exit 2                                                                                                                                                      |
