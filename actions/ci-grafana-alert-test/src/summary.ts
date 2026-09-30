@@ -12,7 +12,9 @@ export const SUMMARY_SEPARATOR = "|---|---|---|---|---|---|---|---|";
 const STATUS_FAIL = "❌";
 const STATUS_PASS = "✅";
 const STATUS_PAUSED = "⏸️";
-const MAX_SUMMARY_LENGTH = 1_000_000;
+// GitHub's step-summary limit is a UTF-8 byte size, not a character count.
+const MAX_SUMMARY_BYTES = 1_000_000;
+const TRUNCATION_NOTE = "\n\n(truncated near 1 MB)";
 
 // Outcomes that pass on their own. A paused rule was never watched, so it is
 // neither a pass nor a failure unless it produced a violation.
@@ -240,9 +242,25 @@ export function buildSummaryBody(
     }
   }
 
-  const body = parts.join("\n\n");
-  if (body.length > MAX_SUMMARY_LENGTH) {
-    return `${body.slice(0, MAX_SUMMARY_LENGTH)}\n\n(truncated near 1 MB)`;
+  return truncateToMaxBytes(parts.join("\n\n"));
+}
+
+// body.length counts UTF-16 code units, so a summary dominated by non-ASCII
+// alert names or instance labels can pass a character check and still exceed
+// the byte limit. Truncate on a UTF-8 code point boundary and budget the note.
+function truncateToMaxBytes(body: string): string {
+  if (Buffer.byteLength(body, "utf8") <= MAX_SUMMARY_BYTES) {
+    return body;
   }
-  return body;
+  const budget = MAX_SUMMARY_BYTES - Buffer.byteLength(TRUNCATION_NOTE, "utf8");
+  return `${truncateToUtf8Bytes(body, budget)}${TRUNCATION_NOTE}`;
+}
+
+function truncateToUtf8Bytes(value: string, maxBytes: number): string {
+  const bytes = Buffer.from(value, "utf8");
+  let end = maxBytes;
+  while (end > 0 && (bytes[end] & 0b1100_0000) === 0b1000_0000) {
+    end--;
+  }
+  return bytes.subarray(0, end).toString("utf8");
 }

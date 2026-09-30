@@ -261,6 +261,24 @@ describe("buildSummaryBody", () => {
     expect(body).toContain("(truncated near 1 MB)");
   });
 
+  it("caps non-ASCII bodies by UTF-8 bytes, not UTF-16 code units", () => {
+    const body = buildSummaryBody({
+      Violations: [],
+      Verdicts: [
+        {
+          Alert: "😀".repeat(400_000),
+          RuleUID: "r",
+          Outcome: "healthy",
+          BadFor: 0,
+        },
+      ],
+    });
+
+    expect(Buffer.byteLength(body, "utf8")).toBeLessThanOrEqual(1_000_000);
+    expect(body.endsWith("(truncated near 1 MB)")).toBe(true);
+    expect(body).not.toContain("\uFFFD");
+  });
+
   it("caps the whole body, including instance details", () => {
     const violations = Array.from({ length: 2000 }, (_, i) => ({
       Alert: "A",
@@ -278,7 +296,7 @@ describe("buildSummaryBody", () => {
       true,
     );
 
-    expect(body.length).toBeLessThan(1_000_100);
+    expect(Buffer.byteLength(body, "utf8")).toBeLessThanOrEqual(1_000_000);
     expect(body.endsWith("(truncated near 1 MB)")).toBe(true);
   });
 });

@@ -102170,7 +102170,8 @@ var SUMMARY_SEPARATOR = "|---|---|---|---|---|---|---|---|";
 var STATUS_FAIL = "\u274C";
 var STATUS_PASS = "\u2705";
 var STATUS_PAUSED = "\u23F8\uFE0F";
-var MAX_SUMMARY_LENGTH = 1e6;
+var MAX_SUMMARY_BYTES = 1e6;
+var TRUNCATION_NOTE = "\n\n(truncated near 1 MB)";
 var PASSING_OUTCOMES = /* @__PURE__ */ new Set(["healthy", "clean", "recovered"]);
 function escapePipe(value) {
   return value.replaceAll("|", "\\|");
@@ -102325,13 +102326,22 @@ ${buildSummaryRows(result)}`
       parts.push(instances);
     }
   }
-  const body2 = parts.join("\n\n");
-  if (body2.length > MAX_SUMMARY_LENGTH) {
-    return `${body2.slice(0, MAX_SUMMARY_LENGTH)}
-
-(truncated near 1 MB)`;
+  return truncateToMaxBytes(parts.join("\n\n"));
+}
+function truncateToMaxBytes(body2) {
+  if (Buffer.byteLength(body2, "utf8") <= MAX_SUMMARY_BYTES) {
+    return body2;
   }
-  return body2;
+  const budget = MAX_SUMMARY_BYTES - Buffer.byteLength(TRUNCATION_NOTE, "utf8");
+  return `${truncateToUtf8Bytes(body2, budget)}${TRUNCATION_NOTE}`;
+}
+function truncateToUtf8Bytes(value, maxBytes) {
+  const bytes = Buffer.from(value, "utf8");
+  let end = maxBytes;
+  while (end > 0 && (bytes[end] & 192) === 128) {
+    end--;
+  }
+  return bytes.subarray(0, end).toString("utf8");
 }
 
 // actions/ci-grafana-alert-test/src/window.ts
