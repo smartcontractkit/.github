@@ -145,6 +145,8 @@ This token will be passed to the Docker build action as the token secret.
 
 ### Option B: Use GATI (GitHub Actions Token Issuer)
 
+#### V1
+
 If all of the following are provided:
 
 - `secrets.AWS_ROLE_GATI_ARN`
@@ -154,7 +156,11 @@ If all of the following are provided:
 …the workflow will fetch a token via the `setup-github-token` action and use it
 for the build.
 
-Optional helper:
+#### V2
+
+- Pass `gati-profile` input as the configured GATIv2 profile.
+
+#### Optional helper
 
 - `set-git-config-gati: "true"` to configure git for GATI usage (when needed by
   your build tooling).

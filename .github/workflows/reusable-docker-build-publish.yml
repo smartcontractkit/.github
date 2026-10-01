@@ -411,6 +411,14 @@ on:
         required: false
         type: string
         default: "disabled"
+      gati-profile:
+        description: |
+          The GATI v2 specific profile to use.
+          Leave empty for no GATI, or pass the *_GATI_* secrets to use legacy roles.
+          * Note: that usage of secrets will migrate over seamlessly to GATIv2 eventually.
+        type: string
+        required: false
+        default: ""
 
     outputs:
       docker-image-sha-digest-amd64:
@@ -746,25 +754,27 @@ jobs:
           AWS_ROLE_GATI_ARN: ${{ secrets.AWS_ROLE_GATI_ARN }}
           AWS_LAMBDA_GATI_URL: ${{ secrets.AWS_LAMBDA_GATI_URL }}
           GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE: ${{ secrets.GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE }}
+          GATI_V2_PROFILE: ${{ inputs.gati-profile }}
         run: |
-          if [[ -n "${AWS_ROLE_GATI_ARN}" && -n "${AWS_LAMBDA_GATI_URL}" ]]; then
+          if [[ -n "${AWS_ROLE_GATI_ARN}" && -n "${AWS_LAMBDA_GATI_URL}" && -n "${GATI_V2_PROFILE}" ]]; then
             if [[ -z "${GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE:-}" ]]; then
                 echo "use-gati=true" | tee -a "${GITHUB_OUTPUT}"
             fi
           else
-            echo "Skipping GATI because secrets.AWS_ROLE_GATI_ARN and/or secrets.AWS_LAMBDA_GATI_URL or GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE is not set."
+            echo "Skipping GATI because secrets.AWS_ROLE_GATI_ARN and/or secrets.AWS_LAMBDA_GATI_URL or GATI_V2_PROFILE or GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE is not set."
           fi
 
       - name: Setup GitHub token using GATI
         if: steps.check-gati.outputs.use-gati == 'true'
         id: token
-        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/1.0.0
+        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
         with:
           aws-role-arn: ${{ secrets.AWS_ROLE_GATI_ARN }}
           aws-lambda-url: ${{ secrets.AWS_LAMBDA_GATI_URL }}
           aws-region: ${{ inputs.aws-region-gati }}
           aws-role-duration-seconds: "1800"
           set-git-config: ${{ inputs.set-git-config-gati }}
+          profile: ${{ inputs.gati-profile }}
 
       - name: Run custom pre-build commands
         if: ${{ inputs.docker-pre-build-commands != '' }}
