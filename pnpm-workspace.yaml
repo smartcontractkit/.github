@@ -4,3 +4,10 @@ packages:
   - libs/**
   - apps/**
   - workflows/**
+onlyBuiltDependencies:
+  - "@swc/core"
+  - esbuild
+  - lefthook
+  - nice-napi
+  - nx
+  - unrs-resolver
