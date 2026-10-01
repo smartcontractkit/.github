@@ -40,7 +40,7 @@ At minimum:
 ```yaml
 permissions:
   contents: read # checkout
-  id-token: write # OIDC to assume AWS role(s)
+  id-token: write # OIDC to assume AWS role(s) and request a GATI token
 ```
 
 When `docker-manifest-attestation` is not `"disabled"`, the calling job must
@@ -143,16 +143,17 @@ Set the secret:
 
 This token will be passed to the Docker build action as the token secret.
 
-### Option B: Use GATI (GitHub Actions Token Issuer)
+### Option B: Use GATI v2 (GitHub Actions Token Issuer)
 
-If all of the following are provided:
+If `inputs.gati-profile` is set (and you did **not** set
+`GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE`), the workflow will fetch a token from GATI
+v2 via the `setup-github-token` action and use it for the build.
 
-- `secrets.AWS_ROLE_GATI_ARN`
-- `secrets.AWS_LAMBDA_GATI_URL`
-- (and you did **not** set `GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE`)
-
-…the workflow will fetch a token via the `setup-github-token` action and use it
-for the build.
+```yaml
+with:
+  gati-profile: my-profile
+  # ...other required inputs...
+```
 
 Optional helper:
 
@@ -292,6 +293,10 @@ Controlled by `docker-cache-behaviour`:
 - `timeout` — job timeout minutes (default `30`)
 - `free-disk-space` (`"true"`/`"false"`) — attempt to free disk before build
 - `github-runner-amd64`, `github-runner-arm64` — runner labels
+- `gati-profile` — GATI v2 profile used to fetch a GitHub token for private
+  dependencies (see Authentication above)
+- `set-git-config-gati` (`"true"`/`"false"`, default `"false"`) — configure git
+  to use the GATI token
 
 ---
 
@@ -301,11 +306,6 @@ Controlled by `docker-cache-behaviour`:
 
 - `AWS_ACCOUNT_ID` — AWS account id for ECR
 - `AWS_ROLE_PUBLISH_ARN` — OIDC role ARN used to publish to ECR
-
-### Optional (for GATI)
-
-- `AWS_ROLE_GATI_ARN`
-- `AWS_LAMBDA_GATI_URL`
 
 ### Optional (token override)
 
