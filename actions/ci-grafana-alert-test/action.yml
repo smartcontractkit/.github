@@ -2,80 +2,130 @@ name: ci-grafana-alert-test
 description:
   "CD quality gate: bookend a release with a live-recorded observation of
   Grafana alerts (`record`) and fail the job if any watched alert was bad during
-  the window (`check`). Wraps the grafana-alertcheck CLI from
-  chainlink-testing-framework, downloaded as a prebuilt binary from the released
-  `grafana-alertcheck/v0.1.0` version."
+  the window (`check`); `live` skips the recorder and watches inline instead,
+  and `stop` reaps a recorder after a failed work step. Wraps the
+  grafana-alertcheck CLI from chainlink-testing-framework, downloaded as a
+  prebuilt binary. When the run's commit is the head of an open pull request,
+  `check` and `live` upsert their summary as a comment there."
 
 inputs:
   mode:
     description:
-      "'record' (start the recorder) or 'check' (classify the window and exit)"
+      "'record' (start the recorder), 'check' (classify a recorded window and
+      exit), 'live' (single-step: watch and classify inline, no recorder), or
+      'stop' (reap a detached recorder; idempotent, safe under if: always(), and
+      notes a gate that never ran)"
     required: true
   grafana-url:
-    description: "Base URL of the Grafana instance"
-    required: true
+    description:
+      "Base URL of the Grafana instance. Required for record, check, and live;
+      not used by stop."
+    required: false
   grafana-token:
-    description: "Grafana API token (secret)"
-    required: true
+    description:
+      "Grafana API token (secret). Required for record, check, and live; not
+      used by stop."
+    required: false
   alerts:
     description:
-      "One alert rule name per line. Required with mode: record. Refused with
-      mode: check — the recorded log already carries its own alert set."
+      "One alert rule name per line. Required with mode: record and mode: live
+      unless `include-labels` is given. Refused with mode: check — the recorded
+      log already carries its own alert set."
+    required: false
+  include-labels:
+    description:
+      "Comma-separated exact-match key=value pairs selecting rules by label,
+      e.g. team=bcm,env=stage; a rule must carry all of them. Alternative to
+      `alerts` (mutually exclusive) in mode: record and mode: live. Cannot be
+      combined with `folder`; refused with mode: check."
+    required: false
+  exclude-labels:
+    description:
+      "Comma-separated exact-match key=value pairs; a rule carrying any of them
+      is dropped. Requires `include-labels`. mode: record and mode: live;
+      refused with mode: check."
+    required: false
+  exclude-alerts:
+    description:
+      "One alert name per line, subtracted from the selected set. Combinable
+      with `alerts` and with label selection; a name that does not resolve is an
+      error, and excluding every selected rule fails the run. Refused with mode:
+      check — the recorded log already carries its own alert set."
     required: false
   states:
     description:
-      "Comma-separated bad states to classify against. mode: check only.
-      Default: firing"
+      "Comma-separated bad states to classify against. check and live. Default:
+      firing"
     required: false
   from:
     description:
       "RFC3339 timestamp, explicit offset, of when the deploy landed. Required
-      with mode: check. Must come from the deploy step's own completion output,
-      never a wrapper step."
+      with mode: check. Optional with mode: live, where the window starts at
+      live's first observation and anything earlier is a declared blind spot.
+      With mode: check it must come from the deploy step's own completion
+      output, never a wrapper step."
     required: false
   to:
     description:
       "RFC3339 timestamp of the end of the window. Mutually exclusive with
-      duration; give exactly one. mode: check only."
+      observation_window; give exactly one. check and live (live requires it to
+      be in the future)."
     required: false
-  duration:
+  observation_window:
     description:
       "Duration expressed as one or more integer h/m/s segments (e.g. 10m,
-      1h30m) added to `from` to compute `to` when there is no distinct 'done'
-      event. Mutually exclusive with `to`; give exactly one. mode: check only."
+      1h30m) added to `from` (mode: check) or to the start of the live run
+      (mode: live) to compute `to` when there is no distinct 'done' event.
+      Mutually exclusive with `to`; give exactly one. check and live. The
+      observation window may not exceed 5h30m, because GitHub Actions runners
+      can run for at most 6h."
     required: false
   preexisting:
     description:
       "fail-unless-recovered (default) | fail | ignore — how to judge an
-      instance already bad at `from`. mode: check only."
+      instance already bad at `from`. check and live."
     required: false
   min-observed:
     description:
       "Minimum number of rules that must be observed. Default: every resolved
-      rule. mode: check only."
+      rule. check and live."
     required: false
   allow-paused:
     description:
-      "Do not count a rule paused before the window against min-observed. mode:
-      check only."
+      "Do not count a rule paused before the window against min-observed. check
+      and live."
     required: false
     default: "false"
   nodata-is-unobservable:
     description:
-      "Treat a sustained health=nodata as unobservable rather than a note. mode:
-      check only."
+      "Treat a sustained health=nodata as unobservable rather than a note. check
+      and live."
     required: false
     default: "false"
+  fail-fast:
+    description:
+      "Set to 'false' to wait for the full window even after a certain failure,
+      for a full-window coverage proof instead of the fastest feedback. check
+      and live."
+    required: false
+    default: "true"
   poll-interval:
     description:
       "Override every watched rule's poll cadence (Go duration, e.g. 30s).
       Default: automatic, per rule. mode: record only."
     required: false
+  until:
+    description:
+      "RFC3339 hard stop for the recorder. Default: run until check or stop
+      reaps it. mode: record only."
+    required: false
   concurrency:
     description: "Maximum concurrent requests to Grafana"
     required: false
   folder:
-    description: "Default folder to scope an unqualified alert name to"
+    description:
+      "Default folder to scope an unqualified alert name to. Cannot be combined
+      with label selection."
     required: false
   fail-on-violation:
     description:
@@ -83,6 +133,23 @@ inputs:
       could-not-check result (exit 2) always fails the job regardless."
     required: false
     default: "true"
+  print-instances-details:
+    description:
+      "Set to 'true' to list the failing instances of every alert in a bad state
+      underneath the summary table, in the step summary and the PR comment
+      alike. check and live."
+    required: false
+    default: "false"
+  github-token:
+    description:
+      "Token used to find the open pull request whose head is this run's commit
+      and upsert the summary comment on it. Defaults to the workflow's automatic
+      token; the calling job needs 'pull-requests: write'. Commenting is skipped
+      with a warning when the token is empty or the lookup/write fails, and
+      skipped with a log when no open pull request matches. check, live and
+      stop."
+    required: false
+    default: ${{ github.token }}
 
 outputs:
   log-path:
@@ -90,14 +157,14 @@ outputs:
   pidfile:
     description: "Path of the recorder's pidfile. mode: record only."
   passed:
-    description: "'true' if the check exited 0. mode: check only."
+    description: "'true' if the check exited 0. check and live."
   violation-count:
-    description: "Number of violations. mode: check only."
+    description: "Number of violations. check and live."
   violations:
-    description: "JSON array of violations. mode: check only."
+    description: "JSON array of violations. check and live."
   outcomes:
     description:
-      "JSON array of {alert, outcome} per resolved rule. mode: check only."
+      "JSON array of {alert, outcome} per resolved rule. check and live."
 
 runs:
   using: node24

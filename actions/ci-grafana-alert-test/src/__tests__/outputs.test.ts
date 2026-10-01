@@ -8,8 +8,8 @@ describe("extractCheckOutputs", () => {
     const result: GrafanaAlertCheckResult = {
       Violations: [{ RuleUID: "r1" }, { RuleUID: "r2" }],
       Verdicts: [
-        { Alert: "A", RuleUID: "r1", Outcome: "newly_bad", BadFor: 0 },
-        { Alert: "B", RuleUID: "r2", Outcome: "ok", BadFor: 0 },
+        { Alert: "A", RuleUID: "r1", Outcome: "new_failure", BadFor: 0 },
+        { Alert: "B", RuleUID: "r2", Outcome: "healthy", BadFor: 0 },
       ],
     };
 
@@ -17,8 +17,8 @@ describe("extractCheckOutputs", () => {
       violationCount: 2,
       violations: JSON.stringify([{ RuleUID: "r1" }, { RuleUID: "r2" }]),
       outcomes: JSON.stringify([
-        { alert: "A", outcome: "newly_bad" },
-        { alert: "B", outcome: "ok" },
+        { alert: "A", outcome: "new_failure" },
+        { alert: "B", outcome: "healthy" },
       ]),
     });
   });
