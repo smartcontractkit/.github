@@ -1,5 +1,14 @@
 # reusable-docker-build-publish
 
+## 1.9.0
+
+### Minor Changes
+
+- [#1678](https://github.com/smartcontractkit/.github/pull/1678)
+  [`afd6400`](https://github.com/smartcontractkit/.github/commit/afd640062372257876b9caa560b6890d402ab3b4)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: pin to
+  setup-github-token/v1, add gati-profile input to support v2 profiles+migration
+
 ## 1.8.1
 
 ### Patch Changes
