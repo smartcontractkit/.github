@@ -1,12 +1,12 @@
 {
   "name": "nx-chainlink",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
   "type": "commonjs",
   "main": "./src/index.js",
   "typings": "./src/index.d.ts",
   "generators": "./generators.json",
   "devDependencies": {
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.11"
   }
 }

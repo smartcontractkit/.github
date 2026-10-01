@@ -1,0 +1,173 @@
+# Exercises actions/invoke-gati-v2 against the v1 migration profiles.
+#
+# This repository is public, so these workflow logs are public. Keep the checks
+# below to assertions, counts, and permission flags — never print team member
+# logins or the names of repositories a token happens to reach.
+name: invoke-gati-v2 validate
+
+on:
+  pull_request:
+    paths:
+      - "actions/invoke-gati-v2/**"
+      - ".github/workflows/invoke-gati-v2-validate.yml"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  global-read-only:
+    name: Global read-only role
+    # Repository secrets are unavailable to pull requests from forks.
+    if:
+      github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repo (needed to reference local action)
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Get a GitHub token
+        id: gati
+        uses: ./actions/invoke-gati-v2
+        with:
+          profile:
+            v1/${{ secrets.AWS_OIDC_GLOBAL_READ_ONLY_TOKEN_ISSUER_ROLE_ARN }}
+
+      - name: Check a token was issued
+        env:
+          ACCESS_TOKEN: ${{ steps.gati.outputs.access-token }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${ACCESS_TOKEN}" ]]; then
+            echo "No access token was returned."
+            exit 1
+          fi
+          echo "An access token was returned."
+
+  repository-contents-write:
+    name: Repository contents:write role
+    if:
+      github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TEST_BRANCH: gati-v2-validate/${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - name: Checkout repo (needed to reference local action)
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          # Full history, so pushing the checked-out commit below is a plain
+          # ref create rather than a shallow update, which servers may refuse.
+          fetch-depth: 0
+
+      - name: Get a GitHub token
+        id: gati
+        uses: ./actions/invoke-gati-v2
+        with:
+          profile: v1/${{ secrets.AWS_OIDC_IAM_ROLE_ARN_GATI }}
+
+      - name: Configure git to authenticate with the token
+        env:
+          GH_TOKEN: ${{ steps.gati.outputs.access-token }}
+        run: |
+          git config --global \
+            url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf \
+            "https://github.com/"
+
+      - name: Check the token reaches this repository
+        env:
+          GH_TOKEN: ${{ steps.gati.outputs.access-token }}
+        run: |
+          set -euo pipefail
+
+          repositories=$(gh api --paginate /installation/repositories --jq '.repositories[].full_name')
+          if [[ -z "${repositories}" ]]; then
+            echo "Token reaches no repositories."
+            exit 1
+          fi
+          echo "Token reaches $(grep -c '^' <<<"${repositories}") repositories."
+
+          if ! grep -qxF "${GITHUB_REPOSITORY}" <<<"${repositories}"; then
+            echo "Token cannot reach ${GITHUB_REPOSITORY}."
+            exit 1
+          fi
+          echo "Token reaches ${GITHUB_REPOSITORY}."
+
+      # An installation token's permissions are not readable back from the API,
+      # so prove contents:write by exercising it. The branch points at the
+      # commit under test, which is already on the remote, so no new content is
+      # published, and no workflow here triggers on pushes outside main.
+      - name: Check the token can push a branch to this repository
+        run: |
+          set -euo pipefail
+
+          git switch --create "${TEST_BRANCH}"
+          git push origin "${TEST_BRANCH}"
+          echo "Token pushed ${TEST_BRANCH} to ${GITHUB_REPOSITORY}."
+
+      # Always runs so the branch is never left behind when the push above
+      # succeeded but a later step failed.
+      - name: Check the token can delete the branch
+        if: always()
+        run: |
+          set -euo pipefail
+
+          pushed=$(git ls-remote --heads origin "refs/heads/${TEST_BRANCH}")
+          if [[ -z "${pushed}" ]]; then
+            echo "No branch was pushed, so there is nothing to delete."
+            exit 0
+          fi
+
+          git push origin --delete "${TEST_BRANCH}"
+          echo "Token deleted ${TEST_BRANCH} from ${GITHUB_REPOSITORY}."
+
+  codeowners-team-read:
+    name: CODEOWNERS team role
+    if:
+      github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TEAM_ORG: smartcontractkit
+      TEAM_SLUG: devex-cicd
+    steps:
+      - name: Checkout repo (needed to reference local action)
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Get a GitHub token
+        id: gati
+        uses: ./actions/invoke-gati-v2
+        with:
+          profile: v1/${{ secrets.GATI_CODEOWNERS_IAM_ARN }}
+
+      - name: Check the token can read the team
+        env:
+          GH_TOKEN: ${{ steps.gati.outputs.access-token }}
+        run: |
+          set -euo pipefail
+
+          slug=$(gh api "/orgs/${TEAM_ORG}/teams/${TEAM_SLUG}" --jq '.slug')
+          if [[ "${slug}" != "${TEAM_SLUG}" ]]; then
+            echo "Requested ${TEAM_ORG}/${TEAM_SLUG} but read back '${slug}'."
+            exit 1
+          fi
+          echo "Read team ${TEAM_ORG}/${slug}."
+
+          # Count only: member logins would be published in this repo's logs.
+          members=$(gh api --paginate "/orgs/${TEAM_ORG}/teams/${TEAM_SLUG}/members" --jq '.[].login' | grep -c '^' || true)
+          echo "Team ${TEAM_ORG}/${TEAM_SLUG} has ${members} members."

@@ -146,6 +146,17 @@ on:
         required: false
         type: string
         default: "write-on-trunk"
+      docker-cache-map:
+        description: |
+          JSON string mapping cache mount paths/names for buildkit-cache-dance, passed
+          through to build-push-docker's cache-map. Use the object form with an explicit
+          id matching the Dockerfile's cache mount id, e.g.
+          '{"cache-mount/go-build-cache": {"id": "go-build-cache", "target": "/var/cache-target"}}'.
+          Restricts cache-dance to only the listed mounts; if omitted, all cache mounts
+          are discovered from the Dockerfile.
+        required: false
+        type: string
+        default: ""
       docker-build-context:
         description: "Path to Docker build context."
         required: true
@@ -396,6 +407,14 @@ on:
         required: false
         type: string
         default: "disabled"
+      gati-profile:
+        description: |
+          The GATI v2 specific profile to use.
+          Leave empty for no GATI, or pass the *_GATI_* secrets to use legacy roles.
+          * Note: that usage of secrets will migrate over seamlessly to GATIv2 eventually.
+        type: string
+        required: false
+        default: ""
 
     outputs:
       docker-image-sha-digest-amd64:
@@ -433,7 +452,7 @@ jobs:
       docker-build-cache-from: ${{ steps.should-cache.outputs.docker-build-cache-from }}
       docker-cache-suffix: ${{ steps.should-cache.outputs.docker-cache-suffix }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
           fetch-depth: 1
@@ -600,6 +619,12 @@ jobs:
     runs-on: ${{ matrix.runner }}
     timeout-minutes: ${{ inputs.timeout }}
     strategy:
+      # Each arch pushes its own per-arch tag before the manifest is assembled,
+      # so cancelling a sibling mid-publish leaves the image half-published: the
+      # surviving arch's tag exists, the manifest does not, and every retry then
+      # trips the "tags already exist" guard. Let both arches finish so a
+      # transient failure in one can be re-run on its own.
+      fail-fast: false
       matrix:
         include: ${{ fromJson(needs.set-build-matrix.outputs.matrix) }}
     outputs:
@@ -612,9 +637,9 @@ jobs:
         uses: smartcontractkit/.github/actions/free-disk-space@free-disk-space/v1
 
       - name: Enable S3 Cache for Self-Hosted Runners
-        uses: runs-on/action@4e5f72399b6b17f2e79c511c1b38a315a64d22dc # v2.2.0
+        uses: runs-on/action@efac073ea2507ec18797de3a81704201ade11d9d # v2.3.1
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         id: checkout
         with:
           persist-credentials: false
@@ -725,25 +750,38 @@ jobs:
           AWS_ROLE_GATI_ARN: ${{ secrets.AWS_ROLE_GATI_ARN }}
           AWS_LAMBDA_GATI_URL: ${{ secrets.AWS_LAMBDA_GATI_URL }}
           GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE: ${{ secrets.GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE }}
+          GATI_V2_PROFILE: ${{ inputs.gati-profile }}
         run: |
-          if [[ -n "${AWS_ROLE_GATI_ARN}" && -n "${AWS_LAMBDA_GATI_URL}" ]]; then
-            if [[ -z "${GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE:-}" ]]; then
-                echo "use-gati=true" | tee -a "${GITHUB_OUTPUT}"
-            fi
-          else
-            echo "Skipping GATI because secrets.AWS_ROLE_GATI_ARN and/or secrets.AWS_LAMBDA_GATI_URL or GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE is not set."
+          if [[ -n "$GITHUB_TOKEN_DOCKER_BUILD_OVERRIDE" ]]; then
+            echo "Skipping GATI: the build override token is set."
+            exit 0
           fi
+
+          if [[ -n "$GATI_V2_PROFILE" ]]; then
+            echo "Enabling GATI: gati-profile is set."
+            echo "use-gati=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ -n "$AWS_ROLE_GATI_ARN" && -n "$AWS_LAMBDA_GATI_URL" ]]; then
+            echo "Enabling GATI: both AWS GATI secrets are set."
+            echo "use-gati=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Skipping GATI: set gati-profile or both AWS GATI secrets."
 
       - name: Setup GitHub token using GATI
         if: steps.check-gati.outputs.use-gati == 'true'
         id: token
-        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/1.0.0
+        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
         with:
           aws-role-arn: ${{ secrets.AWS_ROLE_GATI_ARN }}
           aws-lambda-url: ${{ secrets.AWS_LAMBDA_GATI_URL }}
           aws-region: ${{ inputs.aws-region-gati }}
           aws-role-duration-seconds: "1800"
           set-git-config: ${{ inputs.set-git-config-gati }}
+          profile: ${{ inputs.gati-profile }}
 
       - name: Run custom pre-build commands
         if: ${{ inputs.docker-pre-build-commands != '' }}
@@ -776,6 +814,7 @@ jobs:
           docker-save-cache: ${{ needs.init.outputs.docker-save-cache }}
           docker-build-cache-to: ${{ needs.init.outputs.docker-build-cache-to }},scope=${{ steps.compute-cache-scope.outputs.scope }}
           docker-build-cache-from: ${{ needs.init.outputs.docker-build-cache-from }},scope=${{ steps.compute-cache-scope.outputs.scope }}
+          cache-map: ${{ inputs.docker-cache-map }}
           context: ${{ inputs.docker-build-context }}
           docker-build-contexts: ${{ inputs.docker-build-contexts }}
           docker-push: ${{ inputs.docker-push }}

@@ -1,5 +1,29 @@
 # build-push-docker
 
+## 1.7.3
+
+### Patch Changes
+
+- [#1668](https://github.com/smartcontractkit/.github/pull/1668)
+  [`153fc1c`](https://github.com/smartcontractkit/.github/commit/153fc1c19cfcdbbc8fdd691581822d518b5c5e87)
+  Thanks [@nanchano](https://github.com/nanchano)! - Pass `aws-region` to
+  `ecr-image-exists` in the "Check for existing tags" step. Without it the check
+  used that action's default, `us-east-1`, so with `allow-overwrites: "false"` a
+  private repo in any other region failed with `AccessDeniedException` on
+  `ecr:DescribeImages` before the push.
+
+## 1.7.2
+
+### Patch Changes
+
+- [#1653](https://github.com/smartcontractkit/.github/pull/1653)
+  [`f6a20ba`](https://github.com/smartcontractkit/.github/commit/f6a20bad9635eb555ba0608040f46e86990ce4ef)
+  Thanks [@kalverra](https://github.com/kalverra)! - Fix cache-map input
+  description: recommend the object form with an explicit id matching the
+  Dockerfile cache mount id. The simple string form omits id, so BuildKit keys
+  the cache on the target path and never matches mounts that define an explicit
+  id.
+
 ## 1.7.1
 
 ### Patch Changes

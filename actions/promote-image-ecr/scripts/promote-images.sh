@@ -7,11 +7,13 @@ mkdir -p /tmp/promotion-results
 RESULTS_FILE="/tmp/promotion-results/promotion-summary.md"
 RESULTS_JSON="/tmp/promotion-results/promotion-results.json"
 
-echo "# Image Promotion Results" > "$RESULTS_FILE"
-echo "" >> "$RESULTS_FILE"
-echo "**Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> "$RESULTS_FILE"
-echo "**Copy Tool:** cosign" >> "$RESULTS_FILE"
-echo "" >> "$RESULTS_FILE"
+{
+  echo "# Image Promotion Results"
+  echo ""
+  echo "**Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+  echo "**Copy Tool:** cosign"
+  echo ""
+} > "$RESULTS_FILE"
 
 # Initialize JSON results
 echo '{"promotions": []}' > "$RESULTS_JSON"
@@ -41,21 +43,23 @@ write_markdown_result() {
   else
     emoji="❌"
   fi
-  echo "### $emoji ${repo}" >> "$RESULTS_FILE"
-  echo "" >> "$RESULTS_FILE"
-  echo "- **Source:** \`${repo}:${src_tag}\`" >> "$RESULTS_FILE"
-  echo "- **Destination:** \`${dst_repo}:${dst_tag}\`" >> "$RESULTS_FILE"
-  if [[ -n "$src_region" ]]; then
-    echo "- **Source Region:** \`${src_region}\`" >> "$RESULTS_FILE"
-  fi
-  if [[ -n "$dst_region" ]]; then
-    echo "- **Destination Region:** \`${dst_region}\`" >> "$RESULTS_FILE"
-  fi
-  if [[ "$status" == "success" ]]; then
-    echo "- **Duration:** ${duration}s" >> "$RESULTS_FILE"
-  fi
-  echo "- **Status:** ${status^}" >> "$RESULTS_FILE"
-  echo "" >> "$RESULTS_FILE"
+  {
+    echo "### $emoji ${repo}"
+    echo ""
+    echo "- **Source:** \`${repo}:${src_tag}\`"
+    echo "- **Destination:** \`${dst_repo}:${dst_tag}\`"
+    if [[ -n "$src_region" ]]; then
+      echo "- **Source Region:** \`${src_region}\`"
+    fi
+    if [[ -n "$dst_region" ]]; then
+      echo "- **Destination Region:** \`${dst_region}\`"
+    fi
+    if [[ "$status" == "success" ]]; then
+      echo "- **Duration:** ${duration}s"
+    fi
+    echo "- **Status:** ${status^}"
+    echo ""
+  } >> "$RESULTS_FILE"
 }
 
 # Function to append promotion result to JSON
@@ -88,19 +92,29 @@ write_promotion_json() {
 if [[ -n "$IMAGES_JSON" ]]; then
   # Process multiple images
   echo "Processing multiple images from matrix..."
-  echo "" >> "$RESULTS_FILE"
-  echo "## Promoted Images" >> "$RESULTS_FILE"
-  echo "" >> "$RESULTS_FILE"
+  {
+    echo ""
+    echo "## Promoted Images"
+    echo ""
+  } >> "$RESULTS_FILE"
 
+  if ! jq -e 'type == "array"' >/dev/null 2>&1 <<<"$IMAGES_JSON"; then
+    echo "::error::images input must be a JSON array"
+    exit 1
+  fi
+
+  # Read from a process substitution, not a pipe: a piped `while` runs in a
+  # subshell, so IMAGE_COUNT below would be discarded and the failure `exit 1`
+  # would leave the subshell rather than the script.
   IMAGE_COUNT=0
-  echo "$IMAGES_JSON" | jq -c '.[]' | while read -r image; do
+  while read -r image; do
     SRC_REPO=$(echo "$image" | jq -r '.source_repository')
     DST_REPO=$(echo "$image" | jq -r '.destination_repository')
     SRC_TAG=$(echo "$image" | jq -r '.source_tag')
     DST_TAG=$(echo "$image" | jq -r '.destination_tag')
 
-    SRC="docker://${SOURCE_REGISTRY}/${SRC_REPO}:${SRC_TAG}"
-    DST="docker://${DESTINATION_REGISTRY}/${DST_REPO}:${DST_TAG}"
+    SRC="${SOURCE_REGISTRY}/${SRC_REPO}:${SRC_TAG}"
+    DST="${DESTINATION_REGISTRY}/${DST_REPO}:${DST_TAG}"
 
     echo "-> Copying ${SRC} to ${DST}"
 
@@ -127,17 +141,22 @@ if [[ -n "$IMAGES_JSON" ]]; then
 
       exit 1
     fi
-  done
+  done < <(jq -c '.[]' <<<"$IMAGES_JSON")
   echo "----------------------------------------"
   echo "All ${IMAGE_COUNT} images copied successfully!"
 
-  # Add summary at the top
-  sed -i "3i\\** Total Images Promoted:** ${IMAGE_COUNT}" "$RESULTS_FILE"
-  sed -i "4i\\" "$RESULTS_FILE"
+  # Add the total just under the title block. Done by rewriting the file rather
+  # than with `sed -i "4i\\"`, which GNU sed rejects: `i` with nothing after it.
+  {
+    head -n 2 "$RESULTS_FILE"
+    echo "**Total Images Promoted:** ${IMAGE_COUNT}"
+    echo ""
+    tail -n +3 "$RESULTS_FILE"
+  } > "${RESULTS_FILE}.tmp" && mv "${RESULTS_FILE}.tmp" "$RESULTS_FILE"
 else
   # Process single image
-  SRC="docker://${SOURCE_REGISTRY}/${SOURCE_REPOSITORY}:${SOURCE_TAG}"
-  DST="docker://${DESTINATION_REGISTRY}/${DESTINATION_REPOSITORY}:${DESTINATION_TAG}"
+  SRC="${SOURCE_REGISTRY}/${SOURCE_REPOSITORY}:${SOURCE_TAG}"
+  DST="${DESTINATION_REGISTRY}/${DESTINATION_REPOSITORY}:${DESTINATION_TAG}"
 
   echo "-> Copying ${SRC} to ${DST}"
 

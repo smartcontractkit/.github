@@ -70,21 +70,19 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - uses: actions/checkout@v4
-
       - name: Promote image
-        uses: ./.github/actions/promote-image
+        uses: smartcontractkit/.github/actions/promote-image-ecr@promote-image-ecr/0.5.0
         with:
-          source_aws_region: eu-west-1
-          destination_aws_region: us-east-1
-          source_role_arn: arn:aws:iam::111111111111:role/github-actions-ecr-read
-          destination_role_arn: arn:aws:iam::222222222222:role/github-actions-ecr-write
-          source_registry: 111111111111.dkr.ecr.eu-west-1.amazonaws.com
-          destination_registry: 222222222222.dkr.ecr.us-east-1.amazonaws.com
-          source_repository: my-app
-          destination_repository: my-app
-          source_tag: v1.0.0
-          destination_tag: v1.0.0
+          source-aws-region: eu-west-1
+          destination-aws-region: us-east-1
+          source-role-arn: arn:aws:iam::111111111111:role/github-actions-ecr-read
+          destination-role-arn: arn:aws:iam::222222222222:role/github-actions-ecr-write
+          source-registry: 111111111111.dkr.ecr.eu-west-1.amazonaws.com
+          destination-registry: 222222222222.dkr.ecr.us-east-1.amazonaws.com
+          source-repository: my-app
+          destination-repository: my-app
+          source-tag: v1.0.0
+          destination-tag: v1.0.0
 ```
 
 ### Multiple Images Promotion (Matrix)
@@ -101,17 +99,15 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - uses: actions/checkout@v4
-
       - name: Promote multiple images
-        uses: ./.github/actions/promote-image
+        uses: smartcontractkit/.github/actions/promote-image-ecr@promote-image-ecr/0.5.0
         with:
-          source_aws_region: eu-west-1
-          destination_aws_region: us-east-1
-          source_role_arn: arn:aws:iam::111111111111:role/github-actions-ecr-read
-          destination_role_arn: arn:aws:iam::222222222222:role/github-actions-ecr-write
-          source_registry: 111111111111.dkr.ecr.eu-west-1.amazonaws.com
-          destination_registry: 222222222222.dkr.ecr.us-east-1.amazonaws.com
+          source-aws-region: eu-west-1
+          destination-aws-region: us-east-1
+          source-role-arn: arn:aws:iam::111111111111:role/github-actions-ecr-read
+          destination-role-arn: arn:aws:iam::222222222222:role/github-actions-ecr-write
+          source-registry: 111111111111.dkr.ecr.eu-west-1.amazonaws.com
+          destination-registry: 222222222222.dkr.ecr.us-east-1.amazonaws.com
           images: |
             [
               {
@@ -157,21 +153,19 @@ jobs:
           - { repo: "app2", tag: "v2.0.0" }
           - { repo: "service-x", tag: "sha-abc123" }
     steps:
-      - uses: actions/checkout@v4
-
       - name: Promote ${{ matrix.image.repo }}
-        uses: ./.github/actions/promote-image
+        uses: smartcontractkit/.github/actions/promote-image-ecr@promote-image-ecr/0.5.0
         with:
-          source_aws_region: eu-west-1
-          destination_aws_region: us-east-1
-          source_role_arn: arn:aws:iam::111111111111:role/github-actions-ecr-read
-          destination_role_arn: arn:aws:iam::222222222222:role/github-actions-ecr-write
-          source_registry: 111111111111.dkr.ecr.eu-west-1.amazonaws.com
-          destination_registry: 222222222222.dkr.ecr.us-east-1.amazonaws.com
-          source_repository: ${{ matrix.image.repo }}
-          destination_repository: ${{ matrix.image.repo }}
-          source_tag: ${{ matrix.image.tag }}
-          destination_tag: ${{ matrix.image.tag }}
+          source-aws-region: eu-west-1
+          destination-aws-region: us-east-1
+          source-role-arn: arn:aws:iam::111111111111:role/github-actions-ecr-read
+          destination-role-arn: arn:aws:iam::222222222222:role/github-actions-ecr-write
+          source-registry: 111111111111.dkr.ecr.eu-west-1.amazonaws.com
+          destination-registry: 222222222222.dkr.ecr.us-east-1.amazonaws.com
+          source-repository: ${{ matrix.image.repo }}
+          destination-repository: ${{ matrix.image.repo }}
+          source-tag: ${{ matrix.image.tag }}
+          destination-tag: ${{ matrix.image.tag }}
 ```
 
 ## Copy Tool

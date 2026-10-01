@@ -1,0 +1,7 @@
+paths:
+  "**":
+    ignore:
+      # Ignore vulnerability-alerts permission until upstream actionlint issue is resolved.
+      # Issue: https://github.com/rhysd/actionlint/issues/713
+      # Docs: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#permissions
+      - 'unknown permission scope "vulnerability-alerts"'

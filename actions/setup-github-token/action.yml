@@ -2,15 +2,28 @@ name: Setup GitHub Token
 description: Setup a GitHub Token from GATI
 
 inputs:
+  profile:
+    description:
+      GATI v2 token profile to request. When set, GATI v2 is used and the aws-*
+      inputs are ignored.
+    required: false
+  gati-version:
+    description:
+      Force "v1" or "v2", bypassing the staged rollout. Leave unset to let the
+      rollout decide.
+    required: false
   aws-role-arn:
-    description: ARN of role capable of getting token from GATI
-    required: true
+    description:
+      ARN of role capable of getting token from GATI. Required unless profile is
+      set.
+    required: false
   aws-lambda-url:
-    description: URL of GATI lambda function
-    required: true
+    description: URL of GATI lambda function. Required unless profile is set.
+    required: false
   aws-region:
-    description: AWS region
-    required: true
+    description: AWS region. Required unless profile is set.
+    required: false
+    default: "us-west-2"
   aws-role-duration-seconds:
     description: Duration of role in seconds
     required: false
@@ -26,15 +39,38 @@ inputs:
 
 outputs:
   access-token:
-    value: ${{ steps.get-gh-token.outputs.access-token }}
+    value:
+      ${{ steps.get-gh-token.outputs.access-token ||
+      steps.get-gh-token-v2.outputs.access-token }}
     description:
       The github access token that has permissions reflecting the current AWS
       role value
+  gati-version:
+    value: ${{ steps.resolve-gati-version.outputs.version }}
+    description: The GATI version that issued the token, "v1" or "v2"
 
 runs:
   using: composite
   steps:
+    - name: Resolve GATI version
+      id: resolve-gati-version
+      shell: bash
+      env:
+        PROFILE: ${{ inputs.profile }}
+        GATI_VERSION: ${{ inputs.gati-version }}
+        AWS_ROLE_ARN: ${{ inputs.aws-role-arn }}
+        AWS_LAMBDA_URL: ${{ inputs.aws-lambda-url }}
+        # Rollout configuration. Repositories not named in either list are
+        # bucketed by the hash of their name, and use v2 when their bucket is
+        # below the percentage.
+        ROLLOUT_PERCENTAGE: "0"
+        FORCE_V2_REPOSITORIES: |
+          smartcontractkit/.github
+        FORCE_V1_REPOSITORIES: ""
+      run: ${{ github.action_path }}/scripts/resolve-gati-version.sh
+
     - name: Check the role session name lengths and truncate if needed
+      if: steps.resolve-gati-version.outputs.version == 'v1'
       shell: bash
       id: role-session-name
       env:
@@ -47,6 +83,7 @@ runs:
         fi
 
     - name: Assume role capable of getting token from gati
+      if: steps.resolve-gati-version.outputs.version == 'v1'
       uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
       with:
         aws-region: ${{ inputs.aws-region }}
@@ -56,16 +93,28 @@ runs:
           ${{ steps.role-session-name.outputs.role-session-name }}
         role-to-assume: ${{ inputs.aws-role-arn }}
 
-    - name: Get github token from gati
+    - name: Get github token from gati (v1)
       id: get-gh-token
+      if: steps.resolve-gati-version.outputs.version == 'v1'
       uses: smartcontractkit/.github/actions/invoke-gati@invoke-gati/0.3.0
       with:
         url: ${{ inputs.aws-lambda-url }}
 
+    - name: Get github token from gati (v2)
+      id: get-gh-token-v2
+      if: steps.resolve-gati-version.outputs.version == 'v2'
+      uses: smartcontractkit/.github/actions/invoke-gati-v2@invoke-gati-v2/0.1.0
+      with:
+        profile: ${{ steps.resolve-gati-version.outputs.profile }}
+
     - name: Configure github token
       if: inputs.set-git-config == 'true'
       shell: bash
+      env:
+        ACCESS_TOKEN:
+          ${{ steps.get-gh-token.outputs.access-token ||
+          steps.get-gh-token-v2.outputs.access-token }}
       run: |
         git config --global \
-          url."https://x-access-token:${{ steps.get-gh-token.outputs.access-token }}@github.com/".insteadOf \
+          url."https://x-access-token:${ACCESS_TOKEN}@github.com/".insteadOf \
           "https://github.com/"

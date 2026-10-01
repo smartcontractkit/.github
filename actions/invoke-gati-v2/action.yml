@@ -1,0 +1,40 @@
+name: invoke-gati-v2
+description:
+  "Mint a scoped GitHub installation access token from GATI v2, authenticated
+  with a GitHub OIDC token"
+
+inputs:
+  profile:
+    description: |
+      The GATI token profile to request. One of:
+        <name>              a profile defined for the calling repository
+        presets/<name>      a shared preset
+        globals/<name>      a shared global
+        v1/<iam-role-arn>   the GATI v1 entry for an IAM role ARN
+      Names in the first three forms must be non-empty and must not contain "/".
+    required: true
+
+  url:
+    description:
+      "Overrides the GATI v2 endpoint to request the token from. Defaults to the
+      endpoint the action is built against."
+    required: false
+
+  retries:
+    description: |
+      Additional attempts when the request fails with a network error, 429, or a
+      5xx response, with exponential backoff between attempts. 4xx responses fail
+      immediately. Defaults to "0" — a single attempt, no retry.
+    required: false
+    default: "0"
+
+outputs:
+  access-token:
+    description:
+      The GitHub installation access token scoped by the requested profile. It
+      is revoked automatically in this action's post step.
+
+runs:
+  using: "node24"
+  main: "dist/index.js"
+  post: "dist/post.js"

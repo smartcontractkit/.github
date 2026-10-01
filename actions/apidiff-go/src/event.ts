@@ -2,9 +2,7 @@ import * as github from "@actions/github";
 import { PushEvent, PullRequestEvent } from "@octokit/webhooks-types";
 
 export type EventData =
-  | PullRequestEventData
-  | PushEventData
-  | WorkflowDispatchEventData;
+  PullRequestEventData | PushEventData | WorkflowDispatchEventData;
 
 export interface PullRequestEventData {
   eventName: "pull_request";

@@ -64,7 +64,7 @@ jobs:
     # Disable this job until it's updated to be:
     #  1. More generalizable for all workspaces requiring build artifacts
     #  2. Have better attribution for the commits generated from this workflow
-    if: false
+    if: ${{ github.event_name == 'disabled'}}
     permissions:
       contents: write
       pull-requests: write
@@ -149,9 +149,9 @@ jobs:
 
       - name: Check for diff in built artifacts
         run: |
-          if [[ $(git status --porcelain "**/index.js") ]]; then
+          if [[ $(git status --porcelain "**/index.js" "**/post.js") ]]; then
             echo "Built artifacts are out of date. Please run 'pnpm build:artifacts' and commit the changes."
-            git status --porcelain "**/index.js"
+            git status --porcelain "**/index.js" "**/post.js"
             exit 1
           else
             echo "Built artifacts are up to date."

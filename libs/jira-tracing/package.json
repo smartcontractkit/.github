@@ -1,6 +1,6 @@
 {
   "name": "jira-tracing",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Updates Jira issue with release information like the version and tags for a PR.",
   "main": "update-jira-issue.js",
   "type": "module",
@@ -22,13 +22,13 @@
   "dependencies": {
     "@actions/core": "^2.0.3",
     "gray-matter": "^4.0.3",
-    "jira.js": "^4.0.1",
-    "tsx": "^4.16.2"
+    "jira.js": "^4.1.3",
+    "tsx": "^4.23.15"
   },
   "devDependencies": {
-    "@types/node": "^24.12.2",
-    "typescript": "^5.5.3",
-    "vitest": "^4.0.18"
+    "@types/node": "^24.13.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
   },
   "peerDependencies": {
     "axios": "^1.13.6"

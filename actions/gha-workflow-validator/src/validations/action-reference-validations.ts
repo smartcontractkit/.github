@@ -266,7 +266,7 @@ export function extractActionReferenceFromLine(
     }
   }
 
-  if (actionIdentifier.startsWith("./")) {
+  if (actionIdentifier.startsWith("./") || actionIdentifier.startsWith("$/")) {
     // Local action reference - do not extract or validate these.
     return;
   }

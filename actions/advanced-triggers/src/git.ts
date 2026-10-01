@@ -6,14 +6,15 @@ const execFileAsync = promisify(execFile);
 
 /**
  * Returns changed files between two git refs using `git diff --name-only`.
- * If either ref cannot be resolved, a `git pull` is attempted and resolution
- * is retried once. If either ref still cannot be resolved after the retry,
- * an error is thrown.
+ * If either ref cannot be resolved, a shallow `git fetch` of the missing
+ * commit(s) from `origin` is attempted and resolution is retried once. If
+ * either ref still cannot be resolved after the retry, an error is thrown.
  */
 export async function getChangedFilesGit(
   base: string,
   head: string,
   directory: string = process.cwd(),
+  token?: string,
 ): Promise<string[]> {
   core.info(
     `Getting changed files between ${base} and ${head} in ${directory}`,
@@ -23,10 +24,13 @@ export async function getChangedFilesGit(
   let resolvedBase = await resolveCommitish(base, directory);
 
   if (!resolvedHead || !resolvedBase) {
+    const missing = [resolvedBase ? null : base, resolvedHead ? null : head]
+      .filter((ref): ref is string => Boolean(ref))
+      .join(", ");
     core.warning(
-      `Head ("${head}") or Base ("${base}") could not be resolved. Attempting to pull latest changes and retry...`,
+      `Head ("${head}") or Base ("${base}") could not be resolved. Attempting shallow fetch of missing refs (${missing}) from origin...`,
     );
-    await gitPull(directory);
+    await gitFetchMissingRefs(base, head, directory, token);
     resolvedHead = resolvedHead || (await resolveCommitish(head, directory));
     resolvedBase = resolvedBase || (await resolveCommitish(base, directory));
   }
@@ -52,6 +56,49 @@ export async function getChangedFilesGit(
 }
 
 /**
+ * Fetches only the missing refs from origin with a shallow depth. If a token
+ * is provided it is supplied via a transient `http.extraheader` git config so
+ * the fetch can authenticate against private repositories.
+ */
+async function gitFetchMissingRefs(
+  base: string,
+  head: string,
+  directory: string,
+  token?: string,
+): Promise<void> {
+  const refs: string[] = [];
+  if (!(await resolveCommitish(base, directory))) refs.push(base);
+  if (!(await resolveCommitish(head, directory))) refs.push(head);
+
+  if (refs.length === 0) {
+    return;
+  }
+
+  core.info(`Fetching missing refs from origin: ${refs.join(", ")}`);
+
+  const args = ["fetch", "origin", "--depth=1", "--", ...refs];
+  const options: { cwd: string; env?: NodeJS.ProcessEnv } = { cwd: directory };
+
+  if (token) {
+    const auth = Buffer.from(`x-access-token:${token}`).toString("base64");
+    options.env = {
+      ...process.env,
+      GIT_CONFIG_COUNT: "1",
+      GIT_CONFIG_KEY_0: "http.extraheader",
+      GIT_CONFIG_VALUE_0: `AUTHORIZATION: basic ${auth}`,
+    };
+  }
+
+  try {
+    await execFileAsync("git", args, options);
+    core.info(`Successfully fetched missing refs from origin`);
+  } catch (err) {
+    core.error(`Failed to fetch missing refs from origin: ${err}`);
+    throw new Error(`Failed to fetch missing refs from origin: ${err}`);
+  }
+}
+
+/**
  * Resolves a git ref (branch, tag, or SHA) to a full commit SHA, or null if it cannot be resolved.
  */
 async function resolveCommitish(
@@ -69,16 +116,5 @@ async function resolveCommitish(
     return stdout.trim();
   } catch {
     return null;
-  }
-}
-
-async function gitPull(directory: string): Promise<void> {
-  core.info(`Attempting to pull latest changes in ${directory}...`);
-  try {
-    await execFileAsync("git", ["pull"], { cwd: directory });
-    core.info(`Successfully pulled latest changes in ${directory}`);
-  } catch (err) {
-    core.error(`Failed to pull latest changes in ${directory}: ${err}`);
-    throw new Error(`Failed to pull latest changes: ${err}`);
   }
 }

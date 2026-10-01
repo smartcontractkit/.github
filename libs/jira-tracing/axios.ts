@@ -14,8 +14,7 @@ interface AxiosErrorFormat<Data = any> {
 }
 
 interface AxiosErrorFormatError<Data = any>
-  extends Error,
-    AxiosErrorFormat<Data> {}
+  extends Error, AxiosErrorFormat<Data> {}
 
 export function formatAxiosError<Data = any>(
   origErr: AxiosError<Data>,

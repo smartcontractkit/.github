@@ -1,5 +1,46 @@
 # reusable-docker-build-publish
 
+## 1.9.0
+
+### Minor Changes
+
+- [#1678](https://github.com/smartcontractkit/.github/pull/1678)
+  [`afd6400`](https://github.com/smartcontractkit/.github/commit/afd640062372257876b9caa560b6890d402ab3b4)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: pin to
+  setup-github-token/v1, add gati-profile input to support v2 profiles+migration
+
+## 1.8.1
+
+### Patch Changes
+
+- [#1656](https://github.com/smartcontractkit/.github/pull/1656)
+  [`61692af`](https://github.com/smartcontractkit/.github/commit/61692afe544674ab0370ce7b06458697ee612f99)
+  Thanks [@HashWrangler](https://github.com/HashWrangler)! - Set
+  `fail-fast: false` on the `build-publish` arch matrix.
+
+  Each arch pushes its own per-arch tag before the manifest is assembled. With
+  fail-fast enabled, a transient failure in one arch cancels the other _after_
+  it has already pushed, leaving the image half-published: the surviving arch's
+  tag exists, the manifest does not, and every retry then fails the "tags
+  already exist in ECR" pre-check. That state cannot be recovered by re-running,
+  only by deleting the orphaned tag or bumping the version.
+
+  Letting both arches run to completion means a flake in one can be re-run on
+  its own and the manifest step can finish.
+
+## 1.8.0
+
+### Minor Changes
+
+- [#1653](https://github.com/smartcontractkit/.github/pull/1653)
+  [`f6a20ba`](https://github.com/smartcontractkit/.github/commit/f6a20bad9635eb555ba0608040f46e86990ce4ef)
+  Thanks [@kalverra](https://github.com/kalverra)! - Add `docker-cache-map`
+  input, passed through to build-push-docker's `cache-map`. Set it to restrict
+  buildkit-cache-dance to specific cache mounts (e.g.
+  `'{"cache-mount/go-build-cache": {"id": "go-build-cache", "target": "/var/cache-target"}}'`)
+  instead of auto-discovering all cache mounts in the Dockerfile. Omit to keep
+  auto-discovery.
+
 ## 1.7.0
 
 ### Minor Changes
