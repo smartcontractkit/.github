@@ -69,7 +69,7 @@ jobs:
 
       - name: Install Nix
         if: ${{ steps.bump.outcome == 'success' && contains(inputs.post-bump-command, 'nix') }}
-        uses: cachix/install-nix-action@02a151ada4993995686f9ed4f1be7cfbb229e56f # v31
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
