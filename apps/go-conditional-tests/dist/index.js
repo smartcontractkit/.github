@@ -46663,9 +46663,9 @@ var require_commonjs11 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/fast-xml-parser@5.11.1/node_modules/fast-xml-parser/lib/fxp.cjs
+// node_modules/.pnpm/fast-xml-parser@5.11.2/node_modules/fast-xml-parser/lib/fxp.cjs
 var require_fxp = __commonJS({
-  "node_modules/.pnpm/fast-xml-parser@5.11.1/node_modules/fast-xml-parser/lib/fxp.cjs"(exports2, module2) {
+  "node_modules/.pnpm/fast-xml-parser@5.11.2/node_modules/fast-xml-parser/lib/fxp.cjs"(exports2, module2) {
     "use strict";
     (() => {
       "use strict";
@@ -46917,8 +46917,8 @@ var require_fxp = __commonJS({
       const $2 = ":A-Za-z_\xC0-\xD6\xD8-\xF6\xF8-\u02FF\u0370-\u037D\u037F-\u0486\u0488-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD", P = ":A-Za-z_\xC0-\u02FF\u0370-\u037D\u037F-\u0486\u0488-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u{10000}-\u{EFFFF}", O = P + "\\-\\.\\d\xB7\u0300-\u036F\u0487\u203F-\u2040", I = (t2, e2, i3 = "") => {
         const n3 = `[${t2.replace(":", "")}][${e2.replace(":", "")}]*`;
         return { name: new RegExp(`^[${t2}][${e2}]*$`, i3), ncName: new RegExp(`^${n3}$`, i3), qName: new RegExp(`^${n3}(?::${n3})?$`, i3), nmToken: new RegExp(`^[${e2}]+$`, i3), nmTokens: new RegExp(`^[${e2}]+(?:\\s+[${e2}]+)*$`, i3) };
-      }, j = I($2, $2 + "\\-\\.\\d\xB7\u0300-\u036F\u203F-\u2040"), k = I(P, O, "u"), L = ":A-Za-z_", D = I(L, L + "\\-\\.\\d"), R = (t2, { xmlVersion: e2 = "1.0", asciiOnly: i3 = false } = {}) => (/* @__PURE__ */ ((t3 = "1.0", e3 = false) => e3 ? D : "1.1" === t3 ? k : j)(e2, i3)).qName.test(t2);
-      class M {
+      }, j = I($2, $2 + "\\-\\.\\d\xB7\u0300-\u036F\u203F-\u2040"), k = I(P, O, "u"), L = ":A-Za-z_", D = I(L, L + "\\-\\.\\d"), M = (t2, { xmlVersion: e2 = "1.0", asciiOnly: i3 = false } = {}) => (/* @__PURE__ */ ((t3 = "1.0", e3 = false) => e3 ? D : "1.1" === t3 ? k : j)(e2, i3)).qName.test(t2);
+      class R {
         constructor(t2, e2) {
           this.suppressValidationErr = !t2, this.options = t2, this.xmlVersion = e2 || 1;
         }
@@ -46967,7 +46967,7 @@ var require_fxp = __commonJS({
           const i3 = e2 = V(t2, e2);
           for (; e2 < t2.length && !/\s/.test(t2[e2]) && '"' !== t2[e2] && "'" !== t2[e2]; ) e2++;
           let n3 = t2.substring(i3, e2);
-          if (F(n3, { xmlVersion: this.xmlVersion }), e2 = V(t2, e2), !this.suppressValidationErr) {
+          if (U(n3, { xmlVersion: this.xmlVersion }), e2 = V(t2, e2), !this.suppressValidationErr) {
             if ("SYSTEM" === t2.substring(e2, e2 + 6).toUpperCase()) throw new Error("External entities are not supported");
             if ("%" === t2[e2]) throw new Error("Parameter entities are not supported");
           }
@@ -46979,7 +46979,7 @@ var require_fxp = __commonJS({
           const i3 = e2 = V(t2, e2);
           for (; e2 < t2.length && !/\s/.test(t2[e2]); ) e2++;
           let n3 = t2.substring(i3, e2);
-          !this.suppressValidationErr && F(n3, { xmlVersion: this.xmlVersion }), e2 = V(t2, e2);
+          !this.suppressValidationErr && U(n3, { xmlVersion: this.xmlVersion }), e2 = V(t2, e2);
           const r2 = t2.substring(e2, e2 + 6).toUpperCase();
           if (!this.suppressValidationErr && "SYSTEM" !== r2 && "PUBLIC" !== r2) throw new Error(`Expected SYSTEM or PUBLIC, found "${r2}"`);
           e2 += r2.length, e2 = V(t2, e2);
@@ -47001,7 +47001,7 @@ var require_fxp = __commonJS({
           const i3 = e2 = V(t2, e2);
           for (; e2 < t2.length && !/\s/.test(t2[e2]); ) e2++;
           let n3 = t2.substring(i3, e2);
-          if (!this.suppressValidationErr && !R(n3, { xmlVersion: this.xmlVersion })) throw new Error(`Invalid element name: "${n3}"`);
+          if (!this.suppressValidationErr && !M(n3, { xmlVersion: this.xmlVersion })) throw new Error(`Invalid element name: "${n3}"`);
           let r2 = "";
           if ("E" === t2[e2 = V(t2, e2)] && q(t2, "MPTY", e2)) e2 += 4;
           else if ("A" === t2[e2] && q(t2, "NY", e2)) e2 += 2;
@@ -47016,9 +47016,9 @@ var require_fxp = __commonJS({
           let i3 = e2 = V(t2, e2);
           for (; e2 < t2.length && !/\s/.test(t2[e2]); ) e2++;
           let n3 = t2.substring(i3, e2);
-          for (F(n3, { xmlVersion: this.xmlVersion }), i3 = e2 = V(t2, e2); e2 < t2.length && !/\s/.test(t2[e2]); ) e2++;
+          for (U(n3, { xmlVersion: this.xmlVersion }), i3 = e2 = V(t2, e2); e2 < t2.length && !/\s/.test(t2[e2]); ) e2++;
           let r2 = t2.substring(i3, e2);
-          if (!F(r2, { xmlVersion: this.xmlVersion })) throw new Error(`Invalid attribute name: "${r2}"`);
+          if (!U(r2, { xmlVersion: this.xmlVersion })) throw new Error(`Invalid attribute name: "${r2}"`);
           e2 = V(t2, e2);
           let s2 = "";
           if ("NOTATION" === t2.substring(e2, e2 + 8).toUpperCase()) {
@@ -47029,7 +47029,7 @@ var require_fxp = __commonJS({
               const n4 = e2;
               for (; e2 < t2.length && "|" !== t2[e2] && ")" !== t2[e2]; ) e2++;
               let r3 = t2.substring(n4, e2);
-              if (r3 = r3.trim(), !F(r3, { xmlVersion: this.xmlVersion })) throw new Error(`Invalid notation name: "${r3}"`);
+              if (r3 = r3.trim(), !U(r3, { xmlVersion: this.xmlVersion })) throw new Error(`Invalid notation name: "${r3}"`);
               i4.push(r3), "|" === t2[e2] && (e2++, e2 = V(t2, e2));
             }
             if (")" !== t2[e2]) throw new Error("Unterminated list of notations");
@@ -47054,14 +47054,14 @@ var require_fxp = __commonJS({
         for (let n3 = 0; n3 < e2.length; n3++) if (e2[n3] !== t2[i3 + n3 + 1]) return false;
         return true;
       }
-      function F(t2, e2) {
-        if (R(t2, { xmlVersion: e2 })) return t2;
+      function U(t2, e2) {
+        if (M(t2, { xmlVersion: e2 })) return t2;
         throw new Error(`Invalid entity name ${t2}`);
       }
-      const U = [48, 1632, 1776, 2406, 2534, 2662, 2790, 2918, 3046, 3174, 3302, 3430, 3558, 3664, 3792, 3872, 4160, 4240, 6112, 6160, 6470, 6608, 6784, 6800, 6992, 7088, 7232, 7248, 65296, 120782, 120792, 120802, 120812, 120822, 66720, 68912, 69734, 69872, 69942, 70096, 70384, 70736, 70864, 71248, 71360, 71472, 71904, 72016, 72688, 72784, 73040, 73120, 73552, 92768, 92864, 93008, 123200, 123632, 124144, 125264, 130032], B = /* @__PURE__ */ new Map(), G = 1632, X = new Uint8Array(63904).fill(255);
-      for (const t2 of U) for (let e2 = 0; e2 < 10; e2++) {
+      const B = [48, 1632, 1776, 2406, 2534, 2662, 2790, 2918, 3046, 3174, 3302, 3430, 3558, 3664, 3792, 3872, 4160, 4240, 6112, 6160, 6470, 6608, 6784, 6800, 6992, 7088, 7232, 7248, 65296, 120782, 120792, 120802, 120812, 120822, 66720, 68912, 69734, 69872, 69942, 70096, 70384, 70736, 70864, 71248, 71360, 71472, 71904, 72016, 72688, 72784, 73040, 73120, 73552, 92768, 92864, 93008, 123200, 123632, 124144, 125264, 130032], F = /* @__PURE__ */ new Map(), G = 1632, X = new Uint8Array(63904).fill(255);
+      for (const t2 of B) for (let e2 = 0; e2 < 10; e2++) {
         const i3 = t2 + e2;
-        i3 <= 65535 ? X[i3 - G] = e2 : B.set(i3, e2);
+        i3 <= 65535 ? X[i3 - G] = e2 : F.set(i3, e2);
       }
       const W = /* @__PURE__ */ new Set([8722, 65293, 65123]), z = /^[-+]?0x[a-fA-F0-9]+$/, Y = /^0b[01]+$/, H = /^0o[0-7]+$/, Q = /^([\-\+])?(0*)([0-9]*(\.[0-9]*)?)$/, J = { hex: true, binary: false, octal: false, leadingZeros: true, decimalPoint: ".", eNotation: true, infinity: "original", unicode: false };
       function Z(t2, e2 = {}) {
@@ -47088,7 +47088,7 @@ var require_fxp = __commonJS({
                   const e4 = t3.charCodeAt(n4 + 1);
                   if (e4 >= 56320 && e4 <= 57343) {
                     const t4 = 65536 + (r2 - 55296 << 10) + (e4 - 56320);
-                    if (B.has(t4)) {
+                    if (F.has(t4)) {
                       i4 = n4;
                       break;
                     }
@@ -47117,7 +47117,7 @@ var require_fxp = __commonJS({
               if (r2 + 1 < e3) {
                 const e4 = t3.charCodeAt(r2 + 1);
                 if (e4 >= 56320 && e4 <= 57343) {
-                  const t4 = 65536 + (i5 - 55296 << 10) + (e4 - 56320), s3 = B.get(t4);
+                  const t4 = 65536 + (i5 - 55296 << 10) + (e4 - 56320), s3 = F.get(t4);
                   if (void 0 !== s3) {
                     n3.push(String.fromCharCode(s3 + 48)), r2++;
                     continue;
@@ -47705,7 +47705,7 @@ var require_fxp = __commonJS({
       class It {
         constructor(t2, e2) {
           var i3;
-          this.options = t2, this.currentNode = null, this.tagsNodeStack = [], this.parseXml = Rt, this.parseTextData = jt, this.resolveNameSpace = kt, this.buildAttributesMap = Dt, this.isItStopNode = Ft, this.replaceEntitiesValue = Vt, this.readStopNodeData = Xt, this.saveTextToParentTag = qt, this.addChild = Mt, this.ignoreAttributesFn = "function" == typeof (i3 = this.options.ignoreAttributes) ? i3 : Array.isArray(i3) ? (t3) => {
+          this.options = t2, this.currentNode = null, this.tagsNodeStack = [], this.parseXml = Mt, this.parseTextData = jt, this.resolveNameSpace = kt, this.buildAttributesMap = Dt, this.isItStopNode = Ut, this.replaceEntitiesValue = Vt, this.readStopNodeData = Xt, this.saveTextToParentTag = qt, this.addChild = Rt, this.ignoreAttributesFn = "function" == typeof (i3 = this.options.ignoreAttributes) ? i3 : Array.isArray(i3) ? (t3) => {
             for (const e3 of i3) {
               if ("string" == typeof e3 && t3 === e3) return true;
               if (e3 instanceof RegExp && e3.test(t3)) return true;
@@ -47784,16 +47784,16 @@ var require_fxp = __commonJS({
           return o3;
         }
       }
-      const Rt = function(t2) {
+      const Mt = function(t2) {
         t2 = t2.replace(/\r\n?/g, "\n");
         const e2 = new C("!xml");
         let i3 = e2, n3 = "";
         this.matcher.reset(), this.entityDecoder.reset(), this.entityExpansionCount = 0, this.currentExpandedLength = 0, this.doctypefound = false;
-        const r2 = this.options, s2 = new M(r2.processEntities), o3 = t2.length;
+        const r2 = this.options, s2 = new R(r2.processEntities), o3 = t2.length;
         for (let a3 = 0; a3 < o3; a3++) if ("<" === t2[a3]) {
           const l2 = t2.charCodeAt(a3 + 1);
           if (47 === l2) {
-            const s3 = Ut(t2, ">", a3, "Closing Tag is not closed.");
+            const s3 = Bt(t2, ">", a3, "Closing Tag is not closed.");
             let o4 = t2.substring(a3 + 2, s3).trim();
             if (r2.removeNSPrefix) {
               const t3 = o4.indexOf(":");
@@ -47819,7 +47819,7 @@ var require_fxp = __commonJS({
             }
             a3 = e3.closeIndex + 1;
           } else if (33 === l2 && 45 === t2.charCodeAt(a3 + 2) && 45 === t2.charCodeAt(a3 + 3)) {
-            const e3 = Ut(t2, "-->", a3 + 4, "Comment is not closed.");
+            const e3 = Bt(t2, "-->", a3 + 4, "Comment is not closed.");
             if (r2.commentPropName) {
               const s3 = t2.substring(a3 + 4, e3 - 2);
               n3 = this.saveTextToParentTag(n3, i3, this.readonlyMatcher), i3.add(r2.commentPropName, [{ [r2.textNodeName]: s3 }]);
@@ -47831,7 +47831,7 @@ var require_fxp = __commonJS({
             const e3 = s2.readDocType(t2, a3);
             this.entityDecoder.addInputEntities(e3.entities), a3 = e3.i;
           } else if (33 === l2 && 91 === t2.charCodeAt(a3 + 2)) {
-            const e3 = Ut(t2, "]]>", a3, "CDATA is not closed.") - 2, s3 = t2.substring(a3 + 9, e3);
+            const e3 = Bt(t2, "]]>", a3, "CDATA is not closed.") - 2, s3 = t2.substring(a3 + 9, e3);
             n3 = this.saveTextToParentTag(n3, i3, this.readonlyMatcher);
             let o4 = this.parseTextData(s3, i3.tagname, this.readonlyMatcher, true, false, true, true);
             null == o4 && (o4 = ""), r2.cdataPropName ? i3.add(r2.cdataPropName, [{ [r2.textNodeName]: s3 }]) : i3.add(r2.textNodeName, o4), a3 = e3 + 2;
@@ -47887,7 +47887,7 @@ var require_fxp = __commonJS({
         } else n3 += t2[a3];
         return e2.child;
       };
-      function Mt(t2, e2, i3, n3) {
+      function Rt(t2, e2, i3, n3) {
         this.options.captureMetaData || (n3 = void 0);
         const r2 = this.options.jPath ? i3.toString() : i3, s2 = this.options.updateTag(e2.tagname, r2, e2[":@"]);
         false === s2 || ("string" == typeof s2 ? (e2.tagname = s2, t2.addChild(e2, n3)) : t2.addChild(e2, n3));
@@ -47908,15 +47908,15 @@ var require_fxp = __commonJS({
       function qt(t2, e2, i3, n3) {
         return t2 && (void 0 === n3 && (n3 = 0 === e2.child.length), void 0 !== (t2 = this.parseTextData(t2, e2.tagname, i3, false, !!e2[":@"] && 0 !== Object.keys(e2[":@"]).length, n3)) && "" !== t2 && e2.add(this.options.textNodeName, t2), t2 = ""), t2;
       }
-      function Ft() {
+      function Ut() {
         return 0 !== this.stopNodeExpressionsSet.size && this.matcher.matchesAny(this.stopNodeExpressionsSet);
       }
-      function Ut(t2, e2, i3, n3) {
+      function Bt(t2, e2, i3, n3) {
         const r2 = t2.indexOf(e2, i3);
         if (-1 === r2) throw new Error(n3);
         return r2 + e2.length - 1;
       }
-      function Bt(t2, e2, i3, n3) {
+      function Ft(t2, e2, i3, n3) {
         const r2 = t2.indexOf(e2, i3);
         if (-1 === r2) throw new Error(n3);
         return r2;
@@ -47955,12 +47955,12 @@ var require_fxp = __commonJS({
         for (; i3 < s2; i3++) if ("<" === t2[i3]) {
           const s3 = t2.charCodeAt(i3 + 1);
           if (47 === s3) {
-            const s4 = Bt(t2, ">", i3, `${e2} is not closed`);
+            const s4 = Ft(t2, ">", i3, `${e2} is not closed`);
             if (t2.substring(i3 + 2, s4).trim() === e2 && (r2--, 0 === r2)) return { tagContent: t2.substring(n3, i3), i: s4 };
             i3 = s4;
-          } else if (63 === s3) i3 = Ut(t2, "?>", i3 + 1, "StopNode is not closed.");
-          else if (33 === s3 && 45 === t2.charCodeAt(i3 + 2) && 45 === t2.charCodeAt(i3 + 3)) i3 = Ut(t2, "-->", i3 + 3, "StopNode is not closed.");
-          else if (33 === s3 && 91 === t2.charCodeAt(i3 + 2)) i3 = Ut(t2, "]]>", i3, "StopNode is not closed.") - 2;
+          } else if (63 === s3) i3 = Bt(t2, "?>", i3 + 1, "StopNode is not closed.");
+          else if (33 === s3 && 45 === t2.charCodeAt(i3 + 2) && 45 === t2.charCodeAt(i3 + 3)) i3 = Bt(t2, "-->", i3 + 3, "StopNode is not closed.");
+          else if (33 === s3 && 91 === t2.charCodeAt(i3 + 2)) i3 = Bt(t2, "]]>", i3, "StopNode is not closed.") - 2;
           else {
             const n4 = Gt(t2, i3, false);
             n4 && ((n4 && n4.tagName) === e2 && "/" !== n4.tagExp[n4.tagExp.length - 1] && r2++, i3 = n4.closeIndex);
@@ -48047,7 +48047,7 @@ var require_fxp = __commonJS({
           this.externalEntities = {}, this.options = T(t2);
         }
         parse(t2, e2) {
-          if ("string" != typeof t2 && t2.toString) t2 = t2.toString();
+          if ("string" != typeof t2 && t2.toString) t2 = t2 instanceof Uint8Array && ("undefined" == typeof Buffer || !Buffer.isBuffer(t2)) ? new TextDecoder("utf-8", { ignoreBOM: true }).decode(t2) : t2.toString();
           else if ("string" != typeof t2) throw new Error("XML data is accepted in String or Bytes[] form.");
           if (e2) {
             true === e2 && (e2 = {});
@@ -123059,9 +123059,9 @@ var require_streamx = __commonJS({
   }
 });
 
-// node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/headers.js
+// node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/headers.js
 var require_headers2 = __commonJS({
-  "node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/headers.js"(exports2) {
+  "node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/headers.js"(exports2) {
     "use strict";
     var b4a = require_b4a();
     var ZEROS = "0000000000000000000";
@@ -123322,9 +123322,9 @@ var require_headers2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/extract.js
+// node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/extract.js
 var require_extract = __commonJS({
-  "node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/extract.js"(exports2, module2) {
+  "node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/extract.js"(exports2, module2) {
     "use strict";
     var { Writable: Writable4, Readable: Readable5, getStreamError } = require_streamx();
     var FIFO = require_fast_fifo();
@@ -123667,9 +123667,9 @@ var require_extract = __commonJS({
   }
 });
 
-// node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/constants.js
+// node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/constants.js
 var require_constants13 = __commonJS({
-  "node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/constants.js"(exports2, module2) {
+  "node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/constants.js"(exports2, module2) {
     "use strict";
     var constants4 = {
       // just for envs without fs
@@ -123688,9 +123688,9 @@ var require_constants13 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/pack.js
+// node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/pack.js
 var require_pack = __commonJS({
-  "node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/pack.js"(exports2, module2) {
+  "node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/pack.js"(exports2, module2) {
     "use strict";
     var { Readable: Readable5, Writable: Writable4, getStreamError } = require_streamx();
     var b4a = require_b4a();
@@ -123923,9 +123923,9 @@ var require_pack = __commonJS({
   }
 });
 
-// node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/index.js
+// node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/index.js
 var require_tar_stream = __commonJS({
-  "node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/index.js"(exports2) {
+  "node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/index.js"(exports2) {
     "use strict";
     exports2.extract = require_extract();
     exports2.pack = require_pack();
@@ -152753,9 +152753,9 @@ var require_semver = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/constants.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/constants.js
 var require_constants19 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/constants.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/constants.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CacheReadDeniedMessagePrefix = exports2.CacheFileSizeLimit = exports2.ManifestFilename = exports2.TarFilename = exports2.SystemTarPathOnWindows = exports2.GnuTarPathOnWindows = exports2.SocketTimeout = exports2.DefaultRetryDelay = exports2.DefaultRetryAttempts = exports2.ArchiveToolType = exports2.CompressionMethod = exports2.CacheFilename = void 0;
@@ -152787,9 +152787,9 @@ var require_constants19 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/cacheUtils.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/cacheUtils.js
 var require_cacheUtils = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/cacheUtils.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/cacheUtils.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -153033,9 +153033,9 @@ var require_cacheUtils = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/shared/errors.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/shared/errors.js
 var require_errors6 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/shared/errors.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/shared/errors.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RateLimitError = exports2.UsageError = exports2.NetworkError = exports2.GHESNotSupportedError = exports2.CacheNotFoundError = exports2.InvalidResponseError = exports2.FilesNotFoundError = void 0;
@@ -153117,9 +153117,9 @@ More info on storage limits: https://docs.github.com/en/billing/managing-billing
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/uploadUtils.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/uploadUtils.js
 var require_uploadUtils = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/uploadUtils.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/uploadUtils.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -153304,9 +153304,9 @@ var require_uploadUtils = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/requestUtils.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/requestUtils.js
 var require_requestUtils = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/requestUtils.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/requestUtils.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -153625,9 +153625,9 @@ var require_dist5 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/downloadUtils.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/downloadUtils.js
 var require_downloadUtils = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/downloadUtils.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/downloadUtils.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -153995,9 +153995,9 @@ var require_downloadUtils = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/options.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/options.js
 var require_options = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/options.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/options.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -154108,9 +154108,9 @@ var require_options = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/config.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/config.js
 var require_config2 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/config.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/config.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.isGhes = isGhes;
@@ -154160,12 +154160,12 @@ var require_config2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/package.json
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/package.json
 var require_package2 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/package.json"(exports2, module2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/package.json"(exports2, module2) {
     module2.exports = {
       name: "@actions/cache",
-      version: "5.2.0",
+      version: "5.3.0",
       preview: true,
       description: "Actions cache lib",
       keywords: [
@@ -154202,22 +154202,22 @@ var require_package2 = __commonJS({
         url: "https://github.com/actions/toolkit/issues"
       },
       dependencies: {
-        "@actions/core": "^2.0.0",
+        "@actions/core": "^2.0.3",
         "@actions/exec": "^2.0.0",
         "@actions/glob": "^0.5.1",
-        "@protobuf-ts/runtime-rpc": "^2.11.1",
         "@actions/http-client": "^3.0.2",
         "@actions/io": "^2.0.0",
         "@azure/abort-controller": "^1.1.0",
-        "@azure/core-rest-pipeline": "^1.22.0",
-        "@azure/storage-blob": "^12.29.1",
+        "@azure/core-rest-pipeline": "^1.25.0",
+        "@azure/storage-blob": "^12.34.0",
+        "@protobuf-ts/runtime-rpc": "^2.11.1",
         semver: "^6.3.1"
       },
       devDependencies: {
-        "@types/node": "^24.1.0",
-        "@types/semver": "^6.0.0",
-        "@protobuf-ts/plugin": "^2.9.4",
-        typescript: "^5.2.2"
+        "@protobuf-ts/plugin": "^2.11.1",
+        "@types/node": "^24.13.6",
+        "@types/semver": "^6.2.7",
+        typescript: "^5.9.3"
       },
       overrides: {
         "uri-js": "npm:uri-js-replace@^1.0.1",
@@ -154227,9 +154227,9 @@ var require_package2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/shared/user-agent.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/shared/user-agent.js
 var require_user_agent2 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/shared/user-agent.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/shared/user-agent.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getUserAgentString = getUserAgentString;
@@ -154240,9 +154240,9 @@ var require_user_agent2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/cacheHttpClient.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/cacheHttpClient.js
 var require_cacheHttpClient = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/cacheHttpClient.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/cacheHttpClient.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -154521,9 +154521,9 @@ Other caches with similar key:`);
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/generated/results/entities/v1/cachescope.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/generated/results/entities/v1/cachescope.js
 var require_cachescope = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/generated/results/entities/v1/cachescope.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/generated/results/entities/v1/cachescope.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CacheScope = void 0;
@@ -154597,9 +154597,9 @@ var require_cachescope = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/generated/results/entities/v1/cachemetadata.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/generated/results/entities/v1/cachemetadata.js
 var require_cachemetadata = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/generated/results/entities/v1/cachemetadata.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/generated/results/entities/v1/cachemetadata.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CacheMetadata = void 0;
@@ -154668,9 +154668,9 @@ var require_cachemetadata = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/generated/results/api/v1/cache.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/generated/results/api/v1/cache.js
 var require_cache4 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/generated/results/api/v1/cache.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/generated/results/api/v1/cache.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CacheService = exports2.GetCacheEntryDownloadURLResponse = exports2.GetCacheEntryDownloadURLRequest = exports2.FinalizeCacheEntryUploadResponse = exports2.FinalizeCacheEntryUploadRequest = exports2.CreateCacheEntryResponse = exports2.CreateCacheEntryRequest = void 0;
@@ -155148,9 +155148,9 @@ var require_cache4 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/generated/results/api/v1/cache.twirp-client.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/generated/results/api/v1/cache.twirp-client.js
 var require_cache_twirp_client = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/generated/results/api/v1/cache.twirp-client.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/generated/results/api/v1/cache.twirp-client.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CacheServiceClientProtobuf = exports2.CacheServiceClientJSON = void 0;
@@ -155221,9 +155221,9 @@ var require_cache_twirp_client = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/shared/util.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/shared/util.js
 var require_util22 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/shared/util.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/shared/util.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.maskSigUrl = maskSigUrl;
@@ -155258,9 +155258,9 @@ var require_util22 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/shared/cacheTwirpClient.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/shared/cacheTwirpClient.js
 var require_cacheTwirpClient = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/shared/cacheTwirpClient.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/shared/cacheTwirpClient.js"(exports2) {
     "use strict";
     var __awaiter2 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
       function adopt(value) {
@@ -155446,9 +155446,9 @@ var require_cacheTwirpClient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/tar.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/tar.js
 var require_tar2 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/internal/tar.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/tar.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -155518,6 +155518,7 @@ var require_tar2 = __commonJS({
     exports2.listTar = listTar;
     exports2.extractTar = extractTar;
     exports2.createTar = createTar;
+    var core9 = __importStar2(require_core());
     var exec_1 = require_exec();
     var io = __importStar2(require_io());
     var fs_1 = require("fs");
@@ -155570,7 +155571,7 @@ var require_tar2 = __commonJS({
             args.push("--posix", "-cf", BSD_TAR_ZSTD ? tarFile : cacheFileName.replace(new RegExp(`\\${path10.sep}`, "g"), "/"), "--exclude", BSD_TAR_ZSTD ? tarFile : cacheFileName.replace(new RegExp(`\\${path10.sep}`, "g"), "/"), "-P", "-C", workingDirectory.replace(new RegExp(`\\${path10.sep}`, "g"), "/"), "--files-from", constants_1.ManifestFilename);
             break;
           case "extract":
-            args.push("-xf", BSD_TAR_ZSTD ? tarFile : archivePath.replace(new RegExp(`\\${path10.sep}`, "g"), "/"), "-P", "-C", workingDirectory.replace(new RegExp(`\\${path10.sep}`, "g"), "/"));
+            args.push("-xf", BSD_TAR_ZSTD ? tarFile : archivePath.replace(new RegExp(`\\${path10.sep}`, "g"), "/"), "-P", "-C", BSD_TAR_ZSTD ? quoteAbsolutePath(workingDirectory) : workingDirectory.replace(new RegExp(`\\${path10.sep}`, "g"), "/"));
             break;
           case "list":
             args.push("-tf", BSD_TAR_ZSTD ? tarFile : archivePath.replace(new RegExp(`\\${path10.sep}`, "g"), "/"), "-P");
@@ -155601,15 +155602,18 @@ var require_tar2 = __commonJS({
         } else {
           args = [[...tarArgs].join(" "), [...compressionArgs].join(" ")];
         }
-        if (BSD_TAR_ZSTD) {
-          return args;
-        }
-        return [args.join(" ")];
+        return {
+          commands: BSD_TAR_ZSTD ? args : [args.join(" ")],
+          requiresTempDirectory: BSD_TAR_ZSTD && type !== "create"
+        };
       });
     }
     function getWorkingDirectory() {
       var _a5;
       return (_a5 = process.env["GITHUB_WORKSPACE"]) !== null && _a5 !== void 0 ? _a5 : process.cwd();
+    }
+    function quoteAbsolutePath(filePath) {
+      return `"${path10.resolve(filePath).replace(new RegExp(`\\${path10.sep}`, "g"), "/")}"`;
     }
     function getDecompressionProgram(tarPath, compressionMethod, archivePath) {
       return __awaiter2(this, void 0, void 0, function* () {
@@ -155619,17 +155623,13 @@ var require_tar2 = __commonJS({
             return BSD_TAR_ZSTD ? [
               "zstd -d --long=30 --force -o",
               constants_1.TarFilename,
-              archivePath.replace(new RegExp(`\\${path10.sep}`, "g"), "/")
+              quoteAbsolutePath(archivePath)
             ] : [
               "--use-compress-program",
               IS_WINDOWS ? '"zstd -d --long=30"' : "unzstd --long=30"
             ];
           case constants_1.CompressionMethod.ZstdWithoutLong:
-            return BSD_TAR_ZSTD ? [
-              "zstd -d --force -o",
-              constants_1.TarFilename,
-              archivePath.replace(new RegExp(`\\${path10.sep}`, "g"), "/")
-            ] : ["--use-compress-program", IS_WINDOWS ? '"zstd -d"' : "unzstd"];
+            return BSD_TAR_ZSTD ? ["zstd -d --force -o", constants_1.TarFilename, quoteAbsolutePath(archivePath)] : ["--use-compress-program", IS_WINDOWS ? '"zstd -d"' : "unzstd"];
           default:
             return ["-z"];
         }
@@ -155674,33 +155674,48 @@ var require_tar2 = __commonJS({
         }
       });
     }
+    function execReadCommands(archivePath, compressionMethod, type) {
+      return __awaiter2(this, void 0, void 0, function* () {
+        const { commands, requiresTempDirectory } = yield getCommands(compressionMethod, type, archivePath);
+        const tempDirectory = requiresTempDirectory ? yield utils.createTempDirectory() : void 0;
+        try {
+          yield execCommands(commands, tempDirectory);
+        } finally {
+          if (tempDirectory) {
+            try {
+              yield io.rmRF(tempDirectory);
+            } catch (error5) {
+              core9.debug(`Failed to delete temporary tar directory: ${error5}`);
+            }
+          }
+        }
+      });
+    }
     function listTar(archivePath, compressionMethod) {
       return __awaiter2(this, void 0, void 0, function* () {
-        const commands = yield getCommands(compressionMethod, "list", archivePath);
-        yield execCommands(commands);
+        yield execReadCommands(archivePath, compressionMethod, "list");
       });
     }
     function extractTar(archivePath, compressionMethod) {
       return __awaiter2(this, void 0, void 0, function* () {
         const workingDirectory = getWorkingDirectory();
         yield io.mkdirP(workingDirectory);
-        const commands = yield getCommands(compressionMethod, "extract", archivePath);
-        yield execCommands(commands);
+        yield execReadCommands(archivePath, compressionMethod, "extract");
       });
     }
     function createTar(archiveFolder, sourceDirectories, compressionMethod) {
       return __awaiter2(this, void 0, void 0, function* () {
         (0, fs_1.writeFileSync)(path10.join(archiveFolder, constants_1.ManifestFilename), sourceDirectories.join("\n"));
-        const commands = yield getCommands(compressionMethod, "create");
+        const { commands } = yield getCommands(compressionMethod, "create");
         yield execCommands(commands, archiveFolder);
       });
     }
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/cache.js
+// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/cache.js
 var require_cache5 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.2.0/node_modules/@actions/cache/lib/cache.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/cache.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;

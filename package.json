@@ -60,6 +60,7 @@
   "repository": "https://github.com/smartcontractkit/.github",
   "pnpm": {
     "overrides": {
+      "axios": "^1.20.0",
       "form-data": "4.0.4",
       "minimatch": "^10.2.4",
       "immutable": "^4.3.8"
