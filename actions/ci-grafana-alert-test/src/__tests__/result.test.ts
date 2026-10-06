@@ -17,7 +17,8 @@ describe("parseResult", () => {
       terminated_early: {
         kind: "violation",
         alert: "CCIP O11y slow queries",
-        rule_uid: "r1",
+        rule_key: 'ds:["vm","g","CCIP O11y slow queries"]',
+        rule_uid: "",
         outcome: "unstable",
         at: "2026-09-29T10:00:00Z",
       },
@@ -27,6 +28,9 @@ describe("parseResult", () => {
 
     expect(result.terminated_early?.kind).toBe("violation");
     expect(result.terminated_early?.alert).toBe("CCIP O11y slow queries");
+    expect(result.terminated_early?.rule_key).toBe(
+      'ds:["vm","g","CCIP O11y slow queries"]',
+    );
     expect(result.terminated_early?.at).toBe("2026-09-29T10:00:00Z");
   });
 

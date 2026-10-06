@@ -84,7 +84,9 @@ the PR is not left with a stale or missing verdict.
 In `record` and `live` you either enumerate alerts or select them by labels:
 
 - `alerts`: one alert name per line; `folder` scopes an unqualified name to a
-  folder.
+  folder. Datasource-managed rules are named `Group/Title`,
+  `DatasourceName/Group/Title`, or `key:<key>` (copyable from the CLI's `list`);
+  `folder` stays Grafana-managed-only.
 - `include-labels` / `exclude-labels`: comma-separated exact-match `key=value`
   pairs, e.g. `include-labels: team=bcm,env=stage`. A rule must carry **every**
   inclusion to be watched and is dropped if it carries **any** exclusion; a
@@ -129,10 +131,16 @@ permissions:
 - The gate checks the **state and health** of an alert. It does **not** check
   whether a notification was ever delivered. **A silenced alert that fires still
   fails the gate.**
-- The gate needs Grafana 13.x.
+- The gate needs Grafana 13.x, and its token needs `datasources:read` plus
+  datasource query permission — the CLI discovers datasource-managed rules even
+  for a Grafana-only alert set.
 - **A fix that stops emitting a metric does not look like a recovery.** An
   instance that vanishes while bad stays a failure — a missing series is a
-  discontinuity, not evidence of health.
+  discontinuity, not evidence of health. The one exception is
+  **datasource-managed rules**: the Prometheus API returns only active
+  instances, so a departure from the active set is treated as a recovery (a
+  vanished series is indistinguishable from a resolution). Pause is also not
+  observable for these rules, so the paused-rule check is skipped with a note.
 - **A paused rule fails the gate by default** (`allow-paused: 'false'`). If
   someone else paused an alert you're watching, your release fails on it — the
   alternative is silently watching fewer alerts than you asked for.
@@ -191,11 +199,12 @@ exists to close. Make sure the surrounding job's timeout accounts for this.
 
 `check` and `live` write a Markdown table to the step summary — one row per
 alert, with a ✅/❌/⏸️ status (⏸️ marks a paused rule that was never watched and
-did not count against the run), the verdict, the raw Grafana state and health,
-how long it was broken, and any details. When the run exits early, the summary
-says so and points at `fail-fast`. With `print-instances-details: 'true'` the
-failing instances of every bad alert are listed underneath the table (identity
-comes from the JSON result the CLI writes for `--output json`).
+did not count against the run), the alert's source (`grafana` or `datasource`),
+the verdict, the raw Grafana state and health, how long it was broken, and any
+details. When the run exits early, the summary says so and points at
+`fail-fast`. With `print-instances-details: 'true'` the failing instances of
+every bad alert are listed underneath the table (identity comes from the JSON
+result the CLI writes for `--output json`).
 
 On pull requests the same body is upserted as a PR comment: the action finds the
 open PR whose head is this run's commit (via the commit→pull requests API),
@@ -213,8 +222,6 @@ logged/a warned and skipped — it never fails the gate.
   that cannot become a pass, which is a latency optimization, not a weaker gate.
   Set `fail-fast: 'false'` to always wait for the full window and its coverage
   proof (this pulls in the full-window cost described under [Timing](#timing)).
-  It requires the CLI release that ships the renamed `--fail-fast` flag — bump
-  the action's pinned version before using it.
 - On any non-zero `check` exit, the JSONL evidence log is uploaded as
   `grafana-alert-gate-log-${{ github.run_id }}-${{ github.run_attempt }}` for
   diagnosis after the runner is gone. `live` has no JSONL log, so it uploads the
@@ -248,8 +255,9 @@ ones worth calling out:
 | `exclude-alerts`                     | One alert name per line subtracted from the selected set. Works with `alerts` and label selection; refused for `check`                                                                               |
 | `until`                              | `record` only. RFC3339 hard stop for the recorder; by default it runs until `check`/`stop` reaps it                                                                                                  |
 | `from` / `to` / `observation_window` | `check` and `live`. `from` is when the deploy landed; `to` is when the work ended; `observation_window` replaces `to` when there is no distinct "done" event (measured from live's start). Max 5h30m |
+| `states`                             | Default `firing,recovering`. Comma-separated bad states to classify against: `firing`, `pending`, `recovering`, `nodata`, `error`                                                                    |
 | `fail-on-violation`                  | Default `true`. Stops exit 1 only, never exit 2                                                                                                                                                      |
-| `fail-fast`                          | Default `true`. `false` waits for the full window even after a certain failure; needs the CLI release that ships `--fail-fast`                                                                       |
+| `fail-fast`                          | Default `true`. `false` waits for the full window even after a certain failure                                                                                                                       |
 | `print-instances-details`            | Default `false`. Lists the failing instances of every bad alert under the summary table and in the PR comment                                                                                        |
 | `github-token`                       | Defaults to `${{ github.token }}`. Used only to upsert the PR comment; needs `pull-requests: write`                                                                                                  |
 
@@ -258,7 +266,8 @@ ones worth calling out:
 `record` sets `log-path` and `pidfile` for transparency; `check` finds them by
 convention, so you never need to wire them through yourself. `check` and `live`
 set `passed`, `violation-count`, `violations` (JSON), and `outcomes` (JSON, one
-`{alert, outcome}` entry per resolved rule).
+`{alert, outcome, source}` entry per resolved rule, where `source` is `grafana`
+or `datasource`).
 
 ## Runner requirements
 

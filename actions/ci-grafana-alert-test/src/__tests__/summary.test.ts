@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { GrafanaAlertCheckResult } from "../result";
+import { parseResult } from "../result";
 import {
   buildInstancesSection,
   buildSummaryBody,
@@ -13,6 +14,7 @@ const result: GrafanaAlertCheckResult = {
     {
       Alert: "My Alert",
       RuleUID: "rule-1",
+      rule_key: "rule-1",
       Outcome: "new_failure",
       State: "firing",
       Health: "bad",
@@ -29,6 +31,15 @@ const result: GrafanaAlertCheckResult = {
       InstanceLabels: { instance: "10.0.0.9:9090" },
     },
     {
+      Alert: "DS Alert",
+      RuleUID: "",
+      rule_key: 'ds:["vm","g","DS Alert"]',
+      Outcome: "new_failure",
+      State: "firing",
+      Health: "err",
+      LastError: "prometheus error",
+    },
+    {
       Outcome: "not_counted",
       Note: "min-observed shortfall with no instance behind it",
     },
@@ -37,6 +48,8 @@ const result: GrafanaAlertCheckResult = {
     {
       Alert: "My Alert",
       RuleUID: "rule-1",
+      rule_key: "rule-1",
+      source_kind: "grafana",
       Outcome: "new_failure",
       BadFor: 1_500_000_000,
       Note: "verdict note",
@@ -44,16 +57,32 @@ const result: GrafanaAlertCheckResult = {
     {
       Alert: "Other | Alert",
       RuleUID: "rule-2",
+      source_kind: "grafana",
       Outcome: "healthy",
       BadFor: 0,
     },
     {
       Alert: "Unverified",
       RuleUID: "rule-3",
+      source_kind: "grafana",
       Outcome: "not_verified",
       BadFor: 0,
     },
-    { Alert: "Paused", RuleUID: "rule-5", Outcome: "paused", BadFor: 0 },
+    {
+      Alert: "DS Alert",
+      RuleUID: "",
+      rule_key: 'ds:["vm","g","DS Alert"]',
+      source_kind: "datasource",
+      Outcome: "new_failure",
+      BadFor: 2_000_000_000,
+    },
+    {
+      Alert: "Paused",
+      RuleUID: "rule-5",
+      source_kind: "grafana",
+      Outcome: "paused",
+      BadFor: 0,
+    },
   ],
 };
 
@@ -100,20 +129,119 @@ describe("buildSummaryRows", () => {
     const rows = buildSummaryRows(result);
 
     expect(rows).toContain(
-      "| ❌ | My Alert | new_failure | firing | bad | some error | 2s | verdict note |",
+      "| ❌ | My Alert | grafana | new_failure | firing | bad | some error | 2s | verdict note |",
     );
+  });
+
+  it("matches violations to datasource verdicts by rule_key, not the empty uid", () => {
+    const rows = buildSummaryRows({
+      Violations: [
+        {
+          Alert: "A",
+          RuleUID: "",
+          rule_key: "ds:a",
+          Outcome: "still_failing",
+          State: "firing",
+          Health: "err",
+        },
+        {
+          Alert: "B",
+          RuleUID: "",
+          rule_key: "ds:b",
+          Outcome: "new_failure",
+          State: "pending",
+          Health: "ok",
+        },
+      ],
+      Verdicts: [
+        {
+          Alert: "A",
+          RuleUID: "",
+          rule_key: "ds:a",
+          source_kind: "datasource",
+          Outcome: "still_failing",
+          BadFor: 0,
+        },
+        {
+          Alert: "B",
+          RuleUID: "",
+          rule_key: "ds:b",
+          source_kind: "datasource",
+          Outcome: "new_failure",
+          BadFor: 0,
+        },
+      ],
+    });
+
+    expect(rows).toContain(
+      "| ❌ | A | datasource | still_failing | firing | err | - | 0s | - |",
+    );
+    expect(rows).toContain(
+      "| ❌ | B | datasource | new_failure | pending | ok | - | 0s | - |",
+    );
+  });
+
+  it("matches datasource rules from the CLI's snake_case wire format", () => {
+    const parsed = parseResult(
+      JSON.stringify({
+        Violations: [
+          {
+            Alert: "DS Alert",
+            RuleUID: "",
+            rule_key: "ds:a",
+            Outcome: "new_failure",
+            State: "firing",
+            Health: "err",
+          },
+        ],
+        Verdicts: [
+          {
+            Alert: "DS Alert",
+            RuleUID: "",
+            rule_key: "ds:a",
+            source_kind: "datasource",
+            Outcome: "new_failure",
+            BadFor: 0,
+          },
+        ],
+      }),
+    );
+
+    expect(buildSummaryRows(parsed)).toContain(
+      "| ❌ | DS Alert | datasource | new_failure | firing | err | - | 0s | - |",
+    );
+  });
+
+  it("strips the CLI's rule title prefix from details", () => {
+    const rows = buildSummaryRows({
+      Violations: [],
+      Verdicts: [
+        {
+          Alert: "My Alert",
+          RuleUID: "r",
+          Outcome: "not_verified",
+          BadFor: 0,
+          Note: 'rule "My Alert": heartbeat gap 5m exceeds maxGap 1m',
+        },
+      ],
+    });
+
+    expect(rows).toContain("| heartbeat gap 5m exceeds maxGap 1m |");
+    expect(rows).not.toContain('rule "My Alert":');
   });
 
   it("marks passing, neutral, and unverified rules with the right status", () => {
     const rows = buildSummaryRows(result);
 
     expect(rows).toContain(
-      "| ✅ | Other \\| Alert | healthy | - | - | - | 0s | - |",
+      "| ✅ | Other \\| Alert | grafana | healthy | - | - | - | 0s | - |",
     );
     expect(rows).toContain(
-      "| ❌ | Unverified | not_verified | - | - | - | 0s | - |",
+      "| ❌ | Unverified | grafana | not_verified | - | - | - | 0s | - |",
     );
-    expect(rows).toContain("| ⏸️ | Paused | paused | - | - | - | 0s | - |");
+    expect(rows).toContain(
+      "| ⏸️ | Paused | grafana | paused | - | - | - | 0s | - |",
+    );
   });
 
   it("escapes pipes in cells", () => {
@@ -132,9 +260,9 @@ describe("buildSummaryRows", () => {
       Verdicts: [{ Alert: "A", RuleUID: "r1", Outcome: "healthy", BadFor: 0 }],
     });
 
-    expect(rows).toContain("| ✅ | A | healthy | - | - | - | 0s | - |");
+    expect(rows).toContain("| ✅ | A | - | healthy | - | - | - | 0s | - |");
     expect(rows).toContain(
-      "| ❌ | - | not_counted | - | - | - | - | min-observed 3 exceeds the 1 rule(s) counted as observed |",
+      "| ❌ | - | - | not_counted | - | - | - | - | min-observed 3 exceeds the 1 rule(s) counted as observed |",
     );
   });
 
@@ -165,10 +293,12 @@ describe("buildSummaryRows", () => {
       ],
     });
 
-    expect(rows).toContain("| ❌ | Sub | new_failure | - | - | - | 1s | - |");
-    expect(rows).toContain("| ✅ | None | healthy | - | - | - | 0s | - |");
     expect(rows).toContain(
-      "| ❌ | Partial | new_failure | - | - | - | 11s | - |",
+      "| ❌ | Sub | - | new_failure | - | - | - | 1s | - |",
+    );
+    expect(rows).toContain("| ✅ | None | - | healthy | - | - | - | 0s | - |");
+    expect(rows).toContain(
+      "| ❌ | Partial | - | new_failure | - | - | - | 11s | - |",
     );
   });
 
@@ -221,7 +351,7 @@ describe("buildSummaryBody", () => {
   it("prefixes the header, separator, and status column", () => {
     const body = buildSummaryBody(result);
     expect(body).toContain(
-      "| Status | Alert | Verdict | Grafana state | Grafana health | Last error | Broken for | Details |\n|---|---|---|---|---|---|---|---|",
+      "| Status | Alert | Source | Verdict | Grafana state | Grafana health | Last error | Broken for | Details |\n|---|---|---|---|---|---|---|---|---|",
     );
   });
 
@@ -317,6 +447,31 @@ describe("buildInstancesSection", () => {
   it("skips violations without instance labels", () => {
     const section = buildInstancesSection(result);
     expect(section).not.toContain("min-observed shortfall");
+  });
+
+  it("resolves a datasource violation's alert by rule_key when the uid is empty", () => {
+    const section = buildInstancesSection({
+      Verdicts: [
+        {
+          Alert: "DS Alert",
+          RuleUID: "",
+          rule_key: "ds:a",
+          source_kind: "datasource",
+          Outcome: "new_failure",
+          BadFor: 0,
+        },
+      ],
+      Violations: [
+        {
+          RuleUID: "",
+          rule_key: "ds:a",
+          Outcome: "new_failure",
+          InstanceLabels: { instance: "host:1" },
+        },
+      ],
+    });
+
+    expect(section).toContain("**DS Alert**");
   });
 
   it("neutralises backticks and newlines in labels and the alert heading", () => {
