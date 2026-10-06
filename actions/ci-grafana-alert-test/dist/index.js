@@ -23501,9 +23501,9 @@ var require_ms = __commonJS({
   }
 });
 
-// node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/common.js
+// node_modules/.pnpm/debug@4.4.3_supports-color@7.2.0/node_modules/debug/src/common.js
 var require_common = __commonJS({
-  "node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/common.js"(exports2, module2) {
+  "node_modules/.pnpm/debug@4.4.3_supports-color@7.2.0/node_modules/debug/src/common.js"(exports2, module2) {
     "use strict";
     function setup(env) {
       createDebug.debug = createDebug;
@@ -23679,9 +23679,9 @@ var require_common = __commonJS({
   }
 });
 
-// node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/browser.js
+// node_modules/.pnpm/debug@4.4.3_supports-color@7.2.0/node_modules/debug/src/browser.js
 var require_browser = __commonJS({
-  "node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/browser.js"(exports2, module2) {
+  "node_modules/.pnpm/debug@4.4.3_supports-color@7.2.0/node_modules/debug/src/browser.js"(exports2, module2) {
     "use strict";
     exports2.formatArgs = formatArgs;
     exports2.save = save;
@@ -23965,9 +23965,9 @@ var require_supports_color = __commonJS({
   }
 });
 
-// node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/node.js
+// node_modules/.pnpm/debug@4.4.3_supports-color@7.2.0/node_modules/debug/src/node.js
 var require_node = __commonJS({
-  "node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/node.js"(exports2, module2) {
+  "node_modules/.pnpm/debug@4.4.3_supports-color@7.2.0/node_modules/debug/src/node.js"(exports2, module2) {
     "use strict";
     var tty = require("tty");
     var util4 = require("util");
@@ -24140,9 +24140,9 @@ var require_node = __commonJS({
   }
 });
 
-// node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/index.js
+// node_modules/.pnpm/debug@4.4.3_supports-color@7.2.0/node_modules/debug/src/index.js
 var require_src = __commonJS({
-  "node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/index.js"(exports2, module2) {
+  "node_modules/.pnpm/debug@4.4.3_supports-color@7.2.0/node_modules/debug/src/index.js"(exports2, module2) {
     "use strict";
     if (typeof process === "undefined" || process.type === "renderer" || process.browser === true || process.__nwjs) {
       module2.exports = require_browser();
