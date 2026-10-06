@@ -38268,9 +38268,9 @@ var require_fs = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/balanced-match@4.0.4/node_modules/balanced-match/dist/commonjs/index.js
+// ../../node_modules/.pnpm/balanced-match@4.0.3/node_modules/balanced-match/dist/commonjs/index.js
 var require_commonjs = __commonJS({
-  "../../node_modules/.pnpm/balanced-match@4.0.4/node_modules/balanced-match/dist/commonjs/index.js"(exports2) {
+  "../../node_modules/.pnpm/balanced-match@4.0.3/node_modules/balanced-match/dist/commonjs/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.range = exports2.balanced = void 0;
