@@ -102118,7 +102118,9 @@ function extractCheckOutputs(result) {
   const violations = result.Violations ?? [];
   const outcomes = (result.Verdicts ?? []).map((verdict) => ({
     alert: verdict.Alert,
-    outcome: verdict.Outcome
+    outcome: verdict.Outcome,
+    // Omitted by JSON.stringify when the CLI predates source_kind.
+    source: verdict.source_kind
   }));
   return {
     violationCount: violations.length,
@@ -102165,8 +102167,8 @@ function parseResult(json) {
 }
 
 // actions/ci-grafana-alert-test/src/summary.ts
-var SUMMARY_HEADER = "| Status | Alert | Verdict | Grafana state | Grafana health | Last error | Broken for | Details |";
-var SUMMARY_SEPARATOR = "|---|---|---|---|---|---|---|---|";
+var SUMMARY_HEADER = "| Status | Alert | Source | Verdict | Grafana state | Grafana health | Last error | Broken for | Details |";
+var SUMMARY_SEPARATOR = "|---|---|---|---|---|---|---|---|---|";
 var STATUS_FAIL = "\u274C";
 var STATUS_PASS = "\u2705";
 var STATUS_PAUSED = "\u23F8\uFE0F";
@@ -102197,11 +102199,23 @@ function formatBrokenFor(badFor) {
   }
   return `${Math.ceil(badFor / 1e9)}s`;
 }
-function findViolation(violations, ruleUid) {
-  return violations.find((violation) => violation.RuleUID === ruleUid);
+function ruleKey(entity) {
+  return entity.rule_key || entity.RuleUID || "";
 }
-function formatNote(verdict, violation) {
-  return verdict.Note ?? violation?.Note ?? "-";
+function findViolation(violations, verdict) {
+  return violations.find(
+    (violation) => ruleKey(violation) === ruleKey(verdict)
+  );
+}
+function noteCell(alert, note) {
+  if (note === void 0) {
+    return "-";
+  }
+  if (!alert) {
+    return note;
+  }
+  const prefix2 = `rule "${alert}": `;
+  return note.startsWith(prefix2) ? note.slice(prefix2.length) : note;
 }
 function rowStatus(verdict, violation) {
   if (violation !== void 0) {
@@ -102225,18 +102239,19 @@ var STATUS_RANK = {
 };
 function buildUnmatchedViolationRows(verdicts, violations) {
   return violations.filter(
-    (violation) => !verdicts.some((verdict) => verdict.RuleUID === violation.RuleUID)
+    (violation) => !verdicts.some((verdict) => ruleKey(verdict) === ruleKey(violation))
   ).map((violation) => ({
     status: STATUS_FAIL,
     line: row([
       STATUS_FAIL,
       violation.Alert || "-",
+      "-",
       violation.Outcome ?? "-",
       violation.State ?? "-",
       violation.Health ?? "-",
       truncateLastError(violation.LastError),
       "-",
-      violation.Note ?? "-"
+      noteCell(violation.Alert, violation.Note)
     ])
   }));
 }
@@ -102244,19 +102259,21 @@ function buildSummaryRows(result) {
   const verdicts = result.Verdicts ?? [];
   const violations = result.Violations ?? [];
   const rows = verdicts.map((verdict) => {
-    const violation = findViolation(violations, verdict.RuleUID);
+    const violation = findViolation(violations, verdict);
     const status = rowStatus(verdict, violation);
     return {
       status,
       line: row([
         status,
         verdict.Alert,
+        verdict.source_kind ?? "-",
         verdict.Outcome,
         violation?.State ?? "-",
         violation?.Health ?? "-",
         truncateLastError(violation?.LastError),
         formatBrokenFor(verdict.BadFor),
-        formatNote(verdict, violation)
+        // Matches jq `(($r.Note // $viol.Note) // "-")` — empty strings kept.
+        noteCell(verdict.Alert, verdict.Note ?? violation?.Note)
       ])
     };
   });
@@ -102278,7 +102295,7 @@ function sortLabels(labels) {
 }
 function buildInstancesSection(result) {
   const alertOf = new Map(
-    (result.Verdicts ?? []).map((verdict) => [verdict.RuleUID, verdict.Alert])
+    (result.Verdicts ?? []).map((verdict) => [ruleKey(verdict), verdict.Alert])
   );
   const grouped = /* @__PURE__ */ new Map();
   for (const violation of result.Violations ?? []) {
@@ -102286,7 +102303,7 @@ function buildInstancesSection(result) {
     if (Object.keys(labels).length === 0) {
       continue;
     }
-    const alert = violation.Alert || alertOf.get(violation.RuleUID ?? "") || "-";
+    const alert = violation.Alert || alertOf.get(ruleKey(violation)) || "-";
     grouped.set(alert, [...grouped.get(alert) ?? [], violation]);
   }
   if (grouped.size === 0) {
@@ -102439,7 +102456,7 @@ function resolveLiveWindow(from, to, observationWindow, now = /* @__PURE__ */ ne
 }
 
 // actions/ci-grafana-alert-test/src/run.ts
-var RELEASE_VERSION = "v0.1.8";
+var RELEASE_VERSION = "v0.1.10";
 var BIN_NAME = "grafana-alertcheck";
 var SUMMARY_TITLE = "### Grafana alert gate";
 function runnerTemp() {
@@ -102536,8 +102553,6 @@ async function runRecord(binPath) {
   if (folder) args.push("--folder", folder);
   const concurrency = getInput("concurrency");
   if (concurrency) args.push("--concurrency", concurrency);
-  const pollInterval = getInput("poll-interval");
-  if (pollInterval) args.push("--poll-interval", pollInterval);
   const until = getInput("until");
   if (until) args.push("--until", until);
   const result = await getExecOutput(binPath, args, { env: grafanaEnv() });
