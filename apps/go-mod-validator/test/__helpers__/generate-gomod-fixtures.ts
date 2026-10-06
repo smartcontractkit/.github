@@ -26,7 +26,7 @@
 import { getAllGoModsWithin } from "../../src/deps";
 import { ensureFileSync, readFileSync, writeFileSync } from "fs-extra";
 import path from "path";
-import simpleGit from "simple-git";
+import { simpleGit } from "simple-git";
 
 async function main() {
   const commitSha = process.argv[3];
