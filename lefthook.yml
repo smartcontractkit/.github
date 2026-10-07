@@ -15,6 +15,7 @@ pre-commit:
       description: "Fix reusable workflows sync"
       glob: "{workflows/*/*,.github/workflows/*}.{yml,yaml}"
       run: pnpm workflows:fix --stage {staged_files}
+      stage_fixed: true
     actionlint:
       description: "Run actionlint"
       glob: "{workflows/*/*,.github/workflows/*}.{yml,yaml}"
@@ -26,5 +27,7 @@ pre-commit:
     build-artifacts:
       description: "Build artifacts for affected projects"
       glob: "*.{js,ts,json}"
+      env:
+        CI: "true"
       run: pnpm build:affected
       stage_fixed: true
