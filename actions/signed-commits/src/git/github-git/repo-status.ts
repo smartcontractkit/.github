@@ -1,3 +1,4 @@
+import * as core from "@actions/core";
 import { execWithOutput } from "../../utils";
 import { join } from "path";
 import { readFileSync, statSync } from "fs";
@@ -117,7 +118,12 @@ export async function calculateFileChanges(
 ): Promise<FileChanges> {
   const additions: FileAddition[] = changes.additions.flatMap((path) => {
     const fullPath = join(cwd, path);
-    if (!statSync(fullPath, { throwIfNoEntry: false })?.isFile()) return [];
+    if (!statSync(fullPath, { throwIfNoEntry: false })?.isFile()) {
+      core.warning(
+        `Skipping ${path}: not a readable file (missing, directory, or symlink)`,
+      );
+      return [];
+    }
     const contents = readFileSync(fullPath).toString("base64");
     return [
       {

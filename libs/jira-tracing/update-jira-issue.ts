@@ -8,7 +8,7 @@ import {
 } from "./lib";
 
 function updateJiraIssue(
-  client: jira.Version3Client,
+  client: jira.CloudClient,
   issueNumber: string,
   tags: string[],
   fixVersionName: string,

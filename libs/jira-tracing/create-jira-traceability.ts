@@ -11,6 +11,17 @@ import {
 import * as core from "@actions/core";
 import { extractChangesetFiles } from "./changeset-lib";
 
+interface ADFNode {
+  type?: string;
+  content?: ADFNode[];
+  marks?: ADFMark[];
+}
+
+interface ADFMark {
+  type?: string;
+  attrs?: { href?: string };
+}
+
 /**
  * Adds traceability to JIRA issues by commenting on each issue with a link to the artifact payload
  * along with a label to connect all issues to the same chainlink product review.
@@ -21,7 +32,7 @@ import { extractChangesetFiles } from "./changeset-lib";
  * @param artifactUrl The url to the artifact payload that we'll comment on each issue with
  */
 async function addTraceabillityToJiraIssues(
-  client: jira.Version3Client,
+  client: jira.CloudClient,
   issues: string[],
   label: string,
   artifactUrl: string,
@@ -44,7 +55,7 @@ async function addTraceabillityToJiraIssues(
  * Checks if the artifact payload already exists as a comment on the issue, if not, adds it.
  */
 async function checkAndAddArtifactPayloadComment(
-  client: jira.Version3.Version3Client,
+  client: jira.CloudClient,
   issue: string,
   artifactUrl: string,
 ) {
@@ -91,9 +102,9 @@ async function checkAndAddArtifactPayloadComment(
   //   },
   // ];
   const commentExists = getCommentsResponse.comments?.some((c) =>
-    c?.body?.content?.some((innerContent) =>
-      innerContent?.content?.some((c) =>
-        c.marks?.some((m) => m.attrs?.href === artifactUrl),
+    c?.body?.content?.some((innerContent: ADFNode) =>
+      innerContent?.content?.some((c: ADFNode) =>
+        c.marks?.some((m: ADFMark) => m.attrs?.href === artifactUrl),
       ),
     ),
   );
@@ -104,7 +115,7 @@ async function checkAndAddArtifactPayloadComment(
     core.info(`Adding artifact payload as comment on issue ${issue}`);
     await client.issueComments.addComment({
       issueIdOrKey: issue,
-      comment: {
+      body: {
         type: "doc",
         version: 1,
         content: [

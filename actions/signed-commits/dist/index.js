@@ -62567,7 +62567,12 @@ function listChanges(output) {
 async function calculateFileChanges(changes, cwd = "") {
   const additions = changes.additions.flatMap((path7) => {
     const fullPath = (0, import_path.join)(cwd, path7);
-    if (!(0, import_fs3.statSync)(fullPath, { throwIfNoEntry: false })?.isFile()) return [];
+    if (!(0, import_fs3.statSync)(fullPath, { throwIfNoEntry: false })?.isFile()) {
+      warning(
+        `Skipping ${path7}: not a readable file (missing, directory, or symlink)`
+      );
+      return [];
+    }
     const contents = (0, import_fs3.readFileSync)(fullPath).toString("base64");
     return [
       {

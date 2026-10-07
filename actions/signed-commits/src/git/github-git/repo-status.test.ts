@@ -1,13 +1,19 @@
 import {
   calculateAdditionsAndDeletions,
+  calculateFileChanges,
   getGitStatusPorcelainV1,
   listChanges,
 } from "./repo-status";
 import { execSync } from "child_process";
 import * as fs from "fs";
+import * as core from "@actions/core";
 import { createRepo } from "./utils.testutils";
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+vi.mock("@actions/core", () => ({
+  warning: vi.fn(),
+}));
 
 describe("repo-status", () => {
   describe("getGitStatusPorcelainV1", () => {
@@ -91,6 +97,30 @@ describe("repo-status", () => {
         "file3.txt",
       ]
     `);
+    });
+  });
+  describe("calculateFileChanges", () => {
+    it("should skip unreadable paths with a warning", async () => {
+      const repoPath = await createCommitTestRepo("calculateFileChanges");
+      fs.mkdirSync(`${repoPath}/some-dir`);
+
+      const fileChanges = await calculateFileChanges(
+        {
+          additions: ["file1.txt", "some-dir", "missing.txt"],
+          deletions: ["file2.txt"],
+        },
+        repoPath,
+      );
+
+      expect(fileChanges.additions).toHaveLength(1);
+      expect(fileChanges.additions![0].path).toEqual("file1.txt");
+      expect(core.warning).toHaveBeenCalledWith(
+        expect.stringContaining("some-dir"),
+      );
+      expect(core.warning).toHaveBeenCalledWith(
+        expect.stringContaining("missing.txt"),
+      );
+      expect(fileChanges.deletions).toEqual([{ path: "file2.txt" }]);
     });
   });
 });

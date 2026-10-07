@@ -7,7 +7,7 @@
     "strict": true,
     "esModuleInterop": true,
     "noUncheckedSideEffectImports": false,
-    "types": ["*"],
-    "ignoreDeprecations": "6.0"
+    "ignoreDeprecations": "6.0",
+    "types": ["node"]
   }
 }

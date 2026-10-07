@@ -25,7 +25,6 @@
       "nx-chainlink": ["libs/nx-chainlink/src/index.ts"]
     },
     "noUncheckedSideEffectImports": false,
-    "types": ["*"],
     "ignoreDeprecations": "6.0"
   }
 }
