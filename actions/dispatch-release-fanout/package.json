@@ -1,0 +1,11 @@
+{
+  "name": "dispatch-release-fanout",
+  "version": "0.1.0",
+  "description": "Dispatches a release fan-out hub with the images a build published, authenticated by the caller's OIDC token",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}
