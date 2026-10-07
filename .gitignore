@@ -17,6 +17,7 @@ node_modules
 *.sublime-workspace
 
 # IDE - VSCode
+.zed/
 .vscode/
 !.vscode/settings.json
 !.vscode/tasks.json
