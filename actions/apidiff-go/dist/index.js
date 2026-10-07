@@ -32286,7 +32286,7 @@ ${markdownFingerprint}`;
   }
 }
 
-// node_modules/.pnpm/diff@8.0.4/node_modules/diff/libesm/diff/base.js
+// node_modules/.pnpm/diff@9.0.0/node_modules/diff/libesm/diff/base.js
 var Diff = class {
   diff(oldStr, newStr, options = {}) {
     let callback;
@@ -32488,7 +32488,7 @@ var Diff = class {
   }
 };
 
-// node_modules/.pnpm/diff@8.0.4/node_modules/diff/libesm/diff/array.js
+// node_modules/.pnpm/diff@9.0.0/node_modules/diff/libesm/diff/array.js
 var ArrayDiff = class extends Diff {
   tokenize(value) {
     return value.slice();

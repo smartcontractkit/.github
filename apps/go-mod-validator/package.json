@@ -4,7 +4,7 @@
   "private": true,
   "description": "Parses 'go.mod' file given as input, and verifies it's dependencies",
   "engines": {
-    "pnpm": "10"
+    "pnpm": "12"
   },
   "main": "out/index.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "node-fetch": "^2.7.0",
     "simple-git": "^4.0.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "dependencies": {
     "@actions/core": "^3.0.1",

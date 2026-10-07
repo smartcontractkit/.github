@@ -134741,15 +134741,22 @@ var Queue = class {
   }
 };
 
-// node_modules/.pnpm/p-limit@6.2.0/node_modules/p-limit/index.js
+// node_modules/.pnpm/p-limit@7.3.3/node_modules/p-limit/index.js
 function pLimit(concurrency) {
+  let rejectOnClear = false;
+  if (typeof concurrency === "object") {
+    ({ concurrency, rejectOnClear = false } = concurrency);
+  }
   validateConcurrency(concurrency);
+  if (typeof rejectOnClear !== "boolean") {
+    throw new TypeError("Expected `rejectOnClear` to be a boolean");
+  }
   const queue = new Queue();
   let activeCount = 0;
   const resumeNext = () => {
     if (activeCount < concurrency && queue.size > 0) {
-      queue.dequeue()();
       activeCount++;
+      queue.dequeue().run();
     }
   };
   const next = () => {
@@ -134765,21 +134772,18 @@ function pLimit(concurrency) {
     }
     next();
   };
-  const enqueue = (function_, resolve4, arguments_) => {
+  const enqueue = (function_, resolve4, reject, arguments_) => {
+    const queueItem = { reject };
     new Promise((internalResolve) => {
-      queue.enqueue(internalResolve);
-    }).then(
-      run2.bind(void 0, function_, resolve4, arguments_)
-    );
-    (async () => {
-      await Promise.resolve();
-      if (activeCount < concurrency) {
-        resumeNext();
-      }
-    })();
+      queueItem.run = internalResolve;
+      queue.enqueue(queueItem);
+    }).then(run2.bind(void 0, function_, resolve4, arguments_));
+    if (activeCount < concurrency) {
+      resumeNext();
+    }
   };
-  const generator = (function_, ...arguments_) => new Promise((resolve4) => {
-    enqueue(function_, resolve4, arguments_);
+  const generator = (function_, ...arguments_) => new Promise((resolve4, reject) => {
+    enqueue(function_, resolve4, reject, arguments_);
   });
   Object.defineProperties(generator, {
     activeCount: {
@@ -134790,7 +134794,14 @@ function pLimit(concurrency) {
     },
     clearQueue: {
       value() {
-        queue.clear();
+        if (!rejectOnClear) {
+          queue.clear();
+          return;
+        }
+        const abortError = AbortSignal.abort().reason;
+        while (queue.size > 0) {
+          queue.dequeue().reject(abortError);
+        }
       }
     },
     concurrency: {
@@ -134803,6 +134814,25 @@ function pLimit(concurrency) {
             resumeNext();
           }
         });
+      }
+    },
+    map: {
+      async value(iterable, function_) {
+        const promises7 = [];
+        try {
+          Array.from(iterable, (value, index) => {
+            const promise = generator(function_, value, index);
+            promises7.push(promise);
+            return promise;
+          });
+        } catch (error2) {
+          for (const promise of promises7) {
+            promise.catch(() => {
+            });
+          }
+          throw error2;
+        }
+        return Promise.all(promises7);
       }
     }
   });

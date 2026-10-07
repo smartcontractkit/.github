@@ -4,7 +4,7 @@
   "private": true,
   "description": "",
   "engines": {
-    "pnpm": "10"
+    "pnpm": "12"
   },
   "main": "dist/index.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "node-fetch": "^2.7.0",
     "simple-git": "^4.0.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "dependencies": {
     "@actions/artifact": "^6.3.1",
@@ -32,7 +32,7 @@
     "@octokit/plugin-throttling": "^11.0.5",
     "@snyk/go-semver": "^1.4.1",
     "execa": "^9.6.1",
-    "p-limit": "^6.2.0",
+    "p-limit": "^7.3.3",
     "vitest": "^5.0.3",
     "zx": "^8.8.5"
   },
