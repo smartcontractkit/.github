@@ -465,6 +465,8 @@ importers:
 
   actions/devenv-k8s-setup-ns: {}
 
+  actions/dispatch-release-fanout: {}
+
   actions/dispatch-workflow: {}
 
   actions/do-not-merge: {}
