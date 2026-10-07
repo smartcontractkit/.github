@@ -6,6 +6,16 @@ vi.mock("@actions/core", async () => {
   return (await import("./__helpers__/test-utils.js")).coreLoggingStubs();
 });
 
+vi.mock("@actions/github", () => {
+  return {
+    context: {
+      repo: { owner: "owner", repo: "repo" },
+      eventName: "pull_request",
+      payload: {},
+    },
+  };
+});
+
 describe(getInvokeContext.name, () => {
   it("should exit without github token", async () => {
     delete process.env.GITHUB_TOKEN;
@@ -18,7 +28,7 @@ describe(getInvokeContext.name, () => {
 
   it("should return context (event: pull_request)", async () => {
     process.env.GITHUB_TOKEN = "token";
-    const mockedContext = {
+    Object.assign(github.context, {
       repo: { owner: "owner", repo: "repo" },
       eventName: "pull_request",
       payload: {
@@ -28,8 +38,7 @@ describe(getInvokeContext.name, () => {
           number: 1,
         },
       },
-    };
-    Object.defineProperty(github, "context", { value: mockedContext });
+    });
 
     const result = getInvokeContext();
     expect(result).toEqual({
@@ -44,12 +53,11 @@ describe(getInvokeContext.name, () => {
 
   it("should not return context (event: push_event)", async () => {
     process.env.GITHUB_TOKEN = "token";
-    const mockedContext = {
+    Object.assign(github.context, {
       repo: { owner: "owner", repo: "repo" },
       eventName: "push",
       payload: { before: "before", after: "after" },
-    };
-    Object.defineProperty(github, "context", { value: mockedContext });
+    });
 
     const result = getInvokeContext();
     expect(result).toEqual({

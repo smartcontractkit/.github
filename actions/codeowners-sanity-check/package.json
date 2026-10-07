@@ -7,16 +7,16 @@
   "author": "@smartcontractkit",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^2.0.3",
-    "@actions/github": "^8.0.1"
+    "@actions/core": "^3.0.1",
+    "@actions/github": "^9.1.1"
   },
   "repository": "https://github.com/smartcontractkit/.github",
   "devDependencies": {
-    "@octokit/types": "^16.0.0",
+    "@octokit/types": "^18.0.0",
     "@types/node": "^26.6.4",
     "@types/node-fetch": "^2.6.13",
     "nock": "^14.0.17",
     "node-fetch": "^2.7.0",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.3"
   }
 }

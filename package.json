@@ -59,7 +59,7 @@
     "typescript": "6.0.3",
     "typescript-eslint": "^8.58.0",
     "update-ts-references": "^3.6.2",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.3"
   },
   "repository": "https://github.com/smartcontractkit/.github",
   "dependencies": {}

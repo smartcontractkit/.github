@@ -12,7 +12,7 @@
     "fixtures:gomods": "ts-node test/__helpers__/generate-gomod-fixtures.ts"
   },
   "devDependencies": {
-    "@octokit/types": "^16.0.0",
+    "@octokit/types": "^18.0.0",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^26.6.4",
     "@types/node-fetch": "^2.6.13",
@@ -24,12 +24,12 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@actions/core": "^2.0.3",
-    "@actions/github": "^8.0.1",
+    "@actions/core": "^3.0.1",
+    "@actions/github": "^9.1.1",
     "@actions/glob": "^0.7.0",
     "@octokit/plugin-throttling": "^11.0.5",
     "@snyk/go-semver": "^1.4.1",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.3"
   },
   "author": "@smartcontractkit",
   "license": "MIT",
