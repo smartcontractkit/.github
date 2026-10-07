@@ -16,7 +16,7 @@
   "dependencies": {
     "@actions/core": "^2.0.3",
     "@actions/github": "^8.0.1",
-    "@actions/glob": "^0.5.1",
+    "@actions/glob": "^0.7.0",
     "diff": "^8.0.4",
     "execa": "^9.6.1",
     "semver": "^7.8.5"
@@ -24,7 +24,7 @@
   "devDependencies": {
     "@octokit/types": "^16.0.0",
     "@octokit/webhooks-types": "^7.6.1",
-    "@types/node": "^24.13.6",
+    "@types/node": "^26.6.4",
     "@types/semver": "^7.8.0",
     "vitest": "^4.1.11"
   }
