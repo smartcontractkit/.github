@@ -23293,12 +23293,12 @@ var require_commonjs2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/package.json
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/package.json
 var require_package = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/package.json"(exports2, module2) {
+  "node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/package.json"(exports2, module2) {
     module2.exports = {
       name: "@actions/artifact",
-      version: "6.2.1",
+      version: "6.3.1",
       preview: true,
       description: "Actions artifact lib",
       keywords: [
@@ -23345,26 +23345,27 @@ var require_package = __commonJS({
         url: "https://github.com/actions/toolkit/issues"
       },
       dependencies: {
-        "@actions/core": "^3.0.0",
-        "@actions/github": "^9.0.0",
-        "@actions/http-client": "^4.0.0",
-        "@azure/storage-blob": "^12.30.0",
+        "@actions/core": "^3.0.1",
+        "@actions/github": "^9.1.1",
+        "@actions/http-client": "^4.0.1",
+        "@azure/storage-blob": "^12.31.0",
         "@octokit/core": "^7.0.6",
         "@octokit/plugin-request-log": "^6.0.0",
-        "@octokit/plugin-retry": "^8.0.0",
-        "@octokit/request": "^10.0.7",
+        "@octokit/plugin-retry": "^8.1.0",
+        "@octokit/request": "^10.0.8",
         "@octokit/request-error": "^7.1.0",
-        "@protobuf-ts/plugin": "^2.2.3-alpha.1",
-        "@protobuf-ts/runtime": "^2.9.4",
+        "@protobuf-ts/runtime": "^2.11.1",
+        "@protobuf-ts/runtime-rpc": "^2.11.1",
         archiver: "^7.0.1",
         "jwt-decode": "^4.0.0",
         "unzip-stream": "^0.3.1"
       },
       devDependencies: {
+        "@protobuf-ts/plugin": "^2.11.1",
         "@types/archiver": "^7.0.0",
         "@types/unzip-stream": "^0.3.4",
-        typedoc: "^0.28.16",
-        "typedoc-plugin-markdown": "^4.9.0",
+        typedoc: "^0.28.19",
+        "typedoc-plugin-markdown": "^4.11.0",
         typescript: "^5.9.3"
       },
       overrides: {
@@ -23375,9 +23376,9 @@ var require_package = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/shared/package-version.cjs
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/shared/package-version.cjs
 var require_package_version = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/shared/package-version.cjs"(exports2, module2) {
+  "node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/shared/package-version.cjs"(exports2, module2) {
     "use strict";
     var packageJson = require_package();
     module2.exports = { version: packageJson.version };
@@ -48573,9 +48574,9 @@ var require_streamx = __commonJS({
   }
 });
 
-// node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/headers.js
+// node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/headers.js
 var require_headers2 = __commonJS({
-  "node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/headers.js"(exports2) {
+  "node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/headers.js"(exports2) {
     "use strict";
     var b4a = require_b4a();
     var ZEROS = "0000000000000000000";
@@ -48836,9 +48837,9 @@ var require_headers2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/extract.js
+// node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/extract.js
 var require_extract = __commonJS({
-  "node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/extract.js"(exports2, module2) {
+  "node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/extract.js"(exports2, module2) {
     "use strict";
     var { Writable, Readable: Readable7, getStreamError } = require_streamx();
     var FIFO = require_fast_fifo();
@@ -49181,9 +49182,9 @@ var require_extract = __commonJS({
   }
 });
 
-// node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/constants.js
+// node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/constants.js
 var require_constants7 = __commonJS({
-  "node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/constants.js"(exports2, module2) {
+  "node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/constants.js"(exports2, module2) {
     "use strict";
     var constants3 = {
       // just for envs without fs
@@ -49202,9 +49203,9 @@ var require_constants7 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/pack.js
+// node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/pack.js
 var require_pack = __commonJS({
-  "node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/pack.js"(exports2, module2) {
+  "node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/pack.js"(exports2, module2) {
     "use strict";
     var { Readable: Readable7, Writable, getStreamError } = require_streamx();
     var b4a = require_b4a();
@@ -49437,9 +49438,9 @@ var require_pack = __commonJS({
   }
 });
 
-// node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/index.js
+// node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/index.js
 var require_tar_stream = __commonJS({
-  "node_modules/.pnpm/tar-stream@3.2.1/node_modules/tar-stream/index.js"(exports2) {
+  "node_modules/.pnpm/tar-stream@3.2.2/node_modules/tar-stream/index.js"(exports2) {
     "use strict";
     exports2.extract = require_extract();
     exports2.pack = require_pack();
@@ -62604,7 +62605,7 @@ function info(message) {
   process.stdout.write(message + os5.EOL);
 }
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/shared/config.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/shared/config.js
 var import_os3 = __toESM(require("os"), 1);
 function getUploadChunkSize() {
   return 8 * 1024 * 1024;
@@ -62680,11 +62681,11 @@ function getMaxArtifactListCount() {
   return maxCount;
 }
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/upload/upload-artifact.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/upload/upload-artifact.js
 var fs6 = __toESM(require("fs"), 1);
 var path5 = __toESM(require("path"), 1);
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/generated/google/protobuf/timestamp.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/generated/google/protobuf/timestamp.js
 var import_runtime = __toESM(require_commonjs(), 1);
 var import_runtime2 = __toESM(require_commonjs(), 1);
 var import_runtime3 = __toESM(require_commonjs(), 1);
@@ -62826,7 +62827,7 @@ var Timestamp$Type = class extends import_runtime7.MessageType {
 };
 var Timestamp = new Timestamp$Type();
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/generated/google/protobuf/wrappers.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/generated/google/protobuf/wrappers.js
 var import_runtime8 = __toESM(require_commonjs(), 1);
 var import_runtime9 = __toESM(require_commonjs(), 1);
 var import_runtime10 = __toESM(require_commonjs(), 1);
@@ -63411,7 +63412,7 @@ var BytesValue$Type = class extends import_runtime14.MessageType {
 };
 var BytesValue = new BytesValue$Type();
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/generated/results/api/v1/artifact.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/generated/results/api/v1/artifact.js
 var import_runtime_rpc = __toESM(require_commonjs2(), 1);
 var import_runtime15 = __toESM(require_commonjs(), 1);
 var import_runtime16 = __toESM(require_commonjs(), 1);
@@ -64242,7 +64243,7 @@ var ArtifactService = new import_runtime_rpc.ServiceType("github.actions.results
   { name: "DeleteArtifact", options: {}, I: DeleteArtifactRequest, O: DeleteArtifactResponse }
 ]);
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/generated/results/api/v1/artifact.twirp-client.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/generated/results/api/v1/artifact.twirp-client.js
 var ArtifactServiceClientJSON = class {
   constructor(rpc) {
     this.rpc = rpc;
@@ -64302,7 +64303,7 @@ var ArtifactServiceClientJSON = class {
   }
 };
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/upload/retention.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/upload/retention.js
 function getExpiration(retentionDays) {
   if (!retentionDays) {
     return void 0;
@@ -64328,7 +64329,7 @@ function getRetentionDays() {
   return days;
 }
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/upload/path-and-artifact-name-validation.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/upload/path-and-artifact-name-validation.js
 var invalidArtifactFilePathCharacters = /* @__PURE__ */ new Map([
   ['"', ' Double quote "'],
   [":", " Colon :"],
@@ -64376,13 +64377,13 @@ The following characters are not allowed in files that are uploaded due to limit
   }
 }
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/shared/user-agent.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/shared/user-agent.js
 var import_package_version = __toESM(require_package_version(), 1);
 function getUserAgentString() {
   return `@actions/artifact-${import_package_version.version}`;
 }
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/shared/errors.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/shared/errors.js
 var FilesNotFoundError = class extends Error {
   constructor(files = []) {
     let message = "No files were found to upload";
@@ -64502,7 +64503,7 @@ function jwtDecode(token, options) {
   }
 }
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/shared/util.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/shared/util.js
 var InvalidJwtError = new Error("Failed to get backend IDs: The provided JWT token is invalid and/or missing claims");
 function getBackendIdsFromToken() {
   const token = getRuntimeToken();
@@ -64559,7 +64560,7 @@ function maskSecretUrls(body2) {
   }
 }
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/shared/artifact-twirp-client.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/shared/artifact-twirp-client.js
 var __awaiter8 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function(resolve3) {
@@ -64590,8 +64591,9 @@ var __awaiter8 = function(thisArg, _arguments, P, generator) {
 var ArtifactHttpClient = class {
   constructor(userAgent3, maxAttempts, baseRetryIntervalMilliseconds, retryMultiplier) {
     this.maxAttempts = 5;
-    this.baseRetryIntervalMilliseconds = 3e3;
+    this.baseRetryIntervalMilliseconds = 8e3;
     this.retryMultiplier = 1.5;
+    this.retryTimeoutMilliseconds = 12e4;
     const token = getRuntimeToken();
     this.baseUrl = getResultsServiceUrl();
     if (maxAttempts) {
@@ -64631,11 +64633,16 @@ var ArtifactHttpClient = class {
       let attempt = 0;
       let errorMessage = "";
       let rawBody = "";
+      let totalRetryWaitMilliseconds = 0;
       while (attempt < this.maxAttempts) {
         let isRetryable = false;
+        let retryAfterSeconds;
         try {
           const response = yield operation();
           const statusCode = response.message.statusCode;
+          if (statusCode === HttpCodes.TooManyRequests) {
+            retryAfterSeconds = this.getRetryAfterSeconds(response);
+          }
           rawBody = yield response.readBody();
           debug(`[Response] - ${response.message.statusCode}`);
           debug(`Headers: ${JSON.stringify(response.message.headers, null, 2)}`);
@@ -64672,9 +64679,13 @@ var ArtifactHttpClient = class {
         if (attempt + 1 === this.maxAttempts) {
           throw new Error(`Failed to make request after ${this.maxAttempts} attempts: ${errorMessage}`);
         }
-        const retryTimeMilliseconds = this.getExponentialRetryTimeMilliseconds(attempt);
+        const retryTimeMilliseconds = retryAfterSeconds !== void 0 ? retryAfterSeconds * 1e3 : this.getExponentialRetryTimeMilliseconds(attempt);
+        if (totalRetryWaitMilliseconds + retryTimeMilliseconds > this.retryTimeoutMilliseconds) {
+          throw new Error(`Retry wait of ${retryTimeMilliseconds} ms would exceed the maximum total retry wait of ${this.retryTimeoutMilliseconds} ms: ${errorMessage}`);
+        }
         info(`Attempt ${attempt + 1} of ${this.maxAttempts} failed with error: ${errorMessage}. Retrying request in ${retryTimeMilliseconds} ms...`);
         yield this.sleep(retryTimeMilliseconds);
+        totalRetryWaitMilliseconds += retryTimeMilliseconds;
         attempt++;
       }
       throw new Error(`Request failed`);
@@ -64696,6 +64707,17 @@ var ArtifactHttpClient = class {
       HttpCodes.TooManyRequests
     ];
     return retryableStatusCodes.includes(statusCode);
+  }
+  // Only positive integer seconds are supported, not HTTP-date values.
+  getRetryAfterSeconds(response) {
+    var _a;
+    const header = response.message.headers["retry-after"];
+    const value = (_a = Array.isArray(header) ? header[0] : header) === null || _a === void 0 ? void 0 : _a.trim();
+    if (value === void 0 || !/^\d+$/.test(value)) {
+      return void 0;
+    }
+    const parsed = parseInt(value, 10);
+    return !isNaN(parsed) && parsed > 0 ? parsed : void 0;
   }
   sleep(milliseconds) {
     return __awaiter8(this, void 0, void 0, function* () {
@@ -64719,7 +64741,7 @@ function internalArtifactTwirpClient(options) {
   return new ArtifactServiceClientJSON(client2);
 }
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/upload/upload-zip-specification.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/upload/upload-zip-specification.js
 var fs3 = __toESM(require("fs"), 1);
 var import_path = require("path");
 function validateRootDirectory(rootDirectory) {
@@ -69614,7 +69636,7 @@ function convertHttpClient(requestPolicyClient) {
   };
 }
 
-// node_modules/.pnpm/fast-xml-parser@5.11.1/node_modules/fast-xml-parser/src/util.js
+// node_modules/.pnpm/fast-xml-parser@5.11.2/node_modules/fast-xml-parser/src/util.js
 var nameStartChar = ":A-Za-z_\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD";
 var nameChar = nameStartChar + "\\-.\\d\\u00B7\\u0300-\\u036F\\u203F-\\u2040";
 var nameRegexp = "[" + nameStartChar + "][" + nameChar + "]*";
@@ -69655,7 +69677,7 @@ var DANGEROUS_PROPERTY_NAMES = [
 ];
 var criticalProperties = ["__proto__", "constructor", "prototype"];
 
-// node_modules/.pnpm/fast-xml-parser@5.11.1/node_modules/fast-xml-parser/src/validator.js
+// node_modules/.pnpm/fast-xml-parser@5.11.2/node_modules/fast-xml-parser/src/validator.js
 var defaultOptions = {
   allowBooleanAttributes: false,
   //A tag can have attributes without any value
@@ -70007,7 +70029,7 @@ function getPositionFromMatch(match) {
   return match.startIndex + match[1].length;
 }
 
-// node_modules/.pnpm/@nodable+entities@3.0.0/node_modules/@nodable/entities/src/entities.js
+// node_modules/.pnpm/@nodable+entities@3.1.0/node_modules/@nodable/entities/src/entities.js
 var CURRENCY = {
   cent: "\xA2",
   pound: "\xA3",
@@ -70055,7 +70077,7 @@ var COMMON_HTML = {
   frac34: "\xBE"
 };
 
-// node_modules/.pnpm/@nodable+entities@3.0.0/node_modules/@nodable/entities/src/EntityDecoder.js
+// node_modules/.pnpm/@nodable+entities@3.1.0/node_modules/@nodable/entities/src/EntityDecoder.js
 var ENTITY_ACTION = Object.freeze({
   /** Resolve and expand the entity normally. */
   ALLOW: "allow",
@@ -70499,7 +70521,7 @@ var EntityDecoder = class {
   }
 };
 
-// node_modules/.pnpm/fast-xml-parser@5.11.1/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js
+// node_modules/.pnpm/fast-xml-parser@5.11.2/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js
 var defaultOnDangerousProperty = (name) => {
   if (DANGEROUS_PROPERTY_NAMES.includes(name)) {
     return "__" + name;
@@ -70634,7 +70656,7 @@ var buildOptions = function(options) {
   return built;
 };
 
-// node_modules/.pnpm/fast-xml-parser@5.11.1/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js
+// node_modules/.pnpm/fast-xml-parser@5.11.2/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js
 var METADATA_SYMBOL;
 if (typeof Symbol !== "function") {
   METADATA_SYMBOL = "@@xmlMetadata";
@@ -70726,7 +70748,7 @@ var createValidator = (production, { xmlVersion = "1.0", asciiOnly = false, maxC
   return validator;
 };
 
-// node_modules/.pnpm/fast-xml-parser@5.11.1/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js
+// node_modules/.pnpm/fast-xml-parser@5.11.2/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js
 var DocTypeReader = class {
   constructor(options, xmlVersion) {
     this.suppressValidationErr = !options;
@@ -71383,7 +71405,7 @@ function handleInfinity(str, num, options) {
   }
 }
 
-// node_modules/.pnpm/fast-xml-parser@5.11.1/node_modules/fast-xml-parser/src/ignoreAttributes.js
+// node_modules/.pnpm/fast-xml-parser@5.11.2/node_modules/fast-xml-parser/src/ignoreAttributes.js
 function getIgnoreAttributesFn(ignoreAttributes) {
   if (typeof ignoreAttributes === "function") {
     return ignoreAttributes;
@@ -72973,7 +72995,7 @@ function isUnsafe(value, context6) {
   return false;
 }
 
-// node_modules/.pnpm/fast-xml-parser@5.11.1/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js
+// node_modules/.pnpm/fast-xml-parser@5.11.2/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js
 function extractRawAttributes(prefixedAttrs, options) {
   if (!prefixedAttrs) return {};
   const attrs = options.attributesGroupName ? prefixedAttrs[options.attributesGroupName] : prefixedAttrs;
@@ -73578,7 +73600,7 @@ function sanitizeName(name, options) {
   return name;
 }
 
-// node_modules/.pnpm/fast-xml-parser@5.11.1/node_modules/fast-xml-parser/src/xmlparser/node2json.js
+// node_modules/.pnpm/fast-xml-parser@5.11.2/node_modules/fast-xml-parser/src/xmlparser/node2json.js
 var METADATA_SYMBOL2 = XmlNode.getMetaDataSymbol();
 function stripAttributePrefix(attrs, prefix2) {
   if (!attrs || typeof attrs !== "object") return {};
@@ -73690,7 +73712,7 @@ function isLeafTag(obj, options) {
   return false;
 }
 
-// node_modules/.pnpm/fast-xml-parser@5.11.1/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js
+// node_modules/.pnpm/fast-xml-parser@5.11.2/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js
 var XMLParser = class {
   constructor(options) {
     this.externalEntities = {};
@@ -73703,7 +73725,11 @@ var XMLParser = class {
    */
   parse(xmlData, validationOption) {
     if (typeof xmlData !== "string" && xmlData.toString) {
-      xmlData = xmlData.toString();
+      if (xmlData instanceof Uint8Array && !(typeof Buffer !== "undefined" && Buffer.isBuffer(xmlData))) {
+        xmlData = new TextDecoder("utf-8", { ignoreBOM: true }).decode(xmlData);
+      } else {
+        xmlData = xmlData.toString();
+      }
     } else if (typeof xmlData !== "string") {
       throw new Error("XML data is accepted in String or Bytes[] form.");
     }
@@ -74477,10 +74503,10 @@ function isAttribute(name) {
   }
 }
 
-// node_modules/.pnpm/fast-xml-parser@5.11.1/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js
+// node_modules/.pnpm/fast-xml-parser@5.11.2/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js
 var json2xml_default = Builder;
 
-// node_modules/.pnpm/fast-xml-parser@5.11.1/node_modules/fast-xml-parser/src/fxp.js
+// node_modules/.pnpm/fast-xml-parser@5.11.2/node_modules/fast-xml-parser/src/fxp.js
 var XMLValidator = {
   validate
 };
@@ -100412,7 +100438,7 @@ var KnownEncryptionAlgorithmType2;
   KnownEncryptionAlgorithmType3["AES256"] = "AES256";
 })(KnownEncryptionAlgorithmType2 || (KnownEncryptionAlgorithmType2 = {}));
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/upload/blob-upload.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/upload/blob-upload.js
 var crypto2 = __toESM(require("crypto"), 1);
 var stream = __toESM(require("stream"), 1);
 var __awaiter9 = function(thisArg, _arguments, P, generator) {
@@ -100508,11 +100534,11 @@ function uploadToBlobStorage(authenticatedUploadURL, uploadStream, contentType2)
   });
 }
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/upload/zip.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/upload/zip.js
 var import_promises2 = require("fs/promises");
 var import_archiver = __toESM(require_archiver(), 1);
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/upload/stream.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/upload/stream.js
 var stream2 = __toESM(require("stream"), 1);
 var fs5 = __toESM(require("fs"), 1);
 var import_promises = require("fs/promises");
@@ -100577,7 +100603,7 @@ function createRawFileUploadStream(filePath) {
   });
 }
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/upload/zip.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/upload/zip.js
 var __awaiter11 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function(resolve3) {
@@ -100660,7 +100686,7 @@ var zipEndCallback = () => {
   debug("Zip stream for upload has ended.");
 };
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/upload/types.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/upload/types.js
 var path4 = __toESM(require("path"), 1);
 var mimeTypes = {
   // Text
@@ -100726,7 +100752,7 @@ function getMimeType(filePath) {
   return mimeTypes[ext] || "application/octet-stream";
 }
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/upload/upload-artifact.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/upload/upload-artifact.js
 var __awaiter12 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function(resolve3) {
@@ -100831,7 +100857,7 @@ function uploadArtifact(name, files, rootDirectory, options) {
   });
 }
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/download/download-artifact.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/download/download-artifact.js
 var import_promises3 = __toESM(require("fs/promises"), 1);
 var fsSync = __toESM(require("fs"), 1);
 var crypto3 = __toESM(require("crypto"), 1);
@@ -100993,7 +101019,7 @@ function getOctokit(token, options, ...additionalPlugins) {
   return new GitHubWithPlugins(getOctokitOptions(token, options));
 }
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/download/download-artifact.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/download/download-artifact.js
 var import_unzip_stream = __toESM(require_unzip(), 1);
 var __awaiter14 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
@@ -101213,7 +101239,7 @@ function resolveOrCreateDirectory() {
   });
 }
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/find/retry-options.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/find/retry-options.js
 var defaultMaxRetryNumber = 5;
 var defaultExemptStatusCodes = [400, 401, 403, 404, 422];
 function getRetryOptions(defaultOptions4, retries = defaultMaxRetryNumber, exemptStatusCodes = defaultExemptStatusCodes) {
@@ -101334,7 +101360,7 @@ function retry(octokit, octokitOptions) {
 }
 retry.VERSION = VERSION8;
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/find/get-artifact.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/find/get-artifact.js
 var __awaiter15 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function(resolve3) {
@@ -101437,7 +101463,7 @@ function getArtifactInternal(artifactName) {
   });
 }
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/delete/delete-artifact.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/delete/delete-artifact.js
 var __awaiter16 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function(resolve3) {
@@ -101522,7 +101548,7 @@ function deleteArtifactInternal(artifactName) {
   });
 }
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/find/list-artifacts.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/find/list-artifacts.js
 var __awaiter17 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function(resolve3) {
@@ -101659,7 +101685,7 @@ function filterLatest(artifacts) {
   return latestArtifacts;
 }
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/internal/client.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/internal/client.js
 var __awaiter18 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function(resolve3) {
@@ -101802,7 +101828,7 @@ If the error persists, please check whether Actions and API requests are operati
   }
 };
 
-// node_modules/.pnpm/@actions+artifact@6.2.1/node_modules/@actions/artifact/lib/artifact.js
+// node_modules/.pnpm/@actions+artifact@6.3.1/node_modules/@actions/artifact/lib/artifact.js
 var client = new DefaultArtifactClient();
 var artifact_default = client;
 
