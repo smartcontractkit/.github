@@ -83,7 +83,7 @@ jobs:
 
       - name: Notify Failure
         if: ${{ steps.install.outcome == 'failure' || steps.bump.outcome == 'failure' || steps.post-bump.outcome == 'failure' }}
-        uses: slackapi/slack-github-action@af78098f536edbc4de71162a307590698245be95 # v3.0.1
+        uses: slackapi/slack-github-action@0d95c9a7becc1e6e297d76df9bc735c44f4cbcbc # v3.0.5
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TOKEN }}
@@ -109,7 +109,7 @@ jobs:
 
       - name: Notify PR Failure
         if: ${{ steps.pr.outcome == 'failure' }}
-        uses: slackapi/slack-github-action@af78098f536edbc4de71162a307590698245be95 # v3.0.1
+        uses: slackapi/slack-github-action@0d95c9a7becc1e6e297d76df9bc735c44f4cbcbc # v3.0.5
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TOKEN }}
@@ -125,7 +125,7 @@ jobs:
 
       - name: Notify PR Created
         if: steps.pr.outputs.pull-request-operation == 'created' || steps.pr.outputs.pull-request-operation == 'updated'
-        uses: slackapi/slack-github-action@af78098f536edbc4de71162a307590698245be95 # v3.0.1
+        uses: slackapi/slack-github-action@0d95c9a7becc1e6e297d76df9bc735c44f4cbcbc # v3.0.5
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TOKEN }}

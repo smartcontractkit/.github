@@ -62,7 +62,7 @@ runs:
         aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
 
     - name: Run renovate
-      uses: renovatebot/github-action@76d49712364696a06b60e8647df46b288fff0ddc # v40.2.4
+      uses: renovatebot/github-action@0984fb80fc633b17e57f3e8b6c007fe0dc3e0d62 # v40.3.6
       with:
         renovate-version: ${{ inputs.renovate-version }}
         token: ${{ steps.get-access-token.outputs.access-token }}
