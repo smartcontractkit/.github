@@ -19555,14 +19555,14 @@ var require_graceful_fs = __commonJS({
         return close;
       })(fs7.close);
       fs7.closeSync = (function(fs$closeSync) {
-        function closeSync(fd) {
+        function closeSync2(fd) {
           fs$closeSync.apply(fs7, arguments);
           resetQueue();
         }
-        Object.defineProperty(closeSync, previousSymbol, {
+        Object.defineProperty(closeSync2, previousSymbol, {
           value: fs$closeSync
         });
-        return closeSync;
+        return closeSync2;
       })(fs7.closeSync);
       if (/\bgfs4\b/i.test(process.env.NODE_DEBUG || "")) {
         process.on("exit", function() {
@@ -20437,8 +20437,8 @@ var require_copy_sync = __commonJS({
       return getStats(destStat, src, dest, opts);
     }
     function getStats(destStat, src, dest, opts) {
-      const statSync2 = opts.dereference ? fs7.statSync : fs7.lstatSync;
-      const srcStat = statSync2(src);
+      const statSync = opts.dereference ? fs7.statSync : fs7.lstatSync;
+      const srcStat = statSync(src);
       if (srcStat.isDirectory()) return onDir(srcStat, destStat, src, dest, opts);
       else if (srcStat.isFile() || srcStat.isCharacterDevice() || srcStat.isBlockDevice()) return onFile(srcStat, destStat, src, dest, opts);
       else if (srcStat.isSymbolicLink()) return onLink(destStat, src, dest, opts);
@@ -25909,11 +25909,11 @@ var require_out = __commonJS({
       async.read(path7, getSettings(optionsOrSettingsOrCallback), callback);
     }
     exports2.stat = stat2;
-    function statSync2(path7, optionsOrSettings) {
+    function statSync(path7, optionsOrSettings) {
       const settings = getSettings(optionsOrSettings);
       return sync.read(path7, settings);
     }
-    exports2.statSync = statSync2;
+    exports2.statSync = statSync;
     function getSettings(settingsOrOptions = {}) {
       if (settingsOrOptions instanceof settings_1.default) {
         return settingsOrOptions;
@@ -45711,8 +45711,8 @@ var require_copy_sync2 = __commonJS({
       return getStats(destStat, src, dest, opts);
     }
     function getStats(destStat, src, dest, opts) {
-      const statSync2 = opts.dereference ? fs7.statSync : fs7.lstatSync;
-      const srcStat = statSync2(src);
+      const statSync = opts.dereference ? fs7.statSync : fs7.lstatSync;
+      const srcStat = statSync(src);
       if (srcStat.isDirectory()) return onDir(srcStat, destStat, src, dest, opts);
       else if (srcStat.isFile() || srcStat.isCharacterDevice() || srcStat.isBlockDevice()) return onFile(srcStat, destStat, src, dest, opts);
       else if (srcStat.isSymbolicLink()) return onLink(destStat, src, dest, opts);
@@ -48201,8 +48201,8 @@ var require_copy_sync4 = __commonJS({
       return getStats(destStat, src, dest, opts);
     }
     function getStats(destStat, src, dest, opts) {
-      const statSync2 = opts.dereference ? fs7.statSync : fs7.lstatSync;
-      const srcStat = statSync2(src);
+      const statSync = opts.dereference ? fs7.statSync : fs7.lstatSync;
+      const srcStat = statSync(src);
       if (srcStat.isDirectory()) return onDir(srcStat, destStat, src, dest, opts);
       else if (srcStat.isFile() || srcStat.isCharacterDevice() || srcStat.isBlockDevice()) return onFile(srcStat, destStat, src, dest, opts);
       else if (srcStat.isSymbolicLink()) return onLink(destStat, src, dest, opts);
@@ -62566,20 +62566,33 @@ function listChanges(output) {
 }
 async function calculateFileChanges(changes, cwd = "") {
   const additions = changes.additions.flatMap((path7) => {
-    const fullPath = (0, import_path.join)(cwd, path7);
-    if (!(0, import_fs3.statSync)(fullPath, { throwIfNoEntry: false })?.isFile()) {
+    const skip = () => {
       warning(
         `Skipping ${path7}: not a readable file (missing, directory, or symlink)`
       );
       return [];
+    };
+    const fullPath = (0, import_path.join)(cwd, path7);
+    let fd;
+    try {
+      fd = (0, import_fs3.openSync)(fullPath, "r");
+    } catch {
+      return skip();
     }
-    const contents = (0, import_fs3.readFileSync)(fullPath).toString("base64");
-    return [
-      {
-        path: path7,
-        contents
+    try {
+      if (!(0, import_fs3.fstatSync)(fd).isFile()) {
+        return skip();
       }
-    ];
+      const contents = (0, import_fs3.readFileSync)(fd).toString("base64");
+      return [
+        {
+          path: path7,
+          contents
+        }
+      ];
+    } finally {
+      (0, import_fs3.closeSync)(fd);
+    }
   });
   const deletions = changes.deletions.map((path7) => {
     return { path: path7 };
