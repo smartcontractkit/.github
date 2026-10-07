@@ -9,7 +9,7 @@ inputs:
   pnpm-version:
     description:
       The pnpm version to use. This value takes precedence over the
-      pnpm-version-file input. Pseudo-default is ^10.0.0.
+      pnpm-version-file input. Pseudo-default is ^12.0.0.
     required: false
   use-cache:
     description: Enable github actions cache
@@ -51,7 +51,7 @@ runs:
       shell: bash
       env:
         PNPM_VERSION_INPUT: ${{ inputs.pnpm-version }}
-        PNPM_FALLBACK_VERSION: "^10.0.0"
+        PNPM_FALLBACK_VERSION: "^12.0.0"
         DOT_TOOL_VERSIONS: ".tool-versions"
       run: |
         echo "Attempting to determine pnpm version to use..."

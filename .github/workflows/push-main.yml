@@ -21,7 +21,7 @@ jobs:
         with:
           # general inputs
           checkout-repo: "false"
-          pnpm-version: "^10.0.0"
+          pnpm-version: "^12.0.0"
 
   ci-prettier:
     runs-on: ubuntu-latest
@@ -38,7 +38,7 @@ jobs:
         with:
           # general inputs
           checkout-repo: "false"
-          pnpm-version: "^10.0.0"
+          pnpm-version: "^12.0.0"
 
   ci-test:
     runs-on: ubuntu-latest
@@ -55,7 +55,7 @@ jobs:
         with:
           # general inputs
           checkout-repo: "false"
-          pnpm-version: "^10.0.0"
+          pnpm-version: "^12.0.0"
 
   cicd-build-publish-artifacts-dev:
     runs-on: ubuntu-latest
@@ -77,7 +77,7 @@ jobs:
         uses: ./actions/cicd-build-publish-artifacts-ts
         with:
           checkout-repo: "false"
-          pnpm-version: "^10.0.0"
+          pnpm-version: "^12.0.0"
 
   cd-release:
     runs-on: ubuntu-latest
@@ -96,7 +96,7 @@ jobs:
         uses: ./actions/cicd-changesets
         with:
           # general inputs
-          pnpm-version: "^10.0.0"
+          pnpm-version: "^12.0.0"
           git-user: app-token-issuer-releng-renovate[bot]
           git-email: app-token-issuer-releng-renovate[bot]@users.noreply.github.com
           # changesets inputs

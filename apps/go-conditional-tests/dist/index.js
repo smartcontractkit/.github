@@ -27264,9 +27264,9 @@ var require_cross_spawn = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/shared/config.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/shared/config.js
 var require_config = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/shared/config.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/shared/config.js"(exports2) {
     "use strict";
     var __importDefault2 = exports2 && exports2.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
@@ -30430,9 +30430,9 @@ var require_commonjs = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/generated/google/protobuf/timestamp.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/generated/google/protobuf/timestamp.js
 var require_timestamp = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/generated/google/protobuf/timestamp.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/generated/google/protobuf/timestamp.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.Timestamp = void 0;
@@ -30579,9 +30579,9 @@ var require_timestamp = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/generated/google/protobuf/wrappers.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/generated/google/protobuf/wrappers.js
 var require_wrappers = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/generated/google/protobuf/wrappers.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/generated/google/protobuf/wrappers.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.BytesValue = exports2.StringValue = exports2.BoolValue = exports2.UInt32Value = exports2.Int32Value = exports2.UInt64Value = exports2.Int64Value = exports2.FloatValue = exports2.DoubleValue = void 0;
@@ -32326,9 +32326,9 @@ var require_commonjs2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/generated/results/api/v1/artifact.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/generated/results/api/v1/artifact.js
 var require_artifact = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/generated/results/api/v1/artifact.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/generated/results/api/v1/artifact.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ArtifactService = exports2.DeleteArtifactResponse = exports2.DeleteArtifactRequest = exports2.GetSignedArtifactURLResponse = exports2.GetSignedArtifactURLRequest = exports2.ListArtifactsResponse_MonolithArtifact = exports2.ListArtifactsResponse = exports2.ListArtifactsRequest = exports2.FinalizeArtifactResponse = exports2.FinalizeArtifactRequest = exports2.CreateArtifactResponse = exports2.CreateArtifactRequest = exports2.FinalizeMigratedArtifactResponse = exports2.FinalizeMigratedArtifactRequest = exports2.MigrateArtifactResponse = exports2.MigrateArtifactRequest = void 0;
@@ -33430,9 +33430,9 @@ var require_artifact = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/generated/results/api/v1/artifact.twirp-client.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/generated/results/api/v1/artifact.twirp-client.js
 var require_artifact_twirp_client = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/generated/results/api/v1/artifact.twirp-client.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/generated/results/api/v1/artifact.twirp-client.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ArtifactServiceClientProtobuf = exports2.ArtifactServiceClientJSON = void 0;
@@ -33535,9 +33535,9 @@ var require_artifact_twirp_client = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/generated/index.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/generated/index.js
 var require_generated = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/generated/index.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/generated/index.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -33563,9 +33563,9 @@ var require_generated = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/upload/retention.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/upload/retention.js
 var require_retention = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/upload/retention.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/upload/retention.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -33626,9 +33626,9 @@ var require_retention = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/upload/path-and-artifact-name-validation.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/upload/path-and-artifact-name-validation.js
 var require_path_and_artifact_name_validation = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/upload/path-and-artifact-name-validation.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/upload/path-and-artifact-name-validation.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.validateFilePath = exports2.validateArtifactName = void 0;
@@ -33684,9 +33684,9 @@ The following characters are not allowed in files that are uploaded due to limit
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/package.json
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/package.json
 var require_package = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/package.json"(exports2, module2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/package.json"(exports2, module2) {
     module2.exports = {
       name: "@actions/artifact",
       version: "5.0.3",
@@ -33758,9 +33758,9 @@ var require_package = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/shared/user-agent.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/shared/user-agent.js
 var require_user_agent = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/shared/user-agent.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/shared/user-agent.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getUserAgentString = void 0;
@@ -33772,9 +33772,9 @@ var require_user_agent = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/shared/errors.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/shared/errors.js
 var require_errors2 = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/shared/errors.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/shared/errors.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.UsageError = exports2.NetworkError = exports2.GHESNotSupportedError = exports2.ArtifactNotFoundError = exports2.InvalidResponseError = exports2.FilesNotFoundError = void 0;
@@ -33906,9 +33906,9 @@ var require_jwt_decode_cjs = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/shared/util.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/shared/util.js
 var require_util9 = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/shared/util.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/shared/util.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -34007,9 +34007,9 @@ var require_util9 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/shared/artifact-twirp-client.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/shared/artifact-twirp-client.js
 var require_artifact_twirp_client2 = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/shared/artifact-twirp-client.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/shared/artifact-twirp-client.js"(exports2) {
     "use strict";
     var __awaiter2 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
       function adopt(value) {
@@ -34183,9 +34183,9 @@ var require_artifact_twirp_client2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/upload/upload-zip-specification.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/upload/upload-zip-specification.js
 var require_upload_zip_specification = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/upload/upload-zip-specification.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/upload/upload-zip-specification.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -34268,9 +34268,9 @@ var require_upload_zip_specification = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/abort-controller/AbortError.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/abort-controller/AbortError.js
 var require_AbortError = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/abort-controller/AbortError.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/abort-controller/AbortError.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -34303,9 +34303,9 @@ var require_AbortError = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/logger/log.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/logger/log.js
 var require_log = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/logger/log.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/logger/log.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -34348,9 +34348,9 @@ var require_log = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/env.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/env.js
 var require_env = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/env.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/env.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -34409,9 +34409,9 @@ var require_env = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/logger/debug.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/logger/debug.js
 var require_debug = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/logger/debug.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/logger/debug.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -34599,9 +34599,9 @@ var require_debug = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/logger/logger.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/logger/logger.js
 var require_logger = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/logger/logger.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/logger/logger.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -34742,9 +34742,9 @@ var require_logger = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/httpHeaders.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/httpHeaders.js
 var require_httpHeaders = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/httpHeaders.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/httpHeaders.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -34855,9 +34855,9 @@ var require_httpHeaders = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/uuidUtils.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/uuidUtils.js
 var require_uuidUtils = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/uuidUtils.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/uuidUtils.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -34887,9 +34887,9 @@ var require_uuidUtils = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/pipelineRequest.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/pipelineRequest.js
 var require_pipelineRequest = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/pipelineRequest.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/pipelineRequest.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -34963,9 +34963,9 @@ var require_pipelineRequest = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/pipeline.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/pipeline.js
 var require_pipeline = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/pipeline.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/pipeline.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -35174,9 +35174,9 @@ var require_pipeline = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/object.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/object.js
 var require_object = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/object.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/object.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -35206,9 +35206,9 @@ var require_object = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/error.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/error.js
 var require_error = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/error.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/error.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -35244,9 +35244,9 @@ var require_error = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/inspect.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/inspect.js
 var require_inspect = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/inspect.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/inspect.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -35275,9 +35275,9 @@ var require_inspect = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/sanitizer.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/sanitizer.js
 var require_sanitizer = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/sanitizer.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/sanitizer.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -35446,9 +35446,9 @@ var require_sanitizer = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/restError.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/restError.js
 var require_restError = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/restError.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/restError.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -35545,9 +35545,9 @@ var require_restError = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/bytesEncoding.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/bytesEncoding.js
 var require_bytesEncoding = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/bytesEncoding.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/bytesEncoding.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -35581,9 +35581,9 @@ var require_bytesEncoding = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/log.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/log.js
 var require_log2 = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/log.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/log.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -35612,9 +35612,9 @@ var require_log2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/nodeHttpClient.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/nodeHttpClient.js
 var require_nodeHttpClient = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/nodeHttpClient.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/nodeHttpClient.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -35960,9 +35960,9 @@ var require_nodeHttpClient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/defaultHttpClient.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/defaultHttpClient.js
 var require_defaultHttpClient = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/defaultHttpClient.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/defaultHttpClient.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -35993,9 +35993,9 @@ var require_defaultHttpClient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/logPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/logPolicy.js
 var require_logPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/logPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/logPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -36046,9 +36046,9 @@ var require_logPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/userAgentPlatform.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/userAgentPlatform.js
 var require_userAgentPlatform = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/userAgentPlatform.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/userAgentPlatform.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -36103,9 +36103,9 @@ var require_userAgentPlatform = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/constants.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/constants.js
 var require_constants6 = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/constants.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/constants.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -36135,9 +36135,9 @@ var require_constants6 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/userAgent.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/userAgent.js
 var require_userAgent = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/userAgent.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/userAgent.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -36187,9 +36187,9 @@ var require_userAgent = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/userAgentPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/userAgentPolicy.js
 var require_userAgentPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/userAgentPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/userAgentPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -36232,9 +36232,9 @@ var require_userAgentPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/random.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/random.js
 var require_random = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/random.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/random.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -36267,9 +36267,9 @@ var require_random = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/delay.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/delay.js
 var require_delay = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/delay.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/delay.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -36303,9 +36303,9 @@ var require_delay = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/helpers.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/helpers.js
 var require_helpers = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/helpers.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/helpers.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -36375,9 +36375,9 @@ var require_helpers = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/retryStrategies/throttlingRetryStrategy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/retryStrategies/throttlingRetryStrategy.js
 var require_throttlingRetryStrategy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/retryStrategies/throttlingRetryStrategy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/retryStrategies/throttlingRetryStrategy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -36444,9 +36444,9 @@ var require_throttlingRetryStrategy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/retryStrategies/exponentialRetryStrategy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/retryStrategies/exponentialRetryStrategy.js
 var require_exponentialRetryStrategy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/retryStrategies/exponentialRetryStrategy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/retryStrategies/exponentialRetryStrategy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -36514,9 +36514,9 @@ var require_exponentialRetryStrategy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/retryPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/retryPolicy.js
 var require_retryPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/retryPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/retryPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -36642,9 +36642,9 @@ var require_retryPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/defaultRetryPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/defaultRetryPolicy.js
 var require_defaultRetryPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/defaultRetryPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/defaultRetryPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -36685,9 +36685,9 @@ var require_defaultRetryPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/formData.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/formData.js
 var require_formData = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/formData.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/formData.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -36729,9 +36729,9 @@ var require_formData = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/formDataPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/formDataPolicy.js
 var require_formDataPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/formDataPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/formDataPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -36835,9 +36835,9 @@ var require_formDataPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/agentPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/agentPolicy.js
 var require_agentPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/agentPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/agentPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -36877,9 +36877,9 @@ var require_agentPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/tlsPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/tlsPolicy.js
 var require_tlsPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/tlsPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/tlsPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -37036,9 +37036,9 @@ var require_ms = __commonJS({
   }
 });
 
-// node_modules/.pnpm/debug@4.4.3_supports-color@7.2.0/node_modules/debug/src/common.js
+// node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug/src/common.js
 var require_common = __commonJS({
-  "node_modules/.pnpm/debug@4.4.3_supports-color@7.2.0/node_modules/debug/src/common.js"(exports2, module2) {
+  "node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug/src/common.js"(exports2, module2) {
     "use strict";
     function setup2(env) {
       createDebug.debug = createDebug;
@@ -37214,9 +37214,9 @@ var require_common = __commonJS({
   }
 });
 
-// node_modules/.pnpm/debug@4.4.3_supports-color@7.2.0/node_modules/debug/src/browser.js
+// node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug/src/browser.js
 var require_browser = __commonJS({
-  "node_modules/.pnpm/debug@4.4.3_supports-color@7.2.0/node_modules/debug/src/browser.js"(exports2, module2) {
+  "node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug/src/browser.js"(exports2, module2) {
     "use strict";
     exports2.formatArgs = formatArgs;
     exports2.save = save;
@@ -37398,27 +37398,29 @@ var require_has_flag = __commonJS({
   }
 });
 
-// node_modules/.pnpm/supports-color@7.2.0/node_modules/supports-color/index.js
+// node_modules/.pnpm/supports-color@8.1.1/node_modules/supports-color/index.js
 var require_supports_color = __commonJS({
-  "node_modules/.pnpm/supports-color@7.2.0/node_modules/supports-color/index.js"(exports2, module2) {
+  "node_modules/.pnpm/supports-color@8.1.1/node_modules/supports-color/index.js"(exports2, module2) {
     "use strict";
     var os = require("os");
     var tty3 = require("tty");
     var hasFlag = require_has_flag();
     var { env } = process;
-    var forceColor;
+    var flagForceColor;
     if (hasFlag("no-color") || hasFlag("no-colors") || hasFlag("color=false") || hasFlag("color=never")) {
-      forceColor = 0;
+      flagForceColor = 0;
     } else if (hasFlag("color") || hasFlag("colors") || hasFlag("color=true") || hasFlag("color=always")) {
-      forceColor = 1;
+      flagForceColor = 1;
     }
-    if ("FORCE_COLOR" in env) {
-      if (env.FORCE_COLOR === "true") {
-        forceColor = 1;
-      } else if (env.FORCE_COLOR === "false") {
-        forceColor = 0;
-      } else {
-        forceColor = env.FORCE_COLOR.length === 0 ? 1 : Math.min(parseInt(env.FORCE_COLOR, 10), 3);
+    function envForceColor() {
+      if ("FORCE_COLOR" in env) {
+        if (env.FORCE_COLOR === "true") {
+          return 1;
+        }
+        if (env.FORCE_COLOR === "false") {
+          return 0;
+        }
+        return env.FORCE_COLOR.length === 0 ? 1 : Math.min(Number.parseInt(env.FORCE_COLOR, 10), 3);
       }
     }
     function translateLevel(level) {
@@ -37432,15 +37434,22 @@ var require_supports_color = __commonJS({
         has16m: level >= 3
       };
     }
-    function supportsColor(haveStream, streamIsTTY) {
+    function supportsColor(haveStream, { streamIsTTY, sniffFlags = true } = {}) {
+      const noFlagForceColor = envForceColor();
+      if (noFlagForceColor !== void 0) {
+        flagForceColor = noFlagForceColor;
+      }
+      const forceColor = sniffFlags ? flagForceColor : noFlagForceColor;
       if (forceColor === 0) {
         return 0;
       }
-      if (hasFlag("color=16m") || hasFlag("color=full") || hasFlag("color=truecolor")) {
-        return 3;
-      }
-      if (hasFlag("color=256")) {
-        return 2;
+      if (sniffFlags) {
+        if (hasFlag("color=16m") || hasFlag("color=full") || hasFlag("color=truecolor")) {
+          return 3;
+        }
+        if (hasFlag("color=256")) {
+          return 2;
+        }
       }
       if (haveStream && !streamIsTTY && forceColor === void 0) {
         return 0;
@@ -37457,7 +37466,7 @@ var require_supports_color = __commonJS({
         return 1;
       }
       if ("CI" in env) {
-        if (["TRAVIS", "CIRCLECI", "APPVEYOR", "GITLAB_CI", "GITHUB_ACTIONS", "BUILDKITE"].some((sign) => sign in env) || env.CI_NAME === "codeship") {
+        if (["TRAVIS", "CIRCLECI", "APPVEYOR", "GITLAB_CI", "GITHUB_ACTIONS", "BUILDKITE", "DRONE"].some((sign) => sign in env) || env.CI_NAME === "codeship") {
           return 1;
         }
         return min;
@@ -37469,7 +37478,7 @@ var require_supports_color = __commonJS({
         return 3;
       }
       if ("TERM_PROGRAM" in env) {
-        const version = parseInt((env.TERM_PROGRAM_VERSION || "").split(".")[0], 10);
+        const version = Number.parseInt((env.TERM_PROGRAM_VERSION || "").split(".")[0], 10);
         switch (env.TERM_PROGRAM) {
           case "iTerm.app":
             return version >= 3 ? 3 : 2;
@@ -37488,21 +37497,24 @@ var require_supports_color = __commonJS({
       }
       return min;
     }
-    function getSupportLevel(stream) {
-      const level = supportsColor(stream, stream && stream.isTTY);
+    function getSupportLevel(stream, options = {}) {
+      const level = supportsColor(stream, {
+        streamIsTTY: stream && stream.isTTY,
+        ...options
+      });
       return translateLevel(level);
     }
     module2.exports = {
       supportsColor: getSupportLevel,
-      stdout: translateLevel(supportsColor(true, tty3.isatty(1))),
-      stderr: translateLevel(supportsColor(true, tty3.isatty(2)))
+      stdout: getSupportLevel({ isTTY: tty3.isatty(1) }),
+      stderr: getSupportLevel({ isTTY: tty3.isatty(2) })
     };
   }
 });
 
-// node_modules/.pnpm/debug@4.4.3_supports-color@7.2.0/node_modules/debug/src/node.js
+// node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug/src/node.js
 var require_node = __commonJS({
-  "node_modules/.pnpm/debug@4.4.3_supports-color@7.2.0/node_modules/debug/src/node.js"(exports2, module2) {
+  "node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug/src/node.js"(exports2, module2) {
     "use strict";
     var tty3 = require("tty");
     var util2 = require("util");
@@ -37675,9 +37687,9 @@ var require_node = __commonJS({
   }
 });
 
-// node_modules/.pnpm/debug@4.4.3_supports-color@7.2.0/node_modules/debug/src/index.js
+// node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug/src/index.js
 var require_src = __commonJS({
-  "node_modules/.pnpm/debug@4.4.3_supports-color@7.2.0/node_modules/debug/src/index.js"(exports2, module2) {
+  "node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug/src/index.js"(exports2, module2) {
     "use strict";
     if (typeof process === "undefined" || process.type === "renderer" || process.browser === true || process.__nwjs) {
       module2.exports = require_browser();
@@ -37913,9 +37925,9 @@ var require_dist = __commonJS({
   }
 });
 
-// node_modules/.pnpm/https-proxy-agent@7.0.6/node_modules/https-proxy-agent/dist/parse-proxy-response.js
+// node_modules/.pnpm/https-proxy-agent@7.0.6_supports-color@8.1.1/node_modules/https-proxy-agent/dist/parse-proxy-response.js
 var require_parse_proxy_response = __commonJS({
-  "node_modules/.pnpm/https-proxy-agent@7.0.6/node_modules/https-proxy-agent/dist/parse-proxy-response.js"(exports2) {
+  "node_modules/.pnpm/https-proxy-agent@7.0.6_supports-color@8.1.1/node_modules/https-proxy-agent/dist/parse-proxy-response.js"(exports2) {
     "use strict";
     var __importDefault2 = exports2 && exports2.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
@@ -38009,9 +38021,9 @@ var require_parse_proxy_response = __commonJS({
   }
 });
 
-// node_modules/.pnpm/https-proxy-agent@7.0.6/node_modules/https-proxy-agent/dist/index.js
+// node_modules/.pnpm/https-proxy-agent@7.0.6_supports-color@8.1.1/node_modules/https-proxy-agent/dist/index.js
 var require_dist2 = __commonJS({
-  "node_modules/.pnpm/https-proxy-agent@7.0.6/node_modules/https-proxy-agent/dist/index.js"(exports2) {
+  "node_modules/.pnpm/https-proxy-agent@7.0.6_supports-color@8.1.1/node_modules/https-proxy-agent/dist/index.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -38159,9 +38171,9 @@ var require_dist2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/http-proxy-agent@7.0.2/node_modules/http-proxy-agent/dist/index.js
+// node_modules/.pnpm/http-proxy-agent@7.0.2_supports-color@8.1.1/node_modules/http-proxy-agent/dist/index.js
 var require_dist3 = __commonJS({
-  "node_modules/.pnpm/http-proxy-agent@7.0.2/node_modules/http-proxy-agent/dist/index.js"(exports2) {
+  "node_modules/.pnpm/http-proxy-agent@7.0.2_supports-color@8.1.1/node_modules/http-proxy-agent/dist/index.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -38289,9 +38301,9 @@ var require_dist3 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/proxyPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/proxyPolicy.js
 var require_proxyPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/proxyPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/proxyPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -38472,9 +38484,9 @@ var require_proxyPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/decompressResponsePolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/decompressResponsePolicy.js
 var require_decompressResponsePolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/decompressResponsePolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/decompressResponsePolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -38514,9 +38526,9 @@ var require_decompressResponsePolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/redirectPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/redirectPolicy.js
 var require_redirectPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/redirectPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/redirectPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -38583,9 +38595,9 @@ var require_redirectPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/platformPolicies.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/platformPolicies.js
 var require_platformPolicies = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/platformPolicies.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/platformPolicies.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -38628,9 +38640,9 @@ var require_platformPolicies = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/typeGuards-node.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/typeGuards-node.js
 var require_typeGuards_node = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/typeGuards-node.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/typeGuards-node.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -38665,9 +38677,9 @@ var require_typeGuards_node = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/typeGuards.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/typeGuards.js
 var require_typeGuards = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/typeGuards.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/typeGuards.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -38708,9 +38720,9 @@ var require_typeGuards = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/concat.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/concat.js
 var require_concat = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/concat.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/concat.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -38792,9 +38804,9 @@ var require_concat = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/multipartPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/multipartPolicy.js
 var require_multipartPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/multipartPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/multipartPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -38927,9 +38939,9 @@ var require_multipartPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/createPipelineFromOptions.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/createPipelineFromOptions.js
 var require_createPipelineFromOptions = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/createPipelineFromOptions.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/createPipelineFromOptions.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -38973,9 +38985,9 @@ var require_createPipelineFromOptions = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/apiVersionPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/apiVersionPolicy.js
 var require_apiVersionPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/apiVersionPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/apiVersionPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -39016,9 +39028,9 @@ var require_apiVersionPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/auth/credentials.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/auth/credentials.js
 var require_credentials = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/auth/credentials.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/auth/credentials.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -39060,9 +39072,9 @@ var require_credentials = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/checkInsecureConnection.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/checkInsecureConnection.js
 var require_checkInsecureConnection = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/checkInsecureConnection.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/checkInsecureConnection.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -39120,9 +39132,9 @@ var require_checkInsecureConnection = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/apiKeyAuthenticationPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/apiKeyAuthenticationPolicy.js
 var require_apiKeyAuthenticationPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/apiKeyAuthenticationPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/apiKeyAuthenticationPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -39169,9 +39181,9 @@ var require_apiKeyAuthenticationPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/basicAuthenticationPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/basicAuthenticationPolicy.js
 var require_basicAuthenticationPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/basicAuthenticationPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/basicAuthenticationPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -39223,9 +39235,9 @@ var require_basicAuthenticationPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/bearerAuthenticationPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/bearerAuthenticationPolicy.js
 var require_bearerAuthenticationPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/bearerAuthenticationPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/bearerAuthenticationPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -39274,9 +39286,9 @@ var require_bearerAuthenticationPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/oauth2AuthenticationPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/oauth2AuthenticationPolicy.js
 var require_oauth2AuthenticationPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/oauth2AuthenticationPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/auth/oauth2AuthenticationPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -39323,9 +39335,9 @@ var require_oauth2AuthenticationPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/clientHelpers.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/clientHelpers.js
 var require_clientHelpers = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/clientHelpers.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/clientHelpers.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -39393,9 +39405,9 @@ var require_clientHelpers = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/multipart.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/multipart.js
 var require_multipart = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/multipart.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/multipart.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -39528,9 +39540,9 @@ var require_multipart = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/sendRequest.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/sendRequest.js
 var require_sendRequest = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/sendRequest.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/sendRequest.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -39729,9 +39741,9 @@ var require_sendRequest = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/urlHelpers.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/urlHelpers.js
 var require_urlHelpers = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/urlHelpers.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/urlHelpers.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -39955,9 +39967,9 @@ var require_urlHelpers = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/getClient.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/getClient.js
 var require_getClient = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/getClient.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/getClient.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40144,9 +40156,9 @@ var require_getClient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/operationOptionHelpers.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/operationOptionHelpers.js
 var require_operationOptionHelpers = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/operationOptionHelpers.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/operationOptionHelpers.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40185,9 +40197,9 @@ var require_operationOptionHelpers = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/restError.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/restError.js
 var require_restError2 = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/restError.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/client/restError.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40239,9 +40251,9 @@ var require_restError2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/index.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/index.js
 var require_commonjs3 = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/index.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/index.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40294,9 +40306,9 @@ var require_commonjs3 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/pipeline.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/pipeline.js
 var require_pipeline2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/pipeline.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/pipeline.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40327,9 +40339,9 @@ var require_pipeline2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/logger/internal.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/logger/internal.js
 var require_internal = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/logger/internal.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/logger/internal.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40357,9 +40369,9 @@ var require_internal = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+logger@1.4.0/node_modules/@azure/logger/dist/commonjs/index.js
+// node_modules/.pnpm/@azure+logger@1.4.0_supports-color@8.1.1/node_modules/@azure/logger/dist/commonjs/index.js
 var require_commonjs4 = __commonJS({
-  "node_modules/.pnpm/@azure+logger@1.4.0/node_modules/@azure/logger/dist/commonjs/index.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+logger@1.4.0_supports-color@8.1.1/node_modules/@azure/logger/dist/commonjs/index.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40404,9 +40416,9 @@ var require_commonjs4 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/log.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/log.js
 var require_log3 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/log.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/log.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40435,9 +40447,9 @@ var require_log3 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/exponentialRetryPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/exponentialRetryPolicy.js
 var require_exponentialRetryPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/exponentialRetryPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/exponentialRetryPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40482,9 +40494,9 @@ var require_exponentialRetryPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/systemErrorRetryPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/systemErrorRetryPolicy.js
 var require_systemErrorRetryPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/systemErrorRetryPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/systemErrorRetryPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40532,9 +40544,9 @@ var require_systemErrorRetryPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/throttlingRetryPolicy.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/throttlingRetryPolicy.js
 var require_throttlingRetryPolicy = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/throttlingRetryPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/throttlingRetryPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40574,9 +40586,9 @@ var require_throttlingRetryPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/internal.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/internal.js
 var require_internal2 = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/internal.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/policies/internal.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40644,9 +40656,9 @@ var require_internal2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/logPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/logPolicy.js
 var require_logPolicy2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/logPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/logPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40683,9 +40695,9 @@ var require_logPolicy2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/redirectPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/redirectPolicy.js
 var require_redirectPolicy2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/redirectPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/redirectPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40718,9 +40730,9 @@ var require_redirectPolicy2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/userAgentPlatform.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/userAgentPlatform.js
 var require_userAgentPlatform2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/userAgentPlatform.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/userAgentPlatform.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -40775,9 +40787,9 @@ var require_userAgentPlatform2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/constants.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/constants.js
 var require_constants7 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/constants.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/constants.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40807,9 +40819,9 @@ var require_constants7 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/userAgent.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/userAgent.js
 var require_userAgent2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/userAgent.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/userAgent.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40858,9 +40870,9 @@ var require_userAgent2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/userAgentPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/userAgentPolicy.js
 var require_userAgentPolicy2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/userAgentPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/userAgentPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40903,9 +40915,9 @@ var require_userAgentPolicy2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/createFile.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/createFile.js
 var require_createFile = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/createFile.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/createFile.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -40936,9 +40948,9 @@ var require_createFile = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/file.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/file.js
 var require_file2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/file.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/file.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -41043,9 +41055,9 @@ var require_file2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/multipartPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/multipartPolicy.js
 var require_multipartPolicy2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/multipartPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/multipartPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -41092,9 +41104,9 @@ var require_multipartPolicy2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/decompressResponsePolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/decompressResponsePolicy.js
 var require_decompressResponsePolicy2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/decompressResponsePolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/decompressResponsePolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -41127,9 +41139,9 @@ var require_decompressResponsePolicy2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/defaultRetryPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/defaultRetryPolicy.js
 var require_defaultRetryPolicy2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/defaultRetryPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/defaultRetryPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -41162,9 +41174,9 @@ var require_defaultRetryPolicy2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/formDataPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/formDataPolicy.js
 var require_formDataPolicy2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/formDataPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/formDataPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -41197,9 +41209,9 @@ var require_formDataPolicy2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/sha256.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/sha256.js
 var require_sha256 = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/sha256.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/sha256.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -41235,9 +41247,9 @@ var require_sha256 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/internal.js
+// node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/internal.js
 var require_internal3 = __commonJS({
-  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/internal.js"(exports2, module2) {
+  "node_modules/.pnpm/@typespec+ts-http-runtime@0.3.9_supports-color@8.1.1/node_modules/@typespec/ts-http-runtime/dist/commonjs/util/internal.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -41289,9 +41301,9 @@ var require_internal3 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-util@1.14.0/node_modules/@azure/core-util/dist/commonjs/aborterUtils.js
+// node_modules/.pnpm/@azure+core-util@1.14.0_supports-color@8.1.1/node_modules/@azure/core-util/dist/commonjs/aborterUtils.js
 var require_aborterUtils = __commonJS({
-  "node_modules/.pnpm/@azure+core-util@1.14.0/node_modules/@azure/core-util/dist/commonjs/aborterUtils.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-util@1.14.0_supports-color@8.1.1/node_modules/@azure/core-util/dist/commonjs/aborterUtils.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -41398,9 +41410,9 @@ var require_commonjs5 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-util@1.14.0/node_modules/@azure/core-util/dist/commonjs/createAbortablePromise.js
+// node_modules/.pnpm/@azure+core-util@1.14.0_supports-color@8.1.1/node_modules/@azure/core-util/dist/commonjs/createAbortablePromise.js
 var require_createAbortablePromise = __commonJS({
-  "node_modules/.pnpm/@azure+core-util@1.14.0/node_modules/@azure/core-util/dist/commonjs/createAbortablePromise.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-util@1.14.0_supports-color@8.1.1/node_modules/@azure/core-util/dist/commonjs/createAbortablePromise.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -41462,9 +41474,9 @@ var require_createAbortablePromise = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-util@1.14.0/node_modules/@azure/core-util/dist/commonjs/delay.js
+// node_modules/.pnpm/@azure+core-util@1.14.0_supports-color@8.1.1/node_modules/@azure/core-util/dist/commonjs/delay.js
 var require_delay2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-util@1.14.0/node_modules/@azure/core-util/dist/commonjs/delay.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-util@1.14.0_supports-color@8.1.1/node_modules/@azure/core-util/dist/commonjs/delay.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -41507,9 +41519,9 @@ var require_delay2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-util@1.14.0/node_modules/@azure/core-util/dist/commonjs/error.js
+// node_modules/.pnpm/@azure+core-util@1.14.0_supports-color@8.1.1/node_modules/@azure/core-util/dist/commonjs/error.js
 var require_error2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-util@1.14.0/node_modules/@azure/core-util/dist/commonjs/error.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-util@1.14.0_supports-color@8.1.1/node_modules/@azure/core-util/dist/commonjs/error.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -41554,9 +41566,9 @@ var require_error2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-util@1.14.0/node_modules/@azure/core-util/dist/commonjs/typeGuards.js
+// node_modules/.pnpm/@azure+core-util@1.14.0_supports-color@8.1.1/node_modules/@azure/core-util/dist/commonjs/typeGuards.js
 var require_typeGuards2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-util@1.14.0/node_modules/@azure/core-util/dist/commonjs/typeGuards.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-util@1.14.0_supports-color@8.1.1/node_modules/@azure/core-util/dist/commonjs/typeGuards.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -41602,9 +41614,9 @@ var require_typeGuards2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-util@1.14.0/node_modules/@azure/core-util/dist/commonjs/index.js
+// node_modules/.pnpm/@azure+core-util@1.14.0_supports-color@8.1.1/node_modules/@azure/core-util/dist/commonjs/index.js
 var require_commonjs6 = __commonJS({
-  "node_modules/.pnpm/@azure+core-util@1.14.0/node_modules/@azure/core-util/dist/commonjs/index.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-util@1.14.0_supports-color@8.1.1/node_modules/@azure/core-util/dist/commonjs/index.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -41705,9 +41717,9 @@ var require_commonjs6 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/proxyPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/proxyPolicy.js
 var require_proxyPolicy2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/proxyPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/proxyPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -41744,9 +41756,9 @@ var require_proxyPolicy2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/setClientRequestIdPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/setClientRequestIdPolicy.js
 var require_setClientRequestIdPolicy = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/setClientRequestIdPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/setClientRequestIdPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -41786,9 +41798,9 @@ var require_setClientRequestIdPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/agentPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/agentPolicy.js
 var require_agentPolicy2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/agentPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/agentPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -41821,9 +41833,9 @@ var require_agentPolicy2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/tlsPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/tlsPolicy.js
 var require_tlsPolicy2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/tlsPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/tlsPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -42050,9 +42062,9 @@ var require_commonjs7 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/restError.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/restError.js
 var require_restError3 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/restError.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/restError.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -42085,9 +42097,9 @@ var require_restError3 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/tracingPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/tracingPolicy.js
 var require_tracingPolicy = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/tracingPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/tracingPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -42229,9 +42241,9 @@ var require_tracingPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/wrapAbortSignal.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/wrapAbortSignal.js
 var require_wrapAbortSignal = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/wrapAbortSignal.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/wrapAbortSignal.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -42284,9 +42296,9 @@ var require_wrapAbortSignal = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/wrapAbortSignalLikePolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/wrapAbortSignalLikePolicy.js
 var require_wrapAbortSignalLikePolicy = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/wrapAbortSignalLikePolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/wrapAbortSignalLikePolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -42333,9 +42345,9 @@ var require_wrapAbortSignalLikePolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/createPipelineFromOptions.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/createPipelineFromOptions.js
 var require_createPipelineFromOptions2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/createPipelineFromOptions.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/createPipelineFromOptions.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -42404,9 +42416,9 @@ var require_createPipelineFromOptions2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/defaultHttpClient.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/defaultHttpClient.js
 var require_defaultHttpClient2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/defaultHttpClient.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/defaultHttpClient.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -42449,9 +42461,9 @@ var require_defaultHttpClient2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/httpHeaders.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/httpHeaders.js
 var require_httpHeaders2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/httpHeaders.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/httpHeaders.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -42482,9 +42494,9 @@ var require_httpHeaders2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/pipelineRequest.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/pipelineRequest.js
 var require_pipelineRequest2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/pipelineRequest.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/pipelineRequest.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -42515,9 +42527,9 @@ var require_pipelineRequest2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/exponentialRetryPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/exponentialRetryPolicy.js
 var require_exponentialRetryPolicy2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/exponentialRetryPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/exponentialRetryPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -42550,9 +42562,9 @@ var require_exponentialRetryPolicy2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/systemErrorRetryPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/systemErrorRetryPolicy.js
 var require_systemErrorRetryPolicy2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/systemErrorRetryPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/systemErrorRetryPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -42585,9 +42597,9 @@ var require_systemErrorRetryPolicy2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/throttlingRetryPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/throttlingRetryPolicy.js
 var require_throttlingRetryPolicy2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/throttlingRetryPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/throttlingRetryPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -42620,9 +42632,9 @@ var require_throttlingRetryPolicy2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/retryPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/retryPolicy.js
 var require_retryPolicy2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/retryPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/retryPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -42659,9 +42671,9 @@ var require_retryPolicy2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/tokenCycler.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/tokenCycler.js
 var require_tokenCycler = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/tokenCycler.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/util/tokenCycler.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -42798,9 +42810,9 @@ var require_tokenCycler = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/bearerTokenAuthenticationPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/bearerTokenAuthenticationPolicy.js
 var require_bearerTokenAuthenticationPolicy = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/bearerTokenAuthenticationPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/bearerTokenAuthenticationPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -43015,9 +43027,9 @@ var require_bearerTokenAuthenticationPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/ndJsonPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/ndJsonPolicy.js
 var require_ndJsonPolicy = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/ndJsonPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/ndJsonPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -43058,9 +43070,9 @@ var require_ndJsonPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/auxiliaryAuthenticationHeaderPolicy.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/auxiliaryAuthenticationHeaderPolicy.js
 var require_auxiliaryAuthenticationHeaderPolicy = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/auxiliaryAuthenticationHeaderPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/policies/auxiliaryAuthenticationHeaderPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -43149,9 +43161,9 @@ var require_auxiliaryAuthenticationHeaderPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/index.js
+// node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/index.js
 var require_commonjs8 = __commonJS({
-  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-rest-pipeline/dist/commonjs/index.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-rest-pipeline@1.25.0_supports-color@8.1.1/node_modules/@azure/core-rest-pipeline/dist/commonjs/index.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -43249,9 +43261,9 @@ var require_commonjs8 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-auth@1.11.0/node_modules/@azure/core-auth/dist/commonjs/azureKeyCredential.js
+// node_modules/.pnpm/@azure+core-auth@1.11.0_supports-color@8.1.1/node_modules/@azure/core-auth/dist/commonjs/azureKeyCredential.js
 var require_azureKeyCredential = __commonJS({
-  "node_modules/.pnpm/@azure+core-auth@1.11.0/node_modules/@azure/core-auth/dist/commonjs/azureKeyCredential.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-auth@1.11.0_supports-color@8.1.1/node_modules/@azure/core-auth/dist/commonjs/azureKeyCredential.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -43310,9 +43322,9 @@ var require_azureKeyCredential = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-auth@1.11.0/node_modules/@azure/core-auth/dist/commonjs/keyCredential.js
+// node_modules/.pnpm/@azure+core-auth@1.11.0_supports-color@8.1.1/node_modules/@azure/core-auth/dist/commonjs/keyCredential.js
 var require_keyCredential = __commonJS({
-  "node_modules/.pnpm/@azure+core-auth@1.11.0/node_modules/@azure/core-auth/dist/commonjs/keyCredential.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-auth@1.11.0_supports-color@8.1.1/node_modules/@azure/core-auth/dist/commonjs/keyCredential.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -43343,9 +43355,9 @@ var require_keyCredential = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-auth@1.11.0/node_modules/@azure/core-auth/dist/commonjs/azureNamedKeyCredential.js
+// node_modules/.pnpm/@azure+core-auth@1.11.0_supports-color@8.1.1/node_modules/@azure/core-auth/dist/commonjs/azureNamedKeyCredential.js
 var require_azureNamedKeyCredential = __commonJS({
-  "node_modules/.pnpm/@azure+core-auth@1.11.0/node_modules/@azure/core-auth/dist/commonjs/azureNamedKeyCredential.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-auth@1.11.0_supports-color@8.1.1/node_modules/@azure/core-auth/dist/commonjs/azureNamedKeyCredential.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -43423,9 +43435,9 @@ var require_azureNamedKeyCredential = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-auth@1.11.0/node_modules/@azure/core-auth/dist/commonjs/azureSASCredential.js
+// node_modules/.pnpm/@azure+core-auth@1.11.0_supports-color@8.1.1/node_modules/@azure/core-auth/dist/commonjs/azureSASCredential.js
 var require_azureSASCredential = __commonJS({
-  "node_modules/.pnpm/@azure+core-auth@1.11.0/node_modules/@azure/core-auth/dist/commonjs/azureSASCredential.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-auth@1.11.0_supports-color@8.1.1/node_modules/@azure/core-auth/dist/commonjs/azureSASCredential.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -43492,9 +43504,9 @@ var require_azureSASCredential = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-auth@1.11.0/node_modules/@azure/core-auth/dist/commonjs/tokenCredential.js
+// node_modules/.pnpm/@azure+core-auth@1.11.0_supports-color@8.1.1/node_modules/@azure/core-auth/dist/commonjs/tokenCredential.js
 var require_tokenCredential = __commonJS({
-  "node_modules/.pnpm/@azure+core-auth@1.11.0/node_modules/@azure/core-auth/dist/commonjs/tokenCredential.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-auth@1.11.0_supports-color@8.1.1/node_modules/@azure/core-auth/dist/commonjs/tokenCredential.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -43525,9 +43537,9 @@ var require_tokenCredential = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-auth@1.11.0/node_modules/@azure/core-auth/dist/commonjs/index.js
+// node_modules/.pnpm/@azure+core-auth@1.11.0_supports-color@8.1.1/node_modules/@azure/core-auth/dist/commonjs/index.js
 var require_commonjs9 = __commonJS({
-  "node_modules/.pnpm/@azure+core-auth@1.11.0/node_modules/@azure/core-auth/dist/commonjs/index.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-auth@1.11.0_supports-color@8.1.1/node_modules/@azure/core-auth/dist/commonjs/index.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -43565,9 +43577,9 @@ var require_commonjs9 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-http-compat/dist/commonjs/policies/disableKeepAlivePolicy.js
+// node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__@azure+co_eb6705de68b719b71938a09ea24be955/node_modules/@azure/core-http-compat/dist/commonjs/policies/disableKeepAlivePolicy.js
 var require_disableKeepAlivePolicy = __commonJS({
-  "node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-http-compat/dist/commonjs/policies/disableKeepAlivePolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__@azure+co_eb6705de68b719b71938a09ea24be955/node_modules/@azure/core-http-compat/dist/commonjs/policies/disableKeepAlivePolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -44135,9 +44147,9 @@ var init_tslib_es6 = __esm({
   }
 });
 
-// node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/base64.js
+// node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/base64.js
 var require_base642 = __commonJS({
-  "node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/base64.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/base64.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.encodeString = encodeString;
@@ -44160,9 +44172,9 @@ var require_base642 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/interfaces.js
+// node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/interfaces.js
 var require_interfaces = __commonJS({
-  "node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/interfaces.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/interfaces.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.XML_CHARKEY = exports2.XML_ATTRKEY = void 0;
@@ -44171,9 +44183,9 @@ var require_interfaces = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/utils.js
+// node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/utils.js
 var require_utils5 = __commonJS({
-  "node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/utils.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/utils.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.isPrimitiveBody = isPrimitiveBody;
@@ -44249,9 +44261,9 @@ var require_utils5 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/serializer.js
+// node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/serializer.js
 var require_serializer = __commonJS({
-  "node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/serializer.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/serializer.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.MapperTypeNames = void 0;
@@ -45020,9 +45032,9 @@ var require_serializer = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/state-cjs.js
+// node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/state-cjs.js
 var require_state_cjs2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/state-cjs.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/state-cjs.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.state = void 0;
@@ -45032,9 +45044,9 @@ var require_state_cjs2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/operationHelpers.js
+// node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/operationHelpers.js
 var require_operationHelpers = __commonJS({
-  "node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/operationHelpers.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/operationHelpers.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getOperationArgumentValueFromParameter = getOperationArgumentValueFromParameter;
@@ -45123,9 +45135,9 @@ var require_operationHelpers = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/deserializationPolicy.js
+// node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/deserializationPolicy.js
 var require_deserializationPolicy = __commonJS({
-  "node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/deserializationPolicy.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/deserializationPolicy.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.deserializationPolicyName = void 0;
@@ -45321,9 +45333,9 @@ var require_deserializationPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/interfaceHelpers.js
+// node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/interfaceHelpers.js
 var require_interfaceHelpers = __commonJS({
-  "node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/interfaceHelpers.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/interfaceHelpers.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getStreamingResponseStatusCodes = getStreamingResponseStatusCodes;
@@ -45353,9 +45365,9 @@ var require_interfaceHelpers = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/serializationPolicy.js
+// node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/serializationPolicy.js
 var require_serializationPolicy = __commonJS({
-  "node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/serializationPolicy.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/serializationPolicy.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.serializationPolicyName = void 0;
@@ -45483,9 +45495,9 @@ var require_serializationPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/pipeline.js
+// node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/pipeline.js
 var require_pipeline3 = __commonJS({
-  "node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/pipeline.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/pipeline.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.createClientPipeline = createClientPipeline;
@@ -45509,9 +45521,9 @@ var require_pipeline3 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/httpClientCache.js
+// node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/httpClientCache.js
 var require_httpClientCache = __commonJS({
-  "node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/httpClientCache.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/httpClientCache.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getCachedDefaultHttpClient = getCachedDefaultHttpClient2;
@@ -45526,9 +45538,9 @@ var require_httpClientCache = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/urlHelpers.js
+// node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/urlHelpers.js
 var require_urlHelpers2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/urlHelpers.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/urlHelpers.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getRequestUrl = getRequestUrl;
@@ -45728,9 +45740,9 @@ var require_urlHelpers2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/log.js
+// node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/log.js
 var require_log4 = __commonJS({
-  "node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/log.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/log.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.logger = void 0;
@@ -45739,9 +45751,9 @@ var require_log4 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/serviceClient.js
+// node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/serviceClient.js
 var require_serviceClient = __commonJS({
-  "node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/serviceClient.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/serviceClient.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ServiceClient = void 0;
@@ -45907,9 +45919,9 @@ var require_serviceClient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/authorizeRequestOnClaimChallenge.js
+// node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/authorizeRequestOnClaimChallenge.js
 var require_authorizeRequestOnClaimChallenge = __commonJS({
-  "node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/authorizeRequestOnClaimChallenge.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/authorizeRequestOnClaimChallenge.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.parseCAEChallenge = parseCAEChallenge;
@@ -45950,9 +45962,9 @@ var require_authorizeRequestOnClaimChallenge = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/authorizeRequestOnTenantChallenge.js
+// node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/authorizeRequestOnTenantChallenge.js
 var require_authorizeRequestOnTenantChallenge = __commonJS({
-  "node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/authorizeRequestOnTenantChallenge.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/authorizeRequestOnTenantChallenge.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.authorizeRequestOnTenantChallenge = void 0;
@@ -46039,9 +46051,9 @@ var require_authorizeRequestOnTenantChallenge = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/index.js
+// node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/index.js
 var require_commonjs10 = __commonJS({
-  "node_modules/.pnpm/@azure+core-client@1.11.1/node_modules/@azure/core-client/dist/commonjs/index.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-client@1.11.1_supports-color@8.1.1/node_modules/@azure/core-client/dist/commonjs/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.authorizeRequestOnTenantChallenge = exports2.authorizeRequestOnClaimChallenge = exports2.serializationPolicyName = exports2.serializationPolicy = exports2.deserializationPolicyName = exports2.deserializationPolicy = exports2.XML_CHARKEY = exports2.XML_ATTRKEY = exports2.createClientPipeline = exports2.ServiceClient = exports2.MapperTypeNames = exports2.createSerializer = void 0;
@@ -46092,9 +46104,9 @@ var require_commonjs10 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-http-compat/dist/commonjs/util.js
+// node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__@azure+co_eb6705de68b719b71938a09ea24be955/node_modules/@azure/core-http-compat/dist/commonjs/util.js
 var require_util10 = __commonJS({
-  "node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-http-compat/dist/commonjs/util.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__@azure+co_eb6705de68b719b71938a09ea24be955/node_modules/@azure/core-http-compat/dist/commonjs/util.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -46358,9 +46370,9 @@ var require_util10 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-http-compat/dist/commonjs/response.js
+// node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__@azure+co_eb6705de68b719b71938a09ea24be955/node_modules/@azure/core-http-compat/dist/commonjs/response.js
 var require_response2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-http-compat/dist/commonjs/response.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__@azure+co_eb6705de68b719b71938a09ea24be955/node_modules/@azure/core-http-compat/dist/commonjs/response.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -46438,9 +46450,9 @@ var require_response2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-http-compat/dist/commonjs/extendedClient.js
+// node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__@azure+co_eb6705de68b719b71938a09ea24be955/node_modules/@azure/core-http-compat/dist/commonjs/extendedClient.js
 var require_extendedClient = __commonJS({
-  "node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-http-compat/dist/commonjs/extendedClient.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__@azure+co_eb6705de68b719b71938a09ea24be955/node_modules/@azure/core-http-compat/dist/commonjs/extendedClient.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -46512,9 +46524,9 @@ var require_extendedClient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-http-compat/dist/commonjs/policies/requestPolicyFactoryPolicy.js
+// node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__@azure+co_eb6705de68b719b71938a09ea24be955/node_modules/@azure/core-http-compat/dist/commonjs/policies/requestPolicyFactoryPolicy.js
 var require_requestPolicyFactoryPolicy = __commonJS({
-  "node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-http-compat/dist/commonjs/policies/requestPolicyFactoryPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__@azure+co_eb6705de68b719b71938a09ea24be955/node_modules/@azure/core-http-compat/dist/commonjs/policies/requestPolicyFactoryPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -46580,9 +46592,9 @@ var require_requestPolicyFactoryPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-http-compat/dist/commonjs/httpClientAdapter.js
+// node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__@azure+co_eb6705de68b719b71938a09ea24be955/node_modules/@azure/core-http-compat/dist/commonjs/httpClientAdapter.js
 var require_httpClientAdapter = __commonJS({
-  "node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-http-compat/dist/commonjs/httpClientAdapter.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__@azure+co_eb6705de68b719b71938a09ea24be955/node_modules/@azure/core-http-compat/dist/commonjs/httpClientAdapter.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -46621,9 +46633,9 @@ var require_httpClientAdapter = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-http-compat/dist/commonjs/index.js
+// node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__@azure+co_eb6705de68b719b71938a09ea24be955/node_modules/@azure/core-http-compat/dist/commonjs/index.js
 var require_commonjs11 = __commonJS({
-  "node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_@azure+core-rest-pipeline@1.25.0/node_modules/@azure/core-http-compat/dist/commonjs/index.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+core-http-compat@2.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__@azure+co_eb6705de68b719b71938a09ea24be955/node_modules/@azure/core-http-compat/dist/commonjs/index.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -48582,9 +48594,9 @@ var require_commonjs12 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/log.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/log.js
 var require_log5 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/log.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/log.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -48613,9 +48625,9 @@ var require_log5 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/BuffersStream.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/BuffersStream.js
 var require_BuffersStream = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/BuffersStream.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/BuffersStream.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -48725,9 +48737,9 @@ var require_BuffersStream = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/PooledBuffer.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/PooledBuffer.js
 var require_PooledBuffer = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/PooledBuffer.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/PooledBuffer.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -48843,9 +48855,9 @@ var require_PooledBuffer = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/BufferScheduler.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/BufferScheduler.js
 var require_BufferScheduler = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/BufferScheduler.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/BufferScheduler.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -49120,9 +49132,9 @@ var require_BufferScheduler = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/bufferHelpers.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/bufferHelpers.js
 var require_bufferHelpers = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/bufferHelpers.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/bufferHelpers.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -49164,9 +49176,9 @@ var require_bufferHelpers = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/bufferHelpers.common.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/bufferHelpers.common.js
 var require_bufferHelpers_common = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/bufferHelpers.common.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/bufferHelpers.common.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -49205,9 +49217,9 @@ var require_bufferHelpers_common = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/crc64.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/crc64.js
 var require_crc64 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/crc64.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/crc64.js"(exports2, module2) {
     "use strict";
     var NativeCRC64 = (() => {
       var _scriptDir = typeof document !== "undefined" && document.currentScript ? document.currentScript.src : void 0;
@@ -51367,9 +51379,9 @@ var require_crc64 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/StorageCRC64Calculator.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/StorageCRC64Calculator.js
 var require_StorageCRC64Calculator = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/StorageCRC64Calculator.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/StorageCRC64Calculator.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -51455,9 +51467,9 @@ var require_StorageCRC64Calculator = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/streamHelpers.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/streamHelpers.js
 var require_streamHelpers = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/streamHelpers.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/streamHelpers.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -51487,9 +51499,9 @@ var require_streamHelpers = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/StructuredMessageEncoding.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/StructuredMessageEncoding.js
 var require_StructuredMessageEncoding = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/StructuredMessageEncoding.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/StructuredMessageEncoding.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -51654,9 +51666,9 @@ var require_StructuredMessageEncoding = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/StructuredMessageEncodingStream.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/StructuredMessageEncodingStream.js
 var require_StructuredMessageEncodingStream = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/StructuredMessageEncodingStream.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/StructuredMessageEncodingStream.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -51853,9 +51865,9 @@ var require_StructuredMessageEncodingStream = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/StructuredMessageDecoding.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/StructuredMessageDecoding.js
 var require_StructuredMessageDecoding = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/StructuredMessageDecoding.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/StructuredMessageDecoding.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -52103,9 +52115,9 @@ var require_StructuredMessageDecoding = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/StructuredMessageDecodingStream.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/StructuredMessageDecodingStream.js
 var require_StructuredMessageDecodingStream = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/StructuredMessageDecodingStream.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/StructuredMessageDecodingStream.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -52195,9 +52207,9 @@ var require_StructuredMessageDecodingStream = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/cache.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/cache.js
 var require_cache2 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/cache.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/cache.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -52232,9 +52244,9 @@ var require_cache2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/StorageResponseFormat.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/StorageResponseFormat.js
 var require_StorageResponseFormat = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/StorageResponseFormat.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/StorageResponseFormat.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -52275,9 +52287,9 @@ var require_StorageResponseFormat = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/RequestPolicy.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/RequestPolicy.js
 var require_RequestPolicy = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/RequestPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/RequestPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -52332,9 +52344,9 @@ var require_RequestPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageBrowserPolicy.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageBrowserPolicy.js
 var require_StorageBrowserPolicy = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageBrowserPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageBrowserPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -52382,9 +52394,9 @@ var require_StorageBrowserPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/StorageBrowserPolicyFactory.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/StorageBrowserPolicyFactory.js
 var require_StorageBrowserPolicyFactory = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/StorageBrowserPolicyFactory.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/StorageBrowserPolicyFactory.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -52424,9 +52436,9 @@ var require_StorageBrowserPolicyFactory = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/CredentialPolicy.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/CredentialPolicy.js
 var require_CredentialPolicy = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/CredentialPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/CredentialPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -52473,9 +52485,9 @@ var require_CredentialPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/AnonymousCredentialPolicy.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/AnonymousCredentialPolicy.js
 var require_AnonymousCredentialPolicy = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/AnonymousCredentialPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/AnonymousCredentialPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -52515,9 +52527,9 @@ var require_AnonymousCredentialPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/credentials/Credential.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/credentials/Credential.js
 var require_Credential = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/credentials/Credential.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/credentials/Credential.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -52555,9 +52567,9 @@ var require_Credential = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/credentials/AnonymousCredential.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/credentials/AnonymousCredential.js
 var require_AnonymousCredential = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/credentials/AnonymousCredential.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/credentials/AnonymousCredential.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -52597,9 +52609,9 @@ var require_AnonymousCredential = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/utils/constants.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/utils/constants.js
 var require_constants8 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/utils/constants.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/utils/constants.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -52689,9 +52701,9 @@ var require_constants8 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/utils/utils.common.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/utils/utils.common.js
 var require_utils_common = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/utils/utils.common.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/utils/utils.common.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -53048,9 +53060,9 @@ var require_utils_common = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/utils/SharedKeyComparator.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/utils/SharedKeyComparator.js
 var require_SharedKeyComparator = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/utils/SharedKeyComparator.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/utils/SharedKeyComparator.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -53499,9 +53511,9 @@ var require_SharedKeyComparator = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageSharedKeyCredentialPolicy.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageSharedKeyCredentialPolicy.js
 var require_StorageSharedKeyCredentialPolicy = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageSharedKeyCredentialPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageSharedKeyCredentialPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -53657,9 +53669,9 @@ ${key}:${decodeURIComponent(lowercaseQueries[key])}`;
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/credentials/StorageSharedKeyCredential.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/credentials/StorageSharedKeyCredential.js
 var require_StorageSharedKeyCredential = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/credentials/StorageSharedKeyCredential.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/credentials/StorageSharedKeyCredential.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -53726,9 +53738,9 @@ var require_StorageSharedKeyCredential = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/log.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/log.js
 var require_log6 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/log.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/log.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -53757,9 +53769,9 @@ var require_log6 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRetryPolicyType.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRetryPolicyType.js
 var require_StorageRetryPolicyType = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRetryPolicyType.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRetryPolicyType.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -53791,9 +53803,9 @@ var require_StorageRetryPolicyType = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRetryPolicy.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRetryPolicy.js
 var require_StorageRetryPolicy = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRetryPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRetryPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -54013,9 +54025,9 @@ var require_StorageRetryPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/StorageRetryPolicyFactory.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/StorageRetryPolicyFactory.js
 var require_StorageRetryPolicyFactory = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/StorageRetryPolicyFactory.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/StorageRetryPolicyFactory.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -54066,9 +54078,9 @@ var require_StorageRetryPolicyFactory = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageBrowserPolicyV2.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageBrowserPolicyV2.js
 var require_StorageBrowserPolicyV2 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageBrowserPolicyV2.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageBrowserPolicyV2.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -54105,9 +54117,9 @@ var require_StorageBrowserPolicyV2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageCorrectContentLengthPolicy.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageCorrectContentLengthPolicy.js
 var require_StorageCorrectContentLengthPolicy = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageCorrectContentLengthPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageCorrectContentLengthPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -54151,9 +54163,9 @@ var require_StorageCorrectContentLengthPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRetryPolicyV2.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRetryPolicyV2.js
 var require_StorageRetryPolicyV2 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRetryPolicyV2.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRetryPolicyV2.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -54341,9 +54353,9 @@ var require_StorageRetryPolicyV2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageSharedKeyCredentialPolicyV2.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageSharedKeyCredentialPolicyV2.js
 var require_StorageSharedKeyCredentialPolicyV2 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageSharedKeyCredentialPolicyV2.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageSharedKeyCredentialPolicyV2.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -54466,9 +54478,9 @@ ${key}:${decodeURIComponent(lowercaseQueries[key])}`;
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRedirectRangeHeaderPolicy.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRedirectRangeHeaderPolicy.js
 var require_StorageRedirectRangeHeaderPolicy = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRedirectRangeHeaderPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRedirectRangeHeaderPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -54509,9 +54521,9 @@ var require_StorageRedirectRangeHeaderPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRequestFailureDetailsParserPolicy.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRequestFailureDetailsParserPolicy.js
 var require_StorageRequestFailureDetailsParserPolicy = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRequestFailureDetailsParserPolicy.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/policies/StorageRequestFailureDetailsParserPolicy.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -54564,9 +54576,9 @@ var require_StorageRequestFailureDetailsParserPolicy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/credentials/UserDelegationKeyCredential.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/credentials/UserDelegationKeyCredential.js
 var require_UserDelegationKeyCredential = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/credentials/UserDelegationKeyCredential.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/credentials/UserDelegationKeyCredential.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -54626,9 +54638,9 @@ var require_UserDelegationKeyCredential = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/indexPlatform.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/indexPlatform.js
 var require_indexPlatform = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/indexPlatform.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/indexPlatform.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -54682,9 +54694,9 @@ var require_indexPlatform = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/index.js
+// node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/index.js
 var require_commonjs13 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1/node_modules/@azure/storage-common/dist/commonjs/index.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-common@12.5.0_@azure+core-client@1.11.1_supports-color@8.1.1__supports-color@8.1.1/node_modules/@azure/storage-common/dist/commonjs/index.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -54706,9 +54718,9 @@ var require_commonjs13 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/constants.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/constants.js
 var require_constants9 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/constants.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/constants.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -54981,9 +54993,9 @@ var require_constants9 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/Pipeline.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/Pipeline.js
 var require_Pipeline = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/Pipeline.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/Pipeline.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -55256,9 +55268,9 @@ var require_Pipeline = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/models/index.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/models/index.js
 var require_models = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/models/index.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/models/index.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -55420,9 +55432,9 @@ var require_models = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/models/mappers.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/models/mappers.js
 var require_mappers = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/models/mappers.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/models/mappers.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -64214,9 +64226,9 @@ var require_mappers = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/models/parameters.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/models/parameters.js
 var require_parameters = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/models/parameters.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/models/parameters.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -66160,9 +66172,9 @@ var require_parameters = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/service.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/service.js
 var require_service = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/service.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/service.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -66541,9 +66553,9 @@ var require_service = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/container.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/container.js
 var require_container = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/container.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/container.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -67435,9 +67447,9 @@ var require_container = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/blob.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/blob.js
 var require_blob = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/blob.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/blob.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -68555,9 +68567,9 @@ var require_blob = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/pageBlob.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/pageBlob.js
 var require_pageBlob = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/pageBlob.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/pageBlob.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -69078,9 +69090,9 @@ var require_pageBlob = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/appendBlob.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/appendBlob.js
 var require_appendBlob = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/appendBlob.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/appendBlob.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -69348,9 +69360,9 @@ var require_appendBlob = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/blockBlob.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/blockBlob.js
 var require_blockBlob = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/blockBlob.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/blockBlob.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -69777,9 +69789,9 @@ var require_blockBlob = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/index.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/index.js
 var require_operations = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/index.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operations/index.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -69806,9 +69818,9 @@ var require_operations = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/storageClient.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/storageClient.js
 var require_storageClient = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/storageClient.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/storageClient.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -69893,9 +69905,9 @@ var require_storageClient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/service.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/service.js
 var require_service2 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/service.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/service.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -69915,9 +69927,9 @@ var require_service2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/container.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/container.js
 var require_container2 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/container.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/container.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -69937,9 +69949,9 @@ var require_container2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/blob.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/blob.js
 var require_blob2 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/blob.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/blob.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -69959,9 +69971,9 @@ var require_blob2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/pageBlob.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/pageBlob.js
 var require_pageBlob2 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/pageBlob.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/pageBlob.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -69981,9 +69993,9 @@ var require_pageBlob2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/appendBlob.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/appendBlob.js
 var require_appendBlob2 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/appendBlob.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/appendBlob.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -70003,9 +70015,9 @@ var require_appendBlob2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/blockBlob.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/blockBlob.js
 var require_blockBlob2 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/blockBlob.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/blockBlob.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -70025,9 +70037,9 @@ var require_blockBlob2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/index.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/index.js
 var require_operationsInterfaces = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/index.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/operationsInterfaces/index.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -70054,9 +70066,9 @@ var require_operationsInterfaces = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/index.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/index.js
 var require_src2 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generated/src/index.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generated/src/index.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -70087,9 +70099,9 @@ var require_src2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/StorageContextClient.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/StorageContextClient.js
 var require_StorageContextClient = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/StorageContextClient.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/StorageContextClient.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -70126,9 +70138,9 @@ var require_StorageContextClient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/utils.common.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/utils.common.js
 var require_utils_common2 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/utils.common.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/utils.common.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -70780,9 +70792,9 @@ var require_utils_common2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/StorageClient.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/StorageClient.js
 var require_StorageClient = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/StorageClient.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/StorageClient.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -70852,9 +70864,9 @@ var require_StorageClient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/tracing.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/tracing.js
 var require_tracing = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/tracing.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/tracing.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -86152,9 +86164,9 @@ var init_Arrow_node = __esm({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/blobListArrowParser.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/blobListArrowParser.js
 var require_blobListArrowParser = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/blobListArrowParser.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/blobListArrowParser.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -86318,9 +86330,9 @@ var require_blobListArrowParser = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/blobListXmlParser.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/blobListXmlParser.js
 var require_blobListXmlParser = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/blobListXmlParser.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/blobListXmlParser.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -86399,9 +86411,9 @@ var require_blobListXmlParser = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/BlobSASPermissions.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/BlobSASPermissions.js
 var require_BlobSASPermissions = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/BlobSASPermissions.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/BlobSASPermissions.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -86609,9 +86621,9 @@ var require_BlobSASPermissions = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/ContainerSASPermissions.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/ContainerSASPermissions.js
 var require_ContainerSASPermissions = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/ContainerSASPermissions.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/ContainerSASPermissions.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -86847,9 +86859,9 @@ var require_ContainerSASPermissions = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/SasIPRange.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/SasIPRange.js
 var require_SasIPRange = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/SasIPRange.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/SasIPRange.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -86879,9 +86891,9 @@ var require_SasIPRange = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/SASQueryParameters.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/SASQueryParameters.js
 var require_SASQueryParameters = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/SASQueryParameters.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/SASQueryParameters.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -87324,9 +87336,9 @@ var require_SASQueryParameters = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/BlobSASSignatureValues.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/BlobSASSignatureValues.js
 var require_BlobSASSignatureValues = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/BlobSASSignatureValues.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/BlobSASSignatureValues.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -88326,9 +88338,9 @@ var require_BlobSASSignatureValues = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/BlobLeaseClient.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/BlobLeaseClient.js
 var require_BlobLeaseClient = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/BlobLeaseClient.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/BlobLeaseClient.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -88564,9 +88576,9 @@ var require_BlobLeaseClient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/RetriableReadableStream.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/RetriableReadableStream.js
 var require_RetriableReadableStream = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/RetriableReadableStream.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/RetriableReadableStream.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -88701,9 +88713,9 @@ var require_RetriableReadableStream = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/BlobDownloadResponse.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/BlobDownloadResponse.js
 var require_BlobDownloadResponse = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/BlobDownloadResponse.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/BlobDownloadResponse.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -89230,9 +89242,9 @@ var require_BlobDownloadResponse = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroConstants.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroConstants.js
 var require_AvroConstants = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroConstants.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroConstants.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -89266,9 +89278,9 @@ var require_AvroConstants = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroParser.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroParser.js
 var require_AvroParser = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroParser.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroParser.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -89586,9 +89598,9 @@ var require_AvroParser = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/utils/utils.common.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/utils/utils.common.js
 var require_utils_common3 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/utils/utils.common.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/utils/utils.common.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -89624,9 +89636,9 @@ var require_utils_common3 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroReader.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroReader.js
 var require_AvroReader = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroReader.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroReader.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -89755,9 +89767,9 @@ var require_AvroReader = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroReadable.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroReadable.js
 var require_AvroReadable = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroReadable.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroReadable.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -89786,9 +89798,9 @@ var require_AvroReadable = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroReadableFromStream.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroReadableFromStream.js
 var require_AvroReadableFromStream = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroReadableFromStream.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/AvroReadableFromStream.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -89891,9 +89903,9 @@ var require_AvroReadableFromStream = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/index.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/index.js
 var require_internal_avro = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/index.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/internal-avro/index.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -89925,9 +89937,9 @@ var require_internal_avro = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/BlobQuickQueryStream.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/BlobQuickQueryStream.js
 var require_BlobQuickQueryStream = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/BlobQuickQueryStream.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/BlobQuickQueryStream.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -90062,9 +90074,9 @@ var require_BlobQuickQueryStream = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/BlobQueryResponse.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/BlobQueryResponse.js
 var require_BlobQueryResponse = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/BlobQueryResponse.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/BlobQueryResponse.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -90454,9 +90466,9 @@ var require_BlobQueryResponse = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/models.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/models.js
 var require_models2 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/models.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/models.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -90532,9 +90544,9 @@ var require_models2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/PageBlobRangeResponse.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/PageBlobRangeResponse.js
 var require_PageBlobRangeResponse = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/PageBlobRangeResponse.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/PageBlobRangeResponse.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -90583,9 +90595,9 @@ var require_PageBlobRangeResponse = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/logger.js
+// node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/logger.js
 var require_logger2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/logger.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/logger.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.logger = void 0;
@@ -90594,9 +90606,9 @@ var require_logger2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/poller/constants.js
+// node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/poller/constants.js
 var require_constants11 = __commonJS({
-  "node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/poller/constants.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/poller/constants.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.terminalStates = exports2.POLL_INTERVAL_IN_MS = void 0;
@@ -90605,9 +90617,9 @@ var require_constants11 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/poller/operation.js
+// node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/poller/operation.js
 var require_operation = __commonJS({
-  "node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/poller/operation.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/poller/operation.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.pollOperation = exports2.initOperation = exports2.deserializeState = void 0;
@@ -90772,9 +90784,9 @@ var require_operation = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/http/operation.js
+// node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/http/operation.js
 var require_operation2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/http/operation.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/http/operation.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.pollHttpOperation = exports2.isOperationError = exports2.getResourceLocation = exports2.getOperationStatus = exports2.getOperationLocation = exports2.initHttpOperation = exports2.getStatusFromInitialResponse = exports2.getErrorFromResponse = exports2.parseRetryAfter = exports2.inferLroMode = void 0;
@@ -91054,9 +91066,9 @@ var require_operation2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/poller/poller.js
+// node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/poller/poller.js
 var require_poller = __commonJS({
-  "node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/poller/poller.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/poller/poller.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.buildCreatePoller = void 0;
@@ -91219,9 +91231,9 @@ var require_poller = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/http/poller.js
+// node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/http/poller.js
 var require_poller2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/http/poller.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/http/poller.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.createHttpPoller = void 0;
@@ -91262,9 +91274,9 @@ var require_poller2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/legacy/lroEngine/operation.js
+// node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/legacy/lroEngine/operation.js
 var require_operation3 = __commonJS({
-  "node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/legacy/lroEngine/operation.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/legacy/lroEngine/operation.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.GenericPollOperation = void 0;
@@ -91348,9 +91360,9 @@ var require_operation3 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/legacy/poller.js
+// node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/legacy/poller.js
 var require_poller3 = __commonJS({
-  "node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/legacy/poller.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/legacy/poller.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.Poller = exports2.PollerCancelledError = exports2.PollerStoppedError = void 0;
@@ -91671,9 +91683,9 @@ var require_poller3 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/legacy/lroEngine/lroEngine.js
+// node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/legacy/lroEngine/lroEngine.js
 var require_lroEngine = __commonJS({
-  "node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/legacy/lroEngine/lroEngine.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/legacy/lroEngine/lroEngine.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.LroEngine = void 0;
@@ -91702,9 +91714,9 @@ var require_lroEngine = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/legacy/lroEngine/index.js
+// node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/legacy/lroEngine/index.js
 var require_lroEngine2 = __commonJS({
-  "node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/legacy/lroEngine/index.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/legacy/lroEngine/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.LroEngine = void 0;
@@ -91715,17 +91727,17 @@ var require_lroEngine2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/legacy/pollOperation.js
+// node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/legacy/pollOperation.js
 var require_pollOperation = __commonJS({
-  "node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/legacy/pollOperation.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/legacy/pollOperation.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/index.js
+// node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/index.js
 var require_commonjs14 = __commonJS({
-  "node_modules/.pnpm/@azure+core-lro@2.7.2/node_modules/@azure/core-lro/dist/commonjs/index.js"(exports2) {
+  "node_modules/.pnpm/@azure+core-lro@2.7.2_supports-color@8.1.1/node_modules/@azure/core-lro/dist/commonjs/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.createHttpPoller = void 0;
@@ -91740,9 +91752,9 @@ var require_commonjs14 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/pollers/BlobStartCopyFromUrlPoller.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/pollers/BlobStartCopyFromUrlPoller.js
 var require_BlobStartCopyFromUrlPoller = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/pollers/BlobStartCopyFromUrlPoller.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/pollers/BlobStartCopyFromUrlPoller.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -91871,9 +91883,9 @@ var require_BlobStartCopyFromUrlPoller = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/Range.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/Range.js
 var require_Range = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/Range.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/Range.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -91911,9 +91923,9 @@ var require_Range = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/Batch.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/Batch.js
 var require_Batch = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/Batch.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/Batch.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -92050,9 +92062,9 @@ var require_Batch = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/utils.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/utils.js
 var require_utils7 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/utils.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/utils.js"(exports2, module2) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -92194,9 +92206,9 @@ var require_utils7 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/Clients.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/Clients.js
 var require_Clients = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/Clients.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/Clients.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -95340,9 +95352,9 @@ var require_Clients = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/BatchUtils.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/BatchUtils.js
 var require_BatchUtils = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/BatchUtils.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/BatchUtils.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -95384,9 +95396,9 @@ var require_BatchUtils = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/BatchResponseParser.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/BatchResponseParser.js
 var require_BatchResponseParser = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/BatchResponseParser.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/BatchResponseParser.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -95524,9 +95536,9 @@ var require_BatchResponseParser = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/Mutex.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/Mutex.js
 var require_Mutex = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/utils/Mutex.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/utils/Mutex.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -95605,9 +95617,9 @@ var require_Mutex = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/BlobBatch.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/BlobBatch.js
 var require_BlobBatch = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/BlobBatch.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/BlobBatch.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -95908,9 +95920,9 @@ var require_BlobBatch = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/BlobBatchClient.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/BlobBatchClient.js
 var require_BlobBatchClient = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/BlobBatchClient.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/BlobBatchClient.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -96106,9 +96118,9 @@ var require_BlobBatchClient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/ContainerClient.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/ContainerClient.js
 var require_ContainerClient = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/ContainerClient.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/ContainerClient.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -97665,9 +97677,9 @@ var require_ContainerClient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/AccountSASPermissions.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/AccountSASPermissions.js
 var require_AccountSASPermissions = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/AccountSASPermissions.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/AccountSASPermissions.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -97904,9 +97916,9 @@ var require_AccountSASPermissions = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/AccountSASResourceTypes.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/AccountSASResourceTypes.js
 var require_AccountSASResourceTypes = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/AccountSASResourceTypes.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/AccountSASResourceTypes.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -97991,9 +98003,9 @@ var require_AccountSASResourceTypes = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/AccountSASServices.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/AccountSASServices.js
 var require_AccountSASServices = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/AccountSASServices.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/AccountSASServices.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -98086,9 +98098,9 @@ var require_AccountSASServices = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/AccountSASSignatureValues.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/AccountSASSignatureValues.js
 var require_AccountSASSignatureValues = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/sas/AccountSASSignatureValues.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/sas/AccountSASSignatureValues.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -98211,9 +98223,9 @@ var require_AccountSASSignatureValues = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/BlobServiceClient.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/BlobServiceClient.js
 var require_BlobServiceClient = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/BlobServiceClient.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/BlobServiceClient.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -99020,9 +99032,9 @@ var require_BlobServiceClient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generatedModels.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generatedModels.js
 var require_generatedModels = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/generatedModels.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/generatedModels.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -99053,9 +99065,9 @@ var require_generatedModels = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/index.js
+// node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/index.js
 var require_commonjs15 = __commonJS({
-  "node_modules/.pnpm/@azure+storage-blob@12.34.0/node_modules/@azure/storage-blob/dist/commonjs/index.js"(exports2, module2) {
+  "node_modules/.pnpm/@azure+storage-blob@12.34.0_supports-color@8.1.1/node_modules/@azure/storage-blob/dist/commonjs/index.js"(exports2, module2) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -99129,9 +99141,9 @@ var require_commonjs15 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/upload/blob-upload.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/upload/blob-upload.js
 var require_blob_upload = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/upload/blob-upload.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/upload/blob-upload.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -124418,9 +124430,9 @@ var require_archiver = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/upload/zip.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/upload/zip.js
 var require_zip2 = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/upload/zip.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/upload/zip.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -124553,9 +124565,9 @@ var require_zip2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/upload/upload-artifact.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/upload/upload-artifact.js
 var require_upload_artifact = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/upload/upload-artifact.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/upload/upload-artifact.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -131338,9 +131350,9 @@ var require_unzip = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/download/download-artifact.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/download/download-artifact.js
 var require_download_artifact = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/download/download-artifact.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/download/download-artifact.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -131588,9 +131600,9 @@ Are you trying to download from a different run? Try specifying a github-token w
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/find/retry-options.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/find/retry-options.js
 var require_retry_options = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/find/retry-options.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/find/retry-options.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -133051,9 +133063,9 @@ var require_dist_node12 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/find/get-artifact.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/find/get-artifact.js
 var require_get_artifact = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/find/get-artifact.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/find/get-artifact.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -133201,9 +133213,9 @@ var require_get_artifact = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/delete/delete-artifact.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/delete/delete-artifact.js
 var require_delete_artifact = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/delete/delete-artifact.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/delete/delete-artifact.js"(exports2) {
     "use strict";
     var __awaiter2 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
       function adopt(value) {
@@ -133307,9 +133319,9 @@ var require_delete_artifact = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/find/list-artifacts.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/find/list-artifacts.js
 var require_list_artifacts = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/find/list-artifacts.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/find/list-artifacts.js"(exports2) {
     "use strict";
     var __awaiter2 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
       function adopt(value) {
@@ -133464,9 +133476,9 @@ var require_list_artifacts = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/client.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/client.js
 var require_client2 = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/client.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/client.js"(exports2) {
     "use strict";
     var __awaiter2 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
       function adopt(value) {
@@ -133623,17 +133635,17 @@ If the error persists, please check whether Actions and API requests are operati
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/shared/interfaces.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/shared/interfaces.js
 var require_interfaces2 = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/internal/shared/interfaces.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/shared/interfaces.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/artifact.js
+// node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/artifact.js
 var require_artifact2 = __commonJS({
-  "node_modules/.pnpm/@actions+artifact@5.0.3/node_modules/@actions/artifact/lib/artifact.js"(exports2) {
+  "node_modules/.pnpm/@actions+artifact@5.0.3_supports-color@8.1.1/node_modules/@actions/artifact/lib/artifact.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -135988,9 +136000,9 @@ var require_semver = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/constants.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/constants.js
 var require_constants14 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/constants.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/constants.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CacheReadDeniedMessagePrefix = exports2.CacheFileSizeLimit = exports2.ManifestFilename = exports2.TarFilename = exports2.SystemTarPathOnWindows = exports2.GnuTarPathOnWindows = exports2.SocketTimeout = exports2.DefaultRetryDelay = exports2.DefaultRetryAttempts = exports2.ArchiveToolType = exports2.CompressionMethod = exports2.CacheFilename = void 0;
@@ -136022,9 +136034,9 @@ var require_constants14 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/cacheUtils.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/cacheUtils.js
 var require_cacheUtils = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/cacheUtils.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/cacheUtils.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -136268,9 +136280,9 @@ var require_cacheUtils = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/shared/errors.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/shared/errors.js
 var require_errors5 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/shared/errors.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/shared/errors.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RateLimitError = exports2.UsageError = exports2.NetworkError = exports2.GHESNotSupportedError = exports2.CacheNotFoundError = exports2.InvalidResponseError = exports2.FilesNotFoundError = void 0;
@@ -136352,9 +136364,9 @@ More info on storage limits: https://docs.github.com/en/billing/managing-billing
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/uploadUtils.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/uploadUtils.js
 var require_uploadUtils = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/uploadUtils.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/uploadUtils.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -136539,9 +136551,9 @@ var require_uploadUtils = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/requestUtils.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/requestUtils.js
 var require_requestUtils = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/requestUtils.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/requestUtils.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -136860,9 +136872,9 @@ var require_dist5 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/downloadUtils.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/downloadUtils.js
 var require_downloadUtils = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/downloadUtils.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/downloadUtils.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -137230,9 +137242,9 @@ var require_downloadUtils = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/options.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/options.js
 var require_options = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/options.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/options.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -137343,9 +137355,9 @@ var require_options = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/config.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/config.js
 var require_config2 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/config.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/config.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.isGhes = isGhes;
@@ -137395,9 +137407,9 @@ var require_config2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/package.json
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/package.json
 var require_package2 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/package.json"(exports2, module2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/package.json"(exports2, module2) {
     module2.exports = {
       name: "@actions/cache",
       version: "5.3.0",
@@ -137462,9 +137474,9 @@ var require_package2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/shared/user-agent.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/shared/user-agent.js
 var require_user_agent2 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/shared/user-agent.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/shared/user-agent.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getUserAgentString = getUserAgentString;
@@ -137475,9 +137487,9 @@ var require_user_agent2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/cacheHttpClient.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/cacheHttpClient.js
 var require_cacheHttpClient = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/cacheHttpClient.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/cacheHttpClient.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -137756,9 +137768,9 @@ Other caches with similar key:`);
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/generated/results/entities/v1/cachescope.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/generated/results/entities/v1/cachescope.js
 var require_cachescope = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/generated/results/entities/v1/cachescope.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/generated/results/entities/v1/cachescope.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CacheScope = void 0;
@@ -137832,9 +137844,9 @@ var require_cachescope = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/generated/results/entities/v1/cachemetadata.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/generated/results/entities/v1/cachemetadata.js
 var require_cachemetadata = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/generated/results/entities/v1/cachemetadata.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/generated/results/entities/v1/cachemetadata.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CacheMetadata = void 0;
@@ -137903,9 +137915,9 @@ var require_cachemetadata = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/generated/results/api/v1/cache.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/generated/results/api/v1/cache.js
 var require_cache3 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/generated/results/api/v1/cache.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/generated/results/api/v1/cache.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CacheService = exports2.GetCacheEntryDownloadURLResponse = exports2.GetCacheEntryDownloadURLRequest = exports2.FinalizeCacheEntryUploadResponse = exports2.FinalizeCacheEntryUploadRequest = exports2.CreateCacheEntryResponse = exports2.CreateCacheEntryRequest = void 0;
@@ -138383,9 +138395,9 @@ var require_cache3 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/generated/results/api/v1/cache.twirp-client.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/generated/results/api/v1/cache.twirp-client.js
 var require_cache_twirp_client = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/generated/results/api/v1/cache.twirp-client.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/generated/results/api/v1/cache.twirp-client.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CacheServiceClientProtobuf = exports2.CacheServiceClientJSON = void 0;
@@ -138456,9 +138468,9 @@ var require_cache_twirp_client = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/shared/util.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/shared/util.js
 var require_util15 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/shared/util.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/shared/util.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.maskSigUrl = maskSigUrl;
@@ -138493,9 +138505,9 @@ var require_util15 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/shared/cacheTwirpClient.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/shared/cacheTwirpClient.js
 var require_cacheTwirpClient = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/shared/cacheTwirpClient.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/shared/cacheTwirpClient.js"(exports2) {
     "use strict";
     var __awaiter2 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
       function adopt(value) {
@@ -138681,9 +138693,9 @@ var require_cacheTwirpClient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/tar.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/tar.js
 var require_tar2 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/internal/tar.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/internal/tar.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -138948,9 +138960,9 @@ var require_tar2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/cache.js
+// node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/cache.js
 var require_cache4 = __commonJS({
-  "node_modules/.pnpm/@actions+cache@5.3.0/node_modules/@actions/cache/lib/cache.js"(exports2) {
+  "node_modules/.pnpm/@actions+cache@5.3.0_supports-color@8.1.1/node_modules/@actions/cache/lib/cache.js"(exports2) {
     "use strict";
     var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o2, m, k, k2) {
       if (k2 === void 0) k2 = k;
