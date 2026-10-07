@@ -1,5 +1,6 @@
 pnpm-lock.yaml linguist-generated
-**/dist/index.js linguist-generated
+**/dist/** linguist-generated -diff merge=binary
+**/out/** linguist-generated -diff merge=binary
 
 **/generated/**/*.ts linguist-generated
 **/generated/**/*.mts linguist-generated
