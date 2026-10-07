@@ -13,9 +13,28 @@ allowBuilds:
   unrs-resolver: true
 minimumReleaseAgeExclude:
   - electron-to-chromium@1.5.446
+  - "@nx/devkit@23.3.0"
+  - "@nx/esbuild@23.3.0"
+  - "@nx/eslint-plugin@23.3.0"
+  - "@nx/eslint@23.3.0"
+  - "@nx/jest@23.3.0"
+  - "@nx/js@23.3.0"
+  - "@nx/nx-darwin-arm64@23.3.0"
+  - "@nx/nx-darwin-x64@23.3.0"
+  - "@nx/nx-freebsd-x64@23.3.0"
+  - "@nx/nx-linux-arm-gnueabihf@23.3.0"
+  - "@nx/nx-linux-arm64-gnu@23.3.0"
+  - "@nx/nx-linux-arm64-musl@23.3.0"
+  - "@nx/nx-linux-x64-gnu@23.3.0"
+  - "@nx/nx-linux-x64-musl@23.3.0"
+  - "@nx/nx-win32-arm64-msvc@23.3.0"
+  - "@nx/nx-win32-x64-msvc@23.3.0"
+  - "@nx/plugin@23.3.0"
+  - "@nx/workspace@23.3.0"
+  - nx@23.3.0
 overrides:
   axios: ^1.20.0
-  brace-expansion: ^5.0.12
+  "brace-expansion@>=5.0.0": ^5.0.12
   smol-toml: ^1.9.0
   form-data: 4.0.6
   shell-quote: 1.12.0
@@ -26,5 +45,5 @@ overrides:
   http-cache-semantics: 4.3.0
   source-map-js: 1.2.2
   "picomatch@>=4.0.0": 4.0.7
-  minimatch: ^10.2.6
+  "minimatch@>=10.0.0": 10.2.6
   immutable: ^4.3.8

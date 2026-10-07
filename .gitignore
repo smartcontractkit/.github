@@ -56,3 +56,5 @@ bin/
 # codeql
 **/.codeql/**
 /.pnpm-store/
+
+.nx/migrate-runs

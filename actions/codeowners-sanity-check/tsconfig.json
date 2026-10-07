@@ -5,6 +5,9 @@
     "noEmit": true,
     "isolatedModules": true,
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "noUncheckedSideEffectImports": false,
+    "types": ["*"],
+    "ignoreDeprecations": "6.0"
   }
 }
