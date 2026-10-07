@@ -49,3 +49,29 @@ jobs:
         run: |
           echo "No releasable packages were modified - a changeset is not required." \
             >> "$GITHUB_STEP_SUMMARY"
+
+  # Runs the same `changeset version` that cd-release runs on push to main, so
+  # an invalid changeset (e.g. one naming a non-workspace package) fails here
+  # instead of blocking every release after it merges.
+  validate:
+    name: Changesets Validate
+    if: github.event.pull_request.title != 'Version Packages'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: ./actions/setup-nodejs
+        with:
+          pnpm-version: "^10.0.0"
+
+      - name: Dry-run changeset version
+        env:
+          # @changesets/changelog-github looks up PR metadata for each changeset.
+          GITHUB_TOKEN: ${{ github.token }}
+        run: pnpm changeset version
