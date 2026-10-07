@@ -1,6 +1,6 @@
 import { execWithOutput } from "../../utils";
 import { join } from "path";
-import { readFileSync } from "fs";
+import { readFileSync, statSync } from "fs";
 import {
   FileChanges,
   FileAddition,
@@ -23,10 +23,14 @@ interface GitFileStatus {
 }
 
 export async function getGitStatusPorcelainV1(cwd?: string) {
-  const stdout = await execWithOutput("git", ["status", "--porcelain=v1"], {
-    cwd,
-    notrim: true,
-  });
+  const stdout = await execWithOutput(
+    "git",
+    ["status", "--porcelain=v1", "--untracked-files=all"],
+    {
+      cwd,
+      notrim: true,
+    },
+  );
 
   return stdout;
 }
@@ -111,13 +115,16 @@ export async function calculateFileChanges(
   changes: FilesToAddOrDelete,
   cwd = "",
 ): Promise<FileChanges> {
-  const additions: FileAddition[] = changes.additions.map((path) => {
+  const additions: FileAddition[] = changes.additions.flatMap((path) => {
     const fullPath = join(cwd, path);
+    if (!statSync(fullPath, { throwIfNoEntry: false })?.isFile()) return [];
     const contents = readFileSync(fullPath).toString("base64");
-    return {
-      path,
-      contents,
-    };
+    return [
+      {
+        path,
+        contents,
+      },
+    ];
   });
 
   const deletions: FileDeletion[] = changes.deletions.map((path) => {

@@ -20437,8 +20437,8 @@ var require_copy_sync = __commonJS({
       return getStats(destStat, src, dest, opts);
     }
     function getStats(destStat, src, dest, opts) {
-      const statSync = opts.dereference ? fs7.statSync : fs7.lstatSync;
-      const srcStat = statSync(src);
+      const statSync2 = opts.dereference ? fs7.statSync : fs7.lstatSync;
+      const srcStat = statSync2(src);
       if (srcStat.isDirectory()) return onDir(srcStat, destStat, src, dest, opts);
       else if (srcStat.isFile() || srcStat.isCharacterDevice() || srcStat.isBlockDevice()) return onFile(srcStat, destStat, src, dest, opts);
       else if (srcStat.isSymbolicLink()) return onLink(destStat, src, dest, opts);
@@ -25909,11 +25909,11 @@ var require_out = __commonJS({
       async.read(path7, getSettings(optionsOrSettingsOrCallback), callback);
     }
     exports2.stat = stat2;
-    function statSync(path7, optionsOrSettings) {
+    function statSync2(path7, optionsOrSettings) {
       const settings = getSettings(optionsOrSettings);
       return sync.read(path7, settings);
     }
-    exports2.statSync = statSync;
+    exports2.statSync = statSync2;
     function getSettings(settingsOrOptions = {}) {
       if (settingsOrOptions instanceof settings_1.default) {
         return settingsOrOptions;
@@ -45711,8 +45711,8 @@ var require_copy_sync2 = __commonJS({
       return getStats(destStat, src, dest, opts);
     }
     function getStats(destStat, src, dest, opts) {
-      const statSync = opts.dereference ? fs7.statSync : fs7.lstatSync;
-      const srcStat = statSync(src);
+      const statSync2 = opts.dereference ? fs7.statSync : fs7.lstatSync;
+      const srcStat = statSync2(src);
       if (srcStat.isDirectory()) return onDir(srcStat, destStat, src, dest, opts);
       else if (srcStat.isFile() || srcStat.isCharacterDevice() || srcStat.isBlockDevice()) return onFile(srcStat, destStat, src, dest, opts);
       else if (srcStat.isSymbolicLink()) return onLink(destStat, src, dest, opts);
@@ -48201,8 +48201,8 @@ var require_copy_sync4 = __commonJS({
       return getStats(destStat, src, dest, opts);
     }
     function getStats(destStat, src, dest, opts) {
-      const statSync = opts.dereference ? fs7.statSync : fs7.lstatSync;
-      const srcStat = statSync(src);
+      const statSync2 = opts.dereference ? fs7.statSync : fs7.lstatSync;
+      const srcStat = statSync2(src);
       if (srcStat.isDirectory()) return onDir(srcStat, destStat, src, dest, opts);
       else if (srcStat.isFile() || srcStat.isCharacterDevice() || srcStat.isBlockDevice()) return onFile(srcStat, destStat, src, dest, opts);
       else if (srcStat.isSymbolicLink()) return onLink(destStat, src, dest, opts);
@@ -62512,10 +62512,14 @@ async function getFileChanges(cwd) {
   return fileChanges;
 }
 async function getGitStatusPorcelainV1(cwd) {
-  const stdout = await execWithOutput("git", ["status", "--porcelain=v1"], {
-    cwd,
-    notrim: true
-  });
+  const stdout = await execWithOutput(
+    "git",
+    ["status", "--porcelain=v1", "--untracked-files=all"],
+    {
+      cwd,
+      notrim: true
+    }
+  );
   return stdout;
 }
 function calculateAdditionsAndDeletions(fileStatuses) {
@@ -62561,13 +62565,16 @@ function listChanges(output) {
   return parseGitStatusPorcelainOutput(output);
 }
 async function calculateFileChanges(changes, cwd = "") {
-  const additions = changes.additions.map((path7) => {
+  const additions = changes.additions.flatMap((path7) => {
     const fullPath = (0, import_path.join)(cwd, path7);
+    if (!(0, import_fs3.statSync)(fullPath, { throwIfNoEntry: false })?.isFile()) return [];
     const contents = (0, import_fs3.readFileSync)(fullPath).toString("base64");
-    return {
-      path: path7,
-      contents
-    };
+    return [
+      {
+        path: path7,
+        contents
+      }
+    ];
   });
   const deletions = changes.deletions.map((path7) => {
     return { path: path7 };

@@ -61,6 +61,5 @@
     "update-ts-references": "^3.6.2",
     "vitest": "^5.0.3"
   },
-  "repository": "https://github.com/smartcontractkit/.github",
-  "dependencies": {}
+  "repository": "https://github.com/smartcontractkit/.github"
 }

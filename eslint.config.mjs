@@ -77,15 +77,4 @@ export default [
         ...config.rules,
       },
     })),
-  ...compat
-    .config({
-      env: {},
-    })
-    .map((config) => ({
-      ...config,
-      files: ["**/*.spec.ts", "**/*.spec.tsx", "**/*.spec.js", "**/*.spec.jsx"],
-      rules: {
-        ...config.rules,
-      },
-    })),
 ];

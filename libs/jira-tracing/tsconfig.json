@@ -103,9 +103,9 @@
 
     /* Completeness */
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
-    "skipLibCheck": true,
+    "skipLibCheck": true /* Skip type checking all .d.ts files. */,
     "noUncheckedSideEffectImports": false,
     "types": ["*"],
-    "ignoreDeprecations": "6.0" /* Skip type checking all .d.ts files. */
+    "ignoreDeprecations": "6.0"
   }
 }
