@@ -57106,8 +57106,8 @@ var require_package_version2 = __commonJS({
 });
 
 // apps/go-conditional-tests/src/main.ts
-var fs13 = __toESM(require("fs"));
-var path23 = __toESM(require("path"));
+var fs13 = __toESM(require("fs"), 1);
+var path23 = __toESM(require("path"), 1);
 var import_os5 = require("os");
 
 // node_modules/.pnpm/@actions+core@3.0.1/node_modules/@actions/core/lib/command.js
@@ -69977,7 +69977,7 @@ var {
 
 // apps/go-conditional-tests/src/log.ts
 var import_fs3 = require("fs");
-var path12 = __toESM(require("path"));
+var path12 = __toESM(require("path"), 1);
 
 // node_modules/.pnpm/@actions+artifact@6.3.1_supports-color@8.1.1/node_modules/@actions/artifact/lib/internal/shared/config.js
 var import_os4 = __toESM(require("os"), 1);
@@ -134575,7 +134575,7 @@ function saveCacheV2(paths_1, key_1, options_1) {
 }
 
 // apps/go-conditional-tests/src/github.ts
-var fs12 = __toESM(require("fs"));
+var fs12 = __toESM(require("fs"), 1);
 function getCacheKey(testSuite, branch, commitSha) {
   const key = `go-test-hashes-${testSuite}-${branch}`;
   return commitSha ? `${key}-${commitSha.substring(0, 7)}` : key;
@@ -134673,7 +134673,7 @@ async function listPackages(moduleDirectory) {
 
 // apps/go-conditional-tests/src/pipeline/build.ts
 var import_fs5 = require("fs");
-var path21 = __toESM(require("path"));
+var path21 = __toESM(require("path"), 1);
 
 // node_modules/.pnpm/yocto-queue@1.2.2/node_modules/yocto-queue/index.js
 var Node = class {
@@ -135020,7 +135020,7 @@ function comparePackagesToIndex(runAllTests, packages, hashIndex) {
 
 // apps/go-conditional-tests/src/pipeline/run.ts
 var import_fs7 = require("fs");
-var path22 = __toESM(require("path"));
+var path22 = __toESM(require("path"), 1);
 var defaultExecaOptions2 = {
   cwd: "",
   all: true,
