@@ -6,7 +6,6 @@
     "noEmit": true,
     "isolatedModules": true,
     "strict": true,
-    "esModuleInterop": true,
-    "ignoreDeprecations": "6.0"
+    "esModuleInterop": true
   }
 }

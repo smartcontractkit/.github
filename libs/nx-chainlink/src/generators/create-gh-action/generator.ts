@@ -5,7 +5,7 @@ import {
   Tree,
 } from "@nx/devkit";
 import * as path from "path";
-import { CreateGhActionGeneratorSchema } from "./schema";
+import { CreateGhActionGeneratorSchema } from "./schema.js";
 
 export async function createGhActionGenerator(
   tree: Tree,

@@ -27503,6 +27503,8 @@ var ActionRefValidation = class {
     this.octokit = octokit;
     this.options = options ?? { validateNodeVersion: true };
   }
+  octokit;
+  options;
   async validateLine(line) {
     if (line.operation === "unchanged") {
       return [];
@@ -27680,6 +27682,7 @@ function extractActionReferenceFromLine(line) {
 
 // actions/gha-workflow-validator/src/validations/actions-runner-validations.ts
 var ActionsRunnerValidation = class {
+  options;
   constructor(options) {
     this.options = options ?? {};
   }
@@ -27823,6 +27826,7 @@ function extractActionRunnerFromLine(line) {
 
 // actions/gha-workflow-validator/src/validations/ignores-comment-validation.ts
 var IgnoresCommentValidation = class {
+  options;
   constructor(options) {
     this.options = options ?? {};
   }
@@ -27855,6 +27859,7 @@ function extractIgnoresComment(fileLine) {
 
 // actions/gha-workflow-validator/src/validations/actions-cache-validation.ts
 var ActionsCacheVersionValidation = class {
+  options;
   constructor(options) {
     this.options = options ?? {};
   }

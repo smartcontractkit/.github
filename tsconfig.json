@@ -9,8 +9,5 @@
     {
       "path": "actions/signed-commits"
     }
-  ],
-  "compilerOptions": {
-    "ignoreDeprecations": "6.0"
-  }
+  ]
 }

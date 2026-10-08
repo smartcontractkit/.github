@@ -24968,6 +24968,9 @@ async function getTeamMembers(octokit, org, teamSlug) {
 
 // actions/codeowners-review-analysis/src/codeowners-pattern.ts
 var CodeownersPattern = class {
+  pattern;
+  regex;
+  leftAnchoredLiteral;
   constructor(patternStr) {
     if (patternStr == null) {
       throw new Error("empty pattern");

@@ -1,13 +1,13 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "nodenext",
     "outDir": "./dist",
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "ignoreDeprecations": "6.0",
     "types": ["node"],
-    "rootDir": "."
+    "rootDir": ".",
+    "moduleResolution": "nodenext"
   },
   "include": ["src/**/*", "src/**/*.json"],
   "exclude": ["src/**/*.spec.ts"]
