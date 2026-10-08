@@ -18,6 +18,7 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "es2023",
+    "verbatimModuleSyntax": true,
     "paths": {
       "nx-chainlink": ["./libs/nx-chainlink/src/index.ts"]
     }

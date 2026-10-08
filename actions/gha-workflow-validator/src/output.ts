@@ -1,13 +1,13 @@
 import * as core from "@actions/core";
-import {
+import type {
   SummaryTableRow as TRow,
   SummaryTableCell as TCell,
 } from "@actions/core/lib/summary.js";
-import {
+import type {
   FileValidationResult,
   LineValidationResult,
-  ValidationType,
 } from "./validations/validation-check.js";
+import { ValidationType } from "./validations/validation-check.js";
 import { FIXING_ERRORS, htmlLink } from "./strings";
 
 export function logValidationMessages(

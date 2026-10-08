@@ -3,10 +3,10 @@ import * as core from "@actions/core";
 import type { CodeownersEntry } from "./codeowners";
 import type { CodeOwnersReviewEntry } from "./run";
 
+import type { OwnerReviewStatus } from "./review-status";
 import {
   filterFor,
   getOverallStateForSingleEntry,
-  OwnerReviewStatus,
   PullRequestReviewStateExt,
   iconFor,
   textFor,

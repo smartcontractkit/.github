@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
-import { GetResponseTypeFromEndpointMethod } from "@octokit/types";
-import { Octokit } from "./github";
+import type { GetResponseTypeFromEndpointMethod } from "@octokit/types";
+import type { Octokit } from "./github";
 type CompareResponse = GetResponseTypeFromEndpointMethod<
   Octokit["rest"]["repos"]["compareCommitsWithBasehead"]
 >;

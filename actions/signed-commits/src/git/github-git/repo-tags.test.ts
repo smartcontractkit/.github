@@ -1,9 +1,9 @@
 import { execSync } from "child_process";
 import { execWithOutput } from "../../utils";
+import type { GitTag } from "./repo-tags";
 import {
   deleteTags,
   createLightweightTags,
-  GitTag,
   pushTags,
   getRemoteTagNames,
   getLocalTags,

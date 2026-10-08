@@ -1,6 +1,6 @@
-import * as github from "@actions/github";
+import type * as github from "@actions/github";
 import * as core from "@actions/core";
-import {
+import type {
   BaseGoModule,
   GoModule,
   GoModuleWithCommitSha,

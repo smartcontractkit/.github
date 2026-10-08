@@ -1,10 +1,10 @@
-import { RunContext } from "./index.mjs";
+import type { RunContext } from "./index.mjs";
 import * as log from "./logger.mjs";
 import { guessLatestVersion } from "./utils.mjs";
 
 import { join } from "node:path";
-import { Octokit } from "octokit";
-import { GetResponseTypeFromEndpointMethod } from "@octokit/types";
+import type { Octokit } from "octokit";
+import type { GetResponseTypeFromEndpointMethod } from "@octokit/types";
 
 export interface GithubShaToVersionCache {
   [ownerRepo: string]: {

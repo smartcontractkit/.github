@@ -1,7 +1,7 @@
-import { getOctokit } from "@actions/github";
+import type { getOctokit } from "@actions/github";
 import * as core from "@actions/core";
 import { dirname } from "path";
-import {
+import type {
   CreateCommitOnBranchInput,
   CreateCommitOnBranchPayload,
   FileAddition,

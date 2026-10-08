@@ -1,10 +1,7 @@
 import * as log from "./logger.mjs";
-import { RunContext } from "./index.mjs";
-import {
-  Action,
-  WorkflowByName,
-  extractDetailsFromActionIdentifier,
-} from "./workflows.mjs";
+import type { RunContext } from "./index.mjs";
+import type { Action, WorkflowByName } from "./workflows.mjs";
+import { extractDetailsFromActionIdentifier } from "./workflows.mjs";
 
 import * as github from "./github.mjs";
 import * as git from "./git-cli.mjs";

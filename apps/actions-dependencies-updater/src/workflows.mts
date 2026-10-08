@@ -1,13 +1,13 @@
-import { ActionSchema, WorkflowSchema } from "./generated/types/index.mjs";
+import type { ActionSchema, WorkflowSchema } from "./generated/types/index.mjs";
 import { listAllYamlFiles } from "./utils.mjs";
 import * as log from "./logger.mjs";
 import * as github from "./github.mjs";
-import { RunContext } from "./index.mjs";
+import type { RunContext } from "./index.mjs";
 
 import { basename, join } from "node:path";
 import { readFile } from "node:fs/promises";
 import YAML from "yaml";
-import { NormalJob } from "./generated/types/github-workflow.mjs";
+import type { NormalJob } from "./generated/types/github-workflow.mjs";
 
 /**
  * The return value of the parse workflows method.

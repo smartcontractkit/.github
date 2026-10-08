@@ -2,7 +2,7 @@ import {
   ActionsRunnerValidation,
   extractActionRunnerFromLine,
 } from "../validations/actions-runner-validations.js";
-import { FileLine, ParsedFile } from "../parse-files.js";
+import type { FileLine, ParsedFile } from "../parse-files.js";
 import { vi, describe, it, expect } from "vitest";
 
 vi.mock("@actions/core", async () => {

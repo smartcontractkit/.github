@@ -3,7 +3,7 @@ import fs from "fs-extra";
 import path from "path";
 import nock from "nock";
 import writeChangeset from "@changesets/write";
-import { Changeset } from "@changesets/types";
+import type { Changeset } from "@changesets/types";
 import { runVersion } from "./run";
 import { exec } from "@actions/exec";
 
@@ -68,7 +68,7 @@ vi.mock("@actions/github/lib/utils", () => ({
 }));
 vi.mock("./git/local-git");
 
-let mockedGithubMethods = {
+const mockedGithubMethods = {
   search: {
     issuesAndPullRequests: vi.fn(),
   },
@@ -197,7 +197,7 @@ describe("version", () => {
   });
 
   it("only includes bumped packages in the PR body", async () => {
-    let cwd = f.copy("simple-project");
+    const cwd = f.copy("simple-project");
     setupRepo(cwd);
 
     mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
@@ -232,7 +232,7 @@ describe("version", () => {
   });
 
   it("doesn't include ignored package that got a dependency update in the PR body", async () => {
-    let cwd = f.copy("ignored-package");
+    const cwd = f.copy("ignored-package");
     setupRepo(cwd);
 
     mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
@@ -267,7 +267,7 @@ describe("version", () => {
   });
 
   it("does not include changelog entries if full message exceeds size limit", async () => {
-    let cwd = f.copy("simple-project");
+    const cwd = f.copy("simple-project");
     setupRepo(cwd);
 
     mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
@@ -326,7 +326,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
   });
 
   it("does not include any release information if a message with simplified release info exceeds size limit", async () => {
-    let cwd = f.copy("simple-project");
+    const cwd = f.copy("simple-project");
     setupRepo(cwd);
 
     mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(

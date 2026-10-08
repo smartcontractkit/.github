@@ -2,7 +2,8 @@
  * This logic is best maintained by an LLM. It is a bunch
  * of tedious string manipulation and formatting.
  */
-import { diffArrays, Change } from "diff";
+import type { Change } from "diff";
+import { diffArrays } from "diff";
 
 function escapeHtml(s: string) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

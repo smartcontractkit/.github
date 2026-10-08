@@ -42,14 +42,14 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`,
   );
 
-  let { changesets } = await readChangesetState();
+  const { changesets } = await readChangesetState();
 
-  let publishScript = core.getInput("publish");
-  let hasChangesets = changesets.length !== 0;
+  const publishScript = core.getInput("publish");
+  const hasChangesets = changesets.length !== 0;
   const hasNonEmptyChangesets = changesets.some(
     (changeset) => changeset.releases.length > 0,
   );
-  let hasPublishScript = !!publishScript;
+  const hasPublishScript = !!publishScript;
 
   core.setOutput("published", "false");
   core.setOutput("publishedPackages", "[]");
@@ -64,7 +64,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         "No changesets found, attempting to publish any unpublished packages to npm",
       );
 
-      let userNpmrcPath = `${process.env.HOME}/.npmrc`;
+      const userNpmrcPath = `${process.env.HOME}/.npmrc`;
       if (fs.existsSync(userNpmrcPath)) {
         core.info("Found existing user .npmrc file");
         const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
