@@ -3,12 +3,13 @@
   "version": "0.3.1",
   "private": true,
   "description": "update-action-versions",
-  "main": "out/index.js",
+  "main": "out/index.cjs",
+  "type": "module",
   "scripts": {
-    "v1": "ts-node ./src/v1.ts --local --tokenEnv=GITHUB_TOKEN --dir=../../.github/workflows",
-    "build": "esbuild src/index.ts --bundle --platform=node --target=node16 --tsconfig=./tsconfig.json --outfile=out/index.js",
-    "local": "ts-node ./src/index.ts --local --tokenEnv=GITHUB_TOKEN --dir=../../.github/workflows",
-    "scratch": "ts-node ./src/index.ts --local --tokenEnv=GITHUB_TOKEN --dir=./test"
+    "v1": "tsx ./src/v1.ts --local --tokenEnv=GITHUB_TOKEN --dir=../../.github/workflows",
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node16 --tsconfig=./tsconfig.json --outfile=out/index.cjs",
+    "local": "tsx ./src/index.ts --local --tokenEnv=GITHUB_TOKEN --dir=../../.github/workflows",
+    "scratch": "tsx ./src/index.ts --local --tokenEnv=GITHUB_TOKEN --dir=./test"
   },
   "dependencies": {
     "@actions/core": "^3.0.1",
@@ -23,7 +24,7 @@
     "@types/node": "^26.6.4",
     "@types/semver": "^7.8.0",
     "esbuild": "^0.28.2",
-    "ts-node": "10.9.2"
+    "tsx": "^4.23.15"
   },
   "author": "@smartcontractkit",
   "license": "MIT",
