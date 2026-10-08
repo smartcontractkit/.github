@@ -4,46 +4,52 @@ output:
   - failure
 
 pre-commit:
-  commands:
-    code-lint:
-      description: "Fix ESLint issues and format code"
-      glob: "*.{js,cjs,mjs,ts,cts,mts,tsx}"
-      exclude: "(^|/)(dist|out)/"
-      run:
-        pnpm exec eslint --fix {staged_files} && pnpm exec prettier --write
-        --ignore-path=.prettierignore {staged_files}
-      stage_fixed: true
-    prettier:
-      description: "Fix prettier formatting"
-      glob: "*.{json,md,scss,yaml,yml}"
-      run:
-        pnpm exec prettier --write --ignore-path=.prettierignore {staged_files}
-      stage_fixed: true
-    reusable-workflows:
-      description: "Fix reusable workflows sync"
-      glob: "{workflows/*/*,.github/workflows/*}.{yml,yaml}"
-      run: pnpm workflows:fix --stage {staged_files}
-      stage_fixed: true
-    actionlint:
-      description: "Run actionlint"
-      glob: "{workflows/*/*,.github/workflows/*}.{yml,yaml}"
-      run: actionlint {staged_files}
-    shellcheck:
-      description: "Run shellcheck"
+  parallel: true
+  jobs:
+    - name: betterleaks
+      run: betterleaks git . --pre-commit --staged -v
+    - name: shellcheck
       glob: "*.sh"
       run: shellcheck {staged_files}
-    build-artifacts:
-      description: "Build artifacts for affected projects"
-      glob: "*.{js,ts,json}"
-      exclude: "(^|/)(dist|out)/"
-      env:
-        CI: "true"
-      run: pnpm build:affected
-      stage_fixed: true
+    - name: pipeline
+      group:
+        piped: true
+        jobs:
+          - name: code-lint
+            glob: "*.{js,cjs,mjs,ts,cts,mts,tsx}"
+            exclude:
+              - "{dist,out}/*"
+              - "*/{dist,out}/*"
+            run: pnpm exec eslint --fix {staged_files}
+            stage_fixed: true
+          - name: prettier
+            glob: "*.{js,cjs,mjs,ts,cts,mts,tsx,json,md,scss,yaml,yml}"
+            exclude:
+              - "{dist,out}/*"
+              - "*/{dist,out}/*"
+              - "{workflows,.github/workflows}/*"
+            run:
+              pnpm exec prettier --write --ignore-path=.prettierignore
+              {staged_files}
+            stage_fixed: true
+          - name: reusable-workflows
+            glob: "{workflows/*/*,.github/workflows/*}.{yml,yaml}"
+            run: pnpm workflows:fix --stage {staged_files}
+          - name: actionlint
+            glob: "{workflows/*/*,.github/workflows/*}.{yml,yaml}"
+            run: actionlint {staged_files}
+          - name: build-artifacts
+            glob: "*.{js,ts,json}"
+            exclude:
+              - "{dist,out}/*"
+              - "*/{dist,out}/*"
+            env:
+              CI: "true"
+            run: pnpm build:affected
+            stage_fixed: true
 
 pre-push:
   commands:
     test:
-      description: "Run affected unit tests"
       glob: "*.{js,cjs,mjs,ts,cts,mts,tsx,json,sh,yaml,yml}"
       run: pnpm test:affected
