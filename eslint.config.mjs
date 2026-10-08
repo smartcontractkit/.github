@@ -9,6 +9,11 @@ const compat = new FlatCompat({
   recommendedConfig: js.configs.recommended,
 });
 
+const prettierCompat = (files, config = {}) =>
+  compat
+    .config({ extends: ["prettier"], ...config })
+    .map((flatConfig) => ({ ...flatConfig, files }));
+
 export default [
   ...compat.extends("prettier"),
   ...nx.configs["flat/base"],
@@ -31,50 +36,9 @@ export default [
     },
   },
   ...nx.configs["flat/typescript"],
-  ...compat
-    .config({
-      extends: ["prettier"],
-    })
-    .map((config) => ({
-      ...config,
-      files: ["**/*.ts", "**/*.tsx"],
-      rules: {
-        ...config.rules,
-      },
-    })),
+  ...prettierCompat(["**/*.ts", "**/*.tsx"]),
   ...nx.configs["flat/javascript"],
-  ...compat
-    .config({
-      extends: ["prettier"],
-    })
-    .map((config) => ({
-      ...config,
-      files: ["**/*.js", "**/*.jsx"],
-      rules: {
-        ...config.rules,
-      },
-    })),
-  ...compat
-    .config({
-      parser: "jsonc-eslint-parser",
-      extends: ["prettier"],
-    })
-    .map((config) => ({
-      ...config,
-      files: ["**/*.json"],
-      rules: {
-        ...config.rules,
-      },
-    })),
-  ...compat
-    .config({
-      extends: ["prettier"],
-    })
-    .map((config) => ({
-      ...config,
-      files: ["**/*.yaml", "**/*.yml"],
-      rules: {
-        ...config.rules,
-      },
-    })),
+  ...prettierCompat(["**/*.js", "**/*.jsx"]),
+  ...prettierCompat(["**/*.json"], { parser: "jsonc-eslint-parser" }),
+  ...prettierCompat(["**/*.yaml", "**/*.yml"]),
 ];

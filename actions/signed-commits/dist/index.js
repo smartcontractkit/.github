@@ -19555,14 +19555,14 @@ var require_graceful_fs = __commonJS({
         return close;
       })(fs7.close);
       fs7.closeSync = (function(fs$closeSync) {
-        function closeSync2(fd) {
+        function closeSync(fd) {
           fs$closeSync.apply(fs7, arguments);
           resetQueue();
         }
-        Object.defineProperty(closeSync2, previousSymbol, {
+        Object.defineProperty(closeSync, previousSymbol, {
           value: fs$closeSync
         });
-        return closeSync2;
+        return closeSync;
       })(fs7.closeSync);
       if (/\bgfs4\b/i.test(process.env.NODE_DEBUG || "")) {
         process.on("exit", function() {
@@ -62566,32 +62566,15 @@ function listChanges(output) {
 }
 async function calculateFileChanges(changes, cwd = "") {
   const additions = changes.additions.flatMap((path7) => {
-    const skip = () => {
+    const fullPath = (0, import_path.join)(cwd, path7);
+    try {
+      const contents = (0, import_fs3.readFileSync)(fullPath).toString("base64");
+      return [{ path: path7, contents }];
+    } catch {
       warning(
         `Skipping ${path7}: not a readable file (missing, directory, or symlink)`
       );
       return [];
-    };
-    const fullPath = (0, import_path.join)(cwd, path7);
-    let fd;
-    try {
-      fd = (0, import_fs3.openSync)(fullPath, "r");
-    } catch {
-      return skip();
-    }
-    try {
-      if (!(0, import_fs3.fstatSync)(fd).isFile()) {
-        return skip();
-      }
-      const contents = (0, import_fs3.readFileSync)(fd).toString("base64");
-      return [
-        {
-          path: path7,
-          contents
-        }
-      ];
-    } finally {
-      (0, import_fs3.closeSync)(fd);
     }
   });
   const deletions = changes.deletions.map((path7) => {

@@ -6,7 +6,6 @@
     "isolatedModules": true,
     "strict": true,
     "esModuleInterop": true,
-    "noUncheckedSideEffectImports": false,
     "ignoreDeprecations": "6.0",
     "types": ["node"]
   }
