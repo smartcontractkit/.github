@@ -59,3 +59,6 @@ bin/
 /.pnpm-store/
 
 .nx/migrate-runs
+
+# lefthook local overrides
+lefthook-local.yml
