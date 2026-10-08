@@ -1,4 +1,3 @@
-import * as path from "path";
 import * as fs from "fs";
 
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
@@ -146,7 +145,7 @@ describe("runTestBinary", () => {
       directory: "/path/to/pkg",
     };
     const binaryPath = "/path/to/binary";
-    const runFlags = [];
+    const runFlags: string[] = [];
     const coverageDir = "/coverage";
 
     const executionResult = {
@@ -327,6 +326,7 @@ describe("validateRunResultsOrThrow", () => {
       isCanceled: false,
       killed: false,
       pid: 1234,
+      pipe: vi.fn(),
     };
 
     const results = [
@@ -339,7 +339,7 @@ describe("validateRunResultsOrThrow", () => {
           importPath: "github.com/example/pkg",
           directory: "/path/to/pkg",
         },
-        execution: executionResult as any,
+        execution: executionResult,
       },
     ] satisfies RunResult[];
 

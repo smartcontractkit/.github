@@ -2,7 +2,6 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import * as cache from "@actions/cache";
 import * as fs from "fs";
-import * as path from "path";
 
 function getCacheKey(testSuite: string, branch: string, commitSha?: string) {
   const key = `go-test-hashes-${testSuite}-${branch}`;

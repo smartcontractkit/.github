@@ -1,21 +1,10 @@
-import { FlatCompat } from "@eslint/eslintrc";
-import { dirname } from "path";
-import { fileURLToPath } from "url";
+import eslintConfigPrettier from "eslint-config-prettier";
 import js from "@eslint/js";
+import * as jsoncEslintParser from "jsonc-eslint-parser";
 import nx from "@nx/eslint-plugin";
+import tseslint from "typescript-eslint";
 
-const compat = new FlatCompat({
-  baseDirectory: dirname(fileURLToPath(import.meta.url)),
-  recommendedConfig: js.configs.recommended,
-});
-
-const prettierCompat = (files, config = {}) =>
-  compat
-    .config({ extends: ["prettier"], ...config })
-    .map((flatConfig) => ({ ...flatConfig, files }));
-
-export default [
-  ...compat.extends("prettier"),
+export default tseslint.config(
   ...nx.configs["flat/base"],
   {
     files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
@@ -35,10 +24,27 @@ export default [
       ],
     },
   },
-  ...nx.configs["flat/typescript"],
-  ...prettierCompat(["**/*.ts", "**/*.tsx"]),
-  ...nx.configs["flat/javascript"],
-  ...prettierCompat(["**/*.js", "**/*.jsx"]),
-  ...prettierCompat(["**/*.json"], { parser: "jsonc-eslint-parser" }),
-  ...prettierCompat(["**/*.yaml", "**/*.yml"]),
-];
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    extends: [tseslint.configs.recommended],
+    languageOptions: {
+      parser: tseslint.parser,
+      ecmaVersion: 2020,
+      sourceType: "module",
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+  {
+    files: ["**/*.js", "**/*.jsx"],
+    ...js.configs.recommended,
+  },
+  {
+    files: ["**/*.json"],
+    languageOptions: {
+      parser: jsoncEslintParser,
+    },
+  },
+  eslintConfigPrettier,
+);

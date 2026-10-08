@@ -29928,7 +29928,7 @@ function goModsToGoModules(goModFilePath, goMods, depPrefix) {
     }
     return true;
   }).map((d) => {
-    const [_, owner, repo, ...subModulePathElements] = d.Path.split("/");
+    const [, owner, repo, ...subModulePathElements] = d.Path.split("/");
     const baseModule = {
       owner,
       repo,

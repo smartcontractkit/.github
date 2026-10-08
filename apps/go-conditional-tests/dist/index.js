@@ -135428,12 +135428,12 @@ async function buildStep(inputs) {
 async function runStep(inputs, pkgs) {
   const packages = await processChangedPackages(inputs, pkgs);
   const changedPkgs = Object.fromEntries(
-    Object.entries(packages).filter(([_2, pkg]) => pkg.shouldRun)
+    Object.entries(packages).filter(([, pkg]) => pkg.shouldRun)
   );
   logObject("Changed Test Packages", changedPkgs);
   const maybeExecdPkgs = await runTestBinaries(inputs, packages);
   const execdPkgs = Object.fromEntries(
-    Object.entries(maybeExecdPkgs).filter(([_2, pkg]) => !!pkg.run)
+    Object.entries(maybeExecdPkgs).filter(([, pkg]) => !!pkg.run)
   );
   logObject("Executed Test Packages", execdPkgs);
   return maybeExecdPkgs;

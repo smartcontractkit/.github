@@ -35,7 +35,9 @@ describe("hashFile", () => {
       },
     });
 
-    vi.spyOn(fs, "createReadStream").mockReturnValue(readableStream as any);
+    vi.spyOn(fs, "createReadStream").mockReturnValue(
+      readableStream as fs.ReadStream,
+    );
 
     // Act
     const hash = await hashFile(testFilePath);
@@ -177,7 +179,11 @@ function createPackageEntry(
   return {
     importPath: "foo.com/bar/baz/v2/qux",
     directory: "baz/qux",
-    compile: { binary: "", log: "", execution: null as any },
+    compile: {
+      binary: "",
+      log: "",
+      execution: { command: "", exitCode: 0, cwd: "", durationMs: 0 },
+    },
     hash,
   };
 }

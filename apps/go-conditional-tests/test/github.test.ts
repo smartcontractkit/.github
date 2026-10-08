@@ -46,7 +46,7 @@ describe("getTestHashIndex", () => {
   });
 
   it("should return empty object when no cache hit", async () => {
-    (cache.restoreCache as any).mockResolvedValue(null);
+    vi.mocked(cache.restoreCache).mockResolvedValue(undefined);
 
     const result = await getTestHashIndex("unit");
 
@@ -62,8 +62,8 @@ describe("getTestHashIndex", () => {
       base: { ref: "main" },
       head: { ref: "feature", sha: "abcdef1" },
     };
-    (cache.restoreCache as any).mockResolvedValue("some-cache-key");
-    (fs.promises.readFile as any).mockResolvedValue('{"pkg1": "hash1"}');
+    vi.mocked(cache.restoreCache).mockResolvedValue("some-cache-key");
+    vi.mocked(fs.promises.readFile).mockResolvedValue('{"pkg1": "hash1"}');
 
     await getTestHashIndex("unit");
 
@@ -90,8 +90,8 @@ describe("getTestHashIndex", () => {
         },
       },
     };
-    (cache.restoreCache as any).mockResolvedValue("some-cache-key");
-    (fs.promises.readFile as any).mockResolvedValue('{"pkg1": "hash1"}');
+    vi.mocked(cache.restoreCache).mockResolvedValue("some-cache-key");
+    vi.mocked(fs.promises.readFile).mockResolvedValue('{"pkg1": "hash1"}');
 
     await getTestHashIndex("unit");
 
@@ -106,8 +106,8 @@ describe("getTestHashIndex", () => {
   });
 
   it("should handle file read errors", async () => {
-    (cache.restoreCache as any).mockResolvedValue("some-cache-key");
-    (fs.promises.readFile as any).mockRejectedValue(new Error("read error"));
+    vi.mocked(cache.restoreCache).mockResolvedValue("some-cache-key");
+    vi.mocked(fs.promises.readFile).mockRejectedValue(new Error("read error"));
 
     const result = await getTestHashIndex("unit");
 
@@ -186,7 +186,7 @@ describe("saveTestHashIndex", () => {
   });
 
   it("should handle cache reservation errors", async () => {
-    (cache.saveCache as any).mockRejectedValue(
+    vi.mocked(cache.saveCache).mockRejectedValue(
       new cache.ReserveCacheError("already reserved"),
     );
 
@@ -198,7 +198,7 @@ describe("saveTestHashIndex", () => {
   });
 
   it("should throw non-reservation errors", async () => {
-    (cache.saveCache as any).mockRejectedValue(new Error("network error"));
+    vi.mocked(cache.saveCache).mockRejectedValue(new Error("network error"));
 
     await expect(saveTestHashIndex("unit", { pkg1: "hash1" })).rejects.toThrow(
       "network error",
