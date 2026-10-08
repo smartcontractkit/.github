@@ -97,8 +97,8 @@ export function parseTagToVersion(tag: string) {
   let prefix = "";
   if (tag.includes("@")) {
     const parts = tag.split("@");
-    tag = parts[1];
-    prefix = parts[0];
+    tag = parts[1] ?? tag;
+    prefix = parts[0] ?? "";
   }
 
   // ^ - start of line
@@ -111,7 +111,7 @@ export function parseTagToVersion(tag: string) {
 
   const match = tag.match(versionRegex);
   if (match) {
-    const major = match[1];
+    const major = match[1] ?? "0";
     const minor = match[2] || "0"; // Default to '0' if not present
     const patch = match[3] || "0"; // Default to '0' if not present
 
@@ -207,5 +207,8 @@ export function isShaRefIdentifier(identifier: string) {
   const sha1Regex = /^[0-9a-f]{40}$/;
   const sha256Regex = /^[0-9a-f]{256}$/;
   const ref = identifier.split("@")[1];
-  return (ref && sha1Regex.test(ref)) || sha256Regex.test(ref);
+  if (ref === undefined) {
+    return false;
+  }
+  return sha1Regex.test(ref) || sha256Regex.test(ref);
 }

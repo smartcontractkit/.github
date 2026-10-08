@@ -119,10 +119,10 @@ export async function generateHashes(
     core.debug(`Test files: ${testFiles.join(", ")}`);
 
     const hashedCompiledPackages: HashedCompiledPackages = {};
-    for (const { key, binary } of testFiles) {
-      const hash = await hashFile(binary);
+    for (const [key, pkg] of Object.entries(compiledPackages)) {
+      const hash = await hashFile(pkg.compile.binary);
       hashedCompiledPackages[key] = {
-        ...compiledPackages[key],
+        ...pkg,
         hash,
       };
     }

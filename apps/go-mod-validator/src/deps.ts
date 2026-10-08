@@ -245,16 +245,18 @@ export function lineForDependencyPathFinder() {
     core.debug(
       `Finding line number for ${path} in ${goModFilePath}. (${name})`,
     );
-    if (!cache[goModFilePath]) {
-      cache[goModFilePath] = readFileSync(goModFilePath, "utf-8")
+    let lines = cache[goModFilePath];
+    if (!lines) {
+      lines = readFileSync(goModFilePath, "utf-8")
         .split("\n")
         .map((l) => l.trim());
+      cache[goModFilePath] = lines;
     }
 
     let line = -1;
-    for (let i = 0; i < cache[goModFilePath].length; i++) {
+    for (let i = 0; i < lines.length; i++) {
       // HACK: We add a space after the depPath to avoid matching substrings.
-      if (cache[goModFilePath][i].includes(path + " ")) {
+      if (lines[i]?.includes(path + " ")) {
         if (line !== -1) {
           core.warning(
             `Duplicate dependency path found: ${path} in ${goModFilePath} (line ${i + 1}). Previously found on line ${line}. Annotations may be faulty. Skipping.`,
@@ -304,7 +306,8 @@ export function goModsToGoModules(
     })
     .map((d: GoMod): GoModule => {
       // repo format github.com/smartcontractkit/chainlink
-      const [, owner, repo, ...subModulePathElements] = d.Path.split("/");
+      const [, owner = "", repo = "", ...subModulePathElements] =
+        d.Path.split("/");
       const baseModule: BaseGoModule = {
         owner,
         repo,

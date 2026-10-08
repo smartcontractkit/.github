@@ -43,6 +43,7 @@ export function cleanup(caches: ReturnType<typeof initialize>) {
   Object.keys(actionsByIdentifier).forEach((key) => {
     const action = actionsByIdentifier[key];
     if (
+      !action ||
       action.isLocal ||
       action.type === "unknown" ||
       !isShaRefIdentifier(action.identifier)
@@ -50,7 +51,7 @@ export function cleanup(caches: ReturnType<typeof initialize>) {
       log.debug(`Clearing ${key} from cache`);
       return delete actionsByIdentifier[key];
     }
-    actionsByIdentifier[key].referencePaths = [];
+    action.referencePaths = [];
   });
 }
 

@@ -104,6 +104,12 @@ async function processActionDependency(
   }
 
   const { owner, repo, repoPath, ref } = details;
+  if (!ref) {
+    log.warn(
+      `Skipping action dependency without pinned ref: ${currentAction.identifier}`,
+    );
+    return;
+  }
 
   log.debug(`Checking ${owner}/${repo}${repoPath}@${ref}`);
 

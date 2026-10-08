@@ -23,13 +23,16 @@ export async function listPackages(moduleDirectory: string) {
   return stdout
     .filter((line) => line.trim() !== "")
     .reduce((acc, line) => {
-      const [importPath, directory] = line.split(":");
+      const [importPath = "", directory] = line.split(":");
+      if (directory === undefined) {
+        core.debug(`Skipping malformed package line: ${line}`);
+        return acc;
+      }
 
-      if (acc[importPath]) {
+      const existing = acc[importPath];
+      if (existing) {
         core.info(`Duplicate package found`);
-        core.debug(
-          `Existing: ${acc[importPath].importPath} - ${acc[importPath].directory}`,
-        );
+        core.debug(`Existing: ${existing.importPath} - ${existing.directory}`);
         core.debug(`Duplicate: ${importPath} - ${directory}`);
         return acc;
       }

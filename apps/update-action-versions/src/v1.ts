@@ -57,9 +57,10 @@ async function buildMonorepoTagMap(
   return data
     .filter((tag) => tag.name.includes("@"))
     .reduce<TagMap>((accumulator, tag) => {
-      const [tagName, tagVersion] = tag.name.split("@");
-      if (tagName in accumulator) {
-        accumulator[tagName].push(tagVersion);
+      const [tagName = "", tagVersion = ""] = tag.name.split("@");
+      const entries = accumulator[tagName];
+      if (entries) {
+        entries.push(tagVersion);
       } else {
         accumulator[tagName] = [tagVersion];
       }
@@ -119,7 +120,7 @@ async function updateActionsInWorkflowFiles(
   wm: WorkflowMap,
 ) {
   for (const file of files) {
-    for (const action of wm[file]) {
+    for (const action of wm[file] ?? []) {
       if (!action.tagAfter) continue;
 
       const options = {

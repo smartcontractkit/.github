@@ -134652,11 +134652,16 @@ async function listPackages(moduleDirectory) {
     cwd: moduleDirectory
   });
   return stdout.filter((line) => line.trim() !== "").reduce((acc, line) => {
-    const [importPath, directory] = line.split(":");
-    if (acc[importPath]) {
+    const [importPath = "", directory] = line.split(":");
+    if (directory === void 0) {
+      debug(`Skipping malformed package line: ${line}`);
+      return acc;
+    }
+    const existing = acc[importPath];
+    if (existing) {
       info(`Duplicate package found`);
       debug(
-        `Existing: ${acc[importPath].importPath} - ${acc[importPath].directory}`
+        `Existing: ${existing.importPath} - ${existing.directory}`
       );
       debug(`Duplicate: ${importPath} - ${directory}`);
       return acc;
@@ -135258,10 +135263,10 @@ async function generateHashes(compiledPackages) {
     });
     debug(`Test files: ${testFiles.join(", ")}`);
     const hashedCompiledPackages = {};
-    for (const { key, binary } of testFiles) {
-      const hash = await hashFile(binary);
+    for (const [key, pkg] of Object.entries(compiledPackages)) {
+      const hash = await hashFile(pkg.compile.binary);
       hashedCompiledPackages[key] = {
-        ...compiledPackages[key],
+        ...pkg,
         hash
       };
     }
