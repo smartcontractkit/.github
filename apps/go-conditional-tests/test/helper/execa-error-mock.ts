@@ -1,7 +1,7 @@
 import { ExecaError } from "execa";
 
-import { BuildExecaOptions } from "../../src/pipeline/build.js";
-import { RunExecaOptions } from "../../src/pipeline/run.js";
+import type { BuildExecaOptions } from "../../src/pipeline/build.js";
+import type { RunExecaOptions } from "../../src/pipeline/run.js";
 
 export class ExecaErrorMockBuild extends ExecaError<BuildExecaOptions> {
   constructor(stdout: string, stderr: string) {

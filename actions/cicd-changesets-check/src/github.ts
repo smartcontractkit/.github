@@ -1,4 +1,4 @@
-import * as github from "@actions/github";
+import type * as github from "@actions/github";
 
 type Octokit = ReturnType<typeof github.getOctokit>;
 

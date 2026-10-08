@@ -58210,10 +58210,10 @@ var push = async (branch, { force } = {}) => {
   );
 };
 var switchToMaybeExistingBranch = async (branch) => {
-  let { stderr } = await getExecOutput("git", ["checkout", branch], {
+  const { stderr } = await getExecOutput("git", ["checkout", branch], {
     ignoreReturnCode: true
   });
-  let createLocalBranch = !stderr.toString().includes(`Switched to a new branch '${branch}'`);
+  const createLocalBranch = !stderr.toString().includes(`Switched to a new branch '${branch}'`);
   if (createLocalBranch) {
     await exec("git", ["checkout", "-b", branch]);
   }
@@ -62410,14 +62410,14 @@ var BumpLevels = {
   major: 3
 };
 async function getVersionsByDirectory(cwd) {
-  let { packages } = await (0, import_get_packages.getPackages)(cwd);
+  const { packages } = await (0, import_get_packages.getPackages)(cwd);
   return new Map(packages.map((x) => [x.dir, x.packageJson.version]));
 }
 async function getChangedPackages(cwd, previousVersions) {
   debug(`Getting changed packages from ${cwd}`);
-  let { packages } = await (0, import_get_packages.getPackages)(cwd);
-  let changedPackages = /* @__PURE__ */ new Set();
-  for (let pkg of packages) {
+  const { packages } = await (0, import_get_packages.getPackages)(cwd);
+  const changedPackages = /* @__PURE__ */ new Set();
+  for (const pkg of packages) {
     const previousVersion = previousVersions.get(pkg.dir);
     if (previousVersion !== pkg.packageJson.version) {
       changedPackages.add(pkg);
@@ -62427,24 +62427,24 @@ async function getChangedPackages(cwd, previousVersions) {
 }
 function getChangelogEntry(changelog, version) {
   debug(`Getting changelog entry for ${version}`);
-  let ast = (0, import_unified.default)().use(import_remark_parse.default).parse(changelog);
+  const ast = (0, import_unified.default)().use(import_remark_parse.default).parse(changelog);
   let highestLevel = BumpLevels.dep;
   if (!isParentNode(ast)) {
     throw new Error("ast is not a parent node");
   }
-  let nodes = ast.children;
+  const nodes = ast.children;
   let headingStartInfo;
   let endIndex;
   for (let i = 0; i < nodes.length; i++) {
-    let node = nodes[i];
+    const node = nodes[i];
     if (node.type === "heading") {
       if (!nodeHasDepthProperty(node)) {
         throw new Error("node is missing depth property");
       }
-      let stringified = (0, import_mdast_util_to_string.default)(node);
-      let match = stringified.toLowerCase().match(/(major|minor|patch)/);
+      const stringified = (0, import_mdast_util_to_string.default)(node);
+      const match = stringified.toLowerCase().match(/(major|minor|patch)/);
       if (match !== null) {
-        let level = BumpLevels[match[0]];
+        const level = BumpLevels[match[0]];
         highestLevel = Math.max(level, highestLevel);
       }
       if (headingStartInfo === void 0 && stringified === version) {
@@ -66217,10 +66217,10 @@ async function getChangesets(rootDir, sinceRef) {
 
 // actions/signed-commits/src/read-changeset-state.ts
 async function readChangesetState(cwd = process.cwd()) {
-  let preState = await readPreState(cwd);
-  let changesets = await getChangesets(cwd);
+  const preState = await readPreState(cwd);
+  const changesets = await getChangesets(cwd);
   if (preState !== void 0 && preState.mode === "pre") {
-    let changesetsToFilter = new Set(preState.changesets);
+    const changesetsToFilter = new Set(preState.changesets);
     return {
       preState,
       changesets: changesets.filter((x) => !changesetsToFilter.has(x.id))
@@ -66498,9 +66498,12 @@ var createRelease = async (octokit, { pkg, tagName }) => {
     debug(
       `Creating release for ${pkg.packageJson.name}@${pkg.packageJson.version} (tag: ${tagName})`
     );
-    let changelogFileName = import_path5.default.join(pkg.dir, "CHANGELOG.md");
-    let changelog = await import_fs_extra2.default.readFile(changelogFileName, "utf8");
-    let changelogEntry = getChangelogEntry(changelog, pkg.packageJson.version);
+    const changelogFileName = import_path5.default.join(pkg.dir, "CHANGELOG.md");
+    const changelog = await import_fs_extra2.default.readFile(changelogFileName, "utf8");
+    const changelogEntry = getChangelogEntry(
+      changelog,
+      pkg.packageJson.version
+    );
     if (!changelogEntry) {
       throw new Error(
         `Could not find changelog entry for ${pkg.packageJson.name}@${pkg.packageJson.version}`
@@ -66560,8 +66563,8 @@ async function runPublish({
     );
   }
   const octokit = setupOctokit(githubToken);
-  let [publishCommand, ...publishArgs] = script.split(/\s+/);
-  let changesetPublishOutput = await getExecOutput(
+  const [publishCommand, ...publishArgs] = script.split(/\s+/);
+  const changesetPublishOutput = await getExecOutput(
     publishCommand,
     publishArgs,
     { cwd }
@@ -66574,11 +66577,13 @@ async function runPublish({
   );
   debug(`Tags pushed: ${JSON.stringify(tags.map((tag) => tag.name))}`);
   const nonMajorTags = tags.filter((tag) => !tag.majorVersion);
-  let { packages, tool } = await (0, import_get_packages4.getPackages)(cwd);
-  let releasedPackages = [];
+  const { packages, tool } = await (0, import_get_packages4.getPackages)(cwd);
+  const releasedPackages = [];
   if (tool.type !== "root") {
-    let packagesByName = new Map(packages.map((x) => [x.packageJson.name, x]));
-    for (let tag of nonMajorTags) {
+    const packagesByName = new Map(
+      packages.map((x) => [x.packageJson.name, x])
+    );
+    for (const tag of nonMajorTags) {
       const [pkgName, _version] = tag.name.split(tagSeparator);
       const pkg = packagesByName.get(pkgName);
       if (pkg === void 0) {
@@ -66612,10 +66617,10 @@ async function runPublish({
         `No package found.This is probably a bug in the action, please open an issue`
       );
     }
-    let pkg = packages[0];
-    let newTagRegex = /New tag:/;
-    for (let line of changesetPublishOutput.stdout.split("\n")) {
-      let match = line.match(newTagRegex);
+    const pkg = packages[0];
+    const newTagRegex = /New tag:/;
+    for (const line of changesetPublishOutput.stdout.split("\n")) {
+      const match = line.match(newTagRegex);
       if (match) {
         releasedPackages.push([
           pkg,
@@ -66662,15 +66667,15 @@ async function getVersionPrBody({
   fullRepo,
   branch
 }) {
-  let messageHeader = `This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and ${hasPublishScript ? `the packages will be published to npm automatically` : `publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing)`}. If you're not ready to do a release yet, that's fine, whenever you add more changesets to ${branch}, this PR will be updated.
+  const messageHeader = `This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and ${hasPublishScript ? `the packages will be published to npm automatically` : `publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing)`}. If you're not ready to do a release yet, that's fine, whenever you add more changesets to ${branch}, this PR will be updated.
 `;
-  let messagePrestate = !!preState ? `\u26A0\uFE0F\u26A0\uFE0F\u26A0\uFE0F\u26A0\uFE0F\u26A0\uFE0F\u26A0\uFE0F
+  const messagePrestate = !!preState ? `\u26A0\uFE0F\u26A0\uFE0F\u26A0\uFE0F\u26A0\uFE0F\u26A0\uFE0F\u26A0\uFE0F
 
 \`${branch}\` is currently in **pre mode** so this branch has prereleases rather than normal releases. If you want to exit prereleases, run \`changeset pre exit\` on \`${branch}\`.
 
 \u26A0\uFE0F\u26A0\uFE0F\u26A0\uFE0F\u26A0\uFE0F\u26A0\uFE0F\u26A0\uFE0F
 ` : "";
-  let messageReleasesHeading = `# Releases`;
+  const messageReleasesHeading = `# Releases`;
   let fullMessage = [
     messageHeader,
     messagePrestate,
@@ -66717,10 +66722,10 @@ async function runVersion({
 }) {
   const octokit = setupOctokit(githubToken);
   const { owner, repo } = context2.repo;
-  let fullRepo = `${owner}/${repo}`;
-  let branch = context2.ref.replace("refs/heads/", "");
-  let versionBranch = `changeset-release/${branch}`;
-  let { preState } = await readChangesetState(cwd);
+  const fullRepo = `${owner}/${repo}`;
+  const branch = context2.ref.replace("refs/heads/", "");
+  const versionBranch = `changeset-release/${branch}`;
+  const { preState } = await readChangesetState(cwd);
   await switchToMaybeExistingBranch(versionBranch);
   await reset(context2.sha);
   const searchQuery = `repo:${fullRepo}+state:open+head:${versionBranch}+base:${branch}+is:pull-request`;
@@ -66730,23 +66735,26 @@ async function runVersion({
   await push(versionBranch, { force: true });
   const versionsByDirectory = await getVersionsByDirectory(cwd);
   if (script) {
-    let [versionCommand, ...versionArgs] = script.split(/\s+/);
+    const [versionCommand, ...versionArgs] = script.split(/\s+/);
     await exec(versionCommand, versionArgs, { cwd });
   } else {
-    let changesetsCliPkgJson = requireChangesetsCliPkgJson(cwd);
-    let cmd = semver.lt(changesetsCliPkgJson.version, "2.0.0") ? "bump" : "version";
+    const changesetsCliPkgJson = requireChangesetsCliPkgJson(cwd);
+    const cmd = semver.lt(changesetsCliPkgJson.version, "2.0.0") ? "bump" : "version";
     await exec("node", [(0, import_resolve_from.default)(cwd, "@changesets/cli/bin.js"), cmd], {
       cwd
     });
   }
   const changedPackages = await getChangedPackages(cwd, versionsByDirectory);
-  let changedPackagesInfoPromises = Promise.all(
+  const changedPackagesInfoPromises = Promise.all(
     changedPackages.map(async (pkg) => {
-      let changelogContents = await import_fs_extra2.default.readFile(
+      const changelogContents = await import_fs_extra2.default.readFile(
         import_path5.default.join(pkg.dir, "CHANGELOG.md"),
         "utf8"
       );
-      let entry = getChangelogEntry(changelogContents, pkg.packageJson.version);
+      const entry = getChangelogEntry(
+        changelogContents,
+        pkg.packageJson.version
+      );
       return {
         highestLevel: entry.highestLevel,
         private: !!pkg.packageJson.private,
@@ -66776,7 +66784,7 @@ async function runVersion({
   }
   info(JSON.stringify(searchResult.data, null, 2));
   const changedPackagesInfo = (await changedPackagesInfoPromises).filter((x) => x).sort(sortTheThings);
-  let prBody = await getVersionPrBody({
+  const prBody = await getVersionPrBody({
     hasPublishScript,
     preState,
     fullRepo,
@@ -66847,13 +66855,13 @@ var getOptionalInput = (name) => getInput(name) || void 0;
 login github-actions[bot]
 password ${githubToken}`
   );
-  let { changesets } = await readChangesetState();
-  let publishScript = getInput("publish");
-  let hasChangesets = changesets.length !== 0;
+  const { changesets } = await readChangesetState();
+  const publishScript = getInput("publish");
+  const hasChangesets = changesets.length !== 0;
   const hasNonEmptyChangesets = changesets.some(
     (changeset) => changeset.releases.length > 0
   );
-  let hasPublishScript = !!publishScript;
+  const hasPublishScript = !!publishScript;
   setOutput("published", "false");
   setOutput("publishedPackages", "[]");
   setOutput("hasChangesets", String(hasChangesets));
@@ -66865,7 +66873,7 @@ password ${githubToken}`
       info(
         "No changesets found, attempting to publish any unpublished packages to npm"
       );
-      let userNpmrcPath = `${process.env.HOME}/.npmrc`;
+      const userNpmrcPath = `${process.env.HOME}/.npmrc`;
       if (import_fs_extra3.default.existsSync(userNpmrcPath)) {
         info("Found existing user .npmrc file");
         const userNpmrcContent = await import_fs_extra3.default.readFile(userNpmrcPath, "utf8");

@@ -3,7 +3,8 @@ import * as github from "@actions/github";
 
 import { getInvokeContext, getInputs } from "./run-inputs";
 import { parseFileSets, parseTriggers } from "./schema";
-import { applyTrigger, TriggerResult } from "./filters";
+import type { TriggerResult } from "./filters";
+import { applyTrigger } from "./filters";
 import { getChangedFilesGit } from "./git";
 import { getChangedFilesForMergeGroup, getChangedFilesForPR } from "./github";
 import type { OctokitType } from "./github";

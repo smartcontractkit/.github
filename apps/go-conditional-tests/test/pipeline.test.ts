@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
+import type { Mock } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as core from "@actions/core";
 
-import { Inputs } from "../src/main.js";
+import type { Inputs } from "../src/main.js";
 import { saveTestHashIndex } from "../src/github.js";
+import type { MaybeExecutedPackages } from "../src/pipeline.js";
 import {
-  MaybeExecutedPackages,
   runTestBinaries,
   buildTestBinaries,
   maybeUpdateHashIndex,

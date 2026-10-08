@@ -1,5 +1,5 @@
 import * as github from "@actions/github";
-import { PushEvent, MergeGroupEvent } from "@octokit/webhooks-types";
+import type { PushEvent, MergeGroupEvent } from "@octokit/webhooks-types";
 
 export type FileChangeEventData =
   PullRequestEventData | PushEventData | MergeGroupEventData;

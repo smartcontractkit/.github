@@ -7,7 +7,7 @@ import tseslint from "typescript-eslint";
 export default tseslint.config(
   ...nx.configs["flat/base"],
   {
-    files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+    files: ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.js", "**/*.jsx"],
     rules: {
       "@nx/enforce-module-boundaries": [
         "error",
@@ -25,8 +25,18 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.ts", "**/*.tsx"],
+    files: ["**/*.ts", "**/*.tsx", "**/*.mts"],
     extends: [tseslint.configs.recommended],
+    rules: {
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        {
+          prefer: "type-imports",
+          fixStyle: "separate-type-imports",
+          disallowTypeAnnotations: false,
+        },
+      ],
+    },
     languageOptions: {
       parser: tseslint.parser,
       ecmaVersion: 2020,

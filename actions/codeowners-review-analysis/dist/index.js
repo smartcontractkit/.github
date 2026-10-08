@@ -25367,14 +25367,14 @@ async function getCurrentReviewStatusGQL(octokit, owner, repo, prNumber, pageSiz
 }
 
 // actions/codeowners-review-analysis/src/review-status.ts
-var PullRequestReviewStateExt = ((PullRequestReviewStateExt3) => {
-  PullRequestReviewStateExt3[PullRequestReviewStateExt3["Approved"] = "APPROVED" /* Approved */] = "Approved";
-  PullRequestReviewStateExt3[PullRequestReviewStateExt3["ChangesRequested"] = "CHANGES_REQUESTED" /* ChangesRequested */] = "ChangesRequested";
-  PullRequestReviewStateExt3[PullRequestReviewStateExt3["Commented"] = "COMMENTED" /* Commented */] = "Commented";
-  PullRequestReviewStateExt3[PullRequestReviewStateExt3["Dismissed"] = "DISMISSED" /* Dismissed */] = "Dismissed";
-  PullRequestReviewStateExt3[PullRequestReviewStateExt3["Pending"] = "PENDING" /* Pending */] = "Pending";
-  PullRequestReviewStateExt3["Unknown"] = "UNKNOWN";
-  return PullRequestReviewStateExt3;
+var PullRequestReviewStateExt = ((PullRequestReviewStateExt2) => {
+  PullRequestReviewStateExt2[PullRequestReviewStateExt2["Approved"] = "APPROVED" /* Approved */] = "Approved";
+  PullRequestReviewStateExt2[PullRequestReviewStateExt2["ChangesRequested"] = "CHANGES_REQUESTED" /* ChangesRequested */] = "ChangesRequested";
+  PullRequestReviewStateExt2[PullRequestReviewStateExt2["Commented"] = "COMMENTED" /* Commented */] = "Commented";
+  PullRequestReviewStateExt2[PullRequestReviewStateExt2["Dismissed"] = "DISMISSED" /* Dismissed */] = "Dismissed";
+  PullRequestReviewStateExt2[PullRequestReviewStateExt2["Pending"] = "PENDING" /* Pending */] = "Pending";
+  PullRequestReviewStateExt2["Unknown"] = "UNKNOWN";
+  return PullRequestReviewStateExt2;
 })(PullRequestReviewStateExt || {});
 function getOverallStateForAllEntries(map) {
   const statuses = Array.from(map.values()).map((entry) => entry.state);

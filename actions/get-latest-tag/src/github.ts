@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
-import * as github from "@actions/github";
+import type * as github from "@actions/github";
 
-import { GetResponseTypeFromEndpointMethod } from "@octokit/types";
+import type { GetResponseTypeFromEndpointMethod } from "@octokit/types";
 
 export type OctokitType = ReturnType<typeof github.getOctokit>;
 type ListMatchingRefsResponse = GetResponseTypeFromEndpointMethod<

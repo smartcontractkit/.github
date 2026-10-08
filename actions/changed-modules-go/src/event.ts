@@ -1,5 +1,5 @@
 import * as github from "@actions/github";
-import {
+import type {
   PushEvent,
   PullRequestEvent,
   MergeGroupEvent,

@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 import { getOctokit } from "@actions/github";
 import nock from "nock";
 import path from "path";
-import { CreateCommitOnBranchInput } from "../../generated/graphql";
+import type { CreateCommitOnBranchInput } from "../../generated/graphql";
 import { getRemoteHeadOid } from "./index";
 import { createCommitOnBranch } from "./index";
 

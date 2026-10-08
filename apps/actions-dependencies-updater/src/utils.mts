@@ -3,7 +3,7 @@ import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 
 import * as log from "./logger.mjs";
-import { Action, WorkflowByName } from "./workflows.mjs";
+import type { Action, WorkflowByName } from "./workflows.mjs";
 
 /**
  * Get an environment variable or throw an error if it's not set

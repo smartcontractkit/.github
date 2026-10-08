@@ -2,7 +2,7 @@ import {
   ActionRefValidation,
   extractActionReferenceFromLine,
 } from "../validations/action-reference-validations.js";
-import { FileLine } from "../parse-files.js";
+import type { FileLine } from "../parse-files.js";
 import { getNock, getTestOctokit } from "./__helpers__/test-utils.js";
 
 import { vi, describe, it, expect } from "vitest";

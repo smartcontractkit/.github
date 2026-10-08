@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 
-import { Inputs } from "./main.js";
+import type { Inputs } from "./main.js";
 import { logSection, logObject } from "./log.js";
 import { getTestHashIndex, saveTestHashIndex } from "./github.js";
 import { listPackages } from "./pipeline/filter.js";

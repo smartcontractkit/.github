@@ -1,4 +1,5 @@
-import { FileLine, ParsedFile } from "../parse-files.js";
+import type { FileLine } from "../parse-files.js";
+import { ParsedFile } from "../parse-files.js";
 
 export interface FileValidationResult {
   filename: string;

@@ -5,7 +5,11 @@ import * as core from "@actions/core";
 import { execa, ExecaError } from "execa";
 import pLimit from "p-limit";
 
-import { GoPackage, CompiledPackages, LocalPackages } from "../pipeline.js";
+import type {
+  GoPackage,
+  CompiledPackages,
+  LocalPackages,
+} from "../pipeline.js";
 import { insertWithoutDuplicates } from "../utils.js";
 
 const defaultExecaOptions = {

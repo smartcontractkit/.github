@@ -2,9 +2,11 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 import { getInputs, getInvokeContext } from "./run-inputs";
-import { REPO_CONFIG, RepoConfig } from "./repo-config";
+import type { RepoConfig } from "./repo-config";
+import { REPO_CONFIG } from "./repo-config";
 import { extractRefsFromBody, isFullSha, validateGitRef } from "./refs";
-import { getPullRequestBody, OctokitType, resolveRefToSha } from "./github";
+import type { OctokitType } from "./github";
+import { getPullRequestBody, resolveRefToSha } from "./github";
 import { verifyCommit } from "./sigscanner";
 
 type ProcessResult = { ok: true; sha: string } | { ok: false; failure: string };

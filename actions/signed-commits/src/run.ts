@@ -3,10 +3,11 @@ import { GitHub, getOctokitOptions } from "@actions/github/lib/utils";
 import * as github from "@actions/github";
 import * as core from "@actions/core";
 import fs from "fs-extra";
-import { getPackages, Package } from "@manypkg/get-packages";
+import type { Package } from "@manypkg/get-packages";
+import { getPackages } from "@manypkg/get-packages";
 import path from "path";
 import * as semver from "semver";
-import { PreState } from "@changesets/types";
+import type { PreState } from "@changesets/types";
 import {
   getChangelogEntry,
   getChangedPackages,
@@ -18,7 +19,7 @@ import * as githubGitUtils from "./git/github-git";
 import readChangesetState from "./read-changeset-state";
 import resolveFrom from "resolve-from";
 import { throttling } from "@octokit/plugin-throttling";
-import { GitTag } from "./git/github-git/repo-tags";
+import type { GitTag } from "./git/github-git/repo-tags";
 
 // GitHub Issues/PRs messages have a max size limit on the
 // message body payload.
@@ -73,11 +74,14 @@ const createRelease = async (
     core.debug(
       `Creating release for ${pkg.packageJson.name}@${pkg.packageJson.version} (tag: ${tagName})`,
     );
-    let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
+    const changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
 
-    let changelog = await fs.readFile(changelogFileName, "utf8");
+    const changelog = await fs.readFile(changelogFileName, "utf8");
 
-    let changelogEntry = getChangelogEntry(changelog, pkg.packageJson.version);
+    const changelogEntry = getChangelogEntry(
+      changelog,
+      pkg.packageJson.version,
+    );
     if (!changelogEntry) {
       // we can find a changelog but not the entry for this version
       // if this is true, something has probably gone wrong
@@ -179,9 +183,9 @@ export async function runPublish({
 
   const octokit = setupOctokit(githubToken);
 
-  let [publishCommand, ...publishArgs] = script.split(/\s+/);
+  const [publishCommand, ...publishArgs] = script.split(/\s+/);
 
-  let changesetPublishOutput = await getExecOutput(
+  const changesetPublishOutput = await getExecOutput(
     publishCommand,
     publishArgs,
     { cwd },
@@ -198,16 +202,18 @@ export async function runPublish({
 
   const nonMajorTags = tags.filter((tag) => !tag.majorVersion);
 
-  let { packages, tool } = await getPackages(cwd);
-  let releasedPackages: [Package, GitTag][] = [];
+  const { packages, tool } = await getPackages(cwd);
+  const releasedPackages: [Package, GitTag][] = [];
 
   // if we are in a monorepo, then publish multiple packages
   // a "root" tool is a single package repo
   // https://github.com/Thinkmill/manypkg/blob/main/packages/tools/src/RootTool.ts#L17C4-L17C64
   if (tool.type !== "root") {
-    let packagesByName = new Map(packages.map((x) => [x.packageJson.name, x]));
+    const packagesByName = new Map(
+      packages.map((x) => [x.packageJson.name, x]),
+    );
 
-    for (let tag of nonMajorTags) {
+    for (const tag of nonMajorTags) {
       const [pkgName, _version] = tag.name.split(tagSeparator);
       const pkg = packagesByName.get(pkgName);
 
@@ -251,11 +257,11 @@ export async function runPublish({
           "This is probably a bug in the action, please open an issue",
       );
     }
-    let pkg = packages[0];
-    let newTagRegex = /New tag:/;
+    const pkg = packages[0];
+    const newTagRegex = /New tag:/;
 
-    for (let line of changesetPublishOutput.stdout.split("\n")) {
-      let match = line.match(newTagRegex);
+    for (const line of changesetPublishOutput.stdout.split("\n")) {
+      const match = line.match(newTagRegex);
 
       if (match) {
         releasedPackages.push([
@@ -326,13 +332,13 @@ export async function getVersionPrBody({
   fullRepo,
   branch,
 }: GetMessageOptions) {
-  let messageHeader = `This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and ${
+  const messageHeader = `This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and ${
     hasPublishScript
       ? `the packages will be published to npm automatically`
       : `publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing)`
   }. If you're not ready to do a release yet, that's fine, whenever you add more changesets to ${branch}, this PR will be updated.
 `;
-  let messagePrestate = !!preState
+  const messagePrestate = !!preState
     ? `⚠️⚠️⚠️⚠️⚠️⚠️
 
 \`${branch}\` is currently in **pre mode** so this branch has prereleases rather than normal releases. If you want to exit prereleases, run \`changeset pre exit\` on \`${branch}\`.
@@ -340,7 +346,7 @@ export async function getVersionPrBody({
 ⚠️⚠️⚠️⚠️⚠️⚠️
 `
     : "";
-  let messageReleasesHeading = `# Releases`;
+  const messageReleasesHeading = `# Releases`;
 
   let fullMessage = [
     messageHeader,
@@ -404,11 +410,11 @@ export async function runVersion({
   const octokit = setupOctokit(githubToken);
   const { owner, repo } = github.context.repo;
 
-  let fullRepo = `${owner}/${repo}`;
-  let branch = github.context.ref.replace("refs/heads/", "");
-  let versionBranch = `changeset-release/${branch}`;
+  const fullRepo = `${owner}/${repo}`;
+  const branch = github.context.ref.replace("refs/heads/", "");
+  const versionBranch = `changeset-release/${branch}`;
 
-  let { preState } = await readChangesetState(cwd);
+  const { preState } = await readChangesetState(cwd);
 
   await localGitUtils.switchToMaybeExistingBranch(versionBranch);
   // hard reset back to default branch
@@ -436,11 +442,11 @@ export async function runVersion({
   const versionsByDirectory = await getVersionsByDirectory(cwd);
 
   if (script) {
-    let [versionCommand, ...versionArgs] = script.split(/\s+/);
+    const [versionCommand, ...versionArgs] = script.split(/\s+/);
     await exec(versionCommand, versionArgs, { cwd });
   } else {
-    let changesetsCliPkgJson = requireChangesetsCliPkgJson(cwd);
-    let cmd = semver.lt(changesetsCliPkgJson.version, "2.0.0")
+    const changesetsCliPkgJson = requireChangesetsCliPkgJson(cwd);
+    const cmd = semver.lt(changesetsCliPkgJson.version, "2.0.0")
       ? "bump"
       : "version";
     await exec("node", [resolveFrom(cwd, "@changesets/cli/bin.js"), cmd], {
@@ -449,14 +455,17 @@ export async function runVersion({
   }
 
   const changedPackages = await getChangedPackages(cwd, versionsByDirectory);
-  let changedPackagesInfoPromises = Promise.all(
+  const changedPackagesInfoPromises = Promise.all(
     changedPackages.map(async (pkg) => {
-      let changelogContents = await fs.readFile(
+      const changelogContents = await fs.readFile(
         path.join(pkg.dir, "CHANGELOG.md"),
         "utf8",
       );
 
-      let entry = getChangelogEntry(changelogContents, pkg.packageJson.version);
+      const entry = getChangelogEntry(
+        changelogContents,
+        pkg.packageJson.version,
+      );
       return {
         highestLevel: entry.highestLevel,
         private: !!pkg.packageJson.private,
@@ -510,7 +519,7 @@ export async function runVersion({
     .filter((x) => x)
     .sort(sortTheThings);
 
-  let prBody = await getVersionPrBody({
+  const prBody = await getVersionPrBody({
     hasPublishScript,
     preState,
     fullRepo,

@@ -1,4 +1,4 @@
-import * as jira from "jira.js";
+import type * as jira from "jira.js";
 import {
   createJiraClient,
   extractJiraIssueNumbersFrom,

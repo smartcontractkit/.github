@@ -1,5 +1,5 @@
 import * as core from "@actions/core";
-import jira from "jira.js";
+import type jira from "jira.js";
 import {
   tagsToLabels,
   createJiraClient,

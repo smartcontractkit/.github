@@ -24,13 +24,15 @@ import {
   formatSkippedAnalysisMarkdown,
 } from "./strings";
 import {
-  PullRequestReviewStateExt,
   getOverallStateForAllEntries,
   getOverallStateForSingleEntry,
   getReviewForStatusFor,
 } from "./review-status";
 
-import type { OwnerReviewStatus } from "./review-status";
+import type {
+  OwnerReviewStatus,
+  PullRequestReviewStateExt,
+} from "./review-status";
 import type { CodeownersEntry, CodeOwnersToFilesMap } from "./codeowners";
 import type { CurrentReviewStatus } from "./github-gql";
 

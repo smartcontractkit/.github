@@ -1,7 +1,7 @@
 import * as log from "./logger.mjs";
-import { GithubShaToVersionCache } from "./github.mjs";
-import { UpdateTransaction } from "./updater.mjs";
-import { ActionsByIdentifier } from "./workflows.mjs";
+import type { GithubShaToVersionCache } from "./github.mjs";
+import type { UpdateTransaction } from "./updater.mjs";
+import type { ActionsByIdentifier } from "./workflows.mjs";
 import { isShaRefIdentifier } from "./utils.mjs";
 
 import { join } from "node:path";

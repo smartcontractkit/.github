@@ -3,7 +3,7 @@ import * as github from "@actions/github";
 import { throttling } from "@octokit/plugin-throttling";
 import { retry } from "@octokit/plugin-retry";
 
-import { GetResponseTypeFromEndpointMethod } from "@octokit/types";
+import type { GetResponseTypeFromEndpointMethod } from "@octokit/types";
 
 export type OctokitType = ReturnType<typeof github.getOctokit>;
 

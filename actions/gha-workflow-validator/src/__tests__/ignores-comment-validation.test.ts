@@ -1,6 +1,6 @@
 import { IgnoresCommentValidation } from "../validations/ignores-comment-validation.js";
 import { VALIDATOR_IGNORE_LINE } from "../strings.js";
-import { FileLine } from "../parse-files.js";
+import type { FileLine } from "../parse-files.js";
 import { vi, describe, it, expect } from "vitest";
 
 vi.mock("@actions/core", async () => {

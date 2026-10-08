@@ -32678,7 +32678,7 @@ function renderFuncDiffCompactPre(oldText, newText) {
 
 // actions/apidiff-go/src/string-processor.ts
 function parseElement(element) {
-  let path8 = element.startsWith("./") ? element.slice(2) : element;
+  const path8 = element.startsWith("./") ? element.slice(2) : element;
   const i2 = path8.lastIndexOf(".");
   if (i2 === -1) return { packagePath: "", elementName: path8 };
   return { packagePath: path8.slice(0, i2), elementName: path8.slice(i2 + 1) };

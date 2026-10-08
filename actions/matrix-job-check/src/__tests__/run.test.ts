@@ -2,11 +2,8 @@
  * This runs through the whole action e2e with mocks/fixtures.
  */
 
-import {
-  getNock,
-  getTestOctokit,
-  coreLoggingStubs,
-} from "./__helpers__/test-utils.js";
+import type { coreLoggingStubs } from "./__helpers__/test-utils.js";
+import { getNock, getTestOctokit } from "./__helpers__/test-utils.js";
 import { vi, beforeEach, describe, it, expect } from "vitest";
 
 import type * as GithubImport from "@actions/github";

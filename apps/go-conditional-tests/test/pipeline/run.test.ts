@@ -1,19 +1,23 @@
 import * as fs from "fs";
 
-import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
+import type { Mock } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { execa } from "execa";
 
 import * as core from "@actions/core";
 
 import { ExecaErrorMockRun } from "../helper/execa-error-mock.js";
+import type { RunResult } from "../../src/pipeline/run.js";
 import {
   trimOutputLogs,
   runConcurrent,
   runTestBinary,
   validateRunResultsOrThrow,
-  RunResult,
 } from "../../src/pipeline/run.js";
-import { DiffedHashedCompiledPackages, GoPackage } from "../../src/pipeline.js";
+import type {
+  DiffedHashedCompiledPackages,
+  GoPackage,
+} from "../../src/pipeline.js";
 
 // Mock execa
 vi.mock("execa", async (importOriginal) => {

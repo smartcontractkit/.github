@@ -2,8 +2,8 @@ import { createReadStream } from "fs";
 import { createHash } from "crypto";
 import { pipeline } from "stream/promises";
 
-import { getTestHashIndex } from "../github.js";
-import {
+import type { getTestHashIndex } from "../github.js";
+import type {
   HashedCompiledPackages,
   DiffedHashedCompiledPackages,
 } from "../pipeline.js";

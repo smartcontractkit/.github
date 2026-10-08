@@ -1,8 +1,8 @@
-import { ParsedFile, FileLine } from "../parse-files.js";
+import type { FileLine } from "../parse-files.js";
+import { ParsedFile } from "../parse-files.js";
 import * as core from "@actions/core";
+import type { ValidationCheck, ValidationMessage } from "./validation-check.js";
 import {
-  ValidationCheck,
-  ValidationMessage,
   FileValidationResult,
   LineValidationResult,
   ValidationType,

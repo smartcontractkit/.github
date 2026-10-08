@@ -1,5 +1,5 @@
 import * as core from "@actions/core";
-import { CodeOwnersError } from "./github";
+import type { CodeOwnersError } from "./github";
 
 export function getNoCodeownersMsg(actor: string): string {
   return `

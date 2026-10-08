@@ -13,7 +13,7 @@ function parseElement(element: string): {
   packagePath: string;
   elementName: string;
 } {
-  let path = element.startsWith("./") ? element.slice(2) : element;
+  const path = element.startsWith("./") ? element.slice(2) : element;
   const i = path.lastIndexOf(".");
   if (i === -1) return { packagePath: "", elementName: path };
   return { packagePath: path.slice(0, i), elementName: path.slice(i + 1) };

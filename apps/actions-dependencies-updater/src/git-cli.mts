@@ -1,5 +1,5 @@
 import * as log from "./logger.mjs";
-import { RunContext } from "./index.mjs";
+import type { RunContext } from "./index.mjs";
 
 import "zx/globals";
 $.verbose = false;

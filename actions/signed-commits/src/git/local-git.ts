@@ -30,10 +30,10 @@ export const pushTags = async () => {
 };
 
 export const switchToMaybeExistingBranch = async (branch: string) => {
-  let { stderr } = await getExecOutput("git", ["checkout", branch], {
+  const { stderr } = await getExecOutput("git", ["checkout", branch], {
     ignoreReturnCode: true,
   });
-  let createLocalBranch = !stderr
+  const createLocalBranch = !stderr
     .toString()
     .includes(`Switched to a new branch '${branch}'`);
   if (createLocalBranch) {

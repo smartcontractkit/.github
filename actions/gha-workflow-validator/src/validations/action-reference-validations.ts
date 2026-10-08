@@ -1,9 +1,10 @@
-import { ParsedFile, FileLine } from "../parse-files.js";
-import { Octokit, getActionFileFromGithub } from "../github.js";
+import type { FileLine } from "../parse-files.js";
+import { ParsedFile } from "../parse-files.js";
+import type { Octokit } from "../github.js";
+import { getActionFileFromGithub } from "../github.js";
 import * as core from "@actions/core";
+import type { ValidationCheck, ValidationMessage } from "./validation-check.js";
 import {
-  ValidationCheck,
-  ValidationMessage,
   FileValidationResult,
   LineValidationResult,
   ValidationType,
