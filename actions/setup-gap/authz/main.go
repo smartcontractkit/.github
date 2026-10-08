@@ -238,7 +238,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	authResp.Status.Code = 200
 	authResp.HttpResponse.Headers = make(map[string]string)
 
-  addHeader(w, authResp, config.GithubOidcTokenHeaderName, "Bearer "+token)
+	addHeader(w, authResp, config.GithubOidcTokenHeaderName, "Bearer "+token)
 	addHeader(w, authResp, "x-repository", config.GithubRepository)
 	addHeader(w, authResp, "x-run-url", config.GithubRunURL)
 

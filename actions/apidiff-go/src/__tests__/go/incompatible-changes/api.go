@@ -15,7 +15,7 @@ type PublicStruct struct {
 }
 
 // NewPublicStruct creates a new PublicStruct with changed signature (BREAKING)
-func NewPublicStruct(name string, newValue string) *PublicStruct {
+func NewPublicStruct(name, newValue string) *PublicStruct {
 	return &PublicStruct{
 		Name:     name,
 		NewValue: newValue,

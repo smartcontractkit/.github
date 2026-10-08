@@ -95,7 +95,7 @@ func mustAddToGithubEnv(key, value string) {
 	}
 }
 
-func mustMaskSecret(description string, secret string) {
+func mustMaskSecret(description, secret string) {
 	if secret != "" {
 		fmt.Printf("Mask '%s'\n", description)
 		fmt.Printf("::add-mask::%s\n", secret)
