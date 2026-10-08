@@ -134660,9 +134660,7 @@ async function listPackages(moduleDirectory) {
     const existing = acc[importPath];
     if (existing) {
       info(`Duplicate package found`);
-      debug(
-        `Existing: ${existing.importPath} - ${existing.directory}`
-      );
+      debug(`Existing: ${existing.importPath} - ${existing.directory}`);
       debug(`Duplicate: ${importPath} - ${directory}`);
       return acc;
     }
