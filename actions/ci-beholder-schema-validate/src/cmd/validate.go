@@ -11,8 +11,8 @@ import (
 var validateCmd = &cobra.Command{
 	Use:   "validate",
 	Short: "Validate schemas",
-	Long: `Validate schemas`,
-	Run: runValidateCmd,
+	Long:  `Validate schemas`,
+	Run:   runValidateCmd,
 }
 
 func init() {
@@ -20,13 +20,10 @@ func init() {
 }
 
 func runValidateCmd(cmd *cobra.Command, args []string) {
-
 	beholderFileContents, err := os.ReadFile(beholderFilePath)
 	if err != nil {
 		log.Panic(err)
 	}
 
 	fmt.Printf("beholderFileContents: %s", beholderFileContents)
-
 }
-

@@ -1,8 +1,9 @@
 // test/pipeline/build.test.ts
-import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
-import { GoPackage } from "../../src/pipeline.js";
+import type { Mock } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { GoPackage } from "../../src/pipeline.js";
+import type { CompilationSuccess } from "../../src/pipeline/build.js";
 import {
-  CompilationSuccess,
   compileTestBinary,
   validateCompilationResultsOrThrow,
 } from "../../src/pipeline/build.js";

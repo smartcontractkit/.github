@@ -3,12 +3,13 @@
   "version": "0.5.2",
   "private": true,
   "description": "",
+  "type": "module",
   "engines": {
     "pnpm": "12"
   },
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
   "scripts": {
-    "local": "GITHUB_STEP_SUMMARY=/dev/null ts-node src/index.ts",
+    "local": "GITHUB_STEP_SUMMARY=/dev/null tsx src/index.ts",
     "test": "vitest"
   },
   "devDependencies": {
@@ -20,7 +21,7 @@
     "nock": "^13.5.6",
     "node-fetch": "^2.7.0",
     "simple-git": "^4.0.2",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3"
   },
   "dependencies": {

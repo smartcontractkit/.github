@@ -1,13 +1,13 @@
-import { ActionSchema, WorkflowSchema } from "./generated/types/index.mjs";
+import type { ActionSchema, WorkflowSchema } from "./generated/types/index.mjs";
 import { listAllYamlFiles } from "./utils.mjs";
 import * as log from "./logger.mjs";
 import * as github from "./github.mjs";
-import { RunContext } from "./index.mjs";
+import type { RunContext } from "./index.mjs";
 
 import { basename, join } from "node:path";
 import { readFile } from "node:fs/promises";
 import YAML from "yaml";
-import { NormalJob } from "./generated/types/github-workflow.mjs";
+import type { NormalJob } from "./generated/types/github-workflow.mjs";
 
 /**
  * The return value of the parse workflows method.
@@ -368,7 +368,16 @@ async function getActionYamlFromIdentifier(
       return;
     }
 
-    return await readFile(yamlActionFiles[0], "utf-8");
+    const [yamlActionFile] = yamlActionFiles;
+    if (yamlActionFile === undefined) {
+      log.warn(
+        "Found invalid reference to local action yaml. No action file found: ",
+        actionDirectory,
+      );
+      return;
+    }
+
+    return await readFile(yamlActionFile, "utf-8");
   }
 
   const actionDetails = extractDetailsFromActionIdentifier(identifier);
@@ -405,7 +414,11 @@ export function extractDetailsFromActionIdentifier(identifier: string) {
   }
 
   const [ownerRepoPath, ref] = identifier.split("@");
-  const [owner, repo, ...path] = ownerRepoPath.split("/");
+  const [owner, repo, ...path] = (ownerRepoPath ?? "").split("/");
+  if (owner === undefined || repo === undefined) {
+    log.warn(`Unexpected action identifier: ${identifier} - skipping.`);
+    return;
+  }
   const repoPath = (path.length > 0 ? "/" : "") + path.join("/");
 
   return { owner, repo, repoPath, ref };

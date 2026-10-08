@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
-import { Octokit } from "@octokit/core";
+import type { Octokit } from "@octokit/core";
 
-import {
+import type {
   Repository,
   RateLimit,
   PullRequestReviewState,

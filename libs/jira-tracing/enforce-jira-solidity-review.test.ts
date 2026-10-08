@@ -11,7 +11,7 @@ import {
   transitionIssueWithComment,
 } from "./enforce-jira-solidity-review";
 import * as core from "@actions/core";
-import jira from "jira.js";
+import type jira from "jira.js";
 import axios from "axios";
 
 vi.mock("jira.js");

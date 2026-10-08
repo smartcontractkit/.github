@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import { execWithOutput } from "../../utils";
 import { join } from "path";
 import { readFileSync } from "fs";
-import {
+import type {
   FileChanges,
   FileAddition,
   FileDeletion,

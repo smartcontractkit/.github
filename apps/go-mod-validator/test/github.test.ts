@@ -1,7 +1,8 @@
 /* eslint @typescript-eslint/no-explicit-any: 0 */
-import { isGoModReferencingBranch, Octokit } from "../src/github";
+import type { Octokit } from "../src/github";
+import { isGoModReferencingBranch } from "../src/github";
 import { describe, expect, it, vi } from "vitest";
-import { GoModule } from "../src/deps";
+import type { GoModule } from "../src/deps";
 
 vi.mock("@actions/core", async (importOriginal: any) => ({
   ...(await importOriginal(typeof import("@actions/core"))),

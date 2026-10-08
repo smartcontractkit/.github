@@ -7,7 +7,7 @@ func PublicFunc(input string) string {
 }
 
 // NewPublicFunc is a new function added in this version (compatible)
-func NewPublicFunc(input string, prefix string) string {
+func NewPublicFunc(input, prefix string) string {
 	return prefix + ": " + input
 }
 

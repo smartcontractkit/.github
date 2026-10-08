@@ -5,17 +5,17 @@ import { ActionsRunnerValidation } from "./actions-runner-validations.js";
 import { IgnoresCommentValidation } from "./ignores-comment-validation.js";
 import { ActionsCacheVersionValidation } from "./actions-cache-validation.js";
 
-import { RunInputs } from "../run.js";
-import { Octokit } from "../github.js";
-import {
+import type { RunInputs } from "../run.js";
+import type { Octokit } from "../github.js";
+import type {
   FileValidationResult,
   LineValidationResult,
   ValidationMessage,
-  ValidationType,
   ValidationCheck,
 } from "./validation-check.js";
+import { ValidationType } from "./validation-check.js";
 
-import { ParsedFiles, ParsedFile, FileLine } from "../parse-files.js";
+import type { ParsedFiles, ParsedFile, FileLine } from "../parse-files.js";
 
 function getValidators(
   {

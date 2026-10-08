@@ -1,9 +1,6 @@
-import { FileLine } from "../parse-files.js";
-import {
-  ValidationCheck,
-  ValidationMessage,
-  ValidationType,
-} from "./validation-check.js";
+import type { FileLine } from "../parse-files.js";
+import type { ValidationCheck, ValidationMessage } from "./validation-check.js";
+import { ValidationType } from "./validation-check.js";
 import { VALIDATOR_IGNORE_LINE } from "../strings.js";
 
 interface FileLineIgnoresComment extends FileLine {

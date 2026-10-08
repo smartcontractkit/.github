@@ -29781,8 +29781,8 @@ function create(patterns, options) {
 }
 
 // apps/go-mod-validator/src/pseudo-version.ts
-var import_go_semver = __toESM(require_dist());
-var semver = __toESM(require_semver());
+var import_go_semver = __toESM(require_dist(), 1);
+var semver = __toESM(require_semver(), 1);
 var pseudoVersionRegex = /^v[0-9]+\.(0\.0-|\d+\.\d+-([^+]*\.)?0\.)\d{14}-[A-Za-z0-9]+(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$/;
 function isPseudoVersion(v) {
   const hyphens = v.split("-").length;
@@ -29897,12 +29897,14 @@ function lineForDependencyPathFinder() {
     debug(
       `Finding line number for ${path6} in ${goModFilePath}. (${name})`
     );
-    if (!cache2[goModFilePath]) {
-      cache2[goModFilePath] = (0, import_fs3.readFileSync)(goModFilePath, "utf-8").split("\n").map((l) => l.trim());
+    let lines = cache2[goModFilePath];
+    if (!lines) {
+      lines = (0, import_fs3.readFileSync)(goModFilePath, "utf-8").split("\n").map((l) => l.trim());
+      cache2[goModFilePath] = lines;
     }
     let line = -1;
-    for (let i = 0; i < cache2[goModFilePath].length; i++) {
-      if (cache2[goModFilePath][i].includes(path6 + " ")) {
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i]?.includes(path6 + " ")) {
         if (line !== -1) {
           warning(
             `Duplicate dependency path found: ${path6} in ${goModFilePath} (line ${i + 1}). Previously found on line ${line}. Annotations may be faulty. Skipping.`
@@ -29928,7 +29930,7 @@ function goModsToGoModules(goModFilePath, goMods, depPrefix) {
     }
     return true;
   }).map((d) => {
-    const [, owner, repo, ...subModulePathElements] = d.Path.split("/");
+    const [, owner = "", repo = "", ...subModulePathElements] = d.Path.split("/");
     const baseModule = {
       owner,
       repo,
@@ -30014,11 +30016,11 @@ function parsePatchAdditions(patch, depPrefix) {
   for (const line of lineChanges) {
     if (line.startsWith("@@")) {
       const [, , destination] = line.split(" ");
-      if (!destination.startsWith("+")) {
+      if (!destination || !destination.startsWith("+")) {
         throw new Error("Invalid git hunk format");
       }
       const [destinationLine] = destination.substring(1).split(",");
-      currentLineInFile = parseInt(destinationLine, 10);
+      currentLineInFile = parseInt(destinationLine ?? "", 10);
       continue;
     } else if (line.startsWith("+")) {
       const currentLine = line.substring(1);
@@ -30095,8 +30097,9 @@ async function isTagInBranch(gh, branch, mod) {
 var cache = {};
 async function isGoModReferencingBranch(gh, mod, branch, c = cache) {
   const cacheKey = `${mod.path}:${mod.version}:${branch}`;
-  if (cacheKey in c) {
-    return c[cacheKey];
+  const cached = c[cacheKey];
+  if (cached !== void 0) {
+    return cached;
   }
   const promise = (async () => {
     debug(
@@ -30123,12 +30126,17 @@ function defaultBranchCacheKey(owner, repo) {
 }
 async function getDefaultBranch(gh, { owner, repo }) {
   const key = defaultBranchCacheKey(owner, repo);
-  if (key in defaultBranchCache) {
-    return defaultBranchCache[key];
+  const cached = defaultBranchCache[key];
+  if (cached) {
+    return cached;
   }
   const promise = (async () => {
     const resp = await gh.rest.repos.get({ owner, repo });
-    return resp.data.default_branch;
+    const defaultBranch = resp.data.default_branch;
+    if (!defaultBranch) {
+      throw new Error(`No default branch found for ${owner}/${repo}`);
+    }
+    return defaultBranch;
   })();
   defaultBranchCache[key] = promise;
   return promise;
@@ -30256,7 +30264,7 @@ function parseRepoBranchLine(line) {
   if (rest.length > 1) {
     throw new Error(`Multiple colons found in line: ${line}`);
   }
-  const branches = splitAndTrim(rest[0], ",");
+  const branches = splitAndTrim(rest[0] ?? "", ",");
   return [repo, branches];
 }
 function splitAndTrim(s, separator) {

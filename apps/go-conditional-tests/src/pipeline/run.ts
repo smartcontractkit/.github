@@ -5,7 +5,7 @@ import * as core from "@actions/core";
 import { execa, ExecaError } from "execa";
 import pLimit from "p-limit";
 
-import {
+import type {
   GoPackage,
   DiffedHashedCompiledPackages,
   MaybeExecutedPackages,

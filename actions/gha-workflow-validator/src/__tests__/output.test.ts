@@ -1,10 +1,8 @@
 import { setSummary } from "../output.js";
 import { vi, afterEach, describe, it, expect } from "vitest";
 import * as core from "@actions/core";
-import {
-  FileValidationResult,
-  ValidationType,
-} from "../validations/validation-check.js";
+import type { FileValidationResult } from "../validations/validation-check.js";
+import { ValidationType } from "../validations/validation-check.js";
 import { FIXING_ERRORS } from "../strings.js";
 
 vi.mock("@actions/core", async (importOriginal) => {

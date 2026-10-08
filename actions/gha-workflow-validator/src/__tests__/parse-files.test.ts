@@ -1,14 +1,14 @@
+import type { ParsedFiles, FileLine } from "../parse-files.js";
 import {
   combineParsedFiles,
   filterForRelevantChanges,
   getParsedFilesForValidation,
   parseGithubDiff,
-  ParsedFiles,
   combineFileLines,
-  FileLine,
 } from "../parse-files.js";
-import { getComparison, GithubFiles } from "../github.js";
-import { InvokeContext, RunInputs } from "../run.js";
+import type { GithubFiles } from "../github.js";
+import { getComparison } from "../github.js";
+import type { InvokeContext, RunInputs } from "../run.js";
 import { getNock, getTestOctokit } from "./__helpers__/test-utils.js";
 const nockBack = getNock();
 

@@ -1,5 +1,4 @@
 import * as core from "@actions/core";
-import * as semver from "semver";
 import { basename, join } from "path";
 import { readFileSync, existsSync, copyFileSync } from "fs";
 

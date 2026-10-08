@@ -1,5 +1,5 @@
 import * as github from "@actions/github";
-import { PushEvent, PullRequestEvent } from "@octokit/webhooks-types";
+import type { PushEvent, PullRequestEvent } from "@octokit/webhooks-types";
 
 export type EventData =
   PullRequestEventData | PushEventData | WorkflowDispatchEventData;

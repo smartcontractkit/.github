@@ -1,8 +1,9 @@
 import { createTreeWithEmptyWorkspace } from "@nx/devkit/testing";
-import { Tree, readProjectConfiguration } from "@nx/devkit";
+import type { Tree } from "@nx/devkit";
+import { readProjectConfiguration } from "@nx/devkit";
 
-import { createGhActionGenerator } from "./generator";
-import { CreateGhActionGeneratorSchema } from "./schema";
+import { createGhActionGenerator } from "./generator.js";
+import type { CreateGhActionGeneratorSchema } from "./schema.js";
 
 import { describe, it, expect, beforeEach } from "vitest";
 

@@ -1,7 +1,7 @@
 import * as log from "./logger.mjs";
-import { GithubShaToVersionCache } from "./github.mjs";
-import { UpdateTransaction } from "./updater.mjs";
-import { ActionsByIdentifier } from "./workflows.mjs";
+import type { GithubShaToVersionCache } from "./github.mjs";
+import type { UpdateTransaction } from "./updater.mjs";
+import type { ActionsByIdentifier } from "./workflows.mjs";
 import { isShaRefIdentifier } from "./utils.mjs";
 
 import { join } from "node:path";
@@ -43,6 +43,7 @@ export function cleanup(caches: ReturnType<typeof initialize>) {
   Object.keys(actionsByIdentifier).forEach((key) => {
     const action = actionsByIdentifier[key];
     if (
+      !action ||
       action.isLocal ||
       action.type === "unknown" ||
       !isShaRefIdentifier(action.identifier)
@@ -50,7 +51,7 @@ export function cleanup(caches: ReturnType<typeof initialize>) {
       log.debug(`Clearing ${key} from cache`);
       return delete actionsByIdentifier[key];
     }
-    actionsByIdentifier[key].referencePaths = [];
+    action.referencePaths = [];
   });
 }
 

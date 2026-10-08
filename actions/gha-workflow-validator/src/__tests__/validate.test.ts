@@ -1,13 +1,11 @@
 import { validate, doValidationErrorsExist } from "../validations/validate";
-import {
-  FileValidationResult,
-  ValidationType,
-} from "../validations/validation-check";
-import { RunInputs } from "../run";
+import type { FileValidationResult } from "../validations/validation-check";
+import { ValidationType } from "../validations/validation-check";
+import type { RunInputs } from "../run";
 import { VALIDATOR_IGNORE_LINE } from "../strings";
 
 import { describe, it, expect } from "vitest";
-import { ParsedFiles } from "../parse-files";
+import type { ParsedFiles } from "../parse-files";
 
 const DEFAULT_RUN_INPUTS: RunInputs = {
   evaluateMode: false,

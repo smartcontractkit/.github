@@ -1,14 +1,14 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
-import { getInvokeContext, getInputs, RunInputs } from "./run-inputs";
+import { getInvokeContext, getInputs } from "./run-inputs";
 import { getAllGoModuleRoots, matchModules, filterPaths } from "./path-ops";
 import { getChangedFilesGit } from "./git";
 
 import { getChangedFilesForPR } from "./github";
 
 import type { OctokitType } from "./github";
-import type { InvokeContext } from "./run-inputs";
+import type { InvokeContext, RunInputs } from "./run-inputs";
 
 interface Outputs {
   modifiedModules: string[];

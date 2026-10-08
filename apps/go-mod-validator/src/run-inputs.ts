@@ -176,7 +176,7 @@ function parseRepoBranchLine(line: string): [string, string[]] {
   if (rest.length > 1) {
     throw new Error(`Multiple colons found in line: ${line}`);
   }
-  const branches = splitAndTrim(rest[0], ",");
+  const branches = splitAndTrim(rest[0] ?? "", ",");
   return [repo, branches];
 }
 

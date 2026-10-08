@@ -8,8 +8,10 @@ echo "Repo Root: $REPO_ROOT"
 
 pnpm nx build go-mod-validator
 
-export GITHUB_TOKEN=$(gh auth token)
-export GITHUB_ACTOR=$(gh api user --jq .login)
+GITHUB_TOKEN="$(gh auth token)"
+export GITHUB_TOKEN
+GITHUB_ACTOR="$(gh api user --jq .login)"
+export GITHUB_ACTOR
 export GITHUB_REPOSITORY="smartcontractkit/chainlink"
 export GITHUB_EVENT_NAME="push"
 export GITHUB_EVENT_PATH="apps/go-mod-validator/scripts/payload.json"
@@ -26,7 +28,7 @@ export INPUT_DEP_PREFIX="github.com/smartcontractkit"
 export INPUT_REPO_SHA_EXCEPTIONS="smartcontractkit/chainlink-aptos:c2a8d09e5b46c1c7815700f645a50caf8a466bda"
 export CL_LOCAL_DEBUG="true"
 
-node apps/go-mod-validator/dist/index.js
+node apps/go-mod-validator/dist/index.cjs
 
 echo "Summary Output: $tmp_file"
 # cat "$tmp_file"

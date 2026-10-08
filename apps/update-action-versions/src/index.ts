@@ -68,9 +68,10 @@ async function buildMonorepoActionMap(
   return data
     .filter((tag) => tag.name.includes("@"))
     .reduce<ActionMap>((accumulator, tag) => {
-      const [tagName, tagVersion] = tag.name.split("@");
-      if (tagName in accumulator) {
-        accumulator[tagName].push({
+      const [tagName = "", tagVersion = ""] = tag.name.split("@");
+      const entries = accumulator[tagName];
+      if (entries) {
+        entries.push({
           version: tagVersion,
           shasum: tag.commit.sha,
         });
@@ -132,9 +133,11 @@ async function updateActionsInWorkflowMap(
       const actionVersion = action.commentBefore?.split("@")[1];
       if (semver.valid(actionVersion)) {
         const actionName = action.name.replace(ACTION_PATH_PREFIX, "");
-        const versions = am[actionName].map((x) => x.version);
+        const actionMapItem = am[actionName];
+        if (!actionMapItem) continue;
+        const versions = actionMapItem.map((x) => x.version);
         const sortedVersions = semver.rsort(versions || []);
-        action.refAfter = am[actionName].reduce(
+        action.refAfter = actionMapItem.reduce(
           (acc, curr) =>
             curr.version === sortedVersions[0] ? curr.shasum : acc,
           "",
@@ -153,7 +156,7 @@ async function updateActionsInWorkflowFiles(
   wm: WorkflowMap,
 ) {
   for (const file of files) {
-    for (const action of wm[file]) {
+    for (const action of wm[file] ?? []) {
       if (!action.refAfter) continue;
       if (!action.commentAfter) continue;
 

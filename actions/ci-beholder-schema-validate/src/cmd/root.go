@@ -6,11 +6,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
 var rootCmd = &cobra.Command{
 	Use:   "ci-beholder-schema-validate",
 	Short: "Schema validation",
-	Long: `Schema validation`,
+	Long:  `Schema validation`,
 }
 
 func Execute() {
@@ -23,9 +22,7 @@ func Execute() {
 var beholderFilePath string
 
 func init() {
-	
 	// add persistent flag for beholder file path
 	rootCmd.PersistentFlags().StringVarP(&beholderFilePath, "beholder-file", "f", "", "beholder file path")
 	_ = rootCmd.MarkPersistentFlagRequired("beholder-file")
-
 }

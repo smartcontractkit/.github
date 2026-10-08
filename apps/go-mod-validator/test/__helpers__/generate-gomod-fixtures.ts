@@ -24,13 +24,14 @@
  */
 
 import { getAllGoModsWithin } from "../../src/deps";
-import { ensureFileSync, readFileSync, writeFileSync } from "fs-extra";
+import fse from "fs-extra";
+import { readFileSync, writeFileSync } from "node:fs";
 import path from "path";
 import { simpleGit } from "simple-git";
 
 async function main() {
   const commitSha = process.argv[3];
-  const fixtures = path.join(__dirname, "../__fixtures__");
+  const fixtures = path.join(import.meta.dirname, "../__fixtures__");
   const dirToGlob = process.argv[2];
   if (!dirToGlob) {
     throw new Error("Please provide a directory to glob");
@@ -118,8 +119,8 @@ async function copyGoModAndGoSumFiles(
       goSumRelPath,
     );
 
-    ensureFileSync(goModFixturePath);
-    ensureFileSync(goSumFixturePath);
+    fse.ensureFileSync(goModFixturePath);
+    fse.ensureFileSync(goSumFixturePath);
 
     console.log("Copying", goMod, "to", goModFixturePath);
     writeFileSync(goModFixturePath, goModContent);

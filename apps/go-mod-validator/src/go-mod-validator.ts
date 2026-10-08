@@ -2,14 +2,14 @@ import * as github from "@actions/github";
 import * as core from "@actions/core";
 import { throttling } from "@octokit/plugin-throttling";
 
-import { getDeps, BaseGoModule, lineForDependencyPathFinder } from "./deps";
+import { getDeps, lineForDependencyPathFinder } from "./deps";
 import { getChangedGoModFiles } from "./diff";
 import { getDefaultBranch, isGoModReferencingBranch } from "./github";
 import { getInputs, shaMatches } from "./run-inputs";
 import { FIXING_ERRORS } from "./strings";
 
 import type { Octokit } from "./github";
-import type { GoModule } from "./deps";
+import type { GoModule, BaseGoModule } from "./deps";
 import type { RunInputs } from "./run-inputs";
 
 function getOctokits(inputs: RunInputs) {

@@ -3,13 +3,14 @@
   "version": "1.7.2",
   "private": true,
   "description": "Parses 'go.mod' file given as input, and verifies it's dependencies",
+  "type": "module",
   "engines": {
     "pnpm": "12"
   },
-  "main": "out/index.js",
+  "main": "dist/index.cjs",
   "scripts": {
     "test": "vitest",
-    "fixtures:gomods": "ts-node test/__helpers__/generate-gomod-fixtures.ts"
+    "fixtures:gomods": "tsx test/__helpers__/generate-gomod-fixtures.ts"
   },
   "devDependencies": {
     "@octokit/types": "^18.0.0",
@@ -20,7 +21,7 @@
     "nock": "^13.5.6",
     "node-fetch": "^2.7.0",
     "simple-git": "^4.0.2",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3"
   },
   "dependencies": {

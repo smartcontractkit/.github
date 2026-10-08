@@ -2,8 +2,9 @@ import * as core from "@actions/core";
 import { readFileSync } from "fs";
 
 import { VALIDATOR_IGNORE_LINE } from "./strings.js";
-import { InvokeContext, RunInputs } from "./run.js";
-import { Octokit, getComparison, GithubFiles } from "./github.js";
+import type { InvokeContext, RunInputs } from "./run.js";
+import type { Octokit, GithubFiles } from "./github.js";
+import { getComparison } from "./github.js";
 import { getAllWorkflowAndActionFiles } from "./utils.js";
 
 export interface ParsedFile {

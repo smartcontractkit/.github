@@ -1,5 +1,5 @@
 import * as core from "@actions/core";
-import jira from "jira.js";
+import type jira from "jira.js";
 import axios from "axios";
 import { join } from "path";
 import {
@@ -34,6 +34,9 @@ async function main() {
   }
 
   const jiraPRIssueKey = jiraPRIssueKeys[0];
+  if (!jiraPRIssueKey) {
+    return;
+  }
   const client = createJiraClient();
 
   const jiraSolidityIssues = await extractJiraIssueNumbersFrom(
@@ -56,7 +59,10 @@ async function main() {
       `Found linked Solidity Review issue(s): ${join(...jiraSolidityIssues)}. Nothing more needs to be done.`,
     );
 
-    exportIssueKeysToGithubEnv(jiraPRIssueKey, jiraSolidityIssues[0]);
+    const firstSolidityIssue = jiraSolidityIssues[0];
+    if (firstSolidityIssue) {
+      exportIssueKeysToGithubEnv(jiraPRIssueKey, firstSolidityIssue);
+    }
     if (jiraSolidityIssues.length > 1) {
       core.warning(
         `Found more than one Solidity Review issue linked to PR. Only the first one will be exported to GitHub environment.`,
@@ -91,7 +97,13 @@ async function main() {
       solidityReviewTemplateKey,
     );
   } else if (openSolidityReviewIssues.length === 1) {
-    solidityReviewIssueKey = openSolidityReviewIssues[0];
+    const [onlySolidityIssue] = openSolidityReviewIssues;
+    if (onlySolidityIssue === undefined) {
+      core.setFailed("Found an open Solidity Review issue, but it is invalid.");
+
+      return;
+    }
+    solidityReviewIssueKey = onlySolidityIssue;
   } else {
     core.setFailed(`Found following open Solidity Review issues for project ${jiraProject}: ${join(...openSolidityReviewIssues)}.
 Since we are unable to automatically determine, which one to use, please manualy add it to changeset file: ${changesetFile}. Use this exact format:

@@ -18,10 +18,10 @@
         "outputPath": "apps/go-mod-validator/dist/",
         "main": "apps/go-mod-validator/src/index.ts",
         "assets": [],
-        "outputFileName": "index.js",
+        "outputFileName": "index.cjs",
         "esbuildOptions": {
           "outExtension": {
-            ".js": ".js"
+            ".js": ".cjs"
           }
         },
         "tsConfig": "tsconfig.json",
