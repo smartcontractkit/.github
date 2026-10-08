@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import * as core from "@actions/core";
-import * as github from "@actions/github";
 
 import { Inputs } from "../src/main.js";
 import { saveTestHashIndex } from "../src/github.js";
@@ -256,7 +255,11 @@ describe("runTestBinaries", () => {
       directory: "/path/pkg1",
       hash: "hash1",
       shouldRun: true,
-      compile: { binary: "bin1", log: "log1", execution: {} as any },
+      compile: {
+        binary: "bin1",
+        log: "log1",
+        execution: { command: "", exitCode: 0, cwd: "", durationMs: 0 },
+      },
     },
   };
 

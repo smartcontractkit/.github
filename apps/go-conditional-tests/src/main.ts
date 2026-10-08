@@ -155,13 +155,13 @@ async function runStep(
   const packages = await pipeline.processChangedPackages(inputs, pkgs);
 
   const changedPkgs = Object.fromEntries(
-    Object.entries(packages).filter(([_, pkg]) => pkg.shouldRun),
+    Object.entries(packages).filter(([, pkg]) => pkg.shouldRun),
   );
   logObject("Changed Test Packages", changedPkgs);
 
   const maybeExecdPkgs = await pipeline.runTestBinaries(inputs, packages);
   const execdPkgs = Object.fromEntries(
-    Object.entries(maybeExecdPkgs).filter(([_, pkg]) => !!pkg.run),
+    Object.entries(maybeExecdPkgs).filter(([, pkg]) => !!pkg.run),
   );
   logObject("Executed Test Packages", execdPkgs);
 

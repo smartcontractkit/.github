@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 
 import { execa } from "execa";
 
@@ -17,6 +17,8 @@ vi.mock("@actions/core", () => ({
   debug: vi.fn(),
 }));
 
+const execaMock = execa as unknown as Mock;
+
 describe("listPackages", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -29,7 +31,7 @@ describe("listPackages", () => {
     ];
 
     // Mock execa for 'go list' command
-    (execa as any).mockResolvedValueOnce({
+    execaMock.mockResolvedValueOnce({
       stdout: mockedStdout,
     });
 

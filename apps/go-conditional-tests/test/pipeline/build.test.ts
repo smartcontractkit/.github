@@ -195,7 +195,8 @@ describe("validateCompilationResultsOrThrow", () => {
         isCanceled: false,
         killed: false,
         pid: 1234,
-      } as any,
+        pipe: vi.fn(),
+      },
     };
 
     readdirSyncMock.mockReturnValue(["github.com-example-pkg-test"]);

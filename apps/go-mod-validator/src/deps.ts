@@ -304,7 +304,7 @@ export function goModsToGoModules(
     })
     .map((d: GoMod): GoModule => {
       // repo format github.com/smartcontractkit/chainlink
-      const [_, owner, repo, ...subModulePathElements] = d.Path.split("/");
+      const [, owner, repo, ...subModulePathElements] = d.Path.split("/");
       const baseModule: BaseGoModule = {
         owner,
         repo,
