@@ -2,7 +2,7 @@
 package submodule1
 
 // UtilFunc is a utility function in submodule1 - signature changed!
-func UtilFunc(input string, prefix string) string {
+func UtilFunc(input, prefix string) string {
 	return prefix + ": " + input
 }
 

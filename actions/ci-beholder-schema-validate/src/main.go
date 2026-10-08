@@ -4,7 +4,6 @@ import (
 	"schema-validate/cmd"
 )
 
-
-func main()  {
+func main() {
 	cmd.Execute()
 }
