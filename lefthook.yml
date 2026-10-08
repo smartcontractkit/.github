@@ -35,6 +35,7 @@ pre-commit:
           - name: reusable-workflows
             glob: "{workflows/*/*,.github/workflows/*}.{yml,yaml}"
             run: pnpm workflows:fix --stage {staged_files}
+            stage_fixed: true
           - name: actionlint
             glob: "{workflows/*/*,.github/workflows/*}.{yml,yaml}"
             run: actionlint {staged_files}
