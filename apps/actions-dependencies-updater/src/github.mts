@@ -45,17 +45,19 @@ export async function getVersionFromSHA(
     addToCache(ctx, ownerRepo, ref, await getVersion(ctx, owner, repo, ref));
   }
 
+  const refVersions = GH_SHA_TO_VER_CACHE[ownerRepo]?.[ref] ?? [];
+
   if (repo === ".github" && repoPath) {
     const actionName = repoPath.split("/").pop();
     if (actionName) {
-      const monorepoVersions = GH_SHA_TO_VER_CACHE[ownerRepo][ref].filter((v) =>
+      const monorepoVersions = refVersions.filter((v) =>
         v.startsWith(actionName),
       );
       return monorepoVersions[0];
     }
   }
 
-  return GH_SHA_TO_VER_CACHE[ownerRepo][ref][0];
+  return refVersions[0];
 }
 
 export function getLatestVersion(
@@ -73,12 +75,14 @@ export function getLatestVersion(
       repo,
       repoPath,
     );
-    const tuple = Object.entries(entry).find(([_, versions]) =>
-      versions.includes(latestVersion.tag),
-    );
+    if (latestVersion) {
+      const tuple = Object.entries(entry).find(([_, versions]) =>
+        versions.includes(latestVersion.tag),
+      );
 
-    if (tuple) {
-      return { sha: tuple[0], version: latestVersion.tag };
+      if (tuple) {
+        return { sha: tuple[0], version: latestVersion.tag };
+      }
     }
   }
 }
@@ -112,11 +116,19 @@ async function getVersion(
   }
 
   if (filteredTags.length === 1) {
-    log.debug(`Found tag for ${owner}/${repo}@${ref}: ${filteredTags[0]}`);
-    return filteredTags[0];
+    const [tag] = filteredTags;
+    if (tag !== undefined) {
+      log.debug(`Found tag for ${owner}/${repo}@${ref}: ${tag}`);
+      return tag;
+    }
   }
 
   const latestVersion = guessLatestVersion(filteredTags);
+  if (!latestVersion) {
+    throw new Error(
+      `Could not determine latest version for ${owner}/${repo}@${ref} from tags: ${filteredTags.join(", ")}`,
+    );
+  }
   const latestVersionString = `${latestVersion.prefix}${latestVersion.major}.${latestVersion.minor}.${latestVersion.patch}`;
   log.debug(
     `Multiple tags found for ${owner}/${repo}@${ref}. Using latest version: ${latestVersionString}`,
@@ -234,7 +246,7 @@ export async function getActionFile(
   owner: string,
   repo: string,
   repoPath: string,
-  ref: string,
+  ref?: string,
 ) {
   const ymlPath = join(repoPath, "action.yml");
   const yamlPath = join(repoPath, "action.yaml");
@@ -251,7 +263,7 @@ export async function getFile(
   owner: string,
   repo: string,
   path: string,
-  ref: string,
+  ref?: string,
 ) {
   try {
     if (path.startsWith("/")) path = path.substring(1);

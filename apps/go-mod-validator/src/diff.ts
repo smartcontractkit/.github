@@ -80,12 +80,12 @@ function parsePatchAdditions(patch: string, depPrefix: string): FileAddition[] {
       //   - "+16,10": "+" denotes destination file, "16,10" means the same as above
       const [, , destination] = line.split(" ");
 
-      if (!destination.startsWith("+")) {
+      if (!destination || !destination.startsWith("+")) {
         throw new Error("Invalid git hunk format");
       }
 
       const [destinationLine] = destination.substring(1).split(",");
-      currentLineInFile = parseInt(destinationLine, 10);
+      currentLineInFile = parseInt(destinationLine ?? "", 10);
       continue;
     } else if (line.startsWith("+")) {
       const currentLine = line.substring(1);

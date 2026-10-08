@@ -86,7 +86,7 @@ const contents: Record<string, ContentEntry> = {
 const requests: { method: string; url: string; auth?: string }[] = [];
 
 function normalizeUrl(raw: string): string {
-  const path = decodeURIComponent(raw.split("?")[0]);
+  const path = decodeURIComponent(raw.split("?")[0] ?? raw);
   return "/" + path.replace(/^\/+/, "");
 }
 

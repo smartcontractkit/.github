@@ -513,23 +513,23 @@ describe("repo-tags", () => {
       const releaseTagPushCalls = execSpy.mock.calls.filter(
         ([cmd, args]) =>
           cmd === "git" &&
-          args[0] === "push" &&
-          args[1] === "origin" &&
-          args[2] !== "--tags" &&
-          args[2] !== "--force",
+          args?.[0] === "push" &&
+          args?.[1] === "origin" &&
+          args?.[2] !== "--tags" &&
+          args?.[2] !== "--force",
       );
 
       expect(releaseTagPushCalls).toHaveLength(testTags.localOnlyTags.length);
       expect(
-        releaseTagPushCalls.every(([, args]) => typeof args[2] === "string"),
+        releaseTagPushCalls.every(([, args]) => typeof args?.[2] === "string"),
       ).toBe(true);
       expect(
         execSpy.mock.calls.some(
           ([cmd, args]) =>
             cmd === "git" &&
-            args[0] === "push" &&
-            args[1] === "origin" &&
-            args[2] === "--tags",
+            args?.[0] === "push" &&
+            args?.[1] === "origin" &&
+            args?.[2] === "--tags",
         ),
       ).toBe(false);
 

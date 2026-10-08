@@ -116,8 +116,9 @@ export async function isGoModReferencingBranch(
   const cacheKey = `${mod.path}:${mod.version}:${branch}`;
 
   // Check if the result is already in the cache
-  if (cacheKey in c) {
-    return c[cacheKey];
+  const cached = c[cacheKey];
+  if (cached !== undefined) {
+    return cached;
   }
 
   // Store the promise in the cache
@@ -153,13 +154,18 @@ export async function getDefaultBranch(
   { owner, repo }: BaseGoModule,
 ) {
   const key = defaultBranchCacheKey(owner, repo);
-  if (key in defaultBranchCache) {
-    return defaultBranchCache[key];
+  const cached = defaultBranchCache[key];
+  if (cached) {
+    return cached;
   }
   const promise = (async () => {
     const resp = await gh.rest.repos.get({ owner, repo });
 
-    return resp.data.default_branch;
+    const defaultBranch = resp.data.default_branch;
+    if (!defaultBranch) {
+      throw new Error(`No default branch found for ${owner}/${repo}`);
+    }
+    return defaultBranch;
   })();
 
   defaultBranchCache[key] = promise;

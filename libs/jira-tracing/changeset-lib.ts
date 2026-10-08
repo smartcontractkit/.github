@@ -66,20 +66,24 @@ export async function extractChangesetFile(
       `Found ${changesetFiles.length} changeset files, but only 1 was expected.`,
     );
   }
+  const changesetFile = changesetFiles[0];
+  if (!changesetFile) {
+    throw new Error("No changeset file found, but 1 was expected.");
+  }
   const gitTopLevel = await getGitTopLevel();
-  const fullChangesetPath = join(gitTopLevel, changesetFiles[0]);
+  const fullChangesetPath = join(gitTopLevel, changesetFile);
   const changesetContents = await fs.readFile(fullChangesetPath, "utf-8");
   const parsed = matter(changesetContents);
 
   if (!changesetKey) {
-    return changesetFiles[0];
+    return changesetFile;
   }
 
   if (!(changesetKey in parsed.data)) {
     throw new Error(
-      `Changeset file ${changesetFiles[0]} does not contain the key: ${changesetKey}`,
+      `Changeset file ${changesetFile} does not contain the key: ${changesetKey}`,
     );
   }
 
-  return changesetFiles[0];
+  return changesetFile;
 }
