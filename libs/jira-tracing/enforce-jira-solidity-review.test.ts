@@ -27,18 +27,18 @@ beforeAll(() => {
 describe("getIssueKeys", () => {
   const mockClient = {
     issueSearch: {
-      searchForIssuesUsingJql: vi.fn(),
+      searchIssues: vi.fn(),
     },
   };
 
   it("should return issue keys when issues are found", async () => {
     const mockIssues = [{ key: "ISSUE-1" }, { key: "ISSUE-2" }];
-    mockClient.issueSearch.searchForIssuesUsingJql.mockResolvedValueOnce({
+    mockClient.issueSearch.searchIssues.mockResolvedValueOnce({
       issues: mockIssues,
     });
 
     const result = await getIssueKeys(
-      mockClient as unknown as jira.Version3Client,
+      mockClient as unknown as jira.CloudClient,
       "TEST",
       "Bug",
       "summary",
@@ -48,22 +48,20 @@ describe("getIssueKeys", () => {
     );
 
     expect(result).toEqual(["ISSUE-1", "ISSUE-2"]);
-    expect(mockClient.issueSearch.searchForIssuesUsingJql).toHaveBeenCalledWith(
-      {
-        jql: 'project = TEST AND issuetype = "Bug" AND summary ~ "summary" AND status = "Open"',
-        maxResults: 10,
-        fields: ["key"],
-      },
-    );
+    expect(mockClient.issueSearch.searchIssues).toHaveBeenCalledWith({
+      jql: 'project = TEST AND issuetype = "Bug" AND summary ~ "summary" AND status = "Open"',
+      maxResults: 10,
+      fields: ["key"],
+    });
   });
 
   it("should return an empty array when no issues are found", async () => {
-    mockClient.issueSearch.searchForIssuesUsingJql.mockResolvedValueOnce({
+    mockClient.issueSearch.searchIssues.mockResolvedValueOnce({
       issues: undefined,
     });
 
     const result = await getIssueKeys(
-      mockClient as unknown as jira.Version3Client,
+      mockClient as unknown as jira.CloudClient,
       "TEST",
       "Bug",
       "summary",
@@ -73,23 +71,21 @@ describe("getIssueKeys", () => {
     );
 
     expect(result).toEqual([]);
-    expect(mockClient.issueSearch.searchForIssuesUsingJql).toHaveBeenCalledWith(
-      {
-        jql: 'project = TEST AND issuetype = "Bug" AND summary ~ "summary" AND status = "Open"',
-        maxResults: 10,
-        fields: ["key"],
-      },
-    );
+    expect(mockClient.issueSearch.searchIssues).toHaveBeenCalledWith({
+      jql: 'project = TEST AND issuetype = "Bug" AND summary ~ "summary" AND status = "Open"',
+      maxResults: 10,
+      fields: ["key"],
+    });
   });
 
   it("should handle JQL with issue keys to ignore", async () => {
     const mockIssues = [{ key: "ISSUE-3" }];
-    mockClient.issueSearch.searchForIssuesUsingJql.mockResolvedValueOnce({
+    mockClient.issueSearch.searchIssues.mockResolvedValueOnce({
       issues: mockIssues,
     });
 
     const result = await getIssueKeys(
-      mockClient as unknown as jira.Version3Client,
+      mockClient as unknown as jira.CloudClient,
       "TEST",
       "Bug",
       "summary",
@@ -99,23 +95,21 @@ describe("getIssueKeys", () => {
     );
 
     expect(result).toEqual(["ISSUE-3"]);
-    expect(mockClient.issueSearch.searchForIssuesUsingJql).toHaveBeenCalledWith(
-      {
-        jql: 'project = TEST AND issuetype = "Bug" AND summary ~ "summary" AND status = "Open" AND issuekey NOT IN (ISSUE-1,ISSUE-2)',
-        maxResults: 10,
-        fields: ["key"],
-      },
-    );
+    expect(mockClient.issueSearch.searchIssues).toHaveBeenCalledWith({
+      jql: 'project = TEST AND issuetype = "Bug" AND summary ~ "summary" AND status = "Open" AND issuekey NOT IN (ISSUE-1,ISSUE-2)',
+      maxResults: 10,
+      fields: ["key"],
+    });
   });
 
   it("should throw an error when the search fails", async () => {
-    mockClient.issueSearch.searchForIssuesUsingJql.mockRejectedValueOnce(
+    mockClient.issueSearch.searchIssues.mockRejectedValueOnce(
       new Error("Search failed"),
     );
 
     await expect(
       getIssueKeys(
-        mockClient as unknown as jira.Version3Client,
+        mockClient as unknown as jira.CloudClient,
         "TEST",
         "Bug",
         "summary",
@@ -124,13 +118,11 @@ describe("getIssueKeys", () => {
         10,
       ),
     ).rejects.toThrow("Search failed");
-    expect(mockClient.issueSearch.searchForIssuesUsingJql).toHaveBeenCalledWith(
-      {
-        jql: 'project = TEST AND issuetype = "Bug" AND summary ~ "summary" AND status = "Open"',
-        maxResults: 10,
-        fields: ["key"],
-      },
-    );
+    expect(mockClient.issueSearch.searchIssues).toHaveBeenCalledWith({
+      jql: 'project = TEST AND issuetype = "Bug" AND summary ~ "summary" AND status = "Open"',
+      maxResults: 10,
+      fields: ["key"],
+    });
   });
 });
 
@@ -145,7 +137,7 @@ describe("linkIssues", () => {
     mockClient.issueLinks.linkIssues.mockResolvedValueOnce(undefined);
 
     await linkIssues(
-      mockClient as unknown as jira.Version3Client,
+      mockClient as unknown as jira.CloudClient,
       "ISSUE-1",
       "ISSUE-2",
       "Blocks",
@@ -169,7 +161,7 @@ describe("linkIssues", () => {
 
     await expect(
       linkIssues(
-        mockClient as unknown as jira.Version3Client,
+        mockClient as unknown as jira.CloudClient,
         "ISSUE-1",
         "ISSUE-2",
         "Blocks",
@@ -210,7 +202,7 @@ describe("cloneIssue", () => {
     mockClient.issues.createIssue.mockResolvedValueOnce(newIssue);
 
     const result = await cloneIssue(
-      mockClient as unknown as jira.Version3Client,
+      mockClient as unknown as jira.CloudClient,
       "ORIG-1",
       "TEST",
     );
@@ -241,11 +233,7 @@ describe("cloneIssue", () => {
     mockClient.issues.getIssue.mockResolvedValueOnce(originalIssue);
 
     await expect(
-      cloneIssue(
-        mockClient as unknown as jira.Version3Client,
-        "ORIG-1",
-        "TEST",
-      ),
+      cloneIssue(mockClient as unknown as jira.CloudClient, "ORIG-1", "TEST"),
     ).rejects.toThrow(
       "Issue ORIG-1 is missing issue type id. This should not happen.",
     );
@@ -264,11 +252,7 @@ describe("cloneIssue", () => {
     mockClient.issues.getIssue.mockRejectedValueOnce(new Error(errorMessage));
 
     await expect(
-      cloneIssue(
-        mockClient as unknown as jira.Version3Client,
-        "ORIG-1",
-        "TEST",
-      ),
+      cloneIssue(mockClient as unknown as jira.CloudClient, "ORIG-1", "TEST"),
     ).rejects.toThrow(errorMessage);
 
     expect(mockClient.issues.getIssue).toHaveBeenCalledWith({
@@ -291,7 +275,7 @@ describe("transitionIssueWithComment", () => {
     mockClient.issues.doTransition.mockResolvedValueOnce(undefined);
 
     await transitionIssueWithComment(
-      mockClient as unknown as jira.Version3Client,
+      mockClient as unknown as jira.CloudClient,
       "ISSUE-1",
       "81",
       "Declined",
@@ -345,7 +329,7 @@ describe("transitionIssueWithComment", () => {
 
     await expect(
       transitionIssueWithComment(
-        mockClient as unknown as jira.Version3Client,
+        mockClient as unknown as jira.CloudClient,
         "ISSUE-1",
         "81",
         "Declined",
@@ -697,7 +681,7 @@ describe("cloneLinkedIssues", () => {
     axios.put.mockResolvedValueOnce({});
 
     await cloneLinkedIssues(
-      mockJiraClient as unknown as jira.Version3Client,
+      mockJiraClient as unknown as jira.CloudClient,
       projectKey,
       sourceIssueKey,
       targetIssueKey,
@@ -735,7 +719,7 @@ describe("cloneLinkedIssues", () => {
 
     await expect(
       cloneLinkedIssues(
-        mockJiraClient as unknown as jira.Version3Client,
+        mockJiraClient as unknown as jira.CloudClient,
         projectKey,
         sourceIssueKey,
         targetIssueKey,

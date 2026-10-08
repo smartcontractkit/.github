@@ -35,7 +35,7 @@ on:
         description: "the pnpm version to use"
         required: false
         type: string
-        default: "^10.0.0"
+        default: "^12.0.0"
       # docs-specific inputs
       build-command:
         description: "command to build the documentation (run from repository root, use pnpm -C to specify directory)"

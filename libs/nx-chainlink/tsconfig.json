@@ -4,7 +4,10 @@
     "module": "commonjs",
     "outDir": "./dist",
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "ignoreDeprecations": "6.0",
+    "types": ["node"],
+    "rootDir": "."
   },
   "include": ["src/**/*", "src/**/*.json"],
   "exclude": ["src/**/*.spec.ts"]

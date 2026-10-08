@@ -2,6 +2,7 @@
   "name": "go-mod-validator",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
+  "tags": [],
   "targets": {
     "build": {
       "dependsOn": ["build:internal"],
@@ -52,6 +53,5 @@
         ]
       }
     }
-  },
-  "tags": []
+  }
 }

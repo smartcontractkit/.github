@@ -12,7 +12,7 @@ export const PR_PREFIX = "PR issue: ";
 export const SOLIDITY_REVIEW_PREFIX = "Solidity Review issue: ";
 
 export async function doesIssueExist(
-  client: jira.Version3Client,
+  client: jira.CloudClient,
   issueNumber: string,
   dryRun: boolean,
 ) {
@@ -177,13 +177,12 @@ export function getJiraEnvVars() {
 
 export function createJiraClient() {
   const { jiraHost, jiraUserName, jiraApiToken } = getJiraEnvVars();
-  return new jira.Version3Client({
+  return jira.createCloudClient({
     host: jiraHost,
-    authentication: {
-      basic: {
-        email: jiraUserName,
-        apiToken: jiraApiToken,
-      },
+    auth: {
+      type: "basic",
+      email: jiraUserName,
+      apiToken: jiraApiToken,
     },
   });
 }

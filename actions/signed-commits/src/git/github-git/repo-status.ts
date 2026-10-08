@@ -1,3 +1,4 @@
+import * as core from "@actions/core";
 import { execWithOutput } from "../../utils";
 import { join } from "path";
 import { readFileSync } from "fs";
@@ -23,10 +24,14 @@ interface GitFileStatus {
 }
 
 export async function getGitStatusPorcelainV1(cwd?: string) {
-  const stdout = await execWithOutput("git", ["status", "--porcelain=v1"], {
-    cwd,
-    notrim: true,
-  });
+  const stdout = await execWithOutput(
+    "git",
+    ["status", "--porcelain=v1", "--untracked-files=all"],
+    {
+      cwd,
+      notrim: true,
+    },
+  );
 
   return stdout;
 }
@@ -111,13 +116,17 @@ export async function calculateFileChanges(
   changes: FilesToAddOrDelete,
   cwd = "",
 ): Promise<FileChanges> {
-  const additions: FileAddition[] = changes.additions.map((path) => {
+  const additions: FileAddition[] = changes.additions.flatMap((path) => {
     const fullPath = join(cwd, path);
-    const contents = readFileSync(fullPath).toString("base64");
-    return {
-      path,
-      contents,
-    };
+    try {
+      const contents = readFileSync(fullPath).toString("base64");
+      return [{ path, contents }];
+    } catch {
+      core.warning(
+        `Skipping ${path}: not a readable file (missing, directory, or symlink)`,
+      );
+      return [];
+    }
   });
 
   const deletions: FileDeletion[] = changes.deletions.map((path) => {

@@ -113,6 +113,13 @@ const mockExecPromise = vi.fn();
 vi.mock("util", () => ({
   promisify: () => mockExecPromise,
 }));
+vi.mock("@actions/core", () => ({
+  info: vi.fn(),
+  error: vi.fn(),
+  warning: vi.fn(),
+  notice: vi.fn(),
+  debug: vi.fn(),
+}));
 
 describe("getGitTopLevel", () => {
   it("should log the top-level directory when git command succeeds", async () => {
@@ -121,13 +128,12 @@ describe("getGitTopLevel", () => {
       stderr: "",
     });
 
-    const mockConsoleLog = vi.spyOn(core, "info");
     await getGitTopLevel();
 
     expect(mockExecPromise).toHaveBeenCalledWith(
       "git rev-parse --show-toplevel",
     );
-    expect(mockConsoleLog).toHaveBeenCalledWith(
+    expect(core.info).toHaveBeenCalledWith(
       "Top-level directory: /path/to/top-level-dir",
     );
   });
@@ -137,13 +143,12 @@ describe("getGitTopLevel", () => {
       message: "Command failed",
     });
 
-    const mockConsoleError = vi.spyOn(core, "error");
     await getGitTopLevel().catch(() => {});
 
     expect(mockExecPromise).toHaveBeenCalledWith(
       "git rev-parse --show-toplevel",
     );
-    expect(mockConsoleError).toHaveBeenCalledWith(
+    expect(core.error).toHaveBeenCalledWith(
       "Error executing command: Command failed",
     );
   });
@@ -154,13 +159,12 @@ describe("getGitTopLevel", () => {
       stderr: "Error: Command failed",
     });
 
-    const mockConsoleError = vi.spyOn(core, "error");
     await getGitTopLevel().catch(() => {});
 
     expect(mockExecPromise).toHaveBeenCalledWith(
       "git rev-parse --show-toplevel",
     );
-    expect(mockConsoleError).toHaveBeenCalledWith(
+    expect(core.error).toHaveBeenCalledWith(
       "Error in command output: Error: Command failed",
     );
   });

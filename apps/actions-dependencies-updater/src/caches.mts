@@ -110,7 +110,7 @@ class Cache<T extends Record<string, any>> {
   private load(): T {
     try {
       const cache = fs.readFileSync(this.filePath, "utf-8");
-      return cache ? JSON.parse(cache) : {};
+      return cache ? (JSON.parse(cache) as T) : ({} as T);
     } catch (e: any) {
       if (e.code === "ENOENT") {
         log.warn("No cache found - continuing without");

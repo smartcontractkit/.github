@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "license": "MIT",
   "engines": {
-    "pnpm": "10"
+    "pnpm": "12"
   },
   "scripts": {
     "prettier:check": "prettier --check \"**/*.{json,md,js,ts,yml,yaml}\" --ignore-path=.prettierignore",
@@ -30,50 +30,36 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.2",
     "@changesets/cli": "^2.31.1",
-    "@nx/devkit": "22.7.12",
-    "@nx/esbuild": "22.7.12",
-    "@nx/eslint": "22.7.12",
-    "@nx/eslint-plugin": "22.7.12",
-    "@nx/js": "22.7.12",
-    "@nx/plugin": "22.7.12",
-    "@swc-node/register": "1.11.1",
-    "@swc/cli": "0.7.10",
-    "@swc/core": "1.15.8",
-    "@swc/helpers": "0.5.19",
-    "@types/node": "24.12.2",
-    "@typescript-eslint/eslint-plugin": "^7.18.0",
-    "@typescript-eslint/parser": "^7.18.0",
-    "esbuild": "^0.23.1",
-    "eslint": "^8.57.1",
+    "@eslint/eslintrc": "^3.0.0",
+    "@eslint/js": "^9.8.0",
+    "@nx/devkit": "23.3.0",
+    "@nx/esbuild": "23.3.0",
+    "@nx/eslint": "23.3.0",
+    "@nx/eslint-plugin": "23.3.0",
+    "@nx/js": "23.3.0",
+    "@nx/plugin": "23.3.0",
+    "@swc-node/register": "1.12.1",
+    "@swc/cli": "0.8.1",
+    "@swc/core": "1.16.13",
+    "@swc/helpers": "0.5.23",
+    "@types/node": "^26.6.4",
+    "@typescript-eslint/eslint-plugin": "8.71.1",
+    "@typescript-eslint/parser": "8.71.1",
+    "esbuild": "^0.28.2",
+    "eslint": "9.39.5",
     "eslint-config-prettier": "10.1.8",
     "jsdom": "~24.1.3",
+    "jsonc-eslint-parser": "^3.3.0",
     "lefthook": "^1.13.6",
-    "nx": "22.7.12",
+    "nx": "23.3.0",
     "prettier": "^3.9.9",
     "rimraf": "^6.1.3",
     "ts-node": "10.9.2",
     "tslib": "^2.8.1",
-    "typescript": "5.9.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.58.0",
     "update-ts-references": "^3.6.2",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.3"
   },
-  "repository": "https://github.com/smartcontractkit/.github",
-  "pnpm": {
-    "overrides": {
-      "axios": "^1.20.0",
-      "brace-expansion": "^5.0.12",
-      "smol-toml": "^1.9.0",
-      "form-data": "4.0.6",
-      "shell-quote": "1.11.0",
-      "vite": "7.3.7",
-      "undici": "6.29.0",
-      "@graphql-tools/utils": "12.0.1",
-      "@fastify/busboy": "3.2.2",
-      "http-cache-semantics": "4.3.0",
-      "source-map-js": "1.2.2",
-      "picomatch@>=4.0.0": "4.0.7",
-      "minimatch": "^10.2.4",
-      "immutable": "^4.3.8"
-    }
-  }
+  "repository": "https://github.com/smartcontractkit/.github"
 }

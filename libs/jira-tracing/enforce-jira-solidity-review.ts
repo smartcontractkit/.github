@@ -135,7 +135,7 @@ ${SOLIDITY_REVIEW_PREFIX}PROJ-1234`);
  * @throws Will throw an error if the search operation fails.
  */
 export async function getIssueKeys(
-  client: jira.Version3Client,
+  client: jira.CloudClient,
   projectKey: string,
   issueType: string,
   summary: string,
@@ -149,7 +149,7 @@ export async function getIssueKeys(
       jql = `${jql} AND issuekey NOT IN (${issueKeysToIgnore.join(",")})`;
     }
     core.debug(`Searching for issue using jql: '${jql}'`);
-    const result = await client.issueSearch.searchForIssuesUsingJql({
+    const result = await client.issueSearch.searchIssues({
       jql: jql,
       maxResults: maxResults,
       fields: ["key"],
@@ -180,7 +180,7 @@ export async function getIssueKeys(
  * @throws Will throw an error if the linking operation fails.
  */
 export async function linkIssues(
-  client: jira.Version3Client,
+  client: jira.CloudClient,
   inwardIssueKey: string,
   outwardIssueKey: string,
   linkType: string,
@@ -226,7 +226,7 @@ export async function linkIssues(
  * @throws Will throw an error if the creation or cloning process fails.
  */
 export async function createSolidityReviewIssue(
-  client: jira.Version3Client,
+  client: jira.CloudClient,
   projectKey: string,
   sourceIssueKey: string,
 ) {
@@ -271,7 +271,7 @@ export async function createSolidityReviewIssue(
  * @throws Will throw an error if the cloning process fails.
  */
 export async function cloneIssue(
-  client: jira.Version3Client,
+  client: jira.CloudClient,
   originalIssueKey: string,
   projectKey: string,
 ): Promise<string> {
@@ -323,7 +323,7 @@ export async function cloneIssue(
  * @throws Will throw an error if the cloning process fails or if the number of linked issues does not match the expected count.
  */
 export async function cloneLinkedIssues(
-  client: jira.Version3Client,
+  client: jira.CloudClient,
   projectKey: string,
   sourceIssueKey: string,
   targetIssueKey: string,
@@ -422,7 +422,7 @@ export async function cloneLinkedIssues(
  * @throws Will throw an error if closing any of the issues fails.
  */
 async function cleanUpUnfinishedIssues(
-  client: jira.Version3Client,
+  client: jira.CloudClient,
   issueKeys: string[],
 ): Promise<unknown> {
   try {
@@ -454,7 +454,7 @@ async function cleanUpUnfinishedIssues(
  * @throws Will throw an error if the transition or comment operation fails.
  */
 async function declineIssue(
-  client: jira.Version3Client,
+  client: jira.CloudClient,
   issueKey: string,
   commentText: string,
 ) {
@@ -482,7 +482,7 @@ async function declineIssue(
  * @throws Will throw an error if the transition or comment operation fails.
  */
 export async function transitionIssueWithComment(
-  client: jira.Version3Client,
+  client: jira.CloudClient,
   issueKey: string,
   transitionId: string,
   resolution: string,
@@ -735,7 +735,7 @@ export async function getChecklistJSONFromIssue(
  * @throws Will throw an error if the search operation fails.
  */
 async function getOpenSolidityReviewIssuesForProject(
-  client: jira.Version3Client,
+  client: jira.CloudClient,
   projectKey: string,
   issueKeysToIgnore: string[],
 ): Promise<string[]> {

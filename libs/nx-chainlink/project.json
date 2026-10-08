@@ -3,6 +3,7 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/nx-chainlink/src",
   "projectType": "library",
+  "tags": [],
   "targets": {
     "build-generator": {
       "executor": "@nx/js:tsc",
@@ -54,6 +55,5 @@
         "cwd": "{projectRoot}"
       }
     }
-  },
-  "tags": []
+  }
 }
