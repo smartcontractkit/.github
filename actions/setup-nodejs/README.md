@@ -2,6 +2,10 @@
 
 Sets up nodejs and pnpm.
 
+Version resolution works whether the repo pins its toolchain with
+[mise](https://mise.jdx.dev/), asdf, or nothing at all. No version file is
+required.
+
 ## Determining node version
 
 The action will determine what version to use through the following means:
@@ -10,11 +14,15 @@ The action will determine what version to use through the following means:
 2. If not passed, it will check the `node-version-file` input:
    - For a mise file (`mise.toml`, `.mise.toml`, or `.config/mise/config.toml`),
      it reads the `node` version from the `[tools]` table itself
-   - For `.tool-versions` or `.nvmrc`, the file is forwarded to `setup-node`,
-     which parses it natively
+   - For `.tool-versions`, `.nvmrc`, or `package.json`, the file is forwarded to
+     `setup-node`, which parses it natively
 3. If `node-version-file` is not passed, it auto-detects: a mise file first,
    then `.tool-versions` or `.nvmrc`
-4. If no file is found, `setup-node` falls back to its own default
+4. If no file is found, `setup-node` falls back to its own default (the runner's
+   preinstalled node)
+
+Repos with both a mise file and a `.tool-versions`/`.nvmrc` resolve from the
+mise file.
 
 ## Determining pnpm version
 
@@ -32,4 +40,6 @@ The action will determine what version to use through the following means:
 If a mise config file is present, the action also runs
 [`mise install`](https://mise.jdx.dev/) so every tool pinned in `mise.toml`
 (e.g. `shellcheck`) is available to subsequent steps — the same toolchain a
-developer gets locally. Repos without a mise config skip this entirely.
+developer gets locally. Repos without a mise config skip this entirely. Set the
+`mise-install` input to `false` to skip provisioning; version resolution is
+unaffected by that input.

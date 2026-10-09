@@ -83,6 +83,9 @@ run_test_case "mise.toml node outside [tools] ignored" \
 run_test_case "mise.toml pnpm outside [tools] ignored" \
   'printf "[tasks]\npnpm = \"echo hi\"\n" > mise.toml' \
   "" "" "^12.0.0" 0
+run_test_case "env-only mise.toml yields all defaults" \
+  'printf "[env]\nFOO = \"bar\"\n" > mise.toml' \
+  "" "" "^12.0.0" 0
 run_test_case "node from mise, pnpm from .tool-versions" \
   'printf "[tools]\nnode = \"26.10.0\"\n" > mise.toml; printf "pnpm 12.9.1\n" > .tool-versions' \
   "26.10.0" "" "12.9.1" 0

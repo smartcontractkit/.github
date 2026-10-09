@@ -24,6 +24,13 @@ inputs:
       The pnpm version to use. This value takes precedence over the version
       pinned in mise.toml or .tool-versions. Pseudo-default is ^12.0.0.
     required: false
+  mise-install:
+    description:
+      "Run `mise install` to provision every tool pinned in the repo's mise.toml
+      (e.g. node, pnpm, shellcheck) for later steps. Set to false to skip
+      provisioning. Version resolution is unaffected by this input."
+    required: true
+    default: "true"
   use-cache:
     description: Enable github actions cache
     required: true
@@ -62,7 +69,9 @@ runs:
         fi
 
     - name: Install mise tools
-      if: steps.mise-config.outputs.found == 'true'
+      if:
+        steps.mise-config.outputs.found == 'true' && inputs.mise-install ==
+        'true'
       uses: jdx/mise-action@c37c93293d6b742fc901e1406b8f764f6fb19dac # v2
 
     - name: Resolve versions
