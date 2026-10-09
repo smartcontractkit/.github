@@ -11,12 +11,12 @@ This tool has two main purposes:
 
 1. Install and setup tooling
 
-   - [`pnpm`](https://pnpm.io/)
-   - [`asdf`](https://asdf-vm.com/), then
-     [`nodejs`](https://github.com/asdf-vm/asdf-nodejs).
+   - [`mise`](https://mise.jdx.dev/) - node and pnpm versions are pinned in the
+     repo root `mise.toml`
 
 2. Install Dependencies
    ```bash
+    mise install
     pnpm install
    ```
 3. Generate a Github Personal Access Token with repo access

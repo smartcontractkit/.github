@@ -27,15 +27,19 @@ on:
     inputs:
       # nodejs inputs
       node-version-file:
-        description: "path to .tool-versions file for node version"
+        description:
+          "path to a version file for node (mise.toml, .tool-versions,
+          .nvmrc); empty auto-detects"
         required: false
         type: string
-        default: ".tool-versions"
+        default: ""
       pnpm-version:
-        description: "the pnpm version to use"
+        description:
+          "pnpm version; empty reads it from mise.toml/.tool-versions, falling
+          back to ^12.0.0"
         required: false
         type: string
-        default: "^12.0.0"
+        default: ""
       # docs-specific inputs
       build-command:
         description: "command to build the documentation (run from repository root, use pnpm -C to specify directory)"
