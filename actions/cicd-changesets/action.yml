@@ -84,13 +84,17 @@ inputs:
     default: ""
   # nodejs inputs (package-manager: pnpm only)
   node-version-file:
-    description: ""
+    description:
+      "path to a version file for node (mise.toml, .tool-versions, .nvmrc);
+      empty auto-detects"
     required: false
-    default: ".tool-versions"
+    default: ""
   pnpm-version:
-    description: ""
+    description:
+      "pnpm version; empty reads it from mise.toml/.tool-versions, falling back
+      to ^12.0.0"
     required: false
-    default: "^12.0.0"
+    default: ""
   pnpm-use-cache:
     description: "Use cache for pnpm"
     required: false
@@ -241,7 +245,7 @@ runs:
     # It does not read mise.toml, which is where our TypeScript repos pin an
     # exact bun, so the script resolves that case to a plain version instead.
     # `bun-version` still wins when set, the same way setup-nodejs lets
-    # pnpm-version override .tool-versions.
+    # pnpm-version override the version file.
     - name: Resolve bun version
       id: bun-version
       if: inputs.package-manager == 'bun'

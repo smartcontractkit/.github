@@ -216,6 +216,7 @@ jobs:
         uses: smartcontractkit/.github/actions/setup-nodejs@0b8d877a32bfa479b62ce70c1f6d2493a7c93fed # v0.0.0
         with:
           package-json-directory: ${{ inputs.contracts_directory }}
+          node-version-file: ""
           pnpm-version: ^12.0.0
 
       - name: Create code coverage directory
@@ -326,6 +327,7 @@ jobs:
         uses: smartcontractkit/.github/actions/setup-nodejs@0b8d877a32bfa479b62ce70c1f6d2493a7c93fed # v0.0.0
         with:
           package-json-directory: ${{ inputs.contracts_directory }}
+          node-version-file: ""
           pnpm-version: ^12.0.0
 
       - name: Install Foundry
@@ -491,6 +493,7 @@ jobs:
         uses: smartcontractkit/.github/actions/setup-nodejs@0b8d877a32bfa479b62ce70c1f6d2493a7c93fed # v0.0.0
         with:
           package-json-directory: ${{ inputs.contracts_directory }}
+          node-version-file: ""
           pnpm-version: ^12.0.0
 
       - name: Setup git top level directory

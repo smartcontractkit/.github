@@ -7,10 +7,6 @@ network of repositories.
   - [Action Versions](#action-versions)
   - [Automated Updates](#automated-updates)
 - [Contributing](#contributing)
-  - [Setup](#setup)
-  - [New Actions](#new-actions)
-  - [Existing Actions](#existing-actions)
-  - [Versioning](#versioning)
 - [Example Usage](#example-usage)
 
 ## Using Actions
@@ -44,57 +40,8 @@ or patch versions are released for the major version you are pinned to.
 
 ## Contributing
 
-### Setup
-
-#### Dependencies <!-- omit in toc -->
-
-- [`asdf`](https://asdf-vm.com/)
-- [`pnpm`](https://pnpm.io/)
-- `nodejs`
-
-#### Post-Install <!-- omit in toc -->
-
-- `asdf install` - will install versions as per the `.tool-versions` file
-- `pnpm install` - install all npm dependencies as required
-- `pnpm lefthook install` - install the git pre-commit hook for formatting
-  - `pnpm lefthook run pre-commit` - to run the pre-commit hook manually
-
-### New Actions
-
-1. Generate the Action boilerplate
-   ```sh
-   pnpm nx generate nx-chainlink:create-gh-action
-   ```
-2. Make your changes
-3. Add a changeset for your new action (`pnpm changeset`)
-4. Commit and open a PR
-
-### Existing Actions
-
-1. Modify the action as needed
-2. Build the action if it is written in JS/TS
-3. Add a changeset (`pnpm changeset`)
-4. Commit and open a PR
-
-### Versioning
-
-Actions are versioned through an automated process managed by
-[`changesets`](https://github.com/changesets/changesets). The process is as
-follows:
-
-1. You merge a change with a changeset file (in the `.changeset` directory)
-   1. Created through invoking `pnpm changeset`
-   2. Or through [`gocs`](https://github.com/smartcontractkit/gocs)
-      (`go install github.com/smartcontractkit/gocs/cmd/gocs@latest`)
-2. A "Version packages" pull request will open or update
-   ([ex](https://github.com/smartcontractkit/.github/pull/540)). This PR will
-   "consume" the changesets present in the default branch by:
-   1. Deleting the changeset files
-   2. Adding the changeset content to the respective changelogs
-   3. Bump the versions in the `package.json` according to the changeset
-      (patch/minor/major)
-3. The "Version packages" PR gets merged, and the git tags for the actions'
-   versions will be created during CICD.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to set up this repository, create
+and modify actions, and how versioning works.
 
 ## Example Usage
 

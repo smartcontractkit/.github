@@ -15,6 +15,12 @@
       "(^|/)action\\.ya?ml$"
     ]
   },
+  "mise": {
+    "fileMatch": [
+      "(^|/)\\.?mise(\\.work)?\\.toml$",
+      "(^|/)\\.config/mise/config\\.toml$"
+    ]
+  },
   "packageRules": [
     {
       "groupName": "minor-patch dependencies grouped by manager",

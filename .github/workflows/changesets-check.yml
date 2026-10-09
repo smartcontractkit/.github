@@ -67,8 +67,6 @@ jobs:
 
       - name: Setup pnpm
         uses: ./actions/setup-nodejs
-        with:
-          pnpm-version: "^12.0.0"
 
       - name: Dry-run changeset version
         env:
