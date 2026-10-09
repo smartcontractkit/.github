@@ -21,13 +21,17 @@ inputs:
     default: "false"
   # nodejs inputs
   node-version-file:
-    description: ""
+    description:
+      "path to a version file for node (mise.toml, .tool-versions, .nvmrc);
+      empty auto-detects"
     required: false
-    default: ".tool-versions"
+    default: ""
   pnpm-version:
-    description: ""
+    description:
+      "pnpm version; empty reads it from mise.toml/.tool-versions, falling back
+      to ^12.0.0"
     required: false
-    default: "^12.0.0"
+    default: ""
 
 runs:
   using: composite

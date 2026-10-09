@@ -77,8 +77,7 @@ jobs:
       - name: Setup Node.js 20
         uses: smartcontractkit/.github/actions/setup-nodejs@main
         with:
-          pnpm-version: "^10.0.0"
-          node-version-file: .tool-versions
+          node-version-file: mise.toml
           run-install: true
           use-cache: true
 
@@ -121,8 +120,7 @@ jobs:
       - name: Setup Node.js 20
         uses: smartcontractkit/.github/actions/setup-nodejs@<tag>
         with:
-          pnpm-version: "^10.0.0"
-          node-version-file: .tool-versions
+          node-version-file: mise.toml
           run-install: true
           use-cache: true
 
@@ -188,8 +186,7 @@ jobs:
       - name: Setup Node.js 20
         uses: smartcontractkit/.github/actions/setup-nodejs@<tag>
         with:
-          pnpm-version: "^10.0.0"
-          node-version-file: .tool-versions
+          node-version-file: mise.toml
           run-install: true
           use-cache: true
 
@@ -236,8 +233,7 @@ jobs:
       - name: Setup Node.js 20
         uses: smartcontractkit/.github/actions/setup-nodejs@main
         with:
-          pnpm-version: "^10.0.0"
-          node-version-file: .tool-versions
+          node-version-file: mise.toml
           run-install: true
           use-cache: true
 
@@ -320,8 +316,7 @@ jobs:
       - name: Setup Node.js 20
         uses: smartcontractkit/.github/actions/setup-nodejs@main
         with:
-          pnpm-version: "^10.0.0"
-          node-version-file: .tool-versions
+          node-version-file: mise.toml
           run-install: true
           use-cache: true
 

@@ -2,15 +2,35 @@ name: Setup nodejs
 description: Setup Nodejs and Pnpm with caching
 
 inputs:
-  node-version-file:
-    description: The node version
+  node-version:
+    description:
+      The node version to use. This value takes precedence over the
+      node-version-file input. Leave it empty to resolve the version from a file
+      instead.
     required: false
-    default: .tool-versions
+  node-version-file:
+    description: |
+      Path to a file the node version is read from when `node-version` is
+      empty. setup-node reads `.tool-versions`, `.nvmrc`, and `package.json`
+      natively, so those are forwarded to it unchanged. It does not understand
+      `mise.toml`, so mise files (`mise.toml`, `.mise.toml`,
+      `.config/mise/config.toml`) are read by this action and passed to
+      setup-node as a version instead. Leave it empty (the default) to
+      auto-detect: a mise file first, then `.tool-versions` or `.nvmrc`, and
+      setup-node's own default if no file is found.
+    required: false
   pnpm-version:
     description:
-      The pnpm version to use. This value takes precedence over the
-      pnpm-version-file input. Pseudo-default is ^12.0.0.
+      The pnpm version to use. This value takes precedence over the version
+      pinned in mise.toml or .tool-versions. Pseudo-default is ^12.0.0.
     required: false
+  mise-install:
+    description:
+      "Run `mise install` to provision every tool pinned in the repo's mise.toml
+      (e.g. node, pnpm, shellcheck) for later steps. Set to false to skip
+      provisioning. Version resolution is unaffected by this input."
+    required: true
+    default: "true"
   use-cache:
     description: Enable github actions cache
     required: true
@@ -40,46 +60,41 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Detect mise config
+      id: mise-config
+      shell: bash
+      run: |
+        if [[ -f mise.toml || -f .mise.toml || -f .config/mise/config.toml ]]; then
+          echo "found=true" | tee -a "${GITHUB_OUTPUT}"
+        fi
+
+    - name: Install mise tools
+      if:
+        steps.mise-config.outputs.found == 'true' && inputs.mise-install ==
+        'true'
+      uses: jdx/mise-action@c37c93293d6b742fc901e1406b8f764f6fb19dac # v2
+
+    - name: Resolve versions
+      id: versions
+      shell: bash
+      env:
+        NODE_VERSION: ${{ inputs.node-version }}
+        NODE_VERSION_FILE: ${{ inputs.node-version-file }}
+        PNPM_VERSION: ${{ inputs.pnpm-version }}
+        PNPM_FALLBACK: "^12.0.0"
+      run: "${GITHUB_ACTION_PATH}/scripts/resolve-versions.sh"
+
     - name: Install node
       uses: actions/setup-node@v6
       with:
-        node-version-file: ${{ inputs.node-version-file }}
+        node-version: ${{ steps.versions.outputs.node-version }}
+        node-version-file: ${{ steps.versions.outputs.node-version-file }}
         registry-url: ${{ inputs.registry-url }}
-
-    - name: Get pnpm version
-      id: pnpm-version
-      shell: bash
-      env:
-        PNPM_VERSION_INPUT: ${{ inputs.pnpm-version }}
-        PNPM_FALLBACK_VERSION: "^12.0.0"
-        DOT_TOOL_VERSIONS: ".tool-versions"
-      run: |
-        echo "Attempting to determine pnpm version to use..."
-
-        if [[ ! -z "${PNPM_VERSION_INPUT}" ]]; then
-          echo "Using pnpm version from input: ${PNPM_VERSION_INPUT}"
-          echo "pnpm-version=${PNPM_VERSION_INPUT}" | tee -a "${GITHUB_OUTPUT}"
-          exit 0
-        fi
-
-        if [[ -f "${DOT_TOOL_VERSIONS}" ]]; then
-          echo "Found ${DOT_TOOL_VERSIONS} file, checking for pnpm version..."
-          PNPM_VERSION_FROM_FILE=$(grep '^pnpm ' "${DOT_TOOL_VERSIONS}" | cut -d' ' -f2-)
-        fi
-
-        if [[ -z "${PNPM_VERSION_FROM_FILE}" ]]; then
-          echo "::info:: No pnpm version found in .tool-versions file (or it may not exist). Using default version."
-          echo "pnpm-version=${PNPM_FALLBACK_VERSION}" | tee -a "${GITHUB_OUTPUT}"
-          exit 0
-        fi
-
-        echo "Found pnpm version in file. Using: ${PNPM_VERSION_FROM_FILE}"
-        echo "pnpm-version=${PNPM_VERSION_FROM_FILE}" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Install pnpm
       uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
       with:
-        version: ${{ steps.pnpm-version.outputs.pnpm-version }}
+        version: ${{ steps.versions.outputs.pnpm-version }}
         run_install: false
 
     - name: Get pnpm store directory
