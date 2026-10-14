@@ -1,0 +1,89 @@
+name: Test setup-nodejs
+
+on:
+  pull_request:
+    paths:
+      - "actions/setup-nodejs/**"
+      - ".github/workflows/test-setup-nodejs.yml"
+      - "mise.toml"
+      - ".tool-versions"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  resolve-versions:
+    name: resolve (${{ matrix.scenario }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        # Fixture versions deliberately differ from the fallbacks (node
+        # 24.14.1 / pnpm 10.6.5 vs pnpm ^12) so assertions prove the version
+        # came from the fixture, not from a default.
+        scenario:
+          - mise-bare
+          - mise-beats-tool-versions
+          - tool-versions
+          - nvmrc
+          - no-files-fallback
+    steps:
+      - name: Checkout repo (needed to reference local action)
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Prepare fixture version files
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f mise.toml .tool-versions .nvmrc
+          case "${{ matrix.scenario }}" in
+            mise-bare)
+              printf '[tools]\nnode = "24.14.1"\npnpm = "10.6.5"\n' > mise.toml
+              ;;
+            mise-beats-tool-versions)
+              printf '[tools]\nnode = "24.14.1"\npnpm = "10.6.5"\n' > mise.toml
+              printf 'nodejs 26.10.0\npnpm 12.9.1\n' > .tool-versions
+              ;;
+            tool-versions)
+              printf 'nodejs 24.14.1\npnpm 10.6.5\n' > .tool-versions
+              ;;
+            nvmrc)
+              printf '24.14.1\n' > .nvmrc
+              ;;
+            no-files-fallback)
+              :
+              ;;
+          esac
+          echo "--- fixture files:"
+          cat mise.toml .tool-versions .nvmrc 2>/dev/null || true
+
+      - name: Run setup-nodejs
+        uses: ./actions/setup-nodejs
+        with:
+          use-cache: "false"
+
+      - name: Assert resolved versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          node_version="$(node -v)"
+          pnpm_version="$(pnpm -v)"
+          echo "resolved node: ${node_version}, pnpm: ${pnpm_version}"
+          case "${{ matrix.scenario }}" in
+            mise-bare|mise-beats-tool-versions|tool-versions)
+              [[ "${node_version}" == "v24.14.1" ]]
+              [[ "${pnpm_version}" == "10.6.5" ]]
+              ;;
+            nvmrc)
+              [[ "${node_version}" == "v24.14.1" ]]
+              [[ "${pnpm_version}" == 12.* ]]
+              ;;
+            no-files-fallback)
+              command -v node > /dev/null
+              [[ "${pnpm_version}" == 12.* ]]
+              ;;
+          esac
