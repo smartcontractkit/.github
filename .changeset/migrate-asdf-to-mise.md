@@ -1,5 +1,5 @@
 ---
-"setup-nodejs": minor
+"setup-nodejs": major
 "ci-lint-ts": minor
 "ci-test-ts": minor
 "ci-test-sol": minor
@@ -12,7 +12,12 @@
 
 Migrate version management from asdf/`.tool-versions` to
 [mise](https://mise.jdx.dev/): versions are pinned in the repo root
-`mise.toml`.
+`mise.toml`. `setup-nodejs` is released as a major (v2): its input contract
+changed — `node-version` (new) takes precedence over `node-version-file`,
+which now defaults to auto-detect instead of `.tool-versions`, and repos with
+no version file fall back to setup-node's default node and pnpm `^12.0.0`
+instead of erroring. Consumers pinned to `setup-nodejs/v1` keep the old
+behavior until they opt in to v2.
 
 - `setup-nodejs` reads node and pnpm versions from a mise file (`mise.toml`,
   `.mise.toml`, `.config/mise/config.toml`) first, falling back to
@@ -36,3 +41,9 @@ Migrate version management from asdf/`.tool-versions` to
 
 NOTE for consumers: repos pinning versions via `.tool-versions` keep working
 unchanged. Pin versions in a `mise.toml` to pick up the new behavior.
+
+NOTE for this repo: the root `.tool-versions` is retained temporarily as a
+duplicate of `mise.toml` (mise reads `mise.toml` first, so it is inert for mise
+users) because this repo's own composite actions reference the released
+`setup-nodejs/v1`, which still reads `.tool-versions`. It will be removed once
+setup-nodejs v2 is released and the internal refs are bumped.

@@ -1,0 +1,9 @@
+# Transitional duplicate of mise.toml, kept for compatibility with released
+# action versions that still read .tool-versions (internal composite actions
+# reference setup-nodejs@setup-nodejs/v1 until setup-nodejs v2 is released and
+# the refs are bumped). mise resolves versions from mise.toml first, so this
+# file is inert for mise users. Remove it after setup-nodejs v2 ships and the
+# internal refs are updated.
+nodejs 26.10.0
+pnpm 12.9.1
+shellcheck 0.11.0
