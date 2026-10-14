@@ -53,10 +53,17 @@ jobs:
 
       - name: ci-lint-misc
         uses: ./actions/ci-lint-misc
-        continue-on-error: true # temporary bypass for #1470
         with:
           # general inputs
           checkout-repo: "false"
+
+      - name: Shellcheck action scripts
+        run: shellcheck actions/setup-nodejs/scripts/*.sh actions/cicd-changesets/scripts/*.sh
+
+      - name: Run shell script tests
+        run: |
+          bash actions/setup-nodejs/scripts/resolve-versions.test.sh
+          bash actions/cicd-changesets/scripts/resolve-bun-version.test.sh
 
   cd-signed-commits:
     # Disable this job until it's updated to be:
