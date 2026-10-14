@@ -22,13 +22,7 @@ describe("repo-status", () => {
       const stdout = await getGitStatusPorcelainV1(repoPath);
 
       expect(stdout).toMatchInlineSnapshot(`
-      " M file1.txt
-       D file2.txt
-      R  file3.txt -> file3renamed.txt
-       T file4.txt
-      A  file5.txt
-      ?? untracked.txt
-      "
+      " M file1.txt\0 D file2.txt\0R  file3renamed.txt\0file3.txt\0 T file4.txt\0A  file5.txt\0?? untracked.txt\0"
     `);
     });
   });
@@ -123,6 +117,36 @@ describe("repo-status", () => {
       expect(fileChanges.deletions).toEqual([{ path: "file2.txt" }]);
     });
   });
+
+  describe("paths with spaces and special characters", () => {
+    // Regression test: the line-based porcelain format C-quotes these paths
+    // (e.g. `?? "new dir/untracked file.txt"`), and the quoted strings failed
+    // readFileSync. The -z format emits them raw and NUL-delimited.
+    it("parses them unquoted and commits their contents", async () => {
+      vi.mocked(core.warning).mockClear();
+
+      const repoPath = await createSpecialPathsTestRepo("special-paths");
+      const stdout = await getGitStatusPorcelainV1(repoPath);
+      const changes = listChanges(stdout);
+      const { additions, deletions } = calculateAdditionsAndDeletions(changes);
+      const fileChanges = await calculateFileChanges(
+        { additions, deletions },
+        repoPath,
+      );
+
+      // rename: old path deleted, new path added — both with spaces in them
+      expect(deletions).toContain("new dir/old file.txt");
+      expect(additions).toContain("renamed dir/new name.txt");
+
+      // untracked paths with a space and a double quote, parsed unquoted
+      expect(additions).toContain("new dir/untracked file.txt");
+      expect(additions).toContain('quote"name.txt');
+
+      // every addition is a real, readable file — none skipped, no warnings
+      expect(fileChanges.additions).toHaveLength(additions.length);
+      expect(core.warning).not.toHaveBeenCalled();
+    });
+  });
 });
 
 async function createCommitTestRepo(name: string): Promise<string> {
@@ -158,6 +182,23 @@ async function createCommitTestRepo(name: string): Promise<string> {
   // Change the type of a file (e.g., from a regular file to a symlink)
   fs.unlinkSync(`${repoPath}/file4.txt`);
   fs.symlinkSync(`${repoPath}/file1.txt`, `${repoPath}/file4.txt`);
+
+  return repoPath;
+}
+
+async function createSpecialPathsTestRepo(name: string): Promise<string> {
+  const repoPath = await createRepo(name);
+
+  fs.mkdirSync(`${repoPath}/new dir`);
+  fs.writeFileSync(`${repoPath}/new dir/old file.txt`, "Old content");
+  execSync(`cd ${repoPath} && git add . && git commit -m "Initial commit"`);
+  execSync(
+    `cd ${repoPath} && mkdir -p "renamed dir" && git mv "new dir/old file.txt" "renamed dir/new name.txt"`,
+  );
+
+  // untracked paths whose names trigger C-quoting in the line-based format
+  fs.writeFileSync(`${repoPath}/new dir/untracked file.txt`, "Untracked");
+  fs.writeFileSync(`${repoPath}/quote"name.txt`, "Quoted name");
 
   return repoPath;
 }

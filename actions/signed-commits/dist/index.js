@@ -62514,7 +62514,7 @@ async function getFileChanges(cwd) {
 async function getGitStatusPorcelainV1(cwd) {
   const stdout = await execWithOutput(
     "git",
-    ["status", "--porcelain=v1", "--untracked-files=all"],
+    ["status", "--porcelain=v1", "-z", "--untracked-files=all"],
     {
       cwd,
       notrim: true
@@ -62551,16 +62551,27 @@ function listChanges(output) {
     };
   }
   function parseGitStatusPorcelainOutput(output2) {
-    const lines = output2.split("\n");
-    lines.pop();
-    return lines.map((line) => {
-      const [status, filePath] = [
-        line.substring(0, 2),
-        line.substring(2).trim()
-      ];
+    const fields = output2.split("\0");
+    const changes = [];
+    for (let i = 0; i < fields.length; i++) {
+      const field = fields[i] ?? "";
+      if (field === "") {
+        continue;
+      }
+      const status = field.substring(0, 2);
+      let filePath = field.substring(3);
       const { indexStatus, workingTreeStatus } = parseStatusCode(status);
-      return { filePath, indexStatus, workingTreeStatus };
-    });
+      if (indexStatus === "R" || indexStatus === "C" || workingTreeStatus === "R" || workingTreeStatus === "C") {
+        const originalPath = fields[++i] ?? "";
+        filePath = `${originalPath} -> ${filePath}`;
+      }
+      changes.push({
+        filePath,
+        indexStatus,
+        workingTreeStatus
+      });
+    }
+    return changes;
   }
   return parseGitStatusPorcelainOutput(output);
 }

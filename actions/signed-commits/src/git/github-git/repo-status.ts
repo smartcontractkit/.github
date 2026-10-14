@@ -24,9 +24,13 @@ interface GitFileStatus {
 }
 
 export async function getGitStatusPorcelainV1(cwd?: string) {
+  // -z emits NUL-delimited records with raw, unquoted paths. The line-based
+  // format C-quotes paths containing spaces or special characters (e.g.
+  // `?? "new dir/file.txt"`), and those quoted paths fail readFileSync
+  // downstream because no file literally named `"new dir/file.txt"` exists.
   const stdout = await execWithOutput(
     "git",
-    ["status", "--porcelain=v1", "--untracked-files=all"],
+    ["status", "--porcelain=v1", "-z", "--untracked-files=all"],
     {
       cwd,
       notrim: true,
@@ -90,23 +94,52 @@ export function listChanges(output: string): GitFileStatus[] {
   }
 
   /**
-   * Parses the output of `git status --porcelain=v1` into a list of git file statuses.
-   * @param output The stdout of `git status --porcelain=v1`
+   * Parses the output of `git status --porcelain=v1 -z` into a list of git file statuses.
+   *
+   * -z output is NUL-delimited and never quotes or escapes paths, unlike the
+   * line-based format which C-quotes paths containing spaces or special
+   * characters. Rename and copy records carry two consecutive fields: the new
+   * path, then the original path. The composite `original -> new` filePath
+   * preserved here matches the line-based format that downstream code and
+   * callers expect.
+   * @param output The stdout of `git status --porcelain=v1 -z`
    */
   function parseGitStatusPorcelainOutput(output: string): GitFileStatus[] {
-    const lines = output.split("\n");
-    // remove newline
-    lines.pop();
-    return lines.map((line) => {
-      // only split the first two characters, as the rest is the file path
-      const [status, filePath] = [
-        line.substring(0, 2),
-        line.substring(2).trim(),
-      ];
+    const fields = output.split("\0");
+    const changes: GitFileStatus[] = [];
+
+    for (let i = 0; i < fields.length; i++) {
+      const field = fields[i] ?? "";
+      // the trailing NUL produces one empty final field
+      if (field === "") {
+        continue;
+      }
+      // XY is the two-character status, followed by one separator space; the
+      // path starts at index 3. substring(3) (rather than trim) keeps any
+      // leading/trailing spaces that are part of the filename.
+      const status = field.substring(0, 2);
+      let filePath = field.substring(3);
       const { indexStatus, workingTreeStatus } = parseStatusCode(status);
 
-      return { filePath, indexStatus, workingTreeStatus } as GitFileStatus;
-    });
+      // rename/copy records are followed by a second field: the original path
+      if (
+        indexStatus === "R" ||
+        indexStatus === "C" ||
+        workingTreeStatus === "R" ||
+        workingTreeStatus === "C"
+      ) {
+        const originalPath = fields[++i] ?? "";
+        filePath = `${originalPath} -> ${filePath}`;
+      }
+
+      changes.push({
+        filePath,
+        indexStatus,
+        workingTreeStatus,
+      } as GitFileStatus);
+    }
+
+    return changes;
   }
 
   return parseGitStatusPorcelainOutput(output);
