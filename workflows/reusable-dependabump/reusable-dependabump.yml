@@ -12,6 +12,13 @@ on:
         required: false
         type: string
         default: 'critical,high,moderate'
+      ecosystem:
+        required: false
+        type: string
+        default: 'go'
+      bump-command:
+        required: false
+        type: string
       post-bump-command:
         required: false
         type: string
@@ -33,58 +40,131 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Set up Go
-        uses: actions/setup-go@v7
-
-      - name: Enforce Auto Toolchain
-        run: echo "GOTOOLCHAIN=auto" >> "$GITHUB_ENV"
-
-      - name: Install tools
-        id: install
-        run: |
-          go install github.com/jmank88/gomods@ec230e90e89d4310b21fdeeba0d1290a3821a901 && \
-          go install github.com/smartcontractkit/chainlink-common/script/cmd/dependabot@70b55abaf6e19d887c219b497046838d6113f22c
-        continue-on-error: true
-
-      - name: Bump Dependencies
-        id: bump
+      - name: Validate Inputs
+        id: validate
         env:
           SEVERITY: ${{ inputs.severity }}
-        if: steps.install.outcome == 'success'
+          ECOSYSTEM: ${{ inputs.ecosystem }}
+          BUMP_COMMAND: ${{ inputs.bump-command }}
         run: |
           if ! printf '%s' "$SEVERITY" | grep -Eq '^[[:space:]]*(critical|high|moderate|low)([[:space:]]*,[[:space:]]*(critical|high|moderate|low))*[[:space:]]*$'; then
             echo "Invalid severity input: $SEVERITY" >&2
             exit 1
           fi
           SEVERITY="${SEVERITY//[[:space:]]/}"
+
+          ECOSYSTEM="$(printf '%s' "$ECOSYSTEM" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
+          IFS=',' read -ra ecosystems <<< "$ECOSYSTEM"
+          if [[ ${#ecosystems[@]} -eq 0 ]]; then
+            echo "Invalid ecosystem input: must not be empty" >&2
+            exit 1
+          fi
+          for e in "${ecosystems[@]}"; do
+            case "$e" in
+              composer|go|maven|npm|nuget|pip|pub|rubygems|rust|swift) ;;
+              *)
+                echo "Invalid ecosystem input: '$e' (expected one of composer, go, maven, npm, nuget, pip, pub, rubygems, rust, swift)" >&2
+                exit 1
+                ;;
+            esac
+            if [[ -z "$BUMP_COMMAND" && "$e" != "go" ]]; then
+              echo "bump-command is required for non-Go ecosystems: '$e'" >&2
+              exit 1
+            fi
+          done
+
+          echo "severity=${SEVERITY}" | tee -a "$GITHUB_OUTPUT"
+          echo "ecosystem=${ECOSYSTEM}" | tee -a "$GITHUB_OUTPUT"
+        continue-on-error: true
+
+      - name: Fetch Alerts
+        id: alerts
+        if: steps.validate.outcome == 'success'
+        env:
+          SEVERITY: ${{ steps.validate.outputs.severity }}
+          ECOSYSTEM: ${{ steps.validate.outputs.ecosystem }}
+        run: |
+          set -euo pipefail
+          file="${RUNNER_TEMP}/dependabump-alerts.json"
           gh api --paginate -H "Accept: application/vnd.github+json" --method GET \
-            "/repos/${GITHUB_REPOSITORY}/dependabot/alerts?state=open&ecosystem=Go&severity=${SEVERITY}" \
-            --jq '.[] | select(.security_vulnerability.first_patched_version != null) | .dependency.manifest_path |= rtrimstr("go.mod") | "./\(.dependency.manifest_path) \(.security_vulnerability.package.name) \(.security_vulnerability.first_patched_version.identifier)"' | \
+            "/repos/${GITHUB_REPOSITORY}/dependabot/alerts?state=open&ecosystem=${ECOSYSTEM}&severity=${SEVERITY}" \
+            --jq '[.[] | select(.security_vulnerability.first_patched_version != null) | {
+              ecosystem: .dependency.package.ecosystem,
+              manifest_path: .dependency.manifest_path,
+              package: .security_vulnerability.package.name,
+              patched_version: .security_vulnerability.first_patched_version.identifier,
+              vulnerable_version_range: .security_vulnerability.vulnerable_version_range,
+              severity: .security_vulnerability.severity,
+              ghsa_id: .security_advisory.ghsa_id
+            }]' | jq -s 'add // []' > "$file"
+          cat "$file"
+          echo "file=${file}" | tee -a "$GITHUB_OUTPUT"
+          echo "count=$(jq length "$file")" | tee -a "$GITHUB_OUTPUT"
+        continue-on-error: true
+
+      - name: Set up Go
+        if: ${{ steps.alerts.outcome == 'success' && steps.alerts.outputs.count != '0' && inputs.bump-command == '' }}
+        uses: actions/setup-go@v7
+
+      - name: Enforce Auto Toolchain
+        if: ${{ steps.alerts.outcome == 'success' && steps.alerts.outputs.count != '0' && inputs.bump-command == '' }}
+        run: echo "GOTOOLCHAIN=auto" >> "$GITHUB_ENV"
+
+      - name: Install tools
+        id: install
+        if: ${{ steps.alerts.outcome == 'success' && steps.alerts.outputs.count != '0' && inputs.bump-command == '' }}
+        run: |
+          go install github.com/jmank88/gomods@ec230e90e89d4310b21fdeeba0d1290a3821a901 && \
+          go install github.com/smartcontractkit/chainlink-common/script/cmd/dependabot@70b55abaf6e19d887c219b497046838d6113f22c
+        continue-on-error: true
+
+      - name: Bump Go Dependencies
+        id: bump-go
+        if: steps.install.outcome == 'success'
+        env:
+          ALERTS_FILE: ${{ steps.alerts.outputs.file }}
+        run: |
+          set -euo pipefail
+          jq -r '.[] | "./\(.manifest_path | rtrimstr("go.mod")) \(.package) \(.patched_version)"' "$ALERTS_FILE" | \
             dependabot
           gomods tidy
+        continue-on-error: true
+
+      - name: Bump Dependencies
+        id: bump-custom
+        if: ${{ steps.alerts.outcome == 'success' && steps.alerts.outputs.count != '0' && inputs.bump-command != '' }}
+        env:
+          BUMP_COMMAND: ${{ inputs.bump-command }}
+          DEPENDABUMP_ALERTS_FILE: ${{ steps.alerts.outputs.file }}
+        run: eval "${BUMP_COMMAND}"
+        continue-on-error: true
+
+      - name: Check Changes
+        id: changed
+        if: ${{ steps.bump-go.outcome == 'success' || steps.bump-custom.outcome == 'success' }}
+        run: |
           if [[ -n "$(git status --porcelain)" ]]; then
             echo "changed=true" | tee -a "$GITHUB_OUTPUT"
           else
             echo "changed=false" | tee -a "$GITHUB_OUTPUT"
           fi
-        continue-on-error: true
 
       - name: Install Nix
-        if: ${{ steps.bump.outcome == 'success' && steps.bump.outputs.changed == 'true' && contains(inputs.post-bump-command, 'nix') }}
+        if: ${{ steps.changed.outputs.changed == 'true' && contains(inputs.post-bump-command, 'nix') }}
         uses: cachix/install-nix-action@02a151ada4993995686f9ed4f1be7cfbb229e56f # v31
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Post-bump Command
         id: post-bump
-        if: ${{ steps.bump.outcome == 'success' && steps.bump.outputs.changed == 'true' && inputs.post-bump-command != '' }}
+        if: ${{ steps.changed.outputs.changed == 'true' && inputs.post-bump-command != '' }}
         env:
           POST_BUMP_COMMAND: ${{ inputs.post-bump-command }}
         run: eval "${POST_BUMP_COMMAND}"
         continue-on-error: true
 
       - name: Notify Failure
-        if: ${{ steps.install.outcome == 'failure' || steps.bump.outcome == 'failure' || steps.post-bump.outcome == 'failure' }}
+        if: ${{ steps.validate.outcome == 'failure' || steps.alerts.outcome == 'failure' || steps.install.outcome == 'failure' || steps.bump-go.outcome == 'failure' || steps.bump-custom.outcome == 'failure' || steps.post-bump.outcome == 'failure' }}
         uses: slackapi/slack-github-action@af78098f536edbc4de71162a307590698245be95 # v3.0.1
         with:
           method: chat.postMessage
@@ -95,11 +175,12 @@ jobs:
               Failed to check for vulnerable dependencies in `${{ github.event.repository.name }}` - <${{ format('https://github.com/{0}/actions/runs/{1}', github.repository, github.run_id) }}|Run>
 
       - name: Exit on Failure
-        if: ${{ steps.install.outcome == 'failure' || steps.bump.outcome == 'failure' || steps.post-bump.outcome == 'failure' }}
+        if: ${{ steps.validate.outcome == 'failure' || steps.alerts.outcome == 'failure' || steps.install.outcome == 'failure' || steps.bump-go.outcome == 'failure' || steps.bump-custom.outcome == 'failure' || steps.post-bump.outcome == 'failure' }}
         run: exit 1
 
       - name: Create Pull Request
         id: pr
+        if: steps.changed.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           branch: bot/dependabump
