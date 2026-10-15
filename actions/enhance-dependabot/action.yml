@@ -37,6 +37,14 @@ inputs:
     default: ""
     description: Optional Slack channel ID to notify on enhancement failures.
 
+outputs:
+  changed:
+    description: Whether changes were made and pushed.
+    value: ${{ steps.changes.outputs.changed }}
+  commit-sha:
+    description: The SHA of the enhancement commit pushed to the branch.
+    value: ${{ steps.retry.outputs.sha || steps.commit.outputs.sha }}
+
 runs:
   using: composite
   steps:
@@ -132,13 +140,19 @@ runs:
       shell: bash
       env:
         COMMIT_MESSAGE: ${{ inputs.commit-message }}
+        PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       run: |
+        head="$(git rev-parse HEAD)"
+        if [[ "$head" != "$PR_HEAD_SHA" ]]; then
+          echo "::error::HEAD ($head) is not the PR head SHA ($PR_HEAD_SHA). Refusing to commit." >&2
+          exit 1
+        fi
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git add -A
         git commit -m "$COMMIT_MESSAGE"
         echo "sha=$(git rev-parse HEAD)" | tee -a "$GITHUB_OUTPUT"
-        git diff --stat HEAD~1 HEAD | tee commit-stat.txt
+        git diff --stat HEAD~1 HEAD | tee "${RUNNER_TEMP}/commit-stat.txt"
 
     - name: Push commit
       id: push
@@ -161,9 +175,15 @@ runs:
       run: |
         commit="$(git rev-parse HEAD)"
         git fetch --depth=1 origin "$PR_HEAD_REF"
+        if [[ "$(git rev-parse FETCH_HEAD)" == "$commit" ]]; then
+          echo "sha=$commit" | tee -a "$GITHUB_OUTPUT"
+          exit 0
+        fi
         git checkout --detach FETCH_HEAD
         git cherry-pick "$commit"
         git push origin "HEAD:${PR_HEAD_REF}"
+        echo "sha=$(git rev-parse HEAD)" | tee -a "$GITHUB_OUTPUT"
+        git diff --stat HEAD~1 HEAD | tee "${RUNNER_TEMP}/commit-stat.txt"
       continue-on-error: true
 
     - name: Comment on push failure
@@ -215,7 +235,7 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.github-token }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
-        COMMIT_SHA: ${{ steps.commit.outputs.sha }}
+        COMMIT_SHA: ${{ steps.retry.outputs.sha || steps.commit.outputs.sha }}
         REPO: ${{ github.repository }}
         RUN_URL:
           ${{ format('https://github.com/{0}/actions/runs/{1}',
@@ -228,14 +248,16 @@ runs:
           echo
           echo "- Commit: [\`${COMMIT_SHA:0:12}\`](https://github.com/${REPO}/commit/${COMMIT_SHA})"
           echo "- [Run](${RUN_URL})"
-          echo
-          echo "<details><summary>Changed files</summary>"
-          echo
-          echo '```'
-          cat commit-stat.txt
-          echo '```'
-          echo
-          echo "</details>"
+          if [[ -f "${RUNNER_TEMP}/commit-stat.txt" ]]; then
+            echo
+            echo "<details><summary>Changed files</summary>"
+            echo
+            echo '```'
+            cat "${RUNNER_TEMP}/commit-stat.txt"
+            echo '```'
+            echo
+            echo "</details>"
+          fi
         } | gh pr comment "$PR_NUMBER" --body-file -
 
     - name: Write job summary
@@ -246,7 +268,7 @@ runs:
         PUSH_OUTCOME: ${{ steps.push.outcome }}
         RETRY_OUTCOME: ${{ steps.retry.outcome }}
         CHANGED: ${{ steps.changes.outputs.changed }}
-        COMMIT_SHA: ${{ steps.commit.outputs.sha }}
+        COMMIT_SHA: ${{ steps.retry.outputs.sha || steps.commit.outputs.sha }}
         REPO: ${{ github.repository }}
         PR_URL: ${{ github.event.pull_request.html_url }}
       run: |
@@ -273,12 +295,12 @@ runs:
           elif [[ "$CHANGED" == 'false' ]]; then
             echo "Nothing to do: the enhance command produced no changes."
           fi
-          if [[ -f commit-stat.txt ]]; then
+          if [[ -f "${RUNNER_TEMP}/commit-stat.txt" ]]; then
             echo
             echo "<details><summary>Changed files</summary>"
             echo
             echo '```'
-            cat commit-stat.txt
+            cat "${RUNNER_TEMP}/commit-stat.txt"
             echo '```'
             echo
             echo "</details>"

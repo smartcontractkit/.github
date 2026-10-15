@@ -109,6 +109,13 @@ updates:
 | `slack-token`      | no       | `''`                                                          | Slack bot token used to notify on enhancement failures. Notifications are skipped when unset.        |
 | `slack-channel-id` | no       | `''`                                                          | Slack channel ID to notify on enhancement failures.                                                  |
 
+## Outputs
+
+| Output       | Description                                                |
+| ------------ | ---------------------------------------------------------- |
+| `changed`    | Whether changes were made and pushed (`true` or `false`).  |
+| `commit-sha` | The SHA of the enhancement commit pushed to the PR branch. |
+
 ## Behavior
 
 - Guards: only runs on in-repository `dependabot/*` branches whose head SHA is
