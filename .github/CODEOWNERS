@@ -13,3 +13,7 @@
 
 # data-analytics
 /actions/pr-quality-check/ @smartcontractkit/data-analytics @smartcontractkit/devex-cicd
+
+# cre (keystone)
+/workflows/reusable-cre-audit-consumer/ @smartcontractkit/keystone @smartcontractkit/devex-cicd
+/.github/workflows/reusable-cre-audit-consumer.yml @smartcontractkit/keystone @smartcontractkit/devex-cicd
