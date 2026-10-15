@@ -22,7 +22,7 @@
 
 ## 4. Integration checks
 
-- [ ] 4.1 Open the PR from `introduce-open-spec` and verify the diff contains
+- [x] 4.1 Open the PR from `introduce-open-spec` and verify the diff contains
       only `openspec/**` and `.agents/skills/**` paths
 - [ ] 4.2 In a fresh agent session, verify an OpenSpec workflow triggers
       naturally (e.g. ask to propose a change and see the propose workflow
