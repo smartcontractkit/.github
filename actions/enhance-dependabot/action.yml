@@ -1,9 +1,11 @@
 name: enhance-dependabot
 description: |
   Runs a repository-defined enhancement command on a Dependabot PR's checked-out
-  head, commits the result, and pushes it back to the same Dependabot branch so
-  the repository's usual checks re-run on the enhanced code. Setup (toolchains,
-  dependencies, logins) is done by the calling workflow before this action.
+  head, commits the result, and pushes it back to the same Dependabot branch.
+  Push with a GitHub App token (`push-token`) so the push triggers the
+  repository's usual checks; pushes made with GITHUB_TOKEN do not create new
+  workflow runs. Setup (toolchains, dependencies, logins) is done by the
+  calling workflow before this action.
 
 inputs:
   enhance-command:
@@ -26,6 +28,15 @@ inputs:
     required: false
     default: ${{ github.token }}
     description: GitHub token used to comment on the pull request.
+  push-token:
+    required: false
+    default: ${{ github.token }}
+    description: |
+      Token used only by the push steps to push the enhancement commit to the
+      Dependabot branch; it is never exposed to the enhance-command. Pushes made
+      with GITHUB_TOKEN do not create new workflow runs, so pass a GitHub App
+      installation token (e.g. from actions/create-github-app-token) to make
+      the push trigger the repository's usual PR checks.
   slack-token:
     required: false
     default: ""
@@ -64,7 +75,8 @@ runs:
         PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
         PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-      run: ${{ github.action_path }}/scripts/validate.sh
+        VALIDATE_SCRIPT: ${{ github.action_path }}/scripts/validate.sh
+      run: "$VALIDATE_SCRIPT"
 
     - name: Run enhance command
       id: enhance
@@ -149,7 +161,11 @@ runs:
       shell: bash
       env:
         PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
-      run: git push origin "HEAD:${PR_HEAD_REF}"
+        PUSH_TOKEN: ${{ inputs.push-token }}
+      run:
+        git push
+        "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+        "HEAD:${PR_HEAD_REF}"
       continue-on-error: true
 
     # Dependabot (or someone) may have updated the branch while the enhance
@@ -161,16 +177,30 @@ runs:
       shell: bash
       env:
         PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        PUSH_TOKEN: ${{ inputs.push-token }}
       run: |
+        remote="https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
         commit="$(git rev-parse HEAD)"
-        git fetch --depth=1 origin "$PR_HEAD_REF"
+        git fetch --depth=1 "$remote" "$PR_HEAD_REF"
         if [[ "$(git rev-parse FETCH_HEAD)" == "$commit" ]]; then
           echo "sha=$commit" | tee -a "$GITHUB_OUTPUT"
           exit 0
         fi
         git checkout --detach FETCH_HEAD
-        git cherry-pick "$commit"
-        git push origin "HEAD:${PR_HEAD_REF}"
+        if ! git cherry-pick "$commit"; then
+          # Another run may have already pushed the same generated changes, in
+          # which case the replay is an empty cherry-pick. Treat only an empty,
+          # conflict-free pick as success (the branch already has the changes);
+          # any other failure is real.
+          if git rev-parse -q --verify CHERRY_PICK_HEAD >/dev/null &&
+             [[ -z "$(git ls-files -u)" ]] && git diff --cached --quiet; then
+            git cherry-pick --skip
+            echo "sha=$(git rev-parse HEAD)" | tee -a "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          exit 1
+        fi
+        git push "$remote" "HEAD:${PR_HEAD_REF}"
         echo "sha=$(git rev-parse HEAD)" | tee -a "$GITHUB_OUTPUT"
         git diff --stat HEAD~1 HEAD | tee "${RUNNER_TEMP}/commit-stat.txt"
       continue-on-error: true
@@ -233,7 +263,7 @@ runs:
         {
           echo "### :robot: enhance-dependabot"
           echo
-          echo "Post-update generation/cleanup was applied and pushed to this branch. The repository's usual checks will run again against the updated head."
+          echo "Post-update generation/cleanup was applied and pushed to this branch. If pushed with a GitHub App token (\`push-token\`), the repository's usual checks re-run against the updated head; pushes made with GITHUB_TOKEN do not trigger workflow runs."
           echo
           echo "- Commit: [\`${COMMIT_SHA:0:12}\`](https://github.com/${REPO}/commit/${COMMIT_SHA})"
           echo "- [Run](${RUN_URL})"
