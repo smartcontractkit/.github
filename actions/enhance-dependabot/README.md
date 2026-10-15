@@ -111,15 +111,16 @@ updates:
 
 ## Outputs
 
-| Output       | Description                                                |
-| ------------ | ---------------------------------------------------------- |
-| `changed`    | Whether changes were made and pushed (`true` or `false`).  |
-| `commit-sha` | The SHA of the enhancement commit pushed to the PR branch. |
+| Output       | Description                                                       |
+| ------------ | ----------------------------------------------------------------- |
+| `changed`    | Whether the enhance command produced changes (`true` or `false`). |
+| `commit-sha` | The SHA of the enhancement commit (set when `changed` is `true`). |
 
 ## Behavior
 
-- Guards: only runs on in-repository `dependabot/*` branches whose head SHA is
-  checked out, otherwise it fails without touching anything.
+- Guards: only runs when triggered by `dependabot[bot]`, on in-repository
+  `dependabot/*` branches whose head SHA is checked out, otherwise it fails
+  without touching anything.
 - Runs `enhance-command` in your workflow's environment (after your setup
   steps).
 - If it produces changes: commits them as `github-actions[bot]` and pushes to
@@ -142,3 +143,9 @@ automatically, keeping the PR enhanced after rebases.
   rebase the PR (the branch contains non-Dependabot commits). Use
   `@dependabot recreate` instead: it recreates the PR from scratch and the
   enhancement workflow re-runs on the new head.
+
+## Development
+
+- Guard logic lives in [`scripts/validate.sh`](scripts/validate.sh); unit tests
+  (`pnpm --filter enhance-dependabot test` or `bash scripts/test.sh`) cover all
+  guard cases against a throwaway git fixture.

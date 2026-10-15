@@ -39,43 +39,32 @@ inputs:
 
 outputs:
   changed:
-    description: Whether changes were made and pushed.
+    description:
+      Whether the enhance command produced changes (`true` or `false`).
     value: ${{ steps.changes.outputs.changed }}
   commit-sha:
-    description: The SHA of the enhancement commit pushed to the branch.
+    description:
+      The SHA of the enhancement commit (set when `changed` is `true`).
     value: ${{ steps.retry.outputs.sha || steps.commit.outputs.sha }}
 
 runs:
   using: composite
   steps:
-    # Defense-in-depth for pull_request_target based triggers: refuse to run on
-    # anything other than an in-repository dependabot branch, and refuse to run
-    # unless HEAD is the PR head (pushing a merge/base ref would corrupt the
-    # Dependabot branch).
+    # Defense-in-depth for pull_request_target based triggers: refuse to run
+    # unless triggered by Dependabot itself, on an in-repository dependabot
+    # branch, and unless HEAD is the PR head (pushing a merge/base ref would
+    # corrupt the Dependabot branch). The actor check enforces the documented
+    # consumer contract (gate the workflow on
+    # `github.actor == 'dependabot[bot]'`) even if a caller forgets it.
+    # See scripts/validate.sh (unit tested by scripts/test.sh).
     - name: Validate pull request
       shell: bash
       env:
+        PR_ACTOR: ${{ github.actor }}
         PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
         PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-      run: |
-        if [[ "$PR_HEAD_REPO" != "$GITHUB_REPOSITORY" ]]; then
-          echo "::error::Refusing to run: PR head repository '$PR_HEAD_REPO' is not '$GITHUB_REPOSITORY'." >&2
-          exit 1
-        fi
-        if [[ "$PR_HEAD_REF" != dependabot/* ]]; then
-          echo "::error::Refusing to run: PR head branch '$PR_HEAD_REF' is not a 'dependabot/*' branch." >&2
-          exit 1
-        fi
-        if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-          echo "::error::No git checkout found. Check out the PR head (github.event.pull_request.head.sha) before running this action." >&2
-          exit 1
-        fi
-        head="$(git rev-parse HEAD)"
-        if [[ "$head" != "$PR_HEAD_SHA" ]]; then
-          echo "::error::HEAD ($head) is not the PR head SHA ($PR_HEAD_SHA). Check out 'github.event.pull_request.head.sha' with 'persist-credentials: true' before running this action; otherwise the push would carry a merge commit onto the Dependabot branch." >&2
-          exit 1
-        fi
+      run: ${{ github.action_path }}/scripts/validate.sh
 
     - name: Run enhance command
       id: enhance
