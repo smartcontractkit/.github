@@ -1,0 +1,13 @@
+{
+  "name": "enhance-dependabot",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "test": "bash scripts/test.sh"
+  },
+  "keywords": [],
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "packageManager": "pnpm@10.29.3"
+}
