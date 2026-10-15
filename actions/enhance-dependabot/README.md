@@ -28,8 +28,12 @@ jobs:
     if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # A Dependabot rebase cancels the in-progress run for the old head.
+    concurrency:
+      group: enhance-dependabot-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     permissions:
-      contents: write # push the enhancement commit to the dependabot branch
+      contents: read # push-token pushes; use write if push-token is GITHUB_TOKEN
       pull-requests: write # comment on the PR
     steps:
       # Check out the Dependabot PR head, NOT the default merge/base ref.
@@ -51,17 +55,25 @@ jobs:
       # - run: pnpm install --frozen-lockfile
       # - uses: ...anything else...
 
+      # A GitHub App installation token (contents: write) makes the push trigger
+      # your usual PR checks; GITHUB_TOKEN pushes do not create workflow runs.
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.ENHANCE_DEPENDABOT_APP_ID }}
+          private-key: ${{ secrets.ENHANCE_DEPENDABOT_APP_PRIVATE_KEY }}
+
       - uses: smartcontractkit/.github/actions/enhance-dependabot@enhance-dependabot/v1
         with:
           enhance-command: go mod tidy && make generate
-          # Recommended: a GitHub App installation token so the push triggers
-          # your usual PR checks. GITHUB_TOKEN pushes do not create workflow
-          # runs. e.g. mint one first with actions/create-github-app-token.
-          push-token: ${{ secrets.GH_APP_TOKEN }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if codegen needs private packages
-          # SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }} # optional failure notifications
-          # SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+          push-token: ${{ steps.app-token.outputs.token }}
+          # Optional failure notifications:
+          # slack-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          # slack-channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+        # Credentials the enhance command needs (e.g. private packages for
+        # codegen). Keep them read-only: the command runs dependency code.
+        # env:
+        #   NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
 ```
 
 **Important:**
@@ -74,16 +86,20 @@ jobs:
 - Check out `github.event.pull_request.head.sha` with
   `persist-credentials: false`. The action refuses to run if HEAD is not the PR
   head SHA, since pushing a merge/base ref would carry a merge commit onto the
-  Dependabot branch. Keeping credentials unpersisted means no write credential
-  is on disk while the enhance command runs; the action pushes with `push-token`
-  itself.
+  Dependabot branch. It also refuses persisted checkout credentials: they would
+  put a write token on disk while the enhance command runs, and they override
+  `push-token` on push.
 - Pushes made with `GITHUB_TOKEN` do not create new workflow runs, so with the
   default `push-token` your usual PR checks will **not** re-run after
   enhancement. Pass a GitHub App installation token or PAT as `push-token` to
-  trigger them; the token is used only by the push steps and is never exposed to
-  the enhance command.
+  trigger them; the token is passed only to the push step.
+- Keep the job's `concurrency` group: a Dependabot rebase supersedes the run for
+  the old head.
 - The `enhance-command` must be idempotent: it is re-run whenever Dependabot
   rebases the PR.
+- The action commits every change and untracked file left in the working tree,
+  so make sure tool caches and build artifacts from your setup steps and the
+  enhance command are gitignored.
 
 ### Recommended repository setup
 
@@ -114,39 +130,40 @@ updates:
 
 ## Inputs
 
-| Input              | Required | Default                                                       | Description                                                                                                                                                                                        |
-| ------------------ | -------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `enhance-command`  | yes      | -                                                             | Idempotent shell command(s), run from the repository root, that produce the final post-update state.                                                                                               |
-| `commit-message`   | no       | `chore(dependabot): apply post-update generation and cleanup` | Commit message for the enhancement commit.                                                                                                                                                         |
-| `comment`          | no       | `true`                                                        | Comment on the PR when changes are pushed or a step fails. Quiet no-op otherwise.                                                                                                                  |
-| `github-token`     | no       | `github.token`                                                | GitHub token used to comment on the pull request.                                                                                                                                                  |
-| `push-token`       | no       | `github.token`                                                | Token used only by the push steps to push the enhancement commit. Pass a GitHub App token so the push triggers the repository's usual PR checks (GITHUB_TOKEN pushes do not create workflow runs). |
-| `slack-token`      | no       | `''`                                                          | Slack bot token used to notify on enhancement failures. Notifications are skipped when unset.                                                                                                      |
-| `slack-channel-id` | no       | `''`                                                          | Slack channel ID to notify on enhancement failures.                                                                                                                                                |
+| Input              | Required | Default                                                       | Description                                                                                                                                                                                               |
+| ------------------ | -------- | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `enhance-command`  | yes      | -                                                             | Idempotent shell command(s), run from the repository root, that produce the final post-update state.                                                                                                      |
+| `commit-message`   | no       | `chore(dependabot): apply post-update generation and cleanup` | Commit message for the enhancement commit.                                                                                                                                                                |
+| `comment`          | no       | `true`                                                        | Comment on the PR when changes are pushed or a step fails. Quiet no-op otherwise.                                                                                                                         |
+| `github-token`     | no       | `github.token`                                                | GitHub token used to comment on the pull request.                                                                                                                                                         |
+| `push-token`       | no       | `github.token`                                                | Token used to push the enhancement commit, passed only to the push step. Pass a GitHub App token so the push triggers the repository's usual PR checks (GITHUB_TOKEN pushes do not create workflow runs). |
+| `slack-token`      | no       | `''`                                                          | Slack bot token used to notify on enhancement failures. Notifications are skipped when unset.                                                                                                             |
+| `slack-channel-id` | no       | `''`                                                          | Slack channel ID to notify on enhancement failures.                                                                                                                                                       |
 
 ## Outputs
 
 | Output       | Description                                                       |
 | ------------ | ----------------------------------------------------------------- |
 | `changed`    | Whether the enhance command produced changes (`true` or `false`). |
-| `commit-sha` | The SHA of the enhancement commit (set when `changed` is `true`). |
+| `commit-sha` | The SHA of the enhancement commit (set when it was pushed).       |
 
 ## Behavior
 
 - Guards: only runs when triggered by `dependabot[bot]`, on in-repository
-  `dependabot/*` branches whose head SHA is checked out, otherwise it fails
-  without touching anything.
+  `dependabot/*` branches whose head SHA is checked out without persisted
+  credentials, otherwise it fails without touching anything.
 - Runs `enhance-command` in your workflow's environment (after your setup
   steps).
 - If it produces changes: commits them as `github-actions[bot]` and pushes to
-  the same Dependabot branch with `push-token`. Pushed with a GitHub App token,
-  the push triggers a `synchronize` event and your usual PR checks re-run
-  against the enhanced head; pushes made with `GITHUB_TOKEN` do not create new
-  workflow runs.
-- If the branch moved while the command was running (Dependabot rebase), replays
-  the enhancement commit on top of the new head and retries the push once. If
-  the branch already contains the same changes (concurrent run), the empty
-  replay is treated as success.
+  the same Dependabot branch with `push-token`, ignoring git config and hooks
+  the enhance command could have planted. Pushed with a GitHub App token, the
+  push triggers a `synchronize` event and your usual PR checks re-run against
+  the enhanced head; pushes made with `GITHUB_TOKEN` do not create new workflow
+  runs.
+- If the branch moved while the command was running (Dependabot rebase), the run
+  is superseded: it pushes nothing and succeeds, since the new head gets its own
+  enhancement run. Replaying output generated from the old head could land stale
+  results.
 - If it produces no changes: succeeds quietly (green check, no comment).
 - If the command or the push fails: fails the job (red check), comments on the
   PR with the run link, and optionally notifies Slack.
@@ -164,14 +181,19 @@ enhancement automatically, keeping the PR enhanced after rebases.
   `@dependabot recreate` instead: it recreates the PR from scratch and the
   enhancement workflow re-runs on the new head.
 - The enhance command runs code that a dependency update can influence
-  (generators, postinstall scripts, Make targets). It runs with no write
-  credential on disk (`persist-credentials: false`) and `push-token` is used
-  only by the push steps, but a malicious dependency version can still execute
-  arbitrary code inside your workflow. That is the same trust decision as
-  running your CI on Dependabot PRs; review dependency diffs.
+  (generators, postinstall scripts, Make targets). The action keeps credentials
+  away from it where it can: no write credential is on disk
+  (`persist-credentials: false`, enforced), `push-token` is passed only to the
+  push step, and the push ignores planted git config and hooks. This is
+  best-effort: code that runs earlier in a job can still reach later steps (e.g.
+  via `$GITHUB_ENV` or a background process), so a malicious dependency version
+  can still act with the job's credentials, including `push-token`. That is the
+  same trust decision as running your CI on Dependabot PRs; review dependency
+  diffs.
 
 ## Development
 
-- Guard logic lives in [`scripts/validate.sh`](scripts/validate.sh); unit tests
-  (`pnpm --filter enhance-dependabot test` or `bash scripts/test.sh`) cover all
-  guard cases against a throwaway git fixture.
+- Guard and push logic live in [`scripts/validate.sh`](scripts/validate.sh) and
+  [`scripts/push.sh`](scripts/push.sh); unit tests
+  (`pnpm --filter enhance-dependabot test` or `bash scripts/test.sh`) cover them
+  against throwaway git fixtures.

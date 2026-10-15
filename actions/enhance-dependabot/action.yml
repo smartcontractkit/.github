@@ -32,11 +32,12 @@ inputs:
     required: false
     default: ${{ github.token }}
     description: |
-      Token used only by the push steps to push the enhancement commit to the
-      Dependabot branch; it is never exposed to the enhance-command. Pushes made
-      with GITHUB_TOKEN do not create new workflow runs, so pass a GitHub App
-      installation token (e.g. from actions/create-github-app-token) to make
-      the push trigger the repository's usual PR checks.
+      Token used to push the enhancement commit to the Dependabot branch. It is
+      passed only to the push step, which ignores git config and hooks the
+      enhance-command could have planted. Pushes made with GITHUB_TOKEN do not
+      create new workflow runs, so pass a GitHub App installation token (e.g.
+      from actions/create-github-app-token) to make the push trigger the
+      repository's usual PR checks.
   slack-token:
     required: false
     default: ""
@@ -54,9 +55,10 @@ outputs:
       Whether the enhance command produced changes (`true` or `false`).
     value: ${{ steps.changes.outputs.changed }}
   commit-sha:
-    description:
-      The SHA of the enhancement commit (set when `changed` is `true`).
-    value: ${{ steps.retry.outputs.sha || steps.commit.outputs.sha }}
+    description: The SHA of the enhancement commit (set when it was pushed).
+    value:
+      ${{ steps.push.outputs.result == 'pushed' && steps.commit.outputs.sha ||
+      '' }}
 
 runs:
   using: composite
@@ -155,58 +157,25 @@ runs:
         echo "sha=$(git rev-parse HEAD)" | tee -a "$GITHUB_OUTPUT"
         git diff --stat HEAD~1 HEAD | tee "${RUNNER_TEMP}/commit-stat.txt"
 
+    # Pushes with push-token, ignoring git config and hooks planted by the
+    # enhance command. If Dependabot (or someone) moved the branch while the
+    # command was running, the run is superseded: it pushes nothing and exits 0
+    # (result=superseded), since the newer head gets its own enhancement run.
+    # See scripts/push.sh (unit tested by scripts/test.sh).
     - name: Push commit
       id: push
       if: ${{ steps.commit.outcome == 'success' }}
       shell: bash
       env:
         PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         PUSH_TOKEN: ${{ inputs.push-token }}
-      run:
-        git push
-        "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-        "HEAD:${PR_HEAD_REF}"
-      continue-on-error: true
-
-    # Dependabot (or someone) may have updated the branch while the enhance
-    # command was running, which makes the push a non-fast-forward. Replay the
-    # enhancement commit on top of the new head and push again.
-    - name: Retry push onto updated branch
-      id: retry
-      if: ${{ steps.push.outcome == 'failure' }}
-      shell: bash
-      env:
-        PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
-        PUSH_TOKEN: ${{ inputs.push-token }}
-      run: |
-        remote="https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-        commit="$(git rev-parse HEAD)"
-        git fetch --depth=1 "$remote" "$PR_HEAD_REF"
-        if [[ "$(git rev-parse FETCH_HEAD)" == "$commit" ]]; then
-          echo "sha=$commit" | tee -a "$GITHUB_OUTPUT"
-          exit 0
-        fi
-        git checkout --detach FETCH_HEAD
-        if ! git cherry-pick "$commit"; then
-          # Another run may have already pushed the same generated changes, in
-          # which case the replay is an empty cherry-pick. Treat only an empty,
-          # conflict-free pick as success (the branch already has the changes);
-          # any other failure is real.
-          if git rev-parse -q --verify CHERRY_PICK_HEAD >/dev/null &&
-             [[ -z "$(git ls-files -u)" ]] && git diff --cached --quiet; then
-            git cherry-pick --skip
-            echo "sha=$(git rev-parse HEAD)" | tee -a "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          exit 1
-        fi
-        git push "$remote" "HEAD:${PR_HEAD_REF}"
-        echo "sha=$(git rev-parse HEAD)" | tee -a "$GITHUB_OUTPUT"
-        git diff --stat HEAD~1 HEAD | tee "${RUNNER_TEMP}/commit-stat.txt"
+        PUSH_SCRIPT: ${{ github.action_path }}/scripts/push.sh
+      run: "$PUSH_SCRIPT"
       continue-on-error: true
 
     - name: Comment on push failure
-      if: ${{ inputs.comment == 'true' && steps.retry.outcome == 'failure' }}
+      if: ${{ inputs.comment == 'true' && steps.push.outcome == 'failure' }}
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github-token }}
@@ -220,7 +189,7 @@ runs:
         {
           echo "### :warning: enhance-dependabot could not push"
           echo
-          echo "The enhancement commit \`${COMMIT_SHA}\` was created but could not be pushed to \`${PR_HEAD_REF}\`. The branch most likely moved (Dependabot rebase) and the replay onto the new head failed."
+          echo "The enhancement commit \`${COMMIT_SHA}\` was created but could not be pushed to \`${PR_HEAD_REF}\`."
           echo
           echo "- [Failed run](${RUN_URL})"
           echo
@@ -230,7 +199,7 @@ runs:
     - name: Notify push failure on Slack
       if:
         ${{ inputs.slack-token != '' && inputs.slack-channel-id != '' &&
-        steps.retry.outcome == 'failure' }}
+        steps.push.outcome == 'failure' }}
       uses: slackapi/slack-github-action@af78098f536edbc4de71162a307590698245be95 # v3.0.1
       with:
         method: chat.postMessage
@@ -242,20 +211,20 @@ runs:
             PR: <${{ github.event.pull_request.html_url }}|#${{ github.event.pull_request.number }}>
 
     - name: Exit on push failure
-      if: ${{ steps.retry.outcome == 'failure' }}
+      if: ${{ steps.push.outcome == 'failure' }}
       shell: bash
       run: exit 1
 
     - name: Comment on success
       if:
-        ${{ inputs.comment == 'true' && (steps.push.outcome == 'success' ||
-        steps.retry.outcome == 'success') }}
+        ${{ inputs.comment == 'true' && steps.push.outputs.result == 'pushed' }}
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github-token }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
-        COMMIT_SHA: ${{ steps.retry.outputs.sha || steps.commit.outputs.sha }}
+        COMMIT_SHA: ${{ steps.commit.outputs.sha }}
         REPO: ${{ github.repository }}
+        TRIGGERS_CHECKS: ${{ inputs.push-token != github.token }}
         RUN_URL:
           ${{ format('https://github.com/{0}/actions/runs/{1}',
           github.repository, github.run_id) }}
@@ -263,7 +232,11 @@ runs:
         {
           echo "### :robot: enhance-dependabot"
           echo
-          echo "Post-update generation/cleanup was applied and pushed to this branch. If pushed with a GitHub App token (\`push-token\`), the repository's usual checks re-run against the updated head; pushes made with GITHUB_TOKEN do not trigger workflow runs."
+          if [[ "$TRIGGERS_CHECKS" == 'true' ]]; then
+            echo "Post-update generation/cleanup was applied and pushed to this branch. The repository's usual checks re-run against the updated head."
+          else
+            echo "Post-update generation/cleanup was applied and pushed to this branch with \`GITHUB_TOKEN\`, which does not trigger workflow runs. Close and reopen this PR to run checks, or configure a GitHub App token as \`push-token\`."
+          fi
           echo
           echo "- Commit: [\`${COMMIT_SHA:0:12}\`](https://github.com/${REPO}/commit/${COMMIT_SHA})"
           echo "- [Run](${RUN_URL})"
@@ -285,9 +258,9 @@ runs:
       env:
         ENHANCE_OUTCOME: ${{ steps.enhance.outcome }}
         PUSH_OUTCOME: ${{ steps.push.outcome }}
-        RETRY_OUTCOME: ${{ steps.retry.outcome }}
+        PUSH_RESULT: ${{ steps.push.outputs.result }}
         CHANGED: ${{ steps.changes.outputs.changed }}
-        COMMIT_SHA: ${{ steps.retry.outputs.sha || steps.commit.outputs.sha }}
+        COMMIT_SHA: ${{ steps.commit.outputs.sha }}
         REPO: ${{ github.repository }}
         PR_URL: ${{ github.event.pull_request.html_url }}
       run: |
@@ -296,21 +269,17 @@ runs:
           echo
           echo "- PR: ${PR_URL}"
           echo "- Enhance command outcome: ${ENHANCE_OUTCOME:-skipped}"
+          echo "- Repository changes detected: ${CHANGED:-unknown}"
           if [[ "$CHANGED" == 'true' ]]; then
-            echo "- Repository changes detected: true"
-            echo "- Enhancement commit: [\`${COMMIT_SHA:0:12}\`](https://github.com/${REPO}/commit/${COMMIT_SHA})"
-            echo "- Push outcome: ${PUSH_OUTCOME:-skipped}"
-            if [[ "$RETRY_OUTCOME" == 'success' || "$RETRY_OUTCOME" == 'failure' ]]; then
-              echo "- Push retry outcome: ${RETRY_OUTCOME}"
-            fi
-          else
-            echo "- Repository changes detected: ${CHANGED:-unknown}"
+            echo "- Push outcome: ${PUSH_RESULT:-${PUSH_OUTCOME:-skipped}}"
           fi
           echo
-          if [[ "$ENHANCE_OUTCOME" == 'failure' || "$RETRY_OUTCOME" == 'failure' ]]; then
+          if [[ "$ENHANCE_OUTCOME" == 'failure' || "$PUSH_OUTCOME" == 'failure' ]]; then
             echo "The PR was NOT enhanced. See the PR comment for details."
-          elif [[ "$CHANGED" == 'true' && ( "$PUSH_OUTCOME" == 'success' || "$RETRY_OUTCOME" == 'success' ) ]]; then
-            echo "The PR was enhanced and the commit was pushed."
+          elif [[ "$PUSH_RESULT" == 'pushed' ]]; then
+            echo "The PR was enhanced: [\`${COMMIT_SHA:0:12}\`](https://github.com/${REPO}/commit/${COMMIT_SHA}) was pushed."
+          elif [[ "$PUSH_RESULT" == 'superseded' ]]; then
+            echo "Nothing was pushed: the branch moved while this run was in progress, and the newer head gets its own enhancement run."
           elif [[ "$CHANGED" == 'false' ]]; then
             echo "Nothing to do: the enhance command produced no changes."
           fi

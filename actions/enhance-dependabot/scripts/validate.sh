@@ -3,7 +3,9 @@
 #
 # Fails unless the workflow was triggered by Dependabot itself, the PR head is
 # an in-repository 'dependabot/*' branch, and that branch's head SHA is checked
-# out as HEAD (pushing a merge/base ref would corrupt the Dependabot branch).
+# out as HEAD (pushing a merge/base ref would corrupt the Dependabot branch)
+# with no persisted checkout credentials (they would put a write token on disk
+# while the enhance command runs, and override push-token on push).
 # The actor check enforces the documented consumer contract (gate the workflow
 # on `github.actor == 'dependabot[bot]'`) even if a caller forgets it.
 #
@@ -36,7 +38,10 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 fi
 head="$(git rev-parse HEAD)"
 if [[ "$head" != "${PR_HEAD_SHA:-}" ]]; then
-  fail "HEAD ($head) is not the PR head SHA (${PR_HEAD_SHA:-}). Check out 'github.event.pull_request.head.sha' with 'persist-credentials: true' before running this action; otherwise the push would carry a merge commit onto the Dependabot branch."
+  fail "HEAD ($head) is not the PR head SHA (${PR_HEAD_SHA:-}). Check out 'github.event.pull_request.head.sha' before running this action; otherwise the push would carry a merge commit onto the Dependabot branch."
+fi
+if git config --get-regexp '^http\..*\.extraheader$' >/dev/null 2>&1; then
+  fail "Persisted checkout credentials found (http.*.extraheader). Check out with 'persist-credentials: false': persisted credentials put a write token on disk while the enhance command runs, and override push-token on push."
 fi
 
 echo "Validated: dependabot PR head '${PR_HEAD_REF}' (${PR_HEAD_SHA:0:12}) checked out as HEAD."
