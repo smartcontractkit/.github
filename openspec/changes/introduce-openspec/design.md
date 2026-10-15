@@ -47,10 +47,6 @@ records the `agents` tool so `openspec update` refreshes only that location.
 
 - [Skill files drift from the installed OpenSpec version] → `openspec update`
   refreshes them; the marker file keeps the update scoped to `.agents/skills/`.
-- [lefthook's prettier pre-commit hook currently fails repo-wide (pnpm refuses
-  to run: `pnpm.overrides` in `package.json` is no longer read by the installed
-  pnpm)] → commit this markdown-only scaffolding with `--no-verify`; fix the
-  pnpm config in a separate change.
 - [PoC not adopted by the team] → scaffolding is additive only; a revert removes
   it cleanly.
 

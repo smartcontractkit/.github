@@ -2,21 +2,21 @@
 
 ## 1. OpenSpec root
 
-- [ ] 1.1 Commit the staged `openspec/` root (`config.yaml` with spec-driven
+- [x] 1.1 Commit the staged `openspec/` root (`config.yaml` with spec-driven
       schema, `specs/`, `changes/` with `archive/`); verify with
       `openspec list --json` reporting the repo root
-- [ ] 1.2 Verify the root passes `openspec validate` (exit 0) after the commit
+- [x] 1.2 Verify the root passes `openspec validate` (exit 0) after the commit
       lands
 
 ## 2. Shared workflow skills
 
-- [ ] 2.1 Commit the staged `.agents/skills/openspec-*/` skills; verify all six
+- [x] 2.1 Commit the staged `.agents/skills/openspec-*/` skills; verify all six
       `SKILL.md` files exist and no `.opencode/` duplicate copy remains
       (`test ! -d .opencode`)
 
 ## 3. This change's artifacts
 
-- [ ] 3.1 Commit `openspec/changes/introduce-openspec/` (proposal, delta spec,
+- [x] 3.1 Commit `openspec/changes/introduce-openspec/` (proposal, delta spec,
       design, tasks) together with the scaffolding; verify the folder appears in
       the PR diff
 
