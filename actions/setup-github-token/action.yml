@@ -63,7 +63,7 @@ runs:
         # Rollout configuration. Repositories not named in either list are
         # bucketed by the hash of their name, and use v2 when their bucket is
         # below the percentage.
-        ROLLOUT_PERCENTAGE: "0"
+        ROLLOUT_PERCENTAGE: "20"
         FORCE_V2_REPOSITORIES: |
           smartcontractkit/.github
         FORCE_V1_REPOSITORIES: ""
