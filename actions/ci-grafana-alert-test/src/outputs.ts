@@ -13,6 +13,8 @@ export function extractCheckOutputs(
   const outcomes = (result.Verdicts ?? []).map((verdict) => ({
     alert: verdict.Alert,
     outcome: verdict.Outcome,
+    // Omitted by JSON.stringify when the CLI predates source_kind.
+    source: verdict.source_kind,
   }));
 
   return {

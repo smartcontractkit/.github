@@ -6,8 +6,8 @@ import type {
 } from "./result";
 
 export const SUMMARY_HEADER =
-  "| Status | Alert | Verdict | Grafana state | Grafana health | Last error | Broken for | Details |";
-export const SUMMARY_SEPARATOR = "|---|---|---|---|---|---|---|---|";
+  "| Status | Alert | Source | Verdict | Grafana state | Grafana health | Last error | Broken for | Details |";
+export const SUMMARY_SEPARATOR = "|---|---|---|---|---|---|---|---|---|";
 
 const STATUS_FAIL = "❌";
 const STATUS_PASS = "✅";
@@ -54,19 +54,34 @@ function formatBrokenFor(badFor: number): string {
   return `${Math.ceil(badFor / 1_000_000_000)}s`;
 }
 
-function findViolation(
-  violations: Violation[],
-  ruleUid: string,
-): Violation | undefined {
-  return violations.find((violation) => violation.RuleUID === ruleUid);
+// The identity across both source kinds: datasource-managed rules carry no
+// uid, so the CLI's rule_key is the only stable match. Older results without
+// rule_key still match by uid.
+function ruleKey(entity: { rule_key?: string; RuleUID?: string }): string {
+  return entity.rule_key || entity.RuleUID || "";
 }
 
-function formatNote(
+function findViolation(
+  violations: Violation[],
   verdict: Verdict,
-  violation: Violation | undefined,
-): string {
-  // Matches jq `(($r.Note // $viol.Note) // "-")` — empty strings are kept.
-  return verdict.Note ?? violation?.Note ?? "-";
+): Violation | undefined {
+  return violations.find(
+    (violation) => ruleKey(violation) === ruleKey(verdict),
+  );
+}
+
+// The CLI prefixes rule-specific coverage notes with `rule "<title>": `; the
+// Alert column already names the rule, so the summary strips it the way the
+// CLI's own table does.
+function noteCell(alert: string | undefined, note: string | undefined): string {
+  if (note === undefined) {
+    return "-";
+  }
+  if (!alert) {
+    return note;
+  }
+  const prefix = `rule "${alert}": `;
+  return note.startsWith(prefix) ? note.slice(prefix.length) : note;
 }
 
 // A row's status: a violation always fails; paused/skipped is neutral because
@@ -114,19 +129,20 @@ function buildUnmatchedViolationRows(
   return violations
     .filter(
       (violation) =>
-        !verdicts.some((verdict) => verdict.RuleUID === violation.RuleUID),
+        !verdicts.some((verdict) => ruleKey(verdict) === ruleKey(violation)),
     )
     .map((violation) => ({
       status: STATUS_FAIL,
       line: row([
         STATUS_FAIL,
         violation.Alert || "-",
+        "-",
         violation.Outcome ?? "-",
         violation.State ?? "-",
         violation.Health ?? "-",
         truncateLastError(violation.LastError),
         "-",
-        violation.Note ?? "-",
+        noteCell(violation.Alert, violation.Note),
       ]),
     }));
 }
@@ -136,19 +152,21 @@ export function buildSummaryRows(result: GrafanaAlertCheckResult): string {
   const violations = result.Violations ?? [];
 
   const rows: SummaryRow[] = verdicts.map((verdict) => {
-    const violation = findViolation(violations, verdict.RuleUID);
+    const violation = findViolation(violations, verdict);
     const status = rowStatus(verdict, violation);
     return {
       status,
       line: row([
         status,
         verdict.Alert,
+        verdict.source_kind ?? "-",
         verdict.Outcome,
         violation?.State ?? "-",
         violation?.Health ?? "-",
         truncateLastError(violation?.LastError),
         formatBrokenFor(verdict.BadFor),
-        formatNote(verdict, violation),
+        // Matches jq `(($r.Note // $viol.Note) // "-")` — empty strings kept.
+        noteCell(verdict.Alert, verdict.Note ?? violation?.Note),
       ]),
     };
   });
@@ -184,7 +202,7 @@ function sortLabels(labels: Record<string, string>): Record<string, string> {
 
 export function buildInstancesSection(result: GrafanaAlertCheckResult): string {
   const alertOf = new Map(
-    (result.Verdicts ?? []).map((verdict) => [verdict.RuleUID, verdict.Alert]),
+    (result.Verdicts ?? []).map((verdict) => [ruleKey(verdict), verdict.Alert]),
   );
   const grouped = new Map<string, Violation[]>();
 
@@ -193,8 +211,7 @@ export function buildInstancesSection(result: GrafanaAlertCheckResult): string {
     if (Object.keys(labels).length === 0) {
       continue;
     }
-    const alert =
-      violation.Alert || alertOf.get(violation.RuleUID ?? "") || "-";
+    const alert = violation.Alert || alertOf.get(ruleKey(violation)) || "-";
     grouped.set(alert, [...(grouped.get(alert) ?? []), violation]);
   }
 

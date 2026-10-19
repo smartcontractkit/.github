@@ -60,18 +60,24 @@ jobs:
           gh api --paginate -H "Accept: application/vnd.github+json" --method GET \
             "/repos/${GITHUB_REPOSITORY}/dependabot/alerts?state=open&ecosystem=Go&severity=${SEVERITY}" \
             --jq '.[] | select(.security_vulnerability.first_patched_version != null) | .dependency.manifest_path |= rtrimstr("go.mod") | "./\(.dependency.manifest_path) \(.security_vulnerability.package.name) \(.security_vulnerability.first_patched_version.identifier)"' | \
-            dependabot && gomods tidy
+            dependabot
+          gomods tidy
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "changed=true" | tee -a "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" | tee -a "$GITHUB_OUTPUT"
+          fi
         continue-on-error: true
 
       - name: Install Nix
-        if: ${{ steps.bump.outcome == 'success' && contains(inputs.post-bump-command, 'nix') }}
+        if: ${{ steps.bump.outcome == 'success' && steps.bump.outputs.changed == 'true' && contains(inputs.post-bump-command, 'nix') }}
         uses: cachix/install-nix-action@02a151ada4993995686f9ed4f1be7cfbb229e56f # v31
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Post-bump Command
         id: post-bump
-        if: ${{ steps.bump.outcome == 'success' && inputs.post-bump-command != '' }}
+        if: ${{ steps.bump.outcome == 'success' && steps.bump.outputs.changed == 'true' && inputs.post-bump-command != '' }}
         env:
           POST_BUMP_COMMAND: ${{ inputs.post-bump-command }}
         run: eval "${POST_BUMP_COMMAND}"

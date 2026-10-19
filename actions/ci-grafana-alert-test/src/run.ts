@@ -14,7 +14,7 @@ import { parseResult, type GrafanaAlertCheckResult } from "./result";
 import { buildSummaryBody } from "./summary";
 import { resolveCheckWindow, resolveLiveWindow } from "./window";
 
-const RELEASE_VERSION = "v0.1.8";
+const RELEASE_VERSION = "v0.1.10";
 const BIN_NAME = "grafana-alertcheck";
 const SUMMARY_TITLE = "### Grafana alert gate";
 
@@ -153,8 +153,6 @@ async function runRecord(binPath: string): Promise<void> {
   if (folder) args.push("--folder", folder);
   const concurrency = core.getInput("concurrency");
   if (concurrency) args.push("--concurrency", concurrency);
-  const pollInterval = core.getInput("poll-interval");
-  if (pollInterval) args.push("--poll-interval", pollInterval);
   const until = core.getInput("until");
   if (until) args.push("--until", until);
 

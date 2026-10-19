@@ -1,5 +1,16 @@
 # go-mod-validator
 
+## 1.7.2
+
+### Patch Changes
+
+- [#1683](https://github.com/smartcontractkit/.github/pull/1683)
+  [`a455fc7`](https://github.com/smartcontractkit/.github/commit/a455fc7a1ced7aad82b994789393831444c895b4)
+  Thanks [@kalverra](https://github.com/kalverra)! - fix: bump simple-git to
+  ^4.0.2 to resolve GHSA-x6jw-m9v5-85vh (CVE-2026-102828) and
+  GHSA-v5rq-49vh-5v5c (CVE-2026-102829). simple-git is a devDependency used only
+  by local fixture tooling; no runtime behavior changes.
+
 ## 1.7.1
 
 ### Patch Changes

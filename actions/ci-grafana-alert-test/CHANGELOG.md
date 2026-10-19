@@ -1,5 +1,21 @@
 # ci-grafana-alert-test
 
+## 1.2.0
+
+### Minor Changes
+
+- [#1681](https://github.com/smartcontractkit/.github/pull/1681)
+  [`33195c7`](https://github.com/smartcontractkit/.github/commit/33195c7c5e6b86a3cc8037071559cf4baacfd071)
+  Thanks [@Tofel](https://github.com/Tofel)! - feat: support datasource-managed
+  (Prometheus-flavored) alert rules from grafana-alertcheck v0.1.10, pin the
+  action to that release, show each rule's `source` (`grafana` or `datasource`)
+  in the summary and in the `outcomes` output, and strip the CLI's redundant
+  `rule "<title>": ` prefix from summary details.
+
+  BREAKING: remove the `poll-interval` input — the CLI no longer accepts
+  `watch --poll-interval` (v0.1.9), because every rule now polls at half its own
+  evaluation interval.
+
 ## 1.1.0
 
 ### Minor Changes

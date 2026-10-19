@@ -24,13 +24,15 @@ inputs:
   grafana-token:
     description:
       "Grafana API token (secret). Required for record, check, and live; not
-      used by stop."
+      used by stop. Needs `datasources:read` and datasource query permission:
+      datasource-managed rules are discovered even for Grafana-only sets."
     required: false
   alerts:
     description:
       "One alert rule name per line. Required with mode: record and mode: live
       unless `include-labels` is given. Refused with mode: check — the recorded
-      log already carries its own alert set."
+      log already carries its own alert set. Datasource-managed rules accept
+      `Group/Title`, `DatasourceName/Group/Title`, or `key:<key>` names."
     required: false
   include-labels:
     description:
@@ -55,7 +57,7 @@ inputs:
   states:
     description:
       "Comma-separated bad states to classify against. check and live. Default:
-      firing"
+      firing,recovering"
     required: false
   from:
     description:
@@ -109,11 +111,6 @@ inputs:
       and live."
     required: false
     default: "true"
-  poll-interval:
-    description:
-      "Override every watched rule's poll cadence (Go duration, e.g. 30s).
-      Default: automatic, per rule. mode: record only."
-    required: false
   until:
     description:
       "RFC3339 hard stop for the recorder. Default: run until check or stop
@@ -124,8 +121,8 @@ inputs:
     required: false
   folder:
     description:
-      "Default folder to scope an unqualified alert name to. Cannot be combined
-      with label selection."
+      "Default folder to scope an unqualified alert name to. Grafana-managed
+      rules only. Cannot be combined with label selection."
     required: false
   fail-on-violation:
     description:
@@ -164,7 +161,8 @@ outputs:
     description: "JSON array of violations. check and live."
   outcomes:
     description:
-      "JSON array of {alert, outcome} per resolved rule. check and live."
+      "JSON array of {alert, outcome, source} per resolved rule, where source is
+      'grafana' or 'datasource'. check and live."
 
 runs:
   using: node24

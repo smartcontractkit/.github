@@ -1,0 +1,98 @@
+name: dispatch-release-fanout
+description:
+  "Tell a release fan-out hub which images a build published, authenticated by
+  this job's GitHub OIDC token"
+
+# The hub, the OIDC audience it expects and the GATI profile that reaches it are
+# all inputs so this public repository commits no internal names. Pass them from
+# secrets. The calling job needs `permissions.id-token: write`.
+
+inputs:
+  hub-repo:
+    description:
+      "owner/name of the hub repository to dispatch. Supply from a secret."
+    required: true
+  audience:
+    description:
+      "OIDC audience the hub verifies the id-token against. Supply from a
+      secret."
+    required: true
+  gati-profile:
+    description:
+      "GATI v2 token profile granting actions:write on the hub repository.
+      Supply from a secret."
+    required: true
+  images:
+    description: |
+      Multiline `stream=tag` pairs, one per image this build published:
+
+        core=2.65.1-rc.0
+        ccip=2.65.1-ccip-rc.0
+
+      `stream` must be declared by the producer in the hub. Entries with an
+      empty tag are dropped, so a caller can pass an image whose build was
+      skipped without special-casing it.
+    required: true
+  producer:
+    description:
+      "Producer key the hub routes on. The hub requires it to equal the
+      repository in the OIDC token, so the default is almost always right."
+    required: false
+    default: ${{ github.repository }}
+  hub-workflow:
+    description: "Workflow file in the hub to dispatch."
+    required: false
+    default: "fanout.yaml"
+  hub-ref:
+    description: "Branch in the hub to run the workflow from."
+    required: false
+    default: "main"
+  correlation-id:
+    description:
+      "Opaque id traversing along every hop of the fan-out. Defaults to this
+      run."
+    required: false
+  source-run-url:
+    description:
+      "URL of this run, recorded by every downstream hop. Defaults to this run."
+    required: false
+
+outputs:
+  dispatched:
+    description: "`true` if the hub was dispatched, `false` if no images were."
+    value: ${{ steps.dispatch.outputs.dispatched }}
+  images:
+    description: "JSON array of `{stream, tag}` sent to the hub."
+    value: ${{ steps.dispatch.outputs.images }}
+
+runs:
+  using: composite
+  steps:
+    - name: Setup GitHub Token
+      id: setup-github-token
+      uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
+      with:
+        profile: ${{ inputs.gati-profile }}
+
+    - name: Dispatch fan-out
+      id: dispatch
+      uses: actions/github-script@v9
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        HUB_REPO: ${{ inputs.hub-repo }}
+        AUDIENCE: ${{ inputs.audience }}
+        HUB_WORKFLOW: ${{ inputs.hub-workflow }}
+        HUB_REF: ${{ inputs.hub-ref }}
+        PRODUCER: ${{ inputs.producer }}
+        IMAGES: ${{ inputs.images }}
+        CORRELATION_ID: ${{ inputs.correlation-id }}
+        SOURCE_RUN_URL: ${{ inputs.source-run-url }}
+      with:
+        github-token: ${{ steps.setup-github-token.outputs.access-token }}
+        script: |
+          const { run } = require(`${process.env.ACTION_PATH}/scripts/dispatch.js`);
+          try {
+            await run({ github, core });
+          } catch (err) {
+            core.setFailed(err.message);
+          }
