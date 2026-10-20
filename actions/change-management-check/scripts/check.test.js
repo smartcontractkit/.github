@@ -295,6 +295,14 @@ test("null body fails all sections", () => {
   assert.equal(missingSections(null, SPECS, []).length, 3);
 });
 
+test("an unterminated HTML comment drops the rest of the body", () => {
+  const body = `## Testing evidence
+
+<!-- ran in stage: PR #1
+`;
+  assert.equal(missingSections(body, SPECS, []).length, 3);
+});
+
 test("classifyFiles: docs-only, dev-only, mixed, empty", () => {
   const docs = [globToRegExp("**/*.md")];
   const dev = [globToRegExp("projects/ingest-hub-preview/**")];
@@ -323,12 +331,17 @@ function setEnv(env) {
 }
 
 function fakeCore() {
-  const calls = { failed: [], info: [], summary: [] };
+  const calls = { failed: [], info: [], summary: [], writes: 0 };
   return {
     calls,
     info: (msg) => calls.info.push(msg),
     setFailed: (msg) => calls.failed.push(msg),
-    summary: { addRaw: (msg) => calls.summary.push(msg) },
+    summary: {
+      addRaw: (msg) => calls.summary.push(msg),
+      write: async () => {
+        calls.writes += 1;
+      },
+    },
   };
 }
 
@@ -375,6 +388,7 @@ test("run: empty template fails and names every section", async () => {
     /Infrastructure\+Change\+Management\+Standard$/,
   );
   assert.match(core.calls.summary[0], /- Testing evidence: empty/);
+  assert.equal(core.calls.writes, 1);
 });
 
 test("run: filled body passes", async () => {
@@ -397,7 +411,10 @@ test("run: filled body passes", async () => {
 });
 
 test("run: renovate branch is exempt without an API call", async () => {
-  setEnv({ SECTIONS: "Testing evidence: testing evidence" });
+  setEnv({
+    SECTIONS: "Testing evidence: testing evidence",
+    HEAD_PREFIXES: "renovate/",
+  });
   const core = fakeCore();
   const github = {
     rest: {
@@ -421,7 +438,10 @@ test("run: renovate branch is exempt without an API call", async () => {
 });
 
 test("run: docs-only PR is exempt", async () => {
-  setEnv({ SECTIONS: "Testing evidence: testing evidence" });
+  setEnv({
+    SECTIONS: "Testing evidence: testing evidence",
+    DOCS_PATHS: "**/*.md",
+  });
   const core = fakeCore();
   await check({
     context: fakeContext({ body: "" }),
@@ -445,6 +465,31 @@ test("run: dev-only PR is exempt when dev-paths are set", async () => {
   });
   assert.equal(core.calls.failed.length, 0);
   assert.match(core.calls.info[0], /^Exempt \(dev-only\)/);
+});
+
+test("run: empty head-prefixes disables the prefix exemption", async () => {
+  setEnv({
+    SECTIONS: "Testing evidence: testing evidence",
+    HEAD_PREFIXES: "",
+  });
+  const core = fakeCore();
+  await check({
+    context: fakeContext({ ref: "renovate/lodash-4.x", body: "" }),
+    core,
+    github: fakeGithub(PROD_FILES),
+  });
+  assert.equal(core.calls.failed.length, 1);
+});
+
+test("run: empty docs-paths disables the docs exemption", async () => {
+  setEnv({ SECTIONS: "Testing evidence: testing evidence", DOCS_PATHS: "" });
+  const core = fakeCore();
+  await check({
+    context: fakeContext({ body: "" }),
+    core,
+    github: fakeGithub(["docs/readme.md"]),
+  });
+  assert.equal(core.calls.failed.length, 1);
 });
 
 test("run: non-pull-request payload is skipped", async () => {

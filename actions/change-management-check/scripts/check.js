@@ -17,7 +17,6 @@ const DEFAULT_STANDARD_URL =
 
 const HEADING_RE = /^ {0,3}#{1,6}\s+(.*?)\s*#*\s*$/;
 const FENCE_RE = /^\s{0,3}(```|~~~)/;
-const COMMENT_RE = /<!--[\s\S]*?-->/g;
 
 function splitLines(value) {
   return (value || "")
@@ -90,9 +89,24 @@ function splitSections(body) {
   return sections;
 }
 
+// Removes HTML comments, including multiline ones. An unterminated comment
+// drops the rest of the text, matching how GitHub renders the body.
+function stripComments(text) {
+  let out = "";
+  let i = 0;
+  for (;;) {
+    const start = text.indexOf("<!--", i);
+    if (start === -1) return out + text.slice(i);
+    out += text.slice(i, start);
+    const end = text.indexOf("-->", start + 4);
+    if (end === -1) return out;
+    i = end + 3;
+  }
+}
+
 // Specs whose section body is empty after comment and strip-line removal.
 function missingSections(body, specs, stripLines) {
-  const sections = splitSections(String(body || "").replace(COMMENT_RE, ""));
+  const sections = splitSections(stripComments(String(body || "")));
   const strip = new Set((stripLines || []).map((line) => line.trim()));
   return specs.filter((spec) => {
     const content = (sections.get(spec.alias) || [])
@@ -169,11 +183,11 @@ module.exports = async ({ context, core, github }) => {
 
   const specs = parseSectionSpec(process.env.SECTIONS);
   const stripLines = splitLines(process.env.STRIP_LINES);
-  const docsPaths = splitLines(process.env.DOCS_PATHS || "**/*.md").map(
-    globToRegExp,
-  );
+  // action.yml supplies the defaults. An explicit empty input disables the
+  // exemption.
+  const docsPaths = splitLines(process.env.DOCS_PATHS).map(globToRegExp);
   const devPaths = splitLines(process.env.DEV_PATHS).map(globToRegExp);
-  const headPrefixes = (process.env.HEAD_PREFIXES || "renovate/")
+  const headPrefixes = (process.env.HEAD_PREFIXES || "")
     .split(",")
     .map((prefix) => prefix.trim())
     .filter(Boolean);
@@ -195,6 +209,7 @@ module.exports = async ({ context, core, github }) => {
 
   const missing = missingSections(pr.body, specs, stripLines);
   core.summary.addRaw(summarize(specs, missing));
+  await core.summary.write();
 
   if (missing.length > 0) {
     core.setFailed(
