@@ -166,6 +166,13 @@ test("glob: * does not cross a slash", () => {
   assert.ok(!re.test("clusters/main.prod.yaml"));
 });
 
+test("glob: ? matches one character that is not a slash", () => {
+  const re = globToRegExp("clusters/?.yaml");
+  assert.ok(re.test("clusters/a.yaml"));
+  assert.ok(!re.test("clusters/ab.yaml"));
+  assert.ok(!re.test("clusters/a/b.yaml"));
+});
+
 test("spec: parses display and alias", () => {
   assert.deepEqual(parseSectionSpec("Testing evidence: testing evidence"), [
     { display: "Testing evidence", alias: "testing evidence" },

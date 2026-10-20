@@ -25,32 +25,33 @@ function splitLines(value) {
     .filter(Boolean);
 }
 
-// Converts a glob to an anchored RegExp. `**` crosses `/`, `*` does not.
+// Glob tokens, in match order. `**` crosses `/`, `*` does not.
+const GLOB_TOKENS = [
+  { glob: "**/", regexp: "(?:.*/)?" },
+  { glob: "**", regexp: ".*" },
+  { glob: "*", regexp: "[^/]*" },
+  { glob: "?", regexp: "[^/]" },
+];
+
+function escapeRegexpChar(char) {
+  return "\\^$.|+()[]{}".includes(char) ? `\\${char}` : char;
+}
+
+// Converts a glob to an anchored RegExp.
 function globToRegExp(glob) {
-  let out = "";
-  for (let i = 0; i < glob.length; i++) {
-    const c = glob[i];
-    if (c === "*") {
-      if (glob[i + 1] === "*") {
-        if (glob[i + 2] === "/") {
-          out += "(?:.*/)?";
-          i += 2;
-        } else {
-          out += ".*";
-          i += 1;
-        }
-      } else {
-        out += "[^/]*";
-      }
-    } else if (c === "?") {
-      out += "[^/]";
-    } else if ("\\^$.|+()[]{}".includes(c)) {
-      out += `\\${c}`;
+  let pattern = "";
+  let i = 0;
+  while (i < glob.length) {
+    const token = GLOB_TOKENS.find((t) => glob.startsWith(t.glob, i));
+    if (token) {
+      pattern += token.regexp;
+      i += token.glob.length;
     } else {
-      out += c;
+      pattern += escapeRegexpChar(glob[i]);
+      i += 1;
     }
   }
-  return new RegExp(`^${out}$`);
+  return new RegExp(`^${pattern}$`);
 }
 
 function parseSectionSpec(sections) {
