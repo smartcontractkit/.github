@@ -195,6 +195,69 @@ test("sections: fenced code is not scanned for headings", () => {
   assert.ok(!sections.has("not a heading"));
 });
 
+test("sections: subheadings stay in the parent section", () => {
+  const body = `## Testing evidence
+
+### Dev
+
+ran in dev: PR #1
+
+### Stage
+
+ran in stage: PR #2
+
+## Rollback plan
+
+Revert this PR.
+`;
+  assert.deepEqual(names(missingSections(body, SPECS, [])), [
+    "Success / failure criteria",
+  ]);
+});
+
+test("sections: a peer heading ends the section", () => {
+  const body = `## Testing evidence
+
+## Checklist
+
+- [ ] done
+`;
+  assert.deepEqual(names(missingSections(body, SPECS, [])), [
+    "Testing evidence",
+    "Success / failure criteria",
+    "Rollback plan",
+  ]);
+});
+
+test("sections: an alias starts its section at any level", () => {
+  const body = `# Testing Evidence
+
+ran in stage: PR #1
+
+### Rollback plan
+
+Revert this PR.
+`;
+  assert.deepEqual(names(missingSections(body, SPECS, [])), [
+    "Success / failure criteria",
+  ]);
+});
+
+test("sections: trailing hashes are handled like CommonMark", () => {
+  const sections = splitSections(
+    "## C#\n\nbody\n\n## Rollback plan ##\n\nrevert\n",
+  );
+  assert.ok(sections.has("c#"));
+  assert.ok(sections.has("rollback plan"));
+});
+
+test("heading parsing stays linear on a hostile line", () => {
+  const hostile = `## a${" ".repeat(2000)}b${" ".repeat(2000)}x\n`;
+  const started = Date.now();
+  missingSections(hostile, SPECS, []);
+  assert.ok(Date.now() - started < 1000, "heading scan took too long");
+});
+
 test("fresh infra-k8s template: all three sections empty", () => {
   assert.deepEqual(names(missingSections(INFRA_K8S_TEMPLATE, SPECS, [])), [
     "Testing evidence",

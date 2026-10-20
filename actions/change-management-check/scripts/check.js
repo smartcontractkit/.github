@@ -15,7 +15,7 @@ const DEFAULT_STANDARD_URL =
   "https://smartcontract-it.atlassian.net/wiki/spaces/ENG/pages/1417445401" +
   "/Infrastructure+Change+Management+Standard";
 
-const HEADING_RE = /^ {0,3}#{1,6}\s+(.*?)\s*#*\s*$/;
+const HEADING_RE = /^ {0,3}(#{1,6})[ \t]+(.*)$/;
 const FENCE_RE = /^\s{0,3}(```|~~~)/;
 
 function splitLines(value) {
@@ -65,18 +65,35 @@ function parseSectionSpec(sections) {
   });
 }
 
+// Heading text: drop a CommonMark closing sequence, then normalize.
+function headingText(match) {
+  return match[2]
+    .replace(/\s+#+\s*$/, "")
+    .trim()
+    .toLowerCase();
+}
+
 // Section bodies keyed by lowercased heading text. Fenced code is not scanned.
-function splitSections(body) {
+// A heading starts a new section when it matches an alias or when its level is
+// the same or higher than the current section's. Deeper headings are content.
+function splitSections(body, aliases) {
   const sections = new Map();
   let current = null;
+  let level = 0;
   let fenced = false;
   for (const line of body.split("\n")) {
     if (FENCE_RE.test(line)) fenced = !fenced;
     const heading = fenced ? null : line.match(HEADING_RE);
     if (heading) {
-      current = heading[1].trim().toLowerCase();
-      if (!sections.has(current)) sections.set(current, []);
-      continue;
+      const text = headingText(heading);
+      const startSection =
+        current === null || heading[1].length <= level || aliases?.has(text);
+      if (startSection) {
+        current = text;
+        level = heading[1].length;
+        if (!sections.has(current)) sections.set(current, []);
+        continue;
+      }
     }
     if (current !== null) sections.get(current).push(line);
   }
@@ -100,7 +117,8 @@ function stripComments(text) {
 
 // Specs whose section body is empty after comment and strip-line removal.
 function missingSections(body, specs, stripLines) {
-  const sections = splitSections(stripComments(String(body || "")));
+  const aliases = new Set(specs.map((spec) => spec.alias));
+  const sections = splitSections(stripComments(String(body || "")), aliases);
   const strip = new Set((stripLines || []).map((line) => line.trim()));
   return specs.filter((spec) => {
     const content = (sections.get(spec.alias) || [])
