@@ -26,6 +26,17 @@ inputs:
     description: "OIDC issuer for cosign"
     required: false
     default: "https://token.actions.githubusercontent.com"
+  cosign-sign-attempts:
+    required: false
+    description: |
+      How many times to attempt `cosign sign` before failing. Absorbs transient
+      errors such as the GitHub OIDC token endpoint returning a non-JSON body
+      ("fetching ambient OIDC credentials: invalid character ...").
+    default: "5"
+  cosign-sign-retry-interval-seconds:
+    required: false
+    description: "Seconds to wait between `cosign sign` attempts."
+    default: "20"
   docker-manifest-sign:
     required: false
     description: "Sign the docker manifest"
@@ -474,11 +485,29 @@ runs:
 
     - name: Sign Docker Manifest using GH OIDC
       if: inputs.docker-manifest-sign == 'true'
-      shell: sh
+      shell: bash
       env:
         MANIFEST_NAME_WITH_DIGEST:
           ${{ steps.inspect-docker-manifest.outputs.manifest-name-with-digest }}
-      run: cosign sign "${MANIFEST_NAME_WITH_DIGEST}" --yes
+        ATTEMPTS: ${{ inputs.cosign-sign-attempts }}
+        INTERVAL: ${{ inputs.cosign-sign-retry-interval-seconds }}
+      run: |
+        set -uo pipefail
+
+        # Retry to absorb transient OIDC/Fulcio/Rekor errors. Signing the same
+        # digest again is safe: it only adds another signature.
+        for (( attempt = 1; attempt <= ATTEMPTS; attempt++ )); do
+          if cosign sign "${MANIFEST_NAME_WITH_DIGEST}" --yes; then
+            exit 0
+          fi
+          if (( attempt < ATTEMPTS )); then
+            echo "::warning::cosign sign failed (attempt ${attempt}/${ATTEMPTS}); retrying in ${INTERVAL}s..."
+            sleep "${INTERVAL}"
+          fi
+        done
+
+        echo "::error::cosign sign failed after ${ATTEMPTS} attempts for ${MANIFEST_NAME_WITH_DIGEST}"
+        exit 1
 
     - name: Verify Docker image signature
       if:
