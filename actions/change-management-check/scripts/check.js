@@ -1,13 +1,10 @@
 /**
  * Fails the check when a change-management section in the PR body is empty
- * or missing. Exempt: Renovate branches, docs-only PRs, dev-only PRs.
+ * or missing. The workflow decides whether the check applies.
  *
  * Inputs (via environment):
  *   SECTIONS:      lines of "Display name: heading text"
  *   STRIP_LINES:   lines removed from a section before the empty test
- *   DOCS_PATHS:    glob lines; a PR whose files all match is docs-only
- *   DEV_PATHS:     glob lines; a PR whose files all match is dev-only
- *   HEAD_PREFIXES: comma-separated head-branch prefixes that are exempt
  *   STANDARD_URL:  link included in the failure message
  */
 
@@ -23,28 +20,6 @@ function splitLines(value) {
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
-}
-
-// Glob tokens, in match order. `**` crosses `/`, `*` does not.
-const GLOB_TOKENS = {
-  "**/": "(?:.*/)?",
-  "**": ".*",
-  "*": "[^/]*",
-  "?": "[^/]",
-};
-const GLOB_TOKEN_RE = /\*\*\/|\*\*|\*|\?|[\s\S]/g;
-
-function escapeRegexpChar(char) {
-  return "\\^$.|+()[]{}".includes(char) ? `\\${char}` : char;
-}
-
-// Converts a glob to an anchored RegExp.
-function globToRegExp(glob) {
-  const pattern = glob.replace(
-    GLOB_TOKEN_RE,
-    (token) => GLOB_TOKENS[token] ?? escapeRegexpChar(token),
-  );
-  return new RegExp(`^${pattern}$`);
 }
 
 function parseSectionSpec(sections) {
@@ -81,7 +56,8 @@ function splitSections(body, aliases) {
   let current = null;
   let level = 0;
   let fenced = false;
-  for (const line of body.split("\n")) {
+  // Bodies can use CRLF line endings; parse them like LF bodies.
+  for (const line of body.replace(/\r\n?/g, "\n").split("\n")) {
     if (FENCE_RE.test(line)) fenced = !fenced;
     const heading = fenced ? null : line.match(HEADING_RE);
     if (heading) {
@@ -101,7 +77,7 @@ function splitSections(body, aliases) {
 }
 
 // Removes HTML comments, including multiline ones. An unterminated comment
-// drops the rest of the text, matching how GitHub renders the body.
+// blanks the rest of the text, matching how GitHub renders the body.
 function stripComments(text) {
   let out = "";
   let i = 0;
@@ -110,8 +86,10 @@ function stripComments(text) {
     if (start === -1) return out + text.slice(i);
     out += text.slice(i, start);
     const end = text.indexOf("-->", start + 4);
-    if (end === -1) return out;
-    i = end + 3;
+    const stop = end === -1 ? text.length : end + 3;
+    // Blank the span in place so the text before and after it cannot join.
+    out += text.slice(start, stop).replace(/[^\n]/g, " ");
+    i = stop;
   }
 }
 
@@ -129,51 +107,6 @@ function missingSections(body, specs, stripLines) {
   });
 }
 
-async function listFiles(github, context) {
-  const { owner, repo } = context.repo;
-  const pull_number = context.payload.pull_request.number;
-  const files = [];
-  // The API caps at 3000 files; 30 pages of 100.
-  for (let page = 1; page <= 30; page++) {
-    const { data } = await github.rest.pulls.listFiles({
-      owner,
-      repo,
-      pull_number,
-      per_page: 100,
-      page,
-    });
-    files.push(...data.map((file) => file.filename));
-    if (data.length < 100) break;
-  }
-  return files;
-}
-
-// Reason string when every changed file matches one glob set, else null.
-function classifyFiles(files, docsPaths, devPaths) {
-  if (files.length === 0) return null;
-  const allMatch = (regexps) =>
-    regexps.length > 0 &&
-    files.every((file) => regexps.some((re) => re.test(file)));
-  if (allMatch(docsPaths)) return "docs-only";
-  if (allMatch(devPaths)) return "dev-only";
-  return null;
-}
-
-// Reason string when the PR is exempt, else null.
-async function findExemption({
-  github,
-  context,
-  headPrefixes,
-  docsPaths,
-  devPaths,
-}) {
-  const headRef = context.payload.pull_request.head.ref || "";
-  const prefix = headPrefixes.find((p) => headRef.startsWith(p));
-  if (prefix) return `head branch starts with ${prefix}`;
-
-  return classifyFiles(await listFiles(github, context), docsPaths, devPaths);
-}
-
 function summarize(specs, missing) {
   const empty = new Set(missing.map((spec) => spec.display));
   return [
@@ -186,7 +119,7 @@ function summarize(specs, missing) {
   ].join("\n");
 }
 
-module.exports = async ({ context, core, github }) => {
+module.exports = async ({ context, core }) => {
   const pr = context.payload.pull_request;
   if (!pr) {
     core.info("This action is only applicable to pull requests.");
@@ -194,30 +127,13 @@ module.exports = async ({ context, core, github }) => {
   }
 
   const specs = parseSectionSpec(process.env.SECTIONS);
-  const stripLines = splitLines(process.env.STRIP_LINES);
-  // action.yml supplies the defaults. An explicit empty input disables the
-  // exemption.
-  const docsPaths = splitLines(process.env.DOCS_PATHS).map(globToRegExp);
-  const devPaths = splitLines(process.env.DEV_PATHS).map(globToRegExp);
-  const headPrefixes = (process.env.HEAD_PREFIXES || "")
-    .split(",")
-    .map((prefix) => prefix.trim())
-    .filter(Boolean);
-  const standardUrl = process.env.STANDARD_URL || DEFAULT_STANDARD_URL;
-
-  const exempt = await findExemption({
-    github,
-    context,
-    headPrefixes,
-    docsPaths,
-    devPaths,
-  });
-  if (exempt) {
-    core.info(
-      `Exempt (${exempt}): the change-management check does not apply.`,
+  if (specs.length === 0) {
+    throw new Error(
+      "The sections input is empty; at least one section is required.",
     );
-    return;
   }
+  const stripLines = splitLines(process.env.STRIP_LINES);
+  const standardUrl = process.env.STANDARD_URL || DEFAULT_STANDARD_URL;
 
   const missing = missingSections(pr.body, specs, stripLines);
   core.summary.addRaw(summarize(specs, missing));
@@ -234,8 +150,7 @@ module.exports = async ({ context, core, github }) => {
   core.info("All change-management sections are present.");
 };
 
-module.exports.classifyFiles = classifyFiles;
-module.exports.globToRegExp = globToRegExp;
 module.exports.missingSections = missingSections;
 module.exports.parseSectionSpec = parseSectionSpec;
 module.exports.splitSections = splitSections;
+module.exports.stripComments = stripComments;

@@ -14,18 +14,6 @@ inputs:
       default lines."
     required: false
     default: ""
-  docs-paths:
-    description: "Glob lines. A PR whose files all match is exempt (docs-only)."
-    required: false
-    default: "**/*.md"
-  dev-paths:
-    description: "Glob lines. A PR whose files all match is exempt (dev-only)."
-    required: false
-    default: ""
-  head-prefixes:
-    description: "Comma separated head-branch prefixes that are exempt."
-    required: false
-    default: "renovate/"
   standard-url:
     description: "Link to the Standard, included in the failure message."
     required: false
@@ -39,11 +27,8 @@ runs:
       env:
         SECTIONS: ${{ inputs.sections }}
         STRIP_LINES: ${{ inputs.strip-lines }}
-        DOCS_PATHS: ${{ inputs.docs-paths }}
-        DEV_PATHS: ${{ inputs.dev-paths }}
-        HEAD_PREFIXES: ${{ inputs.head-prefixes }}
         STANDARD_URL: ${{ inputs.standard-url }}
       with:
         script: |
           const script = require(`${process.env.GITHUB_ACTION_PATH}/scripts/check.js`);
-          await script({ context, core, github });
+          await script({ context, core });

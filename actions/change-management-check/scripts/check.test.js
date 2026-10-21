@@ -2,13 +2,8 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const check = require("./check.js");
-const {
-  classifyFiles,
-  globToRegExp,
-  missingSections,
-  parseSectionSpec,
-  splitSections,
-} = check;
+const { missingSections, parseSectionSpec, splitSections, stripComments } =
+  check;
 
 // infra-k8s pull_request_template.md at origin/main, 2026-10-20.
 const INFRA_K8S_TEMPLATE = `## What
@@ -144,34 +139,6 @@ const MGMT_STRIP = [
 ];
 
 const names = (missing) => missing.map((spec) => spec.display);
-
-test("glob: **/ matches the root and nested paths", () => {
-  const re = globToRegExp("**/*.md");
-  assert.ok(re.test("README.md"));
-  assert.ok(re.test("docs/guide/intro.md"));
-  assert.ok(!re.test("README.txt"));
-});
-
-test("glob: trailing /** matches under the directory only", () => {
-  const re = globToRegExp("projects/ingest-hub-preview/**");
-  assert.ok(re.test("projects/ingest-hub-preview/a.yaml"));
-  assert.ok(re.test("projects/ingest-hub-preview/apps/a.yaml"));
-  assert.ok(!re.test("projects/other/a.yaml"));
-});
-
-test("glob: * does not cross a slash", () => {
-  const re = globToRegExp("clusters/*.sand.yaml");
-  assert.ok(re.test("clusters/main.sand.yaml"));
-  assert.ok(!re.test("clusters/sub/main.sand.yaml"));
-  assert.ok(!re.test("clusters/main.prod.yaml"));
-});
-
-test("glob: ? matches one character that is not a slash", () => {
-  const re = globToRegExp("clusters/?.yaml");
-  assert.ok(re.test("clusters/a.yaml"));
-  assert.ok(!re.test("clusters/ab.yaml"));
-  assert.ok(!re.test("clusters/a/b.yaml"));
-});
 
 test("spec: parses display and alias", () => {
   assert.deepEqual(parseSectionSpec("Testing evidence: testing evidence"), [
@@ -315,6 +282,21 @@ Revert this PR.
   assert.deepEqual(missingSections(body, SPECS, []), []);
 });
 
+test("CRLF body: filled sections pass, empty template still fails", () => {
+  const filled =
+    "# Testing Evidence\r\n\r\nRan in stage: PR #1.\r\n\r\n" +
+    "# Success / Failure Criteria\r\n\r\nError rate stays flat.\r\n\r\n" +
+    "# Rollback Plan\r\n\r\nRevert this PR.\r\n";
+  assert.deepEqual(missingSections(filled, SPECS, []), []);
+  const crlfTemplate = INFRA_K8S_TEMPLATE.replace(/\n/g, "\r\n");
+  assert.ok(splitSections(crlfTemplate).has("testing evidence"));
+  assert.deepEqual(names(missingSections(crlfTemplate, SPECS, [])), [
+    "Testing evidence",
+    "Success / failure criteria",
+    "Rollback plan",
+  ]);
+});
+
 test("partial fill names only the missing section", () => {
   const body = `## Testing evidence
 
@@ -373,27 +355,11 @@ test("an unterminated HTML comment drops the rest of the body", () => {
   assert.equal(missingSections(body, SPECS, []).length, 3);
 });
 
-test("classifyFiles: docs-only, dev-only, mixed, empty", () => {
-  const docs = [globToRegExp("**/*.md")];
-  const dev = [globToRegExp("projects/ingest-hub-preview/**")];
-  assert.equal(classifyFiles(["README.md"], docs, dev), "docs-only");
-  assert.equal(classifyFiles(["a.md", "b.yaml"], docs, dev), null);
-  assert.equal(
-    classifyFiles(["projects/ingest-hub-preview/a.yaml"], docs, dev),
-    "dev-only",
-  );
-  assert.equal(classifyFiles(["README.md", "a.yaml"], docs, dev), null);
-  assert.equal(classifyFiles([], docs, dev), null);
+test("comment stripping cannot rebuild a comment opener", () => {
+  assert.ok(!stripComments("<!<!-- x -->!--").includes("<!--"));
 });
 
-const ENV_KEYS = [
-  "SECTIONS",
-  "STRIP_LINES",
-  "DOCS_PATHS",
-  "DEV_PATHS",
-  "HEAD_PREFIXES",
-  "STANDARD_URL",
-];
+const ENV_KEYS = ["SECTIONS", "STRIP_LINES", "STANDARD_URL"];
 
 function setEnv(env) {
   for (const key of ENV_KEYS) delete process.env[key];
@@ -415,27 +381,12 @@ function fakeCore() {
   };
 }
 
-function fakeContext({ ref = "feat/x", body = "", number = 1 } = {}) {
+function fakeContext({ body = "" } = {}) {
   return {
     repo: { owner: "o", repo: "r" },
-    payload: { pull_request: { number, body, head: { ref } } },
+    payload: { pull_request: { number: 1, body } },
   };
 }
-
-function fakeGithub(filenames) {
-  return {
-    rest: {
-      pulls: {
-        listFiles: async () =>
-          filenames.length
-            ? { data: filenames.map((filename) => ({ filename })) }
-            : { data: [] },
-      },
-    },
-  };
-}
-
-const PROD_FILES = ["clusters/main.prod.yaml"];
 
 test("run: empty template fails and names every section", async () => {
   setEnv({
@@ -443,11 +394,7 @@ test("run: empty template fails and names every section", async () => {
       "Testing evidence: testing evidence\nRollback plan: rollback plan",
   });
   const core = fakeCore();
-  await check({
-    context: fakeContext({ body: INFRA_K8S_TEMPLATE }),
-    core,
-    github: fakeGithub(PROD_FILES),
-  });
+  await check({ context: fakeContext({ body: INFRA_K8S_TEMPLATE }), core });
   assert.equal(core.calls.failed.length, 1);
   assert.match(
     core.calls.failed[0],
@@ -469,97 +416,21 @@ test("run: filled body passes", async () => {
   const body =
     "# Testing Evidence\n\nRan in stage: PR #1.\n\n# Rollback Plan\n\nRevert.\n";
   const core = fakeCore();
-  await check({
-    context: fakeContext({ body }),
-    core,
-    github: fakeGithub(PROD_FILES),
-  });
+  await check({ context: fakeContext({ body }), core });
   assert.equal(core.calls.failed.length, 0);
   assert.deepEqual(core.calls.info, [
     "All change-management sections are present.",
   ]);
 });
 
-test("run: renovate branch is exempt without an API call", async () => {
-  setEnv({
-    SECTIONS: "Testing evidence: testing evidence",
-    HEAD_PREFIXES: "renovate/",
-  });
+test("run: empty sections input fails loudly", async () => {
+  setEnv({ SECTIONS: "" });
   const core = fakeCore();
-  const github = {
-    rest: {
-      pulls: {
-        listFiles: async () => {
-          throw new Error("must not be called");
-        },
-      },
-    },
-  };
-  await check({
-    context: fakeContext({ ref: "renovate/lodash-4.x", body: "" }),
-    core,
-    github,
-  });
-  assert.equal(core.calls.failed.length, 0);
-  assert.match(
-    core.calls.info[0],
-    /^Exempt \(head branch starts with renovate\/\)/,
+  await assert.rejects(
+    check({ context: fakeContext({ body: "" }), core }),
+    /sections input is empty/,
   );
-});
-
-test("run: docs-only PR is exempt", async () => {
-  setEnv({
-    SECTIONS: "Testing evidence: testing evidence",
-    DOCS_PATHS: "**/*.md",
-  });
-  const core = fakeCore();
-  await check({
-    context: fakeContext({ body: "" }),
-    core,
-    github: fakeGithub(["docs/readme.md"]),
-  });
   assert.equal(core.calls.failed.length, 0);
-  assert.match(core.calls.info[0], /^Exempt \(docs-only\)/);
-});
-
-test("run: dev-only PR is exempt when dev-paths are set", async () => {
-  setEnv({
-    SECTIONS: "Testing evidence: testing evidence",
-    DEV_PATHS: "projects/ingest-hub-preview/**",
-  });
-  const core = fakeCore();
-  await check({
-    context: fakeContext({ body: "" }),
-    core,
-    github: fakeGithub(["projects/ingest-hub-preview/apps/a.yaml"]),
-  });
-  assert.equal(core.calls.failed.length, 0);
-  assert.match(core.calls.info[0], /^Exempt \(dev-only\)/);
-});
-
-test("run: empty head-prefixes disables the prefix exemption", async () => {
-  setEnv({
-    SECTIONS: "Testing evidence: testing evidence",
-    HEAD_PREFIXES: "",
-  });
-  const core = fakeCore();
-  await check({
-    context: fakeContext({ ref: "renovate/lodash-4.x", body: "" }),
-    core,
-    github: fakeGithub(PROD_FILES),
-  });
-  assert.equal(core.calls.failed.length, 1);
-});
-
-test("run: empty docs-paths disables the docs exemption", async () => {
-  setEnv({ SECTIONS: "Testing evidence: testing evidence", DOCS_PATHS: "" });
-  const core = fakeCore();
-  await check({
-    context: fakeContext({ body: "" }),
-    core,
-    github: fakeGithub(["docs/readme.md"]),
-  });
-  assert.equal(core.calls.failed.length, 1);
 });
 
 test("run: non-pull-request payload is skipped", async () => {
@@ -567,7 +438,6 @@ test("run: non-pull-request payload is skipped", async () => {
   await check({
     context: { repo: { owner: "o", repo: "r" }, payload: {} },
     core,
-    github: fakeGithub(PROD_FILES),
   });
   assert.equal(core.calls.failed.length, 0);
   assert.equal(
