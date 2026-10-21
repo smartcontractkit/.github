@@ -192,6 +192,8 @@ importers:
 
   actions/bump-mcms-tools: {}
 
+  actions/change-management-check: {}
+
   actions/changed-modules-go:
     dependencies:
       '@actions/core':

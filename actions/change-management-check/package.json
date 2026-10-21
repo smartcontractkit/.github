@@ -1,0 +1,11 @@
+{
+  "name": "change-management-check",
+  "version": "0.0.1",
+  "description": "",
+  "private": true,
+  "scripts": {},
+  "author": "@smartcontractkit",
+  "license": "MIT",
+  "dependencies": {},
+  "repository": "https://github.com/smartcontractkit/.github"
+}
