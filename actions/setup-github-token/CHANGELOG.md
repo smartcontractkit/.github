@@ -1,5 +1,14 @@
 # setup-github-token
 
+## 1.4.2
+
+### Patch Changes
+
+- [#1715](https://github.com/smartcontractkit/.github/pull/1715)
+  [`5f07ff8`](https://github.com/smartcontractkit/.github/commit/5f07ff8f7ddd3857e3ed9cc7bcb91fcafcf31de6)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: gativ2 bucketed
+  rollout - 70% allocation
+
 ## 1.4.1
 
 ### Patch Changes

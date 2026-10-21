@@ -1,5 +1,16 @@
 # build-push-docker-manifest
 
+## 1.6.0
+
+### Minor Changes
+
+- [#1714](https://github.com/smartcontractkit/.github/pull/1714)
+  [`eeaf39b`](https://github.com/smartcontractkit/.github/commit/eeaf39b2178dd9d7afee7dc98f9c45d7b8a6c6f9)
+  Thanks [@skudasov](https://github.com/skudasov)! - feat: retry `cosign sign`
+  on failure (5 attempts, 20s apart by default) to absorb transient GitHub
+  OIDC/Fulcio errors. Configurable via `cosign-sign-attempts` and
+  `cosign-sign-retry-interval-seconds`.
+
 ## 1.5.0
 
 ### Minor Changes
