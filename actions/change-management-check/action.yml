@@ -1,0 +1,34 @@
+name: change-management-check
+description:
+  "Fails the check when a change-management section in the PR body is empty or
+  missing"
+
+inputs:
+  sections:
+    description:
+      "Lines of 'Display name: heading text'. One line per required section."
+    required: true
+  strip-lines:
+    description:
+      "Lines removed from a section before the empty test. Use for template
+      default lines."
+    required: false
+    default: ""
+  standard-url:
+    description: "Link to the Standard, included in the failure message."
+    required: false
+    default: "https://smartcontract-it.atlassian.net/wiki/spaces/ENG/pages/1417445401/Infrastructure+Change+Management+Standard"
+
+runs:
+  using: composite
+  steps:
+    - name: Check change management sections
+      uses: actions/github-script@v9
+      env:
+        SECTIONS: ${{ inputs.sections }}
+        STRIP_LINES: ${{ inputs.strip-lines }}
+        STANDARD_URL: ${{ inputs.standard-url }}
+      with:
+        script: |
+          const script = require(`${process.env.GITHUB_ACTION_PATH}/scripts/check.js`);
+          await script({ context, core });
