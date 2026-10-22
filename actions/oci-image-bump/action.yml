@@ -125,6 +125,12 @@ inputs:
   pr-title:
     description: "Title of the PR."
     required: true
+  pr-body:
+    description: |
+      Body of the PR.
+
+      Leave empty to use the create-pull-request default body.
+    required: false
 
 outputs:
   pr-number:
@@ -163,6 +169,17 @@ runs:
           exit 1
         fi
 
+    # Writes the body to a file. An empty input keeps the action default body.
+    - name: Resolve PR body
+      id: pr-body
+      if: inputs.pr-body != ''
+      shell: bash
+      env:
+        PR_BODY: ${{ inputs.pr-body }}
+      run: |
+        printf '%s' "$PR_BODY" > "${RUNNER_TEMP}/pr-body.md"
+        echo "body-path=${RUNNER_TEMP}/pr-body.md" | tee -a "$GITHUB_OUTPUT"
+
     # Commits, creates/pushes branch, and creates the PR.
     - name: Create PR
       id: create-pr
@@ -174,6 +191,7 @@ runs:
         labels: ${{ inputs.pr-labels }}
         sign-commits: true
         title: ${{ inputs.pr-title }}
+        body-path: ${{ steps.pr-body.outputs.body-path }}
         token: ${{ inputs.github-token }}
 
     - name: Add PR to Summary
