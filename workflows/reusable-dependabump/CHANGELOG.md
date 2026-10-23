@@ -1,5 +1,15 @@
 # reusable-dependabump
 
+## 1.0.4
+
+### Patch Changes
+
+- [#1699](https://github.com/smartcontractkit/.github/pull/1699)
+  [`450538b`](https://github.com/smartcontractkit/.github/commit/450538b8f508f144f90a14812c60c5d47b97f195)
+  Thanks [@chainchad](https://github.com/chainchad)! - Skip `post-bump-command`
+  when the bump step changes no files, so commands that create files (e.g. a
+  changeset) don't open a PR with nothing to fix
+
 ## 1.0.3
 
 ### Patch Changes

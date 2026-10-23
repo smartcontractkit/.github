@@ -1,5 +1,41 @@
 # setup-github-token
 
+## 1.4.3
+
+### Patch Changes
+
+- [#1721](https://github.com/smartcontractkit/.github/pull/1721)
+  [`7c03733`](https://github.com/smartcontractkit/.github/commit/7c037331833d2f494796b7fd9ca5f010c95872fb)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: gativ2 bucketed
+  rollout - 100% allocation
+
+## 1.4.2
+
+### Patch Changes
+
+- [#1715](https://github.com/smartcontractkit/.github/pull/1715)
+  [`5f07ff8`](https://github.com/smartcontractkit/.github/commit/5f07ff8f7ddd3857e3ed9cc7bcb91fcafcf31de6)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: gativ2 bucketed
+  rollout - 70% allocation
+
+## 1.4.1
+
+### Patch Changes
+
+- [#1710](https://github.com/smartcontractkit/.github/pull/1710)
+  [`292405f`](https://github.com/smartcontractkit/.github/commit/292405ff83d81603c057ce42877d9855076220f4)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: gativ2 bucketed
+  rollout - 40% allocation
+
+## 1.4.0
+
+### Minor Changes
+
+- [#1679](https://github.com/smartcontractkit/.github/pull/1679)
+  [`8d08d2b`](https://github.com/smartcontractkit/.github/commit/8d08d2b86a644a5c21da76efc2a51223c4606851)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: gativ2 bucketed
+  rollout - 20% allocation
+
 ## 1.3.0
 
 ### Minor Changes

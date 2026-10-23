@@ -1,5 +1,15 @@
 # oci-image-bump
 
+## 1.3.0
+
+### Minor Changes
+
+- [#1713](https://github.com/smartcontractkit/.github/pull/1713)
+  [`d98333a`](https://github.com/smartcontractkit/.github/commit/d98333a380c5a3fa9f85bb176750892f2ad836ac)
+  Thanks [@tvc-jeffwelling](https://github.com/tvc-jeffwelling)! - Add a
+  `pr-body` input to set the pull request body. Callers that do not set it keep
+  the default body.
+
 ## 1.2.0
 
 ### Minor Changes
