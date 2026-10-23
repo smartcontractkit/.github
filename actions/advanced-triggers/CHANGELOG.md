@@ -1,5 +1,14 @@
 # advanced-triggers
 
+## 1.1.3
+
+### Patch Changes
+
+- [#1724](https://github.com/smartcontractkit/.github/pull/1724)
+  [`cac5bf2`](https://github.com/smartcontractkit/.github/commit/cac5bf20e6e27c9b830f5b38b536e0e24bf33e3f)
+  Thanks [@paigeCLL](https://github.com/paigeCLL)! - fix(deps): bump zod to
+  4.6.6 for CVE-2023-54404
+
 ## 1.1.2
 
 ### Patch Changes
