@@ -489,6 +489,8 @@ importers:
 
   actions/ecr-image-exists: {}
 
+  actions/enhance-dependabot: {}
+
   actions/free-disk-space: {}
 
   actions/get-latest-github-release: {}
