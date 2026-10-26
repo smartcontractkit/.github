@@ -22,6 +22,7 @@ This action is used to:
 | `trunk-job-url`               | The URL to the job run.                                                                                                    | **Yes**  | See `action.yml` |
 | `trunk-previous-step-outcome` | The outcome of the testing step. Used to determine failure status of this action. Required when `go-test-args` is not set. | No       | `""`             |
 | `trunk-variant`               | The variant of the test report. Used to differentiate the same test suite across different environments.                   | No       | -                |
+| `trunk-test-collection-id`    | The test collection id as configured in trunk.io. See: https://docs.trunk.io/flaky-tests/test-collections                  | No       | -                |
 
 ## Usage
 
