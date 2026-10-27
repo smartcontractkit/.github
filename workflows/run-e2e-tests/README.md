@@ -76,6 +76,7 @@ For test secrets, use:
 | `use-self-hosted-runners`                                  | `string`  |                                                                                           `"false"` | If `true`, uses `runs_on_self_hosted` from the test config where available. Otherwise uses `runs_on`.             |
 | `ecr_name`                                                 | `string`  |                                                                                         `chainlink` | ECR repository name used for test images.                                                                         |
 | `quarantine`                                               | `string`  |                                                                                           `"false"` | Enables quarantine / flaky-test handling.                                                                         |
+| `trunk-test-collection-id`                                 | `string`  |                                                                                                     | The test collection ID for Trunk.io. See https://docs.trunk.io/flaky-tests/test-collections                       |
 | `test-timeout-minutes`                                     | `number`  |                                                                                                `60` | Overall timeout for each test in minutes.                                                                         |
 
 ## Outputs
@@ -146,6 +147,7 @@ run-core-e2e-tests:
       ${{ needs.labels.outputs.should-use-self-hosted-runners }}
     ecr_name: ${{ inputs.ecr_name || 'chainlink-integration-tests' }}
     quarantine: "true"
+    trunk-test-collection-id: "qt0j1cVm"
   secrets:
     QA_AWS_REGION: ${{ secrets.QA_AWS_REGION }}
     QA_AWS_ROLE_TO_ASSUME: ${{ secrets.QA_AWS_ROLE_TO_ASSUME }}
