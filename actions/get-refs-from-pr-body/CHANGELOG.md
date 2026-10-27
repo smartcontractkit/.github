@@ -1,5 +1,14 @@
 # get-refs-from-pr-body
 
+## 1.1.2
+
+### Patch Changes
+
+- [#1729](https://github.com/smartcontractkit/.github/pull/1729)
+  [`736128e`](https://github.com/smartcontractkit/.github/commit/736128e2900ec0359443a4eebf49350973cbdca8)
+  Thanks [@paigeCLL](https://github.com/paigeCLL)! - fix(deps): bump undici to
+  6.29.1 for CVE-2026-109869 (DX-5677)
+
 ## 1.1.1
 
 ### Patch Changes
