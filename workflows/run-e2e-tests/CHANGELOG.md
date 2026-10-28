@@ -1,5 +1,14 @@
 # run-e2e-tests
 
+## 1.2.0
+
+### Minor Changes
+
+- [#1732](https://github.com/smartcontractkit/.github/pull/1732)
+  [`4d181ac`](https://github.com/smartcontractkit/.github/commit/4d181ac186a13a6aab53aa981178043ac887a82b)
+  Thanks [@kalverra](https://github.com/kalverra)! - feat: add
+  trunk-test-collection-id input and update external action versions
+
 ## 1.1.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "go-mod-validator",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "private": true,
   "description": "Parses 'go.mod' file given as input, and verifies it's dependencies",
   "engines": {
