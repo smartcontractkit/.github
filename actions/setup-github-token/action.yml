@@ -4,32 +4,33 @@ description: Setup a GitHub Token from GATI
 inputs:
   profile:
     description:
-      GATI v2 token profile to request. When set, GATI v2 is used and the aws-*
-      inputs are ignored.
+      GATI v2 token profile to request. When set, the aws-* inputs are ignored.
+      Defaults to the migrated v1 profile for aws-role-arn.
     required: false
   gati-version:
     description:
-      Force "v1" or "v2", bypassing the staged rollout. Leave unset to let the
-      rollout decide.
+      Set to "v1" to force the legacy GATI v1 flow, which requires aws-role-arn
+      and aws-lambda-url. Defaults to "v2".
     required: false
+    default: "v2"
   aws-role-arn:
     description:
       ARN of role capable of getting token from GATI. Required unless profile is
-      set.
+      set. Used by v2 to derive the migrated v1 profile.
     required: false
   aws-lambda-url:
-    description: URL of GATI lambda function. Required unless profile is set.
+    description: URL of GATI v1 lambda function. Only used by v1.
     required: false
   aws-region:
-    description: AWS region. Required unless profile is set.
+    description: AWS region. Only used by v1.
     required: false
     default: "us-west-2"
   aws-role-duration-seconds:
-    description: Duration of role in seconds
+    description: Duration of role in seconds. Only used by v1.
     required: false
     default: "900"
   role-session-name:
-    description: Session name to use when assuming the role.
+    description: Session name to use when assuming the role. Only used by v1.
     required: false
     default: "${{ github.run_id }}-${{ github.run_number }}-${{ github.job }}"
   set-git-config:
@@ -57,17 +58,42 @@ runs:
       shell: bash
       env:
         PROFILE: ${{ inputs.profile }}
-        GATI_VERSION: ${{ inputs.gati-version }}
+        GATI_VERSION: ${{ inputs.gati-version || 'v2' }}
         AWS_ROLE_ARN: ${{ inputs.aws-role-arn }}
         AWS_LAMBDA_URL: ${{ inputs.aws-lambda-url }}
-        # Rollout configuration. Repositories not named in either list are
-        # bucketed by the hash of their name, and use v2 when their bucket is
-        # below the percentage.
-        ROLLOUT_PERCENTAGE: "100"
-        FORCE_V2_REPOSITORIES: |
-          smartcontractkit/.github
-        FORCE_V1_REPOSITORIES: ""
-      run: ${{ github.action_path }}/scripts/resolve-gati-version.sh
+      # v2 is used unless gati-version forces the legacy v1 flow.
+      run: |
+        if [[ "${GATI_VERSION}" != "v1" && "${GATI_VERSION}" != "v2" ]]; then
+          echo "::error::gati-version must be 'v1' or 'v2', got '${GATI_VERSION}'."
+          exit 1
+        fi
+
+        if [[ "${GATI_VERSION}" == "v1" ]]; then
+          if [[ -n "${PROFILE}" ]]; then
+            echo "::error::profile is only supported by GATI v2. Remove the profile input, or unset gati-version."
+            exit 1
+          fi
+          if [[ -z "${AWS_ROLE_ARN}" || -z "${AWS_LAMBDA_URL}" ]]; then
+            echo "::error::aws-role-arn and aws-lambda-url are required when gati-version is 'v1'."
+            exit 1
+          fi
+        fi
+
+        if [[ -z "${PROFILE}" ]]; then
+          if [[ -z "${AWS_ROLE_ARN}" ]]; then
+            echo "::error::Either profile or aws-role-arn is required."
+            exit 1
+          fi
+          # Only read by the v2 flow, which migrates a v1 role ARN as a v1 profile.
+          PROFILE="v1/${AWS_ROLE_ARN}"
+        fi
+
+        echo "version=${GATI_VERSION}" | tee -a "${GITHUB_OUTPUT}"
+
+        if [[ "${GATI_VERSION}" == "v2" ]]; then
+          # Written without tee: the profile can embed an IAM role ARN.
+          echo "profile=${PROFILE}" >> "${GITHUB_OUTPUT}"
+        fi
 
     - name: Check the role session name lengths and truncate if needed
       if: steps.resolve-gati-version.outputs.version == 'v1'
