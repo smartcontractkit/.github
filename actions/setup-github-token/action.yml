@@ -129,7 +129,7 @@ runs:
     - name: Get github token from gati (v2)
       id: get-gh-token-v2
       if: steps.resolve-gati-version.outputs.version == 'v2'
-      uses: smartcontractkit/.github/actions/invoke-gati-v2@invoke-gati-v2/0.1.0
+      uses: smartcontractkit/.github/actions/invoke-gati-v2@invoke-gati-v2/v1
       with:
         profile: ${{ steps.resolve-gati-version.outputs.profile }}
 
