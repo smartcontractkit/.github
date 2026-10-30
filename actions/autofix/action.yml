@@ -1,37 +1,50 @@
 name: autofix
 description:
   Runs fixer commands (code generators, go mod tidy, formatters, ...) and
-  commits any resulting changes back to the pull request branch as a signed
-  commit.
+  uploads the changes they make for autofix/commit to push to the pull request
+  branch. Holds no token, so the job running it should have read-only
+  permissions.
 
 inputs:
   working-directory:
     description: |
-      Directory the `run` commands and the Go fixers run in, relative to the
-      repository root.
+      Directory the `setup` and `run` commands and the Go fixers run in,
+      relative to the repository root.
     required: false
     default: "."
   paths:
     description: |
       Files this autofix owns, as git pathspecs relative to the repository root,
-      one per line (e.g. `cre` or `:!cre` to exclude it). Only changes to these
-      files are committed, the Go fixers only fix modules in them, and pull
-      requests that change none of them are skipped. Defaults to
-      `working-directory`.
+      one per line. Only changes to these files are committed, the Go fixers
+      only fix modules in them, and pull requests that change none of them are
+      skipped. Defaults to `working-directory`. For example:
+
+        paths: |
+          .
+          :!cre
     required: false
     default: ""
   setup:
     description: |
       Shell commands to run in `working-directory` before the Go fixers, as in
       a `run:` step: installing tools `go generate` needs, formatting or
-      generating what Go is generated from (e.g. protos), ...
+      generating what Go is generated from (e.g. protos), ... For example:
+
+        setup: |
+          make install-tools
+          ./script/format-protos.sh
     required: false
     default: ""
   run:
     description: |
       Shell commands to run in `working-directory` after the Go fixers, as in a
       `run:` step: what's derived from the fixed modules (e.g. a module graph
-      from the tidied go.mod files), formatters for other languages, ...
+      from the tidied go.mod files), formatters for other languages, ... For
+      example:
+
+        run: |
+          make modgraph
+          prettier --write .
     required: false
     default: ""
   go:
@@ -68,35 +81,12 @@ inputs:
     default: "false"
   commit:
     description: |
-      Commit changes back to the branch. When "false", or when committing isn't
+      Upload changes for autofix/commit. When "false", or when committing isn't
       possible (fork pull requests, the default branch, merge queue branches,
       the checkout isn't the pull request head), changes fail the step
       instead.
     required: false
     default: "true"
-  commit-message:
-    description: Message of the autofix commit.
-    required: false
-    default: "chore: autofix"
-  branch:
-    description: Branch to commit to.
-    required: false
-    default: ${{ github.head_ref || github.ref_name }}
-  fail-on-commit:
-    description: |
-      Fail the step after pushing a commit too. By default the step only fails
-      when a command fails or changes can't be pushed: checks run again on the
-      pushed commit, which becomes the pull request's head.
-    required: false
-    default: "false"
-  github-token:
-    description: |
-      GitHub App token used to push the commit (e.g. from setup-github-token),
-      which needs `contents: write`. Required to commit: commits pushed with
-      the default GITHUB_TOKEN don't trigger workflow runs, so checks would
-      never run on the autofix commit.
-    required: false
-    default: ""
 
 outputs:
   skipped:
@@ -106,17 +96,32 @@ outputs:
     value: ${{ steps.scope.outputs.skip }}
   changed:
     description: Whether the commands changed any files, "true" or "false".
-    value: ${{ steps.commit.outputs.changed }}
-  committed:
-    description: Whether an autofix commit was pushed, "true" or "false".
-    value: ${{ steps.commit.outputs.committed }}
-  commit-sha:
-    description: SHA of the pushed autofix commit, if any.
-    value: ${{ steps.commit.outputs.commit-sha }}
+    value: ${{ steps.check.outputs.changed }}
+  commit:
+    description:
+      Whether there are changes for autofix/commit to push, "true" or "false".
+    value: ${{ steps.check.outputs.commit }}
+  artifact:
+    description: Name of the artifact holding the changes, for autofix/commit.
+    value: ${{ steps.prepare.outputs.artifact }}
 
 runs:
   using: composite
   steps:
+    # Named before anything the pull request controls runs, so it can't change
+    # which artifact the commit job downloads.
+    - name: Prepare
+      id: prepare
+      shell: bash
+      env:
+        PATHS: ${{ inputs.paths || inputs.working-directory }}
+        WORKING_DIRECTORY: ${{ inputs.working-directory }}
+      run: |
+        # Unique per working directory and paths, so several autofix jobs in a
+        # run don't collide.
+        hash="$(printf '%s\n%s\n' "${WORKING_DIRECTORY}" "${PATHS}" | sha256sum | cut -c1-12)"
+        echo "artifact=autofix-${hash}" | tee -a "$GITHUB_OUTPUT"
+
     - name: Check paths
       id: scope
       shell: bash
@@ -126,12 +131,7 @@ runs:
         GH_TOKEN: ${{ github.token }}
         PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-      run: |
-        if [[ "${ALWAYS}" == "true" ]]; then
-          echo "skip=false" | tee -a "$GITHUB_OUTPUT"
-        else
-          "${GITHUB_ACTION_PATH}/scripts/scope.sh"
-        fi
+      run: '"${GITHUB_ACTION_PATH}/scripts/scope.sh"'
 
     - name: Find go.mod
       id: go-mod
@@ -176,7 +176,7 @@ runs:
         RECURSIVE: ${{ inputs.go-recursive == 'true' && '--recursive' || '' }}
         # Modules may require a newer Go than the one installed.
         GOTOOLCHAIN: auto
-      run: ${{ github.action_path }}/scripts/go.sh fix ${RECURSIVE}
+      run: '"${GITHUB_ACTION_PATH}/scripts/go.sh" fix ${RECURSIVE}'
 
     - name: Run commands
       if: steps.scope.outputs.skip != 'true' && inputs.run != ''
@@ -186,18 +186,28 @@ runs:
         RUN: ${{ inputs.run }}
       run: eval "${RUN}"
 
-    - name: Commit changes
-      id: commit
+    - name: Check changes
+      id: check
       if: steps.scope.outputs.skip != 'true'
       shell: bash
       env:
         PATHS: ${{ inputs.paths || inputs.working-directory }}
-        GH_TOKEN: ${{ inputs.github-token }}
+        GH_TOKEN: ${{ github.token }}
         COMMIT: ${{ inputs.commit }}
-        COMMIT_MESSAGE: ${{ inputs.commit-message }}
-        BRANCH: ${{ inputs.branch }}
-        FAIL_ON_COMMIT: ${{ inputs.fail-on-commit }}
-        PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        BRANCH: ${{ github.head_ref || github.ref_name }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-      run: ${{ github.action_path }}/scripts/commit.sh
+        OUT_DIR: ${{ runner.temp }}/${{ steps.prepare.outputs.artifact }}
+      run: '"${GITHUB_ACTION_PATH}/scripts/check.sh"'
+
+    - name: Upload changes
+      if: steps.check.outputs.commit == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.prepare.outputs.artifact }}
+        path: ${{ runner.temp }}/${{ steps.prepare.outputs.artifact }}
+        include-hidden-files: true
+        if-no-files-found: error
+        overwrite: true
+        retention-days: 1

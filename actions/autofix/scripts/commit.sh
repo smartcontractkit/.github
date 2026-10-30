@@ -1,20 +1,40 @@
 #!/usr/bin/env bash
 
-# Commits any changes in the working tree to BRANCH, through the GitHub GraphQL
-# API (createCommitOnBranch) so the commit is signed. Fails the step when there
-# are changes that can't be committed, or when a commit was made and
-# FAIL_ON_COMMIT is true.
+# Commits the changes check.sh wrote to ARTIFACT_DIR to BRANCH, through the
+# GitHub GraphQL API (createCommitOnBranch) so the commit is signed. Runs in a
+# job that has the token to push but runs nothing the pull request controls,
+# so the artifact is untrusted: every path in it must be a regular file in
+# PATHS and outside .github.
 
 set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=SCRIPTDIR/paths.sh
+source "${script_dir}/paths.sh"
 
-COMMIT="${COMMIT:-true}"
-FAIL_ON_COMMIT="${FAIL_ON_COMMIT:-false}"
+ARTIFACT_DIR="${ARTIFACT_DIR:?}"
 COMMIT_MESSAGE="${COMMIT_MESSAGE:-chore: autofix}"
 BRANCH="${BRANCH:-}"
-PR_HEAD_SHA="${PR_HEAD_SHA:-}"
+HEAD_SHA="${HEAD_SHA:-}"
 PR_HEAD_REPO="${PR_HEAD_REPO:-}"
 DEFAULT_BRANCH="${DEFAULT_BRANCH:-}"
+
+fail() {
+  echo "committed=false" | tee -a "$GITHUB_OUTPUT"
+  echo "::error::$1"
+  exit 1
+}
+
+if [[ -z "${GH_TOKEN:-}" ]]; then
+  # Commits pushed with GITHUB_TOKEN don't trigger workflow runs, so checks
+  # would never run on the autofix commit.
+  fail "No github-token was given. Pass a GitHub App token, e.g. from setup-github-token."
+elif [[ -n "${PR_HEAD_REPO}" && "${PR_HEAD_REPO}" != "${GITHUB_REPOSITORY}" ]]; then
+  fail "The pull request is from a fork."
+elif [[ -z "${BRANCH}" || -z "${HEAD_SHA}" ]]; then
+  fail "No branch to commit to."
+elif [[ "${BRANCH}" == "${DEFAULT_BRANCH}" || "${BRANCH}" == gh-readonly-queue/* ]]; then
+  fail "'${BRANCH}' is the default branch or a merge queue branch."
+fi
 
 headline="${COMMIT_MESSAGE%%$'\n'*}"
 body=""
@@ -31,67 +51,32 @@ if [[ -n "${body}" ]]; then
 fi
 body+="${trailer}"
 
-cd "$(git rev-parse --show-toplevel)"
-# shellcheck source=SCRIPTDIR/paths.sh
-source "${script_dir}/paths.sh"
+files_dir="${ARTIFACT_DIR}/files"
+if [[ ! -d "${files_dir}" || ! -f "${ARTIFACT_DIR}/deleted" ]]; then
+  fail "The autofix artifact is incomplete."
+fi
+irregular="$(find "${files_dir}" -mindepth 1 ! -type f ! -type d)"
+if [[ -n "${irregular}" ]]; then
+  fail "The autofix artifact holds files that aren't regular files: ${irregular//$'\n'/, }"
+fi
 
-# Only files in PATHS are this job's to commit. Others belong to other jobs
-# (or are build artifacts), so they're reported and left alone.
-git add -A -- "${paths[@]}"
-outside="$(git diff --name-only && git ls-files --others --exclude-standard)"
+added="$(cd "${files_dir}" && find . -type f | sed 's|^\./||' | sort)"
+deleted="$(sort -u "${ARTIFACT_DIR}/deleted")"
+changed_files="$(printf '%s\n%s\n' "${added}" "${deleted}" | sed '/^$/d' | sort -u)"
+if [[ -z "${changed_files}" ]]; then
+  fail "The autofix artifact holds no changes."
+fi
+
+while IFS= read -r path; do
+  case "/${path}/" in
+    */../* | */./* | //*) fail "The autofix artifact holds an invalid path: ${path}" ;;
+    /.git/* | /.github/*) fail "Autofix doesn't commit changes under .git or .github: ${path}" ;;
+  esac
+done <<<"${changed_files}"
+
+outside="$(comm -23 <(echo "${changed_files}") <(in_paths <<<"${changed_files}" | sort -u))"
 if [[ -n "${outside}" ]]; then
-  echo "::warning::Ignoring changes outside ${paths[*]}:%0A${outside//$'\n'/%0A}"
-fi
-
-if git diff --cached --quiet; then
-  echo "No changes."
-  echo "changed=false" | tee -a "$GITHUB_OUTPUT"
-  echo "committed=false" | tee -a "$GITHUB_OUTPUT"
-  exit 0
-fi
-echo "changed=true" | tee -a "$GITHUB_OUTPUT"
-
-echo "::group::Changes"
-git diff --cached
-echo "::endgroup::"
-{
-  echo "### Autofix changes"
-  echo '```'
-  git diff --cached --stat
-  echo '```'
-} >>"$GITHUB_STEP_SUMMARY"
-
-head_sha="$(git rev-parse HEAD)"
-
-reason=""
-if [[ "${COMMIT}" != "true" ]]; then
-  reason="committing is disabled"
-elif [[ -n "${PR_HEAD_REPO}" && "${PR_HEAD_REPO}" != "${GITHUB_REPOSITORY}" ]]; then
-  reason="the pull request is from a fork"
-elif [[ -n "${PR_HEAD_SHA}" && "${PR_HEAD_SHA}" != "${head_sha}" ]]; then
-  reason="the checkout is not the pull request head (${PR_HEAD_SHA}). Check out with 'ref: \${{ github.event.pull_request.head.sha }}'"
-elif [[ -z "${BRANCH}" ]]; then
-  reason="no branch to commit to"
-elif [[ "${BRANCH}" == "${DEFAULT_BRANCH}" || "${BRANCH}" == gh-readonly-queue/* ]]; then
-  reason="'${BRANCH}' is the default branch or a merge queue branch"
-elif [[ -z "${GH_TOKEN:-}" ]]; then
-  # Commits pushed with GITHUB_TOKEN don't trigger workflow runs, so checks
-  # would never run on the autofix commit.
-  reason="no github-token was given. Pass a GitHub App token, e.g. from setup-github-token"
-elif git log -1 --format=%B | grep -qxF "${trailer}"; then
-  # Guards against a commit loop when the commands are not idempotent. Another
-  # job's autofix commit (e.g. for another directory) touches other files.
-  overlap="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${head_sha}" --jq '.files[].filename' |
-    grep -Fxf <(git diff --cached --no-renames --name-only) || true)"
-  if [[ -n "${overlap}" ]]; then
-    reason="HEAD is an autofix commit that already changed ${overlap//$'\n'/, }, so the commands do not converge"
-  fi
-fi
-
-if [[ -n "${reason}" ]]; then
-  echo "committed=false" | tee -a "$GITHUB_OUTPUT"
-  echo "::error::Autofix produced changes but did not commit them: ${reason}. Run the same commands locally and commit the result."
-  exit 1
+  fail "The autofix artifact changes files outside ${paths[*]}: ${outside//$'\n'/, }"
 fi
 
 tmp="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
@@ -100,14 +85,17 @@ deletions="$(mktemp "${tmp}/autofix-deletions.XXXXXX")"
 payload="$(mktemp "${tmp}/autofix-payload.XXXXXX")"
 trap 'rm -f "${additions}" "${deletions}" "${payload}"' EXIT
 
-while IFS= read -r -d '' status && IFS= read -r -d '' path; do
-  if [[ "${status}" == "D" ]]; then
-    jq -n --arg path "${path}" '{path: $path}' >>"${deletions}"
-  else
-    jq -n --arg path "${path}" --rawfile contents <(base64 <"${path}" | tr -d '\n') \
+while IFS= read -r path; do
+  if [[ -n "${path}" ]]; then
+    jq -n --arg path "${path}" --rawfile contents <(base64 <"${files_dir}/${path}" | tr -d '\n') \
       '{path: $path, contents: $contents}' >>"${additions}"
   fi
-done < <(git diff --cached --no-renames --name-status -z)
+done <<<"${added}"
+while IFS= read -r path; do
+  if [[ -n "${path}" ]]; then
+    jq -n --arg path "${path}" '{path: $path}' >>"${deletions}"
+  fi
+done <<<"${deleted}"
 
 # build_payload <expected head oid>
 build_payload() {
@@ -133,30 +121,26 @@ build_payload() {
 }
 
 # Other autofix jobs (for other paths, or a matrix over modules) can push to the
-# branch between the checkout and this commit. The commit holds whole files, so
-# it's still correct on top of theirs as long as none of the same files
-# changed. Any other push means this run is stale: its fixes were made from old
-# sources, and checks will run again on the new commit anyway.
-changed_files="$(git diff --cached --no-renames --name-only)"
-expected="${head_sha}"
+# branch between the fixers' checkout and this commit. The commit holds whole
+# files, so it's still correct on top of theirs as long as none of the same
+# files changed. Any other push means this run is stale: its fixes were made
+# from old sources, and checks will run again on the new commit anyway.
+expected="${HEAD_SHA}"
 commit_url=""
 for attempt in 1 2 3 4 5; do
   remote="$(gh api "repos/${GITHUB_REPOSITORY}/branches/${BRANCH}" --jq .commit.sha)"
   if [[ "${remote}" != "${expected}" ]]; then
-    compare="$(gh api "repos/${GITHUB_REPOSITORY}/compare/${head_sha}...${remote}")"
+    compare="$(gh api "repos/${GITHUB_REPOSITORY}/compare/${HEAD_SHA}...${remote}")"
     if [[ "$(jq -r .status <<<"${compare}")" != "ahead" ]]; then
-      echo "::error::${BRANCH} was rewritten since checkout. Checks will run again on the new commit."
-      exit 1
+      fail "${BRANCH} was rewritten since checkout. Checks will run again on the new commit."
     fi
     if jq -e --arg trailer "${trailer}" \
       'any(.commits[]; .commit.message | split("\n") | index($trailer) | not)' <<<"${compare}" >/dev/null; then
-      echo "::error::${BRANCH} was pushed to since checkout, so these fixes are stale. Checks will run again on the new commit."
-      exit 1
+      fail "${BRANCH} was pushed to since checkout, so these fixes are stale. Checks will run again on the new commit."
     fi
     overlap="$(jq -r '.files[].filename' <<<"${compare}" | grep -Fxf <(echo "${changed_files}") || true)"
     if [[ -n "${overlap}" ]]; then
-      echo "::error::Another autofix job changed the same files since checkout (${overlap//$'\n'/, }). Checks will run again on the new commit."
-      exit 1
+      fail "Another autofix job changed the same files since checkout (${overlap//$'\n'/, }). Checks will run again on the new commit."
     fi
     echo "Another autofix job pushed ${remote} without touching the same files, committing on top of it."
     expected="${remote}"
@@ -171,16 +155,9 @@ for attempt in 1 2 3 4 5; do
 done
 
 if [[ -z "${commit_url}" ]]; then
-  echo "::error::Failed to push the autofix commit to ${BRANCH}."
-  exit 1
+  fail "Failed to push the autofix commit to ${BRANCH}."
 fi
-commit_sha="${commit_url##*/}"
 
 echo "committed=true" | tee -a "$GITHUB_OUTPUT"
-echo "commit-sha=${commit_sha}" | tee -a "$GITHUB_OUTPUT"
+echo "commit-sha=${commit_url##*/}" | tee -a "$GITHUB_OUTPUT"
 echo "Pushed autofix commit to ${BRANCH}: ${commit_url}" | tee -a "$GITHUB_STEP_SUMMARY"
-
-if [[ "${FAIL_ON_COMMIT}" == "true" ]]; then
-  echo "::error::Pushed autofix commit ${commit_url}. Checks will run again on the new commit."
-  exit 1
-fi

@@ -5,18 +5,21 @@ on:
     inputs:
       working-directory:
         description: |
-          Directory the `run` commands and the Go fixers run in, relative to
-          the repository root.
+          Directory the `setup` and `run` commands and the Go fixers run in,
+          relative to the repository root.
         required: false
         type: string
         default: "."
       paths:
         description: |
           Files this autofix owns, as git pathspecs relative to the repository
-          root, one per line (e.g. `cre`, or `:!cre` to exclude it). Only
-          changes to these files are committed, the Go fixers only fix modules
-          in them, and pull requests that change none of them are skipped.
-          Defaults to `working-directory`.
+          root, one per line. Only changes to these files are committed, the Go
+          fixers only fix modules in them, and pull requests that change none
+          of them are skipped. Defaults to `working-directory`. For example:
+
+            paths: |
+              .
+              :!cre
         required: false
         type: string
         default: ""
@@ -24,7 +27,11 @@ on:
         description: |
           Shell commands to run in `working-directory` before the Go fixers:
           installing tools `go generate` needs, formatting or generating what
-          Go is generated from (e.g. protos), ...
+          Go is generated from (e.g. protos), ... For example:
+
+            setup: |
+              make install-tools
+              ./script/format-protos.sh
         required: false
         type: string
         default: ""
@@ -32,7 +39,12 @@ on:
         description: |
           Shell commands to run in `working-directory` after the Go fixers:
           what's derived from the fixed modules (e.g. a module graph from the
-          tidied go.mod files), formatters for other languages, ...
+          tidied go.mod files), formatters for other languages, ... For
+          example:
+
+            run: |
+              make modgraph
+              prettier --write .
         required: false
         type: string
         default: ""
@@ -79,63 +91,46 @@ on:
         default: "chore: autofix"
       gati-profile:
         description: |
-          GATI v2 profile used to get a token that pushes the commit.
-          Either this or the AWS_ROLE_ARN and AWS_LAMBDA_URL secrets are
-          required on pull requests: commits pushed with the default
-          GITHUB_TOKEN don't trigger workflow runs.
-        required: false
+          GATI v2 profile used to get the token that pushes the commit, which
+          needs `contents: write`. Commits pushed with the default
+          GITHUB_TOKEN don't trigger workflow runs, so checks would never run
+          on the autofix commit.
+        required: true
         type: string
-        default: ""
       runs-on:
         description: Runner to use.
         required: false
         type: string
         default: "ubuntu-latest"
-    secrets:
-      AWS_ROLE_ARN:
-        description: GATI v1 role ARN. Ignored when gati-profile is set.
-        required: false
-      AWS_LAMBDA_URL:
-        description: GATI v1 lambda URL. Ignored when gati-profile is set.
-        required: false
     outputs:
       skipped:
         description:
           Whether the fixers were skipped because the pull request changed no
           file in `paths`, "true" or "false".
-        value: ${{ jobs.autofix.outputs.skipped }}
+        value: ${{ jobs.fix.outputs.skipped }}
       changed:
         description: Whether the commands changed any files, "true" or "false".
-        value: ${{ jobs.autofix.outputs.changed }}
+        value: ${{ jobs.fix.outputs.changed }}
       committed:
         description: Whether an autofix commit was pushed, "true" or "false".
-        value: ${{ jobs.autofix.outputs.committed }}
+        value: ${{ jobs.commit.outputs.committed || 'false' }}
 
 permissions: {}
 
 jobs:
-  autofix:
+  # Runs the fixers, which run code from the pull request (`setup`, `run`,
+  # `go generate`), so it holds no token beyond read access.
+  fix:
     name: Autofix
     runs-on: ${{ inputs.runs-on }}
     permissions:
-      contents: write
-      id-token: write
+      contents: read
     outputs:
       skipped: ${{ steps.autofix.outputs.skipped }}
       changed: ${{ steps.autofix.outputs.changed }}
-      committed: ${{ steps.autofix.outputs.committed }}
+      commit: ${{ steps.autofix.outputs.commit }}
+      artifact: ${{ steps.autofix.outputs.artifact }}
     steps:
-      # Only pull requests from this repository get commits. Forks get no
-      # secrets, and other events never commit.
-      - name: Get GitHub token
-        id: token
-        if: github.event.pull_request.head.repo.full_name == github.repository
-        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
-        with:
-          profile: ${{ inputs.gati-profile }}
-          aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
-          aws-lambda-url: ${{ secrets.AWS_LAMBDA_URL }}
-
       - name: Checkout
         uses: actions/checkout@v7
         with:
@@ -155,5 +150,32 @@ jobs:
           always: ${{ inputs.always }}
           setup-go: ${{ inputs.setup-go || inputs.go }}
           go-version-file: ${{ inputs.go-version-file }}
-          commit-message: ${{ inputs.commit-message }}
+
+  # Pushes the fixes. Holds the token to, so it runs nothing from the pull
+  # request and checks out nothing.
+  commit:
+    name: Autofix commit
+    needs: fix
+    if: needs.fix.outputs.commit == 'true'
+    runs-on: ${{ inputs.runs-on }}
+    permissions:
+      id-token: write
+    outputs:
+      committed: ${{ steps.commit.outputs.committed }}
+    steps:
+      - name: Get GitHub token
+        id: token
+        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
+        with:
+          profile: ${{ inputs.gati-profile }}
+
+      - name: Commit
+        id: commit
+        uses: smartcontractkit/.github/actions/autofix/commit@autofix/v1
+        with:
+          artifact: ${{ needs.fix.outputs.artifact }}
+          # From the inputs, which the pull request can't influence, rather
+          # than from the fix job.
+          paths: ${{ inputs.paths || inputs.working-directory }}
           github-token: ${{ steps.token.outputs.access-token }}
+          commit-message: ${{ inputs.commit-message }}

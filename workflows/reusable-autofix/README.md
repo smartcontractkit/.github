@@ -76,16 +76,28 @@ jobs:
 
 ## How it works
 
-Each job owns the files in `paths` (git pathspecs, defaulting to
-`working-directory`):
+Each call owns the files in `paths` (git pathspecs, defaulting to
+`working-directory`), and runs two jobs.
 
-1. On a pull request that changed none of them, the job does nothing (unless
+`fix` runs code from the pull request, so it only has `contents: read`:
+
+1. If files in `paths` are already changed, it fails, since it'd commit them as
+   fixes.
+2. On a pull request that changed none of them, it does nothing (unless
    `always: true`).
-2. `setup` runs in `working-directory`.
-3. With `go: true`, the [Go fixers](#go) run.
-4. `run` runs in `working-directory`.
-5. Changes to files in `paths` are committed. Changes elsewhere are left alone
-   with a warning, they belong to another job (or are build artifacts).
+3. `setup` runs in `working-directory`.
+4. With `go: true`, the [Go fixers](#go) run.
+5. `run` runs in `working-directory`.
+6. Changes to files in `paths` are uploaded as an artifact. Changes elsewhere
+   are left alone with a warning, they belong to another call (or are build
+   artifacts).
+
+`commit` gets the GATI token and pushes the artifact's changes as a signed
+commit. It runs nothing from the pull request and checks out nothing, and
+refuses changes outside `paths`, under `.github`, or to anything but regular
+files. That way the job holding write access never runs anything the pull
+request controls, such as a `//go:generate` line or a dependency's code in a
+Dependabot pull request.
 
 The order is what lets one pass fix everything: `setup` installs tools and
 formats or generates what Go is generated from, the Go fixers generate from
@@ -113,21 +125,21 @@ Modules requiring a newer Go than the one installed download it
 
 ### Commits
 
-- No changes: the job passes.
+- No changes: both jobs pass, `commit` is skipped.
 - Changes on a pull request branch: they're pushed as a signed commit, and the
-  job passes. Checks run again on the new commit, which is now the pull
-  request's head.
-- A command fails: the job fails, and nothing is committed.
+  jobs pass. Checks run again on the new commit, which is now the pull request's
+  head.
+- A command fails: `fix` fails, and nothing is committed.
 - Changes that can't be pushed (fork pull requests, the default branch, merge
-  queue branches): the job fails and the diff is in the logs. Run the same
-  commands locally.
-- Another autofix job pushed first: the commit goes on top of theirs if they
-  changed different files, otherwise the job fails.
-- Someone else pushed since checkout: the fixes are stale, so the job fails, and
-  runs again on the new push.
+  queue branches, changes under `.github`): `fix` fails and the diff is in the
+  logs. Run the same commands locally.
+- Another autofix call pushed first: the commit goes on top of theirs if they
+  changed different files, otherwise `commit` fails.
+- Someone else pushed since checkout: the fixes are stale, so `commit` fails,
+  and checks run again on the new push.
 - If the commands change files that the autofix commit at HEAD already changed,
-  the job fails instead of committing again, so commands that never converge
-  can't loop.
+  `fix` fails instead of committing again, so commands that never converge can't
+  loop.
 
 Autofix commits carry an `Autofix: true` trailer, which is how jobs recognize
 each other's commits.
@@ -136,11 +148,9 @@ each other's commits.
 
 Commits pushed with the default `GITHUB_TOKEN`
 [don't trigger workflow runs](https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#using-the-github_token-in-a-workflow),
-so checks would never run on the autofix commit. There's no fallback to it: on
-pull requests from the repository, pass a `gati-profile` (GATI v2) or the
-`AWS_ROLE_ARN` and `AWS_LAMBDA_URL` secrets (GATI v1), or the job fails. The
-token needs `contents: write` on the repository. Other events never commit, so
-need no token.
+so checks would never run on the autofix commit. `commit` gets a GitHub App
+token for `gati-profile` instead, which needs `contents: write` on the
+repository. Only `commit` gets it, and only when there's something to push.
 
 ## Inputs
 
@@ -156,7 +166,7 @@ need no token.
 | `setup-go`          | Install Go even when `go` isn't true, for commands that need it.                    | `false`             |
 | `go-version-file`   | go.mod used to determine the Go version.                                            | first module's      |
 | `commit-message`    | Message of the autofix commit.                                                      | `chore: autofix`    |
-| `gati-profile`      | GATI v2 profile for the token that pushes the commit. See [Tokens](#tokens).        |                     |
+| `gati-profile`      | Required. GATI v2 profile for the token that pushes. See [Tokens](#tokens).         |                     |
 | `runs-on`           | Runner to use.                                                                      | `ubuntu-latest`     |
 
 ## Outputs

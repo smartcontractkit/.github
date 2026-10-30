@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
-# Decides whether to skip the fixers: on a pull request that changed no file in
-# PATHS there's nothing for them to fix. Anything else runs them.
+# Runs before anything the pull request controls. Fails if files in PATHS are
+# already changed, since they'd be committed as fixes. Then decides whether to
+# skip the fixers: on a pull request that changed no file in PATHS there's
+# nothing for them to fix. Anything else runs them.
 
 set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,15 +11,22 @@ cd "$(git rev-parse --show-toplevel)"
 # shellcheck source=SCRIPTDIR/paths.sh
 source "${script_dir}/paths.sh"
 
+ALWAYS="${ALWAYS:-false}"
 PR_BASE_SHA="${PR_BASE_SHA:-}"
 PR_HEAD_SHA="${PR_HEAD_SHA:-}"
+
+dirty="$(git status --porcelain --untracked-files=all -- "${paths[@]}")"
+if [[ -n "${dirty}" ]]; then
+  echo "::error::Files in ${paths[*]} were changed before autofix ran, and would be committed as its fixes:%0A${dirty//$'\n'/%0A}"
+  exit 1
+fi
 
 skip() {
   echo "skip=$1" | tee -a "$GITHUB_OUTPUT"
   exit 0
 }
 
-if [[ -z "${PR_BASE_SHA}" || -z "${PR_HEAD_SHA}" ]]; then
+if [[ "${ALWAYS}" == "true" || -z "${PR_BASE_SHA}" || -z "${PR_HEAD_SHA}" ]]; then
   skip false
 fi
 
@@ -31,19 +40,7 @@ if [[ "$(jq '.files | length' <<<"${compare}")" -ge 300 ]]; then
   skip false
 fi
 
-# Match the changed files against the pathspecs with git itself, through a
-# throwaway index, so deleted files and pathspec magic work too.
-index="$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/autofix-index.XXXXXX")"
-rm -f "${index}"
-trap 'rm -f "${index}"' EXIT
-empty_blob="$(git hash-object -t blob /dev/null)"
-jq -r '.files[] | .filename, (.previous_filename // empty)' <<<"${compare}" |
-  while IFS= read -r file; do
-    printf '100644 %s\t%s\n' "${empty_blob}" "${file}"
-  done |
-  GIT_INDEX_FILE="${index}" git update-index --index-info
-
-matched="$(GIT_INDEX_FILE="${index}" git ls-files -- "${paths[@]}")"
+matched="$(jq -r '.files[] | .filename, (.previous_filename // empty)' <<<"${compare}" | in_paths)"
 if [[ -z "${matched}" ]]; then
   echo "::notice::The pull request changed no files in ${paths[*]}, skipping."
   skip true
