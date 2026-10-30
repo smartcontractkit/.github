@@ -1,0 +1,163 @@
+# GENERATED FILE - DO NOT EDIT DIRECTLY.
+# Source: workflows/reusable-autofix/reusable-autofix.yml
+# Edit the source under workflows/, then regenerate.
+
+name: Reusable Autofix
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: |
+          Directory the `run` commands and the Go fixers run in, relative to
+          the repository root.
+        required: false
+        type: string
+        default: "."
+      paths:
+        description: |
+          Files this autofix owns, as git pathspecs relative to the repository
+          root, one per line (e.g. `cre`, or `:!cre` to exclude it). Only
+          changes to these files are committed, the Go fixers only fix modules
+          in them, and pull requests that change none of them are skipped.
+          Defaults to `working-directory`.
+        required: false
+        type: string
+        default: ""
+      setup:
+        description: |
+          Shell commands to run in `working-directory` before the Go fixers:
+          installing tools `go generate` needs, formatting or generating what
+          Go is generated from (e.g. protos), ...
+        required: false
+        type: string
+        default: ""
+      run:
+        description: |
+          Shell commands to run in `working-directory` after the Go fixers:
+          what's derived from the fixed modules (e.g. a module graph from the
+          tidied go.mod files), formatters for other languages, ...
+        required: false
+        type: string
+        default: ""
+      go:
+        description:
+          Run the Go fixers (go mod tidy, go fix, go fmt, go generate, go mod
+          tidy).
+        required: false
+        type: boolean
+        default: false
+      go-recursive:
+        description: |
+          Run the Go fixers in every module in `paths` in or below
+          `working-directory`. When false, only in the module at
+          `working-directory`.
+        required: false
+        type: boolean
+        default: true
+      always:
+        description: Run on pull requests that change no file in `paths` too.
+        required: false
+        type: boolean
+        default: false
+      setup-go:
+        description: |
+          Install Go. Always done when `go` is true, set to true when the
+          `run` commands need Go.
+        required: false
+        type: boolean
+        default: false
+      go-version-file:
+        description: |
+          go.mod used to determine the Go version. Defaults to the go.mod in
+          `working-directory`, else the first module the Go fixers would fix,
+          else the root go.mod. Modules requiring a newer Go download it
+          automatically.
+        required: false
+        type: string
+        default: ""
+      commit-message:
+        description: Message of the autofix commit.
+        required: false
+        type: string
+        default: "chore: autofix"
+      gati-profile:
+        description: |
+          GATI v2 profile used to get a token that pushes the commit.
+          Either this or the AWS_ROLE_ARN and AWS_LAMBDA_URL secrets are
+          required on pull requests: commits pushed with the default
+          GITHUB_TOKEN don't trigger workflow runs.
+        required: false
+        type: string
+        default: ""
+      runs-on:
+        description: Runner to use.
+        required: false
+        type: string
+        default: "ubuntu-latest"
+    secrets:
+      AWS_ROLE_ARN:
+        description: GATI v1 role ARN. Ignored when gati-profile is set.
+        required: false
+      AWS_LAMBDA_URL:
+        description: GATI v1 lambda URL. Ignored when gati-profile is set.
+        required: false
+    outputs:
+      skipped:
+        description:
+          Whether the fixers were skipped because the pull request changed no
+          file in `paths`, "true" or "false".
+        value: ${{ jobs.autofix.outputs.skipped }}
+      changed:
+        description: Whether the commands changed any files, "true" or "false".
+        value: ${{ jobs.autofix.outputs.changed }}
+      committed:
+        description: Whether an autofix commit was pushed, "true" or "false".
+        value: ${{ jobs.autofix.outputs.committed }}
+
+permissions: {}
+
+jobs:
+  autofix:
+    name: Autofix
+    runs-on: ${{ inputs.runs-on }}
+    permissions:
+      contents: write
+      id-token: write
+    outputs:
+      skipped: ${{ steps.autofix.outputs.skipped }}
+      changed: ${{ steps.autofix.outputs.changed }}
+      committed: ${{ steps.autofix.outputs.committed }}
+    steps:
+      # Only pull requests from this repository get commits. Forks get no
+      # secrets, and other events never commit.
+      - name: Get GitHub token
+        id: token
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
+        with:
+          profile: ${{ inputs.gati-profile }}
+          aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
+          aws-lambda-url: ${{ secrets.AWS_LAMBDA_URL }}
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Autofix
+        id: autofix
+        uses: smartcontractkit/.github/actions/autofix@autofix/v1
+        with:
+          working-directory: ${{ inputs.working-directory }}
+          paths: ${{ inputs.paths }}
+          setup: ${{ inputs.setup }}
+          run: ${{ inputs.run }}
+          go: ${{ inputs.go }}
+          go-recursive: ${{ inputs.go-recursive }}
+          always: ${{ inputs.always }}
+          setup-go: ${{ inputs.setup-go || inputs.go }}
+          go-version-file: ${{ inputs.go-version-file }}
+          commit-message: ${{ inputs.commit-message }}
+          github-token: ${{ steps.token.outputs.access-token }}

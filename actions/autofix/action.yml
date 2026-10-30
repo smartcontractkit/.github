@@ -1,0 +1,203 @@
+name: autofix
+description:
+  Runs fixer commands (code generators, go mod tidy, formatters, ...) and
+  commits any resulting changes back to the pull request branch as a signed
+  commit.
+
+inputs:
+  working-directory:
+    description: |
+      Directory the `run` commands and the Go fixers run in, relative to the
+      repository root.
+    required: false
+    default: "."
+  paths:
+    description: |
+      Files this autofix owns, as git pathspecs relative to the repository root,
+      one per line (e.g. `cre` or `:!cre` to exclude it). Only changes to these
+      files are committed, the Go fixers only fix modules in them, and pull
+      requests that change none of them are skipped. Defaults to
+      `working-directory`.
+    required: false
+    default: ""
+  setup:
+    description: |
+      Shell commands to run in `working-directory` before the Go fixers, as in
+      a `run:` step: installing tools `go generate` needs, formatting or
+      generating what Go is generated from (e.g. protos), ...
+    required: false
+    default: ""
+  run:
+    description: |
+      Shell commands to run in `working-directory` after the Go fixers, as in a
+      `run:` step: what's derived from the fixed modules (e.g. a module graph
+      from the tidied go.mod files), formatters for other languages, ...
+    required: false
+    default: ""
+  go:
+    description: |
+      Run the Go fixers (go mod tidy, go fix, go fmt, go generate, go mod tidy).
+      Requires Go to be installed.
+    required: false
+    default: "false"
+  go-recursive:
+    description: |
+      Run the Go fixers in every module in `paths` in or below
+      `working-directory`. When "false", only in the module at
+      `working-directory`.
+    required: false
+    default: "true"
+  setup-go:
+    description: |
+      Install Go (via setup-golang) before running anything. Leave "false" when
+      the job already installed it.
+    required: false
+    default: "false"
+  go-version-file:
+    description: |
+      go.mod used to determine the Go version when `setup-go` is "true".
+      Defaults to the go.mod in `working-directory`, else the first module the
+      Go fixers would fix, else the root go.mod. Modules requiring a newer Go
+      download it automatically.
+    required: false
+    default: ""
+  always:
+    description: |
+      Run on pull requests that change no file in `paths` too.
+    required: false
+    default: "false"
+  commit:
+    description: |
+      Commit changes back to the branch. When "false", or when committing isn't
+      possible (fork pull requests, the default branch, merge queue branches,
+      the checkout isn't the pull request head), changes fail the step
+      instead.
+    required: false
+    default: "true"
+  commit-message:
+    description: Message of the autofix commit.
+    required: false
+    default: "chore: autofix"
+  branch:
+    description: Branch to commit to.
+    required: false
+    default: ${{ github.head_ref || github.ref_name }}
+  fail-on-commit:
+    description: |
+      Fail the step after pushing a commit too. By default the step only fails
+      when a command fails or changes can't be pushed: checks run again on the
+      pushed commit, which becomes the pull request's head.
+    required: false
+    default: "false"
+  github-token:
+    description: |
+      GitHub App token used to push the commit (e.g. from setup-github-token),
+      which needs `contents: write`. Required to commit: commits pushed with
+      the default GITHUB_TOKEN don't trigger workflow runs, so checks would
+      never run on the autofix commit.
+    required: false
+    default: ""
+
+outputs:
+  skipped:
+    description:
+      Whether the fixers were skipped because the pull request changed no file
+      in `paths`, "true" or "false".
+    value: ${{ steps.scope.outputs.skip }}
+  changed:
+    description: Whether the commands changed any files, "true" or "false".
+    value: ${{ steps.commit.outputs.changed }}
+  committed:
+    description: Whether an autofix commit was pushed, "true" or "false".
+    value: ${{ steps.commit.outputs.committed }}
+  commit-sha:
+    description: SHA of the pushed autofix commit, if any.
+    value: ${{ steps.commit.outputs.commit-sha }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check paths
+      id: scope
+      shell: bash
+      env:
+        PATHS: ${{ inputs.paths || inputs.working-directory }}
+        ALWAYS: ${{ inputs.always }}
+        GH_TOKEN: ${{ github.token }}
+        PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: |
+        if [[ "${ALWAYS}" == "true" ]]; then
+          echo "skip=false" | tee -a "$GITHUB_OUTPUT"
+        else
+          "${GITHUB_ACTION_PATH}/scripts/scope.sh"
+        fi
+
+    - name: Find go.mod
+      id: go-mod
+      if: steps.scope.outputs.skip != 'true' && inputs.setup-go == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        GO_VERSION_FILE: ${{ inputs.go-version-file }}
+        PATHS: ${{ inputs.paths || inputs.working-directory }}
+      run: |
+        file="${GO_VERSION_FILE}"
+        if [[ -z "${file}" && -f go.mod ]]; then
+          file="$(git rev-parse --show-prefix)go.mod"
+        fi
+        if [[ -z "${file}" ]]; then
+          module="$("${GITHUB_ACTION_PATH}/scripts/go.sh" modules | head -n1)"
+          file="${module:+${module}/}go.mod"
+        fi
+        echo "file=${file#./}" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Setup Go
+      if: steps.scope.outputs.skip != 'true' && inputs.setup-go == 'true'
+      uses: smartcontractkit/.github/actions/setup-golang@setup-golang/v1
+      with:
+        go-version-file: ${{ steps.go-mod.outputs.file }}
+        only-modules: "true"
+
+    - name: Setup commands
+      if: steps.scope.outputs.skip != 'true' && inputs.setup != ''
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        SETUP: ${{ inputs.setup }}
+      run: eval "${SETUP}"
+
+    - name: Go fixers
+      if: steps.scope.outputs.skip != 'true' && inputs.go == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        PATHS: ${{ inputs.paths || inputs.working-directory }}
+        RECURSIVE: ${{ inputs.go-recursive == 'true' && '--recursive' || '' }}
+        # Modules may require a newer Go than the one installed.
+        GOTOOLCHAIN: auto
+      run: ${{ github.action_path }}/scripts/go.sh fix ${RECURSIVE}
+
+    - name: Run commands
+      if: steps.scope.outputs.skip != 'true' && inputs.run != ''
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        RUN: ${{ inputs.run }}
+      run: eval "${RUN}"
+
+    - name: Commit changes
+      id: commit
+      if: steps.scope.outputs.skip != 'true'
+      shell: bash
+      env:
+        PATHS: ${{ inputs.paths || inputs.working-directory }}
+        GH_TOKEN: ${{ inputs.github-token }}
+        COMMIT: ${{ inputs.commit }}
+        COMMIT_MESSAGE: ${{ inputs.commit-message }}
+        BRANCH: ${{ inputs.branch }}
+        FAIL_ON_COMMIT: ${{ inputs.fail-on-commit }}
+        PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      run: ${{ github.action_path }}/scripts/commit.sh
