@@ -3,23 +3,25 @@
 Gets a GitHub installation access token from GATI, and optionally configures git
 to authenticate with it.
 
-Requires `id-token: write` on the calling job — v1 uses it to assume the AWS
-role, v2 to authenticate to GATI directly.
+Requires `id-token: write` on the calling job — v2 uses it to authenticate to
+GATI directly, and the legacy v1 flow to assume the AWS role.
+
+> [!WARNING]
+>
+> GATI v1 is deprecated and will be removed. If you set `gati-version: v1`, or
+> use a version of this action older than `1.5.0`, upgrade to the latest version
+> and drop `gati-version`. Keep passing `aws-role-arn` and v2 will issue the
+> same token v1 did, see [Migrated v1 roles](#migrated-v1-roles).
 
 ## Which flow runs
 
-- **v1** ([`invoke-gati`](../invoke-gati/)) assumes `aws-role-arn`, then calls
-  the lambda at `aws-lambda-url`.
-- **v2** ([`invoke-gati-v2`](../invoke-gati-v2/)) requests a `profile` over
-  GitHub OIDC, with no AWS credentials.
+By default, [`invoke-gati-v2`](../invoke-gati-v2/) requests a `profile` over
+GitHub OIDC, with no AWS credentials.
 
-Passing `profile` selects v2. Otherwise a staged rollout decides: the repository
-name is hashed into a bucket of 0–99, and uses v2 when that bucket is below the
-rollout percentage. Since the bucket never changes, a repository moves to v2
-once and stays there. The percentage and the two pin lists that override it are
-the `ROLLOUT_PERCENTAGE`, `FORCE_V2_REPOSITORIES`, and `FORCE_V1_REPOSITORIES`
-env values on the `Resolve GATI version` step in [`action.yml`](./action.yml);
-changing them needs a release. `gati-version` overrides all of the above.
+Setting `gati-version: v1` forces the legacy [`invoke-gati`](../invoke-gati/)
+flow instead, which assumes `aws-role-arn`, then calls the lambda at
+`aws-lambda-url`. Both of those inputs are required in that case, and `profile`
+must not be set.
 
 ## Migrated v1 roles
 
@@ -32,23 +34,24 @@ scopes its v1 role does not already have.
 
 ## Inputs
 
-Either `profile` or the v1 inputs must be provided.
+Either `profile` or `aws-role-arn` must be provided.
 
 | Name             | Description                                               | Defaulted      |
 | ---------------- | --------------------------------------------------------- | -------------- |
 | `set-git-config` | Configure git to use the token for `https://github.com/`. | ✅ - `"false"` |
-| `gati-version`   | Force `v1` or `v2`, bypassing the rollout.                |                |
+| `gati-version`   | Set to `v1` to force the legacy GATI v1 flow.             | ✅ - `"v2"`    |
 
 ### v2
 
-| Name      | Description                                    |
-| --------- | ---------------------------------------------- |
-| `profile` | Token profile to request. Selects v2 when set. |
+| Name      | Description               |
+| --------- | ------------------------- |
+| `profile` | Token profile to request. |
 
 ### v1
 
-Also read by v2 to derive a profile, see
-[Migrated v1 roles](#migrated-v1-roles). Ignored when `profile` is set.
+Only `aws-role-arn` is read by v2, to derive a profile, see
+[Migrated v1 roles](#migrated-v1-roles). The rest are only used when
+`gati-version` is `v1`. Ignored when `profile` is set.
 
 | Name                        | Description                                     | Defaulted                        |
 | --------------------------- | ----------------------------------------------- | -------------------------------- |
@@ -80,8 +83,6 @@ jobs:
         uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
         with:
           aws-role-arn: ${{ secrets.AWS_OIDC_IAM_ROLE_ARN_GATI }}
-          aws-lambda-url: ${{ secrets.AWS_LAMBDA_URL_GATI }}
-          aws-region: us-west-2
 
       - name: Use the token
         env:

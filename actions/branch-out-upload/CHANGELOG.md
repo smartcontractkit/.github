@@ -1,5 +1,21 @@
 # branch-out-upload
 
+## 1.10.0
+
+### Minor Changes
+
+- [#1727](https://github.com/smartcontractkit/.github/pull/1727)
+  [`380d513`](https://github.com/smartcontractkit/.github/commit/380d51348674428efa9c34cabd12f83335dd4aa3)
+  Thanks [@erikburt](https://github.com/erikburt)! - feat: add
+  trunk-test-collection-id input as pass-through to trunk-io/analytics-uploader
+
+### Patch Changes
+
+- [#1727](https://github.com/smartcontractkit/.github/pull/1727)
+  [`380d513`](https://github.com/smartcontractkit/.github/commit/380d51348674428efa9c34cabd12f83335dd4aa3)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump
+  trunk-io/analytics-uploader to v2.1.6 (from v2.1.2)
+
 ## 1.9.3
 
 ### Patch Changes
