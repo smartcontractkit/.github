@@ -1,5 +1,15 @@
 # setup-github-token
 
+## 1.5.0
+
+### Minor Changes
+
+- [#1734](https://github.com/smartcontractkit/.github/pull/1734)
+  [`c5febca`](https://github.com/smartcontractkit/.github/commit/c5febca065a13f4192bb20220c6b74b1637e06ee)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: remove the GATI v2
+  staged rollout. v2 is now always used unless `gati-version: v1` is set to
+  force the legacy flow.
+
 ## 1.4.3
 
 ### Patch Changes
