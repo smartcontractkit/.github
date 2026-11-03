@@ -98,9 +98,11 @@ on:
           GATI v2 profile used to get the token that pushes the commit, which
           needs `contents: write`. Commits pushed with the default
           GITHUB_TOKEN don't trigger workflow runs, so checks would never run
-          on the autofix commit.
-        required: true
+          on the autofix commit. The default, `globals/write-self`, grants
+          `contents: write` on the calling repository only.
+        required: false
         type: string
+        default: "globals/write-self"
       runs-on:
         description: Runner to use.
         required: false
