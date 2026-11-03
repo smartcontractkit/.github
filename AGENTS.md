@@ -40,3 +40,30 @@ callers reference those tags.
 - `pnpm workflows:check` — reusable workflow sync is up to date.
 - Lefthook runs prettier, actionlint, shellcheck, and affected builds
   pre-commit.
+
+## PR size
+
+Keep PRs under 400 added lines of authored code and config; deletions don't
+count. Code counts whether a human or an agent wrote it. Tool-generated files
+(codegen output, lockfiles, test snapshots) and tests don't count toward the
+limit, but tests must only cover code changed in the PR; don't expand test scope
+to work around the limit.
+
+If a task can't fit in 400 lines:
+
+1. Default: stop and propose a split before writing code.
+2. If asked to work autonomously: split the work into layers and stage them one
+   layer at a time, pausing for the developer to commit each.
+3. Once the commits are signed, ASK the developer if they want you to create the
+   stack. IF they say yes, built a stack with
+   [gh-stack](https://github.github.com/gh-stack/) —
+   `gh extension install github/gh-stack`, `gh stack init <name>` for the first
+   layer, `gh stack add <name>` for each layer above it, `gh stack push` /
+   `gh stack submit` to open the PRs. It handles cascading rebases when a lower
+   layer changes.
+4. If gh-stack can't be installed, stack manually: branch each PR off the
+   previous one, target it there (`gh pr create --base <prev-branch>`), and note
+   the stack order in each PR description.
+
+Exempt: dependency bumps, mass renames, `git mv` refactors, reverts, release
+PRs. _Add categories here if a PR type becomes untenable under the limit._
