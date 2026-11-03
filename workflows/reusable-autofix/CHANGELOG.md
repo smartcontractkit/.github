@@ -1,5 +1,14 @@
 # reusable-autofix
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1742](https://github.com/smartcontractkit/.github/pull/1742)
+  [`edebd9a`](https://github.com/smartcontractkit/.github/commit/edebd9a077dcc24cffad7829c11ea240cca2aa64)
+  Thanks [@chainchad](https://github.com/chainchad)! - Default `gati-profile` to
+  `globals/write-self`, so callers no longer need to set it.
+
 ## 1.0.0
 
 ### Major Changes
