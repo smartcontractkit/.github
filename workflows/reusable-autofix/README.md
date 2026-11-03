@@ -26,8 +26,18 @@ jobs:
       id-token: write
     uses: smartcontractkit/.github/.github/workflows/reusable-autofix.yml@reusable-autofix/v1
     with:
-      gati-profile: <your-profile>
       go: true
+```
+
+The commit is pushed with a token for the `globals/write-self` GATI profile by
+default, which every onboarded repository has unless it opted out (see the GATI
+profiles docs in Service Catalog). That's the same as setting it explicitly; set
+another profile with `contents: write` the same way:
+
+```yaml
+with:
+  gati-profile: globals/write-self
+  go: true
 ```
 
 Tools that `go generate` needs, installed by `setup` first (e.g.
@@ -35,7 +45,6 @@ chainlink-common):
 
 ```yaml
 with:
-  gati-profile: <your-profile>
   setup: make mockery install-protoc cre-protoc
   go: true
 ```
@@ -51,7 +60,6 @@ jobs:
       id-token: write
     uses: smartcontractkit/.github/.github/workflows/reusable-autofix.yml@reusable-autofix/v1
     with:
-      gati-profile: <your-profile>
       working-directory: cre
       setup: |
         go install github.com/bufbuild/buf/cmd/buf@v1.45.0
@@ -64,7 +72,6 @@ jobs:
       id-token: write
     uses: smartcontractkit/.github/.github/workflows/reusable-autofix.yml@reusable-autofix/v1
     with:
-      gati-profile: <your-profile>
       paths: |
         .
         :!cre
@@ -150,24 +157,25 @@ Commits pushed with the default `GITHUB_TOKEN`
 [don't trigger workflow runs](https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#using-the-github_token-in-a-workflow),
 so checks would never run on the autofix commit. `commit` gets a GitHub App
 token for `gati-profile` instead, which needs `contents: write` on the
+repository. The default, `globals/write-self`, grants only that, on the calling
 repository. Only `commit` gets it, and only when there's something to push.
 
 ## Inputs
 
-| Name                | Description                                                                         | Default             |
-| ------------------- | ----------------------------------------------------------------------------------- | ------------------- |
-| `working-directory` | Directory `setup`, `run`, and the Go fixers run in.                                 | `.`                 |
-| `paths`             | Files this job owns, git pathspecs one per line. See [How it works](#how-it-works). | `working-directory` |
-| `setup`             | Shell commands to run before the Go fixers.                                         |                     |
-| `run`               | Shell commands to run after the Go fixers.                                          |                     |
-| `go`                | Run the Go fixers. See [Go](#go).                                                   | `false`             |
-| `go-recursive`      | Fix every module in `paths` below `working-directory`, not only the one at it.      | `true`              |
-| `always`            | Run on pull requests that change no file in `paths` too.                            | `false`             |
-| `setup-go`          | Install Go even when `go` isn't true, for commands that need it.                    | `false`             |
-| `go-version-file`   | go.mod used to determine the Go version.                                            | first module's      |
-| `commit-message`    | Message of the autofix commit.                                                      | `chore: autofix`    |
-| `gati-profile`      | Required. GATI v2 profile for the token that pushes. See [Tokens](#tokens).         |                     |
-| `runs-on`           | Runner to use.                                                                      | `ubuntu-latest`     |
+| Name                | Description                                                                         | Default              |
+| ------------------- | ----------------------------------------------------------------------------------- | -------------------- |
+| `working-directory` | Directory `setup`, `run`, and the Go fixers run in.                                 | `.`                  |
+| `paths`             | Files this job owns, git pathspecs one per line. See [How it works](#how-it-works). | `working-directory`  |
+| `setup`             | Shell commands to run before the Go fixers.                                         |                      |
+| `run`               | Shell commands to run after the Go fixers.                                          |                      |
+| `go`                | Run the Go fixers. See [Go](#go).                                                   | `false`              |
+| `go-recursive`      | Fix every module in `paths` below `working-directory`, not only the one at it.      | `true`               |
+| `always`            | Run on pull requests that change no file in `paths` too.                            | `false`              |
+| `setup-go`          | Install Go even when `go` isn't true, for commands that need it.                    | `false`              |
+| `go-version-file`   | go.mod used to determine the Go version.                                            | first module's       |
+| `commit-message`    | Message of the autofix commit.                                                      | `chore: autofix`     |
+| `gati-profile`      | GATI v2 profile for the token that pushes. See [Tokens](#tokens).                   | `globals/write-self` |
+| `runs-on`           | Runner to use.                                                                      | `ubuntu-latest`      |
 
 ## Outputs
 
