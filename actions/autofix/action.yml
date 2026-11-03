@@ -1,0 +1,213 @@
+name: autofix
+description:
+  Runs fixer commands (code generators, go mod tidy, formatters, ...) and
+  uploads the changes they make for autofix/commit to push to the pull request
+  branch. Holds no token, so the job running it should have read-only
+  permissions.
+
+inputs:
+  working-directory:
+    description: |
+      Directory the `setup` and `run` commands and the Go fixers run in,
+      relative to the repository root.
+    required: false
+    default: "."
+  paths:
+    description: |
+      Files this autofix owns, as git pathspecs relative to the repository root,
+      one per line. Only changes to these files are committed, the Go fixers
+      only fix modules in them, and pull requests that change none of them are
+      skipped. Defaults to `working-directory`. For example:
+
+        paths: |
+          .
+          :!cre
+    required: false
+    default: ""
+  setup:
+    description: |
+      Shell commands to run in `working-directory` before the Go fixers, as in
+      a `run:` step: installing tools `go generate` needs, formatting or
+      generating what Go is generated from (e.g. protos), ... For example:
+
+        setup: |
+          make install-tools
+          ./script/format-protos.sh
+    required: false
+    default: ""
+  run:
+    description: |
+      Shell commands to run in `working-directory` after the Go fixers, as in a
+      `run:` step: what's derived from the fixed modules (e.g. a module graph
+      from the tidied go.mod files), formatters for other languages, ... For
+      example:
+
+        run: |
+          make modgraph
+          prettier --write .
+    required: false
+    default: ""
+  go:
+    description: |
+      Run the Go fixers (go mod tidy, go fix, go fmt, go generate, go mod tidy).
+      Requires Go to be installed.
+    required: false
+    default: "false"
+  go-recursive:
+    description: |
+      Run the Go fixers in every module in `paths` in or below
+      `working-directory`. When "false", only in the module at
+      `working-directory`.
+    required: false
+    default: "true"
+  setup-go:
+    description: |
+      Install Go (via setup-golang) before running anything. Leave "false" when
+      the job already installed it.
+    required: false
+    default: "false"
+  go-version-file:
+    description: |
+      go.mod used to determine the Go version when `setup-go` is "true".
+      Defaults to the go.mod in `working-directory`, else the first module the
+      Go fixers would fix, else the root go.mod. Modules requiring a newer Go
+      download it automatically.
+    required: false
+    default: ""
+  always:
+    description: |
+      Run on pull requests that change no file in `paths` too.
+    required: false
+    default: "false"
+  commit:
+    description: |
+      Upload changes for autofix/commit. When "false", or when committing isn't
+      possible (fork pull requests, the default branch, merge queue branches,
+      the checkout isn't the pull request head), changes fail the step
+      instead.
+    required: false
+    default: "true"
+
+outputs:
+  skipped:
+    description:
+      Whether the fixers were skipped because the pull request changed no file
+      in `paths`, "true" or "false".
+    value: ${{ steps.scope.outputs.skip }}
+  changed:
+    description: Whether the commands changed any files, "true" or "false".
+    value: ${{ steps.check.outputs.changed }}
+  commit:
+    description:
+      Whether there are changes for autofix/commit to push, "true" or "false".
+    value: ${{ steps.check.outputs.commit }}
+  artifact:
+    description: Name of the artifact holding the changes, for autofix/commit.
+    value: ${{ steps.prepare.outputs.artifact }}
+
+runs:
+  using: composite
+  steps:
+    # Named before anything the pull request controls runs, so it can't change
+    # which artifact the commit job downloads.
+    - name: Prepare
+      id: prepare
+      shell: bash
+      env:
+        PATHS: ${{ inputs.paths || inputs.working-directory }}
+        WORKING_DIRECTORY: ${{ inputs.working-directory }}
+      run: |
+        # Unique per working directory and paths, so several autofix jobs in a
+        # run don't collide.
+        hash="$(printf '%s\n%s\n' "${WORKING_DIRECTORY}" "${PATHS}" | sha256sum | cut -c1-12)"
+        echo "artifact=autofix-${hash}" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Check paths
+      id: scope
+      shell: bash
+      env:
+        PATHS: ${{ inputs.paths || inputs.working-directory }}
+        ALWAYS: ${{ inputs.always }}
+        GH_TOKEN: ${{ github.token }}
+        PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: '"${GITHUB_ACTION_PATH}/scripts/scope.sh"'
+
+    - name: Find go.mod
+      id: go-mod
+      if: steps.scope.outputs.skip != 'true' && inputs.setup-go == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        GO_VERSION_FILE: ${{ inputs.go-version-file }}
+        PATHS: ${{ inputs.paths || inputs.working-directory }}
+      run: |
+        file="${GO_VERSION_FILE}"
+        if [[ -z "${file}" && -f go.mod ]]; then
+          file="$(git rev-parse --show-prefix)go.mod"
+        fi
+        if [[ -z "${file}" ]]; then
+          module="$("${GITHUB_ACTION_PATH}/scripts/go.sh" modules | head -n1)"
+          file="${module:+${module}/}go.mod"
+        fi
+        echo "file=${file#./}" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Setup Go
+      if: steps.scope.outputs.skip != 'true' && inputs.setup-go == 'true'
+      uses: smartcontractkit/.github/actions/setup-golang@setup-golang/v1
+      with:
+        go-version-file: ${{ steps.go-mod.outputs.file }}
+        only-modules: "true"
+
+    - name: Setup commands
+      if: steps.scope.outputs.skip != 'true' && inputs.setup != ''
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        SETUP: ${{ inputs.setup }}
+      run: eval "${SETUP}"
+
+    - name: Go fixers
+      if: steps.scope.outputs.skip != 'true' && inputs.go == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        PATHS: ${{ inputs.paths || inputs.working-directory }}
+        RECURSIVE: ${{ inputs.go-recursive == 'true' && '--recursive' || '' }}
+        # Modules may require a newer Go than the one installed.
+        GOTOOLCHAIN: auto
+      run: '"${GITHUB_ACTION_PATH}/scripts/go.sh" fix ${RECURSIVE}'
+
+    - name: Run commands
+      if: steps.scope.outputs.skip != 'true' && inputs.run != ''
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        RUN: ${{ inputs.run }}
+      run: eval "${RUN}"
+
+    - name: Check changes
+      id: check
+      if: steps.scope.outputs.skip != 'true'
+      shell: bash
+      env:
+        PATHS: ${{ inputs.paths || inputs.working-directory }}
+        GH_TOKEN: ${{ github.token }}
+        COMMIT: ${{ inputs.commit }}
+        BRANCH: ${{ github.head_ref || github.ref_name }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        OUT_DIR: ${{ runner.temp }}/${{ steps.prepare.outputs.artifact }}
+      run: '"${GITHUB_ACTION_PATH}/scripts/check.sh"'
+
+    - name: Upload changes
+      if: steps.check.outputs.commit == 'true'
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ steps.prepare.outputs.artifact }}
+        path: ${{ runner.temp }}/${{ steps.prepare.outputs.artifact }}
+        include-hidden-files: true
+        if-no-files-found: error
+        overwrite: true
+        retention-days: 1

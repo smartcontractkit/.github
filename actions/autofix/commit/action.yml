@@ -1,0 +1,57 @@
+name: autofix/commit
+description:
+  Pushes the changes autofix uploaded to the pull request branch as a signed
+  commit. Runs nothing the pull request controls and needs no checkout, so it
+  belongs in its own job, the only one holding the token to push.
+
+inputs:
+  artifact:
+    description: The `artifact` output of autofix.
+    required: true
+  paths:
+    description: |
+      The `paths` output of autofix. The commit is refused if the artifact
+      changes any file outside them, or under .github.
+    required: true
+  github-token:
+    description: |
+      GitHub App token used to push the commit (e.g. from setup-github-token),
+      which needs `contents: write`. Commits pushed with the default
+      GITHUB_TOKEN don't trigger workflow runs, so checks would never run on
+      the autofix commit.
+    required: true
+  commit-message:
+    description: Message of the autofix commit.
+    required: false
+    default: "chore: autofix"
+
+outputs:
+  committed:
+    description: Whether an autofix commit was pushed, "true" or "false".
+    value: ${{ steps.commit.outputs.committed }}
+  commit-sha:
+    description: SHA of the pushed autofix commit, if any.
+    value: ${{ steps.commit.outputs.commit-sha }}
+
+runs:
+  using: composite
+  steps:
+    - name: Download changes
+      uses: actions/download-artifact@v7
+      with:
+        name: ${{ inputs.artifact }}
+        path: ${{ runner.temp }}/autofix-commit
+
+    - name: Commit changes
+      id: commit
+      shell: bash
+      env:
+        ARTIFACT_DIR: ${{ runner.temp }}/autofix-commit
+        PATHS: ${{ inputs.paths }}
+        GH_TOKEN: ${{ inputs.github-token }}
+        COMMIT_MESSAGE: ${{ inputs.commit-message }}
+        BRANCH: ${{ github.head_ref || github.ref_name }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      run: '"${GITHUB_ACTION_PATH}/../scripts/commit.sh"'
