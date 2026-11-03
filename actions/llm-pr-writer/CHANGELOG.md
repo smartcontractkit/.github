@@ -1,5 +1,14 @@
 # llm-pr-writer
 
+## 0.7.2
+
+### Patch Changes
+
+- [#1726](https://github.com/smartcontractkit/.github/pull/1726)
+  [`a9e9157`](https://github.com/smartcontractkit/.github/commit/a9e91574f5eed0f943535d77d4053d1cfeea7b88)
+  Thanks [@miqlar](https://github.com/miqlar)! - fix: omit temperature for gpt-5
+  and newer models, which reject a custom value (e.g. gpt-6-luna)
+
 ## 0.7.1
 
 ### Patch Changes
