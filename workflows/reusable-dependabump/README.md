@@ -41,7 +41,13 @@ profile with `contents: read` on them. git then uses its token for
 ```yaml
 with:
   gati-profile: <your-profile>
+  goprivate: github.com/smartcontractkit/<private-repo>
 ```
+
+`goprivate` is optional. It is exported as `GOPRIVATE`, so matching modules skip
+the public proxy and checksum database. Set it if a bump adds a private module
+version that isn't already in `go.sum`, which would otherwise fail checksum
+verification.
 
 The job always requests `id-token: write`, so callers must grant it even
 without `gati-profile`.

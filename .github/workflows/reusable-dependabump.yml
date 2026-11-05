@@ -25,6 +25,12 @@ on:
           modules. The profile needs `contents: read` on those repositories.
         required: false
         type: string
+      goprivate:
+        description: |
+          Value for GOPRIVATE, e.g. `github.com/smartcontractkit/atlas`. Modules
+          matching it skip the public proxy and checksum database.
+        required: false
+        type: string
 
 permissions: { }
 
@@ -40,6 +46,7 @@ jobs:
       id-token: write
     env:
       GH_TOKEN: ${{ github.token }}
+      GOPRIVATE: ${{ inputs.goprivate }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
