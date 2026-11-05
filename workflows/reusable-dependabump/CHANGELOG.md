@@ -1,5 +1,15 @@
 # reusable-dependabump
 
+## 2.0.0
+
+### Major Changes
+
+- [#1748](https://github.com/smartcontractkit/.github/pull/1748)
+  [`8b3bbb4`](https://github.com/smartcontractkit/.github/commit/8b3bbb422547abeb5c5dca2d19750915452e028a)
+  Thanks [@chainchad](https://github.com/chainchad)! - Add `gati-profile` input
+  to fetch private Go modules with a GATI token, and `goprivate` to set
+  `GOPRIVATE`. The job now requests `id-token: write`, which callers must grant.
+
 ## 1.0.4
 
 ### Patch Changes
