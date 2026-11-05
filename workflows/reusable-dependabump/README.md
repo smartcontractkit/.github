@@ -49,5 +49,5 @@ the public proxy and checksum database. Set it if a bump adds a private module
 version that isn't already in `go.sum`, which would otherwise fail checksum
 verification.
 
-The job always requests `id-token: write`, so callers must grant it even
-without `gati-profile`.
+The job always requests `id-token: write`, so callers must grant it even without
+`gati-profile`.
