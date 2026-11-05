@@ -15,6 +15,12 @@ on:
       post-bump-command:
         required: false
         type: string
+      gati-profile:
+        description: |
+          GATI v2 profile for a token that git uses to fetch private Go
+          modules. The profile needs `contents: read` on those repositories.
+        required: false
+        type: string
 
 permissions: { }
 
@@ -27,6 +33,7 @@ jobs:
       actions: read
       security-events: read
       vulnerability-alerts: read
+      id-token: write
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -35,6 +42,13 @@ jobs:
 
       - name: Set up Go
         uses: actions/setup-go@v7
+
+      - name: Setup GitHub Token
+        if: inputs.gati-profile != ''
+        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
+        with:
+          profile: ${{ inputs.gati-profile }}
+          set-git-config: "true"
 
       - name: Enforce Auto Toolchain
         run: echo "GOTOOLCHAIN=auto" >> "$GITHUB_ENV"

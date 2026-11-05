@@ -25,8 +25,23 @@ jobs:
       actions: read
       security-events: read
       vulnerability-alerts: read
-    uses: smartcontractkit/.github/.github/workflows/reusable-dependabump.yml@reusable-dependabump/v1
+      id-token: write
+    uses: smartcontractkit/.github/.github/workflows/reusable-dependabump.yml@reusable-dependabump/v2
     secrets:
       SLACK_TOKEN: ${{ secrets.DEPENDABUMP_SLACK_TOKEN }}
       SLACK_CHANNEL_ID: ${{ secrets.DEPENDABUMP_SLACK_CHANNEL_ID }}
 ```
+
+## Private Go modules
+
+If your modules depend on private repositories, set `gati-profile` to a GATI v2
+profile with `contents: read` on them. git then uses its token for
+`https://github.com/`.
+
+```yaml
+with:
+  gati-profile: <your-profile>
+```
+
+The job always requests `id-token: write`, so callers must grant it even
+without `gati-profile`.
