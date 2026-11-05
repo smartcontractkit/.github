@@ -478,10 +478,14 @@ runs:
 
     - name: Install cosign
       if: inputs.docker-manifest-sign == 'true'
-      uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
+      uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
       with:
         # https://github.com/sigstore/cosign/releases
         cosign-release: "v2.6.1"
+        # GitHub's release CDN returns transient 504s under a 17-job fan-out.
+        # v4.1.3 retries with a fixed 5s delay and --retry-all-errors, so 10
+        # attempts ride out a ~50s window; --retry-max-time caps each download.
+        curl-retries: "10"
 
     - name: Sign Docker Manifest using GH OIDC
       if: inputs.docker-manifest-sign == 'true'
