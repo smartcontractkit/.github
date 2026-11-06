@@ -26,8 +26,9 @@ export enum ValidationType {
   RUNNER_MACOS = "runner-macos",
   IGNORE_COMMENT = "ignore-comment",
   ACTIONS_CACHE = "actions-cache",
+  USES_FORMAT = "uses-format",
 }
 
 export interface ValidationCheck {
-  validateLine(line: FileLine): Promise<ValidationMessage[]>;
+  validateLine(line: FileLine, filename?: string): Promise<ValidationMessage[]>;
 }
