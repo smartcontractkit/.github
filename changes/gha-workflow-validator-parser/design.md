@@ -310,7 +310,7 @@ Notes from the review:
 
 ## TODO
 
-Effort: medium (one extraction layer, two consumers, tests, and a dependency).
+Effort: medium (two stack layers, two consumers, tests, and a dependency).
 
 ### Phase 1: Extract workflow references from the parser
 
@@ -319,22 +319,23 @@ Effort: medium (one extraction layer, two consumers, tests, and a dependency).
       workflow parsing, and the index.
 - [ ] Add `content` to `ParsedFile`, hydrate it in
       `getParsedFilesForValidation`, and add the added-line consistency check.
-- [ ] Build the index once in `validate()` and pass it to `ActionRefValidation`
-      and `ActionsCacheVersionValidation`.
+- [ ] Build the index once in `validate()` and pass it to `ActionRefValidation`.
 - [ ] Replace the `.yml` suffix heuristic and the Docker misclassification in
       `ActionRefValidation`.
 - [ ] Add the extractor, index, validator, and integration tests described
       above.
 - [ ] Update the action README and add a changeset.
 
-### Phase 2: Cover composite action files
+### Phase 2: Cover composite action files and the cache consumer
 
 - [ ] Add the `parseAction`/`convertActionTemplate` branch to
       `extractUseReferences` and its fixtures.
+- [ ] Pass the index to `ActionsCacheVersionValidation` and drop its direct
+      line-scanner call where the index is available.
 - [ ] Run the full test suite and rebuild `dist/index.js`.
 
-This is a stacked change only if Phase 1 exceeds the repository's PR size limit.
-Phase 1 is expected to land alone.
+Phase 1 and Phase 2 are separate stack layers so each PR stays under the
+repository's size limit.
 
 ### Follow-ups, not this change
 
