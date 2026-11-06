@@ -312,27 +312,30 @@ Notes from the review:
 
 Effort: medium (two stack layers, two consumers, tests, and a dependency).
 
+Status: Phase 1 and Phase 2 are implemented in the stack. The remaining
+follow-ups are not.
+
 ### Phase 1: Extract workflow references from the parser
 
-- [ ] Add `@actions/workflow-parser` to `package.json` and the lockfile.
-- [ ] Add `src/use-references.ts` with classification, ranges, comments,
+- [x] Add `@actions/workflow-parser` to `package.json` and the lockfile.
+- [x] Add `src/use-references.ts` with classification, ranges, comments,
       workflow parsing, and the index.
-- [ ] Add `content` to `ParsedFile`, hydrate it in
+- [x] Add `content` to `ParsedFile`, hydrate it in
       `getParsedFilesForValidation`, and add the added-line consistency check.
-- [ ] Build the index once in `validate()` and pass it to `ActionRefValidation`.
-- [ ] Replace the `.yml` suffix heuristic and the Docker misclassification in
+- [x] Build the index once in `validate()` and pass it to `ActionRefValidation`.
+- [x] Replace the `.yml` suffix heuristic and the Docker misclassification in
       `ActionRefValidation`.
-- [ ] Add the extractor, index, validator, and integration tests described
+- [x] Add the extractor, index, validator, and integration tests described
       above.
-- [ ] Update the action README and add a changeset.
+- [x] Update the action README and add a changeset.
 
 ### Phase 2: Cover composite action files and the cache consumer
 
-- [ ] Add the `parseAction`/`convertActionTemplate` branch to
+- [x] Add the `parseAction`/`convertActionTemplate` branch to
       `extractUseReferences` and its fixtures.
-- [ ] Pass the index to `ActionsCacheVersionValidation` and drop its direct
+- [x] Pass the index to `ActionsCacheVersionValidation` and drop its direct
       line-scanner call where the index is available.
-- [ ] Run the full test suite and rebuild `dist/index.js`.
+- [x] Run the full test suite and rebuild `dist/index.js`.
 
 Phase 1 and Phase 2 are separate stack layers so each PR stays under the
 repository's size limit.
@@ -350,6 +353,7 @@ repository's size limit.
 - [ ] Node-version validation from `parseAction` on the fetched remote
       `action.yml` instead of a regex.
 - [ ] Action-input validation using the language service's metadata rules.
-- [ ] Lockfile parsing and coverage from
+- [x] Lockfile parsing and coverage from
       `changes/gha-workflow-validator-lockfiles/`. Its `extractActionReference`
-      step becomes a `UseReference` lookup; it should be rebased on this change.
+      step becomes a `UseReference` lookup. Implemented in the top layer of the
+      stack.
