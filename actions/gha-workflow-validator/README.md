@@ -26,6 +26,13 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 ```
 
+## How references are parsed
+
+`uses` references are extracted with GitHub's workflow parser
+(`@actions/workflow-parser`). The validator parses each workflow once and
+indexes references by line. Docker images, local paths, and reusable workflow
+calls are classified separately and are not treated as remote actions.
+
 ## Development
 
 1. Update dist: `pnpm nx run gha-workflow-validator:build`

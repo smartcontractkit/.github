@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
 import { readFileSync } from "fs";
+import { resolve, sep } from "path";
 
 import { VALIDATOR_IGNORE_LINE } from "./strings.js";
 import { InvokeContext, RunInputs } from "./run.js";
@@ -9,6 +10,8 @@ import { getAllWorkflowAndActionFiles } from "./utils.js";
 export interface ParsedFile {
   filename: string;
   lines: FileLine[];
+  /** Full file contents when available. Missing means use the line scanner. */
+  content?: string;
 }
 
 export interface FileLine {
@@ -30,7 +33,55 @@ export async function getParsedFilesForValidation(
   const existing = await getExistingFiles(inputs);
 
   const combined = combineParsedFiles(existing, diff);
-  return combined;
+  return hydrateFileContent(combined, inputs.rootDir);
+}
+
+/**
+ * Adds full file contents to files that only have diff lines. The parser needs
+ * the whole document, not just the patch. Files whose on-disk content does not
+ * match the diff are left without content so validation falls back to the line
+ * scanner instead of checking the wrong revision.
+ */
+export function hydrateFileContent(
+  files: ParsedFiles,
+  rootDir: string,
+): ParsedFiles {
+  const root = resolve(rootDir || process.cwd());
+
+  for (const file of files) {
+    if (file.content !== undefined) continue;
+
+    const path = resolve(root, file.filename);
+    if (path !== root && !path.startsWith(`${root}${sep}`)) {
+      core.debug(`Skipping content outside ${root}: ${file.filename}`);
+      continue;
+    }
+
+    try {
+      const content = readFileSync(path, "utf-8");
+      if (diffMatchesContent(file, content)) {
+        file.content = content;
+      } else {
+        core.debug(
+          `On-disk content for ${file.filename} does not match the diff; using fallback`,
+        );
+      }
+    } catch (error: any) {
+      core.debug(
+        `Unable to read ${file.filename} for parsing: ${error?.message ?? error}`,
+      );
+    }
+  }
+
+  return files;
+}
+
+function diffMatchesContent(file: ParsedFile, content: string): boolean {
+  const lines = content.split("\n");
+  return file.lines.every(
+    (line) =>
+      line.operation !== "add" || lines[line.lineNumber - 1] === line.content,
+  );
 }
 
 export async function getPRChanges(
@@ -146,6 +197,7 @@ export function combineParsedFiles(
     combined.push({
       filename: existingFile.filename,
       lines: combinedFileLines,
+      content: existingFile.content,
     });
   }
 
@@ -269,7 +321,7 @@ export async function parseFiles(paths: string[]) {
       } as FileLine;
     });
 
-    parsedFiles.push({ filename: path, lines });
+    parsedFiles.push({ filename: path, lines, content });
   }
 
   return parsedFiles;

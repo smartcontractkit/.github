@@ -1,5 +1,10 @@
 import { ParsedFile, FileLine } from "../parse-files.js";
 import { Octokit, getActionFileFromGithub } from "../github.js";
+import {
+  UseReference,
+  UseReferenceIndex,
+  UseReferenceLookup,
+} from "../use-references.js";
 import * as core from "@actions/core";
 import {
   ValidationCheck,
@@ -27,10 +32,15 @@ interface ActionReference {
 
 interface ActionRefValidationOptions {
   validateNodeVersion: boolean;
+  references?: UseReferenceIndex;
 }
+
+const USES_FORMAT_MESSAGE = (value: string) =>
+  `Expected format {owner}/{repo}[/path]@{ref}. Actual '${value}'`;
 
 export class ActionRefValidation implements ValidationCheck {
   private options: ActionRefValidationOptions;
+  private reported = new WeakSet<UseReference>();
 
   constructor(
     readonly octokit: Octokit,
@@ -39,17 +49,57 @@ export class ActionRefValidation implements ValidationCheck {
     this.options = options ?? { validateNodeVersion: true };
   }
 
-  async validateLine(line: FileLine): Promise<ValidationMessage[]> {
+  async validateLine(
+    line: FileLine,
+    filename?: string,
+  ): Promise<ValidationMessage[]> {
     if (line.operation === "unchanged") {
       return [];
     }
 
-    const fileLineActionReference = extractActionReference(line);
-    return validateActionReference(
-      this.octokit,
-      this.options,
-      fileLineActionReference.actionReference,
-    );
+    const references: UseReferenceLookup =
+      this.options.references && filename
+        ? this.options.references.get(filename, line.lineNumber)
+        : "fallback";
+
+    if (references === "fallback") {
+      const fileLineActionReference = extractActionReference(line);
+      return validateActionReference(
+        this.octokit,
+        this.options,
+        fileLineActionReference.actionReference,
+      );
+    }
+
+    const messages: ValidationMessage[] = [];
+    for (const reference of references) {
+      if (reference.kind !== "action") continue;
+
+      // A multiline reference is indexed on every line it spans. Report it once,
+      // on the first changed line. This runs before any await.
+      if (this.reported.has(reference)) continue;
+      this.reported.add(reference);
+
+      const actionReference = toActionReference(reference);
+      if (!actionReference) {
+        messages.push({
+          type: ValidationType.USES_FORMAT,
+          severity: "error",
+          message: USES_FORMAT_MESSAGE(reference.value),
+        });
+        continue;
+      }
+
+      messages.push(
+        ...(await validateActionReference(
+          this.octokit,
+          this.options,
+          actionReference,
+        )),
+      );
+    }
+
+    return messages;
   }
 }
 
@@ -215,6 +265,40 @@ function extractActionReference(fileLine: FileLine): FileLineActionRef {
 }
 
 // Only exported for use in tests
+export function toActionReference(
+  use: UseReference,
+): ActionReference | undefined {
+  const value = use.value.trim();
+  const parts = value.split("@");
+  if (parts.length !== 2 || parts[1].length === 0) {
+    return undefined;
+  }
+
+  const [identifier, ref] = parts;
+  const segments = identifier.split("/");
+  if (segments.length < 2 || segments.some((segment) => segment.length === 0)) {
+    return undefined;
+  }
+
+  const [owner, repo, ...path] = segments;
+  return {
+    owner,
+    repo,
+    repoPath: (path.length > 0 ? "/" : "") + path.join("/"),
+    ref,
+    comment: use.comment,
+    isWorkflowFile: false,
+    trusted: isTrustedOwner(owner),
+  };
+}
+
+function isTrustedOwner(owner: string): boolean {
+  return (
+    owner === "actions" || owner === "smartcontractkit" || owner === "github"
+  );
+}
+
+// Only exported for use in tests
 export function extractActionReferenceFromLine(
   line: string,
 ): ActionReference | undefined {
@@ -266,8 +350,13 @@ export function extractActionReferenceFromLine(
     }
   }
 
-  if (actionIdentifier.startsWith("./") || actionIdentifier.startsWith("$/")) {
-    // Local action reference - do not extract or validate these.
+  if (
+    actionIdentifier.startsWith("./") ||
+    actionIdentifier.startsWith(".\\") ||
+    actionIdentifier.startsWith("$/") ||
+    actionIdentifier.startsWith("docker://")
+  ) {
+    // Local or Docker reference - do not extract or validate these.
     return;
   }
 
@@ -282,7 +371,6 @@ export function extractActionReferenceFromLine(
     ref: gitRef,
     comment: comment.join().trim(),
     isWorkflowFile: repoPath.endsWith(".yml") || repoPath.endsWith(".yaml"),
-    trusted:
-      owner === "actions" || owner === "smartcontractkit" || owner === "github",
+    trusted: isTrustedOwner(owner),
   };
 }
