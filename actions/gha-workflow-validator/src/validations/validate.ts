@@ -8,6 +8,12 @@ import { ActionsCacheVersionValidation } from "./actions-cache-validation.js";
 import { RunInputs } from "../run.js";
 import { Octokit } from "../github.js";
 import {
+  LockfileParseError,
+  readWorkflowLockfile,
+  WORKFLOW_LOCKFILE_PATH,
+  WorkflowLockfile,
+} from "../lockfile.js";
+import {
   FileValidationResult,
   LineValidationResult,
   ValidationMessage,
@@ -27,9 +33,11 @@ function getValidators(
     validateActionRefs,
     validateRunners,
     validateActionsCacheVersion,
+    rootDir,
   }: RunInputs,
   octokit: Octokit,
-  references?: UseReferenceIndex,
+  references: UseReferenceIndex | undefined,
+  lockfile: WorkflowLockfile | undefined,
 ): ValidationCheck[] {
   const validators: ValidationCheck[] = [new IgnoresCommentValidation()];
   if (validateActionRefs)
@@ -37,6 +45,8 @@ function getValidators(
       new ActionRefValidation(octokit, {
         validateNodeVersion: validateActionNodeVersion,
         references,
+        lockfile,
+        rootDir,
       }),
     );
   if (validateRunners) validators.push(new ActionsRunnerValidation());
@@ -53,13 +63,24 @@ export async function validate(
 ): Promise<FileValidationResult[]> {
   core.debug(`Validating ${parsedFiles.length} files`);
 
+  const lockfileResult = inputs.validateActionRefs
+    ? await readWorkflowLockfile(inputs.rootDir)
+    : {};
   const references =
     inputs.validateActionRefs || inputs.validateActionsCacheVersion
       ? await buildUseReferenceIndex(parsedFiles)
       : undefined;
-  const validators = getValidators(inputs, octokit, references);
+  const validators = getValidators(
+    inputs,
+    octokit,
+    references,
+    lockfileResult.lockfile,
+  );
 
   const fileValidationResults: FileValidationResult[] = [];
+  if (lockfileResult.error) {
+    fileValidationResults.push(lockfileErrorResult(lockfileResult.error));
+  }
   for (const file of parsedFiles) {
     core.info(`Validating: ${file.filename}`);
 
@@ -140,6 +161,34 @@ async function validateLine(
     filename: filename,
     line,
     messages: processedMessages,
+  };
+}
+
+function lockfileErrorResult(error: LockfileParseError): FileValidationResult {
+  const lineNumber = error.line && error.line > 0 ? error.line : 1;
+
+  return {
+    filename: WORKFLOW_LOCKFILE_PATH,
+    lineValidations: [
+      {
+        filename: WORKFLOW_LOCKFILE_PATH,
+        line: {
+          lineNumber,
+          content: "",
+          operation: "add",
+          ignored: false,
+        },
+        messages: [
+          {
+            type: ValidationType.LOCKFILE_PARSE,
+            severity: "error",
+            message: error.futureVersion
+              ? `${error.message} Upgrade the validator to a version that supports this lockfile.`
+              : error.message,
+          },
+        ],
+      },
+    ],
   };
 }
 

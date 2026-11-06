@@ -1,0 +1,11 @@
+# This file is intentionally invalid. The workflow path escapes the repository.
+version: 'v0.0.3'
+workflows:
+    '../../etc/passwd':
+        - 'actions/checkout@v6'
+dependencies:
+    'actions/checkout@v6':
+        ref: 'v6'
+        commit: 'sha1-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+        owner_id: 44036562
+        repo_id: 197814629
