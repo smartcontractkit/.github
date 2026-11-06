@@ -257,9 +257,10 @@ runs:
         PREFIX:
           ${{ steps.prepare.outputs.artifact }}-golangci-lint-${{ runner.os
           }}-${{ inputs.golangci-lint-version }}
+        GO_SUM_HASH: ${{ hashFiles('**/go.sum') }}
       run: |
         echo "prefix=${PREFIX}-" | tee -a "$GITHUB_OUTPUT"
-        echo "key=${PREFIX}-$(date -u +%G-%V)-${{ hashFiles('**/go.sum') }}" | tee -a "$GITHUB_OUTPUT"
+        echo "key=${PREFIX}-$(date -u +%G-%V)-${GO_SUM_HASH}" | tee -a "$GITHUB_OUTPUT"
 
     - name: Restore golangci-lint cache
       id: golangci-lint-cache
