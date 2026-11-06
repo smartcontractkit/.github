@@ -46,7 +46,7 @@ runs:
         fi
 
     - name: Set up chart-testing
-      uses: helm/chart-testing-action@e6669bcd63d7cb57cb4380c33043eebe5d111992 # v2.6.1
+      uses: helm/chart-testing-action@720270857a28afd41e2426521a7801db09e9b510 # v2.9.0
 
     - name: Run chart-testing (lint)
       shell: bash
