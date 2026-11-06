@@ -34,6 +34,18 @@ action once and indexes references by line. Docker images, local paths, and
 reusable workflow calls are classified separately and are not treated as remote
 actions.
 
+## Workflow dependency lockfiles
+
+The validator reads `.github/workflows/actions.lock` when the repository
+checkout contains one. See
+[Workflow dependency lockfiles](https://docs.github.com/en/actions/concepts/security/workflow-dependency-lockfiles).
+
+Workflows onboarded to the lockfile do not need SHA-pinned action references or
+version comments. The lockfile pins those dependencies instead. Every action
+reference in an onboarded workflow must appear in the lockfile for that
+workflow, otherwise the validator reports an error. Workflows that are not in
+the lockfile still require SHA references.
+
 ## Development
 
 1. Update dist: `pnpm nx run gha-workflow-validator:build`

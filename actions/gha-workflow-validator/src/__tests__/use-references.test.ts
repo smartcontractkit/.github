@@ -13,6 +13,7 @@ import {
 } from "../validations/action-reference-validations.js";
 import { ActionsCacheVersionValidation } from "../validations/actions-cache-validation.js";
 import { ValidationType } from "../validations/validation-check.js";
+import { WorkflowLockfile } from "../lockfile.js";
 
 vi.mock("@actions/core", async () => {
   return (await import("./__helpers__/test-utils.js")).coreLoggingStubs();
@@ -402,6 +403,59 @@ jobs:
     expect(
       await subject.validateLine(
         line(7, "uses: actions/cache/save@v5"),
+        "test.yml",
+      ),
+    ).toEqual([]);
+  });
+
+  it("applies lockfile coverage through the reference index", async () => {
+    const references = await buildUseReferenceIndex([
+      { filename: "test.yml", lines: [], content: WORKFLOW },
+    ]);
+    const lockfile: WorkflowLockfile = {
+      workflows: {
+        "test.yml": ["actions/checkout@v4"],
+      },
+    };
+    const subject = new ActionRefValidation({} as any, {
+      validateNodeVersion: false,
+      references,
+      lockfile,
+    });
+
+    expect(
+      await subject.validateLine(
+        line(11, "uses: dorny/paths-filter@v3.0.2"),
+        "test.yml",
+      ),
+    ).toEqual([
+      {
+        type: ValidationType.LOCKFILE_COVERAGE,
+        severity: "error",
+        message:
+          "dorny/paths-filter@v3.0.2 is not pinned in .github/workflows/actions.lock for this workflow. Run `gh actions-lock` to add it.",
+      },
+    ]);
+  });
+
+  it("skips SHA and comment rules for pinned references", async () => {
+    const references = await buildUseReferenceIndex([
+      { filename: "test.yml", lines: [], content: WORKFLOW },
+    ]);
+    const lockfile: WorkflowLockfile = {
+      workflows: {
+        "test.yml": ["dorny/paths-filter@v3.0.2"],
+      },
+    };
+    const subject = new ActionRefValidation({} as any, {
+      validateNodeVersion: false,
+      references,
+      lockfile,
+    });
+
+    expect(
+      await subject.validateLine(
+        line(11, "uses: dorny/paths-filter@v3.0.2"),
         "test.yml",
       ),
     ).toEqual([]);
