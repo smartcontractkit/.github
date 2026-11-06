@@ -15,6 +15,13 @@ on:
       post-bump-command:
         required: false
         type: string
+      tidy-command:
+        description: |
+          Command that tidies modules after the bump. Defaults to `gomods tidy`,
+          which tidies every module in the repository.
+        required: false
+        type: string
+        default: 'gomods tidy'
       gati-profile:
         description: |
           GATI v2 profile for a token that git uses to fetch private Go
@@ -71,6 +78,7 @@ jobs:
         id: bump
         env:
           SEVERITY: ${{ inputs.severity }}
+          TIDY_COMMAND: ${{ inputs.tidy-command }}
         if: steps.install.outcome == 'success'
         run: |
           if ! printf '%s' "$SEVERITY" | grep -Eq '^[[:space:]]*(critical|high|moderate|low)([[:space:]]*,[[:space:]]*(critical|high|moderate|low))*[[:space:]]*$'; then
@@ -82,7 +90,7 @@ jobs:
             "/repos/${GITHUB_REPOSITORY}/dependabot/alerts?state=open&ecosystem=Go&severity=${SEVERITY}" \
             --jq '.[] | select(.security_vulnerability.first_patched_version != null) | .dependency.manifest_path |= rtrimstr("go.mod") | "./\(.dependency.manifest_path) \(.security_vulnerability.package.name) \(.security_vulnerability.first_patched_version.identifier)"' | \
             dependabot
-          gomods tidy
+          eval "${TIDY_COMMAND}"
           if [[ -n "$(git status --porcelain)" ]]; then
             echo "changed=true" | tee -a "$GITHUB_OUTPUT"
           else
