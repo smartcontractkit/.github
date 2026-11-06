@@ -67,6 +67,7 @@ describe(extractUseReferences.name, () => {
         value: "octo/repo/.github/workflows/build.yml@v1",
         kind: "reusable-workflow",
         line: 5,
+        endLine: 5,
         column: 11,
         comment: undefined,
       },
@@ -75,6 +76,7 @@ describe(extractUseReferences.name, () => {
         value: "actions/checkout@v4",
         kind: "action",
         line: 9,
+        endLine: 9,
         column: 15,
         comment: "pin comment",
       },
@@ -83,6 +85,7 @@ describe(extractUseReferences.name, () => {
         value: "actions/cache/save@de90cc6fb38fc0963ad72b210f1f284cd68cea36",
         kind: "action",
         line: 10,
+        endLine: 10,
         column: 15,
         comment: "v4",
       },
@@ -91,6 +94,7 @@ describe(extractUseReferences.name, () => {
         value: "dorny/paths-filter@v3.0.2",
         kind: "action",
         line: 11,
+        endLine: 11,
         column: 15,
         comment: undefined,
       },
@@ -99,6 +103,7 @@ describe(extractUseReferences.name, () => {
         value: "docker://alpine:3.19",
         kind: "docker",
         line: 12,
+        endLine: 12,
         column: 15,
         comment: undefined,
       },
@@ -107,6 +112,7 @@ describe(extractUseReferences.name, () => {
         value: "./.github/actions/local",
         kind: "local",
         line: 13,
+        endLine: 13,
         column: 15,
         comment: undefined,
       },
@@ -115,6 +121,7 @@ describe(extractUseReferences.name, () => {
         value: "$/.github/actions/self",
         kind: "local",
         line: 14,
+        endLine: 14,
         column: 15,
         comment: undefined,
       },
@@ -123,6 +130,7 @@ describe(extractUseReferences.name, () => {
         value: "owner/repo",
         kind: "action",
         line: 15,
+        endLine: 15,
         column: 15,
         comment: undefined,
       },
@@ -209,6 +217,7 @@ describe(toActionReference.name, () => {
     value,
     kind: "action",
     line: 1,
+    endLine: 1,
     column: 1,
     comment,
   });
@@ -243,6 +252,15 @@ describe(toActionReference.name, () => {
     expect(toActionReference(reference("owner/repo"))).toBeUndefined();
     expect(toActionReference(reference("owner/repo@"))).toBeUndefined();
     expect(toActionReference(reference("owner"))).toBeUndefined();
+    expect(
+      toActionReference(reference("/actions/checkout@v4")),
+    ).toBeUndefined();
+    expect(
+      toActionReference(reference("actions//checkout@v4")),
+    ).toBeUndefined();
+    expect(
+      toActionReference(reference("actions/checkout@v4@extra")),
+    ).toBeUndefined();
   });
 });
 
@@ -321,5 +339,64 @@ describe("validator integration with the reference index", () => {
           "Expected format {owner}/{repo}[/path]@{ref}. Actual 'owner/repo'",
       },
     ]);
+  });
+});
+
+describe("parser edge cases", () => {
+  const wrap = (steps: string) =>
+    `name: t\non: push\njobs:\n  b:\n    runs-on: ubuntu-latest\n    steps:\n${steps}\n`;
+
+  it("indexes a multiline scalar on every line and reports it once", async () => {
+    const content = wrap("      - uses: >-\n          dorny/paths-filter@v3\n");
+    const index = await buildUseReferenceIndex([
+      { filename: "w.yml", lines: [], content },
+    ]);
+    const header = index.get("w.yml", 7);
+    const value = index.get("w.yml", 8);
+    expect(header).not.toBe("fallback");
+    expect(value).toEqual(header);
+
+    const subject = new ActionRefValidation({} as any, {
+      validateNodeVersion: false,
+      references: index,
+    });
+    const add = (lineNumber: number): FileLine => ({
+      lineNumber,
+      content: "",
+      operation: "add",
+      ignored: false,
+    });
+    const first = await subject.validateLine(add(7), "w.yml");
+    const second = await subject.validateLine(add(8), "w.yml");
+    expect(first.length).toBeGreaterThan(0);
+    expect(second).toEqual([]);
+  });
+
+  it("parses workflows named action.yml", async () => {
+    const references = await extractUseReferences(
+      ".github/workflows/action.yml",
+      wrap("      - { uses: actions/checkout@v4 }"),
+    );
+    expect(references?.map((r) => r.value)).toEqual(["actions/checkout@v4"]);
+  });
+
+  it("falls back when the converter drops a job", async () => {
+    const content =
+      "name: t\non: push\njobs:\n  b:\n    runs-on: ubuntu-latest\n    container: []\n    steps:\n      - uses: dorny/paths-filter@v3\n";
+    expect(await extractUseReferences("w.yml", content)).toBeUndefined();
+  });
+
+  it("falls back when a uses value comes from a YAML alias", async () => {
+    const content =
+      "name: t\non: push\nenv:\n  REF: &ref vendor/action@v1\njobs:\n  b:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: *ref\n";
+    expect(await extractUseReferences("w.yml", content)).toBeUndefined();
+  });
+
+  it("keeps the version comment on flow-style steps", async () => {
+    const references = await referencesFor(
+      "w.yml",
+      wrap("      - { uses: owner/repo@abc } # v1"),
+    );
+    expect(references[0].comment).toBe("v1");
   });
 });

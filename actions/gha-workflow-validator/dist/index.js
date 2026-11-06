@@ -38883,6 +38883,7 @@ var USES_FORMAT_MESSAGE = (value) => `Expected format {owner}/{repo}[/path]@{ref
 var ActionRefValidation = class {
   constructor(octokit, options) {
     this.octokit = octokit;
+    this.reported = /* @__PURE__ */ new WeakSet();
     this.options = options ?? { validateNodeVersion: true };
   }
   async validateLine(line, filename) {
@@ -38901,6 +38902,8 @@ var ActionRefValidation = class {
     const messages = [];
     for (const reference of references) {
       if (reference.kind !== "action") continue;
+      if (this.reported.has(reference)) continue;
+      this.reported.add(reference);
       const actionReference = toActionReference(reference);
       if (!actionReference) {
         messages.push({
@@ -39040,14 +39043,13 @@ function extractActionReference(fileLine) {
 }
 function toActionReference(use) {
   const value = use.value.trim();
-  const at = value.indexOf("@");
-  if (at <= 0 || at === value.length - 1) {
+  const parts = value.split("@");
+  if (parts.length !== 2 || parts[1].length === 0) {
     return void 0;
   }
-  const identifier = value.slice(0, at);
-  const ref = value.slice(at + 1);
-  const segments = identifier.split(/[\\/]/).filter((segment) => segment.length > 0);
-  if (segments.length < 2) {
+  const [identifier, ref] = parts;
+  const segments = identifier.split("/");
+  if (segments.length < 2 || segments.some((segment) => segment.length === 0)) {
     return void 0;
   }
   const [owner, repo, ...path] = segments;
@@ -44818,9 +44820,11 @@ async function buildUseReferenceIndex(files) {
     }
     const byLine = /* @__PURE__ */ new Map();
     for (const reference of references) {
-      const lineReferences = byLine.get(reference.line) ?? [];
-      lineReferences.push(reference);
-      byLine.set(reference.line, lineReferences);
+      for (let line = reference.line; line <= reference.endLine; line++) {
+        const lineReferences = byLine.get(line) ?? [];
+        lineReferences.push(reference);
+        byLine.set(line, lineReferences);
+      }
     }
     byFile.set(file.filename, byLine);
   }
@@ -44844,6 +44848,7 @@ function classifyUse(value) {
 }
 function isActionFile(filename) {
   const normalized = filename.replace(/\\/g, "/");
+  if (normalized.includes(".github/workflows/")) return false;
   return normalized === "action.yml" || normalized === "action.yaml" || normalized.endsWith("/action.yml") || normalized.endsWith("/action.yaml");
 }
 async function extractWorkflowReferences(filename, content) {
@@ -44860,11 +44865,27 @@ async function extractWorkflowReferences(filename, content) {
     void 0,
     { errorPolicy: ErrorPolicy.TryConversion }
   );
+  const jobs = template.jobs ?? [];
+  const raw = countRawJobsAndSteps(result.value);
+  const converted = {
+    jobs: jobs.length,
+    steps: jobs.reduce(
+      (total, job) => total + (job.type === "reusableWorkflowJob" ? 0 : job.steps.length),
+      0
+    )
+  };
+  if (raw.jobs !== converted.jobs || raw.steps !== converted.steps) {
+    core7.debug(
+      `Converted ${converted.jobs} jobs/${converted.steps} steps but found ${raw.jobs}/${raw.steps} in ${filename}; using fallback`
+    );
+    return void 0;
+  }
+  const lines = content.split(/\r?\n/);
   const references = [];
-  for (const job of template.jobs ?? []) {
+  for (const job of jobs) {
     if (job.type === "reusableWorkflowJob") {
       references.push(
-        toUseReference(filename, job.ref, "reusable-workflow", content)
+        toUseReference(filename, job.ref, "reusable-workflow", lines)
       );
       continue;
     }
@@ -44875,28 +44896,62 @@ async function extractWorkflowReferences(filename, content) {
           filename,
           step.uses,
           classifyUse(step.uses.value),
-          content
+          lines
         )
       );
     }
   }
+  if (hasAliasedReferences(references, lines)) {
+    core7.debug(
+      `${filename} reuses a \`uses\` value through a YAML alias; using fallback`
+    );
+    return void 0;
+  }
   return references;
 }
-function toUseReference(filename, token, kind, content) {
+function countRawJobsAndSteps(root) {
+  const counts = { jobs: 0, steps: 0 };
+  if (!isMapping(root)) return counts;
+  const jobs = root.find("jobs");
+  if (!jobs || !isMapping(jobs)) return counts;
+  for (const { value: job } of jobs) {
+    counts.jobs++;
+    if (!isMapping(job)) continue;
+    const steps = job.find("steps");
+    if (steps && isSequence(steps)) counts.steps += steps.count;
+  }
+  return counts;
+}
+function hasAliasedReferences(references, lines) {
+  const seen = /* @__PURE__ */ new Set();
+  for (const reference of references) {
+    const position = `${reference.line}:${reference.column}`;
+    if (seen.has(position)) return true;
+    seen.add(position);
+    const prefix = (lines[reference.line - 1] ?? "").slice(
+      0,
+      reference.column - 1
+    );
+    if (!/\buses\s*:\s*(?:[&!]\S+\s+)*["']?$/.test(prefix)) return true;
+  }
+  return false;
+}
+function toUseReference(filename, token, kind, lines) {
   return {
     filename,
     value: token.value,
     kind,
     line: token.range?.start.line ?? token.line ?? 1,
+    endLine: token.range?.end.line ?? token.range?.start.line ?? token.line ?? 1,
     column: token.range?.start.column ?? token.col ?? 1,
-    comment: extractComment(content, token.range)
+    comment: extractComment(lines, token.range)
   };
 }
-function extractComment(content, range) {
+function extractComment(lines, range) {
   if (!range) return void 0;
-  const line = content.split("\n")[range.end.line - 1];
+  const line = lines[range.end.line - 1];
   if (line === void 0) return void 0;
-  const trailing = line.slice(range.end.column - 1).trim();
+  const trailing = line.slice(range.end.column - 1).replace(/^[\s}\],]+/, "").trim();
   if (!trailing.startsWith("#")) return void 0;
   return trailing.slice(1).trim();
 }

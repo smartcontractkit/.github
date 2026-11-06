@@ -40,6 +40,7 @@ const USES_FORMAT_MESSAGE = (value: string) =>
 
 export class ActionRefValidation implements ValidationCheck {
   private options: ActionRefValidationOptions;
+  private reported = new WeakSet<UseReference>();
 
   constructor(
     readonly octokit: Octokit,
@@ -73,6 +74,11 @@ export class ActionRefValidation implements ValidationCheck {
     const messages: ValidationMessage[] = [];
     for (const reference of references) {
       if (reference.kind !== "action") continue;
+
+      // A multiline reference is indexed on every line it spans. Report it once,
+      // on the first changed line. This runs before any await.
+      if (this.reported.has(reference)) continue;
+      this.reported.add(reference);
 
       const actionReference = toActionReference(reference);
       if (!actionReference) {
@@ -263,17 +269,14 @@ export function toActionReference(
   use: UseReference,
 ): ActionReference | undefined {
   const value = use.value.trim();
-  const at = value.indexOf("@");
-  if (at <= 0 || at === value.length - 1) {
+  const parts = value.split("@");
+  if (parts.length !== 2 || parts[1].length === 0) {
     return undefined;
   }
 
-  const identifier = value.slice(0, at);
-  const ref = value.slice(at + 1);
-  const segments = identifier
-    .split(/[\\/]/)
-    .filter((segment) => segment.length > 0);
-  if (segments.length < 2) {
+  const [identifier, ref] = parts;
+  const segments = identifier.split("/");
+  if (segments.length < 2 || segments.some((segment) => segment.length === 0)) {
     return undefined;
   }
 
