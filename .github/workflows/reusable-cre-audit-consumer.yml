@@ -1,0 +1,288 @@
+# GENERATED FILE - DO NOT EDIT DIRECTLY.
+# Source: workflows/reusable-cre-audit-consumer/reusable-cre-audit-consumer.yml
+# Edit the source under workflows/, then regenerate.
+
+name: CRE Audit (consumer jobs)
+
+# Reusable job bodies for consumer repos (chainlink, capabilities, …). A consumer adds one
+# caller, cre-audit.yml, that owns the triggers and passes its pack→path map:
+#
+#   pull_request_target  → suggest: one comment per touched pack suggesting /audit <capability>
+#   issue_comment        → command: /audit [<cap>] [skip <reason>] [model=…] [effort=…]
+#   workflow_dispatch    → status:  cre-docs stamps audit/<capability> after a run or /resolved
+#
+# ADVISORY ONLY: never add audit/<capability> to required checks or merge-queue rules. A run
+# takes up to an hour, is triggered by hand, and does not run on merge_group commits, so a
+# required check would block every PR and every merge-queue entry.
+#
+# The audit engine, rubrics, and findings live in smartcontractkit/cre-docs
+# (.agents/skills/cre-audit). This file holds no secrets and no audit content; it is hosted
+# here because consumer repos are public and cre-docs is internal.
+#
+# The suggest job never checks out PR code, which is what makes pull_request_target safe here.
+
+on:
+  workflow_call:
+    inputs:
+      packs:
+        description: "One `<capability>=<ERE over changed-file paths>` per line"
+        required: true
+        type: string
+      aliases:
+        description: "Optional `<old-command>=<capability>` per line, e.g. `vault-audit=vault` makes /vault-audit mean /audit vault"
+        required: false
+        type: string
+        default: ""
+    secrets:
+      GATI_AWS_ROLE_ARN:
+        required: true
+      GATI_AWS_LAMBDA_URL:
+        required: true
+
+permissions: {}
+
+jobs:
+  suggest:
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: read
+    concurrency:
+      group: audit-suggest-${{ github.repository }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Suggest /audit for touched packs
+        uses: actions/github-script@v9
+        env:
+          PACKS: ${{ inputs.packs }}
+        with:
+          script: |
+            const parse = (s) => Object.fromEntries((s || '').split('\n').map(l => l.trim())
+              .filter(l => l && !l.startsWith('#')).map(l => { const i = l.indexOf('='); return [l.slice(0, i).trim(), l.slice(i + 1).trim()]; }));
+            const packs = parse(process.env.PACKS);
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+
+            const files = (await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: issue_number })).map(f => f.filename);
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number });
+
+            // One comment per (PR, pack), the first time the PR touches the pack's paths.
+            for (const [cap, re] of Object.entries(packs)) {
+              if (!/^[a-z0-9_]+$/.test(cap)) { core.setFailed(`invalid capability name '${cap}'`); return; }
+              if (!files.some(f => new RegExp(re).test(f))) continue;
+              const marker = `<!-- audit-suggest cap:${cap} -->`;
+              if (comments.some(c => c.body?.includes(marker))) continue;
+              await github.rest.issues.createComment({ owner, repo, issue_number, body:
+                `🔍 This PR touches \`${cap}\` code. A reviewer with write access can run an AI audit with \`/audit ${cap}\` ` +
+                `(optional, takes up to an hour; results appear as the \`audit/${cap}\` check).\n${marker}` });
+            }
+
+  command:
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request != null
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      issues: write
+      pull-requests: write
+      statuses: write
+    concurrency:
+      group: audit-cmd-${{ github.repository }}-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    steps:
+      - name: Parse and authorize
+        id: plan
+        uses: actions/github-script@v9
+        env:
+          PACKS: ${{ inputs.packs }}
+          ALIASES: ${{ inputs.aliases }}
+        with:
+          script: |
+            const parse = (s) => Object.fromEntries((s || '').split('\n').map(l => l.trim())
+              .filter(l => l && !l.startsWith('#')).map(l => { const i = l.indexOf('='); return [l.slice(0, i).trim(), l.slice(i + 1).trim()]; }));
+            const packs = parse(process.env.PACKS);
+            const aliases = parse(process.env.ALIASES);
+            const { owner, repo } = context.repo;
+            const pr_number = context.payload.issue.number;
+            const commenter = context.payload.comment.user.login;
+            const reply = (body) => github.rest.issues.createComment({ owner, repo, issue_number: pr_number, body });
+
+            // Rewrite a configured alias (e.g. /vault-audit) into /audit <capability>.
+            let body = (context.payload.comment.body ?? '').trim();
+            const alias = body.match(/^\/([a-z0-9_-]+)(\s[\s\S]*)?$/);
+            if (alias && aliases[alias[1]]) body = `/audit ${aliases[alias[1]]}${alias[2] ?? ''}`;
+            // Grammar: /audit [<cap>] [skip <reason> | model=… effort=…]
+            const m = body.match(/^\/audit\b([\s\S]*)$/i);
+            if (!m) { core.setOutput('type', 'none'); return; }
+            let rest = m[1].trim(), cap, skipReason, opts = '';
+            const first = rest.split(/\s+/)[0];
+            if (first && /^[a-z0-9_]+$/.test(first) && first.toLowerCase() !== 'skip') {
+              cap = first; rest = rest.slice(first.length).trim();
+            }
+            const skip = rest.match(/^skip(?:\s+([\s\S]*))?$/i);
+            if (skip) {
+              skipReason = (skip[1] ?? '').trim();
+            } else if (rest && !/^((model|effort|thinking)=\S+\s*)+$/i.test(rest)) {
+              await reply('⛔ Usage: `/audit [<pack>] [model=opus|sonnet|haiku] [effort=low|medium|high|xhigh|max]` or `/audit [<pack>] skip <reason>`.');
+              core.setFailed('bad command'); return;
+            } else {
+              opts = rest;
+            }
+
+            if (skipReason === '') {
+              await reply('⛔ A skip needs a reason: `/audit [<pack>] skip <reason>`.');
+              core.setFailed('skip without reason'); return;
+            }
+
+            const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({ owner, repo, username: commenter });
+            if (!['write', 'admin'].includes(perm.permission)) {
+              await reply(`⛔ @${commenter} — only reviewers with write access can use audit commands.`);
+              core.setFailed('unauthorized'); return;
+            }
+
+            const configured = Object.keys(packs);
+            if (!configured.length) {
+              await reply('ℹ️ No audit packs are enabled in this repo yet. See `.github/workflows/cre-audit.yml` for how to enable one.');
+              core.setOutput('type', 'none'); return;
+            }
+            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: pr_number });
+            let caps;
+            if (cap) {
+              if (!packs[cap]) {
+                await reply(`⛔ No audit pack \`${cap}\` is configured here. Configured: ${configured.map(c => `\`${c}\``).join(', ')}.`);
+                core.setFailed('unknown pack'); return;
+              }
+              caps = [cap];
+            } else {
+              const files = (await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: pr_number })).map(f => f.filename);
+              caps = configured.filter(c => files.some(f => new RegExp(packs[c]).test(f)));
+              if (!caps.length) {
+                await reply(`ℹ️ This PR touches no audited paths. Configured packs: ${configured.map(c => `\`${c}\``).join(', ')}. Use \`/audit <pack>\` to run one anyway.`);
+                core.setOutput('type', 'none'); return;
+              }
+            }
+
+            const model = opts.match(/model=(\S+)/i)?.[1] ?? '';
+            const effort = opts.match(/(?:effort|thinking)=(\S+)/i)?.[1] ?? '';
+            if (model && !/^(opus|sonnet|haiku|claude-[a-z0-9.-]+)$/i.test(model)) {
+              await reply(`⛔ Unknown model \`${model}\`. Use \`opus\`, \`sonnet\`, or \`haiku\`.`); core.setFailed('bad model'); return;
+            }
+            if (effort && !/^(low|medium|high|xhigh|max)$/i.test(effort)) {
+              await reply(`⛔ Unknown effort \`${effort}\`. Use \`low\`, \`medium\`, \`high\`, \`xhigh\`, or \`max\`.`); core.setFailed('bad effort'); return;
+            }
+
+            core.setOutput('type', skipReason !== undefined ? 'skip' : 'run');
+            core.setOutput('caps', caps.join(' '));
+            core.setOutput('reason', skipReason ?? '');
+            core.setOutput('model', model.toLowerCase());
+            core.setOutput('effort', effort.toLowerCase());
+            core.setOutput('head_sha', pr.head.sha);
+            core.setOutput('base_sha', pr.base.sha);
+
+      - name: Handle skip
+        if: steps.plan.outputs.type == 'skip'
+        uses: actions/github-script@v9
+        env:
+          CAPS: ${{ steps.plan.outputs.caps }}
+          REASON: ${{ steps.plan.outputs.reason }}
+          HEAD_SHA: ${{ steps.plan.outputs.head_sha }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const commenter = context.payload.comment.user.login;
+            const caps = process.env.CAPS.split(' ');
+            for (const cap of caps) {
+              await github.rest.repos.createCommitStatus({ owner, repo, sha: process.env.HEAD_SHA, state: 'success', context: `audit/${cap}`, description: `${cap} audit skipped by ${commenter}`.slice(0, 140) });
+            }
+            await github.rest.issues.createComment({ owner, repo, issue_number: context.payload.issue.number, body:
+              `✅ Audit skipped for ${caps.map(c => `\`${c}\``).join(', ')} by @${commenter}\n\n**Reason:** ${process.env.REASON}\n\n` +
+              `> ℹ️ Recorded on \`${process.env.HEAD_SHA.slice(0, 8)}\`. The audit is advisory and never blocks merging. Run \`/audit\` again for a fresh audit.` });
+
+      - name: Require verified commits
+        if: steps.plan.outputs.type == 'run'
+        uses: actions/github-script@v9
+        env:
+          CAPS: ${{ steps.plan.outputs.caps }}
+          HEAD_SHA: ${{ steps.plan.outputs.head_sha }}
+        with:
+          script: |
+            // The audit feeds PR code to a model; only run it on code from known signers.
+            const { owner, repo } = context.repo;
+            const pull_number = context.payload.issue.number;
+            const commits = await github.paginate(github.rest.pulls.listCommits, { owner, repo, pull_number });
+            const bad = commits.filter(c => !c.commit.verification?.verified).map(c => `- \`${c.sha.slice(0, 8)}\` (${c.commit.verification?.reason ?? 'unknown'})`);
+            if (!bad.length) return;
+            for (const cap of process.env.CAPS.split(' ')) {
+              await github.rest.repos.createCommitStatus({ owner, repo, sha: process.env.HEAD_SHA, state: 'error', context: `audit/${cap}`, description: 'Audit not run — PR contains unverified commits' });
+            }
+            await github.rest.issues.createComment({ owner, repo, issue_number: pull_number, body:
+              `⛔ Audit not run — this PR contains commits that are not verified (signed):\n\n${bad.join('\n')}\n\nRe-sign or rebase them, then comment \`/audit\` again.` });
+            core.setFailed('unverified commits');
+
+      - name: Get GATI token for cre-docs dispatch
+        id: gati
+        if: steps.plan.outputs.type == 'run'
+        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
+        with:
+          aws-role-arn: ${{ secrets.GATI_AWS_ROLE_ARN }}
+          aws-lambda-url: ${{ secrets.GATI_AWS_LAMBDA_URL }}
+          aws-region: us-west-2
+
+      - name: Set pending and dispatch one audit per pack
+        if: steps.plan.outputs.type == 'run'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DISPATCH_TOKEN: ${{ steps.gati.outputs.access-token }}
+          CAPS: ${{ steps.plan.outputs.caps }}
+          HEAD_SHA: ${{ steps.plan.outputs.head_sha }}
+          BASE_SHA: ${{ steps.plan.outputs.base_sha }}
+          MODEL: ${{ steps.plan.outputs.model }}
+          EFFORT: ${{ steps.plan.outputs.effort }}
+          REPO: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          COMMENTER: ${{ github.event.comment.user.login }}
+        run: |
+          for CAP in $CAPS; do
+            gh api "/repos/${REPO}/statuses/${HEAD_SHA}" --method POST \
+              -f state=pending -f "context=audit/${CAP}" -f "description=${CAP} audit queued..." >/dev/null
+            GH_TOKEN="$DISPATCH_TOKEN" gh workflow run audit-dispatch.yml \
+              --repo smartcontractkit/cre-docs --ref main \
+              -f "capability=${CAP}" -f "source_repo=${REPO}" -f "pr_number=${PR_NUMBER}" \
+              -f "head_sha=${HEAD_SHA}" -f "base_sha=${BASE_SHA}" -f "default_branch=${DEFAULT_BRANCH}" \
+              -f "triggered_by=${COMMENTER}" -f "model=${MODEL}" -f "effort=${EFFORT}"
+          done
+          # cre-docs posts the acknowledgement and result comments for each run.
+
+  status:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+      pull-requests: read
+    concurrency:
+      group: audit-status-${{ github.repository }}-${{ github.event.inputs.pr_number }}-${{ github.event.inputs.capability }}
+      cancel-in-progress: false
+    steps:
+      - name: Stamp audit/<capability>
+        uses: actions/github-script@v9
+        env:
+          PACKS: ${{ inputs.packs }}
+        with:
+          script: |
+            const parse = (s) => Object.fromEntries((s || '').split('\n').map(l => l.trim())
+              .filter(l => l && !l.startsWith('#')).map(l => { const i = l.indexOf('='); return [l.slice(0, i).trim(), l.slice(i + 1).trim()]; }));
+            const packs = parse(process.env.PACKS);
+            const { owner, repo } = context.repo;
+            const { capability, pr_number, head_sha, state, description, target_url } = context.payload.inputs;
+
+            if (!packs[capability]) { core.setFailed(`capability '${capability}' is not configured in this repo`); return; }
+            if (!['pending', 'success', 'failure', 'error'].includes(state)) { core.setFailed(`invalid state '${state}'`); return; }
+            if (!/^[0-9a-f]{40}$/.test(head_sha) || !/^[0-9]+$/.test(pr_number)) { core.setFailed('invalid head_sha or pr_number'); return; }
+            if (target_url && !/^https:\/\/github\.com\/smartcontractkit\//.test(target_url)) { core.setFailed('invalid target_url'); return; }
+
+            // Stamp only the audited commit: a verdict is never carried onto code it did not see.
+            const commits = (await github.paginate(github.rest.pulls.listCommits, { owner, repo, pull_number: Number(pr_number) })).map(c => c.sha);
+            if (!commits.includes(head_sha)) { core.setFailed(`${head_sha} is not a commit of PR #${pr_number}`); return; }
+
+            await github.rest.repos.createCommitStatus({ owner, repo, sha: head_sha, state, context: `audit/${capability}`, description: description.slice(0, 140), target_url: target_url || undefined });
