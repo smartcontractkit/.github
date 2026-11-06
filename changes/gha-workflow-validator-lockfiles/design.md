@@ -70,16 +70,18 @@ flowchart TD
 ```go
 func main() {
     js.Global().Set("parseLockfile", js.FuncOf(parseLockfile))
-    js.Global().Set("parsePin", js.FuncOf(parsePin))
     select {}
 }
 ```
 
 `parseLockfile(contents)` calls `lockfile.Parse`. It returns JSON with `ok`,
 `version`, and `workflows`, or `ok: false` with `error`, `line`, `column`, and
-`futureVersion`. `parsePin(value)` calls `lockfile.ParsePin` and returns the
-canonical key. The Go module is a separate build unit so the official module and
-its `yaml.v3` dependency stay out of the TypeScript dependency graph.
+`futureVersion`. Pin keys are built in TypeScript from the owner, repo, and ref
+already extracted from the workflow, using the same canonical form as the Go
+`IndexKey(owner, repo, ref)`. No second bridge call is needed because the
+lockfile parser has already validated every stored pin. The Go module is a
+separate build unit so the official module and its `yaml.v3` dependency stay out
+of the TypeScript dependency graph.
 
 **Build.** `scripts/build-wasm.sh` runs:
 
@@ -118,10 +120,11 @@ then `<cwd>/dist`. A missing artifact is a hard error with a message to rebuild.
 but an invalid file is a validation error.
 
 **Pin canonicalization.** `toActionPinKey` lowercases owner and repo, keeps the
-ref as written, and ignores the sub-action path. This matches `ParsePin` and
-fixes the current false negative for actions like `actions/cache/save@v4`.
-`validateLockfileCoverage` builds this key and requires an exact match in the
-workflow's transitive pin list.
+ref as written, and ignores the sub-action path. This matches the Go
+`IndexKey(owner, repo, ref)` and the `Pin.String()` form for keys built from
+already-parsed parts, and it fixes the current false negative for actions like
+`actions/cache/save@v4`. `validateLockfileCoverage` builds this key and requires
+an exact match in the workflow's transitive pin list.
 
 **Validation seam.**
 
@@ -168,8 +171,8 @@ for GHE.com callers. The line validator does not invoke the CLI.
 
 - Go bridge: build the WASM, parse the sample lockfile, and assert the workflows
   map. Assert a malformed file returns a positioned error, and a path-traversal
-  key is rejected. Assert `parsePin` drops a sub-action path and lowercases
-  owner/repo.
+  key is rejected. `toActionPinKey` is unit-tested for sub-action paths and
+  owner/repo casing; the bridge does not expose `parsePin`.
 - TypeScript loader: missing file returns no error; valid fixture loads; invalid
   fixture returns a `lockfile-parse` error; `toActionPinKey` canonicalizes
   correctly; `normalizeWorkflowPath` handles `./`, backslashes, and absolute
@@ -213,28 +216,34 @@ for GHE.com callers. The line validator does not invoke the CLI.
 Effort: hard (official parser bridge, Go/WASM build, validation changes, tests,
 and a new reusable workflow)
 
+Status: Phase 1 and Phase 2 are implemented. Phase 3 is deferred.
+
 ### Phase 1: Build the official parser bridge
 
-- [ ] Add `wasm/go.mod`, `wasm/go.sum`, and `wasm/main.go` pinned to
-      `github.com/github/actions-lockfile/go`. Expose `parseLockfile` and
-      `parsePin`, returning JSON with positioned errors.
-- [ ] Add `scripts/build-wasm.sh` and the `build:wasm` nx target, with `build`
+- [x] Add `wasm/go.mod`, `wasm/go.sum`, and `wasm/main.go` pinned to
+      `github.com/github/actions-lockfile/go`. Expose `parseLockfile` with
+      positioned errors. Pin keys use the `IndexKey(owner, repo, ref)` form in
+      TypeScript; a separate `parsePin` bridge call is not needed.
+- [x] Add `scripts/build-wasm.sh` and the `build:wasm` nx target, with `build`
       and `test` depending on it. Copy `wasm_exec.js` and build
       `dist/lockfile.wasm`.
-- [ ] Replace `src/lockfile.ts` with the WASM loader, size check, path
+- [x] Replace `src/lockfile.ts` with the WASM loader, size check, path
       normalization, and canonical pin helper. Add unit tests for valid,
       missing, malformed, and traversal inputs.
 
 ### Phase 2: Use official pins in validation
 
-- [ ] Make `readWorkflowLockfile` async, load it once in `validate()`, and
+- [x] Make `readWorkflowLockfile` async, load it once in `validate()`, and
       prepend a `lockfile-parse` result for invalid files. Remove the
       no-workflow early exit so a lockfile-only PR still reports parse errors.
-- [ ] Update `validateLockfileCoverage` to use the canonical repo-scoped pin
+- [x] Update `validateLockfileCoverage` to use the canonical repo-scoped pin
       key, and add tests for sub-action paths, trusted refs, `./` names, missing
       pins, and non-onboarded workflows. Docs: update the action README.
 
 ### Phase 3: Add the official CLI gate
+
+Deferred to a follow-up. The line validator and the CLI have different runtime,
+network, and token requirements.
 
 - [ ] Add `workflows/verify-workflow-lockfile/` with the pinned
       `gh actions-lock --verify` command, `verify-local` mode, and the optional
