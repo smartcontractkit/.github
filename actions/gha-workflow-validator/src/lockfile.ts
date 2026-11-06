@@ -1,8 +1,16 @@
 import * as core from "@actions/core";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import {
+  closeSync,
+  existsSync,
+  fstatSync,
+  openSync,
+  readFileSync,
+} from "node:fs";
 import { isAbsolute, join, relative } from "node:path";
 
 export const WORKFLOW_LOCKFILE_PATH = ".github/workflows/actions.lock";
+
+const WORKFLOW_FILE_PATTERN = /^\.github\/workflows\/[^/]+\.ya?ml$/;
 
 // Matches the official parser's limit so we reject oversized files before
 // reading them into memory.
@@ -58,9 +66,11 @@ export async function readWorkflowLockfile(
 ): Promise<LockfileReadResult> {
   const lockfilePath = join(rootDir || process.cwd(), WORKFLOW_LOCKFILE_PATH);
 
-  let size: number;
+  // Open once and read through the descriptor so the size check and the read
+  // see the same file.
+  let fd: number;
   try {
-    size = statSync(lockfilePath).size;
+    fd = openSync(lockfilePath, "r");
   } catch (error: any) {
     if (error.code === "ENOENT") return {};
     return {
@@ -70,23 +80,25 @@ export async function readWorkflowLockfile(
     };
   }
 
-  if (size > MAX_LOCKFILE_SIZE) {
-    return {
-      error: {
-        message: `Workflow lockfile at ${lockfilePath} is ${size} bytes; the maximum is ${MAX_LOCKFILE_SIZE}.`,
-      },
-    };
-  }
-
   let content: string;
   try {
-    content = readFileSync(lockfilePath, "utf-8");
+    const size = fstatSync(fd).size;
+    if (size > MAX_LOCKFILE_SIZE) {
+      return {
+        error: {
+          message: `Workflow lockfile at ${lockfilePath} is ${size} bytes; the maximum is ${MAX_LOCKFILE_SIZE}.`,
+        },
+      };
+    }
+    content = readFileSync(fd, "utf-8");
   } catch (error: any) {
     return {
       error: {
         message: `Unable to read workflow lockfile at ${lockfilePath}: ${error.message}`,
       },
     };
+  } finally {
+    closeSync(fd);
   }
 
   const result = await parseWorkflowLockfileContents(content);
@@ -171,11 +183,14 @@ export function getLockedActionRefs(
   if (!lockfile) return;
 
   const workflowPath = normalizeWorkflowPath(filename, rootDir);
+  // Only workflow files can be onboarded. Action definitions stay strict.
+  if (!WORKFLOW_FILE_PATTERN.test(workflowPath)) return;
   if (!Object.prototype.hasOwnProperty.call(lockfile.workflows, workflowPath)) {
     return;
   }
 
-  return lockfile.workflows[workflowPath];
+  // A YAML null entry means onboarded with no pins.
+  return lockfile.workflows[workflowPath] ?? [];
 }
 
 /**

@@ -55,6 +55,18 @@ describe(parseWorkflowLockfileContents.name, () => {
     } satisfies WorkflowLockfile);
   });
 
+  it("rejects pins that have no dependency entry", async () => {
+    const result = await parseWorkflowLockfileContents(`version: v0.0.3
+workflows:
+    '.github/workflows/ci.yml':
+        - 'untrusted/action@v1'
+dependencies: {}
+`);
+
+    expect(result.lockfile).toBeUndefined();
+    expect(result.error?.message).toContain("untrusted/action@v1");
+  });
+
   it("rejects workflow paths that escape the repository", async () => {
     const result = await parseWorkflowLockfileContents(`version: v0.0.3
 workflows:
@@ -141,6 +153,24 @@ describe(getLockedActionRefs.name, () => {
         LOCKFILE_FIXTURE_DIR,
       ),
     ).toEqual(["actions/cache@v4"]);
+  });
+
+  it("treats a null workflow entry as onboarded with no pins", () => {
+    expect(
+      getLockedActionRefs(
+        { workflows: { ".github/workflows/ci.yml": null as any } },
+        ".github/workflows/ci.yml",
+      ),
+    ).toEqual([]);
+  });
+
+  it("ignores action definitions listed in the lockfile", () => {
+    expect(
+      getLockedActionRefs(
+        { workflows: { ".github/actions/x/action.yml": [] } },
+        ".github/actions/x/action.yml",
+      ),
+    ).toBeUndefined();
   });
 
   it("returns undefined for a workflow that is not onboarded", () => {

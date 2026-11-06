@@ -41,6 +41,18 @@ func parseLockfile(_ js.Value, args []js.Value) any {
 		return encode(result)
 	}
 
+	// The parser canonicalizes pins but does not require a dependency entry for
+	// each one. Reject pins that nothing locks.
+	for workflow, pins := range file.Workflows {
+		for _, pin := range pins {
+			if _, ok := file.Dependencies[pin]; !ok {
+				return encode(parseResult{
+					Error: "workflow " + workflow + " lists " + pin + " but has no dependency entry for it",
+				})
+			}
+		}
+	}
+
 	return encode(parseResult{
 		OK:        true,
 		Version:   file.Version,

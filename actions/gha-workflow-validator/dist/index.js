@@ -38881,13 +38881,14 @@ var core5 = __toESM(require_core());
 var import_node_fs = require("node:fs");
 var import_node_path2 = require("node:path");
 var WORKFLOW_LOCKFILE_PATH = ".github/workflows/actions.lock";
+var WORKFLOW_FILE_PATTERN = /^\.github\/workflows\/[^/]+\.ya?ml$/;
 var MAX_LOCKFILE_SIZE = 1 << 20;
 var parserPromise;
 async function readWorkflowLockfile(rootDir) {
   const lockfilePath = (0, import_node_path2.join)(rootDir || process.cwd(), WORKFLOW_LOCKFILE_PATH);
-  let size;
+  let fd;
   try {
-    size = (0, import_node_fs.statSync)(lockfilePath).size;
+    fd = (0, import_node_fs.openSync)(lockfilePath, "r");
   } catch (error4) {
     if (error4.code === "ENOENT") return {};
     return {
@@ -38896,22 +38897,25 @@ async function readWorkflowLockfile(rootDir) {
       }
     };
   }
-  if (size > MAX_LOCKFILE_SIZE) {
-    return {
-      error: {
-        message: `Workflow lockfile at ${lockfilePath} is ${size} bytes; the maximum is ${MAX_LOCKFILE_SIZE}.`
-      }
-    };
-  }
   let content;
   try {
-    content = (0, import_node_fs.readFileSync)(lockfilePath, "utf-8");
+    const size = (0, import_node_fs.fstatSync)(fd).size;
+    if (size > MAX_LOCKFILE_SIZE) {
+      return {
+        error: {
+          message: `Workflow lockfile at ${lockfilePath} is ${size} bytes; the maximum is ${MAX_LOCKFILE_SIZE}.`
+        }
+      };
+    }
+    content = (0, import_node_fs.readFileSync)(fd, "utf-8");
   } catch (error4) {
     return {
       error: {
         message: `Unable to read workflow lockfile at ${lockfilePath}: ${error4.message}`
       }
     };
+  } finally {
+    (0, import_node_fs.closeSync)(fd);
   }
   const result = await parseWorkflowLockfileContents(content);
   if (result.lockfile) {
@@ -38963,10 +38967,11 @@ function normalizeWorkflowPath(filename, rootDir) {
 function getLockedActionRefs(lockfile, filename, rootDir) {
   if (!lockfile) return;
   const workflowPath = normalizeWorkflowPath(filename, rootDir);
+  if (!WORKFLOW_FILE_PATTERN.test(workflowPath)) return;
   if (!Object.prototype.hasOwnProperty.call(lockfile.workflows, workflowPath)) {
     return;
   }
-  return lockfile.workflows[workflowPath];
+  return lockfile.workflows[workflowPath] ?? [];
 }
 function toActionPinKey(owner, repo, ref) {
   return `${owner.toLowerCase()}/${repo.toLowerCase()}@${ref}`;
@@ -45432,7 +45437,7 @@ async function extractWorkflowReferences(filename, content) {
     )
   };
   if (raw.jobs !== converted.jobs || raw.steps !== converted.steps) {
-    core7.debug(
+    core8.debug(
       `Converted ${converted.jobs} jobs/${converted.steps} steps but found ${raw.jobs}/${raw.steps} in ${filename}; using fallback`
     );
     return void 0;
@@ -45459,7 +45464,7 @@ async function extractWorkflowReferences(filename, content) {
     }
   }
   if (hasAliasedReferences(references, lines)) {
-    core7.debug(
+    core8.debug(
       `${filename} reuses a \`uses\` value through a YAML alias; using fallback`
     );
     return void 0;
@@ -45519,7 +45524,7 @@ function extractActionReferences(filename, content) {
     ] : []
   );
   if (hasAliasedReferences(references, lines)) {
-    core7.debug(
+    core8.debug(
       `${filename} reuses a \`uses\` value through a YAML alias; using fallback`
     );
     return void 0;

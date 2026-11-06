@@ -410,11 +410,11 @@ jobs:
 
   it("applies lockfile coverage through the reference index", async () => {
     const references = await buildUseReferenceIndex([
-      { filename: "test.yml", lines: [], content: WORKFLOW },
+      { filename: ".github/workflows/test.yml", lines: [], content: WORKFLOW },
     ]);
     const lockfile: WorkflowLockfile = {
       workflows: {
-        "test.yml": ["actions/checkout@v4"],
+        ".github/workflows/test.yml": ["actions/checkout@v4"],
       },
     };
     const subject = new ActionRefValidation({} as any, {
@@ -426,7 +426,7 @@ jobs:
     expect(
       await subject.validateLine(
         line(11, "uses: dorny/paths-filter@v3.0.2"),
-        "test.yml",
+        ".github/workflows/test.yml",
       ),
     ).toEqual([
       {
@@ -440,11 +440,11 @@ jobs:
 
   it("skips SHA and comment rules for pinned references", async () => {
     const references = await buildUseReferenceIndex([
-      { filename: "test.yml", lines: [], content: WORKFLOW },
+      { filename: ".github/workflows/test.yml", lines: [], content: WORKFLOW },
     ]);
     const lockfile: WorkflowLockfile = {
       workflows: {
-        "test.yml": ["dorny/paths-filter@v3.0.2"],
+        ".github/workflows/test.yml": ["dorny/paths-filter@v3.0.2"],
       },
     };
     const subject = new ActionRefValidation({} as any, {
@@ -456,7 +456,7 @@ jobs:
     expect(
       await subject.validateLine(
         line(11, "uses: dorny/paths-filter@v3.0.2"),
-        "test.yml",
+        ".github/workflows/test.yml",
       ),
     ).toEqual([]);
   });
