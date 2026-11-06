@@ -30735,7 +30735,7 @@ var require_createNode = __commonJS({
       if (value instanceof String || value instanceof Number || value instanceof Boolean || typeof BigInt !== "undefined" && value instanceof BigInt) {
         value = value.valueOf();
       }
-      const { aliasDuplicateObjects, onAnchor, onTagObj, schema: schema2, sourceObjects } = ctx;
+      const { aliasDuplicateObjects, onAnchor, onTagObj, schema: schema3, sourceObjects } = ctx;
       let ref = void 0;
       if (aliasDuplicateObjects && value && typeof value === "object") {
         ref = sourceObjects.get(value);
@@ -30749,7 +30749,7 @@ var require_createNode = __commonJS({
       }
       if (tagName?.startsWith("!!"))
         tagName = defaultTagPrefix + tagName.slice(2);
-      let tagObj = findTagObject(value, tagName, schema2.tags);
+      let tagObj = findTagObject(value, tagName, schema3.tags);
       if (!tagObj) {
         if (value && typeof value.toJSON === "function") {
           value = value.toJSON();
@@ -30760,7 +30760,7 @@ var require_createNode = __commonJS({
             ref.node = node2;
           return node2;
         }
-        tagObj = value instanceof Map ? schema2[identity.MAP] : Symbol.iterator in Object(value) ? schema2[identity.SEQ] : schema2[identity.MAP];
+        tagObj = value instanceof Map ? schema3[identity.MAP] : Symbol.iterator in Object(value) ? schema3[identity.SEQ] : schema3[identity.MAP];
       }
       if (onTagObj) {
         onTagObj(tagObj);
@@ -30786,7 +30786,7 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema2, path, value) {
+    function collectionFromPath(schema3, path, value) {
       let v = value;
       for (let i = path.length - 1; i >= 0; --i) {
         const k = path[i];
@@ -30804,16 +30804,16 @@ var require_Collection = __commonJS({
         onAnchor: () => {
           throw new Error("This should not happen, please report a bug.");
         },
-        schema: schema2,
+        schema: schema3,
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
     var isEmptyPath = (path) => path == null || typeof path === "object" && !!path[Symbol.iterator]().next().done;
     var Collection2 = class extends Node.NodeBase {
-      constructor(type, schema2) {
+      constructor(type, schema3) {
         super(type);
         Object.defineProperty(this, "schema", {
-          value: schema2,
+          value: schema3,
           configurable: true,
           enumerable: false,
           writable: true
@@ -30824,11 +30824,11 @@ var require_Collection = __commonJS({
        *
        * @param schema - If defined, overwrites the original's schema
        */
-      clone(schema2) {
+      clone(schema3) {
         const copy = Object.create(Object.getPrototypeOf(this), Object.getOwnPropertyDescriptors(this));
-        if (schema2)
-          copy.schema = schema2;
-        copy.items = copy.items.map((it) => identity.isNode(it) || identity.isPair(it) ? it.clone(schema2) : it);
+        if (schema3)
+          copy.schema = schema3;
+        copy.items = copy.items.map((it) => identity.isNode(it) || identity.isPair(it) ? it.clone(schema3) : it);
         if (this.range)
           copy.range = this.range.slice();
         return copy;
@@ -31780,12 +31780,12 @@ var require_Pair = __commonJS({
         this.key = key;
         this.value = value;
       }
-      clone(schema2) {
+      clone(schema3) {
         let { key, value } = this;
         if (identity.isNode(key))
-          key = key.clone(schema2);
+          key = key.clone(schema3);
         if (identity.isNode(value))
-          value = value.clone(schema2);
+          value = value.clone(schema3);
         return new _Pair(key, value);
       }
       toJSON(_, ctx) {
@@ -31978,17 +31978,17 @@ var require_YAMLMap = __commonJS({
       static get tagName() {
         return "tag:yaml.org,2002:map";
       }
-      constructor(schema2) {
-        super(identity.MAP, schema2);
+      constructor(schema3) {
+        super(identity.MAP, schema3);
         this.items = [];
       }
       /**
        * A generic collection parsing method that can be extended
        * to other node classes that inherit from YAMLMap
        */
-      static from(schema2, obj, ctx) {
+      static from(schema3, obj, ctx) {
         const { keepUndefined, replacer: replacer2 } = ctx;
-        const map = new this(schema2);
+        const map = new this(schema3);
         const add = (key, value) => {
           if (typeof replacer2 === "function")
             value = replacer2.call(obj, key, value);
@@ -32004,8 +32004,8 @@ var require_YAMLMap = __commonJS({
           for (const key of Object.keys(obj))
             add(key, obj[key]);
         }
-        if (typeof schema2.sortMapEntries === "function") {
-          map.items.sort(schema2.sortMapEntries);
+        if (typeof schema3.sortMapEntries === "function") {
+          map.items.sort(schema3.sortMapEntries);
         }
         return map;
       }
@@ -32112,7 +32112,7 @@ var require_map = __commonJS({
           onError("Expected a mapping for this tag");
         return map2;
       },
-      createNode: (schema2, obj, ctx) => YAMLMap.YAMLMap.from(schema2, obj, ctx)
+      createNode: (schema3, obj, ctx) => YAMLMap.YAMLMap.from(schema3, obj, ctx)
     };
     exports2.map = map;
   }
@@ -32132,8 +32132,8 @@ var require_YAMLSeq = __commonJS({
       static get tagName() {
         return "tag:yaml.org,2002:seq";
       }
-      constructor(schema2) {
-        super(identity.SEQ, schema2);
+      constructor(schema3) {
+        super(identity.SEQ, schema3);
         this.items = [];
       }
       add(value) {
@@ -32208,9 +32208,9 @@ var require_YAMLSeq = __commonJS({
           onComment
         });
       }
-      static from(schema2, obj, ctx) {
+      static from(schema3, obj, ctx) {
         const { replacer: replacer2 } = ctx;
-        const seq = new this(schema2);
+        const seq = new this(schema3);
         if (obj && Symbol.iterator in Object(obj)) {
           let i = 0;
           for (let it of obj) {
@@ -32250,7 +32250,7 @@ var require_seq = __commonJS({
           onError("Expected a sequence for this tag");
         return seq2;
       },
-      createNode: (schema2, obj, ctx) => YAMLSeq.YAMLSeq.from(schema2, obj, ctx)
+      createNode: (schema3, obj, ctx) => YAMLSeq.YAMLSeq.from(schema3, obj, ctx)
     };
     exports2.seq = seq;
   }
@@ -32446,7 +32446,7 @@ var require_schema = __commonJS({
     var bool = require_bool();
     var float = require_float();
     var int = require_int();
-    var schema2 = [
+    var schema3 = [
       map.map,
       seq.seq,
       string.string,
@@ -32459,7 +32459,7 @@ var require_schema = __commonJS({
       float.floatExp,
       float.float
     ];
-    exports2.schema = schema2;
+    exports2.schema = schema3;
   }
 });
 
@@ -32525,8 +32525,8 @@ var require_schema2 = __commonJS({
         return str;
       }
     };
-    var schema2 = [map.map, seq.seq].concat(jsonScalars, jsonError);
-    exports2.schema = schema2;
+    var schema3 = [map.map, seq.seq].concat(jsonScalars, jsonError);
+    exports2.schema = schema3;
   }
 });
 
@@ -32630,9 +32630,9 @@ ${cn.comment}` : item.comment;
         onError("Expected a sequence for this tag");
       return seq;
     }
-    function createPairs(schema2, iterable, ctx) {
+    function createPairs(schema3, iterable, ctx) {
       const { replacer: replacer2 } = ctx;
-      const pairs2 = new YAMLSeq.YAMLSeq(schema2);
+      const pairs2 = new YAMLSeq.YAMLSeq(schema3);
       pairs2.tag = "tag:yaml.org,2002:pairs";
       let i = 0;
       if (iterable && Symbol.iterator in Object(iterable))
@@ -32717,8 +32717,8 @@ var require_omap = __commonJS({
         }
         return map;
       }
-      static from(schema2, iterable, ctx) {
-        const pairs$1 = pairs.createPairs(schema2, iterable, ctx);
+      static from(schema3, iterable, ctx) {
+        const pairs$1 = pairs.createPairs(schema3, iterable, ctx);
         const omap2 = new this();
         omap2.items = pairs$1.items;
         return omap2;
@@ -32745,7 +32745,7 @@ var require_omap = __commonJS({
         }
         return Object.assign(new YAMLOMap(), pairs$1);
       },
-      createNode: (schema2, iterable, ctx) => YAMLOMap.from(schema2, iterable, ctx)
+      createNode: (schema3, iterable, ctx) => YAMLOMap.from(schema3, iterable, ctx)
     };
     exports2.YAMLOMap = YAMLOMap;
     exports2.omap = omap;
@@ -32920,8 +32920,8 @@ var require_set = __commonJS({
     var Pair = require_Pair();
     var YAMLMap = require_YAMLMap();
     var YAMLSet = class _YAMLSet extends YAMLMap.YAMLMap {
-      constructor(schema2) {
-        super(schema2);
+      constructor(schema3) {
+        super(schema3);
         this.tag = _YAMLSet.tag;
       }
       add(key) {
@@ -32965,9 +32965,9 @@ var require_set = __commonJS({
         else
           throw new Error("Set items must all have null values");
       }
-      static from(schema2, iterable, ctx) {
+      static from(schema3, iterable, ctx) {
         const { replacer: replacer2 } = ctx;
-        const set2 = new this(schema2);
+        const set2 = new this(schema3);
         if (iterable && Symbol.iterator in Object(iterable))
           for (let value of iterable) {
             if (typeof replacer2 === "function")
@@ -32984,7 +32984,7 @@ var require_set = __commonJS({
       nodeClass: YAMLSet,
       default: false,
       tag: "tag:yaml.org,2002:set",
-      createNode: (schema2, iterable, ctx) => YAMLSet.from(schema2, iterable, ctx),
+      createNode: (schema3, iterable, ctx) => YAMLSet.from(schema3, iterable, ctx),
       resolve(map, onError) {
         if (identity.isMap(map)) {
           if (map.hasAllNullValues(true))
@@ -33106,7 +33106,7 @@ var require_schema3 = __commonJS({
     var pairs = require_pairs();
     var set = require_set();
     var timestamp = require_timestamp();
-    var schema2 = [
+    var schema3 = [
       map.map,
       seq.seq,
       string.string,
@@ -33129,7 +33129,7 @@ var require_schema3 = __commonJS({
       timestamp.floatTime,
       timestamp.timestamp
     ];
-    exports2.schema = schema2;
+    exports2.schema = schema3;
   }
 });
 
@@ -33144,7 +33144,7 @@ var require_tags = __commonJS({
     var bool = require_bool();
     var float = require_float();
     var int = require_int();
-    var schema2 = require_schema();
+    var schema3 = require_schema();
     var schema$1 = require_schema2();
     var binary = require_binary();
     var merge2 = require_merge();
@@ -33154,7 +33154,7 @@ var require_tags = __commonJS({
     var set = require_set();
     var timestamp = require_timestamp();
     var schemas = /* @__PURE__ */ new Map([
-      ["core", schema2.schema],
+      ["core", schema3.schema],
       ["failsafe", [map.map, seq.seq, string.string]],
       ["json", schema$1.schema],
       ["yaml11", schema$2.schema],
@@ -33238,9 +33238,9 @@ var require_Schema = __commonJS({
     var tags = require_tags();
     var sortMapEntriesByKey = (a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0;
     var Schema = class _Schema {
-      constructor({ compat, customTags, merge: merge2, resolveKnownTags, schema: schema2, sortMapEntries, toStringDefaults }) {
+      constructor({ compat, customTags, merge: merge2, resolveKnownTags, schema: schema3, sortMapEntries, toStringDefaults }) {
         this.compat = Array.isArray(compat) ? tags.getTags(compat, "compat") : compat ? tags.getTags(null, compat) : null;
-        this.name = typeof schema2 === "string" && schema2 || "core";
+        this.name = typeof schema3 === "string" && schema3 || "core";
         this.knownTags = resolveKnownTags ? tags.coreKnownTags : {};
         this.tags = tags.getTags(customTags, this.name, merge2);
         this.toStringOptions = toStringDefaults ?? null;
@@ -34829,11 +34829,11 @@ var require_compose_scalar = __commonJS({
         scalar.comment = comment;
       return scalar;
     }
-    function findScalarTagByName(schema2, value, tagName, tagToken, onError) {
+    function findScalarTagByName(schema3, value, tagName, tagToken, onError) {
       if (tagName === "!")
-        return schema2[identity.SCALAR];
+        return schema3[identity.SCALAR];
       const matchWithTest = [];
-      for (const tag of schema2.tags) {
+      for (const tag of schema3.tags) {
         if (!tag.collection && tag.tag === tagName) {
           if (tag.default && tag.test)
             matchWithTest.push(tag);
@@ -34844,18 +34844,18 @@ var require_compose_scalar = __commonJS({
       for (const tag of matchWithTest)
         if (tag.test?.test(value))
           return tag;
-      const kt = schema2.knownTags[tagName];
+      const kt = schema3.knownTags[tagName];
       if (kt && !kt.collection) {
-        schema2.tags.push(Object.assign({}, kt, { default: false, test: void 0 }));
+        schema3.tags.push(Object.assign({}, kt, { default: false, test: void 0 }));
         return kt;
       }
       onError(tagToken, "TAG_RESOLVE_FAILED", `Unresolved tag: ${tagName}`, tagName !== "tag:yaml.org,2002:str");
-      return schema2[identity.SCALAR];
+      return schema3[identity.SCALAR];
     }
-    function findScalarTagByTest({ atKey, directives, schema: schema2 }, value, token, onError) {
-      const tag = schema2.tags.find((tag2) => (tag2.default === true || atKey && tag2.default === "key") && tag2.test?.test(value)) || schema2[identity.SCALAR];
-      if (schema2.compat) {
-        const compat = schema2.compat.find((tag2) => tag2.default && tag2.test?.test(value)) ?? schema2[identity.SCALAR];
+    function findScalarTagByTest({ atKey, directives, schema: schema3 }, value, token, onError) {
+      const tag = schema3.tags.find((tag2) => (tag2.default === true || atKey && tag2.default === "key") && tag2.test?.test(value)) || schema3[identity.SCALAR];
+      if (schema3.compat) {
+        const compat = schema3.compat.find((tag2) => tag2.default && tag2.test?.test(value)) ?? schema3[identity.SCALAR];
         if (tag.tag !== compat.tag) {
           const ts = directives.tagString(tag.tag);
           const cs = directives.tagString(compat.tag);
@@ -39293,34 +39293,29 @@ var ActionsCacheVersionValidation = class {
   constructor(options) {
     this.options = options ?? {};
   }
-  async validateLine(line) {
-    const { ref } = extractActionsCacheVersion(line);
-    if (!ref) {
-      return [];
-    }
-    const isRefUpToDate = ref.startsWith("v5");
-    if (isRefUpToDate) {
-      return [];
-    }
-    return [
-      {
-        type: "actions-cache" /* ACTIONS_CACHE */,
-        severity: line.operation === "add" ? "error" : "warning",
-        message: `This version (${ref}) of actions/cache is being deprecated. Please update to v5`
+  async validateLine(line, filename) {
+    const references = this.options.references && filename ? this.options.references.get(filename, line.lineNumber) : "fallback";
+    const refs = references === "fallback" ? [extractActionsCacheFromLine(line.content)].filter(
+      (ref) => ref !== void 0
+    ) : references.flatMap((use) => {
+      if (use.kind !== "action") return [];
+      const action = toActionReference(use);
+      return action?.owner === "actions" && action.repo === "cache" ? [action.ref] : [];
+    });
+    return refs.flatMap((ref) => {
+      if (ref.startsWith("v5")) {
+        return [];
       }
-    ];
+      return [
+        {
+          type: "actions-cache" /* ACTIONS_CACHE */,
+          severity: line.operation === "add" ? "error" : "warning",
+          message: `This version (${ref}) of actions/cache is being deprecated. Please update to v5`
+        }
+      ];
+    });
   }
 };
-function extractActionsCacheVersion(fileLine) {
-  const actionsCacheVersion = extractActionsCacheFromLine(fileLine.content);
-  if (!actionsCacheVersion) {
-    return fileLine;
-  }
-  return {
-    ...fileLine,
-    ref: actionsCacheVersion
-  };
-}
 function extractActionsCacheFromLine(line) {
   const actionReference = extractActionReferenceFromLine(line);
   if (!actionReference) {
@@ -39655,14 +39650,14 @@ var TemplateValidationError = class {
 
 // node_modules/.pnpm/@actions+workflow-parser@0.3.61/node_modules/@actions/workflow-parser/dist/templates/template-context.js
 var TemplateContext = class {
-  constructor(errors, schema2, trace) {
+  constructor(errors, schema3, trace) {
     this._fileIds = {};
     this._fileNames = [];
     this.expressionFunctions = [];
     this.expressionNamedContexts = [];
     this.state = {};
     this.errors = errors;
-    this.schema = schema2;
+    this.schema = schema3;
     this.trace = trace;
   }
   error(tokenOrFileId, err, tokenRange) {
@@ -41479,6 +41474,9 @@ function isScalar(t) {
 function isString(t) {
   return isLiteral(t) && t.templateTokenType === TokenType.String;
 }
+function isBoolean(t) {
+  return isLiteral(t) && t.templateTokenType === TokenType.Boolean;
+}
 function isSequence(t) {
   return t instanceof SequenceToken;
 }
@@ -42297,11 +42295,11 @@ var MappingDefinition = class extends Definition {
   get definitionType() {
     return DefinitionType.Mapping;
   }
-  validate(schema2, name) {
+  validate(schema3, name) {
     if (this.looseKeyType) {
-      schema2.getDefinition(this.looseKeyType);
+      schema3.getDefinition(this.looseKeyType);
       if (this.looseValueType) {
-        schema2.getDefinition(this.looseValueType);
+        schema3.getDefinition(this.looseValueType);
       } else {
         throw new Error(`Property '${LOOSE_KEY_TYPE}' is defined but '${LOOSE_VALUE_TYPE}' is not defined on '${name}'`);
       }
@@ -42313,7 +42311,7 @@ var MappingDefinition = class extends Definition {
       if (!propertyDef.type) {
         throw new Error(`Type not specified for the property '${propertyName}' on '${name}'`);
       }
-      schema2.getDefinition(propertyDef.type);
+      schema3.getDefinition(propertyDef.type);
     }
   }
 };
@@ -42426,7 +42424,7 @@ var OneOfDefinition = class extends Definition {
   get definitionType() {
     return DefinitionType.OneOf;
   }
-  validate(schema2, name) {
+  validate(schema3, name) {
     if (this.oneOf.length === 0) {
       throw new Error(`'${name}' does not contain any references`);
     }
@@ -42444,7 +42442,7 @@ var OneOfDefinition = class extends Definition {
         throw new Error(`'${name}' contains duplicate nested type '${nestedType}'`);
       }
       seenNestedTypes[nestedType] = true;
-      const nestedDefinition = schema2.getDefinition(nestedType);
+      const nestedDefinition = schema3.getDefinition(nestedType);
       if (nestedDefinition.readerContext.length > 0) {
         throw new Error(`'${name}' is a one-of definition and references another definition that defines context. This is currently not supported.`);
       }
@@ -42562,11 +42560,11 @@ var SequenceDefinition = class extends Definition {
   get definitionType() {
     return DefinitionType.Sequence;
   }
-  validate(schema2, name) {
+  validate(schema3, name) {
     if (!this.itemType) {
       throw new Error(`'${name}' does not defined '${ITEM_TYPE}'`);
     }
-    schema2.getDefinition(this.itemType);
+    schema3.getDefinition(this.itemType);
   }
 };
 
@@ -42850,24 +42848,24 @@ var TemplateSchema = class _TemplateSchema {
     const template = readTemplate(context2, TEMPLATE_SCHEMA, objectReader, void 0);
     context2.errors.check();
     const mapping = template.assertMapping(TEMPLATE_SCHEMA);
-    const schema2 = new _TemplateSchema(mapping);
-    schema2.validate();
-    return schema2;
+    const schema3 = new _TemplateSchema(mapping);
+    schema3.validate();
+    return schema3;
   }
   /**
    * Gets the internal schema used for reading user-defined schema files
    */
   static getInternalSchema() {
     if (_TemplateSchema._internalSchema === void 0) {
-      const schema2 = new _TemplateSchema();
+      const schema3 = new _TemplateSchema();
       let mappingDefinition = new MappingDefinition(TEMPLATE_SCHEMA);
       mappingDefinition.properties[VERSION7] = new PropertyDefinition(new StringToken(void 0, void 0, NON_EMPTY_STRING, void 0));
       mappingDefinition.properties[DEFINITIONS] = new PropertyDefinition(new StringToken(void 0, void 0, DEFINITIONS, void 0));
-      schema2.definitions[mappingDefinition.key] = mappingDefinition;
+      schema3.definitions[mappingDefinition.key] = mappingDefinition;
       mappingDefinition = new MappingDefinition(DEFINITIONS);
       mappingDefinition.looseKeyType = NON_EMPTY_STRING;
       mappingDefinition.looseValueType = DEFINITION;
-      schema2.definitions[mappingDefinition.key] = mappingDefinition;
+      schema3.definitions[mappingDefinition.key] = mappingDefinition;
       let oneOfDefinition = new OneOfDefinition(DEFINITION);
       oneOfDefinition.oneOf.push(NULL_DEFINITION);
       oneOfDefinition.oneOf.push(BOOLEAN_DEFINITION);
@@ -42876,84 +42874,84 @@ var TemplateSchema = class _TemplateSchema {
       oneOfDefinition.oneOf.push(SEQUENCE_DEFINITION);
       oneOfDefinition.oneOf.push(MAPPING_DEFINITION);
       oneOfDefinition.oneOf.push(ONE_OF_DEFINITION);
-      schema2.definitions[oneOfDefinition.key] = oneOfDefinition;
+      schema3.definitions[oneOfDefinition.key] = oneOfDefinition;
       mappingDefinition = new MappingDefinition(NULL_DEFINITION);
       mappingDefinition.properties[DESCRIPTION] = new PropertyDefinition(new StringToken(void 0, void 0, STRING, void 0));
       mappingDefinition.properties[CONTEXT] = new PropertyDefinition(new StringToken(void 0, void 0, SEQUENCE_OF_NON_EMPTY_STRING, void 0));
       mappingDefinition.properties[NULL] = new PropertyDefinition(new StringToken(void 0, void 0, NULL_DEFINITION_PROPERTIES, void 0));
-      schema2.definitions[mappingDefinition.key] = mappingDefinition;
+      schema3.definitions[mappingDefinition.key] = mappingDefinition;
       mappingDefinition = new MappingDefinition(NULL_DEFINITION_PROPERTIES);
-      schema2.definitions[mappingDefinition.key] = mappingDefinition;
+      schema3.definitions[mappingDefinition.key] = mappingDefinition;
       mappingDefinition = new MappingDefinition(BOOLEAN_DEFINITION);
       mappingDefinition.properties[DESCRIPTION] = new PropertyDefinition(new StringToken(void 0, void 0, STRING, void 0));
       mappingDefinition.properties[CONTEXT] = new PropertyDefinition(new StringToken(void 0, void 0, SEQUENCE_OF_NON_EMPTY_STRING, void 0));
       mappingDefinition.properties[BOOLEAN] = new PropertyDefinition(new StringToken(void 0, void 0, BOOLEAN_DEFINITION_PROPERTIES, void 0));
-      schema2.definitions[mappingDefinition.key] = mappingDefinition;
+      schema3.definitions[mappingDefinition.key] = mappingDefinition;
       mappingDefinition = new MappingDefinition(BOOLEAN_DEFINITION_PROPERTIES);
-      schema2.definitions[mappingDefinition.key] = mappingDefinition;
+      schema3.definitions[mappingDefinition.key] = mappingDefinition;
       mappingDefinition = new MappingDefinition(NUMBER_DEFINITION);
       mappingDefinition.properties[DESCRIPTION] = new PropertyDefinition(new StringToken(void 0, void 0, STRING, void 0));
       mappingDefinition.properties[CONTEXT] = new PropertyDefinition(new StringToken(void 0, void 0, SEQUENCE_OF_NON_EMPTY_STRING, void 0));
       mappingDefinition.properties[NUMBER] = new PropertyDefinition(new StringToken(void 0, void 0, NUMBER_DEFINITION_PROPERTIES, void 0));
-      schema2.definitions[mappingDefinition.key] = mappingDefinition;
+      schema3.definitions[mappingDefinition.key] = mappingDefinition;
       mappingDefinition = new MappingDefinition(NUMBER_DEFINITION_PROPERTIES);
-      schema2.definitions[mappingDefinition.key] = mappingDefinition;
+      schema3.definitions[mappingDefinition.key] = mappingDefinition;
       mappingDefinition = new MappingDefinition(STRING_DEFINITION);
       mappingDefinition.properties[DESCRIPTION] = new PropertyDefinition(new StringToken(void 0, void 0, STRING, void 0));
       mappingDefinition.properties[CONTEXT] = new PropertyDefinition(new StringToken(void 0, void 0, SEQUENCE_OF_NON_EMPTY_STRING, void 0));
       mappingDefinition.properties[STRING] = new PropertyDefinition(new StringToken(void 0, void 0, STRING_DEFINITION_PROPERTIES, void 0));
-      schema2.definitions[mappingDefinition.key] = mappingDefinition;
+      schema3.definitions[mappingDefinition.key] = mappingDefinition;
       mappingDefinition = new MappingDefinition(STRING_DEFINITION_PROPERTIES);
       mappingDefinition.properties[CONSTANT] = new PropertyDefinition(new StringToken(void 0, void 0, NON_EMPTY_STRING, void 0));
       mappingDefinition.properties[IGNORE_CASE] = new PropertyDefinition(new StringToken(void 0, void 0, BOOLEAN, void 0));
       mappingDefinition.properties[REQUIRE_NON_EMPTY] = new PropertyDefinition(new StringToken(void 0, void 0, BOOLEAN, void 0));
       mappingDefinition.properties[IS_EXPRESSION] = new PropertyDefinition(new StringToken(void 0, void 0, BOOLEAN, void 0));
-      schema2.definitions[mappingDefinition.key] = mappingDefinition;
+      schema3.definitions[mappingDefinition.key] = mappingDefinition;
       mappingDefinition = new MappingDefinition(SEQUENCE_DEFINITION);
       mappingDefinition.properties[DESCRIPTION] = new PropertyDefinition(new StringToken(void 0, void 0, STRING, void 0));
       mappingDefinition.properties[CONTEXT] = new PropertyDefinition(new StringToken(void 0, void 0, SEQUENCE_OF_NON_EMPTY_STRING, void 0));
       mappingDefinition.properties[SEQUENCE] = new PropertyDefinition(new StringToken(void 0, void 0, SEQUENCE_DEFINITION_PROPERTIES, void 0));
-      schema2.definitions[mappingDefinition.key] = mappingDefinition;
+      schema3.definitions[mappingDefinition.key] = mappingDefinition;
       mappingDefinition = new MappingDefinition(SEQUENCE_DEFINITION_PROPERTIES);
       mappingDefinition.properties[ITEM_TYPE] = new PropertyDefinition(new StringToken(void 0, void 0, NON_EMPTY_STRING, void 0));
-      schema2.definitions[mappingDefinition.key] = mappingDefinition;
+      schema3.definitions[mappingDefinition.key] = mappingDefinition;
       mappingDefinition = new MappingDefinition(MAPPING_DEFINITION);
       mappingDefinition.properties[DESCRIPTION] = new PropertyDefinition(new StringToken(void 0, void 0, STRING, void 0));
       mappingDefinition.properties[CONTEXT] = new PropertyDefinition(new StringToken(void 0, void 0, SEQUENCE_OF_NON_EMPTY_STRING, void 0));
       mappingDefinition.properties[MAPPING] = new PropertyDefinition(new StringToken(void 0, void 0, MAPPING_DEFINITION_PROPERTIES, void 0));
-      schema2.definitions[mappingDefinition.key] = mappingDefinition;
+      schema3.definitions[mappingDefinition.key] = mappingDefinition;
       mappingDefinition = new MappingDefinition(MAPPING_DEFINITION_PROPERTIES);
       mappingDefinition.properties[PROPERTIES] = new PropertyDefinition(new StringToken(void 0, void 0, PROPERTIES, void 0));
       mappingDefinition.properties[LOOSE_KEY_TYPE] = new PropertyDefinition(new StringToken(void 0, void 0, NON_EMPTY_STRING, void 0));
       mappingDefinition.properties[LOOSE_VALUE_TYPE] = new PropertyDefinition(new StringToken(void 0, void 0, NON_EMPTY_STRING, void 0));
-      schema2.definitions[mappingDefinition.key] = mappingDefinition;
+      schema3.definitions[mappingDefinition.key] = mappingDefinition;
       mappingDefinition = new MappingDefinition(PROPERTIES);
       mappingDefinition.looseKeyType = NON_EMPTY_STRING;
       mappingDefinition.looseValueType = PROPERTY_VALUE;
-      schema2.definitions[mappingDefinition.key] = mappingDefinition;
+      schema3.definitions[mappingDefinition.key] = mappingDefinition;
       oneOfDefinition = new OneOfDefinition(PROPERTY_VALUE);
       oneOfDefinition.oneOf.push(NON_EMPTY_STRING);
       oneOfDefinition.oneOf.push(MAPPING_PROPERTY_VALUE);
-      schema2.definitions[oneOfDefinition.key] = oneOfDefinition;
+      schema3.definitions[oneOfDefinition.key] = oneOfDefinition;
       mappingDefinition = new MappingDefinition(MAPPING_PROPERTY_VALUE);
       mappingDefinition.properties[TYPE] = new PropertyDefinition(new StringToken(void 0, void 0, NON_EMPTY_STRING, void 0));
       mappingDefinition.properties[REQUIRED] = new PropertyDefinition(new StringToken(void 0, void 0, BOOLEAN, void 0));
       mappingDefinition.properties[DESCRIPTION] = new PropertyDefinition(new StringToken(void 0, void 0, STRING, void 0));
-      schema2.definitions[mappingDefinition.key] = mappingDefinition;
+      schema3.definitions[mappingDefinition.key] = mappingDefinition;
       mappingDefinition = new MappingDefinition(ONE_OF_DEFINITION);
       mappingDefinition.properties[DESCRIPTION] = new PropertyDefinition(new StringToken(void 0, void 0, STRING, void 0));
       mappingDefinition.properties[CONTEXT] = new PropertyDefinition(new StringToken(void 0, void 0, SEQUENCE_OF_NON_EMPTY_STRING, void 0));
       mappingDefinition.properties[ONE_OF] = new PropertyDefinition(new StringToken(void 0, void 0, SEQUENCE_OF_NON_EMPTY_STRING, void 0));
       mappingDefinition.properties[ALLOWED_VALUES] = new PropertyDefinition(new StringToken(void 0, void 0, SEQUENCE_OF_NON_EMPTY_STRING, void 0));
-      schema2.definitions[mappingDefinition.key] = mappingDefinition;
+      schema3.definitions[mappingDefinition.key] = mappingDefinition;
       const stringDefinition = new StringDefinition(NON_EMPTY_STRING);
       stringDefinition.requireNonEmpty = true;
-      schema2.definitions[stringDefinition.key] = stringDefinition;
+      schema3.definitions[stringDefinition.key] = stringDefinition;
       const sequenceDefinition = new SequenceDefinition(SEQUENCE_OF_NON_EMPTY_STRING);
       sequenceDefinition.itemType = NON_EMPTY_STRING;
-      schema2.definitions[sequenceDefinition.key] = sequenceDefinition;
-      schema2.validate();
-      _TemplateSchema._internalSchema = schema2;
+      schema3.definitions[sequenceDefinition.key] = sequenceDefinition;
+      schema3.validate();
+      _TemplateSchema._internalSchema = schema3;
     }
     return _TemplateSchema._internalSchema;
   }
@@ -43725,6 +43723,16 @@ function walkTreeToFindStatusFunctionCalls(tree) {
     return walkTreeToFindStatusFunctionCalls(tree.expr) || walkTreeToFindStatusFunctionCalls(tree.index);
   }
   return false;
+}
+function validateRunsIfCondition(context2, token, condition) {
+  const allowedContext = token.definitionInfo?.allowedContext || [];
+  try {
+    ExpressionToken.validateExpression(condition, allowedContext);
+  } catch (err) {
+    context2.error(token, err);
+    return void 0;
+  }
+  return condition;
 }
 
 // node_modules/.pnpm/@actions+workflow-parser@0.3.61/node_modules/@actions/workflow-parser/dist/model/converter/container.js
@@ -44791,13 +44799,393 @@ function getOptionsWithDefaults(options) {
   };
 }
 
+// node_modules/.pnpm/@actions+workflow-parser@0.3.61/node_modules/@actions/workflow-parser/dist/actions/action-constants.js
+var ACTION_ROOT = "action-root-strict";
+
+// node_modules/.pnpm/@actions+workflow-parser@0.3.61/node_modules/@actions/workflow-parser/dist/action-v1.0.min.json
+var action_v1_0_min_default = { definitions: { "action-root": { description: "Action file", mapping: { properties: { name: "string", description: "string", inputs: "inputs", outputs: "outputs", runs: "runs" }, "loose-key-type": "non-empty-string", "loose-value-type": "any" } }, "action-root-strict": { description: "GitHub Action manifest file (action.yml/action.yaml) that defines an action's metadata, inputs, outputs, and execution configuration.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions)", mapping: { properties: { name: { type: "non-empty-string", required: true, description: "The name of your action. GitHub displays the name in the Actions tab to help visually identify actions in each job.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#name)" }, description: { type: "string", required: true, description: "A short description of the action. GitHub displays this description in the Actions Marketplace.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#description)" }, author: { type: "string", description: "The name of the action's author.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#author)" }, inputs: "inputs-strict", outputs: "outputs", runs: { type: "runs-strict", required: true }, branding: "branding" } } }, inputs: { mapping: { "loose-key-type": "non-empty-string", "loose-value-type": "input" } }, "inputs-strict": { description: "Input parameters allow you to specify data that the action expects to use during runtime. GitHub stores input parameters as environment variables. Inputs ids with uppercase letters are converted to lowercase during runtime.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#inputs)", mapping: { "loose-key-type": "non-empty-string", "loose-value-type": "input-strict" } }, input: { mapping: { properties: { default: "input-default-context" }, "loose-key-type": "non-empty-string", "loose-value-type": "any" } }, "input-strict": { description: "An input parameter for this action.", mapping: { properties: { description: { type: "string", description: "A string description of the input parameter.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#inputsinput_iddescription)" }, required: { type: "boolean", description: "A boolean to indicate whether the action requires the input parameter. Set to true when the parameter is required.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#inputsinput_idrequired)" }, default: { type: "input-default-context", description: "A string representing the default value. The default value is used when an input parameter isn't specified in a workflow file.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#inputsinput_iddefault)" }, deprecationMessage: { type: "string", description: "A string shown to users using the deprecated input, warning them that the input is deprecated and mentioning any alternatives.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#inputsinput_iddeprecationmessage)" } }, "loose-key-type": "non-empty-string", "loose-value-type": "any" } }, "input-default-context": { description: "A string representing the default value. The default value is used when an input parameter isn't specified in a workflow file.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#inputsinput_iddefault)", context: ["github", "strategy", "matrix", "job", "runner", "hashFiles(1,255)"], string: {} }, outputs: { description: "Output parameters allow you to declare data that an action sets. Actions that run later in a workflow can use the output data set in previously run actions.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#outputs-for-composite-actions)", mapping: { "loose-key-type": "non-empty-string", "loose-value-type": "output-definition" } }, "output-definition": { description: "An output parameter for this action.", mapping: { properties: { description: { type: "string", description: "A string description of the output parameter.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#outputsoutput_iddescription)" }, value: { type: "output-value", description: "The value that the output parameter will be mapped to. You can set this to a string or an expression with context.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#outputsoutput_idvalue)" } } } }, "output-value": { description: "The value that the output parameter will be mapped to. You can set this to a string or an expression with context.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#outputsoutput_idvalue)", context: ["github", "strategy", "matrix", "steps", "inputs", "job", "runner", "env"], string: {} }, "runs-if": { description: "Condition to control when this action's pre or post script runs.", context: ["runner", "github", "job", "strategy", "matrix", "env", "inputs", "always(0,0)", "success(0,0)", "failure(0,0)", "cancelled(0,0)", "hashFiles(1,255)"], string: {} }, runs: { "one-of": ["container-runs", "node-runs", "composite-runs", "plugin-runs"] }, "runs-strict": { description: "Specifies whether this is a JavaScript action, a composite action, or a Docker container action and how the action is executed.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runs)", "one-of": ["container-runs-strict", "node-runs-strict", "composite-runs-strict"] }, "plugin-runs": { mapping: { properties: { plugin: "non-empty-string" } } }, "container-runs": { mapping: { properties: { using: "non-empty-string", image: "non-empty-string", entrypoint: "non-empty-string", args: "container-runs-args", env: "container-runs-env", "pre-entrypoint": "non-empty-string", "pre-if": "non-empty-string", "post-entrypoint": "non-empty-string", "post-if": "non-empty-string" } } }, "container-runs-args": { description: "An array of strings that define the inputs for a Docker container. Inputs can include hardcoded strings. GitHub passes the args to the container's ENTRYPOINT when the container starts up.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsargs)", sequence: { "item-type": "container-runs-context" } }, "container-runs-env": { description: "Specifies a key/value map of environment variables to set in the container environment.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsenv)", context: ["inputs"], mapping: { "loose-key-type": "non-empty-string", "loose-value-type": "string" } }, "container-runs-context": { context: ["inputs"], string: {} }, "node-runs": { mapping: { properties: { using: "non-empty-string", main: "non-empty-string", pre: "non-empty-string", "pre-if": "non-empty-string", post: "non-empty-string", "post-if": "non-empty-string" } } }, "composite-runs": { mapping: { properties: { using: "non-empty-string", steps: "composite-steps" } } }, "container-runs-strict": { description: "Configuration for Docker container actions.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runs)", mapping: { properties: { using: { type: "using", required: true, description: "The runtime used to execute the action. Must be docker for Docker container actions.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsusing)" }, image: { type: "non-empty-string", required: true, description: "The Docker image to use as the container to run the action. The value can be the Docker base image name, a local Dockerfile in your repository, or a public image in Docker Hub or another registry.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsimage)" }, entrypoint: { type: "non-empty-string", description: "Overrides the Docker ENTRYPOINT in the Dockerfile, or sets it if one wasn't already specified.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsentrypoint)" }, args: "container-runs-args", env: "container-runs-env", "pre-entrypoint": { type: "non-empty-string", description: "Allows you to run a script before the entrypoint action begins.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runspre-entrypoint)" }, "pre-if": { type: "runs-if", description: "Allows you to define conditions for the pre: action execution. The pre: action will only run if the conditions in pre-if are met. If not set, then pre-if defaults to always().\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runspre-if)" }, "post-entrypoint": { type: "non-empty-string", description: "Allows you to run a cleanup script once the runs.entrypoint action has completed.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runspost-entrypoint)" }, "post-if": { type: "runs-if", description: "Allows you to define conditions for the post: action execution. The post: action will only run if the conditions in post-if are met. If not set, then post-if defaults to always().\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runspost-if)" } } } }, "node-runs-strict": { description: "Configuration for JavaScript actions executed with Node.js.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runs)", mapping: { properties: { using: { type: "using", required: true, description: "The runtime used to execute the action. Use node20 or node24 for JavaScript actions.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsusing)" }, main: { type: "non-empty-string", required: true, description: "The file that contains your action code. The runtime specified in using executes this file.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsmain)" }, pre: { type: "non-empty-string", description: "Allows you to run a script at the start of a job, before the main: action begins. You can use pre: to run prerequisite setup scripts.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runspre)" }, "pre-if": { type: "runs-if", description: "Allows you to define conditions for the pre: action execution. The pre: action will only run if the conditions in pre-if are met. If not set, then pre-if defaults to always().\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runspre-if)" }, post: { type: "non-empty-string", description: "Allows you to run a script at the end of a job, once the main: action has completed. You can use post: to run cleanup scripts.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runspost)" }, "post-if": { type: "runs-if", description: "Allows you to define conditions for the post: action execution. The post: action will only run if the conditions in post-if are met. If not set, then post-if defaults to always().\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runspost-if)" } } } }, "composite-runs-strict": { description: "Configuration for composite actions that run multiple steps.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runs)", mapping: { properties: { using: { type: "using", required: true, description: "The runtime used to execute the action. Must be composite for composite actions.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsusing)" }, steps: { type: "composite-steps", required: true } } } }, "composite-steps": { description: "The steps that you plan to run in this action. These can be either run steps or uses steps.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runssteps)", sequence: { "item-type": "composite-step" } }, "composite-step": { description: "A step within a composite action.", "one-of": ["run-step", "uses-step"] }, "run-step": { description: "Runs a command-line program using the operating system's shell.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsrun)", mapping: { properties: { name: { type: "string-steps-context", description: "A name for your step to display on GitHub.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsname)" }, id: { type: "non-empty-string", description: "A unique identifier for the step. You can use the id to reference the step in contexts.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsid)" }, if: { type: "step-if", description: "You can use the if conditional to prevent a step from running unless a condition is met. You can use any supported context and expression to create a conditional.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsif)" }, run: { type: "string-steps-context", required: true, description: "The command you want to run. This can be inline or a script in your action repository.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsrun)" }, shell: { type: "string-steps-context", required: true, description: "The shell where you want to run the command. Any shell supported by the runner can be used. Required if run is set.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsshell)" }, env: "step-env", "continue-on-error": { type: "boolean-steps-context", description: "Prevents the action from failing when a step fails. Set to true to allow the action to pass when this step fails.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsstepscontinue-on-error)" }, "working-directory": { type: "string-steps-context", description: "Specifies the working directory where the command is run.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsworking-directory)" } } } }, "uses-step": { description: "Runs another action as part of a step in your action.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsuses)", mapping: { properties: { name: { type: "string-steps-context", description: "A name for your step to display on GitHub.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsname)" }, id: { type: "non-empty-string", description: "A unique identifier for the step. You can use the id to reference the step in contexts.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsid)" }, if: { type: "step-if", description: "You can use the if conditional to prevent a step from running unless a condition is met. You can use any supported context and expression to create a conditional.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsif)" }, uses: { type: "non-empty-string", required: true, description: "Selects an action to run as part of a step in your action. An action is a reusable unit of code.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsuses)" }, with: "step-with", env: "step-env", "continue-on-error": { type: "boolean-steps-context", description: "Prevents the action from failing when a step fails. Set to true to allow the action to pass when this step fails.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsstepscontinue-on-error)" } } } }, "string-steps-context": { context: ["github", "inputs", "strategy", "matrix", "steps", "job", "runner", "env", "hashFiles(1,255)"], string: {} }, "boolean-steps-context": { context: ["github", "inputs", "strategy", "matrix", "steps", "job", "runner", "env", "hashFiles(1,255)"], boolean: {} }, "step-env": { description: "Sets variables for steps to use in the runner environment. You can also set variables for the entire action.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsenv)", context: ["github", "inputs", "strategy", "matrix", "steps", "job", "runner", "env", "hashFiles(1,255)"], mapping: { "loose-key-type": "non-empty-string", "loose-value-type": "string" } }, "step-if": { description: "You can use the if conditional to prevent a step from running unless a condition is met. You can use any supported context and expression to create a conditional.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsif)", context: ["github", "inputs", "strategy", "matrix", "steps", "job", "runner", "env", "always(0,0)", "failure(0,0)", "cancelled(0,0)", "success(0,0)", "hashFiles(1,255)"], string: {} }, "step-with": { description: "A map of the input parameters defined by the action. Each input parameter is a key/value pair.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#runsstepswith)", context: ["github", "inputs", "strategy", "matrix", "steps", "job", "runner", "env", "hashFiles(1,255)"], mapping: { "loose-key-type": "non-empty-string", "loose-value-type": "string" } }, branding: { description: "You can use a color and Feather icon to create a badge to personalize and distinguish your action in GitHub Marketplace.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#branding)", mapping: { properties: { icon: { type: "branding-icon", description: "The name of the v4.28.0 Feather icon to use.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#brandingicon)" }, color: { type: "branding-color", description: "The background color of the badge.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#brandingcolor)" } } } }, "branding-icon": { description: "The name of the v4.28.0 Feather icon to use. Brand icons are omitted as well as: coffee, columns, divide-circle, divide-square, divide, frown, hexagon, key, meh, mouse-pointer, smile, tool, x-octagon.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#brandingicon)", "allowed-values": ["activity", "airplay", "alert-circle", "alert-octagon", "alert-triangle", "align-center", "align-justify", "align-left", "align-right", "anchor", "aperture", "archive", "arrow-down-circle", "arrow-down-left", "arrow-down-right", "arrow-down", "arrow-left-circle", "arrow-left", "arrow-right-circle", "arrow-right", "arrow-up-circle", "arrow-up-left", "arrow-up-right", "arrow-up", "at-sign", "award", "bar-chart-2", "bar-chart", "battery-charging", "battery", "bell-off", "bell", "bluetooth", "bold", "book-open", "book", "bookmark", "box", "briefcase", "calendar", "camera-off", "camera", "cast", "check-circle", "check-square", "check", "chevron-down", "chevron-left", "chevron-right", "chevron-up", "chevrons-down", "chevrons-left", "chevrons-right", "chevrons-up", "circle", "clipboard", "clock", "cloud-drizzle", "cloud-lightning", "cloud-off", "cloud-rain", "cloud-snow", "cloud", "code", "command", "compass", "copy", "corner-down-left", "corner-down-right", "corner-left-down", "corner-left-up", "corner-right-down", "corner-right-up", "corner-up-left", "corner-up-right", "cpu", "credit-card", "crop", "crosshair", "database", "delete", "disc", "dollar-sign", "download-cloud", "download", "droplet", "edit-2", "edit-3", "edit", "external-link", "eye-off", "eye", "fast-forward", "feather", "file-minus", "file-plus", "file-text", "file", "film", "filter", "flag", "folder-minus", "folder-plus", "folder", "gift", "git-branch", "git-commit", "git-merge", "git-pull-request", "globe", "grid", "hard-drive", "hash", "headphones", "heart", "help-circle", "home", "image", "inbox", "info", "italic", "layers", "layout", "life-buoy", "link-2", "link", "list", "loader", "lock", "log-in", "log-out", "mail", "map-pin", "map", "maximize-2", "maximize", "menu", "message-circle", "message-square", "mic-off", "mic", "minimize-2", "minimize", "minus-circle", "minus-square", "minus", "monitor", "moon", "more-horizontal", "more-vertical", "move", "music", "navigation-2", "navigation", "octagon", "package", "paperclip", "pause-circle", "pause", "percent", "phone-call", "phone-forwarded", "phone-incoming", "phone-missed", "phone-off", "phone-outgoing", "phone", "pie-chart", "play-circle", "play", "plus-circle", "plus-square", "plus", "pocket", "power", "printer", "radio", "refresh-ccw", "refresh-cw", "repeat", "rewind", "rotate-ccw", "rotate-cw", "rss", "save", "scissors", "search", "send", "server", "settings", "share-2", "share", "shield-off", "shield", "shopping-bag", "shopping-cart", "shuffle", "sidebar", "skip-back", "skip-forward", "slash", "sliders", "smartphone", "speaker", "square", "star", "stop-circle", "sun", "sunrise", "sunset", "tablet", "tag", "target", "terminal", "thermometer", "thumbs-down", "thumbs-up", "toggle-left", "toggle-right", "trash-2", "trash", "trending-down", "trending-up", "triangle", "truck", "tv", "type", "umbrella", "underline", "unlock", "upload-cloud", "upload", "user-check", "user-minus", "user-plus", "user-x", "user", "users", "video-off", "video", "voicemail", "volume-1", "volume-2", "volume-x", "volume", "watch", "wifi-off", "wifi", "wind", "x-circle", "x-square", "x", "zap-off", "zap", "zoom-in", "zoom-out"] }, "branding-color": { description: "The background color of the badge.\n\n[Documentation](https://docs.github.com/actions/creating-actions/metadata-syntax-for-github-actions#brandingcolor)", "allowed-values": ["white", "yellow", "blue", "green", "orange", "red", "purple", "gray-dark"] }, using: { description: "The runtime used to execute the action.", "allowed-values": ["docker", "node12", "node16", "node20", "node24", "composite"] }, "non-empty-string": { string: { "require-non-empty": true } } } };
+
+// node_modules/.pnpm/@actions+workflow-parser@0.3.61/node_modules/@actions/workflow-parser/dist/actions/action-schema.js
+var schema2;
+function getActionSchema() {
+  if (schema2 === void 0) {
+    const json = JSON.stringify(action_v1_0_min_default);
+    schema2 = TemplateSchema.load(new JSONObjectReader(void 0, json));
+  }
+  return schema2;
+}
+
+// node_modules/.pnpm/@actions+workflow-parser@0.3.61/node_modules/@actions/workflow-parser/dist/actions/action-parser.js
+function parseAction(entryFile, contextOrTrace) {
+  const context2 = contextOrTrace instanceof TemplateContext ? contextOrTrace : new TemplateContext(new TemplateValidationErrors(), getActionSchema(), contextOrTrace);
+  const fileId = context2.getFileId(entryFile.name);
+  const reader = new YamlObjectReader(fileId, entryFile.content);
+  if (reader.errors.length > 0) {
+    for (const err of reader.errors) {
+      context2.error(fileId, err.message, err.range);
+    }
+    return {
+      context: context2,
+      value: void 0
+    };
+  }
+  const result = readTemplate(context2, ACTION_ROOT, reader, fileId);
+  return {
+    context: context2,
+    value: result
+  };
+}
+
+// node_modules/.pnpm/@actions+workflow-parser@0.3.61/node_modules/@actions/workflow-parser/dist/actions/action-template.js
+function convertActionTemplate(context2, root, options) {
+  const result = {};
+  const errorPolicy = options?.errorPolicy ?? ErrorPolicy.ReturnErrorsOnly;
+  if (context2.errors.getErrors().length > 0 && errorPolicy === ErrorPolicy.ReturnErrorsOnly) {
+    return result;
+  }
+  if (!isMapping(root)) {
+    context2.error(root, new Error("Action must be a mapping"));
+    return result;
+  }
+  for (const item of root) {
+    const key = item.key.assertString("action key");
+    switch (key.value) {
+      case "name":
+        if (isString(item.value)) {
+          result.name = item.value.value;
+        }
+        break;
+      case "description":
+        if (isString(item.value)) {
+          result.description = item.value.value;
+        }
+        break;
+      case "author":
+        if (isString(item.value)) {
+          result.author = item.value.value;
+        }
+        break;
+      case "inputs":
+        result.inputs = convertInputs(context2, item.value);
+        break;
+      case "outputs":
+        result.outputs = convertOutputs(context2, item.value);
+        break;
+      case "runs":
+        result.runs = convertRuns(context2, item.value);
+        break;
+      case "branding":
+        result.branding = convertBranding(context2, item.value);
+        break;
+    }
+  }
+  return result;
+}
+function convertInputs(context2, token) {
+  const inputs = [];
+  if (!isMapping(token)) {
+    return inputs;
+  }
+  for (const item of token) {
+    const id = item.key.assertString("input id").value;
+    const input = { id };
+    if (isMapping(item.value)) {
+      for (const prop of item.value) {
+        const propKey = prop.key.assertString("input property").value;
+        switch (propKey) {
+          case "description":
+            if (isString(prop.value)) {
+              input.description = prop.value.value;
+            }
+            break;
+          case "required":
+            if (isBoolean(prop.value)) {
+              input.required = prop.value.value;
+            } else if (isString(prop.value)) {
+              input.required = prop.value.value === "true";
+            }
+            break;
+          case "default":
+            if (isScalar(prop.value)) {
+              input.default = prop.value;
+            }
+            break;
+          case "deprecationMessage":
+            if (isString(prop.value)) {
+              input.deprecationMessage = prop.value.value;
+            }
+            break;
+        }
+      }
+    }
+    inputs.push(input);
+  }
+  return inputs;
+}
+function convertOutputs(context2, token) {
+  const outputs = [];
+  if (!isMapping(token)) {
+    return outputs;
+  }
+  for (const item of token) {
+    const id = item.key.assertString("output id").value;
+    const output = { id };
+    if (isMapping(item.value)) {
+      for (const prop of item.value) {
+        const propKey = prop.key.assertString("output property").value;
+        switch (propKey) {
+          case "description":
+            if (isString(prop.value)) {
+              output.description = prop.value.value;
+            }
+            break;
+          case "value":
+            if (isScalar(prop.value)) {
+              output.value = prop.value;
+            }
+            break;
+        }
+      }
+    }
+    outputs.push(output);
+  }
+  return outputs;
+}
+function convertRuns(context2, token) {
+  if (!isMapping(token)) {
+    return { using: "composite", steps: [] };
+  }
+  let using;
+  let main;
+  let image;
+  let pre;
+  let preIf;
+  let post;
+  let postIf;
+  let preEntrypoint;
+  let entrypoint;
+  let postEntrypoint;
+  let args;
+  let env;
+  let steps = [];
+  for (const item of token) {
+    const key = item.key.assertString("runs property").value;
+    switch (key) {
+      case "using":
+        if (isString(item.value)) {
+          using = item.value.value;
+        }
+        break;
+      case "main":
+        if (isString(item.value)) {
+          main = item.value.value;
+        }
+        break;
+      case "image":
+        if (isString(item.value)) {
+          image = item.value.value;
+        }
+        break;
+      case "pre":
+        if (isString(item.value)) {
+          pre = item.value.value;
+        }
+        break;
+      case "pre-if":
+        if (isString(item.value)) {
+          preIf = validateRunsIfCondition(context2, item.value, item.value.value);
+        }
+        break;
+      case "post":
+        if (isString(item.value)) {
+          post = item.value.value;
+        }
+        break;
+      case "post-if":
+        if (isString(item.value)) {
+          postIf = validateRunsIfCondition(context2, item.value, item.value.value);
+        }
+        break;
+      case "pre-entrypoint":
+        if (isString(item.value)) {
+          preEntrypoint = item.value.value;
+        }
+        break;
+      case "entrypoint":
+        if (isString(item.value)) {
+          entrypoint = item.value.value;
+        }
+        break;
+      case "post-entrypoint":
+        if (isString(item.value)) {
+          postEntrypoint = item.value.value;
+        }
+        break;
+      case "args":
+        if (isSequence(item.value)) {
+          args = [];
+          for (const arg of item.value) {
+            if (isScalar(arg)) {
+              args.push(arg.toString());
+            }
+          }
+        }
+        break;
+      case "env":
+        if (isMapping(item.value)) {
+          env = {};
+          for (const envItem of item.value) {
+            const envKey = envItem.key.assertString("env key").value;
+            if (isString(envItem.value)) {
+              env[envKey] = envItem.value.value;
+            }
+          }
+        }
+        break;
+      case "steps":
+        steps = convertSteps2(context2, item.value);
+        break;
+    }
+  }
+  if (using === "composite") {
+    return { using: "composite", steps };
+  } else if (using === "docker" && image) {
+    return {
+      using: "docker",
+      image,
+      preEntrypoint,
+      preIf,
+      entrypoint,
+      postEntrypoint,
+      postIf,
+      args,
+      env
+    };
+  } else if ((using === "node12" || using === "node16" || using === "node20" || using === "node24") && main) {
+    return {
+      using,
+      main,
+      pre,
+      preIf,
+      post,
+      postIf
+    };
+  }
+  return { using: "composite", steps: [] };
+}
+function convertSteps2(context2, token) {
+  const steps = [];
+  if (!isSequence(token)) {
+    return steps;
+  }
+  for (const stepToken of token) {
+    if (!isMapping(stepToken)) {
+      continue;
+    }
+    const step = convertStep2(context2, stepToken);
+    if (step) {
+      steps.push(step);
+    }
+  }
+  return steps;
+}
+function convertStep2(context2, token) {
+  let id;
+  let name;
+  let ifCondition;
+  let continueOnError;
+  let env;
+  let run2;
+  let uses;
+  for (const item of token) {
+    const key = item.key.assertString("step property").value;
+    switch (key) {
+      case "id":
+        if (isString(item.value)) {
+          id = item.value.value;
+        }
+        break;
+      case "name":
+        if (isScalar(item.value)) {
+          name = item.value;
+        }
+        break;
+      case "if":
+        ifCondition = convertToIfCondition(context2, item.value);
+        break;
+      case "continue-on-error":
+        if (isBoolean(item.value)) {
+          continueOnError = item.value.value;
+        } else if (isScalar(item.value)) {
+          continueOnError = item.value;
+        }
+        break;
+      case "env":
+        if (isMapping(item.value)) {
+          env = item.value;
+        }
+        break;
+      case "run":
+        if (isScalar(item.value)) {
+          run2 = item.value;
+        }
+        break;
+      case "uses":
+        if (isString(item.value)) {
+          uses = item.value;
+        }
+        break;
+    }
+  }
+  const defaultIf = new BasicExpressionToken(void 0, void 0, "success()", void 0, void 0, void 0);
+  if (run2) {
+    return {
+      id: id || "",
+      name,
+      if: ifCondition || defaultIf,
+      "continue-on-error": continueOnError,
+      env,
+      run: run2
+    };
+  } else if (uses) {
+    return {
+      id: id || "",
+      name,
+      if: ifCondition || defaultIf,
+      "continue-on-error": continueOnError,
+      env,
+      uses
+    };
+  }
+  return void 0;
+}
+function convertBranding(context2, token) {
+  const branding = {};
+  if (!isMapping(token)) {
+    return branding;
+  }
+  for (const item of token) {
+    const key = item.key.assertString("branding property").value;
+    switch (key) {
+      case "icon":
+        if (isString(item.value)) {
+          branding.icon = item.value.value;
+        }
+        break;
+      case "color":
+        if (isString(item.value)) {
+          branding.color = item.value.value;
+        }
+        break;
+    }
+  }
+  return branding;
+}
+
 // actions/gha-workflow-validator/src/use-references.ts
 async function extractUseReferences(filename, content) {
-  if (isActionFile(filename)) {
-    return void 0;
-  }
   try {
-    return await extractWorkflowReferences(filename, content);
+    return isActionFile(filename) ? extractActionReferences(filename, content) : await extractWorkflowReferences(filename, content);
   } catch (error3) {
     core7.debug(
       `Unable to parse ${filename} with @actions/workflow-parser: ${describeError(error3)}`
@@ -44936,6 +45324,39 @@ function hasAliasedReferences(references, lines) {
   }
   return false;
 }
+function extractActionReferences(filename, content) {
+  const result = parseAction(
+    { name: filename, content },
+    new NoOperationTraceWriter()
+  );
+  if (!result.value) {
+    return void 0;
+  }
+  const template = convertActionTemplate(result.context, result.value, {
+    errorPolicy: ErrorPolicy.TryConversion
+  });
+  if (template.runs.using !== "composite") {
+    return [];
+  }
+  const lines = content.split(/\r?\n/);
+  const references = template.runs.steps.flatMap(
+    (step) => "uses" in step ? [
+      toUseReference(
+        filename,
+        step.uses,
+        classifyUse(step.uses.value),
+        lines
+      )
+    ] : []
+  );
+  if (hasAliasedReferences(references, lines)) {
+    core7.debug(
+      `${filename} reuses a \`uses\` value through a YAML alias; using fallback`
+    );
+    return void 0;
+  }
+  return references;
+}
 function toUseReference(filename, token, kind, lines) {
   return {
     filename,
@@ -44976,12 +45397,12 @@ function getValidators({
     );
   if (validateRunners) validators.push(new ActionsRunnerValidation());
   if (validateActionsCacheVersion)
-    validators.push(new ActionsCacheVersionValidation());
+    validators.push(new ActionsCacheVersionValidation({ references }));
   return validators;
 }
 async function validate(inputs, parsedFiles, octokit) {
   core8.debug(`Validating ${parsedFiles.length} files`);
-  const references = inputs.validateActionRefs ? await buildUseReferenceIndex(parsedFiles) : void 0;
+  const references = inputs.validateActionRefs || inputs.validateActionsCacheVersion ? await buildUseReferenceIndex(parsedFiles) : void 0;
   const validators = getValidators(inputs, octokit, references);
   const fileValidationResults = [];
   for (const file of parsedFiles) {
