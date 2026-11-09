@@ -52,17 +52,14 @@ verification.
 The job always requests `id-token: write`, so callers must grant it even without
 `gati-profile`.
 
-## Custom tidy command
+## Larger runner
 
 After bumping, the workflow runs `gomods tidy`, which tidies every module in the
-repository. In a large monorepo that downloads every module's dependencies, and
-one broken module fails the whole run. Set `tidy-command` to run your own
-command from the repository root instead, for example a script that tidies only
-the modules the bump changed:
+repository and downloads all of their dependencies. In a large monorepo that can
+exceed the disk of `ubuntu-latest` (~14 GB free). Set `runs-on` to a runner with
+a larger disk:
 
 ```yaml
 with:
-  tidy-command: ./.github/scripts/tidy-changed.sh
+  runs-on: ubuntu24.04-8cores-32GB
 ```
-
-The run fails if the command exits non-zero.
