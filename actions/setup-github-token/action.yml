@@ -13,6 +13,13 @@ inputs:
       and aws-lambda-url. Defaults to "v2".
     required: false
     default: "v2"
+  retries:
+    description:
+      Additional attempts invoke-gati-v2 makes when the request fails with a
+      network error, 429 or 5xx, with exponential backoff. A first request that
+      fails for any other reason is made once more regardless. Only used by v2.
+    required: false
+    default: "2"
   aws-role-arn:
     description:
       ARN of role capable of getting token from GATI. Required unless profile is
@@ -42,7 +49,8 @@ outputs:
   access-token:
     value:
       ${{ steps.get-gh-token.outputs.access-token ||
-      steps.get-gh-token-v2.outputs.access-token }}
+      steps.get-gh-token-v2.outputs.access-token ||
+      steps.get-gh-token-v2-retry.outputs.access-token }}
     description:
       The github access token that has permissions reflecting the current AWS
       role value
@@ -129,9 +137,26 @@ runs:
     - name: Get github token from gati (v2)
       id: get-gh-token-v2
       if: steps.resolve-gati-version.outputs.version == 'v2'
+      # A failure here is retried below; the retry step fails the action.
+      continue-on-error: true
       uses: smartcontractkit/.github/actions/invoke-gati-v2@invoke-gati-v2/v1
       with:
         profile: ${{ steps.resolve-gati-version.outputs.profile }}
+        retries: ${{ inputs.retries }}
+
+    - name: Wait before retrying GATI v2
+      if: steps.get-gh-token-v2.outcome == 'failure'
+      shell: bash
+      run: sleep 5
+
+    # Covers failures invoke-gati-v2 does not retry, such as an empty 200 body.
+    - name: Get github token from gati (v2, retry)
+      id: get-gh-token-v2-retry
+      if: steps.get-gh-token-v2.outcome == 'failure'
+      uses: smartcontractkit/.github/actions/invoke-gati-v2@invoke-gati-v2/v1
+      with:
+        profile: ${{ steps.resolve-gati-version.outputs.profile }}
+        retries: ${{ inputs.retries }}
 
     - name: Configure github token
       if: inputs.set-git-config == 'true'
@@ -139,7 +164,8 @@ runs:
       env:
         ACCESS_TOKEN:
           ${{ steps.get-gh-token.outputs.access-token ||
-          steps.get-gh-token-v2.outputs.access-token }}
+          steps.get-gh-token-v2.outputs.access-token ||
+          steps.get-gh-token-v2-retry.outputs.access-token }}
       run: |
         git config --global \
           url."https://x-access-token:${ACCESS_TOKEN}@github.com/".insteadOf \
