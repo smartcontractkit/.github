@@ -1,119 +1,25 @@
-# Design: Rebuild gha-workflow-validator on the official Actions parser
+# Design: gha-workflow-validator v2
 
 ## Context
 
-The action lives in `actions/gha-workflow-validator/`. It is a `node24` action.
-nx builds `src/index.ts` with esbuild into a committed CJS bundle at
-`dist/index.js`. Tests run with vitest, and GitHub API calls are recorded with
-nock fixtures under `src/__tests__/__fixtures__/`.
+The action lives in `actions/gha-workflow-validator/`. It is a `node24` action
+that nx builds with esbuild into a committed `dist/index.js`. Tests use vitest,
+and GitHub API calls are recorded with nock.
 
-v1 has one data type at its core: a `FileLine` (`lineNumber`, `content`,
-`operation: "add" | "unchanged"`, `ignored`). Everything turns into lines before
-any rule runs.
+v2 replaces all of `src/`. Nothing from v1's line model (`FileLine`,
+`parse-files.ts`, the per-rule regex parsers) survives. What carries over:
 
-```mermaid
-flowchart TD
-  subgraph sources [Sources: parse-files.ts]
-    Cmp["compare API patch<br/>(github.ts getComparison)"] --> Patch[parsePatchChanges]
-    Glob["glob checkout<br/>(utils.ts)"] --> Read[parseFiles]
-    Patch --> Merge[combineParsedFiles]
-    Read --> Merge
-  end
-  Merge --> Lines["ParsedFile[]<br/>{filename, lines: FileLine[]}"]
-  Lines --> V["validate.ts<br/>for each line × each ValidationCheck"]
-  V --> Ign[IgnoresCommentValidation]
-  V --> Ref["ActionRefValidation<br/>(+ node-version fetch)"]
-  V --> Run[ActionsRunnerValidation]
-  V --> Cache[ActionsCacheVersionValidation]
-  Ref --> GH["getActionFileFromGithub<br/>(no cache, one call per line)"]
-  V --> Out["output.ts<br/>annotations + summary table"]
-```
+- The build setup (`project.json`, esbuild, committed `dist/`).
+- The trusted owners: `actions`, `github`, `smartcontractkit`.
+- v1's known bugs, each turned into a regression test (listed under
+  Verification).
 
-### v1 behavior the rebuild must keep
+The one caller is
+`gha-org-workflows/.github/workflows/gha-workflow-validation.yml`, on
+`pull_request` and `merge_group`.
 
-These are the exact semantics of each rule today, read from the code. The parity
-suite in Phase 2 pins them.
-
-| Rule              | Fires on                                                             | Severity                             |
-| ----------------- | -------------------------------------------------------------------- | ------------------------------------ |
-| `ignore-comment`  | Added line containing `ghv-ignore!`                                  | error                                |
-| `sha-ref`         | Added `uses:`, untrusted owner, ref not a full SHA                   | error                                |
-| `version-comment` | Added `uses:`, untrusted owner, no `# ...` after the ref             | warning                              |
-| `trusted-tag-ref` | Added `uses:`, trusted owner, ref is a full SHA                      | warning                              |
-| `node-version`    | Added `uses:`, remote `action.yml` at that ref has `using: nodeN<24` | warning                              |
-| `runner-ubuntu`   | Added `runs-on:` label, Ubuntu with 16 or more cores                 | error                                |
-| `runner-macos`    | Added `runs-on:` label, macOS with 8 or more cores                   | error                                |
-| `actions-cache`   | Any visible `uses: actions/cache…@ref`, ref not starting `v5`        | error if added, warning if unchanged |
-
-Shared semantics:
-
-- **Trusted owners** are `actions`, `github`, and `smartcontractkit`.
-- **Skipped refs.** Local refs (`./…`, `$/…`) and reusable workflow refs (path
-  ends in `.yml`/`.yaml`) get no ref rules.
-- **Ignore.** A `ghv-ignore!` line that is unchanged is skipped entirely. On an
-  added line, every other finding drops to severity `ignored`, and
-  `ignore-comment` fires.
-- **No PR.** Without `pull_request` base and head SHAs there is no diff, so
-  every line is `unchanged`. Only `actions-cache` can fire, and only as a
-  warning.
-- **Inputs.** `evaluate-mode`, `root-directory`, `diff-only`,
-  `validate-runners`, `validate-action-refs`, `validate-action-node-versions`,
-  `validate-actions-cache-version`, `include-all-action-definitions`, plus
-  `GITHUB_TOKEN` from env. `CL_LOCAL_DEBUG` accepts snake_case input env vars.
-
-### v1 defects the rebuild fixes on purpose
-
-The parity suite lists these as expected differences, not regressions.
-
-- Quoted runner labels (`"ubuntu-latest-16cores"`), label arrays, and
-  `{ group, labels }` runners are missed.
-- Flow-style steps (`- { uses: … }`) are missed. `uses:` text inside `run: |`
-  scripts is flagged.
-- A file the compare API returns without a `patch` (large diffs) yields no lines
-  and is never checked.
-- The SHA-256 regex expects 256 hex characters. A SHA-256 commit ID is 64.
-- `docker://image:tag` refs are parsed as owner `docker:` and produce
-  `undefined is not a valid SHA reference`.
-- Glob results carry a `./` prefix and compare API results do not, so the same
-  file can appear twice in the merged list.
-- `validate-action-node-versions` says "node 20" in `action.yml`. The rule
-  checks 24.
-
-### Parser facts from the spike
-
-Spike against `@actions/workflow-parser@0.3.61`, bundled with the repo's esbuild
-0.23 to CJS and run on Node 24.14:
-
-- `parseWorkflow(file, trace)` and `parseAction(file, trace)` return
-  `{ context, value }`. `parseAction` and `convertActionTemplate` come from the
-  public subpath `@actions/workflow-parser/actions/index`, not the root export.
-- Every token has a one-based `range: { start: { line, column }, end }`. `uses`
-  is a `StringToken`; `runs-on` keeps its YAML shape (string, sequence, mapping,
-  or expression token).
-- Errors come from `context.errors.getErrors()`, each with `message` and
-  `range`. Schema errors and YAML syntax errors both arrive this way.
-- YAML comments are not in the token tree. Version comments and `ghv-ignore!`
-  must be read from source text.
-- `using: node26` fails the action schema. `convertActionTemplate` then returns
-  `runs: undefined` by default, and `using: "composite", steps: []` with
-  `errorPolicy: TryConversion`.
-- Plain `node` cannot import the package (JSON import without
-  `with { type: "json" }`). Bundled CJS works. Bundle size is about 620 KB.
-
-### Lockfile facts
-
-From GitHub's docs on workflow dependency lockfiles:
-
-- One file, `.github/workflows/actions.lock`, YAML with `version`,
-  `workflows: { <workflow path>: [<dep key>] }`, and
-  `dependencies: { <dep key>: { ref, commit, owner_id, repo_id } }`. Dep keys
-  look like `octo-org/deploy-action@v3.1.0`.
-- A workflow is onboarded when its path is a key under `workflows`. For
-  onboarded workflows the runner executes the locked `commit`. Step-level `uses`
-  only; `jobs.<id>.uses` is not covered.
-- `./` local actions are not locked. `$/` actions are.
-- `gh actions-lock --verify` detects staleness, including moved tags, using the
-  network.
+`yaml@2.9.1` is already a dependency of `advanced-triggers`,
+`actions-dependencies-updater`, and `update-action-versions`.
 
 ## Approach
 
@@ -121,378 +27,510 @@ From GitHub's docs on workflow dependency lockfiles:
 
 ```text
 src/
-  index.ts                 entry, calls run()
-  run.ts                   orchestration only
-  config.ts                inputs + invoke context (v1 getInputs/getInvokeContext)
-  sources/
-    discover.ts            which files to check (repo glob, PR file list)
-    content.ts             file text: checkout first, else API at head SHA
-    diff.ts                patch → ChangedLines per file
-  parser/                  the only importer of @actions/workflow-parser
-    index.ts               parseFile(SourceFile) → ParsedDoc
-    workflow.ts            token tree → WorkflowDoc
-    action.ts              token tree → ActionDoc
-    remote-manifest.ts     action.yml text → { using?: string }
-  model.ts                 Span, Ref, RunnerLabel, WorkflowDoc, ActionDoc, Finding
-  refs.ts                  parse "owner/repo/path@ref" + trailing comment
-  lockfile/
-    read.ts                actions.lock text → Lockfile | LockfileProblem
-  remote/
-    manifests.ts           fetch + memoize remote action.yml by owner/repo/path@commit
+  index.ts              entry, calls run()
+  run.ts                orchestration only
+  config.ts             inputs + event context (base/head SHA)
+  github/
+    changes.ts          changed files + patches for a PR or merge group
+    content.ts          file text at a SHA (memoized, 8 in flight)
+  diff.ts               patch → added line numbers
+  parse/
+    model.ts            Span, Ref, RunnerSpec, FileDoc
+    yaml.ts             text → yaml Document + LineCounter + syntax errors
+    extract.ts          Document → FileDoc (workflow or action)
+  refs.ts               "owner/repo/path@ref" + trailing comment → Ref
+  runners/
+    classify.ts         label(s) → RunnerClass
+    prices.ts           dated price table
+    estimate.ts         RunnerClass → cost line + RunsOn suggestion
+  ignores.ts            parse ghv-ignore comments, apply, ignore-syntax, unused-ignore
   rules/
-    index.ts               registry, input toggles
-    action-refs.ts         sha-ref, version-comment, trusted-tag-ref
-    node-version.ts
-    runners.ts             runner-ubuntu, runner-macos
-    actions-cache.ts
-    ignore-comment.ts
-    lockfile.ts
-    schema.ts              parser errors → findings
-  addons/actionlint/
-    install.ts             download + sha256 verify + tool-cache
-    run.ts                 invoke, parse JSON → Finding[]
+    index.ts            registry
+    pinned-ref.ts
+    version-comment.ts
+    internal-ref.ts
+    docker-digest.ts
+    runner-cost.ts
+    yaml-syntax.ts
   report/
-    filter.ts              diff + ignore + severity policy
     annotations.ts
-    summary.ts
-    strings.ts             FIXING_ERRORS help text
+    summary.ts          findings, ignores, runner cost changes
+    messages.ts         fix text per rule
 ```
-
-The rule: nothing outside `parser/` imports `@actions/workflow-parser`, and
-nothing in `rules/` touches raw text except through `SourceFile.lineText(n)`. A
-lint rule (`no-restricted-imports`) enforces the first half.
 
 ### Pipeline
 
 ```mermaid
-flowchart LR
-  Cfg[config] --> Disc[sources/discover]
-  Disc --> Content[sources/content]
-  Disc --> Diff[sources/diff]
-  Content --> SF["SourceFile[]<br/>{path, text, kind}"]
-  SF --> Parse[parser]
-  Parse --> Docs["ParsedDoc[]<br/>WorkflowDoc | ActionDoc<br/>+ parseErrors"]
-  SF --> LF[lockfile/read]
-  Docs --> Rules[rules]
-  LF --> Rules
-  Rules <--> Remote[remote/manifests]
-  SF --> AL["addons/actionlint<br/>(if enabled)"]
-  Rules --> Raw["Finding[]"]
-  AL --> Raw
-  Diff --> Filter[report/filter]
-  Raw --> Filter
-  SF --> Filter
-  Filter --> Final["Finding[] with final severity"]
-  Final --> Ann[annotations]
-  Final --> Sum[summary]
-  Final --> Exit{"any error and<br/>not evaluate-mode?"}
+flowchart TD
+  Cfg[config: base, head, token] --> Ch[github/changes]
+  Ch --> Sel["select: .github/workflows/*.y(a)ml<br/>and **/action.y(a)ml, not removed"]
+  Sel --> Head[content at head]
+  Sel --> Diff["diff: added lines<br/>(no patch → all lines)"]
+  Head --> Parse[parse + extract]
+  Parse --> Rules
+  Rules --> Ign[ignores: apply + validate]
+  Diff --> Keep{"finding on an<br/>added line?"}
+  Ign --> Keep
+  Keep -- no --> Drop[dropped]
+  Keep -- yes --> Out[annotations + summary]
+  Sel --> Base[content at base] --> Cost[runner cost changes] --> Out
+  Out --> Exit{"any error and<br/>not evaluate-mode?"}
 ```
 
-Rules produce every finding they can see. Only `report/filter` decides what the
-diff hides and what `ghv-ignore!` downgrades. That keeps rules free of diff
-logic, which is where v1's per-rule `operation === "unchanged"` checks lived.
+Rules see every node in the file. They don't know about the diff. One filter
+step keeps findings whose anchor line was added. The anchor is
+`span.start.line`.
 
 ### Model
 
-```mermaid
-classDiagram
-  class SourceFile {
-    path: string  // repo-relative, no ./ prefix
-    kind: workflow | action | lockfile
-    text: string
-    lineText(n) string
-  }
-  class Span {
-    start: Pos
-    end: Pos
-  }
-  class Ref {
-    raw: string
-    kind: remote | local | docker | reusable
-    owner, repo, path, ref
-    comment?: string
-    trusted: boolean
-    span: Span
-  }
-  class RunnerLabel {
-    label: string
-    span: Span
-  }
-  class StepUse {
-    ref: Ref
-    jobId?: string
-  }
-  class WorkflowDoc {
-    file: SourceFile
-    stepUses: StepUse[]
-    reusableCalls: Ref[]
-    runners: RunnerLabel[]
-    unresolvedRunners: Span[]
-  }
-  class ActionDoc {
-    file: SourceFile
-    using?: string
-    stepUses: StepUse[]
-  }
-  class Finding {
-    rule: RuleId
-    severity: error | warning
-    message: string
-    path: string
-    span: Span
-    scope: line | file
-  }
-  WorkflowDoc --> StepUse
-  ActionDoc --> StepUse
-  StepUse --> Ref
-  WorkflowDoc --> RunnerLabel
-```
-
-`Ref` is built by `refs.ts` from the `uses` token's value plus the source line
-text after the token's end column (for the `# vX.Y.Z` comment). That one parser
-replaces v1's `extractActionReferenceFromLine` and handles quoting for free,
-since the token value is already unquoted.
-
-`kind` rules: `./` and `$/` → `local`; `docker://` → `docker`; a path ending in
-`.yml`/`.yaml` → `reusable`; else `remote`. Ref rules act only on `remote`.
-
-### Parser seam
-
-```mermaid
-sequenceDiagram
-  participant R as run.ts
-  participant P as parser/index
-  participant W as @actions/workflow-parser
-  R->>P: parseFile(sourceFile)
-  alt kind = workflow
-    P->>W: parseWorkflow({name, content}, NoOperationTraceWriter)
-    W-->>P: {context, value}
-    P->>P: walk tokens: jobs.*.steps[*].uses, jobs.*.uses, jobs.*.runs-on
-  else kind = action
-    P->>W: parseAction({name, content}, trace)
-    W-->>P: {context, value}
-    P->>P: walk tokens: runs.using, runs.steps[*].uses
-  end
-  P->>P: errors = context.errors.getErrors()
-  P-->>R: {doc, parseErrors}
-  Note over P: any throw → {doc: undefined, crash: message}
-```
-
-Decisions:
-
-- **Walk tokens, do not convert.** The adapter walks the `TemplateToken` tree by
-  key (`jobs` → each job → `steps` → each step → `uses`). It does not call
-  `convertWorkflowTemplate` or `convertActionTemplate`. Conversion is async,
-  skips on any error by default, and returns wrong data when forced (see spike).
-  The walk tolerates schema errors because the tree exists whenever the YAML
-  parses.
-- **Runners.** `runs-on` string → one label. Sequence → each string item.
-  Mapping → its `labels` (string or sequence); `group` alone is ignored.
-  Expression or anything else → `unresolvedRunners`, logged at debug. Static
-  matrix expansion is a follow-up, not v2.0.
-- **Remote manifests** (`remote-manifest.ts`) also go through `parseAction` and
-  read `runs.using` from the token tree, so `node26` reads as `node26`, not as
-  an error. If the YAML does not parse, return `{}` and log a warning, matching
-  v1's "no action file found" path.
-- **Crash isolation.** Each file is parsed in its own `try`. A throw yields an
-  `internal-error` finding (error, scope `file`) on that path and the run
-  continues with other files.
-- **Pin.** `package.json` lists `"@actions/workflow-parser": "0.3.61"` with no
-  range. esbuild bundles it; `dist/index.js` has no runtime dependency on it.
-
-### Rules
-
-Each rule is a plain function:
-
 ```ts
-type Rule = {
-  id: RuleId;
-  enabled: (cfg: Config) => boolean;
-  check: (doc: ParsedDoc, ctx: RuleContext) => Promise<Finding[]>;
-  policy: "added-only" | "added-error-else-warning" | "file";
+type Span = {
+  start: { line: number; col: number };
+  end: { line: number; col: number };
 };
-type RuleContext = {
-  lockfile?: Lockfile;
-  manifests: ManifestCache;
-  cfg: Config;
+
+type Ref = {
+  raw: string; // "actions/checkout@abc… " as written, unquoted
+  kind: "remote" | "local" | "docker";
+  owner?: string; // lowercased
+  repo?: string;
+  path?: string;
+  ref?: string; // part after @
+  image?: string; // docker only
+  digest?: string; // docker only, sha256:…
+  comment?: string; // trailing comment text, minus any ghv-ignore part
+  trusted: boolean;
+  site: "step" | "reusable"; // steps[*].uses vs jobs.<id>.uses
+  span: Span;
+};
+
+type RunnerSpec = {
+  jobId: string;
+  labels: { value: string; span: Span }[]; // resolved labels
+  unresolved: boolean; // expression we can't evaluate
+  span: Span;
+};
+
+type FileDoc = {
+  path: string; // repo-relative
+  kind: "workflow" | "action";
+  text: string;
+  refs: Ref[];
+  runners: RunnerSpec[];
+  syntaxErrors: { message: string; span: Span }[];
+};
+
+type Finding = {
+  rule: RuleId;
+  severity: "error" | "warning";
+  message: string;
+  path: string;
+  span: Span;
+  ignored?: { reason: string };
 };
 ```
 
-`policy` carries what v1 encoded inside each rule: when a finding counts given
-the line's diff status. `report/filter` applies it.
+### Parsing
 
-| Rule              | Input                             | Policy                                       | Notes                                                    |
-| ----------------- | --------------------------------- | -------------------------------------------- | -------------------------------------------------------- |
-| `sha-ref`         | `stepUses` (remote)               | added-only                                   | Skipped for onboarded workflows (see lockfile)           |
-| `version-comment` | `stepUses` (remote)               | added-only                                   | Skipped for onboarded workflows                          |
-| `trusted-tag-ref` | `stepUses` (remote)               | added-only                                   | Unchanged                                                |
-| `node-version`    | `stepUses` (remote)               | added-only                                   | Fetches at locked `commit` when onboarded, else at `ref` |
-| `runner-ubuntu`   | `runners`                         | added-only                                   | v1 label regexes, unchanged                              |
-| `runner-macos`    | `runners`                         | added-only                                   | v1 label regexes, unchanged                              |
-| `actions-cache`   | `stepUses` where `actions/cache*` | added-error-else-warning                     | Unchanged                                                |
-| `ignore-comment`  | `SourceFile` lines                | added-only                                   | Text scan; the one rule that reads lines                 |
-| `lockfile`        | `stepUses` + lockfile             | file                                         | New                                                      |
-| `schema`          | `parseErrors`                     | added-error-else-warning → capped at warning | New; never an error in v2.0                              |
-| `internal-error`  | parser crash                      | file                                         | New; always error                                        |
+`parse/yaml.ts` calls `parseDocument(text, { keepSourceTokens: true })` with a
+`LineCounter`, so every node's `range` maps to line and column. Syntax errors
+come from `doc.errors`.
 
-`sha-ref` accepts `/^[0-9a-f]{40}$/` or `/^[0-9a-f]{64}$/`.
+`parse/extract.ts` walks the document by key. It never builds a full workflow
+model:
 
-Step uses inside `ActionDoc` (composite actions) get the same ref rules as
-workflows. v1 already checked them as lines.
+| File kind | Paths read                                                                                    |
+| --------- | --------------------------------------------------------------------------------------------- |
+| workflow  | `jobs.<id>.steps[*].uses`, `jobs.<id>.uses`, `jobs.<id>.runs-on`, `jobs.<id>.strategy.matrix` |
+| action    | `runs.steps[*].uses`                                                                          |
 
-### Lockfile
+Notes:
+
+- **Only real keys.** `uses:` text inside a `run: |` block is a string value
+  under `run`, so the walk never sees it. That fixes v1's false positive.
+- **Comments.** The version comment is the source text after the `uses` value
+  node's end, on the same line, after `#`. Reading source text is more reliable
+  than the `yaml` package's comment attachment, which moves comments between
+  nodes depending on layout.
+- **Aliases** (`*anchor`) resolve to the anchored node, so the span points at
+  the anchor. If only the alias line changed, the finding is not on an added
+  line and drops. This is rare in workflows and favors precision.
+- **Syntax errors.** If the document has errors, extraction still runs on
+  whatever parsed, and `yaml-syntax` reports each error.
+
+### Refs
+
+`refs.ts` parses the `uses` value:
+
+| Value                                                        | kind                    | Ref rules apply?     |
+| ------------------------------------------------------------ | ----------------------- | -------------------- |
+| `./path`, `$/path`                                           | local                   | no                   |
+| `docker://image:tag`, `docker://img@sha256:…`                | docker                  | `docker-digest` only |
+| `owner/repo@ref`, `owner/repo/path@ref`                      | remote                  | yes                  |
+| `owner/repo/.github/workflows/x.yml@ref` at `jobs.<id>.uses` | remote, site `reusable` | yes                  |
+
+A full SHA is `/^[0-9a-f]{40}$/` or `/^[0-9a-f]{64}$/`. `trusted` is a lowercase
+match on `owner`.
+
+### Rules, with examples
+
+All examples are lines the PR adds.
+
+#### `pinned-ref` (error)
+
+Third-party remote ref, step or reusable workflow, not a full SHA.
+
+```yaml
+# ❌ fails
+- uses: tj-actions/changed-files@v45
+- uses: some-org/setup-thing@main
+jobs:
+  scan:
+    uses: other-org/workflows/.github/workflows/scan.yml@v2   # reusable call, new in v2
+
+# ✅ passes
+- uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46.0.5
+- uses: actions/checkout@v4                       # trusted owner
+- uses: smartcontractkit/.github/actions/foo@foo/v1  # trusted owner
+- uses: ./.github/actions/local-thing             # local
+```
+
+#### `version-comment` (warning)
+
+Third-party ref pinned to a SHA with an empty trailing comment.
+
+```yaml
+# ❌ warns
+- uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c
+
+# ✅ passes
+- uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46.0.5
+```
+
+Any non-empty comment passes. Checking that the SHA matches the tag needs the
+network, so it's a non-goal.
+
+#### `internal-ref` (warning)
+
+A `smartcontractkit` ref pinned to a SHA. A SHA pin stops moved major tags from
+reaching the repo. `actions` and `github` refs may use either form.
+
+```yaml
+# ❌ warns
+- uses: smartcontractkit/.github/actions/ci-lint-go@0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c # ci-lint-go@2.1.0
+
+# ✅ passes
+- uses: smartcontractkit/.github/actions/ci-lint-go@ci-lint-go/v2
+- uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+```
+
+#### `docker-digest` (warning)
+
+```yaml
+# ❌ warns
+- uses: docker://alpine:3.20
+
+# ✅ passes
+- uses: docker://alpine@sha256:beefdbd8a1da6d2915566fde36db9db0b524eb737fc57cd1367effd16dc0d06d
+```
+
+#### `runner-cost` (warning or error)
+
+See [Runner cost](#runner-cost) for how labels are classified and priced.
+
+```yaml
+# ❌ error ($0.042/min or more)
+runs-on: ubuntu-latest-16cores
+runs-on: "ubuntu22.04-32cores-128GB" # quoted: missed by v1
+runs-on: [ubuntu-latest-64cores-256gb] # array: missed by v1
+runs-on: { group: larger, labels: windows-latest-8cores }
+runs-on: macos-latest-xlarge
+
+# ⚠️ warning
+runs-on: ubuntu-latest-4cores # $0.012/min
+runs-on: windows-latest # $0.010/min
+runs-on: macos-latest # $0.062/min, no RunsOn option
+strategy:
+  matrix:
+    os: [ubuntu-latest, macos-latest] # anchors on the matrix value
+runs-on: ${{ matrix.os }}
+
+# ✅ passes
+runs-on: ubuntu-latest
+runs-on: ubuntu-24.04-arm
+runs-on: runs-on=${{ github.run_id }}/cpu=16/family=c8i/image=ubuntu24-full-x64
+runs-on: [self-hosted, linux]
+runs-on: ${{ inputs.runner }} # unresolved: caller decides
+runs-on: ubuntu-latest-16cores # ghv-ignore: runner-cost perf baseline must match GitHub hardware
+```
+
+#### `yaml-syntax` (error, not ignorable)
+
+Reported when the file changed in the PR, anchored at the error position. A YAML
+error in a file the PR touches would also hide refs from every other rule, so it
+can't be bypassed.
+
+```yaml
+# ❌ fails
+steps:
+  - uses: actions/checkout@v4
+     with:            # bad indent
+```
+
+#### `ignore-syntax` (error) and `unused-ignore` (warning)
+
+```yaml
+# ❌ ignore-syntax
+runs-on: ubuntu-latest-16cores # ghv-ignore!
+runs-on: ubuntu-latest-16cores # ghv-ignore: runner-cost
+runs-on: ubuntu-latest-16cores # ghv-ignore: runner-size big build
+- uses: foo/bar@v1 # ghv-ignore: yaml-syntax broken on purpose   # not ignorable
+
+# ⚠️ unused-ignore
+runs-on: ubuntu-latest # ghv-ignore: runner-cost legacy
+
+# ✅ passes
+- uses: foo/bar@v1 # ghv-ignore: pinned-ref vendor publishes no tags; tracked in DX-1234
+- uses: foo/bar@ed68ef82c095e0d48ec87eccea555d944a631a4c # v1.2.0 # ghv-ignore: version-comment n/a
+```
+
+#### `internal-error` (error, not ignorable)
+
+A file we could not fetch, a parser throw, or an API failure. The check fails
+closed, so a file crafted to crash the parser can't hide an unpinned ref.
+`evaluate-mode` in the org workflow is the escape hatch while we fix it.
+
+### Ignore comments
+
+Grammar, matched against a line's comment text:
+
+```text
+ghv-ignore: <rule>[,<rule>…] <reason>
+```
+
+- `<rule>` must be an ignorable rule ID: `pinned-ref`, `version-comment`,
+  `internal-ref`, `docker-digest`, or `runner-cost`.
+- `<reason>` is required and must not be empty.
+- The comment must be on the finding's anchor line. For a `runs-on` sequence,
+  that's the label's line. For a matrix, it's the matrix value's line.
+- The comment can follow a version comment (`@<sha> # v1.2.0 # ghv-ignore: …`).
+  `refs.ts` strips the `ghv-ignore` part before it reads the version.
+- Any other line containing `ghv-ignore` (`ghv-ignore!`, a missing reason, an
+  unknown rule) is `ignore-syntax`.
+
+`ignores.ts` runs after the rules. A matched finding keeps its severity for the
+record but gets `ignored: { reason }`. It shows in the summary's Ignored table
+and is left out of annotations and the exit code. A valid ignore on an added
+line that matched nothing is `unused-ignore`.
+
+### Runner cost
+
+#### Classification
+
+`runners/classify.ts` turns one job's `runs-on` into a `RunnerClass`:
 
 ```mermaid
 flowchart TD
-  Start([workflow doc]) --> HasLF{actions.lock<br/>present and readable?}
-  HasLF -- no --> V1[v1 rules: sha-ref, version-comment]
-  HasLF -- "yes, unknown version" --> Warn["lockfile warning:<br/>unsupported version"] --> V1
-  HasLF -- yes --> Onb{"workflow path in<br/>lockfile.workflows?"}
-  Onb -- no --> V1
-  Onb -- yes --> Each[for each remote/$/ step use]
-  Each --> Listed{"uses value in<br/>workflows[path]?"}
-  Listed -- no --> E1["lockfile error:<br/>ref not in lockfile"]
-  Listed -- yes --> Dep{"dependencies[key]<br/>has 40/64-hex commit?"}
-  Dep -- no --> E2["lockfile error:<br/>entry missing or malformed"]
-  Dep -- yes --> OK[ok; skip sha-ref + version-comment;<br/>node-version uses commit]
-  Each --> Extra["listed keys with no<br/>matching uses in file"] --> W1["lockfile warning:<br/>stale entry"]
+  R[runs-on value] --> Shape{shape}
+  Shape -- string --> L[one label]
+  Shape -- sequence --> LS[each string item]
+  Shape -- "mapping" --> M["labels (string or list);<br/>group alone → unresolved"]
+  Shape -- "${{ matrix.K }}" --> MX{"strategy.matrix.K<br/>literal list?"}
+  MX -- yes --> Each[each value, anchored on its node]
+  MX -- no --> U[unresolved → no finding]
+  Shape -- other expression --> U
+  L & LS & M & Each --> C{any label}
+  C -- "starts with runs-on=" --> RO[RunsOn → priced, no finding]
+  C -- "self-hosted or unknown" --> SH[no finding]
+  C -- GitHub-hosted --> GH["price = max over labels"]
 ```
 
-- `lockfile/read.ts` parses YAML with the `yaml` package (already pulled in by
-  the parser) and validates shape by hand. Known versions: `v0.0.3`. An unknown
-  version is treated as no lockfile plus one warning. That is the strict
-  fallback: v1 SHA rules apply.
-- The lookup key is the step's `uses` value as written, matching the docs'
-  dep-key format. Reusable workflow calls are never exempt.
-- **Severity under diff.** Lockfile findings use scope `file`. In a PR they are
-  errors if the workflow file or `actions.lock` changed, and warnings otherwise.
-  Without a PR they are warnings. They anchor on the `uses` span (or line 1 of
-  `actions.lock` for stale entries) so annotations land where the fix goes.
-- **Not checked here:** moved tags, rewritten history, and `owner_id`/`repo_id`
-  drift. Those need the network and are what `gh actions-lock --verify` does.
-  The README tells adopters to run GitHub's verify workflow as well.
-- **Discovery.** `actions.lock` is always read from the checkout or the API at
-  head, even in `diff-only` mode, because exemptions depend on it.
-- New input `validate-lockfile` (default `true`). When `false`, the lockfile is
-  ignored and v1 rules apply everywhere.
+GitHub-hosted labels:
+
+| Pattern                                                            | Class                   |
+| ------------------------------------------------------------------ | ----------------------- |
+| `ubuntu-slim`                                                      | Linux 1-core            |
+| `ubuntu-latest`, `ubuntu-24.04`, `ubuntu-22.04`                    | Linux 2-core x64        |
+| `ubuntu-24.04-arm`, `ubuntu-22.04-arm`                             | Linux 2-core arm64      |
+| `windows-latest`, `windows-2025`, `windows-2022`, `windows-11-arm` | Windows 2-core          |
+| `macos-latest`, `macos-<n>`, `macos-<n>-intel`                     | macOS standard          |
+| `macos-<…>-large`                                                  | macOS 12-core (x64)     |
+| `macos-<…>-xlarge`                                                 | macOS 5-core M2 Pro     |
+| `(ubuntu\|linux)…(\d+)cores?…`, plus `arm` anywhere for arm64      | Linux larger, N cores   |
+| `windows…(\d+)cores?…`                                             | Windows larger, N cores |
+
+Larger runners are named by each org, so the `<N>cores` pattern is the same
+convention v1 relies on. A larger runner named without a core count is treated
+as unknown and gets no finding. That trades a miss for no false positive.
+
+#### Prices
+
+`runners/prices.ts` holds the table, with `asOf` and source URLs. The summary
+footer prints `asOf`.
+
+GitHub-hosted, $/min
+([source](https://docs.github.com/en/billing/reference/actions-runner-pricing),
+read 2026-11-10):
+
+| Cores | Linux x64 | Linux arm64 | Windows x64 |
+| ----- | --------- | ----------- | ----------- |
+| 1     | 0.002     | —           | —           |
+| 2     | 0.006     | 0.005       | 0.010       |
+| 4     | 0.012     | 0.008       | 0.022       |
+| 8     | 0.022     | 0.014       | 0.042       |
+| 16    | 0.042     | 0.026       | 0.082       |
+| 32    | 0.082     | 0.050       | 0.162       |
+| 64    | 0.162     | 0.098       | 0.322       |
+| 96    | 0.252     | —           | 0.552       |
+
+macOS: standard 0.062, 12-core 0.077, 5-core M2 Pro 0.102.
+
+RunsOn estimates track the **latest EC2 generation**, not a fixed family.
+`prices.ts` names one reference family per architecture, and a new AWS
+generation means editing that entry plus its rates:
+
+```ts
+export const LATEST_GENERATION = {
+  x64: { generation: 8, family: "c8i" }, // AWS has no x64 gen 9 yet
+  arm64: { generation: 9, family: "c9g" }, // Graviton5
+} as const;
+```
+
+`c8i` is the cheaper of the two gen-8 x64 compute families (`c8a` costs about
+15% more). Rates are AWS on-demand Linux, in $/min, from Vantage
+([c8i](https://instances.vantage.sh/aws/ec2/c8i.large),
+[c9g](https://instances.vantage.sh/aws/ec2/c9g.large), read 2026-11-10). The 30
+GB gp3 root volume adds under $0.0001/min, which rounds away:
+
+| CPUs | c8i (x64) | vs GitHub | c9g (arm64) | vs GitHub |
+| ---- | --------- | --------- | ----------- | --------- |
+| 2    | 0.0016    | 3.8×      | 0.0014      | 3.6×      |
+| 4    | 0.0031    | 3.9×      | 0.0029      | 2.8×      |
+| 8    | 0.0062    | 3.5×      | 0.0058      | 2.4×      |
+| 16   | 0.0125    | 3.4×      | 0.0116      | 2.2×      |
+| 32   | 0.0250    | 3.3×      | 0.0232      | 2.2×      |
+| 64   | 0.0500    | 3.2×      | 0.0464      | 2.1×      |
+| 96   | 0.0750    | 3.4×      | —           | —         |
+
+The suggested label leaves out `family=`. The message tells people to pick a
+latest-generation family instead, and will link to RunsOn family guidance in the
+`runs-on` repo once it's written.
+
+Every RunsOn estimate carries the note: "On-demand price. Spot instances can cut
+this by about 2.5×." The ratio comes from RunsOn's
+[pricing page](https://runs-on.com/pricing/) spot rates (7-day us-east-1
+average) against the on-demand rates above: c8i.4xlarge $0.0051 vs $0.0125, and
+m9g.4xlarge $0.0054 vs $0.0130. Windows RunsOn rates are left out until we have
+a verified source, so Windows findings show the GitHub price and point to RunsOn
+without a number. There is no GitHub platform fee on self-hosted runners.
+
+#### Messages
+
+`runners/estimate.ts` builds the cost line and suggestion. It rounds a GitHub
+runner's CPU count up to the next RunsOn size:
+
+```text
+runner-cost: ubuntu-latest-16cores costs $0.042/min ($2.52/hr), 7× the standard runner.
+Use RunsOn first: a 16-CPU latest-generation RunsOn runner costs about $0.0125/min on-demand, 3.4× cheaper.
+On-demand price. Spot instances can cut this by about 2.5×.
+  runs-on: runs-on=${{ github.run_id }}/cpu=16/image=ubuntu24-full-x64
+Pick the latest EC2 generation for `family=` (today: 9 for arm64, 8 for x64).
+  Docs: https://github.com/smartcontractkit/runs-on
+Only if RunsOn can't work for this job, keep this runner and add:
+  # ghv-ignore: runner-cost <why RunsOn doesn't work>
+```
+
+For macOS the RunsOn lines are replaced with "RunsOn has no macOS runners. Use
+Linux if this job doesn't need macOS."
+
+#### Cost changes in the summary
+
+For each changed workflow, `report/summary.ts` parses the base version too and
+pairs jobs by ID. Any job whose runner class changed, or which is new, gets a
+row. RunsOn labels with `cpu=N` (or `cpu=N+M`, priced at N) are priced at the
+latest-generation rate for their architecture: arm64 when the image ends in
+`arm64`, otherwise x64. The label's `family=` doesn't change the estimate. It's
+a ballpark figure, not a quote for that exact instance.
+
+```markdown
+### Runner cost changes
+
+| Workflow | Job   | Before                  | After                   | $/min before → after | Change |
+| -------- | ----- | ----------------------- | ----------------------- | -------------------- | ------ |
+| ci.yml   | build | `ubuntu-latest`         | `ubuntu-latest-16cores` | 0.006 → 0.042        | +600%  |
+| ci.yml   | e2e   | `ubuntu-latest-32cores` | `runs-on=…/cpu=32/…`    | 0.082 → 0.0250       | −70%   |
+| ci.yml   | lint  | —                       | `ubuntu-latest`         | — → 0.006            | new    |
+
+Prices as of 2026-11-10. List prices per minute, not a bill. RunsOn on-demand;
+spot is cheaper.
+```
+
+The summary is informational. It never changes severity. If the base content
+can't be fetched, the table says so and the run continues.
 
 ### Sources and the diff
 
 ```mermaid
 flowchart TD
-  PR{PR context?} -- no --> NoDiff[ChangedLines = empty for all files]
-  PR -- yes --> Cmp[compare API base...head]
-  Cmp --> Files[changed files filtered to workflows/actions/actions.lock]
-  Files --> HasPatch{patch present?}
-  HasPatch -- yes --> Parse[parse hunks → added lines + visible lines]
-  HasPatch -- no --> All[mark every line added]
-  Disc{diff-only?} -- no --> Glob[glob checkout] --> Union
-  Disc -- yes --> Union
-  Files --> Union[union of paths, normalized repo-relative]
-  Union --> Text{file exists under root-directory?}
-  Text -- yes --> Local[read from disk]
-  Text -- no --> API[getContent at head SHA]
+  Ev{event} -- pull_request --> PR["pulls.listFiles (paginated)"]
+  Ev -- merge_group --> Cmp["compare base...head"]
+  PR & Cmp --> Cap{"list complete?"}
+  Cap -- yes --> Files[changed files]
+  Cap -- "no (API cap hit)" --> Trees["git trees at base + head:<br/>blob SHAs differ → changed"]
+  Trees --> Files
+  Files --> Patch{patch present?}
+  Patch -- yes --> Added[added = '+' lines]
+  Patch -- no --> All[added = every line]
 ```
 
-- **Content.** v2 needs full file text to parse, even in `diff-only` mode. v1's
-  README example has no checkout step and v1 still worked from patches alone. To
-  keep that working, `content.ts` reads from disk when the file exists, else
-  fetches it at the head SHA. Fetches are memoized and capped at 8 in flight.
-- **ChangedLines** per path: `added: Set<number>` and `visible: Set<number>`
-  (added plus patch context lines). In full-scan mode every line is visible.
-- **Paths** are repo-relative with no `./` prefix everywhere, which removes v1's
-  duplicate-file bug.
+- **Base and head.** `pull_request`: `pull_request.base.sha` and
+  `pull_request.head.sha`. `merge_group`: `merge_group.base_sha` and
+  `merge_group.head_sha`. Other events: log a notice and exit 0.
+- **Selection.** Paths matching `.github/workflows/*.yml|yaml` or ending in
+  `action.yml|yaml`. Status `removed` is skipped. Renamed files are checked like
+  modified ones.
+- **Content** is fetched from the API at head (base too, for the cost table),
+  memoized, at most 8 in flight. No checkout is needed.
+- **Truncation.** The listing APIs cap the number of files they return. When
+  that happens, comparing the recursive git trees at base and head finds the
+  changed workflow and action files, which then count as fully added. So nothing
+  is skipped silently.
+- **Permissions.** The token needs `contents: read` and `pull-requests: read`.
 
-### Filter and severity
+### Inputs
 
-```mermaid
-stateDiagram-v2
-  [*] --> Visible: finding anchor line
-  Visible --> Dropped: diff-only and line not visible
-  Visible --> UnchangedIgnore: line has ghv-ignore! and not added
-  UnchangedIgnore --> Dropped
-  Visible --> Policy
-  Policy --> Dropped: added-only and line not added
-  Policy --> Warning: added-error-else-warning and not added
-  Policy --> Keep: otherwise
-  Keep --> Ignored: line added and has ghv-ignore! and rule != ignore-comment
-  Keep --> Final
-  Warning --> Final
-  Ignored --> Final
-  Final --> [*]
-```
+| Input           | Default               | Meaning                                                             |
+| --------------- | --------------------- | ------------------------------------------------------------------- |
+| `github-token`  | `${{ github.token }}` | Token for the API calls above                                       |
+| `evaluate-mode` | `false`               | Report everything, never fail. For the shadow week and emergencies. |
 
-- The anchor line is `span.start.line`. A multi-line `uses` token is rare and
-  its first line is where the comment would go.
-- `file`-scope findings skip the visibility and `added-only` checks but still
-  honor `ghv-ignore!` on their anchor line.
-- `schema` findings are clamped to warning after the policy step.
-- `evaluate-mode` is applied last, in `run.ts`, exactly as in v1.
+No per-rule toggles. The org workflow is the only caller, and per-line ignores
+cover the legitimate exceptions.
 
-### actionlint add-on
+### Output
 
-```mermaid
-sequenceDiagram
-  participant R as run.ts
-  participant I as addons/actionlint/install
-  participant TC as @actions/tool-cache
-  participant AL as actionlint binary
-  R->>I: ensure(version, platform)
-  I->>TC: find("actionlint", version)
-  alt cache miss
-    I->>TC: downloadTool(release URL)
-    I->>I: sha256 == pinned digest? else throw
-    I->>TC: extractTar + cacheDir
-  end
-  I-->>R: binary path
-  R->>AL: actionlint -format '{{json .}}' <workflow files>
-  AL-->>R: JSON array (exit 1 when findings)
-  R->>R: map → Finding{rule: "actionlint:<kind>", scope: line}
-```
-
-- **Build.** Upstream `rhysd/actionlint`, one version pinned in
-  `addons/actionlint/versions.ts` with sha256 for `linux_amd64`, `linux_arm64`,
-  `darwin_amd64`, and `darwin_arm64`. Same engine as the lefthook hook and
-  `ci-lint-misc`, so a developer sees the same result locally. The kjanat fork
-  is a second entry in the same table later; its JSON shape differs, so `run.ts`
-  maps by build.
-- **Input** `actionlint: off | warn | error`, default `off`. `warn` clamps every
-  actionlint finding to warning. `error` keeps errors as errors.
-- **Scope.** Only workflow files. Upstream actionlint does not lint
-  `action.yml`.
-- **Policy** `added-only`, so a repo that turns it on is not flooded by existing
-  findings. In full-scan mode existing findings show as warnings.
-- **ShellCheck** runs if it is on `PATH`, which is actionlint's default. It is
-  on GitHub's Ubuntu images. The trial period measures this noise.
-- **Failure.** Download, checksum, or exit codes other than 0 and 1 produce one
-  `actionlint` warning (not error) and the run continues. The add-on never
-  blocks the core rules.
-
-### Inputs (v2)
-
-All v1 inputs keep their names and defaults. New:
-
-| Input               | Default | Meaning                                            |
-| ------------------- | ------- | -------------------------------------------------- |
-| `validate-lockfile` | `true`  | Honor `actions.lock` exemptions and run `lockfile` |
-| `validate-schema`   | `true`  | Report parser schema errors as warnings            |
-| `actionlint`        | `off`   | `off`, `warn`, or `error`                          |
-
-`GITHUB_TOKEN` stays an env var for compatibility. `config.ts` also accepts an
-optional `github-token` input that wins when set, so callers can move to an
-explicit input.
+- **Annotations.** One per non-ignored finding, at `path`, `span`, with the rule
+  ID as title and the fix text from `report/messages.ts`.
+- **Job summary.** Sections in this order: Errors, Warnings, Ignored (rule,
+  location, reason), Runner cost changes, and a short "how to fix" footer
+  linking the README. Empty sections are left out.
+- **Exit.** Fail if any non-ignored error remains and `evaluate-mode` is false.
 
 ### Rejected options
 
-- **Run v1 and v2 side by side in one action.** Doubles the code and the help
-  text, and the line model is the thing we are removing.
-- **Call `convertWorkflowTemplate` and walk the typed model.** Cleaner types,
-  but it hides every token when any schema error exists. See the spike.
-- **Shell out to `gh actions-lock --verify` for the lockfile rule.** Needs the
-  `gh` extension installed in every caller, a token with the right scope, and
-  network calls per ref. Repos that want that should run GitHub's verify
-  workflow, which is designed for it.
-- **Required actionlint.** Covered in the proposal.
+- **`@actions/workflow-parser`.** See the proposal. It adds schema checks we
+  don't want in a required gate and comes with pre-1.0 and packaging risk.
+- **actionlint inside the action.** See the proposal. Run it as a separate,
+  non-required job if wanted.
+- **Lockfile support.** See the proposal. It conflicts with moving major tags.
+- **A bypass PR label or a central exceptions file.** A label needs `labeled`
+  triggers, and anyone with write access can apply it. A central file is slow to
+  update and moves the decision away from the code's reviewers. An inline ignore
+  with a reason is reviewed right where the change is.
+- **Network lookups in rules** (node versions, SHA↔tag checks). Every lookup is
+  a way for a required check to flake.
+- **Keeping v1 inputs or a parity suite.** There's one caller and the version is
+  a major bump. v1's known bugs become regression tests instead.
 
 ## Verification
 
@@ -501,136 +539,107 @@ and `pnpm lint:affected`.
 
 Behavioral checks:
 
-- **Parity suite.** v1's fixture inputs (the fake repo, recorded compare
-  responses, and the action-ref line cases) run through v2. Findings are
-  normalized to `(path, line, rule, severity)` and compared to v1's snapshots.
-  Every difference must be on the expected-differences list in Context. Kept
-  until v1 code is deleted in Phase 3, then frozen as golden snapshots.
-- **Shape corpus.** One fixture per YAML shape: quoted and unquoted `uses`,
-  flow-style steps, `uses:` inside `run: |`, `runs-on` as string, quoted string,
-  sequence, `{group, labels}`, and expression; reusable calls; `./`, `$/`, and
-  `docker://` refs; composite, node, and docker manifests; `node12` through
-  `node26`; a schema error; a YAML syntax error. Snapshot the adapter output.
-- **Real-world corpus.** Every `.github/workflows/*.yml`, `workflows/*/*.yml`,
-  and `actions/*/action.yml` in this monorepo runs through the adapter in a
-  test. Assert no crashes, and snapshot the count of step uses and schema errors
-  per file. A parser upgrade that changes these fails the test.
-- **Bundle smoke.** `scripts/test.sh` runs the built `dist/index.js` with
-  `CL_LOCAL_DEBUG` against the fake repo. This proves the bundled parser loads
-  under plain Node 24, which the spike showed the unbundled package does not.
-- **Lockfile scenarios.** Onboarded workflow with `@v4` refs all listed → no
-  `sha-ref`. One ref missing → `lockfile` error. Lockfile lists a ref the
-  workflow dropped → warning. Workflow not in `workflows` → v1 rules. Unknown
-  `version` → warning plus v1 rules. Reusable call in onboarded workflow → still
-  skipped like v1. `node-version` fetch hits the locked commit (assert the nock
-  path).
-- **Diff scenarios.** File with no `patch` → all findings count as added. PR
-  with no checkout (`root-directory` empty) → content fetched at head. Push
-  event → only warnings. `ghv-ignore!` added vs unchanged.
-- **actionlint.** Checksum mismatch → one warning, core findings unaffected.
-  Fake binary (shell script printing canned JSON) for mapping tests. One real
-  run in CI on the fake repo with `actionlint: warn`.
-- **Dogfood.** Before the major tag, point this repo's own validator workflow at
-  the branch build in `evaluate-mode` for one week and compare its summary
-  against v1 on the same PRs.
+- **Rule examples.** Every ❌, ⚠️, and ✅ snippet in this design is a test case,
+  asserting rule, severity, and line.
+- **v1 regressions.** Each of these must now be caught or now pass:
+  - A quoted runner label, a label array, and a `{group, labels}` runner are
+    caught.
+  - `uses:` inside a `run: |` block is not flagged.
+  - A file with no patch is checked in full.
+  - A third-party reusable workflow at a tag is flagged.
+  - A 64-character SHA-256 ref is accepted.
+  - A `docker://` ref no longer crashes the rule.
+  - A file never appears twice in the output.
+- **Real-world corpus.** Every `.github/workflows/*.yml` and
+  `actions/*/action.yml` in this monorepo goes through parse + extract. The test
+  asserts no throws and snapshots the ref and runner counts per file, so a
+  `yaml` upgrade that changes extraction shows as a snapshot diff.
+- **Diff and sources.** Recorded nock fixtures cover a PR, a merge group, a file
+  with no patch, a truncated file list (tree fallback), a removed file, a
+  renamed file, and a failed content fetch (`internal-error`).
+- **Cost table.** A changed runner, a new job, a move to RunsOn, and a failed
+  base fetch.
+- **Bundle smoke.** `scripts/test.sh` runs the built `dist/index.js` against a
+  recorded PR, proving the bundle loads under plain Node 24.
+- **Shadow week.** v2 runs next to v1 in the org workflow in `evaluate-mode` for
+  one week. Compare their summaries on the same PRs. Every v2-only error is
+  either a v1 bug from the list above or gets fixed before the swap.
 
 ## Risks
 
-- **Parser schema lags GitHub.** New syntax produces `schema` warnings on valid
-  workflows. Contained: warnings only, and rules walk tokens rather than
-  trusting the converter. Noticed through user reports and the dogfood summary.
-- **Parser crashes on a real file.** Fails closed with `internal-error`, which
-  blocks that PR. Noticed immediately; `evaluate-mode` unblocks while we patch
-  via `pnpm patch` or bump.
-- **Parser abandonment.** No releases since August 2026 and no outside PRs. The
-  seam keeps the blast radius to `parser/`. A fallback adapter over the `yaml`
-  package's own position-carrying nodes is the plan if we must leave.
-- **Lockfile format changes.** It is at `v0.0.3` and the docs do not state GA
-  status. Unknown versions fall back to v1 rules, which is strict, so the
-  failure mode is extra errors, not missed ones. Noticed through the
-  unsupported-version warning.
-- **Lockfile exemption is too loose.** If our structural check passes but the
-  lockfile is stale in a way only the network can see, a moved tag could slip
-  through review. The runtime still executes the locked commit, so what runs is
-  what was locked; the gap is review visibility, not execution. Documented, and
-  adopters are told to run `gh actions-lock --verify`.
-- **Content fetch cost.** v2 fetches full files where v1 used patches. A PR
-  touching many workflows makes more API calls. Capped concurrency and
-  memoization keep it bounded; a rate-limit error surfaces as a warning per file
-  plus `internal-error`, so it fails closed.
-- **actionlint noise.** Off by default. If teams turn it on and drown, they turn
-  it off; it cannot fail a build unless set to `error`.
-- **Behavior drift hidden in a rewrite.** The parity suite with an explicit
-  expected-differences list is the guard. Any unlisted diff fails CI.
+- **False positives block the org.** This is the main risk. The guards are
+  added-lines-only, the precision-first choices above (unknown labels and
+  unresolved expressions get no finding), the shadow week, and `evaluate-mode`.
+- **Stale prices.** Rates change. The table is dated, the summary prints the
+  date, and severity depends only on how GitHub runners compare to each other,
+  which rarely changes. A refresh is a one-file PR.
+- **Larger runner names without a core count** are missed. That's acceptable
+  under precision-first. Fetching the org's runner list would need an org-admin
+  token, which we won't give a required check.
+- **API failures** fail closed with `internal-error`. Content fetches are
+  memoized and run at most 8 at a time, which keeps the call count low.
+- **Ignore abuse.** Ignores need a reason and show in every summary. If abuse
+  shows up, a later step can require CODEOWNERS approval on lines with ignores.
+  That's out of scope here.
 
 ## TODO
 
-Effort: hard (rebuilds supply-chain enforcement on a new parse model while
-preserving subtle diff, ignore, and trust semantics across many modules)
+Effort: hard (supply-chain enforcement every org repo must pass. The rules are
+simple; diff mapping, ignores, and fail-closed handling need care.)
 
-### Phase 1: Parser seam and model
+Each phase is one PR under the 400-line limit (tests excluded). Phases 1–3 add
+new modules next to v1 without wiring them in. Phase 4 swaps the entrypoint and
+deletes v1.
 
-Effort: medium (one new module behind a clear interface, verified by corpus
-snapshots; no behavior change yet)
+### Phase 1: Parse and model
 
-- [ ] Add `@actions/workflow-parser@0.3.61` (exact pin), `model.ts`, `refs.ts`,
-      and `parser/` (workflow, action, remote-manifest) walking tokens into
-      `WorkflowDoc`/`ActionDoc` with spans, crash isolation, and parse errors;
-      cover with the shape corpus snapshot tests and a `no-restricted-imports`
-      rule keeping the package inside `parser/`.
-- [ ] Add the real-world corpus test over this monorepo's workflows and action
-      manifests, and extend `scripts/test.sh` with a bundle smoke that imports
-      the parser through the built `dist/index.js`.
+Effort: medium (a new module behind a small interface, checked by corpus
+snapshots)
 
-### Phase 2: Rules and filter at v1 parity
+- [ ] Add `yaml@2.9.1`, `parse/model.ts`, `parse/yaml.ts`, `parse/extract.ts`
+      (workflow and action paths, matrix lists, spans, syntax errors), and
+      `refs.ts` (kinds, trusted, version comment with the ignore part stripped);
+      cover with the shape fixtures and the real-world corpus test.
 
-- [ ] Port `sha-ref`, `version-comment`, `trusted-tag-ref`, `node-version`
-      (token-based `using`, memoized `remote/manifests.ts`), `runner-ubuntu`,
-      `runner-macos`, `actions-cache`, and `ignore-comment` as `Rule`s over the
-      model, plus `schema` and `internal-error`, with unit tests per rule
-      including the fixed v1 defects.
-- [ ] Build `sources/diff.ts` and `report/filter.ts` (visibility, policy,
-      ignore, schema clamp) and the parity suite that runs v1 fixtures through
-      v2 and compares normalized findings against v1 snapshots with the
-      expected-differences list.
+### Phase 2: Ref rules and ignores
 
-### Phase 3: Cut over to v2
+Effort: medium (small pure functions with example-driven tests)
 
-Effort: medium (wiring and I/O against established interfaces, with the parity
-suite as the safety net)
+- [ ] Add `rules/` with `pinned-ref`, `version-comment`, `internal-ref`,
+      `docker-digest`, and `yaml-syntax`, plus `ignores.ts` (grammar,
+      `ignore-syntax`, `unused-ignore`, apply), with every example from this
+      design as a test.
 
-- [ ] Replace `run.ts` with the v2 pipeline: `config.ts` (v1 inputs plus
-      `validate-schema` and optional `github-token`), `sources/discover.ts`,
-      `sources/content.ts` with API fallback at head SHA,
-      `report/annotations.ts` and `report/summary.ts` with updated help text;
-      delete the v1 line-model modules and freeze the parity results as golden
-      snapshots; update `action.yml` input descriptions and the README.
+### Phase 3: Runner cost
 
-### Phase 4: Lockfile support
+Effort: medium (classification and pricing tables, with exact-message tests)
 
-- [ ] Add `lockfile/read.ts`, the `lockfile` rule, onboarded-workflow exemptions
-      for `sha-ref` and `version-comment`, and locked-commit fetches for
-      `node-version`, behind the new `validate-lockfile` input, with the
-      lockfile scenarios from Verification; document adoption and
-      `gh actions-lock --verify` in the README and help text.
+- [ ] Add `runners/classify.ts`, `runners/prices.ts` (dated, with sources),
+      `runners/estimate.ts`, and `rules/runner-cost.ts`, with tests for every
+      label shape and each severity band, and snapshot tests of the messages.
 
-### Phase 5: actionlint add-on
+### Phase 4: Wire up v2 and delete v1
 
-Effort: medium (self-contained subprocess integration with a pinned download and
-a JSON mapping)
+Effort: medium (I/O and orchestration against settled interfaces)
 
-- [ ] Add `addons/actionlint/` (pinned upstream version table with sha256 per
-      platform, tool-cache install, JSON mapping to findings) behind the
-      `actionlint` input with `off` default, failure-as-warning behavior, fake
-      binary tests, and one real CI run on the fake repo; document the input and
-      trial plan in the README.
+- [ ] Add `config.ts`, `github/changes.ts` (PR, merge group, tree fallback),
+      `github/content.ts`, `diff.ts`, `report/annotations.ts`,
+      `report/summary.ts` (without cost changes), `report/messages.ts`, and the
+      new `run.ts`; delete every v1 module and test; replace `action.yml`
+      inputs; add the nock fixtures and the bundle smoke.
 
-### Phase 6: Release v2
+### Phase 5: Runner cost changes in the summary
 
-Effort: easy (changeset and docs that follow the repo's existing release
-pattern)
+Effort: easy (one summary section on top of existing parse and price code)
 
-- [ ] Add a major changeset for `gha-workflow-validator` with a migration note
-      (new inputs, fixed v1 defects that may surface new findings, lockfile
-      behavior) and run the dogfood comparison in `evaluate-mode` before
-      merging.
+- [ ] Fetch base content, pair jobs by ID, and render the cost changes table,
+      with the four cost-table scenarios as tests.
+
+### Phase 6: Release and roll out
+
+Effort: easy (docs, changeset, and one workflow edit in another repo)
+
+- [ ] Rewrite the README (rules table, ignore syntax, RunsOn guidance), add a
+      major changeset, and release. In `gha-org-workflows`, add the non-required
+      v2 shadow job with `evaluate-mode: true`. After one clean week, point the
+      required job at v2 and remove v1.
