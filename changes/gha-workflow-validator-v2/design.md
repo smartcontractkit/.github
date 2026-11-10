@@ -39,6 +39,7 @@ src/
     yaml.ts             text → yaml Document + LineCounter + syntax errors
     extract.ts          Document → FileDoc (workflow or action)
   refs.ts               "owner/repo/path@ref" + trailing comment → Ref
+  pins.ts               pinStatus(ref, ctx): the one place that decides "is this pinned?"
   runners/
     classify.ts         label(s) → RunnerClass
     prices.ts           dated price table
@@ -78,8 +79,12 @@ flowchart TD
 ```
 
 Rules see every node in the file. They don't know about the diff. One filter
-step keeps findings whose anchor line was added. The anchor is
-`span.start.line`.
+step keeps findings that count, based on their `scope`:
+
+- **`line`:** kept when the anchor line (`span.start.line`) was added. Used by
+  ref and runner rules.
+- **`file`:** kept when the file changed in the PR. Used by `yaml-syntax` and
+  `internal-error`, and later by lockfile findings.
 
 ### Model
 
@@ -126,9 +131,29 @@ type Finding = {
   message: string;
   path: string;
   span: Span;
+  scope: "line" | "file";
   ignored?: { reason: string };
 };
+
+// Built once per run in run.ts. Rules read repo-wide inputs from here, never
+// from the network.
+type RuleContext = {
+  trustedOwners: ReadonlySet<string>;
+  // later: lockfile?: Lockfile
+};
+
+type Rule = {
+  id: RuleId;
+  ignorable: boolean;
+  check: (doc: FileDoc, ctx: RuleContext) => Finding[];
+};
+
+type PinStatus = { pinned: true; via: "sha" } | { pinned: false }; // later: { pinned: true; via: "lockfile"; commit: string }
 ```
+
+`pinned-ref` and `version-comment` never test the ref string themselves. They
+call `pinStatus(ref, ctx)` from `pins.ts`. In v2.0 it returns `via: "sha"` for a
+full SHA and `pinned: false` otherwise.
 
 ### Parsing
 
@@ -488,7 +513,8 @@ flowchart TD
   `merge_group.head_sha`. Other events: log a notice and exit 0.
 - **Selection.** Paths matching `.github/workflows/*.yml|yaml` or ending in
   `action.yml|yaml`. Status `removed` is skipped. Renamed files are checked like
-  modified ones.
+  modified ones. Selection is a list of `{ match, kind }` entries, so a new file
+  kind is one more entry.
 - **Content** is fetched from the API at head (base too, for the cost table),
   memoized, at most 8 in flight. No checkout is needed.
 - **Truncation.** The listing APIs cap the number of files they return. When
@@ -516,13 +542,46 @@ cover the legitimate exceptions.
   linking the README. Empty sections are left out.
 - **Exit.** Fail if any non-ignored error remains and `evaluate-mode` is false.
 
+### Room for lockfile support
+
+v2.0 doesn't read
+[lockfiles](https://docs.github.com/en/actions/concepts/security/workflow-dependency-lockfiles),
+but these choices keep the door open. Each is something v2.0 needs anyway, so
+none of it is speculative code:
+
+| Seam                           | Why v2.0 needs it                                    | What lockfile support adds                                                                                                                              |
+| ------------------------------ | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pinStatus(ref, ctx)`          | One place for the SHA test, shared by two rules      | Returns `{ pinned: true, via: "lockfile", commit }` for a step ref listed for an onboarded workflow. `pinned-ref` and `version-comment` stay unchanged. |
+| `RuleContext`                  | Holds trusted owners, built once per run             | Adds `lockfile?: Lockfile`, parsed from `.github/workflows/actions.lock` at head                                                                        |
+| `Finding.scope: "file"`        | `yaml-syntax` and `internal-error` aren't line-bound | Lockfile findings (missing or stale entry) count when the workflow or `actions.lock` changed                                                            |
+| Selection `{ match, kind }`    | Workflows and actions are two kinds                  | A `lockfile` kind. Fetched at head even when unchanged, because it changes how other files are judged.                                                  |
+| `Ref.raw` as written           | Messages quote the ref as the user wrote it          | Matches the lockfile's dep key format (`owner/repo@v3.1.0`)                                                                                             |
+| `Ref.site`                     | `pinned-ref` covers steps and reusable calls         | Lockfiles cover steps only, so `site: "reusable"` refs still need a SHA                                                                                 |
+| Rule registry + ignore grammar | Ignorable rule IDs come from the registry            | A new `lockfile` rule is ignorable or not by setting one flag                                                                                           |
+
+That work would add `lockfile/read.ts`, `rules/lockfile.ts`, one branch in
+`pins.ts`, and one selection entry.
+
+Open questions for that proposal, not this one:
+
+- **Moving major tags.** A lockfile freezes `smartcontractkit/...@v1` at a
+  commit, so a moved tag no longer reaches the repo. Options: lock only
+  third-party refs, or rely on Dependabot lockfile updates when a tag moves.
+- **Freshness.** Our offline check can confirm the lockfile's shape and that
+  every ref is listed. It can't detect moved tags; that needs
+  `gh actions-lock --verify`, which would run as its own step.
+- **Format stability.** The format is at `version: v0.0.3`. An unknown version
+  should fall back to the SHA rules, which is the strict choice.
+
 ### Rejected options
 
 - **`@actions/workflow-parser`.** See the proposal. It adds schema checks we
   don't want in a required gate and comes with pre-1.0 and packaging risk.
 - **actionlint inside the action.** See the proposal. Run it as a separate,
   non-required job if wanted.
-- **Lockfile support.** See the proposal. It conflicts with moving major tags.
+- **Lockfile support in v2.0.** See the proposal. It conflicts with moving major
+  tags until the org decides how they coexist. The seams above keep it cheap to
+  add later.
 - **A bypass PR label or a central exceptions file.** A label needs `labeled`
   triggers, and anyone with write access can apply it. A central file is slow to
   update and moves the decision away from the code's reviewers. An inline ignore
@@ -598,17 +657,18 @@ snapshots)
 
 - [ ] Add `yaml@2.9.1`, `parse/model.ts`, `parse/yaml.ts`, `parse/extract.ts`
       (workflow and action paths, matrix lists, spans, syntax errors), and
-      `refs.ts` (kinds, trusted, version comment with the ignore part stripped);
+      `refs.ts` (kinds, trusted, version comment with the ignore part stripped),
+      plus the `Rule`, `RuleContext`, `Finding.scope`, and `PinStatus` types;
       cover with the shape fixtures and the real-world corpus test.
 
 ### Phase 2: Ref rules and ignores
 
 Effort: medium (small pure functions with example-driven tests)
 
-- [ ] Add `rules/` with `pinned-ref`, `version-comment`, `internal-ref`,
-      `docker-digest`, and `yaml-syntax`, plus `ignores.ts` (grammar,
-      `ignore-syntax`, `unused-ignore`, apply), with every example from this
-      design as a test.
+- [ ] Add `pins.ts` and `rules/` with `pinned-ref`, `version-comment`,
+      `internal-ref`, `docker-digest`, and `yaml-syntax`, plus `ignores.ts`
+      (grammar, `ignore-syntax`, `unused-ignore`, apply), with every example
+      from this design as a test.
 
 ### Phase 3: Runner cost
 

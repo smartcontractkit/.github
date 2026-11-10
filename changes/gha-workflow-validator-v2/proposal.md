@@ -185,9 +185,14 @@ freezes `@v1` at the locked commit, so a moved tag never reaches the repo. It
 also makes it harder to tell which version a repo runs. SHA-pinning third-party
 refs already covers most of what lockfiles protect against.
 
-v2 neither reads nor rejects lockfiles. A repo with one still needs SHA pins on
-third-party refs. If the org adopts lockfiles later, checking them is a separate
-step or action.
+v2.0 neither reads nor rejects lockfiles. A repo with one still needs SHA pins
+on third-party refs, and SHA pins and a lockfile work fine together.
+
+v2 is built so lockfile support can be added later without reworking it. That
+would be one new file kind, one new rule, and one new answer from the function
+that decides whether a ref is pinned. The design's "Room for lockfile support"
+section lists those seams. Before that work starts, the org needs a separate
+decision on how lockfiles coexist with moving major tags on internal actions.
 
 ## Non-goals
 
