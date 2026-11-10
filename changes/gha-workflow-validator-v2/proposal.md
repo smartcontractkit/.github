@@ -8,6 +8,16 @@ effort: hard
 
 # gha-workflow-validator v2: a small, strict, org-wide gate
 
+## TL;DR
+
+v1 guesses what workflow lines mean with regexes, so it misses quoted runners
+and unpinned reusable workflows, flags text inside scripts, and has a bypass
+comment that still fails the check, all in a check every org PR must pass. v2 is
+a from-scratch rewrite on a real YAML parser with a few strict rules: pin
+third-party refs to SHAs, steer costly GitHub runners to RunsOn with cost
+estimates, and allow per-line ignores that require a reason. It drops expired
+rules, actionlint, and lockfiles, but leaves room to add lockfile support later.
+
 ## Goal
 
 Stop a PR from adding supply-chain risk or avoidable runner cost to any workflow
