@@ -67,6 +67,22 @@ un-issue it.
 Because revocation is scoped to the job, do not pass this token to another job
 via job outputs; request a new one in each job that needs it.
 
+## Rate limit monitoring
+
+After minting the token, the action calls
+[`GET /rate_limit`](https://docs.github.com/en/rest/rate-limit/rate-limit#get-rate-limit-status-for-the-authenticated-user),
+which does not count against the rate limit, and logs the remaining, used, and
+reset time of every bucket. If that call fails, the action logs it and carries
+on.
+
+The post step makes no extra call. It logs the `x-ratelimit-*` headers of the
+revocation response instead, which cover only the bucket that response was
+charged to (normally `core`).
+
+A bucket with 10% or less of its limit remaining is logged as a warning.
+Installation tokens share one budget per app installation, so the numbers
+include every concurrent job that uses the same app, not only the current one.
+
 ## Example Usage
 
 ```yaml
