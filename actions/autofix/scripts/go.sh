@@ -10,6 +10,7 @@
 #   go.sh targets            prints the modules fix --recursive fixes
 #   go.sh lint [--recursive] runs golangci-lint --fix in the modules fix would fix,
 #                            exiting 1 when issues remain, 2 or more when it failed
+#                            in any of them or there were no modules
 #
 # PATHS are git pathspecs relative to the repository root, separated by
 # newlines, and default to the whole repository. Modules are printed relative
@@ -188,8 +189,21 @@ lint() {
   return "${rc}"
 }
 
+# Why golangci-lint exited with $1, from its exit codes.
+lint_failure() {
+  case "$1" in
+    3) echo "it failed, see its output above" ;;
+    4) echo "it timed out, raise --timeout in golangci-lint-args" ;;
+    5) echo "the module has no Go files to lint" ;;
+    6) echo "the config file wasn't found" ;;
+    7) echo "it logged an error, see its output above" ;;
+    *) echo "unexpected exit code" ;;
+  esac
+}
+
 # The modules to run in: the one at the current directory, or with --recursive
-# the targets. Exits when there are none.
+# the targets. Exits when there are none, with 2 so lint doesn't report it as
+# issues left.
 modules_for() {
   local recursive="$1" what="$2" selected
   if [[ "${recursive}" != "--recursive" ]]; then
@@ -199,7 +213,7 @@ modules_for() {
 
   if [[ -z "$(modules)" ]]; then
     echo "::error::no Go modules found in ${paths[*]} below '${dir}'." >&2
-    exit 1
+    exit 2
   fi
 
   selected="$(targets)"
@@ -225,16 +239,18 @@ case "${1:-}" in
     ;;
   lint)
     targets="$(modules_for "${2:-}" "golangci-lint")"
+    # Lint every module even when one fails, so a run shows every failure and
+    # every issue left. A failure outranks issues left.
     status=0
     for module in ${targets}; do
       rc=0
       lint "${module}" || rc=$?
       if ((rc > 1)); then
-        exit "${rc}"
+        echo "::error::golangci-lint failed in '${module}' with exit code ${rc}: $(lint_failure "${rc}")."
       fi
 
-      if ((rc == 1)); then
-        status=1
+      if ((rc > status)); then
+        status="${rc}"
       fi
     done
 
