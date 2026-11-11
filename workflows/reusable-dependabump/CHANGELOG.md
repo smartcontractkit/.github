@@ -1,5 +1,15 @@
 # reusable-dependabump
 
+## 2.1.0
+
+### Minor Changes
+
+- [#1752](https://github.com/smartcontractkit/.github/pull/1752)
+  [`13dfa01`](https://github.com/smartcontractkit/.github/commit/13dfa017327e659979252d5797ec8b71b34f8b55)
+  Thanks [@thomaska](https://github.com/thomaska)! - Add `runs-on` input to pick
+  a runner with a larger disk, for monorepos where tidying every module does not
+  fit on `ubuntu-latest`.
+
 ## 2.0.0
 
 ### Major Changes
