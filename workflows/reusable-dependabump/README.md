@@ -51,3 +51,15 @@ verification.
 
 The job always requests `id-token: write`, so callers must grant it even without
 `gati-profile`.
+
+## Larger runner
+
+After bumping, the workflow runs `gomods tidy`, which tidies every module in the
+repository and downloads all of their dependencies. In a large monorepo that can
+exceed the disk of `ubuntu-latest` (~14 GB free). Set `runs-on` to a runner with
+a larger disk:
+
+```yaml
+with:
+  runs-on: ubuntu24.04-8cores-32GB
+```

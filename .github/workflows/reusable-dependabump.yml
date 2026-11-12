@@ -19,6 +19,13 @@ on:
       post-bump-command:
         required: false
         type: string
+      runs-on:
+        description: |
+          Runner label. Use a larger runner when tidying every module does not fit
+          on the default runner's disk.
+        required: false
+        type: string
+        default: 'ubuntu-latest'
       gati-profile:
         description: |
           GATI v2 profile for a token that git uses to fetch private Go
@@ -36,7 +43,7 @@ permissions: { }
 
 jobs:
   dependabump:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     permissions:
       contents: write
       pull-requests: write

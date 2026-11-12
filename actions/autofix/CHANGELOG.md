@@ -1,5 +1,17 @@
 # autofix
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1753](https://github.com/smartcontractkit/.github/pull/1753)
+  [`1b8bf6b`](https://github.com/smartcontractkit/.github/commit/1b8bf6bcb8194b8afdeb76a7ed082ef60f0f9bba)
+  Thanks [@nolag](https://github.com/nolag)! - add `go-changed-only` to run the
+  Go fixers only in modules a pull request changed (every module when it changes
+  `.github`, `go.work`, a golangci-lint config, or `go-all-paths`), and
+  `golangci-lint` to run `golangci-lint run --fix`, committing its fixes and
+  failing on the issues it can't fix, listed in the job summary
+
 ## 1.0.0
 
 ### Major Changes
