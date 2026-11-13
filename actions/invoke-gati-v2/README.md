@@ -22,10 +22,10 @@ Without it the action fails immediately, before making any network call.
 
 ## Inputs
 
-| Name      | Description                                                                                                                                     | Required | Defaulted                     |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------- |
-| `profile` | The token profile to request. See [Profiles](#profiles).                                                                                        | ✅       |                               |
-| `url`     | Overrides the endpoint to request the token from.                                                                                               | ❌       | ✅                            |
+| Name      | Description                                                                                                                                                                    | Required | Defaulted                     |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ----------------------------- |
+| `profile` | The token profile to request. See [Profiles](#profiles).                                                                                                                       | ✅       |                               |
+| `url`     | Overrides the endpoint to request the token from.                                                                                                                              | ❌       | ✅                            |
 | `retries` | Additional attempts when the request fails with a network error, `429`, a `5xx`, or a `2xx` with an empty or non-JSON body, with exponential backoff. `4xx` fails immediately. | ❌       | ✅ - `"0"` (a single attempt) |
 
 ## Outputs
@@ -72,15 +72,16 @@ via job outputs; request a new one in each job that needs it.
 After minting the token, the action calls
 [`GET /rate_limit`](https://docs.github.com/en/rest/rate-limit/rate-limit#get-rate-limit-status-for-the-authenticated-user),
 which does not count against the rate limit, and logs the remaining, used, and
-reset time of every bucket. If that call fails, the action logs it and carries on.
+reset time of every bucket. If that call fails, the action logs it and carries
+on.
 
 The post step makes no extra call. It logs the `x-ratelimit-*` headers of the
 revocation response instead, which cover only the bucket that response was
 charged to (normally `core`).
 
 A bucket with 10% or less of its limit remaining is logged as a warning.
-Installation tokens share one budget per app installation, so the numbers include
-every concurrent job that uses the same app, not only the current one.
+Installation tokens share one budget per app installation, so the numbers
+include every concurrent job that uses the same app, not only the current one.
 
 ## Example Usage
 
