@@ -22,11 +22,11 @@ Without it the action fails immediately, before making any network call.
 
 ## Inputs
 
-| Name      | Description                                                                                                                                     | Required | Defaulted                     |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------- |
-| `profile` | The token profile to request. See [Profiles](#profiles).                                                                                        | ✅       |                               |
-| `url`     | Overrides the endpoint to request the token from.                                                                                               | ❌       | ✅                            |
-| `retries` | Additional attempts when the request fails with a network error, `429`, or a `5xx` response, with exponential backoff. `4xx` fails immediately. | ❌       | ✅ - `"0"` (a single attempt) |
+| Name      | Description                                                                                                                                                                    | Required | Defaulted                     |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ----------------------------- |
+| `profile` | The token profile to request. See [Profiles](#profiles).                                                                                                                       | ✅       |                               |
+| `url`     | Overrides the endpoint to request the token from.                                                                                                                              | ❌       | ✅                            |
+| `retries` | Additional attempts when the request fails with a network error, `429`, a `5xx`, or a `2xx` with an empty or non-JSON body, with exponential backoff. `4xx` fails immediately. | ❌       | ✅ - `"0"` (a single attempt) |
 
 ## Outputs
 

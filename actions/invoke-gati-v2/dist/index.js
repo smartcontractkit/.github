@@ -22000,29 +22000,39 @@ async function attemptRequest(url, jwt) {
       retryable: isRetryableStatus(response.status)
     };
   }
-  return { kind: "token", token: await readToken(response, url) };
+  return readToken(response);
 }
-async function readToken(response, url) {
+async function readToken(response) {
   const raw = await response.text();
   const description = describeResponse(response, raw);
   if (!raw.trim()) {
-    throw new Error(
-      `Response was empty (${description}), expected a JSON body containing a token.`
-    );
+    return {
+      kind: "error",
+      error: new Error(
+        `Response was empty (${description}), expected a JSON body containing a token.`
+      ),
+      retryable: true
+    };
   }
   let body;
   try {
     body = JSON.parse(raw);
   } catch {
-    throw new Error(`Response was not JSON (${description}).`);
+    return {
+      kind: "error",
+      error: new Error(`Response was not JSON (${description}).`),
+      retryable: true
+    };
   }
   const token = body?.token;
   if (typeof token !== "string" || !token) {
-    throw new Error(
-      `Response did not contain a token (${description}).`
-    );
+    return {
+      kind: "error",
+      error: new Error(`Response did not contain a token (${description}).`),
+      retryable: false
+    };
   }
-  return token;
+  return { kind: "token", token };
 }
 function describeResponse(response, raw) {
   const contentType = response.headers.get("content-type") ?? "none";
