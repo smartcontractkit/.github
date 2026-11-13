@@ -43,9 +43,19 @@ Either `profile` or `aws-role-arn` must be provided.
 
 ### v2
 
-| Name      | Description               |
-| --------- | ------------------------- |
-| `profile` | Token profile to request. |
+| Name      | Description                                                                      | Defaulted  |
+| --------- | -------------------------------------------------------------------------------- | ---------- |
+| `profile` | Token profile to request.                                                        |            |
+| `retries` | Additional attempts on a network error, `429` or `5xx`. See [Retries](#retries). | ✅ - `"2"` |
+
+## Retries
+
+A transient GATI failure should not fail the job, so the v2 flow retries in two
+layers. `retries` is passed to `invoke-gati-v2`, which retries network errors,
+`429` and `5xx` responses with exponential backoff. If that first request still
+fails for any reason, including ones `invoke-gati-v2` does not retry such as an
+empty `200` response, the action waits 5 seconds and makes the whole request
+once more. Only when that second request fails does the action fail.
 
 ### v1
 
