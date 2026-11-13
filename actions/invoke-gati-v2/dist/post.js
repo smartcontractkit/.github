@@ -19549,12 +19549,12 @@ var require_lib = __commonJS({
             throw new Error("Client has already been disposed.");
           }
           const parsedUrl = new URL(requestUrl);
-          let info2 = this._prepareRequest(verb, parsedUrl, headers);
+          let info3 = this._prepareRequest(verb, parsedUrl, headers);
           const maxTries = this._allowRetries && RetryableHttpVerbs.includes(verb) ? this._maxRetries + 1 : 1;
           let numTries = 0;
           let response;
           do {
-            response = yield this.requestRaw(info2, data);
+            response = yield this.requestRaw(info3, data);
             if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
               let authenticationHandler;
               for (const handler of this.handlers) {
@@ -19564,7 +19564,7 @@ var require_lib = __commonJS({
                 }
               }
               if (authenticationHandler) {
-                return authenticationHandler.handleAuthentication(this, info2, data);
+                return authenticationHandler.handleAuthentication(this, info3, data);
               } else {
                 return response;
               }
@@ -19587,8 +19587,8 @@ var require_lib = __commonJS({
                   }
                 }
               }
-              info2 = this._prepareRequest(verb, parsedRedirectUrl, headers);
-              response = yield this.requestRaw(info2, data);
+              info3 = this._prepareRequest(verb, parsedRedirectUrl, headers);
+              response = yield this.requestRaw(info3, data);
               redirectsRemaining--;
             }
             if (!response.message.statusCode || !HttpResponseRetryCodes.includes(response.message.statusCode)) {
@@ -19617,7 +19617,7 @@ var require_lib = __commonJS({
        * @param info
        * @param data
        */
-      requestRaw(info2, data) {
+      requestRaw(info3, data) {
         return __awaiter(this, void 0, void 0, function* () {
           return new Promise((resolve, reject) => {
             function callbackForResult(err, res) {
@@ -19629,7 +19629,7 @@ var require_lib = __commonJS({
                 resolve(res);
               }
             }
-            this.requestRawWithCallback(info2, data, callbackForResult);
+            this.requestRawWithCallback(info3, data, callbackForResult);
           });
         });
       }
@@ -19639,12 +19639,12 @@ var require_lib = __commonJS({
        * @param data
        * @param onResult
        */
-      requestRawWithCallback(info2, data, onResult) {
+      requestRawWithCallback(info3, data, onResult) {
         if (typeof data === "string") {
-          if (!info2.options.headers) {
-            info2.options.headers = {};
+          if (!info3.options.headers) {
+            info3.options.headers = {};
           }
-          info2.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
+          info3.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
         }
         let callbackCalled = false;
         function handleResult(err, res) {
@@ -19653,7 +19653,7 @@ var require_lib = __commonJS({
             onResult(err, res);
           }
         }
-        const req = info2.httpModule.request(info2.options, (msg) => {
+        const req = info3.httpModule.request(info3.options, (msg) => {
           const res = new HttpClientResponse(msg);
           handleResult(void 0, res);
         });
@@ -19665,7 +19665,7 @@ var require_lib = __commonJS({
           if (socket) {
             socket.end();
           }
-          handleResult(new Error(`Request timeout: ${info2.options.path}`));
+          handleResult(new Error(`Request timeout: ${info3.options.path}`));
         });
         req.on("error", function(err) {
           handleResult(err);
@@ -19701,27 +19701,27 @@ var require_lib = __commonJS({
         return this._getProxyAgentDispatcher(parsedUrl, proxyUrl);
       }
       _prepareRequest(method, requestUrl, headers) {
-        const info2 = {};
-        info2.parsedUrl = requestUrl;
-        const usingSsl = info2.parsedUrl.protocol === "https:";
-        info2.httpModule = usingSsl ? https : http;
+        const info3 = {};
+        info3.parsedUrl = requestUrl;
+        const usingSsl = info3.parsedUrl.protocol === "https:";
+        info3.httpModule = usingSsl ? https : http;
         const defaultPort = usingSsl ? 443 : 80;
-        info2.options = {};
-        info2.options.host = info2.parsedUrl.hostname;
-        info2.options.port = info2.parsedUrl.port ? parseInt(info2.parsedUrl.port) : defaultPort;
-        info2.options.path = (info2.parsedUrl.pathname || "") + (info2.parsedUrl.search || "");
-        info2.options.method = method;
-        info2.options.headers = this._mergeHeaders(headers);
+        info3.options = {};
+        info3.options.host = info3.parsedUrl.hostname;
+        info3.options.port = info3.parsedUrl.port ? parseInt(info3.parsedUrl.port) : defaultPort;
+        info3.options.path = (info3.parsedUrl.pathname || "") + (info3.parsedUrl.search || "");
+        info3.options.method = method;
+        info3.options.headers = this._mergeHeaders(headers);
         if (this.userAgent != null) {
-          info2.options.headers["user-agent"] = this.userAgent;
+          info3.options.headers["user-agent"] = this.userAgent;
         }
-        info2.options.agent = this._getAgent(info2.parsedUrl);
+        info3.options.agent = this._getAgent(info3.parsedUrl);
         if (this.handlers) {
           for (const handler of this.handlers) {
-            handler.prepareRequest(info2.options);
+            handler.prepareRequest(info3.options);
           }
         }
-        return info2;
+        return info3;
       }
       _mergeHeaders(headers) {
         if (this.requestOptions && this.requestOptions.headers) {
@@ -21774,9 +21774,9 @@ var require_core = __commonJS({
     exports2.isDebug = isDebug;
     exports2.debug = debug;
     exports2.error = error;
-    exports2.warning = warning2;
+    exports2.warning = warning3;
     exports2.notice = notice;
-    exports2.info = info2;
+    exports2.info = info3;
     exports2.startGroup = startGroup;
     exports2.endGroup = endGroup;
     exports2.group = group;
@@ -21867,13 +21867,13 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
     function error(message, properties = {}) {
       (0, command_1.issueCommand)("error", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
-    function warning2(message, properties = {}) {
+    function warning3(message, properties = {}) {
       (0, command_1.issueCommand)("warning", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
     function notice(message, properties = {}) {
       (0, command_1.issueCommand)("notice", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
-    function info2(message) {
+    function info3(message) {
       process.stdout.write(message + os.EOL);
     }
     function startGroup(name) {
@@ -21932,26 +21932,32 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
 });
 
 // actions/invoke-gati-v2/src/run-post.ts
-var core2 = __toESM(require_core());
+var core3 = __toESM(require_core());
 
 // actions/invoke-gati-v2/src/github.ts
 var DEFAULT_API_URL = "https://api.github.com";
+function githubApiUrl() {
+  return process.env.GITHUB_API_URL || DEFAULT_API_URL;
+}
+function githubApiHeaders(token) {
+  return {
+    Authorization: `Bearer ${token}`,
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28"
+  };
+}
 async function revokeInstallationToken(token) {
-  const apiUrl = process.env.GITHUB_API_URL || DEFAULT_API_URL;
-  const url = `${apiUrl}/installation/token`;
+  const url = `${githubApiUrl()}/installation/token`;
   const response = await fetch(url, {
     method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28"
-    }
+    headers: githubApiHeaders(token)
   });
   if (response.status !== 204) {
     throw new Error(
       `Request to ${url} failed: ${response.status} ${response.statusText}.`
     );
   }
+  return response.headers;
 }
 
 // actions/invoke-gati-v2/src/state.ts
@@ -21961,18 +21967,69 @@ function readTokenState() {
   return core.getState(TOKEN_STATE_KEY);
 }
 
+// actions/invoke-gati-v2/src/rate-limit.ts
+var core2 = __toESM(require_core());
+var WARNING_THRESHOLD = 0.1;
+function parseRateLimitHeaders(headers) {
+  const header = (name) => {
+    const value = headers.get(`x-ratelimit-${name}`);
+    return value === null ? NaN : Number(value);
+  };
+  return toRateLimit(
+    headers.get("x-ratelimit-resource") ?? "core",
+    header("limit"),
+    header("used"),
+    header("remaining"),
+    header("reset")
+  );
+}
+function logRateLimits(rateLimits) {
+  for (const rateLimit of rateLimits) {
+    const { resource, limit, used, remaining, reset } = rateLimit;
+    const resetAt = new Date(reset * 1e3).toISOString();
+    const summary = `${resource}: ${remaining}/${limit} remaining, ${used} used, resets at ${resetAt}`;
+    if (isNearlyExhausted(rateLimit)) {
+      core2.warning(`GitHub API rate limit is nearly exhausted. ${summary}`);
+    } else {
+      core2.info(summary);
+    }
+  }
+}
+function isNearlyExhausted({ limit, remaining }) {
+  return limit > 0 && remaining <= limit * WARNING_THRESHOLD;
+}
+function toRateLimit(resource, limit, used, remaining, reset) {
+  const values = [limit, used, remaining, reset];
+  if (!values.every((value) => typeof value === "number" && Number.isFinite(value))) {
+    return void 0;
+  }
+  return {
+    resource,
+    limit,
+    used,
+    remaining,
+    reset
+  };
+}
+
 // actions/invoke-gati-v2/src/run-post.ts
 async function runPost() {
   const token = readTokenState();
   if (!token) {
-    core2.info("No installation access token was issued, nothing to revoke.");
+    core3.info("No installation access token was issued, nothing to revoke.");
     return;
   }
   try {
-    await revokeInstallationToken(token);
-    core2.info("Revoked the installation access token.");
+    const headers = await revokeInstallationToken(token);
+    core3.info("Revoked the installation access token.");
+    const rateLimit = parseRateLimitHeaders(headers);
+    if (rateLimit) {
+      logRateLimits([rateLimit]);
+    } else {
+      core3.info("The revocation response did not report rate limit usage.");
+    }
   } catch (error) {
-    core2.warning(`Failed to revoke the installation access token: ${error}`);
+    core3.warning(`Failed to revoke the installation access token: ${error}`);
   }
 }
 
