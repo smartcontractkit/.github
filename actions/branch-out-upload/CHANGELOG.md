@@ -1,5 +1,14 @@
 # branch-out-upload
 
+## 1.10.1
+
+### Patch Changes
+
+- [#1772](https://github.com/smartcontractkit/.github/pull/1772)
+  [`2cdf5b1`](https://github.com/smartcontractkit/.github/commit/2cdf5b1cd7b082c0c830771bfdcd9335aa93b3ed)
+  Thanks [@erikburt](https://github.com/erikburt)! - chore: bump
+  trunk-io/analytics-uploader to v2.1.8
+
 ## 1.10.0
 
 ### Minor Changes
