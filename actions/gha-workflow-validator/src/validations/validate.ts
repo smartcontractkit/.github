@@ -41,7 +41,7 @@ function getValidators(
     );
   if (validateRunners) validators.push(new ActionsRunnerValidation());
   if (validateActionsCacheVersion)
-    validators.push(new ActionsCacheVersionValidation());
+    validators.push(new ActionsCacheVersionValidation({ references }));
 
   return validators;
 }
@@ -53,9 +53,10 @@ export async function validate(
 ): Promise<FileValidationResult[]> {
   core.debug(`Validating ${parsedFiles.length} files`);
 
-  const references = inputs.validateActionRefs
-    ? await buildUseReferenceIndex(parsedFiles)
-    : undefined;
+  const references =
+    inputs.validateActionRefs || inputs.validateActionsCacheVersion
+      ? await buildUseReferenceIndex(parsedFiles)
+      : undefined;
   const validators = getValidators(inputs, octokit, references);
 
   const fileValidationResults: FileValidationResult[] = [];
