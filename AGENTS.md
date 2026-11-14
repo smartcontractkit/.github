@@ -16,12 +16,17 @@ and workflows, versioned with changesets.
 ## Writing actions
 
 - Heavily prefer TypeScript over bash. Use bash only when it is clearly the
-  winner for simplicity and understandability.
+  winner for simplicity and understandability. For example, bash might be chosen
+  for steps with many calls to external CLIs such as `jq`, `aws`, etc. Move
+  large blobs of bash or `github-script` out of the step into an external script
+  and invoke it from the step.
 - Pass `${{ }}` values into `run:` scripts through `env:`. Inline interpolation
   in `run:` is a script-injection vector.
 - Write step outputs with `| tee -a "$GITHUB_OUTPUT"` instead of
   `>> "$GITHUB_OUTPUT"`, so they also appear in the log.
-- Pin third-party actions to a full-length commit SHA.
+- Pin third-party actions to a full-length commit SHA. Third-party actions are
+  those outside the `github`, `actions`, and `smartcontractkit` GitHub
+  organizations.
 - Give actions the least access they need. Take tokens as explicit inputs rather
   than relying on ambient permissions.
 - TypeScript actions: `main` points at `dist/index.js`, and the built `dist/` is
