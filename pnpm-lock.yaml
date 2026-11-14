@@ -559,6 +559,9 @@ importers:
       '@actions/glob':
         specifier: ^0.5.1
         version: 0.5.1
+      '@actions/workflow-parser':
+        specifier: 0.3.61
+        version: 0.3.61
     devDependencies:
       '@octokit/types':
         specifier: ^16.0.0
@@ -1080,6 +1083,10 @@ packages:
   '@actions/exec@3.0.0':
     resolution: {integrity: sha512-6xH/puSoNBXb72VPlZVm7vQ+svQpFyA96qdDBvhB8eNZOE8LtPf9L4oAsfzK/crCL8YZ+19fKYVnM63Sl+Xzlw==}
 
+  '@actions/expressions@0.3.61':
+    resolution: {integrity: sha512-Ig+tXELvTjlqxQAWBQnLNn2dPpNraLMdSnT+vDzDPmJtbNUhIAH/Z9kVT8pZ8UtJi9vUGs8hwHE8JFJmbOnLEA==}
+    engines: {node: '>= 20'}
+
   '@actions/github@6.0.1':
     resolution: {integrity: sha512-xbZVcaqD4XnQAe35qSQqskb3SqIAfRyLBrHMd/8TuL7hJSz2QtbDwnNM8zWx4zO5l2fnGtseNE3MbEvD7BxVMw==}
 
@@ -1112,6 +1119,10 @@ packages:
 
   '@actions/tool-cache@4.0.0':
     resolution: {integrity: sha512-L8P9HbXvpvqjZDveb/fdsa55IVC0trfPgQ4ZwGo6r5af6YDVdM9vMGPZ7rgY2fAT9gGj4PSYd6bYlg3p3jD78A==}
+
+  '@actions/workflow-parser@0.3.61':
+    resolution: {integrity: sha512-NBjJrbwwrEN3LSN0NAISLpCWQLcPSBjmAIkLXHgjGX8Yql4PiD33ifSAvr9sIMU9uIs8wZiGUnvo9yPIMIfKdg==}
+    engines: {node: '>= 20'}
 
   '@ardatan/relay-compiler@13.0.2':
     resolution: {integrity: sha512-VFpv9UP820SiwDUPYtq7PmD3jifzZlevkQ26bhbSzFeruSTys0eHzQCZyKg+IhgmZzwPI9AFjPe26ABNjGeIKg==}
@@ -4732,6 +4743,10 @@ packages:
   create-require@1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
 
+  cronstrue@2.59.0:
+    resolution: {integrity: sha512-YKGmAy84hKH+hHIIER07VCAHf9u0Ldelx1uU6EBxsRPDXIA1m5fsKmJfyC3xBhw6cVC/1i83VdbL4PvepTrt8A==}
+    hasBin: true
+
   cross-inspect@1.0.1:
     resolution: {integrity: sha512-Pcw1JTvZLSJH83iiGWt6fRcT+BjZlCDRVwYLbUcHzv/CRpB7r0MlSrGbIyQvVSNyGnbt7G4AXuyCiDR3POvZ1A==}
     engines: {node: '>=16.0.0'}
@@ -7510,6 +7525,8 @@ snapshots:
     dependencies:
       '@actions/io': 3.0.2
 
+  '@actions/expressions@0.3.61': {}
+
   '@actions/github@6.0.1':
     dependencies:
       '@actions/http-client': 2.2.3
@@ -7573,6 +7590,12 @@ snapshots:
       '@actions/http-client': 4.0.1
       '@actions/io': 3.0.2
       semver: 7.8.5
+
+  '@actions/workflow-parser@0.3.61':
+    dependencies:
+      '@actions/expressions': 0.3.61
+      cronstrue: 2.59.0
+      yaml: 2.9.1
 
   '@ardatan/relay-compiler@13.0.2(graphql@16.14.2)':
     dependencies:
@@ -11868,6 +11891,8 @@ snapshots:
       readable-stream: 4.7.0
 
   create-require@1.1.1: {}
+
+  cronstrue@2.59.0: {}
 
   cross-inspect@1.0.1:
     dependencies:

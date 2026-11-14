@@ -2,7 +2,9 @@ import {
   combineParsedFiles,
   filterForRelevantChanges,
   getParsedFilesForValidation,
+  hydrateFileContent,
   parseGithubDiff,
+  ParsedFile,
   ParsedFiles,
   combineFileLines,
   FileLine,
@@ -12,6 +14,8 @@ import { InvokeContext, RunInputs } from "../run.js";
 import { getNock, getTestOctokit } from "./__helpers__/test-utils.js";
 const nockBack = getNock();
 
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "fs";
+import { tmpdir } from "os";
 import { join } from "path";
 import { describe, it, expect } from "vitest";
 
@@ -29,6 +33,7 @@ const defaultInputs: RunInputs = {
   validateRunners: false,
   validateActionRefs: false,
   validateActionNodeVersion: false,
+  validateActionsCacheVersion: false,
   validateAllActionDefinitions: false,
   rootDir: __dirname,
   diffOnly: false,
@@ -378,6 +383,61 @@ describe(combineFileLines.name, () => {
       lines: [combinedFileLinesExisting[0], combinedFileLinesDiff[0]],
     });
     expect(result[2]).toEqual(diffFile[0]);
+  });
+});
+
+describe(hydrateFileContent.name, () => {
+  const makeRepo = () => {
+    const root = mkdtempSync(join(tmpdir(), "gha-validator-"));
+    const filename = ".github/workflows/test.yml";
+    const content = "name: test\non: push\n";
+    mkdirSync(join(root, ".github/workflows"), { recursive: true });
+    writeFileSync(join(root, filename), content);
+    return { root, filename, content };
+  };
+
+  it("adds content when the added lines match", () => {
+    const { root, filename, content } = makeRepo();
+    try {
+      const file: ParsedFile = {
+        filename,
+        lines: [
+          {
+            lineNumber: 2,
+            content: "on: push",
+            operation: "add",
+            ignored: false,
+          },
+        ],
+      };
+
+      hydrateFileContent([file], root);
+      expect(file.content).toBe(content);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("leaves content undefined when the added lines differ", () => {
+    const { root, filename } = makeRepo();
+    try {
+      const file: ParsedFile = {
+        filename,
+        lines: [
+          {
+            lineNumber: 2,
+            content: "on: pull_request",
+            operation: "add",
+            ignored: false,
+          },
+        ],
+      };
+
+      hydrateFileContent([file], root);
+      expect(file.content).toBeUndefined();
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });
 
