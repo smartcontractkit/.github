@@ -23,6 +23,9 @@ set -euo pipefail
 #   --ref     Branch, tag, or commit to sync from. Defaults to "main".
 #   --token   Token with read access to the source repository. Defaults to
 #             GH_TOKEN, GITHUB_TOKEN, or whatever `gh auth` already resolves.
+#
+# In CI, .github/workflows/invoke-gati-v2-sync.yml runs this against the
+# released invoke-gati-v2/v1 tag and opens a PR with the result.
 ##
 
 SRC_REPO="smartcontractkit/.github-internal"
@@ -129,5 +132,13 @@ log "setting version to $version"
 jq --arg version "$version" '.version = $version' "$action_dir/package.json" \
   >"$tmp/package.json"
 mv "$tmp/package.json" "$action_dir/package.json"
+
+# Lets the sync workflow describe what it synced in the commit and PR.
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+  {
+    echo "sha=$sha"
+    echo "version=$version"
+  } | tee -a "$GITHUB_OUTPUT"
+fi
 
 log "done -- review the diff before committing"

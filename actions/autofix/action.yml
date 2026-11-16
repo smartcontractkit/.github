@@ -60,6 +60,55 @@ inputs:
       `working-directory`.
     required: false
     default: "true"
+  go-changed-only:
+    description: |
+      On pull requests, run the Go fixers only in the modules owning a file the
+      pull request changed, and the modules that replace those with a local
+      path. Only applies when `go-recursive` is "true". Every module is fixed
+      when the changed files can't be listed (not a pull request, 300 or more
+      files, ...), so the default branch and merge queue still check them all.
+      Every module is fixed too when the pull request changes a file that can
+      affect them all: anything under `.github`, `go.work`, `go.work.sum`, a
+      golangci-lint config when `golangci-lint` is "true", or `go-all-paths`.
+    required: false
+    default: "false"
+  go-all-paths:
+    description: |
+      Git pathspecs, relative to the repository root, one per line, of more
+      files whose change makes `go-changed-only` fix every module, e.g. the
+      file the golangci-lint version is read from:
+
+        go-all-paths: .tool-versions
+    required: false
+    default: ""
+  golangci-lint:
+    description: |
+      Run `golangci-lint run --fix` in the modules the Go fixers fix (whether
+      or not `go` is "true"), after them. Its fixes are uploaded with the
+      others. Issues it can't fix are annotated, and fail the step after the
+      changes are uploaded, so autofix/commit can still push the fixes when
+      its job runs with `!cancelled()`. Requires Go to be installed.
+    required: false
+    default: "false"
+  golangci-lint-version:
+    description: |
+      golangci-lint version to install, e.g. "v2.15.0". When empty, uses the
+      golangci-lint already installed.
+    required: false
+    default: ""
+  golangci-lint-config:
+    description: |
+      golangci-lint config file, relative to the repository root. When empty,
+      golangci-lint finds it in or above each module, and modules without one
+      use ci-lint-go's default config.
+    required: false
+    default: ""
+  golangci-lint-args:
+    description: |
+      Extra arguments to `golangci-lint run`, split on whitespace, e.g.
+      "--new-from-merge-base=origin/main" (which needs the history fetched).
+    required: false
+    default: ""
   setup-go:
     description: |
       Install Go (via setup-golang) before running anything. Leave "false" when
@@ -128,6 +177,11 @@ runs:
       env:
         PATHS: ${{ inputs.paths || inputs.working-directory }}
         ALWAYS: ${{ inputs.always }}
+        GOLANGCI_LINT: ${{ inputs.golangci-lint }}
+        ALL_PATHS: ${{ inputs.go-all-paths }}
+        CHANGED_ONLY:
+          ${{ (inputs.go == 'true' || inputs.golangci-lint == 'true') &&
+          inputs.go-recursive == 'true' && inputs.go-changed-only == 'true' }}
         GH_TOKEN: ${{ github.token }}
         PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -174,9 +228,93 @@ runs:
       env:
         PATHS: ${{ inputs.paths || inputs.working-directory }}
         RECURSIVE: ${{ inputs.go-recursive == 'true' && '--recursive' || '' }}
+        # From the scope step, which ran before anything the pull request
+        # controls, so it can't change which modules are fixed.
+        CHANGED_FILES_KNOWN: ${{ steps.scope.outputs.changed-files-known }}
+        CHANGED_FILES: ${{ steps.scope.outputs.changed-files }}
         # Modules may require a newer Go than the one installed.
         GOTOOLCHAIN: auto
       run: '"${GITHUB_ACTION_PATH}/scripts/go.sh" fix ${RECURSIVE}'
+
+    - name: Install golangci-lint
+      if:
+        steps.scope.outputs.skip != 'true' && inputs.golangci-lint == 'true' &&
+        inputs.golangci-lint-version != ''
+      uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
+      with:
+        version: ${{ inputs.golangci-lint-version }}
+        install-only: true
+        skip-cache: true
+
+    # golangci-lint caches per package, so a cache from an older go.sum still
+    # spares re-analyzing every package that didn't change. Rotated weekly so it
+    # doesn't grow forever.
+    - name: golangci-lint cache key
+      id: golangci-lint-key
+      if: steps.scope.outputs.skip != 'true' && inputs.golangci-lint == 'true'
+      shell: bash
+      env:
+        PREFIX:
+          ${{ steps.prepare.outputs.artifact }}-golangci-lint-${{ runner.os
+          }}-${{ inputs.golangci-lint-version }}
+        GO_SUM_HASH: ${{ hashFiles('**/go.sum') }}
+      run: |
+        echo "prefix=${PREFIX}-" | tee -a "$GITHUB_OUTPUT"
+        echo "key=${PREFIX}-$(date -u +%G-%V)-${GO_SUM_HASH}" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Restore golangci-lint cache
+      id: golangci-lint-cache
+      if: steps.scope.outputs.skip != 'true' && inputs.golangci-lint == 'true'
+      uses: actions/cache/restore@v6
+      with:
+        path: ${{ runner.temp }}/golangci-lint-cache
+        key: ${{ steps.golangci-lint-key.outputs.key }}
+        restore-keys: ${{ steps.golangci-lint-key.outputs.prefix }}
+
+    - name: golangci-lint
+      id: golangci-lint
+      if: steps.scope.outputs.skip != 'true' && inputs.golangci-lint == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        PATHS: ${{ inputs.paths || inputs.working-directory }}
+        RECURSIVE: ${{ inputs.go-recursive == 'true' && '--recursive' || '' }}
+        CHANGED_FILES_KNOWN: ${{ steps.scope.outputs.changed-files-known }}
+        CHANGED_FILES: ${{ steps.scope.outputs.changed-files }}
+        GOTOOLCHAIN: auto
+        GOLANGCI_LINT_CACHE: ${{ runner.temp }}/golangci-lint-cache
+        GOLANGCI_LINT_CONFIG: ${{ inputs.golangci-lint-config }}
+        GOLANGCI_LINT_ARGS: ${{ inputs.golangci-lint-args }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      run: |
+        # The action's download holds the whole repository, so use ci-lint-go's
+        # default config rather than a copy.
+        GOLANGCI_LINT_DEFAULT_CONFIG="$(cd "${GITHUB_ACTION_PATH}/../ci-lint-go/files" && pwd -P)/golangci-default.yml"
+        export GOLANGCI_LINT_DEFAULT_CONFIG
+        echo "::add-matcher::${GITHUB_ACTION_PATH}/golangci-lint-matcher.json"
+        rc=0
+        "${GITHUB_ACTION_PATH}/scripts/go.sh" lint ${RECURSIVE} 2>&1 | tee "${RUNNER_TEMP}/golangci-lint.txt" || rc=$?
+        echo "::remove-matcher owner=autofix-golangci-lint::"
+        "${GITHUB_ACTION_PATH}/scripts/lint-summary.sh" "${RUNNER_TEMP}/golangci-lint.txt"
+        # 1 is issues it couldn't fix, which fail the action once the fixes are
+        # uploaded. Anything else is golangci-lint failing.
+        if [[ "${rc}" -eq 1 ]]; then
+          echo "issues=true" | tee -a "$GITHUB_OUTPUT"
+        elif [[ "${rc}" -ne 0 ]]; then
+          exit "${rc}"
+        fi
+
+    # Saved when golangci-lint fails too, so a rerun doesn't start cold.
+    - name: Save golangci-lint cache
+      if:
+        always() && steps.golangci-lint-cache.outcome == 'success' &&
+        steps.golangci-lint-cache.outputs.cache-hit != 'true' &&
+        (steps.golangci-lint.outcome == 'success' || steps.golangci-lint.outcome
+        == 'failure')
+      uses: actions/cache/save@v6
+      with:
+        path: ${{ runner.temp }}/golangci-lint-cache
+        key: ${{ steps.golangci-lint-key.outputs.key }}
 
     - name: Run commands
       if: steps.scope.outputs.skip != 'true' && inputs.run != ''
@@ -211,3 +349,10 @@ runs:
         if-no-files-found: error
         overwrite: true
         retention-days: 1
+
+    - name: Fail on golangci-lint issues
+      if: steps.golangci-lint.outputs.issues == 'true'
+      shell: bash
+      run: |
+        echo "::error::golangci-lint found issues it can't fix, listed in the job summary. The fixes it could make are uploaded for autofix/commit."
+        exit 1

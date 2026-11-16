@@ -67,6 +67,57 @@ on:
         required: false
         type: boolean
         default: true
+      go-changed-only:
+        description: |
+          On pull requests, run the Go fixers only in the modules owning a
+          file the pull request changed, and the modules that replace those
+          with a local path. Only applies when `go-recursive` is true. Every
+          module is fixed when the changed files can't be listed (not a pull
+          request, 300 or more files, ...), so the default branch and merge
+          queue still check them all. Every module is fixed too when the pull
+          request changes a file that can affect them all: anything under
+          `.github`, `go.work`, `go.work.sum`, a golangci-lint config when
+          `golangci-lint` is true, or `go-all-paths`.
+        required: false
+        type: boolean
+        default: false
+      go-all-paths:
+        description: |
+          Git pathspecs, relative to the repository root, one per line, of
+          more files whose change makes `go-changed-only` fix every module,
+          e.g. the file the golangci-lint version is read from.
+        required: false
+        type: string
+        default: ""
+      golangci-lint:
+        description: |
+          Run `golangci-lint run --fix` in the modules the Go fixers fix, after
+          them. Its fixes are committed with the others. Issues it can't fix
+          are annotated and fail the run, after the fixes are committed.
+        required: false
+        type: boolean
+        default: false
+      golangci-lint-version:
+        description: |
+          golangci-lint version to install, e.g. "v2.15.0". When empty, uses
+          the golangci-lint already installed.
+        required: false
+        type: string
+        default: ""
+      golangci-lint-config:
+        description: |
+          golangci-lint config file, relative to the repository root. When
+          empty, golangci-lint finds it in or above each module, and modules
+          without one use ci-lint-go's default config.
+        required: false
+        type: string
+        default: ""
+      golangci-lint-args:
+        description: |
+          Extra arguments to `golangci-lint run`, split on whitespace.
+        required: false
+        type: string
+        default: ""
       always:
         description: Run on pull requests that change no file in `paths` too.
         required: false
@@ -153,16 +204,24 @@ jobs:
           run: ${{ inputs.run }}
           go: ${{ inputs.go }}
           go-recursive: ${{ inputs.go-recursive }}
+          go-changed-only: ${{ inputs.go-changed-only }}
+          go-all-paths: ${{ inputs.go-all-paths }}
+          golangci-lint: ${{ inputs.golangci-lint }}
+          golangci-lint-version: ${{ inputs.golangci-lint-version }}
+          golangci-lint-config: ${{ inputs.golangci-lint-config }}
+          golangci-lint-args: ${{ inputs.golangci-lint-args }}
           always: ${{ inputs.always }}
-          setup-go: ${{ inputs.setup-go || inputs.go }}
+          setup-go: ${{ inputs.setup-go || inputs.go || inputs.golangci-lint }}
           go-version-file: ${{ inputs.go-version-file }}
 
   # Pushes the fixes. Holds the token to, so it runs nothing from the pull
-  # request and checks out nothing.
+  # request and checks out nothing. Runs when fix failed too: the only failure
+  # after its changes are uploaded is golangci-lint issues it couldn't fix, and
+  # the fixes it could make should still be pushed.
   commit:
     name: Autofix commit
     needs: fix
-    if: needs.fix.outputs.commit == 'true'
+    if: ${{ !cancelled() && needs.fix.outputs.commit == 'true' }}
     runs-on: ${{ inputs.runs-on }}
     permissions:
       id-token: write

@@ -22,9 +22,10 @@ inputs:
 
   retries:
     description: |
-      Additional attempts when the request fails with a network error, 429, or a
-      5xx response, with exponential backoff between attempts. 4xx responses fail
-      immediately. Defaults to "0" — a single attempt, no retry.
+      Additional attempts when the request fails with a network error, 429, a
+      5xx response, or a 2xx response with an empty or non-JSON body, with
+      exponential backoff between attempts. 4xx responses fail immediately.
+      Defaults to "0" — a single attempt, no retry.
     required: false
     default: "0"
 

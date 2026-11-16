@@ -17,11 +17,16 @@ if [[ ${#paths[@]} -eq 0 ]]; then
 fi
 
 # in_paths reads file paths, one per line, from stdin and prints those the
-# pathspecs in paths match. It matches with git itself, through a throwaway
+# pathspecs given as arguments match, or those in paths without arguments. It matches with git itself, through a throwaway
 # repository and index, so pathspec magic and deleted files work, and no
 # checkout is needed.
+# shellcheck disable=SC2120 # Arguments are optional.
 in_paths() {
-  local repo empty_blob
+  local repo empty_blob specs=("$@")
+  if [[ ${#specs[@]} -eq 0 ]]; then
+    specs=("${paths[@]}")
+  fi
+
   repo="$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/autofix-paths.XXXXXX")"
   git init -q "${repo}"
   empty_blob="$(git -C "${repo}" hash-object -t blob /dev/null)"
@@ -30,6 +35,6 @@ in_paths() {
       printf '100644 %s\t%s\n' "${empty_blob}" "${file}"
     fi
   done | git -C "${repo}" update-index --index-info
-  git -C "${repo}" -c core.quotePath=false ls-files -- "${paths[@]}"
+  git -C "${repo}" -c core.quotePath=false ls-files -- "${specs[@]}"
   rm -rf "${repo}"
 }

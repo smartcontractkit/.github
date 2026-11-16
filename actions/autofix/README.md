@@ -48,7 +48,9 @@ jobs:
 
   autofix-commit:
     needs: autofix
-    if: needs.autofix.outputs.commit == 'true'
+    # !cancelled(): with golangci-lint, autofix fails on issues it can't fix
+    # after uploading the fixes it could make, which should still be pushed.
+    if: ${{ !cancelled() && needs.autofix.outputs.commit == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -81,18 +83,24 @@ commit otherwise.
 
 ### Inputs
 
-| Name                | Description                                                                    | Default             |
-| ------------------- | ------------------------------------------------------------------------------ | ------------------- |
-| `working-directory` | Directory `setup`, `run`, and the Go fixers run in.                            | `.`                 |
-| `paths`             | Files this autofix owns, git pathspecs one per line.                           | `working-directory` |
-| `setup`             | Shell commands to run before the Go fixers.                                    |                     |
-| `run`               | Shell commands to run after the Go fixers.                                     |                     |
-| `go`                | Run the Go fixers.                                                             | `false`             |
-| `go-recursive`      | Fix every module in `paths` below `working-directory`, not only the one at it. | `true`              |
-| `setup-go`          | Install Go first.                                                              | `false`             |
-| `go-version-file`   | go.mod used to determine the Go version.                                       | first module's      |
-| `always`            | Run on pull requests that change no file in `paths` too.                       | `false`             |
-| `commit`            | Upload changes for `autofix/commit`. When `false`, changes fail the step.      | `true`              |
+| Name                    | Description                                                                                                                                     | Default             |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| `working-directory`     | Directory `setup`, `run`, and the Go fixers run in.                                                                                             | `.`                 |
+| `paths`                 | Files this autofix owns, git pathspecs one per line.                                                                                            | `working-directory` |
+| `setup`                 | Shell commands to run before the Go fixers.                                                                                                     |                     |
+| `run`                   | Shell commands to run after the Go fixers.                                                                                                      |                     |
+| `go`                    | Run the Go fixers.                                                                                                                              | `false`             |
+| `go-recursive`          | Fix every module in `paths` below `working-directory`, not only the one at it.                                                                  | `true`              |
+| `go-changed-only`       | On pull requests, fix only modules the pull request changed.                                                                                    | `false`             |
+| `go-all-paths`          | More files whose change makes `go-changed-only` fix every module.                                                                               |                     |
+| `golangci-lint`         | Run `golangci-lint run --fix` in the modules the Go fixers fix.                                                                                 | `false`             |
+| `golangci-lint-version` | golangci-lint version to install. Empty uses the installed one.                                                                                 |                     |
+| `golangci-lint-config`  | Config file, relative to the repository root. Empty finds each module's, else [ci-lint-go's default](../ci-lint-go/files/golangci-default.yml). |                     |
+| `golangci-lint-args`    | Extra arguments to `golangci-lint run`.                                                                                                         |                     |
+| `setup-go`              | Install Go first.                                                                                                                               | `false`             |
+| `go-version-file`       | go.mod used to determine the Go version.                                                                                                        | first module's      |
+| `always`                | Run on pull requests that change no file in `paths` too.                                                                                        | `false`             |
+| `commit`                | Upload changes for `autofix/commit`. When `false`, changes fail the step.                                                                       | `true`              |
 
 ### Outputs
 
