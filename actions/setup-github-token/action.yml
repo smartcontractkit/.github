@@ -13,6 +13,12 @@ inputs:
       and aws-lambda-url. Defaults to "v2".
     required: false
     default: "v2"
+  retries:
+    description:
+      Additional attempts invoke-gati-v2 makes on a transient failure, with
+      exponential backoff. Only used by v2.
+    required: false
+    default: "2"
   aws-role-arn:
     description:
       ARN of role capable of getting token from GATI. Required unless profile is
@@ -132,6 +138,7 @@ runs:
       uses: smartcontractkit/.github/actions/invoke-gati-v2@invoke-gati-v2/v1
       with:
         profile: ${{ steps.resolve-gati-version.outputs.profile }}
+        retries: ${{ inputs.retries }}
 
     - name: Configure github token
       if: inputs.set-git-config == 'true'

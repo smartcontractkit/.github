@@ -43,9 +43,10 @@ Either `profile` or `aws-role-arn` must be provided.
 
 ### v2
 
-| Name      | Description               |
-| --------- | ------------------------- |
-| `profile` | Token profile to request. |
+| Name      | Description                                                           | Defaulted  |
+| --------- | --------------------------------------------------------------------- | ---------- |
+| `profile` | Token profile to request.                                             |            |
+| `retries` | Additional attempts on a transient failure, with exponential backoff. | ✅ - `"2"` |
 
 ### v1
 
