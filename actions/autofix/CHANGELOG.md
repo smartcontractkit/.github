@@ -1,5 +1,16 @@
 # autofix
 
+## 1.2.0
+
+### Minor Changes
+
+- [#1781](https://github.com/smartcontractkit/.github/pull/1781)
+  [`68efcd9`](https://github.com/smartcontractkit/.github/commit/68efcd9a2bbd091f31a0de6863bc569382a759ba)
+  Thanks [@chainchad](https://github.com/chainchad)! - add
+  `golangci-lint-new-only`, on by default, to lint only the issues a pull
+  request added, by fetching its merge base and passing `--new-from-rev`; set it
+  to `false` to lint every issue
+
 ## 1.1.0
 
 ### Minor Changes
