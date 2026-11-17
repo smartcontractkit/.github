@@ -1,5 +1,15 @@
 # setup-github-token
 
+## 1.6.0
+
+### Minor Changes
+
+- [#1764](https://github.com/smartcontractkit/.github/pull/1764)
+  [`8338ba0`](https://github.com/smartcontractkit/.github/commit/8338ba0f4fbb3c104c01a247371e036491137e64)
+  Thanks [@thomjg](https://github.com/thomjg)! - feat: add a `retries` input
+  (default `2`) that is passed to invoke-gati-v2 to retry transient GATI v2
+  failures.
+
 ## 1.5.0
 
 ### Minor Changes
