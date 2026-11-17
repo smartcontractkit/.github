@@ -5,7 +5,9 @@
 # skip the fixers: on a pull request that changed no file in PATHS there's
 # nothing for them to fix. Anything else runs them. With CHANGED_ONLY, also
 # outputs the changed files in PATHS for the Go fixers, when they're known and
-# no file that can change every module's result was changed.
+# no file that can change every module's result was changed. With NEW_ONLY, also
+# fetches the merge base and outputs it, for golangci-lint to report only the
+# issues the pull request added.
 
 set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -16,6 +18,7 @@ source "${script_dir}/paths.sh"
 ALWAYS="${ALWAYS:-false}"
 CHANGED_ONLY="${CHANGED_ONLY:-false}"
 GOLANGCI_LINT="${GOLANGCI_LINT:-false}"
+NEW_ONLY="${NEW_ONLY:-false}"
 PR_BASE_SHA="${PR_BASE_SHA:-}"
 PR_HEAD_SHA="${PR_HEAD_SHA:-}"
 
@@ -34,7 +37,7 @@ if [[ -z "${PR_BASE_SHA}" || -z "${PR_HEAD_SHA}" ]]; then
   skip false
 fi
 
-if [[ "${ALWAYS}" == "true" && "${CHANGED_ONLY}" != "true" ]]; then
+if [[ "${ALWAYS}" == "true" && "${CHANGED_ONLY}" != "true" && "${NEW_ONLY}" != "true" ]]; then
   skip false
 fi
 
@@ -43,6 +46,17 @@ fi
 if ! compare="$(gh api "repos/${GITHUB_REPOSITORY}/compare/${PR_BASE_SHA}...${PR_HEAD_SHA}")"; then
   echo "::warning::Could not list the pull request's changed files, running the fixers anyway."
   skip false
+fi
+if [[ "${NEW_ONLY}" == "true" ]]; then
+  merge_base="$(jq -r '.merge_base_commit.sha // empty' <<<"${compare}")"
+  # The checkout doesn't keep credentials, and is shallow.
+  auth="$(printf 'x-access-token:%s' "${GH_TOKEN}" | base64 | tr -d '\n')"
+  if [[ -n "${merge_base}" ]] &&
+    git -c "http.extraheader=Authorization: basic ${auth}" fetch --quiet --no-tags --depth=1 origin "${merge_base}"; then
+    echo "new-from-rev=${merge_base}" | tee -a "$GITHUB_OUTPUT"
+  else
+    echo "::warning::Could not fetch the pull request's merge base, linting every issue."
+  fi
 fi
 if [[ "$(jq '.files | length' <<<"${compare}")" -ge 300 ]]; then
   skip false

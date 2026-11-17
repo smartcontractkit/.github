@@ -118,6 +118,12 @@ on:
         required: false
         type: string
         default: ""
+      golangci-lint-new-only:
+        description: |
+          On pull requests, lint only the issues the pull request added.
+        required: false
+        type: boolean
+        default: true
       always:
         description: Run on pull requests that change no file in `paths` too.
         required: false
@@ -210,6 +216,7 @@ jobs:
           golangci-lint-version: ${{ inputs.golangci-lint-version }}
           golangci-lint-config: ${{ inputs.golangci-lint-config }}
           golangci-lint-args: ${{ inputs.golangci-lint-args }}
+          golangci-lint-new-only: ${{ inputs.golangci-lint-new-only }}
           always: ${{ inputs.always }}
           setup-go: ${{ inputs.setup-go || inputs.go || inputs.golangci-lint }}
           go-version-file: ${{ inputs.go-version-file }}

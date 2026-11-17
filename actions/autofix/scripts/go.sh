@@ -175,6 +175,10 @@ lint() {
     args+=("--config=${GOLANGCI_LINT_DEFAULT_CONFIG}")
   fi
 
+  if [[ -n "${NEW_FROM_REV:-}" ]]; then
+    args+=("--new-from-rev=${NEW_FROM_REV}")
+  fi
+
   # shellcheck disable=SC2206 # Split on purpose, like a command line.
   args+=(${GOLANGCI_LINT_ARGS:-})
 

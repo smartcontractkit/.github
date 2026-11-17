@@ -109,6 +109,14 @@ inputs:
       "--new-from-merge-base=origin/main" (which needs the history fetched).
     required: false
     default: ""
+  golangci-lint-new-only:
+    description: |
+      On pull requests, report only the issues the pull request added, by
+      fetching its merge base and passing `--new-from-rev` to `golangci-lint`.
+      Other events, and pull requests whose merge base can't be fetched, lint
+      every issue. Set "false" to always lint every issue.
+    required: false
+    default: "true"
   setup-go:
     description: |
       Install Go (via setup-golang) before running anything. Leave "false" when
@@ -178,6 +186,9 @@ runs:
         PATHS: ${{ inputs.paths || inputs.working-directory }}
         ALWAYS: ${{ inputs.always }}
         GOLANGCI_LINT: ${{ inputs.golangci-lint }}
+        NEW_ONLY:
+          ${{ inputs.golangci-lint == 'true' && inputs.golangci-lint-new-only ==
+          'true' }}
         ALL_PATHS: ${{ inputs.go-all-paths }}
         CHANGED_ONLY:
           ${{ (inputs.go == 'true' || inputs.golangci-lint == 'true') &&
@@ -285,6 +296,7 @@ runs:
         GOLANGCI_LINT_CACHE: ${{ runner.temp }}/golangci-lint-cache
         GOLANGCI_LINT_CONFIG: ${{ inputs.golangci-lint-config }}
         GOLANGCI_LINT_ARGS: ${{ inputs.golangci-lint-args }}
+        NEW_FROM_REV: ${{ steps.scope.outputs.new-from-rev }}
         HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       run: |
         # The action's download holds the whole repository, so use ci-lint-go's
