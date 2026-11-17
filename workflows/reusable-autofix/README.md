@@ -167,9 +167,9 @@ finds in or above it, else
 [ci-lint-go's default](../../actions/ci-lint-go/files/golangci-default.yml), the
 same rules ci-lint-go uses.
 
-It lints every issue, not only new ones. Pass
-`golangci-lint-args: --new-from-merge-base=origin/main` to lint only new ones,
-using the action directly with a checkout that fetches the history.
+On pull requests it lints only the issues the pull request added, against its
+merge base, which it fetches itself. Set `golangci-lint-new-only: false` to lint
+every issue. Other events lint every issue.
 
 ### Commits
 
@@ -205,26 +205,27 @@ repository. Only `commit` gets it, and only when there's something to push.
 
 ## Inputs
 
-| Name                    | Description                                                                                                   | Default              |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------- |
-| `working-directory`     | Directory `setup`, `run`, and the Go fixers run in.                                                           | `.`                  |
-| `paths`                 | Files this job owns, git pathspecs one per line. See [How it works](#how-it-works).                           | `working-directory`  |
-| `setup`                 | Shell commands to run before the Go fixers.                                                                   |                      |
-| `run`                   | Shell commands to run after the Go fixers.                                                                    |                      |
-| `go`                    | Run the Go fixers. See [Go](#go).                                                                             | `false`              |
-| `go-recursive`          | Fix every module in `paths` below `working-directory`, not only the one at it.                                | `true`               |
-| `go-changed-only`       | On pull requests, fix only modules the pull request changed. See [Go](#go).                                   | `false`              |
-| `go-all-paths`          | More files whose change makes `go-changed-only` fix every module. See [Go](#go).                              |                      |
-| `golangci-lint`         | Run `golangci-lint run --fix` too. See [golangci-lint](#golangci-lint).                                       | `false`              |
-| `golangci-lint-version` | golangci-lint version to install. Empty uses the installed one.                                               |                      |
-| `golangci-lint-config`  | Config file, relative to the repository root. Empty finds each module's. See [golangci-lint](#golangci-lint). |                      |
-| `golangci-lint-args`    | Extra arguments to `golangci-lint run`.                                                                       |                      |
-| `always`                | Run on pull requests that change no file in `paths` too.                                                      | `false`              |
-| `setup-go`              | Install Go even when `go` isn't true, for commands that need it.                                              | `false`              |
-| `go-version-file`       | go.mod used to determine the Go version.                                                                      | first module's       |
-| `commit-message`        | Message of the autofix commit.                                                                                | `chore: autofix`     |
-| `gati-profile`          | GATI v2 profile for the token that pushes. See [Tokens](#tokens).                                             | `globals/write-self` |
-| `runs-on`               | Runner to use.                                                                                                | `ubuntu-latest`      |
+| Name                     | Description                                                                                                   | Default              |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------- | -------------------- |
+| `working-directory`      | Directory `setup`, `run`, and the Go fixers run in.                                                           | `.`                  |
+| `paths`                  | Files this job owns, git pathspecs one per line. See [How it works](#how-it-works).                           | `working-directory`  |
+| `setup`                  | Shell commands to run before the Go fixers.                                                                   |                      |
+| `run`                    | Shell commands to run after the Go fixers.                                                                    |                      |
+| `go`                     | Run the Go fixers. See [Go](#go).                                                                             | `false`              |
+| `go-recursive`           | Fix every module in `paths` below `working-directory`, not only the one at it.                                | `true`               |
+| `go-changed-only`        | On pull requests, fix only modules the pull request changed. See [Go](#go).                                   | `false`              |
+| `go-all-paths`           | More files whose change makes `go-changed-only` fix every module. See [Go](#go).                              |                      |
+| `golangci-lint`          | Run `golangci-lint run --fix` too. See [golangci-lint](#golangci-lint).                                       | `false`              |
+| `golangci-lint-version`  | golangci-lint version to install. Empty uses the installed one.                                               |                      |
+| `golangci-lint-config`   | Config file, relative to the repository root. Empty finds each module's. See [golangci-lint](#golangci-lint). |                      |
+| `golangci-lint-args`     | Extra arguments to `golangci-lint run`.                                                                       |                      |
+| `golangci-lint-new-only` | On pull requests, lint only the issues the pull request added. See [golangci-lint](#golangci-lint).           | `true`               |
+| `always`                 | Run on pull requests that change no file in `paths` too.                                                      | `false`              |
+| `setup-go`               | Install Go even when `go` isn't true, for commands that need it.                                              | `false`              |
+| `go-version-file`        | go.mod used to determine the Go version.                                                                      | first module's       |
+| `commit-message`         | Message of the autofix commit.                                                                                | `chore: autofix`     |
+| `gati-profile`           | GATI v2 profile for the token that pushes. See [Tokens](#tokens).                                             | `globals/write-self` |
+| `runs-on`                | Runner to use.                                                                                                | `ubuntu-latest`      |
 
 ## Outputs
 
