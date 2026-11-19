@@ -150,7 +150,7 @@
 
 ## Run log
 
-- Mode: 
+- Mode:
 - Checkpoints: task-3, task-4
 - Verify: verify passed: no checks configured
 - Rounds used: 1 of 2; verify failures: 0

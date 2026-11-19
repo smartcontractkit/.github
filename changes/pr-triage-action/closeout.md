@@ -4,9 +4,9 @@
 
 Adopting a repository now takes one caller workflow and two GATI v2 profile
 names. Release download, SHA-256 verification, flag mapping, permissions, and
-fork handling live in one place instead of being copied per repository. The
-pull request write token never gains organization or release access: the
-release token is dropped from the child environment (including the runner's
+fork handling live in one place instead of being copied per repository. The pull
+request write token never gains organization or release access: the release
+token is dropped from the child environment (including the runner's
 `INPUT_RELEASE-TOKEN` copy), so analyzed code cannot reach it.
 
 What got harder:

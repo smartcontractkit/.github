@@ -26,8 +26,8 @@ generated: 2026-11-19T21:24:52Z
 - Cache write tokens: 0
 - Output tokens: 74202
 
-| Model | Tokens | Cost |
-| --- | ---: | ---: |
+| Model                                                           |  Tokens |  Cost |
+| --------------------------------------------------------------- | ------: | ----: |
 | fireworks-ai/accounts/fireworks/models/deepseek-v4p1-flash-1017 | 7426541 | $0.20 |
 
 ## Phases
@@ -36,10 +36,18 @@ generated: 2026-11-19T21:24:52Z
 
 Tasks:
 
-- [x] Scaffold `actions/pr-triage` (`action.yml`, `package.json`, `project.json`, `tsconfig.json`, `tsconfig.spec.json`, `CHANGELOG.md`, `README.md`) and implement `src/release.ts`, `src/download.ts`, `src/run.ts`, and `src/index.ts` with unit tests in `src/__tests__/release.test.ts` and `src/__tests__/run.test.ts`.
-- [x] Build committed `actions/pr-triage/dist/index.js` via `pnpm build:affected`, add a minor changeset in `.changeset/`, and verify with `pnpm lint:affected`, `pnpm test:affected`, and `pnpm prettier:check`.
+- [x] Scaffold `actions/pr-triage` (`action.yml`, `package.json`,
+      `project.json`, `tsconfig.json`, `tsconfig.spec.json`, `CHANGELOG.md`,
+      `README.md`) and implement `src/release.ts`, `src/download.ts`,
+      `src/run.ts`, and `src/index.ts` with unit tests in
+      `src/__tests__/release.test.ts` and `src/__tests__/run.test.ts`.
+- [x] Build committed `actions/pr-triage/dist/index.js` via
+      `pnpm build:affected`, add a minor changeset in `.changeset/`, and verify
+      with `pnpm lint:affected`, `pnpm test:affected`, and
+      `pnpm prettier:check`.
 
-Phase totals: 2 checkpoints, 18m23s, $0.13, 5469206 input / 47776 output / 5342674 cache read / 0 cache write tokens
+Phase totals: 2 checkpoints, 18m23s, $0.13, 5469206 input / 47776 output /
+5342674 cache read / 0 cache write tokens
 
 Checkpoints: task-1, task-2 Review fixes: 0 Integration checks: 0
 
@@ -87,10 +95,17 @@ Checkpoints: task-1, task-2 Review fixes: 0 Integration checks: 0
 
 Tasks:
 
-- [x] Add `workflows/reusable-pr-triage/` (`reusable-pr-triage.yml`, `package.json`, `CHANGELOG.md`, `README.md`) with SHA-pinned `actions/checkout` (`fetch-depth: 0`), minimal permissions, `invoke-gati-v2` token minting, fork-PR handling, and `actions/pr-triage` invocation; sync `.github/workflows/reusable-pr-triage.yml` via `pnpm workflows:fix`.
-- [x] Add a minor changeset in `.changeset/` for `reusable-pr-triage` and verify with `pnpm workflows:check`, `actionlint`, and `pnpm prettier:check`.
+- [x] Add `workflows/reusable-pr-triage/` (`reusable-pr-triage.yml`,
+      `package.json`, `CHANGELOG.md`, `README.md`) with SHA-pinned
+      `actions/checkout` (`fetch-depth: 0`), minimal permissions,
+      `invoke-gati-v2` token minting, fork-PR handling, and `actions/pr-triage`
+      invocation; sync `.github/workflows/reusable-pr-triage.yml` via
+      `pnpm workflows:fix`.
+- [x] Add a minor changeset in `.changeset/` for `reusable-pr-triage` and verify
+      with `pnpm workflows:check`, `actionlint`, and `pnpm prettier:check`.
 
-Phase totals: 2 checkpoints, 3m35s, $0.06, 1726565 input / 22959 output / 1652994 cache read / 0 cache write tokens
+Phase totals: 2 checkpoints, 3m35s, $0.06, 1726565 input / 22959 output /
+1652994 cache read / 0 cache write tokens
 
 Checkpoints: task-3, task-4 Review fixes: 0 Integration checks: 0
 
