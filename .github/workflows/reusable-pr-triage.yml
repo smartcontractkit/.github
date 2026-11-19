@@ -1,0 +1,174 @@
+# GENERATED FILE - DO NOT EDIT DIRECTLY.
+# Source: workflows/reusable-pr-triage/reusable-pr-triage.yml
+# Edit the source under workflows/, then regenerate.
+
+name: Reusable PR Triage
+
+on:
+  workflow_call:
+    inputs:
+      release-token-profile:
+        description: |
+          GATI v2 profile with `contents: read` on `smartcontractkit/pr-triage`,
+          used to download the private release binary. Leave empty once
+          `smartcontractkit/pr-triage` is public, or to run without a private
+          release token.
+        required: false
+        type: string
+        default: ""
+
+      org-token-profile:
+        description: |
+          GATI v2 profile with organization `members: read`, forwarded to
+          `pr-triage` so membership lookups stay off the pull request token.
+          Leave empty to keep membership lookups on the workflow token; reviewer
+          suggestions then include people outside the organization.
+        required: false
+        type: string
+        default: ""
+
+      dry-run:
+        description: "Set to true to read GitHub but write nothing."
+        required: false
+        type: boolean
+        default: false
+
+      skip-reviewer-requests:
+        description: |
+          Set to true to write labels and the report comment, but do not request
+          reviewers.
+        required: false
+        type: boolean
+        default: false
+
+      verbose:
+        description: "Set to true to print the full Markdown report."
+        required: false
+        type: boolean
+        default: false
+
+      no-ai:
+        description: "Set to true to skip the optional AI semantic request."
+        required: false
+        type: boolean
+        default: false
+
+      ai-base-url:
+        description: |
+          Provider endpoint for the optional AI semantic signals. Leave empty to
+          use the CLI default.
+        required: false
+        type: string
+        default: ""
+
+      log-level:
+        description: |
+          Diagnostic log level for the CLI (debug, info, warn, error, disabled).
+          Leave empty to use the CLI default.
+        required: false
+        type: string
+        default: ""
+
+    secrets:
+      PR_TRIAGE_AI_API_KEY:
+        description: |
+          Provider API key for the optional AI semantic signals. Omit to run
+          without AI.
+        required: false
+
+    outputs:
+      risk-level:
+        description: "Risk level the analysis assigned to the pull request."
+        value: ${{ jobs.triage.outputs.risk-level }}
+      complexity-level:
+        description: "Complexity level the analysis assigned to the pull request."
+        value: ${{ jobs.triage.outputs.complexity-level }}
+      approvals:
+        description: "Number of approvals the analysis recommends."
+        value: ${{ jobs.triage.outputs.approvals }}
+      reviewers:
+        description: "Reviewer logins the analysis recommends or requests."
+        value: ${{ jobs.triage.outputs.reviewers }}
+      dependency-bump:
+        description: "'true' when the pull request is a dependency bump."
+        value: ${{ jobs.triage.outputs.dependency-bump }}
+      report-path:
+        description: "Path to the Markdown report the analysis wrote."
+        value: ${{ jobs.triage.outputs.report-path }}
+
+permissions: {}
+
+jobs:
+  # Fork pull requests cannot mint a GATI v2 token, so they cannot download the
+  # private pr-triage release. Explain the skip instead of failing the job.
+  fork-skip:
+    name: Skip fork pull request
+    if: ${{ github.event.pull_request.head.repo.full_name != github.repository && inputs.release-token-profile != '' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Explain the skip
+        run: |
+          message='pr-triage downloads its binary from the private smartcontractkit/pr-triage release, and fork pull requests cannot mint the release-read token. Skipping analysis.'
+          echo "::notice::${message}"
+          {
+            echo "### PR triage skipped"
+            echo
+            echo "${message}"
+            echo
+            echo "Clear release-token-profile once smartcontractkit/pr-triage is public to analyze fork pull requests."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  triage:
+    name: Analyze pull request
+    if: ${{ !(github.event.pull_request.head.repo.full_name != github.repository && inputs.release-token-profile != '') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # checkout, commit attribution, rulesets and branch protection
+      pull-requests: write # labels, reviewer requests, pull request reads
+      issues: write # label creation, report comment upsert and cleanup
+      id-token: write # OIDC token for invoke-gati-v2
+    outputs:
+      risk-level: ${{ steps.triage.outputs.risk-level }}
+      complexity-level: ${{ steps.triage.outputs.complexity-level }}
+      approvals: ${{ steps.triage.outputs.approvals }}
+      reviewers: ${{ steps.triage.outputs.reviewers }}
+      dependency-bump: ${{ steps.triage.outputs.dependency-bump }}
+      report-path: ${{ steps.triage.outputs.report-path }}
+    steps:
+      - name: Check out the pull request
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # pr-triage resolves merge bases and reads a 90-day file-hotness window.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Mint release-read token
+        id: release-token
+        if: ${{ inputs.release-token-profile != '' }}
+        uses: smartcontractkit/.github/actions/invoke-gati-v2@invoke-gati-v2/v1
+        with:
+          profile: ${{ inputs.release-token-profile }}
+
+      - name: Mint org-read token
+        id: org-token
+        if: ${{ inputs.org-token-profile != '' && github.event.pull_request.head.repo.full_name == github.repository }}
+        uses: smartcontractkit/.github/actions/invoke-gati-v2@invoke-gati-v2/v1
+        with:
+          profile: ${{ inputs.org-token-profile }}
+
+      - name: Analyze the pull request
+        id: triage
+        uses: smartcontractkit/.github/actions/pr-triage@pr-triage/v0
+        with:
+          github-token: ${{ github.token }}
+          release-token: ${{ steps.release-token.outputs.access-token }}
+          org-token: ${{ steps.org-token.outputs.access-token }}
+          allow-non-org-reviewers: ${{ steps.org-token.outputs.access-token == '' }}
+          dry-run: ${{ inputs.dry-run }}
+          skip-reviewer-requests: ${{ inputs.skip-reviewer-requests }}
+          verbose: ${{ inputs.verbose }}
+          no-ai: ${{ inputs.no-ai }}
+          ai-api-key: ${{ secrets.PR_TRIAGE_AI_API_KEY }}
+          ai-base-url: ${{ inputs.ai-base-url }}
+          log-level: ${{ inputs.log-level }}

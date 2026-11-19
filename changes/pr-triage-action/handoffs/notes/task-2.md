@@ -2,18 +2,19 @@
 
 ## Done
 
-- Rebuilt the committed bundle with `pnpm build:affected` (nx rebuilt all affected
-  projects; `actions/pr-triage/dist/index.js` is 1,179,182 bytes and contains
-  `release.ts`/`download.ts`/`run.ts` code: `getReleaseByTag`, `RELEASE_VERSION`,
-  `checksums.txt`, `PR_TRIAGE_ORG_TOKEN`, `setFailed`). No build output changed
-  outside `actions/pr-triage/dist/`.
+- Rebuilt the committed bundle with `pnpm build:affected` (nx rebuilt all
+  affected projects; `actions/pr-triage/dist/index.js` is 1,179,182 bytes and
+  contains `release.ts`/`download.ts`/`run.ts` code: `getReleaseByTag`,
+  `RELEASE_VERSION`, `checksums.txt`, `PR_TRIAGE_ORG_TOKEN`, `setFailed`). No
+  build output changed outside `actions/pr-triage/dist/`.
 - Added `.changeset/pr-triage-initial.md` with a `minor` bump for `pr-triage`
   (feat: add the action that installs and runs the pinned binary).
 - `pnpm lint:affected`: passed. Only four projects have a `lint` target; the
-  `pr-triage` project declares no `lint` target, so it is not linted by this run.
-- `pnpm test:affected`: `pr-triage` passes 2 files / 44 tests; the run as a whole
-  fails in two unrelated projects (`apidiff-go`, `signed-commits`), see Open
-  issues.
+  `pr-triage` project declares no `lint` target, so it is not linted by this
+  run.
+- `pnpm test:affected`: `pr-triage` passes 2 files / 44 tests; the run as a
+  whole fails in two unrelated projects (`apidiff-go`, `signed-commits`), see
+  Open issues.
 - `pnpm prettier:check`: fails on `changes/pr-triage-action/proposal.md` only.
   `.changeset/` is in `.prettierignore`, so the new changeset is not checked.
 
@@ -21,9 +22,9 @@
 
 - The repo pins `pnpm 10.6.5` (`.tool-versions`, `engines.pnpm: "10"`) but the
   shell's default `pnpm` is 12.21.0, which aborts every script with
-  `ERR_PNPM_VERIFY_DEPS_BEFORE_RUN` (the `pnpm` field in root `package.json` is no
-  longer read by pnpm 12). All commands were run as `mise exec -- pnpm …`, which
-  resolves 10.6.5. The task's commands and their intent are unchanged.
+  `ERR_PNPM_VERIFY_DEPS_BEFORE_RUN` (the `pnpm` field in root `package.json` is
+  no longer read by pnpm 12). All commands were run as `mise exec -- pnpm …`,
+  which resolves 10.6.5. The task's commands and their intent are unchanged.
 - `nx affected` reports every project in the repo, so `build:affected`,
   `lint:affected`, and `test:affected` run far more than `pr-triage`. The build
   was verified to leave the tree unchanged apart from `actions/pr-triage/dist/`.
@@ -41,8 +42,8 @@
   machine — do not run that suite interactively.
 - No release of `smartcontractkit/pr-triage` exists yet, so the pinned
   `RELEASE_VERSION = v0.1.0` in `src/run.ts` is unverified against a real
-  artifact; a real run fails at download until the first release ships under that
-  tag (change the constant and rebuild `dist/` if it differs).
+  artifact; a real run fails at download until the first release ships under
+  that tag (change the constant and rebuild `dist/` if it differs).
 - `pr-triage` declares no `lint` target, so `lint:affected` gives no coverage of
   the new TypeScript; add one if the repo's convention requires it.
 - PR size: still ~713 authored non-test, non-`dist/` lines for the package,

@@ -284,7 +284,7 @@ Effort: easy (thin `workflow_call` wrapper following
 `workflows/reusable-codeowners-review-analysis` conventions and synced via
 `pnpm workflows:fix`)
 
-- [ ] Add `workflows/reusable-pr-triage/` (`reusable-pr-triage.yml`,
+- [x] Add `workflows/reusable-pr-triage/` (`reusable-pr-triage.yml`,
       `package.json`, `CHANGELOG.md`, `README.md`) with SHA-pinned
       `actions/checkout` (`fetch-depth: 0`), minimal permissions,
       `invoke-gati-v2` token minting, fork-PR handling, and `actions/pr-triage`
