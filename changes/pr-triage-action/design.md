@@ -273,7 +273,7 @@ GATI v2 and fork-PR handling)
       `README.md`) and implement `src/release.ts`, `src/download.ts`,
       `src/run.ts`, and `src/index.ts` with unit tests in
       `src/__tests__/release.test.ts` and `src/__tests__/run.test.ts`.
-- [ ] Build committed `actions/pr-triage/dist/index.js` via
+- [x] Build committed `actions/pr-triage/dist/index.js` via
       `pnpm build:affected`, add a minor changeset in `.changeset/`, and verify
       with `pnpm lint:affected`, `pnpm test:affected`, and
       `pnpm prettier:check`.
