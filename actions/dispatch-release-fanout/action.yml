@@ -56,6 +56,12 @@ inputs:
     description:
       "URL of this run, recorded by every downstream hop. Defaults to this run."
     required: false
+  is-hotfix:
+    description:
+      "`true` or `false`: whether this release is a hotfix. Sent to the hub only
+      when set, so hubs without the input keep working."
+    required: false
+    default: ""
 
 outputs:
   dispatched:
@@ -87,6 +93,7 @@ runs:
         IMAGES: ${{ inputs.images }}
         CORRELATION_ID: ${{ inputs.correlation-id }}
         SOURCE_RUN_URL: ${{ inputs.source-run-url }}
+        IS_HOTFIX: ${{ inputs.is-hotfix }}
       with:
         github-token: ${{ steps.setup-github-token.outputs.access-token }}
         script: |

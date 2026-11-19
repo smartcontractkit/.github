@@ -24,6 +24,10 @@ function readInputs(env) {
   if (!env.AUDIENCE) {
     throw new Error("audience is required");
   }
+  const isHotfix = (env.IS_HOTFIX || "").trim();
+  if (!["", "true", "false"].includes(isHotfix)) {
+    throw new Error(`is-hotfix must be "true" or "false", got "${isHotfix}"`);
+  }
   return {
     owner,
     repo,
@@ -37,6 +41,7 @@ function readInputs(env) {
     sourceRunUrl:
       env.SOURCE_RUN_URL ||
       `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}`,
+    isHotfix,
   };
 }
 
@@ -58,6 +63,7 @@ async function run({ github, core }) {
     images,
     correlationId,
     sourceRunUrl,
+    isHotfix,
   } = readInputs(env);
 
   const imagesJson = JSON.stringify(images);
@@ -89,6 +95,8 @@ async function run({ github, core }) {
         images: imagesJson,
         "correlation-id": correlationId,
         "source-run-url": sourceRunUrl,
+        // Only when set: a hub that does not declare the input rejects it.
+        ...(isHotfix && { "is-hotfix": isHotfix }),
       },
     })
     .catch((err) => {
@@ -110,6 +118,7 @@ async function run({ github, core }) {
       ["producer", `<code>${producer}</code>`],
       ["images", `<code>${imagesJson}</code>`],
       ["correlation-id", `<code>${correlationId}</code>`],
+      ["is-hotfix", `<code>${isHotfix || "unset"}</code>`],
     ])
     .write();
 }
