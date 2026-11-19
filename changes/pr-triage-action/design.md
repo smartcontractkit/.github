@@ -290,5 +290,9 @@ Effort: easy (thin `workflow_call` wrapper following
       `invoke-gati-v2` token minting, fork-PR handling, and `actions/pr-triage`
       invocation; sync `.github/workflows/reusable-pr-triage.yml` via
       `pnpm workflows:fix`.
-- [ ] Add a minor changeset in `.changeset/` for `reusable-pr-triage` and verify
+- [x] Add a minor changeset in `.changeset/` for `reusable-pr-triage` and verify
       with `pnpm workflows:check`, `actionlint`, and `pnpm prettier:check`.
+
+## Reviews
+
+- [x] Final review: claude@claude-sonnet-5-5
