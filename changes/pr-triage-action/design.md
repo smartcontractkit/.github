@@ -130,7 +130,9 @@ export interface ReleaseAssets {
 - **Child environment isolation:** Construct the child `env` from `process.env`,
   explicitly set `GITHUB_TOKEN`, set or delete `PR_TRIAGE_ORG_TOKEN`,
   `PR_TRIAGE_AI_API_KEY`, and `PR_TRIAGE_AI_BASE_URL`, and never place
-  `release-token` in the child environment.
+  `release-token` in the child environment. Also delete the runner's
+  `INPUT_RELEASE-TOKEN` copy, because GitHub exports every JavaScript-action
+  input as an environment variable.
 
 ### 2. Reusable Workflow: `workflows/reusable-pr-triage`
 
@@ -231,8 +233,12 @@ sequenceDiagram
     `.github/workflows/reusable-pr-triage.yml` are identical.
   - `actionlint` passes on the reusable workflow with no expression or
     script-injection warnings.
-  - PR size check: authored non-test, non-`dist/` lines stay under 400 per PR
-    (Phase 1 and Phase 2 can land in one small PR or two stacked PRs).
+  - PR size check: the first implementation of `actions/pr-triage` totals about
+    713 authored non-test, non-`dist/` lines (93 `action.yml`, 86 `README.md`,
+    106 config, 428 TypeScript), which exceeds the 400-line limit in
+    `AGENTS.md`. Land Phase 1 as a stack: scaffold plus `release.ts` and
+    `download.ts` first, then `run.ts`, `index.ts`, the action metadata, and the
+    README. Phase 2 is a separate layer on top.
 
 ## Risks
 
@@ -262,7 +268,7 @@ GATI v2 and fork-PR handling)
 
 ### Phase 1: Add `actions/pr-triage` TypeScript action
 
-- [ ] Scaffold `actions/pr-triage` (`action.yml`, `package.json`,
+- [x] Scaffold `actions/pr-triage` (`action.yml`, `package.json`,
       `project.json`, `tsconfig.json`, `tsconfig.spec.json`, `CHANGELOG.md`,
       `README.md`) and implement `src/release.ts`, `src/download.ts`,
       `src/run.ts`, and `src/index.ts` with unit tests in

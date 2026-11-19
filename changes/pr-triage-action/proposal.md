@@ -1,9 +1,9 @@
 ---
 slug: pr-triage-action
-status: designed
+status: implementing
 created: "2026-11-19"
 accepted_by:
-  - Adam Hamrick
+    - Adam Hamrick
 accepted_at: "2026-11-19T20:47:37Z"
 effort: medium
 ---
