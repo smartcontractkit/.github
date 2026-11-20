@@ -165,7 +165,8 @@ jobs:
           release-token: ${{ steps.release-token.outputs.access-token }}
           org-token: ${{ steps.org-token.outputs.access-token }}
           allow-non-org-reviewers: ${{ steps.org-token.outputs.access-token == '' }}
-          dry-run: ${{ inputs.dry-run }}
+          # Fork pull requests get a read-only token, so writes would fail.
+          dry-run: ${{ inputs.dry-run || github.event.pull_request.head.repo.full_name != github.repository }}
           skip-reviewer-requests: ${{ inputs.skip-reviewer-requests }}
           verbose: ${{ inputs.verbose }}
           no-ai: ${{ inputs.no-ai }}

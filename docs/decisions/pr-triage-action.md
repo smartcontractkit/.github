@@ -181,10 +181,6 @@ cached instead of extracted into a per-step temp directory.
   the repository is public.
 - The workflow cannot run until `pr-triage/v0` exists, which requires the action
   layer to merge and changesets to tag it.
-- `pnpm test:affected` cannot pass in this environment for unrelated reasons:
-  `apidiff-go` git tests time out and `signed-commits` git-tag tests fail. The
-  `signed-commits` suite opens commit editor windows, so do not run it
-  interactively.
 - `nx affected` reports every project, so the `:affected` scripts run far more
   than the new packages. Build output outside `actions/pr-triage/dist/` was
   unchanged.
@@ -195,16 +191,14 @@ cached instead of extracted into a per-step temp directory.
 - Clearing `release-token-profile` is the whole cleanup once `pr-triage` is
   public: the mint step is already conditional and the action falls back to
   public release URLs. Fork pull requests then run the analysis instead of
-  skipping.
+  skipping. They run in forced dry-run, because the fork token is read-only and
+  cannot write labels, comments, or reviewer requests.
 
 ## Follow-ups
 
 - Publish the first `smartcontractkit/pr-triage` release, confirm the tag
   matches `RELEASE_VERSION` in `actions/pr-triage/src/run.ts`, and update the
   constant plus `dist/index.js` if it does not.
-- Land the action layer as a stack (scaffold and release/download first, then
-  run, entry point, metadata, and README) to stay under the 400-line PR limit,
-  then land the workflow layer on top.
 - After release, exercise the reusable workflow in a repository whose GATI v2
   profiles are configured and confirm a real download, checksum, analysis, and
   fork skip.

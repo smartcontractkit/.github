@@ -92,8 +92,9 @@ Fork pull requests cannot mint GATI v2 tokens.
 - While `release-token-profile` is set, a fork pull request skips the analysis
   and the workflow posts a notice explaining why. It does not fail the job.
 - Once `release-token-profile` is empty, fork pull requests run the analysis
-  with the read-only workflow token. They skip org-token minting and allow
-  reviewers outside the organization.
+  with the read-only workflow token. They skip org-token minting, allow
+  reviewers outside the organization, and always run with `dry-run` on, because
+  the read-only token cannot write labels, comments, or reviewer requests.
 
 ## Requirements
 
