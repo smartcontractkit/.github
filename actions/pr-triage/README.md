@@ -1,10 +1,11 @@
 # pr-triage
 
 Runs [`pr-triage`](https://github.com/smartcontractkit/pr-triage) on the pull
-request that triggered the workflow. The action downloads a pinned Linux release
-archive, verifies its SHA-256 against the release's `checksums.txt`, and
+request that triggered the workflow. The action downloads the latest Linux
+release archive, verifies its SHA-256 against the release's `checksums.txt`, and
 executes `pr-triage analyze`. The CLI writes the step outputs and the job
-summary itself.
+summary itself. Pass `version` to pin a specific release instead of tracking the
+latest one.
 
 ## Usage
 
@@ -42,7 +43,7 @@ file-hotness window.
 
 | Input                     | Default               | Description                                                                                 |
 | ------------------------- | --------------------- | ------------------------------------------------------------------------------------------- |
-| `version`                 | pinned in the action  | `pr-triage` release tag (`vX.Y.Z`) to install.                                              |
+| `version`                 | latest release        | `pr-triage` release tag (`vX.Y.Z`) to install. Pin this to avoid upgrades.                  |
 | `github-token`            | `${{ github.token }}` | Token for every pull request read and write.                                                |
 | `release-token`           | `""`                  | Token with `contents: read` on `smartcontractkit/pr-triage`, for private release downloads. |
 | `org-token`               | `""`                  | Token with organization `members: read`, forwarded as `PR_TRIAGE_ORG_TOKEN`.                |

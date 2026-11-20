@@ -1,14 +1,15 @@
 name: pr-triage
 description:
   "Scores a pull request for risk and complexity, recommends approvals, and
-  requests reviewers, by downloading a pinned pr-triage Linux release binary and
-  running `pr-triage analyze`. Writes the CLI's step outputs and job summary."
+  requests reviewers, by downloading the latest pr-triage Linux release binary
+  and running `pr-triage analyze`. Writes the CLI's step outputs and job
+  summary."
 
 inputs:
   version:
     description:
-      "pr-triage release tag to install (vX.Y.Z). Defaults to the version pinned
-      in the action."
+      "pr-triage release tag to install (vX.Y.Z). Defaults to the latest
+      published release."
     required: false
   github-token:
     description:

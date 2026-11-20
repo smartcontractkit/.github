@@ -40,11 +40,11 @@ import {
   buildChildEnv,
   maskSecrets,
   readInputs,
-  RELEASE_VERSION,
   run,
   type ActionInputs,
 } from "../run";
 
+const DEFAULT_RELEASE = "v0.1.0";
 const ARCHIVE_PATH = "/tmp/download/archive.tar.gz";
 const CHECKSUMS_PATH = "/tmp/download/checksums.txt";
 const BIN_PATH = "/tmp/pr-triage-bin-run-test/pr-triage";
@@ -55,6 +55,7 @@ const mockedDownloadTool = vi.mocked(tc.downloadTool);
 const mockedExtractTar = vi.mocked(tc.extractTar);
 const mockedExec = vi.mocked(exec.exec);
 const mockedGetOctokit = vi.mocked(github.getOctokit);
+const mockedGetLatestRelease = vi.fn();
 const mockedExistsSync = vi.mocked(fs.existsSync);
 const mockedMkdtempSync = vi.mocked(fs.mkdtempSync);
 
@@ -72,13 +73,13 @@ function assetNames(tag: string): { archive: string; checksums: string } {
   };
 }
 
-const defaultAssets = assetNames(RELEASE_VERSION);
+const defaultAssets = assetNames(DEFAULT_RELEASE);
 const publicArchiveUrl =
   `https://github.com/smartcontractkit/pr-triage/releases/download/` +
-  `${RELEASE_VERSION}/${defaultAssets.archive}`;
+  `${DEFAULT_RELEASE}/${defaultAssets.archive}`;
 const publicChecksumsUrl =
   `https://github.com/smartcontractkit/pr-triage/releases/download/` +
-  `${RELEASE_VERSION}/${defaultAssets.checksums}`;
+  `${DEFAULT_RELEASE}/${defaultAssets.checksums}`;
 
 function setInputs(values: Record<string, string> = {}): void {
   mockedGetInput.mockImplementation((name: string) => values[name] ?? "");
@@ -86,7 +87,7 @@ function setInputs(values: Record<string, string> = {}): void {
 
 function inputs(overrides: Partial<ActionInputs> = {}): ActionInputs {
   return {
-    version: RELEASE_VERSION,
+    version: "",
     githubToken: "github-secret",
     releaseToken: "",
     orgToken: "",
@@ -102,7 +103,7 @@ function inputs(overrides: Partial<ActionInputs> = {}): ActionInputs {
   };
 }
 
-function mockFilesWithChecksum(tag = RELEASE_VERSION): {
+function mockFilesWithChecksum(tag = DEFAULT_RELEASE): {
   archive: string;
   checksums: string;
 } {
@@ -122,7 +123,7 @@ function mockFilesWithChecksum(tag = RELEASE_VERSION): {
   return names;
 }
 
-function usePublicDownloads(tag = RELEASE_VERSION): {
+function usePublicDownloads(tag = DEFAULT_RELEASE): {
   archive: string;
   checksums: string;
 } {
@@ -133,7 +134,8 @@ function usePublicDownloads(tag = RELEASE_VERSION): {
   return names;
 }
 
-function useAuthenticatedDownloads(tag = RELEASE_VERSION): {
+function useAuthenticatedDownloads(tag = DEFAULT_RELEASE): {
+  getLatestRelease: ReturnType<typeof vi.fn>;
   getReleaseByTag: ReturnType<typeof vi.fn>;
   archiveApiUrl: string;
   checksumsApiUrl: string;
@@ -142,6 +144,9 @@ function useAuthenticatedDownloads(tag = RELEASE_VERSION): {
   const archiveApiUrl = "https://api.github.com/assets/archive";
   const checksumsApiUrl = "https://api.github.com/assets/checksums";
 
+  const getLatestRelease = vi
+    .fn()
+    .mockResolvedValue({ data: { tag_name: tag } });
   const getReleaseByTag = vi.fn().mockResolvedValue({
     data: {
       assets: [
@@ -152,14 +157,19 @@ function useAuthenticatedDownloads(tag = RELEASE_VERSION): {
   });
 
   mockedGetOctokit.mockReturnValue({
-    rest: { repos: { getReleaseByTag } },
+    rest: { repos: { getLatestRelease, getReleaseByTag } },
   } as unknown as ReturnType<typeof github.getOctokit>);
 
   mockedDownloadTool.mockImplementation(async (url: string) =>
     url === archiveApiUrl ? ARCHIVE_PATH : CHECKSUMS_PATH,
   );
 
-  return { getReleaseByTag, archiveApiUrl, checksumsApiUrl };
+  return {
+    getLatestRelease,
+    getReleaseByTag,
+    archiveApiUrl,
+    checksumsApiUrl,
+  };
 }
 
 beforeEach(() => {
@@ -174,6 +184,13 @@ beforeEach(() => {
   mockedExtractTar.mockResolvedValue("/tmp/pr-triage-bin-run-test");
   mockedExec.mockResolvedValue(0);
 
+  mockedGetLatestRelease.mockResolvedValue({
+    data: { tag_name: DEFAULT_RELEASE },
+  });
+  mockedGetOctokit.mockReturnValue({
+    rest: { repos: { getLatestRelease: mockedGetLatestRelease } },
+  } as unknown as ReturnType<typeof github.getOctokit>);
+
   setInputs();
 });
 
@@ -182,9 +199,9 @@ afterEach(() => {
 });
 
 describe("readInputs", () => {
-  it("falls back to the pinned release version", () => {
+  it("leaves the version empty so the latest release is used", () => {
     setInputs();
-    expect(readInputs().version).toBe(RELEASE_VERSION);
+    expect(readInputs().version).toBe("");
   });
 
   it("uses the version input when given", () => {
@@ -296,13 +313,17 @@ describe("buildChildEnv", () => {
 });
 
 describe("run", () => {
-  it("downloads the public URLs when release-token is empty", async () => {
+  it("resolves the latest release and downloads the public URLs when release-token is empty", async () => {
     setInputs({ "github-token": "github-secret" });
     usePublicDownloads();
 
     await run();
 
-    expect(mockedGetOctokit).not.toHaveBeenCalled();
+    expect(mockedGetOctokit).toHaveBeenCalledWith("github-secret");
+    expect(mockedGetLatestRelease).toHaveBeenCalledWith({
+      owner: "smartcontractkit",
+      repo: "pr-triage",
+    });
     expect(mockedDownloadTool).toHaveBeenCalledWith(publicArchiveUrl);
     expect(mockedDownloadTool).toHaveBeenCalledWith(publicChecksumsUrl);
     expect(mockedExtractTar).toHaveBeenCalledWith(
@@ -320,16 +341,24 @@ describe("run", () => {
       "github-token": "github-secret",
       "release-token": "release-secret",
     });
-    const { getReleaseByTag, archiveApiUrl, checksumsApiUrl } =
-      useAuthenticatedDownloads();
+    const {
+      getLatestRelease,
+      getReleaseByTag,
+      archiveApiUrl,
+      checksumsApiUrl,
+    } = useAuthenticatedDownloads();
 
     await run();
 
     expect(mockedGetOctokit).toHaveBeenCalledWith("release-secret");
+    expect(getLatestRelease).toHaveBeenCalledWith({
+      owner: "smartcontractkit",
+      repo: "pr-triage",
+    });
     expect(getReleaseByTag).toHaveBeenCalledWith({
       owner: "smartcontractkit",
       repo: "pr-triage",
-      tag: RELEASE_VERSION,
+      tag: DEFAULT_RELEASE,
     });
     expect(mockedDownloadTool).toHaveBeenCalledWith(
       archiveApiUrl,
@@ -353,13 +382,17 @@ describe("run", () => {
 
     await run();
 
+    expect(mockedGetLatestRelease).not.toHaveBeenCalled();
     expect(mockedDownloadTool).toHaveBeenCalledWith(
       `https://github.com/smartcontractkit/pr-triage/releases/download/v1.2.3/${names.archive}`,
     );
   });
 
-  it("fails with the required permission when the release cannot be read", async () => {
-    setInputs({ "release-token": "release-secret" });
+  it("fails with the required permission when the pinned release cannot be read", async () => {
+    setInputs({
+      version: DEFAULT_RELEASE,
+      "release-token": "release-secret",
+    });
     const getReleaseByTag = vi
       .fn()
       .mockRejectedValue(
@@ -373,7 +406,27 @@ describe("run", () => {
 
     const failed = vi.mocked(core.setFailed).mock.calls[0][0] as string;
     expect(failed).toContain("smartcontractkit/pr-triage");
-    expect(failed).toContain(RELEASE_VERSION);
+    expect(failed).toContain(DEFAULT_RELEASE);
+    expect(failed).toContain("contents: read");
+    expect(failed).toContain("HTTP 404");
+    expect(mockedExec).not.toHaveBeenCalled();
+  });
+
+  it("fails with the required permission when the latest release cannot be read", async () => {
+    setInputs({ "release-token": "release-secret" });
+    const getLatestRelease = vi
+      .fn()
+      .mockRejectedValue(
+        Object.assign(new Error("Not Found"), { status: 404 }),
+      );
+    mockedGetOctokit.mockReturnValue({
+      rest: { repos: { getLatestRelease } },
+    } as unknown as ReturnType<typeof github.getOctokit>);
+
+    await run();
+
+    const failed = vi.mocked(core.setFailed).mock.calls[0][0] as string;
+    expect(failed).toContain("latest smartcontractkit/pr-triage release");
     expect(failed).toContain("contents: read");
     expect(failed).toContain("HTTP 404");
     expect(mockedExec).not.toHaveBeenCalled();

@@ -6,6 +6,7 @@ request that triggered the workflow. It wraps the
 with:
 
 - a full-history, credential-free checkout;
+- the latest `pr-triage` release binary;
 - the minimal permissions the analysis needs;
 - GATI v2 token minting for the private release download and organization
   membership reads;

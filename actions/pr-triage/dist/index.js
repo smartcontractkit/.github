@@ -28851,6 +28851,26 @@ function releaseLookupError(tag, error2) {
     `pr-triage: could not read the ${RELEASE_OWNER}/${RELEASE_REPO} release '${tag}'${suffix}. The release token needs 'contents: read' on ${RELEASE_OWNER}/${RELEASE_REPO}. Cause: ${errorMessage(error2)}`
   );
 }
+function latestReleaseError(error2) {
+  const status = error2.status;
+  const suffix = status ? ` (HTTP ${status})` : "";
+  return new Error(
+    `pr-triage: could not read the latest ${RELEASE_OWNER}/${RELEASE_REPO} release${suffix}. The release token needs 'contents: read' on ${RELEASE_OWNER}/${RELEASE_REPO}. Cause: ${errorMessage(error2)}`
+  );
+}
+async function latestReleaseTag(token) {
+  let release;
+  try {
+    const octokit = github.getOctokit(token);
+    release = await octokit.rest.repos.getLatestRelease({
+      owner: RELEASE_OWNER,
+      repo: RELEASE_REPO
+    });
+  } catch (error2) {
+    throw latestReleaseError(error2);
+  }
+  return validateVersion(release.data.tag_name);
+}
 async function releaseAssetUrls(assets, releaseToken) {
   const octokit = github.getOctokit(releaseToken);
   let release;
@@ -28911,8 +28931,9 @@ function runnerTemp() {
   return tmp;
 }
 async function installBinary(options) {
+  const version = options.version || await latestReleaseTag(options.releaseToken || options.githubToken);
   const assets = resolveAssets(
-    options.version,
+    version,
     process.env.RUNNER_OS ?? "",
     process.env.RUNNER_ARCH ?? ""
   );
@@ -28938,13 +28959,13 @@ async function installBinary(options) {
 }
 
 // actions/pr-triage/src/run.ts
-var RELEASE_VERSION = "v0.1.0";
 function boolInput(name) {
   return getInput(name) === "true";
 }
 function readInputs() {
   return {
-    version: getInput("version").trim() || RELEASE_VERSION,
+    // Empty means the latest release; installBinary resolves the tag.
+    version: getInput("version").trim(),
     githubToken: getInput("github-token"),
     releaseToken: getInput("release-token"),
     orgToken: getInput("org-token"),
@@ -29019,6 +29040,7 @@ async function run() {
     maskSecrets(inputs);
     const binPath = await installBinary({
       version: inputs.version,
+      githubToken: inputs.githubToken,
       releaseToken: inputs.releaseToken
     });
     await exec(binPath, buildArgs(inputs), {

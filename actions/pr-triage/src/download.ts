@@ -10,6 +10,7 @@ import {
   RELEASE_REPO,
   parseChecksum,
   resolveAssets,
+  validateVersion,
   verifySha256,
   type ReleaseAssets,
 } from "./release";
@@ -20,6 +21,7 @@ const ASSET_ACCEPT = "application/octet-stream";
 
 export interface InstallOptions {
   version: string;
+  githubToken: string;
   releaseToken: string;
 }
 
@@ -43,6 +45,33 @@ function releaseLookupError(tag: string, error: unknown): Error {
       `'${tag}'${suffix}. The release token needs 'contents: read' on ` +
       `${RELEASE_OWNER}/${RELEASE_REPO}. Cause: ${errorMessage(error)}`,
   );
+}
+
+function latestReleaseError(error: unknown): Error {
+  const status = (error as { status?: number }).status;
+  const suffix = status ? ` (HTTP ${status})` : "";
+  return new Error(
+    `pr-triage: could not read the latest ${RELEASE_OWNER}/${RELEASE_REPO} ` +
+      `release${suffix}. The release token needs 'contents: read' on ` +
+      `${RELEASE_OWNER}/${RELEASE_REPO}. Cause: ${errorMessage(error)}`,
+  );
+}
+
+// The newest published release, which excludes drafts and pre-releases. Pin a
+// release with the `version` input when the caller needs a fixed binary.
+export async function latestReleaseTag(token: string): Promise<string> {
+  let release;
+  try {
+    const octokit = github.getOctokit(token);
+    release = await octokit.rest.repos.getLatestRelease({
+      owner: RELEASE_OWNER,
+      repo: RELEASE_REPO,
+    });
+  } catch (error) {
+    throw latestReleaseError(error);
+  }
+
+  return validateVersion(release.data.tag_name);
 }
 
 async function releaseAssetUrls(
@@ -124,8 +153,13 @@ function runnerTemp(): string {
 }
 
 export async function installBinary(options: InstallOptions): Promise<string> {
+  // The release token can read a private repository; the workflow token can
+  // read the public one once pr-triage ships publicly.
+  const version =
+    options.version ||
+    (await latestReleaseTag(options.releaseToken || options.githubToken));
   const assets = resolveAssets(
-    options.version,
+    version,
     process.env.RUNNER_OS ?? "",
     process.env.RUNNER_ARCH ?? "",
   );
