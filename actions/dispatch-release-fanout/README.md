@@ -56,6 +56,7 @@ dispatch.
 | `hub-ref`        | no       | `main`                     | Branch in the hub to run the workflow from.                |
 | `correlation-id` | no       | `<run_id>-<run_attempt>`   | Id carried along every hop of the fan-out.                 |
 | `source-run-url` | no       | this run's URL             | Recorded by every downstream hop.                          |
+| `is-hotfix`      | no       |                            | `true`/`false`. Sent only when set.                        |
 
 ## Outputs
 
