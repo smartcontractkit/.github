@@ -1,5 +1,15 @@
 # pr-triage
 
+## 0.3.0
+
+### Minor Changes
+
+- [#1791](https://github.com/smartcontractkit/.github/pull/1791)
+  [`5220530`](https://github.com/smartcontractkit/.github/commit/5220530ba8a97b46acff91b4854e05e7b3255be1)
+  Thanks [@kalverra](https://github.com/kalverra)! - Default the action to the
+  latest `smartcontractkit/pr-triage` release instead of a pinned version. Set
+  the `version` input to pin a specific release.
+
 ## 0.2.0
 
 ### Minor Changes
