@@ -1,5 +1,14 @@
 # dispatch-release-fanout
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1788](https://github.com/smartcontractkit/.github/pull/1788)
+  [`5d81067`](https://github.com/smartcontractkit/.github/commit/5d81067433d30e40232cc5c391c18cca171a5926)
+  Thanks [@thomjg](https://github.com/thomjg)! - Add optional `is-hotfix` input,
+  passed to the hub when set
+
 ## 1.0.0
 
 ### Major Changes
