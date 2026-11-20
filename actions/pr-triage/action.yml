@@ -1,0 +1,93 @@
+name: pr-triage
+description:
+  "Scores a pull request for risk and complexity, recommends approvals, and
+  requests reviewers, by downloading a pinned pr-triage Linux release binary and
+  running `pr-triage analyze`. Writes the CLI's step outputs and job summary."
+
+inputs:
+  version:
+    description:
+      "pr-triage release tag to install (vX.Y.Z). Defaults to the version pinned
+      in the action."
+    required: false
+  github-token:
+    description:
+      "Token pr-triage uses for every pull request read and write. Defaults to
+      the workflow's automatic token; the calling job needs `contents: read`,
+      `pull-requests: write`, and `issues: write`."
+    required: false
+    default: ${{ github.token }}
+  release-token:
+    description:
+      "Token with `contents: read` on smartcontractkit/pr-triage, used to
+      download the release assets while that repository is private. Leave empty
+      to download from the public release URLs."
+    required: false
+    default: ""
+  org-token:
+    description:
+      "Token with organization `members: read`, forwarded as PR_TRIAGE_ORG_TOKEN
+      so organization membership lookups stay off the pull request token. Leave
+      empty to keep membership lookups on github-token."
+    required: false
+    default: ""
+  dry-run:
+    description: "Set to 'true' to read GitHub but write nothing."
+    required: false
+    default: "false"
+  skip-reviewer-requests:
+    description:
+      "Set to 'true' to plan and write labels and the comment, but do not
+      request reviewers."
+    required: false
+    default: "false"
+  allow-non-org-reviewers:
+    description:
+      "Set to 'true' to suggest reviewers who are not members of the repository
+      owner's organization. Required when org-token is empty or unavailable."
+    required: false
+    default: "false"
+  verbose:
+    description: "Set to 'true' to print the full Markdown report."
+    required: false
+    default: "false"
+  no-ai:
+    description: "Set to 'true' to skip the optional AI semantic request."
+    required: false
+    default: "false"
+  ai-api-key:
+    description:
+      "Provider API key for the optional AI semantic signals, forwarded as
+      PR_TRIAGE_AI_API_KEY."
+    required: false
+    default: ""
+  ai-base-url:
+    description:
+      "Provider endpoint for the optional AI semantic signals, forwarded as
+      PR_TRIAGE_AI_BASE_URL."
+    required: false
+    default: ""
+  log-level:
+    description:
+      "Diagnostic log level for the CLI (debug, info, warn, error, disabled).
+      Leave empty to use the CLI default."
+    required: false
+    default: ""
+
+outputs:
+  risk-level:
+    description: "Risk level the analysis assigned to the pull request."
+  complexity-level:
+    description: "Complexity level the analysis assigned to the pull request."
+  approvals:
+    description: "Number of approvals the analysis recommends."
+  reviewers:
+    description: "Reviewer logins the analysis recommends or requests."
+  dependency-bump:
+    description: "'true' when the pull request is a dependency bump."
+  report-path:
+    description: "Path to the Markdown report the CLI wrote."
+
+runs:
+  using: node24
+  main: "dist/index.js"
