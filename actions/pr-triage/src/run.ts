@@ -3,10 +3,6 @@ import * as exec from "@actions/exec";
 
 import { installBinary } from "./download";
 
-// Pinned pr-triage release. Bump this single line when a new release ships;
-// callers override it with the `version` input.
-export const RELEASE_VERSION = "v0.1.0";
-
 export interface ActionInputs {
   version: string;
   githubToken: string;
@@ -28,7 +24,8 @@ function boolInput(name: string): boolean {
 
 export function readInputs(): ActionInputs {
   return {
-    version: core.getInput("version").trim() || RELEASE_VERSION,
+    // Empty means the latest release; installBinary resolves the tag.
+    version: core.getInput("version").trim(),
     githubToken: core.getInput("github-token"),
     releaseToken: core.getInput("release-token"),
     orgToken: core.getInput("org-token"),
@@ -126,6 +123,7 @@ export async function run(): Promise<void> {
 
     const binPath = await installBinary({
       version: inputs.version,
+      githubToken: inputs.githubToken,
       releaseToken: inputs.releaseToken,
     });
 
