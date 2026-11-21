@@ -73,7 +73,7 @@
       "http-cache-semantics": "4.3.0",
       "source-map-js": "1.2.2",
       "picomatch@>=4.0.0": "4.0.7",
-      "minimatch": "^10.2.4",
+      "minimatch": "^11.0.0",
       "immutable": "^4.3.8"
     }
   }
