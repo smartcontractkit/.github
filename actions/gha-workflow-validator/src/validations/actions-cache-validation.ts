@@ -1,16 +1,18 @@
 import { FileLine } from "../parse-files.js";
+import { UseReferenceIndex } from "../use-references.js";
 import {
   ValidationCheck,
   ValidationMessage,
   ValidationType,
 } from "./validation-check.js";
-import { extractActionReferenceFromLine } from "./action-reference-validations.js";
+import {
+  extractActionReferenceFromLine,
+  toActionReference,
+} from "./action-reference-validations.js";
 
-interface FileLineActionsCacheVersion extends FileLine {
-  ref?: string;
+interface ActionsCacheVersionValidationOpts {
+  references?: UseReferenceIndex;
 }
-
-interface ActionsCacheVersionValidationOpts {}
 
 export class ActionsCacheVersionValidation implements ValidationCheck {
   private options: ActionsCacheVersionValidationOpts;
@@ -19,39 +21,42 @@ export class ActionsCacheVersionValidation implements ValidationCheck {
     this.options = options ?? {};
   }
 
-  async validateLine(line: FileLine): Promise<ValidationMessage[]> {
-    const { ref } = extractActionsCacheVersion(line);
-    if (!ref) {
-      return [];
-    }
+  async validateLine(
+    line: FileLine,
+    filename?: string,
+  ): Promise<ValidationMessage[]> {
+    const references =
+      this.options.references && filename
+        ? this.options.references.get(filename, line.lineNumber)
+        : "fallback";
 
-    const isRefUpToDate = ref.startsWith("v5");
-    if (isRefUpToDate) {
-      return [];
-    }
+    const refs =
+      references === "fallback"
+        ? [extractActionsCacheFromLine(line.content)].filter(
+            (ref): ref is string => ref !== undefined,
+          )
+        : references.flatMap((use) => {
+            if (use.kind !== "action") return [];
+            const action = toActionReference(use);
+            return action?.owner === "actions" && action.repo === "cache"
+              ? [action.ref]
+              : [];
+          });
 
-    return [
-      {
-        type: ValidationType.ACTIONS_CACHE,
-        severity: line.operation === "add" ? "error" : "warning",
-        message: `This version (${ref}) of actions/cache is being deprecated. Please update to v5`,
-      },
-    ];
+    return refs.flatMap((ref) => {
+      if (ref.startsWith("v5")) {
+        return [];
+      }
+
+      return [
+        {
+          type: ValidationType.ACTIONS_CACHE,
+          severity: line.operation === "add" ? "error" : "warning",
+          message: `This version (${ref}) of actions/cache is being deprecated. Please update to v5`,
+        } as ValidationMessage,
+      ];
+    });
   }
-}
-
-function extractActionsCacheVersion(
-  fileLine: FileLine,
-): FileLineActionsCacheVersion {
-  const actionsCacheVersion = extractActionsCacheFromLine(fileLine.content);
-  if (!actionsCacheVersion) {
-    return fileLine;
-  }
-
-  return {
-    ...fileLine,
-    ref: actionsCacheVersion,
-  };
 }
 
 export function extractActionsCacheFromLine(line: string): string | undefined {
