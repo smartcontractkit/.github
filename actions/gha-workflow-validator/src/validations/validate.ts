@@ -16,6 +16,10 @@ import {
 } from "./validation-check.js";
 
 import { ParsedFiles, ParsedFile, FileLine } from "../parse-files.js";
+import {
+  buildUseReferenceIndex,
+  UseReferenceIndex,
+} from "../use-references.js";
 
 function getValidators(
   {
@@ -25,12 +29,14 @@ function getValidators(
     validateActionsCacheVersion,
   }: RunInputs,
   octokit: Octokit,
+  references?: UseReferenceIndex,
 ): ValidationCheck[] {
   const validators: ValidationCheck[] = [new IgnoresCommentValidation()];
   if (validateActionRefs)
     validators.push(
       new ActionRefValidation(octokit, {
         validateNodeVersion: validateActionNodeVersion,
+        references,
       }),
     );
   if (validateRunners) validators.push(new ActionsRunnerValidation());
@@ -47,7 +53,10 @@ export async function validate(
 ): Promise<FileValidationResult[]> {
   core.debug(`Validating ${parsedFiles.length} files`);
 
-  const validators = getValidators(inputs, octokit);
+  const references = inputs.validateActionRefs
+    ? await buildUseReferenceIndex(parsedFiles)
+    : undefined;
+  const validators = getValidators(inputs, octokit, references);
 
   const fileValidationResults: FileValidationResult[] = [];
   for (const file of parsedFiles) {
@@ -111,7 +120,7 @@ async function validateLine(
   const messages = (
     await Promise.all(
       validators.map(async (validator) => {
-        return validator.validateLine(line);
+        return validator.validateLine(line, filename);
       }),
     )
   ).flat();
