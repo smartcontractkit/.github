@@ -8,6 +8,18 @@ import { VALIDATOR_IGNORE_LINE } from "../strings";
 
 import { describe, it, expect } from "vitest";
 import { ParsedFiles } from "../parse-files";
+import path from "node:path";
+
+const LOCKFILE_FIXTURE_DIR = path.join(
+  __dirname,
+  "__fixtures__",
+  "lockfile-repo",
+);
+const INVALID_LOCKFILE_FIXTURE_DIR = path.join(
+  __dirname,
+  "__fixtures__",
+  "lockfile-invalid-repo",
+);
 
 const DEFAULT_RUN_INPUTS: RunInputs = {
   evaluateMode: false,
@@ -132,6 +144,93 @@ describe(validate.name, () => {
           },
         ],
       } satisfies FileValidationResult,
+    ]);
+  });
+  it("should accept tag references for a workflow onboarded to the lockfile", async () => {
+    const inputs = {
+      ...DEFAULT_RUN_INPUTS,
+      validateActionRefs: true,
+      rootDir: LOCKFILE_FIXTURE_DIR,
+    };
+    const parsedFiles: ParsedFiles = [
+      {
+        filename: ".github/workflows/ci.yml",
+        lines: [
+          {
+            lineNumber: 1,
+            content: "        uses: dorny/paths-filter@v3.0.2 # v3.0.2",
+            operation: "add",
+            ignored: false,
+          },
+        ],
+      },
+    ];
+    const octokit = {} as any;
+    const result = await validate(inputs, parsedFiles, octokit);
+
+    expect(result[0].lineValidations[0].messages).toEqual([]);
+  });
+
+  it("should report an invalid lockfile as a positioned error", async () => {
+    const inputs = {
+      ...DEFAULT_RUN_INPUTS,
+      validateActionRefs: true,
+      rootDir: INVALID_LOCKFILE_FIXTURE_DIR,
+    };
+    const parsedFiles: ParsedFiles = [
+      {
+        filename: ".github/workflows/other.yml",
+        lines: [
+          {
+            lineNumber: 1,
+            content: "        uses: dorny/paths-filter@v3.0.2 # v3.0.2",
+            operation: "add",
+            ignored: false,
+          },
+        ],
+      },
+    ];
+    const octokit = {} as any;
+    const result = await validate(inputs, parsedFiles, octokit);
+
+    expect(result[0].filename).toBe(".github/workflows/actions.lock");
+    expect(result[0].lineValidations[0].messages).toEqual([
+      {
+        message: expect.stringContaining("path traversal"),
+        type: ValidationType.LOCKFILE_PARSE,
+        severity: "error",
+      },
+    ]);
+  });
+
+  it("should still require SHA references for a workflow not in the lockfile", async () => {
+    const inputs = {
+      ...DEFAULT_RUN_INPUTS,
+      validateActionRefs: true,
+      rootDir: LOCKFILE_FIXTURE_DIR,
+    };
+    const parsedFiles: ParsedFiles = [
+      {
+        filename: ".github/workflows/other.yml",
+        lines: [
+          {
+            lineNumber: 1,
+            content: "        uses: dorny/paths-filter@v3.0.2 # v3.0.2",
+            operation: "add",
+            ignored: false,
+          },
+        ],
+      },
+    ];
+    const octokit = {} as any;
+    const result = await validate(inputs, parsedFiles, octokit);
+
+    expect(result[0].lineValidations[0].messages).toEqual([
+      {
+        message: "v3.0.2 is not a valid SHA reference",
+        type: ValidationType.SHA_REF,
+        severity: "error",
+      },
     ]);
   });
 });

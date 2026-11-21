@@ -3,6 +3,7 @@ import {
   extractActionReferenceFromLine,
 } from "../validations/action-reference-validations.js";
 import { FileLine } from "../parse-files.js";
+import { WorkflowLockfile } from "../lockfile.js";
 import { getNock, getTestOctokit } from "./__helpers__/test-utils.js";
 
 import { vi, describe, it, expect } from "vitest";
@@ -236,6 +237,152 @@ describe(ActionRefValidation.name, () => {
     const messages = await subject.validateLine(untrustedActionAllErrors);
     expect(messages).toMatchSnapshot();
     nockDone();
+  });
+});
+
+describe(`${ActionRefValidation.name} (lockfile)`, () => {
+  const LOCKED_WORKFLOW = ".github/workflows/ci.yml";
+  const LOCKED_SHA = "de90cc6fb38fc0963ad72b210f1f284cd68cea36";
+  const lockfile: WorkflowLockfile = {
+    workflows: {
+      [LOCKED_WORKFLOW]: [
+        "actions/checkout@v6",
+        "dorny/paths-filter@v3.0.2",
+        `dorny/paths-filter@${LOCKED_SHA}`,
+        "actions/cache@v4",
+      ],
+    },
+  };
+
+  function subjectWithLockfile() {
+    const octokit = getTestOctokit(nockBack.currentMode);
+    return new ActionRefValidation(octokit, {
+      validateNodeVersion: false,
+      lockfile,
+    });
+  }
+
+  it("accepts a tag reference in an onboarded workflow", async () => {
+    const line: FileLine = {
+      lineNumber: 2,
+      content: "        uses: dorny/paths-filter@v3.0.2 # v3.0.2",
+      operation: "add",
+      ignored: false,
+    };
+
+    const messages = await subjectWithLockfile().validateLine(
+      line,
+      LOCKED_WORKFLOW,
+    );
+    expect(messages).toEqual([]);
+  });
+
+  it("accepts a SHA reference without a version comment in an onboarded workflow", async () => {
+    const line: FileLine = {
+      lineNumber: 2,
+      content: `        uses: dorny/paths-filter@${LOCKED_SHA}`,
+      operation: "add",
+      ignored: false,
+    };
+
+    const messages = await subjectWithLockfile().validateLine(
+      line,
+      LOCKED_WORKFLOW,
+    );
+    expect(messages).toEqual([]);
+  });
+
+  it("matches a sub-action reference to its repo-scoped pin", async () => {
+    const line: FileLine = {
+      lineNumber: 2,
+      content: "        uses: actions/cache/save@v4 # v4",
+      operation: "add",
+      ignored: false,
+    };
+
+    const messages = await subjectWithLockfile().validateLine(
+      line,
+      LOCKED_WORKFLOW,
+    );
+    expect(messages).toEqual([]);
+  });
+
+  it("accepts a trusted action reference in an onboarded workflow", async () => {
+    const line: FileLine = {
+      lineNumber: 2,
+      content: "        uses: actions/checkout@v6",
+      operation: "add",
+      ignored: false,
+    };
+
+    const messages = await subjectWithLockfile().validateLine(
+      line,
+      LOCKED_WORKFLOW,
+    );
+    expect(messages).toEqual([]);
+  });
+
+  it("accepts a ./ prefixed workflow filename", async () => {
+    const line: FileLine = {
+      lineNumber: 2,
+      content: "        uses: dorny/paths-filter@v3.0.2 # v3.0.2",
+      operation: "add",
+      ignored: false,
+    };
+
+    const messages = await subjectWithLockfile().validateLine(
+      line,
+      `./${LOCKED_WORKFLOW}`,
+    );
+    expect(messages).toEqual([]);
+  });
+
+  it("errors when an onboarded workflow references an action missing from the lockfile", async () => {
+    const line: FileLine = {
+      lineNumber: 2,
+      content: "        uses: untrusted/action@v1 # v1",
+      operation: "add",
+      ignored: false,
+    };
+
+    const messages = await subjectWithLockfile().validateLine(
+      line,
+      LOCKED_WORKFLOW,
+    );
+    expect(messages).toEqual([
+      {
+        message:
+          "untrusted/action@v1 is not pinned in .github/workflows/actions.lock for this workflow. Run `gh actions-lock` to add it.",
+        type: "lockfile-coverage",
+        severity: "error",
+      },
+    ]);
+  });
+
+  it("still requires SHA references for workflows that are not onboarded", async () => {
+    const octokit = getTestOctokit(nockBack.currentMode);
+    const subject = new ActionRefValidation(octokit, {
+      validateNodeVersion: false,
+      lockfile,
+    });
+    const line: FileLine = {
+      lineNumber: 2,
+      content: "        uses: dorny/paths-filter@v3.0.2 # v3.0.2",
+      operation: "add",
+      ignored: false,
+    };
+
+    const messages = await subject.validateLine(
+      line,
+      ".github/workflows/other.yml",
+    );
+    expect(messages).toEqual([
+      {
+        message: "v3.0.2 is not a valid SHA reference",
+        type: "sha-ref",
+        severity: "error",
+      },
+    ]);
   });
 });
 
