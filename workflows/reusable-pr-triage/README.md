@@ -8,13 +8,23 @@ with:
 - a full-history, credential-free checkout;
 - the latest `pr-triage` release binary;
 - the minimal permissions the analysis needs;
-- GATI v2 token minting for the private release download and organization
+- short-lived token minting for the private release download and organization
   membership reads;
 - fork pull request handling that skips instead of failing.
 
 `pr-triage` writes the step outputs and the job summary itself.
 
 ## Usage
+
+Opt in to the shared `pr-triage` token preset in your repository's token
+configuration:
+
+```toml
+presets = ["pr-triage"]
+```
+
+The workflow defaults both profile inputs to `presets/pr-triage`, so the caller
+sets neither.
 
 ```yaml
 name: PR triage
@@ -34,27 +44,24 @@ jobs:
     uses: smartcontractkit/.github/.github/workflows/reusable-pr-triage.yml@reusable-pr-triage/v0
     secrets:
       PR_TRIAGE_AI_API_KEY: ${{ secrets.PR_TRIAGE_AI_API_KEY }}
-    with:
-      release-token-profile: pr-triage-release-read
-      org-token-profile: org-members-read
 ```
 
 The calling job must grant every permission the workflow declares, including
-`id-token: write` for GATI v2, even when neither profile is set. A reusable
-workflow cannot request more than its caller grants.
+`id-token: write` for token minting, even when both profiles are empty. A
+reusable workflow cannot request more than its caller grants.
 
 ## Inputs
 
-| Input                    | Type    | Default | Description                                                                                         |
-| ------------------------ | ------- | ------- | --------------------------------------------------------------------------------------------------- |
-| `release-token-profile`  | string  | `""`    | GATI v2 profile with `contents: read` on `smartcontractkit/pr-triage`. Empty downloads from public. |
-| `org-token-profile`      | string  | `""`    | GATI v2 profile with organization `members: read`. Empty keeps lookups on the workflow token.       |
-| `dry-run`                | boolean | `false` | Read GitHub, write nothing.                                                                         |
-| `skip-reviewer-requests` | boolean | `false` | Write labels and the report comment, but do not request reviewers.                                  |
-| `verbose`                | boolean | `false` | Print the full Markdown report.                                                                     |
-| `no-ai`                  | boolean | `false` | Skip the optional AI semantic request.                                                              |
-| `ai-base-url`            | string  | `""`    | Provider endpoint for AI semantic signals. Empty uses the CLI default.                              |
-| `log-level`              | string  | `""`    | Diagnostic log level (`debug`, `info`, `warn`, `error`, `disabled`).                                |
+| Input                    | Type    | Default             | Description                                                                                       |
+| ------------------------ | ------- | ------------------- | ------------------------------------------------------------------------------------------------- |
+| `release-token-profile`  | string  | `presets/pr-triage` | Token profile with `contents: read` on `smartcontractkit/pr-triage`. Empty downloads from public. |
+| `org-token-profile`      | string  | `presets/pr-triage` | Token profile with organization `members: read`. Empty keeps lookups on the workflow token.       |
+| `dry-run`                | boolean | `false`             | Read GitHub, write nothing.                                                                       |
+| `skip-reviewer-requests` | boolean | `false`             | Write labels and the report comment, but do not request reviewers.                                |
+| `verbose`                | boolean | `false`             | Print the full Markdown report.                                                                   |
+| `no-ai`                  | boolean | `false`             | Skip the optional AI semantic request.                                                            |
+| `ai-base-url`            | string  | `""`                | Provider endpoint for AI semantic signals. Empty uses the CLI default.                            |
+| `log-level`              | string  | `""`                | Diagnostic log level (`debug`, `info`, `warn`, `error`, `disabled`).                              |
 
 ## Secrets
 
@@ -78,9 +85,14 @@ workflow cannot request more than its caller grants.
 Pull request reads and writes use the calling repository's `GITHUB_TOKEN`. The
 two minted tokens are scoped to the job and revoked when it ends.
 
+Both inputs default to `presets/pr-triage`, a shared token preset that grants
+`contents: read` on `smartcontractkit/pr-triage` and organization
+`members: read`. A preset is one token configuration, so each minted token
+carries both read scopes. Override either input to use separate profiles.
+
 - `release-token-profile` only downloads the `pr-triage` binary. While
   `smartcontractkit/pr-triage` is private it needs `contents: read` there; once
-  the repository is public, clear the input and the step is skipped.
+  the repository is public, set the input to empty and the step is skipped.
 - `org-token-profile` only answers organization membership lookups
   (`GET /orgs/{org}/members`), so membership stays readable with a repo-scoped
   pull request token. Without it, reviewer suggestions include people outside
@@ -88,10 +100,11 @@ two minted tokens are scoped to the job and revoked when it ends.
 
 ## Fork pull requests
 
-Fork pull requests cannot mint GATI v2 tokens.
+Fork pull requests cannot mint the release-read token.
 
-- While `release-token-profile` is set, a fork pull request skips the analysis
-  and the workflow posts a notice explaining why. It does not fail the job.
+- While `release-token-profile` is non-empty (the default), a fork pull request
+  skips the analysis and the workflow posts a notice explaining why. It does not
+  fail the job.
 - Once `release-token-profile` is empty, fork pull requests run the analysis
   with the read-only workflow token. They skip org-token minting, allow
   reviewers outside the organization, and always run with `dry-run` on, because
@@ -103,5 +116,6 @@ Fork pull requests cannot mint GATI v2 tokens.
   `github.event.pull_request.head.repo.full_name`.
 - A Linux runner. The action supports Linux `amd64` and `arm64` only.
 - `fetch-depth: 0` comes from the workflow; callers do not check out first.
-- The `pr-triage/v0` action tag exists after the action's first release. Until
-  then, the analysis step fails to resolve.
+- The shared `pr-triage` token preset, opted in with `presets = ["pr-triage"]`,
+  or overrides for both profile inputs.
+- The `pr-triage/v0` action tag must exist.
