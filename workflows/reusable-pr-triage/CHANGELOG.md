@@ -1,5 +1,15 @@
 # reusable-pr-triage
 
+## 0.3.0
+
+### Minor Changes
+
+- [#1796](https://github.com/smartcontractkit/.github/pull/1796)
+  [`3b2bfb6`](https://github.com/smartcontractkit/.github/commit/3b2bfb65997b2776923791c11385a3f77f0f2c29)
+  Thanks [@kalverra](https://github.com/kalverra)! - Default
+  `release-token-profile` and `org-token-profile` to `presets/pr-triage`, so a
+  caller only opts in with `presets = ["pr-triage"]` and sets neither input.
+
 ## 0.2.0
 
 ### Minor Changes
