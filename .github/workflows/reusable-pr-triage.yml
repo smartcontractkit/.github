@@ -9,23 +9,24 @@ on:
     inputs:
       release-token-profile:
         description: |
-          GATI v2 profile with `contents: read` on `smartcontractkit/pr-triage`,
-          used to download the private release binary. Leave empty once
-          `smartcontractkit/pr-triage` is public, or to run without a private
-          release token.
+          Token profile with `contents: read` on `smartcontractkit/pr-triage`,
+          used to download the private release binary. Defaults to the shared
+          `pr-triage` preset. Set to empty once `smartcontractkit/pr-triage` is
+          public, or to run without a private release token.
         required: false
         type: string
-        default: ""
+        default: "presets/pr-triage"
 
       org-token-profile:
         description: |
-          GATI v2 profile with organization `members: read`, forwarded to
+          Token profile with organization `members: read`, forwarded to
           `pr-triage` so membership lookups stay off the pull request token.
-          Leave empty to keep membership lookups on the workflow token; reviewer
-          suggestions then include people outside the organization.
+          Defaults to the shared `pr-triage` preset. Set to empty to keep
+          membership lookups on the workflow token; reviewer suggestions then
+          include people outside the organization.
         required: false
         type: string
-        default: ""
+        default: "presets/pr-triage"
 
       dry-run:
         description: "Set to true to read GitHub but write nothing."
@@ -99,7 +100,7 @@ on:
 permissions: {}
 
 jobs:
-  # Fork pull requests cannot mint a GATI v2 token, so they cannot download the
+  # Fork pull requests cannot mint the release-read token, so they cannot download the
   # private pr-triage release. Explain the skip instead of failing the job.
   fork-skip:
     name: Skip fork pull request
@@ -116,7 +117,7 @@ jobs:
             echo
             echo "${message}"
             echo
-            echo "Clear release-token-profile once smartcontractkit/pr-triage is public to analyze fork pull requests."
+            echo "Set release-token-profile to empty once smartcontractkit/pr-triage is public to analyze fork pull requests."
           } >> "$GITHUB_STEP_SUMMARY"
 
   triage:
@@ -127,7 +128,7 @@ jobs:
       contents: read # checkout, commit attribution, rulesets and branch protection
       pull-requests: write # labels, reviewer requests, pull request reads
       issues: write # label creation, report comment upsert and cleanup
-      id-token: write # OIDC token for invoke-gati-v2
+      id-token: write # OIDC token for token minting
     outputs:
       risk-level: ${{ steps.triage.outputs.risk-level }}
       complexity-level: ${{ steps.triage.outputs.complexity-level }}
