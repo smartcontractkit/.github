@@ -1,6 +1,6 @@
 {
   "name": "pr-triage",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Scores pull requests for risk, complexity, and reviewer routing with a pinned pr-triage release binary",
   "private": true,
   "scripts": {},
