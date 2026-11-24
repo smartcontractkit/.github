@@ -134,11 +134,11 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "simple-project-pkg-a",
+              name: "@chainlink/simple-project-pkg-a",
               type: "minor",
             },
             {
-              name: "simple-project-pkg-b",
+              name: "@chainlink/simple-project-pkg-b",
               type: "minor",
             },
           ],
@@ -173,11 +173,11 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "simple-project-pkg-a",
+              name: "@chainlink/simple-project-pkg-a",
               type: "minor",
             },
             {
-              name: "simple-project-pkg-b",
+              name: "@chainlink/simple-project-pkg-b",
               type: "minor",
             },
           ],
@@ -213,7 +213,7 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "simple-project-pkg-a",
+              name: "@chainlink/simple-project-pkg-a",
               type: "minor",
             },
           ],
@@ -283,7 +283,7 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "simple-project-pkg-a",
+              name: "@chainlink/simple-project-pkg-a",
               type: "minor",
             },
           ],
@@ -342,7 +342,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
         {
           releases: [
             {
-              name: "simple-project-pkg-a",
+              name: "@chainlink/simple-project-pkg-a",
               type: "minor",
             },
           ],
