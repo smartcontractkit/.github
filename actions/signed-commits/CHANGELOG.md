@@ -1,5 +1,15 @@
 # changesets-signed-commits
 
+## 1.9.5
+
+### Patch Changes
+
+- [#1803](https://github.com/smartcontractkit/.github/pull/1803)
+  [`a4384f0`](https://github.com/smartcontractkit/.github/commit/a4384f01124febdc7312280d76b42b96b5e9d334)
+  Thanks [@chainchad](https://github.com/chainchad)! - Namespace the test
+  fixture packages as `@chainlink/*` so security scans stop flagging the bare
+  `simple-project-pkg-*` names. No behavior change.
+
 ## 1.9.4
 
 ### Patch Changes
