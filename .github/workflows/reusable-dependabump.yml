@@ -89,11 +89,50 @@ jobs:
             exit 1
           fi
           SEVERITY="${SEVERITY//[[:space:]]/}"
+          alerts="$RUNNER_TEMP/alerts.tsv"
           gh api --paginate -H "Accept: application/vnd.github+json" --method GET \
             "/repos/${GITHUB_REPOSITORY}/dependabot/alerts?state=open&ecosystem=Go&severity=${SEVERITY}" \
-            --jq '.[] | select(.security_vulnerability.first_patched_version != null) | .dependency.manifest_path |= rtrimstr("go.mod") | "./\(.dependency.manifest_path) \(.security_vulnerability.package.name) \(.security_vulnerability.first_patched_version.identifier)"' | \
-            dependabot
+            --jq '.[] | select(.security_vulnerability.first_patched_version != null) | [.security_advisory.severity, .security_advisory.ghsa_id, (.security_advisory.cve_id // "-"), .security_vulnerability.package.name, .security_vulnerability.first_patched_version.identifier, (.dependency.manifest_path | rtrimstr("go.mod"))] | @tsv' > "$alerts"
+          awk -F'\t' '{ printf "./%s %s %s\n", $6, $4, $5 }' "$alerts" | dependabot
           gomods tidy
+
+          {
+            echo "Upgrading vulnerable dependencies to the minimum version that fixes each advisory (\`first_patched_version\`), not the latest release."
+            echo
+            echo "| Severity | Dependency | Fixed in | Advisory |"
+            echo "| --- | --- | --- | --- |"
+            awk -F'\t' '{
+              severity = toupper(substr($1, 1, 1)) substr($1, 2)
+              advisory = ($3 == "-") ? $2 : $3 " / " $2
+              printf "| %s | `%s` | %s | %s |\n", severity, $4, $5, advisory
+            }' "$alerts"
+            echo
+            echo "_Indirect dependencies may also have been raised by \`go mod tidy\`._"
+          } > "$RUNNER_TEMP/pr-body.md"
+
+          awk -F'\t' '
+            { n++; counts[$1]++ }
+            END {
+              line = (n + 0) (n == 1 ? " dependency bump" : " dependency bumps")
+              split("critical high medium low", order, " ")
+              detail = ""
+              sep = ""
+              for (i = 1; i <= 4; i++) {
+                if (counts[order[i]] > 0) {
+                  detail = detail sep counts[order[i]] " " order[i]
+                  sep = ", "
+                }
+              }
+              print line (detail == "" ? "" : " (" detail ")")
+            }' "$alerts" > "$RUNNER_TEMP/slack-summary.txt"
+          awk -F'\t' '{ printf "• `%s` → %s (%s)\n", $4, $5, $1 }' "$alerts" >> "$RUNNER_TEMP/slack-summary.txt"
+
+          {
+            echo "summary<<EOF"
+            cat "$RUNNER_TEMP/slack-summary.txt"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
           if [[ -n "$(git status --porcelain)" ]]; then
             echo "changed=true" | tee -a "$GITHUB_OUTPUT"
           else
@@ -132,12 +171,13 @@ jobs:
 
       - name: Create Pull Request
         id: pr
+        if: steps.bump.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           branch: bot/dependabump
           commit-message: "bump dependencies"
           title: "dependabump"
-          body: "Upgrading vulnerable dependencies."
+          body-path: ${{ runner.temp }}/pr-body.md
           sign-commits: true
         continue-on-error: true
 
@@ -167,4 +207,5 @@ jobs:
             channel: ${{ secrets.SLACK_CHANNEL_ID}}
             text: |
               Vulnerable dependencies detected in `${{ github.event.repository.name }}`! :panic: - <${{ format('https://github.com/{0}/actions/runs/{1}', github.repository, github.run_id) }}|Run>
+              ${{ steps.bump.outputs.summary }}
               Upgrade PR for review: ${{ steps.pr.outputs.pull-request-url }}
