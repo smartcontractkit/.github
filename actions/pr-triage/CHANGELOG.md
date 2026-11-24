@@ -1,5 +1,16 @@
 # pr-triage
 
+## 0.3.1
+
+### Patch Changes
+
+- [#1799](https://github.com/smartcontractkit/.github/pull/1799)
+  [`933a1a9`](https://github.com/smartcontractkit/.github/commit/933a1a99431879c4bbbe0ea3cbd8cb58cb887704)
+  Thanks [@kalverra](https://github.com/kalverra)! - Keep the checkout's git
+  credential so `pr-triage` can fetch the base and head refs. With
+  `persist-credentials: false`, the CLI's own `git fetch` ran unauthenticated
+  and every run failed before analysis.
+
 ## 0.3.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "reusable-pr-triage",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Scores pull requests for risk, complexity, and reviewer routing with the pr-triage action",
   "private": true,
   "scripts": {},
