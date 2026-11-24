@@ -8,7 +8,7 @@ exports[`version > creates simple PR 1`] = `
 
 
 # Releases
-## simple-project-pkg-a@1.1.0
+## @chainlink/simple-project-pkg-a@1.1.0
 
 ### Minor Changes
 
@@ -17,9 +17,9 @@ exports[`version > creates simple PR 1`] = `
 ### Patch Changes
 
 -   Updated dependencies
-    -   simple-project-pkg-b@1.1.0
+    -   @chainlink/simple-project-pkg-b@1.1.0
 
-## simple-project-pkg-b@1.1.0
+## @chainlink/simple-project-pkg-b@1.1.0
 
 ### Minor Changes
 
@@ -42,7 +42,7 @@ exports[`version > creates simple PR in draft mode 1`] = `
 
 
 # Releases
-## simple-project-pkg-a@1.1.0
+## @chainlink/simple-project-pkg-a@1.1.0
 
 ### Minor Changes
 
@@ -51,9 +51,9 @@ exports[`version > creates simple PR in draft mode 1`] = `
 ### Patch Changes
 
 -   Updated dependencies
-    -   simple-project-pkg-b@1.1.0
+    -   @chainlink/simple-project-pkg-b@1.1.0
 
-## simple-project-pkg-b@1.1.0
+## @chainlink/simple-project-pkg-b@1.1.0
 
 ### Minor Changes
 
@@ -100,7 +100,7 @@ exports[`version > does not include changelog entries if full message exceeds si
 
 To view the full changelog, please check the [CHANGELOG file](https://github.com/changesets/action/blob/changeset-release/some-branch/CHANGELOG.md).
 
-## simple-project-pkg-a@1.1.0
+## @chainlink/simple-project-pkg-a@1.1.0
 
 ",
     "draft": false,
@@ -143,7 +143,7 @@ exports[`version > only includes bumped packages in the PR body 1`] = `
 
 
 # Releases
-## simple-project-pkg-a@1.1.0
+## @chainlink/simple-project-pkg-a@1.1.0
 
 ### Minor Changes
 
