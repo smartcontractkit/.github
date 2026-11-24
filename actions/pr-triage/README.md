@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          persist-credentials: false
+          persist-credentials: true
       - id: triage
         uses: smartcontractkit/.github/actions/pr-triage@pr-triage/v0
         with:
@@ -37,7 +37,9 @@ jobs:
 ```
 
 `fetch-depth: 0` is required: the CLI resolves merge bases and reads a 90-day
-file-hotness window.
+file-hotness window. The checkout must also keep its git credential: `pr-triage`
+runs `git fetch` for the base and head refs itself, so
+`persist-credentials: false` leaves that fetch unauthenticated.
 
 ## Inputs
 
