@@ -138,7 +138,9 @@ jobs:
         with:
           # pr-triage resolves merge bases and reads a 90-day file-hotness window.
           fetch-depth: 0
-          persist-credentials: false
+          # pr-triage fetches the base and head refs itself, so the checkout has
+          # to leave its git credential in place for that fetch.
+          persist-credentials: true
 
       - name: Mint release-read token
         id: release-token

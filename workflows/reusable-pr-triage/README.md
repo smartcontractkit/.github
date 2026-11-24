@@ -5,7 +5,8 @@ request that triggered the workflow. It wraps the
 [`pr-triage` action](https://github.com/smartcontractkit/.github/tree/main/actions/pr-triage)
 with:
 
-- a full-history, credential-free checkout;
+- a full-history checkout that keeps its git credential so `pr-triage` can fetch
+  the base and head refs;
 - the latest `pr-triage` release binary;
 - the minimal permissions the analysis needs;
 - short-lived token minting for the private release download and organization
