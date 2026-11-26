@@ -22,10 +22,12 @@ name: Reusable Stale PRs and Stale Issues
 #       contents: write
 #       issues: write
 #       pull-requests: write
+#       id-token: write
 #     stale-prs:
 #       uses: smartcontractkit/.github/.github/workflows/reusable-stale-prs-issues.yml@<ref>
 #       with:
 #         days-before-pr-stale: 30  # Optional, default value is "30"
+#         gati-profile: <profile>   # Optional, use a GATI token instead of GH_TOKEN
 #       secrets:
 #         GH_TOKEN: $\{{ secrets.GITHUB_TOKEN }} # Remove the \ char to unescape.
 
@@ -76,6 +78,16 @@ on:
         required: false
         type: boolean
         default: false
+      gati-profile:
+        description: |
+          GATI v2 token profile to mint the token used instead of GH_TOKEN.
+          Unlike GITHUB_TOKEN, PRs and issues closed with this token trigger
+          workflow events. The profile needs `issues: write`,
+          `pull-requests: write`, `actions: write`, and `contents: write` for
+          delete-branch.
+        required: false
+        type: string
+        default: ""
       operations-per-run:
         description: |
           The maximum number of operations per run, used to control rate
@@ -93,8 +105,10 @@ on:
         type: string
     secrets:
       GH_TOKEN:
-        description: "GitHub token for authentication"
-        required: true
+        description: |
+          GitHub token for authentication. Ignored when gati-profile is set.
+          Defaults to the workflow's GITHUB_TOKEN.
+        required: false
 
 permissions: {}
 
@@ -107,8 +121,16 @@ jobs:
       contents: write # only for delete-branch option
       issues: write
       pull-requests: write
+      id-token: write # OIDC token for GATI, only used with gati-profile
 
     steps:
+      - name: Get GitHub token
+        id: token
+        if: ${{ inputs.gati-profile != '' }}
+        uses: smartcontractkit/.github/actions/setup-github-token@setup-github-token/v1
+        with:
+          profile: ${{ inputs.gati-profile }}
+
       - uses: actions/stale@v10
         env:
           CLOSE_PR_MESSAGE: |
@@ -118,7 +140,7 @@ jobs:
             This PR is stale because it has been open ${{ inputs.days-before-pr-stale }} days with no activity.
             Remove the `stale` label, comment, or update this PR to prevent this PR from being closed in ${{ inputs.days-before-pr-close }} days.
         with:
-          repo-token: ${{ secrets.GH_TOKEN }}
+          repo-token: ${{ steps.token.outputs.access-token || secrets.GH_TOKEN || github.token }}
           close-pr-message: ${{ inputs.close-pr-message || env.CLOSE_PR_MESSAGE }}
           days-before-issue-close: ${{ inputs.days-before-issue-close }}
           days-before-issue-stale: ${{ inputs.days-before-issue-stale }}
