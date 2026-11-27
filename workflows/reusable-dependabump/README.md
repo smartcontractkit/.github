@@ -3,6 +3,25 @@
 This workflow inspects dependenabot vulnerabilities, and opens pull requests to
 update dependencies.
 
+Each dependency is bumped to the advisory's first patched version — the minimum
+version that fixes it, not the latest release. The pull request body lists each
+bump with the severity that triggered it, the fixed version, and the advisory,
+and the same summary is posted in the Slack notification.
+
+## Severity
+
+The `severity` input is a comma-separated allowlist of Dependabot alert
+severities to act on. It defaults to `critical,high,moderate`; add `low` or drop
+levels as needed.
+
+```yaml
+with:
+  severity: critical,high
+```
+
+The input validator only accepts `moderate` (not the API's `medium`) for the
+middle level.
+
 ## Recommended usage
 
 Example workflow:
