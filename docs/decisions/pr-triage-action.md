@@ -193,6 +193,17 @@ cached instead of extracted into a per-step temp directory.
   public release URLs. Fork pull requests then run the analysis instead of
   skipping. They run in forced dry-run, because the fork token is read-only and
   cannot write labels, comments, or reviewer requests.
+- Major tags are hand-maintained while both packages are 0.x. The release job's
+  `getMajorVersionTags` skips major version 0, so changesets never creates or
+  moves `pr-triage/v0` and `reusable-pr-triage/v0`. After every 0.x release,
+  point both lightweight tags at the release commit and force-push:
+  `git -c tag.gpgSign=false tag -f pr-triage/v0 <sha>`,
+  `git -c tag.gpgSign=false tag -f reusable-pr-triage/v0 <sha>`, then
+  `git push --force origin pr-triage/v0 reusable-pr-triage/v0`. Tag protection
+  allows the force update but rejects pushing a signed annotated tag, hence
+  `tag.gpgSign=false`. Callers on the `v0` refs otherwise keep running the
+  release the tag was last moved to. A 1.0 release makes the release job
+  maintain `v1` automatically.
 
 ## Follow-ups
 
