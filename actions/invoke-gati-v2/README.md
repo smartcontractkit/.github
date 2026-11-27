@@ -72,8 +72,8 @@ via job outputs; request a new one in each job that needs it.
 After minting the token, the action calls
 [`GET /rate_limit`](https://docs.github.com/en/rest/rate-limit/rate-limit#get-rate-limit-status-for-the-authenticated-user),
 which does not count against the rate limit, and logs the remaining, used, and
-reset time of every bucket. If that call fails, the action logs it and carries
-on.
+reset time of the `core` and `graphql` buckets. If that call fails, the action
+logs it and carries on.
 
 The post step makes no extra call. It logs the `x-ratelimit-*` headers of the
 revocation response instead, which cover only the bucket that response was

@@ -22000,7 +22000,9 @@ function isNearlyExhausted({ limit, remaining }) {
 }
 function toRateLimit(resource, limit, used, remaining, reset) {
   const values = [limit, used, remaining, reset];
-  if (!values.every((value) => typeof value === "number" && Number.isFinite(value))) {
+  if (!values.every(
+    (value) => typeof value === "number" && Number.isFinite(value)
+  )) {
     return void 0;
   }
   return {

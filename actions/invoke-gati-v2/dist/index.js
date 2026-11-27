@@ -22184,6 +22184,7 @@ function githubApiHeaders(token) {
 
 // actions/invoke-gati-v2/src/rate-limit.ts
 var WARNING_THRESHOLD = 0.1;
+var REPORTED_RESOURCES = ["core", "graphql"];
 async function fetchRateLimits(token) {
   const url = `${githubApiUrl()}/rate_limit`;
   const response = await fetch(url, { headers: githubApiHeaders(token) });
@@ -22193,11 +22194,21 @@ async function fetchRateLimits(token) {
     );
   }
   const body = await response.json();
-  if (!isObject(body?.resources)) {
-    throw new Error(`Response from ${url} did not contain rate limit resources.`);
+  const resources = body?.resources;
+  if (!isObject(resources)) {
+    throw new Error(
+      `Response from ${url} did not contain rate limit resources.`
+    );
   }
-  return Object.entries(body.resources).flatMap(([resource, bucket]) => {
-    const rateLimit = isObject(bucket) ? toRateLimit(resource, bucket.limit, bucket.used, bucket.remaining, bucket.reset) : void 0;
+  return REPORTED_RESOURCES.flatMap((resource) => {
+    const bucket = resources[resource];
+    const rateLimit = isObject(bucket) ? toRateLimit(
+      resource,
+      bucket.limit,
+      bucket.used,
+      bucket.remaining,
+      bucket.reset
+    ) : void 0;
     return rateLimit ? [rateLimit] : [];
   });
 }
@@ -22218,7 +22229,9 @@ function isNearlyExhausted({ limit, remaining }) {
 }
 function toRateLimit(resource, limit, used, remaining, reset) {
   const values = [limit, used, remaining, reset];
-  if (!values.every((value) => typeof value === "number" && Number.isFinite(value))) {
+  if (!values.every(
+    (value) => typeof value === "number" && Number.isFinite(value)
+  )) {
     return void 0;
   }
   return {
