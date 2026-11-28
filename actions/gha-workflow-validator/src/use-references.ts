@@ -4,6 +4,10 @@ import {
   parseWorkflow,
 } from "@actions/workflow-parser";
 import {
+  convertActionTemplate,
+  parseAction,
+} from "@actions/workflow-parser/actions/index";
+import {
   convertWorkflowTemplate,
   ErrorPolicy,
 } from "@actions/workflow-parser/model/convert";
@@ -56,13 +60,10 @@ export async function extractUseReferences(
   filename: string,
   content: string,
 ): Promise<UseReference[] | undefined> {
-  if (isActionFile(filename)) {
-    // Composite action files stay on the line scanner until the next layer.
-    return undefined;
-  }
-
   try {
-    return await extractWorkflowReferences(filename, content);
+    return isActionFile(filename)
+      ? extractActionReferences(filename, content)
+      : await extractWorkflowReferences(filename, content);
   } catch (error) {
     core.debug(
       `Unable to parse ${filename} with @actions/workflow-parser: ${describeError(error)}`,
@@ -251,6 +252,49 @@ function hasAliasedReferences(
     if (!/\buses\s*:\s*(?:[&!]\S+\s+)*["']?$/.test(prefix)) return true;
   }
   return false;
+}
+
+function extractActionReferences(
+  filename: string,
+  content: string,
+): UseReference[] | undefined {
+  const result = parseAction(
+    { name: filename, content },
+    new NoOperationTraceWriter(),
+  );
+  if (!result.value) {
+    return undefined;
+  }
+
+  const template = convertActionTemplate(result.context, result.value, {
+    errorPolicy: ErrorPolicy.TryConversion,
+  });
+  if (template.runs.using !== "composite") {
+    return [];
+  }
+
+  const lines = content.split(/\r?\n/);
+  const references = template.runs.steps.flatMap((step) =>
+    "uses" in step
+      ? [
+          toUseReference(
+            filename,
+            step.uses,
+            classifyUse(step.uses.value),
+            lines,
+          ),
+        ]
+      : [],
+  );
+
+  if (hasAliasedReferences(references, lines)) {
+    core.debug(
+      `${filename} reuses a \`uses\` value through a YAML alias; using fallback`,
+    );
+    return undefined;
+  }
+
+  return references;
 }
 
 function toUseReference(

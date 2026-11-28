@@ -11,6 +11,7 @@ import {
   ActionRefValidation,
   toActionReference,
 } from "../validations/action-reference-validations.js";
+import { ActionsCacheVersionValidation } from "../validations/actions-cache-validation.js";
 import { ValidationType } from "../validations/validation-check.js";
 
 vi.mock("@actions/core", async () => {
@@ -33,6 +34,23 @@ jobs:
       - uses: $/.github/actions/self
       - uses: owner/repo
       - run: echo hi
+`;
+
+const COMPOSITE_ACTION = `name: composite
+description: test
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+    - run: echo hi
+      shell: bash
+`;
+
+const NODE_ACTION = `name: node
+description: test
+runs:
+  using: node20
+  main: index.js
 `;
 
 async function referencesFor(
@@ -180,6 +198,19 @@ jobs:
     );
 
     expect(references).toBeUndefined();
+  });
+
+  it("extracts composite action references", async () => {
+    const references = await referencesFor("action.yml", COMPOSITE_ACTION);
+
+    expect(references.map((reference) => reference.value)).toEqual([
+      "actions/checkout@v4",
+    ]);
+  });
+
+  it("returns no references for node actions", async () => {
+    const references = await extractUseReferences("action.yml", NODE_ACTION);
+    expect(references).toEqual([]);
   });
 });
 
@@ -339,6 +370,41 @@ describe("validator integration with the reference index", () => {
           "Expected format {owner}/{repo}[/path]@{ref}. Actual 'owner/repo'",
       },
     ]);
+  });
+
+  it("reads actions/cache versions from the index", async () => {
+    const content = `on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/cache@v2
+      - uses: actions/cache/save@v5
+`;
+    const subject = new ActionsCacheVersionValidation({
+      references: await buildUseReferenceIndex([
+        { filename: "test.yml", lines: [], content },
+      ]),
+    });
+
+    const messages = await subject.validateLine(
+      line(6, "uses: actions/cache@v2"),
+      "test.yml",
+    );
+    expect(messages).toEqual([
+      {
+        type: ValidationType.ACTIONS_CACHE,
+        severity: "error",
+        message:
+          "This version (v2) of actions/cache is being deprecated. Please update to v5",
+      },
+    ]);
+    expect(
+      await subject.validateLine(
+        line(7, "uses: actions/cache/save@v5"),
+        "test.yml",
+      ),
+    ).toEqual([]);
   });
 });
 
