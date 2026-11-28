@@ -27,6 +27,8 @@ export enum ValidationType {
   IGNORE_COMMENT = "ignore-comment",
   ACTIONS_CACHE = "actions-cache",
   USES_FORMAT = "uses-format",
+  LOCKFILE_COVERAGE = "lockfile-coverage",
+  LOCKFILE_PARSE = "lockfile-parse",
 }
 
 export interface ValidationCheck {

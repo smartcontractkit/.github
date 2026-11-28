@@ -29,8 +29,9 @@ export async function run() {
     octokit,
   );
   if (parsedFiles.length === 0) {
-    core.info("No workflow files found in the changeset.");
-    process.exit(0);
+    core.info(
+      "No workflow files found in the changeset. Checking the lockfile only.",
+    );
   }
 
   const fileValidations = await validate(inputs, parsedFiles, octokit);

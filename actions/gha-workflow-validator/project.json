@@ -4,6 +4,7 @@
   "projectType": "application",
   "targets": {
     "test": {
+      "dependsOn": ["build:wasm"],
       "executor": "nx:run-commands",
       "options": {
         "command": "vitest run",
@@ -11,6 +12,7 @@
       }
     },
     "update-snapshots": {
+      "dependsOn": ["build:wasm"],
       "executor": "nx:run-commands",
       "options": {
         "command": "vitest --update run",
@@ -18,16 +20,28 @@
       }
     },
     "build": {
-      "dependsOn": ["build:internal"],
+      "dependsOn": ["build:wasm", "build:internal"],
       "command": "rimraf dist/package.json"
+    },
+    "build:wasm": {
+      "executor": "nx:run-commands",
+      "outputs": [
+        "{projectRoot}/dist/lockfile.wasm",
+        "{projectRoot}/dist/wasm_exec.js"
+      ],
+      "options": {
+        "command": "./scripts/build-wasm.sh",
+        "cwd": "{projectRoot}"
+      }
     },
     "build:internal": {
       "executor": "@nx/esbuild:esbuild",
-      "outputs": ["{options.outputPath}"],
+      "outputs": ["{projectRoot}/dist/index.js"],
       "defaultConfiguration": "production",
       "options": {
         "format": ["cjs"],
         "thirdParty": true,
+        "deleteOutputPath": false,
         "outputPath": "actions/gha-workflow-validator/dist/",
         "main": "actions/gha-workflow-validator/src/index.ts",
         "assets": [],

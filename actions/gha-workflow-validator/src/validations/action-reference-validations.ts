@@ -5,6 +5,11 @@ import {
   UseReferenceIndex,
   UseReferenceLookup,
 } from "../use-references.js";
+import {
+  WorkflowLockfile,
+  getLockedActionRefs,
+  toActionPinKey,
+} from "../lockfile.js";
 import * as core from "@actions/core";
 import {
   ValidationCheck,
@@ -33,6 +38,8 @@ interface ActionReference {
 interface ActionRefValidationOptions {
   validateNodeVersion: boolean;
   references?: UseReferenceIndex;
+  lockfile?: WorkflowLockfile;
+  rootDir?: string;
 }
 
 const USES_FORMAT_MESSAGE = (value: string) =>
@@ -57,6 +64,14 @@ export class ActionRefValidation implements ValidationCheck {
       return [];
     }
 
+    const lockedActionRefs = filename
+      ? getLockedActionRefs(
+          this.options.lockfile,
+          filename,
+          this.options.rootDir,
+        )
+      : undefined;
+
     const references: UseReferenceLookup =
       this.options.references && filename
         ? this.options.references.get(filename, line.lineNumber)
@@ -68,6 +83,7 @@ export class ActionRefValidation implements ValidationCheck {
         this.octokit,
         this.options,
         fileLineActionReference.actionReference,
+        lockedActionRefs,
       );
     }
 
@@ -95,6 +111,7 @@ export class ActionRefValidation implements ValidationCheck {
           this.octokit,
           this.options,
           actionReference,
+          lockedActionRefs,
         )),
       );
     }
@@ -107,6 +124,7 @@ async function validateActionReference(
   octokit: Octokit,
   options: ActionRefValidationOptions,
   actionRef: ActionReference | undefined,
+  lockedActionRefs: string[] | undefined,
 ): Promise<ValidationMessage[]> {
   if (!actionRef) {
     return [];
@@ -119,11 +137,20 @@ async function validateActionReference(
     return [];
   }
 
+  // A workflow onboarded to the lockfile no longer needs SHA references or
+  // version comments. Its references are pinned by the lockfile instead.
+  const isLocked = lockedActionRefs !== undefined;
+
   const validationErrors: ValidationMessage[] = [];
 
   const trustedActionTagRefValidation = validateTrustedActionTagRef(actionRef);
-  const shaRefValidation = validateShaRef(actionRef);
-  const versionCommentValidation = validateVersionCommentExists(actionRef);
+  const shaRefValidation = isLocked ? undefined : validateShaRef(actionRef);
+  const versionCommentValidation = isLocked
+    ? undefined
+    : validateVersionCommentExists(actionRef);
+  const lockfileCoverageValidation = isLocked
+    ? validateLockfileCoverage(actionRef, lockedActionRefs)
+    : undefined;
   const node24ActionValidation = options.validateNodeVersion
     ? await validateNodeActionVersion(octokit, actionRef)
     : undefined;
@@ -146,6 +173,12 @@ async function validateActionReference(
       `Version Comment Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${versionCommentValidation.message}`,
     );
     validationErrors.push(versionCommentValidation);
+  }
+  if (lockfileCoverageValidation) {
+    core.debug(
+      `Lockfile Coverage Validation Failed for ${actionRef.owner}/${actionRef.repo}${actionRef.repoPath}@${actionRef.ref} - ${lockfileCoverageValidation.message}`,
+    );
+    validationErrors.push(lockfileCoverageValidation);
   }
   if (node24ActionValidation) {
     core.debug(
@@ -208,6 +241,25 @@ function validateVersionCommentExists(
     message: `No version comment found`,
     type: ValidationType.VERSION_COMMENT,
     severity: "warning",
+  };
+}
+
+function validateLockfileCoverage(
+  actionReference: ActionReference,
+  lockedActionRefs: string[],
+): ValidationMessage | undefined {
+  const actionIdentifier = toActionPinKey(
+    actionReference.owner,
+    actionReference.repo,
+    actionReference.ref,
+  );
+
+  if (lockedActionRefs.includes(actionIdentifier)) return;
+
+  return {
+    message: `${actionIdentifier} is not pinned in .github/workflows/actions.lock for this workflow. Run \`gh actions-lock\` to add it.`,
+    type: ValidationType.LOCKFILE_COVERAGE,
+    severity: "error",
   };
 }
 
